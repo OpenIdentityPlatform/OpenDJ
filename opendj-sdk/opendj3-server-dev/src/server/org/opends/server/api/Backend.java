@@ -32,17 +32,22 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.Configuration;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IndexType;
 import org.opends.server.types.InitializationException;
@@ -52,8 +57,6 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
-
-import static org.opends.messages.BackendMessages.*;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -80,7 +83,7 @@ public abstract class Backend<C extends Configuration>
    * The set of backends that hold portions of the DIT that are hierarchically
    * below the information in this backend.
    */
-  private Backend<?>[] subordinateBackends;
+  private Backend<?>[] subordinateBackends = new Backend[0];
 
   /** The backend monitor associated with this backend. */
   private BackendMonitor backendMonitor;
@@ -94,26 +97,7 @@ public abstract class Backend<C extends Configuration>
   private String backendID;
 
   /** The writability mode for this backend. */
-  private WritabilityMode writabilityMode;
-
-
-
-  /**
-   * Creates a new backend with the provided information.  All backend
-   * implementations must implement a default constructor that use
-   * {@code super} to invoke this constructor.
-   */
-  protected Backend()
-  {
-    backendID           = null;
-    parentBackend       = null;
-    subordinateBackends = new Backend[0];
-    isPrivateBackend    = false;
-    writabilityMode     = WritabilityMode.ENABLED;
-    backendMonitor      = null;
-  }
-
-
+  private WritabilityMode writabilityMode = WritabilityMode.ENABLED;
 
   /**
    * Configure this backend based on the information in the provided
@@ -282,10 +266,10 @@ public abstract class Backend<C extends Configuration>
    *          matching rule should be considered indexed, or
    *          {@code false} if not.
    */
-  public boolean isIndexed(AttributeType attributeType,
+  private boolean isIndexed(AttributeType attributeType,
                            MatchingRule matchingRule)
   {
-    return false;
+    return false; // FIXME This should be overridden by the JE Backend at least!
   }
 
 
@@ -336,36 +320,23 @@ public abstract class Backend<C extends Configuration>
         // NOT filters are not considered indexed by default.
         return false;
 
-
       case EQUALITY:
-        return isIndexed(filter.getAttributeType(),
-                         IndexType.EQUALITY);
-
+        return isIndexed(filter.getAttributeType(), IndexType.EQUALITY);
 
       case SUBSTRING:
-        return isIndexed(filter.getAttributeType(),
-                         IndexType.SUBSTRING);
-
+        return isIndexed(filter.getAttributeType(), IndexType.SUBSTRING);
 
       case GREATER_OR_EQUAL:
-        return isIndexed(filter.getAttributeType(),
-                         IndexType.GREATER_OR_EQUAL);
-
+        return isIndexed(filter.getAttributeType(), IndexType.GREATER_OR_EQUAL);
 
       case LESS_OR_EQUAL:
-        return isIndexed(filter.getAttributeType(),
-                         IndexType.LESS_OR_EQUAL);
-
+        return isIndexed(filter.getAttributeType(), IndexType.LESS_OR_EQUAL);
 
       case PRESENT:
-        return isIndexed(filter.getAttributeType(),
-                         IndexType.PRESENCE);
-
+        return isIndexed(filter.getAttributeType(), IndexType.PRESENCE);
 
       case APPROXIMATE_MATCH:
-        return isIndexed(filter.getAttributeType(),
-                         IndexType.APPROXIMATE);
-
+        return isIndexed(filter.getAttributeType(), IndexType.APPROXIMATE);
 
       case EXTENSIBLE_MATCH:
         // The attribute type must be provided for us to make the
@@ -389,6 +360,7 @@ public abstract class Backend<C extends Configuration>
         {
           matchingRule = attrType.getEqualityMatchingRule();
         }
+        // FIXME isIndexed() always return false down below
         return matchingRule != null && isIndexed(attrType, matchingRule);
 
 
@@ -889,8 +861,6 @@ public abstract class Backend<C extends Configuration>
     return writabilityMode;
   }
 
-
-
   /**
    * Specifies the writability mode for this backend.
    *
@@ -899,14 +869,8 @@ public abstract class Backend<C extends Configuration>
   public final void setWritabilityMode(
                          WritabilityMode writabilityMode)
   {
-    if (writabilityMode == null)
-    {
-      this.writabilityMode = WritabilityMode.ENABLED;
-    }
-    else
-    {
-      this.writabilityMode = writabilityMode;
-    }
+    this.writabilityMode =
+        writabilityMode != null ? writabilityMode : WritabilityMode.ENABLED;
   }
 
 
@@ -1003,110 +967,6 @@ public abstract class Backend<C extends Configuration>
       this.subordinateBackends = subordinateBackends;
     }
   }
-
-
-
-  /**
-   * Indicates whether this backend has a subordinate backend
-   * registered with the provided base DN.  This may check recursively
-   * if a subordinate backend has its own subordinate backends.
-   *
-   * @param  subSuffixDN  The DN of the sub-suffix for which to make
-   *                      the determination.
-   *
-   * @return  {@code true} if this backend has a subordinate backend
-   *          registered with the provided base DN, or {@code false}
-   *          if it does not.
-   */
-  public final boolean hasSubSuffix(DN subSuffixDN)
-  {
-    for (Backend<?> b : subordinateBackends)
-    {
-      for (DN baseDN : b.getBaseDNs())
-      {
-        if (baseDN.equals(subSuffixDN))
-        {
-          return true;
-        }
-      }
-
-      if (b.hasSubSuffix(subSuffixDN))
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
-
-  /**
-   * Removes the backend associated with the specified sub-suffix if
-   * it is registered.  This may check recursively if a subordinate
-   * backend has its own subordinate backends.
-   *
-   * @param  subSuffixDN  The DN of the sub-suffix to remove from this
-   *                      backend.
-   * @param  parentDN     The superior DN for the sub-suffix DN that
-   *                      matches one of the subordinate base DNs for
-   *                      this backend.
-   *
-   * @throws  ConfigException  If the sub-suffix exists but it is not
-   *                           possible to remove it for some reason.
-   */
-  public final void removeSubSuffix(DN subSuffixDN, DN parentDN)
-         throws ConfigException
-  {
-    synchronized (this)
-    {
-      boolean matchFound = false;
-      ArrayList<Backend<?>> subBackendList =
-           new ArrayList<Backend<?>>(subordinateBackends.length);
-      for (Backend<?> b : subordinateBackends)
-      {
-        boolean thisMatches = false;
-        DN[] subBaseDNs = b.getBaseDNs();
-        for (DN dn : subBaseDNs)
-        {
-          if (dn.equals(subSuffixDN))
-          {
-            if (subBaseDNs.length > 1)
-            {
-              throw new ConfigException(
-                  ERR_BACKEND_CANNOT_REMOVE_MULTIBASE_SUB_SUFFIX.get(subSuffixDN, parentDN));
-            }
-
-            thisMatches = true;
-            matchFound  = true;
-            break;
-          }
-        }
-
-        if (! thisMatches)
-        {
-          if (b.hasSubSuffix(subSuffixDN))
-          {
-            b.removeSubSuffix(subSuffixDN, parentDN);
-          }
-          else
-          {
-            subBackendList.add(b);
-          }
-        }
-      }
-
-      if (matchFound)
-      {
-        Backend<?>[] newSubordinateBackends =
-             new Backend[subBackendList.size()];
-        subBackendList.toArray(newSubordinateBackends);
-        subordinateBackends = newSubordinateBackends;
-      }
-    }
-  }
-
-
 
   /**
    * Adds the provided backend to the set of subordinate backends for
