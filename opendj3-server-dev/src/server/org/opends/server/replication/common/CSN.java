@@ -61,6 +61,9 @@ public class CSN implements Serializable, Comparable<CSN>
    */
   public static final int STRING_ENCODING_LENGTH = 28;
 
+  /** The maximum possible value for a CSN. */
+  public static final CSN MAX_CSN_VALUE = new CSN(Long.MAX_VALUE, Integer.MAX_VALUE, Short.MAX_VALUE);
+
   private static final long serialVersionUID = -8802722277749190740L;
   private final long timeStamp;
   /**

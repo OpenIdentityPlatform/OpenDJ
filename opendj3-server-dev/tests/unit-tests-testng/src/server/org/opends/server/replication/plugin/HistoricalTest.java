@@ -84,6 +84,7 @@ public class HistoricalTest extends ReplicationTestCase
          + "cn: replication Server\n"
          + "ds-cfg-replication-port: " + replServerPort + "\n"
          + "ds-cfg-replication-db-directory: HistoricalTest\n"
+         + "ds-cfg-replication-db-implementation: " + replicationDbImplementation + "\n"
          + "ds-cfg-replication-server-id: 102\n";
 
     // The suffix to be synchronized.

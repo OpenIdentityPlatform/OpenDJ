@@ -79,6 +79,7 @@ public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: ChangeNumberControlDbTest\n"
+        + "ds-cfg-replication-db-implementation: " + replicationDbImplementation + "\n"
         + "ds-cfg-replication-server-id: 103\n";
 
     // suffix synchronized

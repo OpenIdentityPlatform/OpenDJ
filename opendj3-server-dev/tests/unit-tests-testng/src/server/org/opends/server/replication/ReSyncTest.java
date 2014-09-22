@@ -93,6 +93,7 @@ public class ReSyncTest extends ReplicationTestCase
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port:" + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: ReSyncTest\n"
+        + "ds-cfg-replication-db-implementation: " + replicationDbImplementation + "\n"
         + "ds-cfg-replication-server-id: 104\n";
 
     // suffix synchronized

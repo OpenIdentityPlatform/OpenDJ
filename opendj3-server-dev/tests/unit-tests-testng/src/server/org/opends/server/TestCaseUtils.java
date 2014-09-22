@@ -1105,6 +1105,13 @@ public final class TestCaseUtils {
     return new File(testResourceDir, filename);
   }
 
+  public static File getUnitTestRootPath()
+  {
+    final String buildRoot = System.getProperty(PROPERTY_BUILD_ROOT);
+    final String path = System.getProperty(PROPERTY_BUILD_DIR, buildRoot + File.separator + "build");
+    return new File(path, "unit-tests");
+  }
+
   /**
    * Prevent instantiation.
    */

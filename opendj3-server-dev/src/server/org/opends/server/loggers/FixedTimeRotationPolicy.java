@@ -107,7 +107,7 @@ public class FixedTimeRotationPolicy implements
   /**
    * {@inheritDoc}
    */
-  public boolean rotateFile(MultifileTextWriter writer)
+  public boolean rotateFile(RotatableLogFile writer)
   {
     Calendar lastRotationTime = writer.getLastRotationTime();
 

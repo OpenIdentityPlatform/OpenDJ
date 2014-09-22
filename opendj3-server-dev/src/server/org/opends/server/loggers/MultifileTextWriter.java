@@ -59,7 +59,7 @@ import java.util.Calendar;
  * new one named in accordance with a specified FileNamingPolicy.
  */
 class MultifileTextWriter
-    implements ServerShutdownListener, TextWriter,
+    implements ServerShutdownListener, TextWriter, RotatableLogFile,
     ConfigurationChangeListener<SizeLimitLogRotationPolicyCfg>
 {
 
@@ -662,11 +662,8 @@ class MultifileTextWriter
     this.actions = actions;
   }
 
-  /**
-   * Retrieves the number of bytes written to the current log file.
-   *
-   * @return The number of bytes written to the current log file.
-   */
+  /** {@inheritDoc} */
+  @Override
   public long getBytesWritten()
   {
     return outputStream.written;
@@ -694,13 +691,8 @@ class MultifileTextWriter
     return lastCleanCount;
   }
 
-  /**
-   * Retrieves the last time a log file was rotated in this instance of
-   * Directory Server. If a log rotation never
-   * occurred, this value will be the time the server started.
-   *
-   * @return The last time log rotation occurred.
-   */
+  /** {@inheritDoc} */
+  @Override
   public Calendar getLastRotationTime()
   {
     return lastRotationTime;
