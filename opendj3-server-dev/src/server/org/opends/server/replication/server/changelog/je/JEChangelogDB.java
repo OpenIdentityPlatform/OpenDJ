@@ -26,7 +26,13 @@
 package org.opends.server.replication.server.changelog.je;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -46,9 +52,13 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
+import org.opends.server.replication.server.changelog.api.ChangelogDB;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
+import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -831,7 +841,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     final JEReplicaDB replicaDB = pair.getFirst();
     replicaDB.add(updateMsg);
 
-    ChangelogBackend.getInstance().notifyEntryAdded(baseDN, 0, null, updateMsg);
+    ChangelogBackend.getInstance().notifyCookieEntryAdded(baseDN, updateMsg);
 
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
