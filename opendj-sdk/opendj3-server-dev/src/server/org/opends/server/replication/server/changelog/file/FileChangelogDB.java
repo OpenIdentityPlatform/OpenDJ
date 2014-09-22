@@ -138,14 +138,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public void replicaOffline(DN baseDN, CSN offlineCSN)
-      throws ChangelogException
-  {
-    throw new RuntimeException("Not implemented");
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void initializeDB()
   {
     throw new RuntimeException("Not implemented");
@@ -176,6 +168,14 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public void removeDB() throws ChangelogException
+  {
+    throw new RuntimeException("Not implemented");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void notifyReplicaOffline(DN baseDN, CSN offlineCSN)
+      throws ChangelogException
   {
     throw new RuntimeException("Not implemented");
   }

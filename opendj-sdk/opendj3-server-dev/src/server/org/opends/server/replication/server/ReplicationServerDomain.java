@@ -496,7 +496,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       if (updateMsg instanceof ReplicaOfflineMsg)
       {
         final ReplicaOfflineMsg offlineMsg = (ReplicaOfflineMsg) updateMsg;
-        this.domainDB.replicaOffline(baseDN, offlineMsg.getCSN());
+        this.domainDB.notifyReplicaOffline(baseDN, offlineMsg.getCSN());
         return true;
       }
 
