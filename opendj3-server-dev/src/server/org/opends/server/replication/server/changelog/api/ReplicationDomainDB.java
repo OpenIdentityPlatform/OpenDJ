@@ -25,6 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
+import java.util.Set;
+
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -114,6 +116,32 @@ public interface ReplicationDomainDB
    */
   public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState, PositionStrategy positionStrategy)
       throws ChangelogException;
+
+  /**
+   * Generates a {@link DBCursor} across all the domains starting at or after
+   * the provided {@link MultiDomainServerState} for each domain, excluding a
+   * provided set of domain DNs.
+   * <p>
+   * When the cursor is not used anymore, client code MUST call the
+   * {@link DBCursor#close()} method to free the resources and locks used by the
+   * cursor.
+   *
+   * @param startState
+   *          Starting point for each domain cursor. If any {@link ServerState}
+   *          for a domain is null, then start from the oldest CSN for each
+   *          replicaDBs
+   * @param positionStrategy
+   *          Cursor position strategy, which allow to indicates at which exact
+   *          position the cursor must start
+   * @param excludedDomainDns
+   *          Every domain appearing in this set is excluded from the cursor
+   * @return a non null {@link DBCursor}
+   * @throws ChangelogException
+   *           If a database problem happened
+   * @see #getCursorFrom(DN, ServerState, PositionStrategy)
+   */
+  public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState, PositionStrategy positionStrategy,
+      Set<DN> excludedDomainDns) throws ChangelogException;
 
   // serverId methods
 

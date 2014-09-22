@@ -25,6 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import java.util.Set;
+
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
@@ -92,6 +94,15 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   @Override
   public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState,
       PositionStrategy positionStrategy) throws ChangelogException
+  {
+    throw new RuntimeException("Not implemented");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState,
+      PositionStrategy positionStrategy, Set<DN> excludedDomainDns)
+      throws ChangelogException
   {
     throw new RuntimeException("Not implemented");
   }
