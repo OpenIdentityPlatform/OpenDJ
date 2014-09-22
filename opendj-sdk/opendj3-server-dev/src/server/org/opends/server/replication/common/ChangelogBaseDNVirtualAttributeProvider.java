@@ -26,11 +26,8 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.List;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
@@ -45,7 +42,6 @@ import static org.opends.messages.ExtensionMessages.*;
  */
 public class ChangelogBaseDNVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
-       implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
 
   /**
@@ -104,21 +100,5 @@ public class ChangelogBaseDNVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public boolean isConfigurationChangeAcceptable(
-                      UserDefinedVirtualAttributeCfg configuration,
-                      List<LocalizableMessage> unacceptableReasons)
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public ConfigChangeResult applyConfigurationChange(
-                                 UserDefinedVirtualAttributeCfg configuration)
-  {
-    return new ConfigChangeResult(ResultCode.OTHER, false);
-  }
 }
 
