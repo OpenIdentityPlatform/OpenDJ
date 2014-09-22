@@ -36,6 +36,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredicate;
 import org.opends.server.types.AttributeType;
@@ -281,6 +282,29 @@ public class ChangelogBackend extends Backend<Configuration>
   /** {@inheritDoc} */
   @Override
   public long getEntryCount()
+  {
+    throw new RuntimeException("Not implemented");
+  }
+
+  /**
+   * Get the instance of backend.
+   *
+   * @return the instance
+   */
+  public static ChangelogBackend getInstance()
+  {
+    throw new RuntimeException("Not implemented");
+  }
+
+  /**
+   * Notify.
+   *
+   * @param baseDN
+   *            The base DN
+   * @param updateMsg
+   *            The update msg
+   */
+  public void notifyCookieEntryAdded(DN baseDN, UpdateMsg updateMsg)
   {
     throw new RuntimeException("Not implemented");
   }
