@@ -267,12 +267,6 @@ public final class ReplicationServer
               session, queueSize, this, rcvWindow);
           rsHandler.startFromRemoteRS((ReplServerStartMsg) msg);
         }
-        else if (msg instanceof ServerStartECLMsg)
-        {
-          ECLServerHandler eclHandler = new ECLServerHandler(
-              session, queueSize, this, rcvWindow);
-          eclHandler.startFromRemoteServer((ServerStartECLMsg) msg);
-        }
         else
         {
           // We did not recognize the message, close session as what

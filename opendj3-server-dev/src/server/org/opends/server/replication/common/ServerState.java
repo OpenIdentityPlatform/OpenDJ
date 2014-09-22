@@ -421,28 +421,4 @@ public class ServerState implements Iterable<CSN>
     return saved;
   }
 
-  /**
-   * Build a copy of the ServerState with only CSNs older than a provided
-   * timestamp. This is used when building the initial Cookie in the External
-   * Changelog, to cope with purged changes.
-   *
-   * @param timestamp
-   *          The timestamp to compare the ServerState against
-   * @return a copy of the ServerState which only contains the CSNs older than
-   *         csn.
-   */
-  public ServerState duplicateOnlyOlderThan(long timestamp)
-  {
-    final CSN csn = new CSN(timestamp, 0, 0);
-    final ServerState newState = new ServerState();
-    for (CSN change : serverIdToCSN.values())
-    {
-      if (change.isOlderThan(csn))
-      {
-        newState.serverIdToCSN.put(change.getServerId(), change);
-      }
-    }
-    return newState;
-  }
-
 }

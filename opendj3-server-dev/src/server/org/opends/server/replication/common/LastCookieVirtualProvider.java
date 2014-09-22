@@ -26,20 +26,20 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.Set;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.*;
-import org.opends.server.util.ServerConstants;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.replication.plugin.MultimasterReplication.*;
 
 /**
  * This class implements a virtual attribute provider in the root-dse entry
@@ -89,11 +89,7 @@ public class LastCookieVirtualProvider
     {
       if (replicationServer != null)
       {
-        // Set a list of excluded domains (also exclude 'cn=changelog' itself)
-        Set<String> excludedDomains = MultimasterReplication.getECLDisabledDomains();
-        excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-
-        String newestCookie = replicationServer.getNewestECLCookie(excludedDomains).toString();
+        String newestCookie = replicationServer.getNewestECLCookie(getExcludedChangelogDomains()).toString();
         return Attributes.create(rule.getAttributeType(), newestCookie);
       }
     }

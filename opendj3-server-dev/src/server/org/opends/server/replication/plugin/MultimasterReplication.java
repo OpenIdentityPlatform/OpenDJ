@@ -26,31 +26,60 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.*;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
-import org.opends.server.api.*;
+import org.opends.server.api.Backend;
+import org.opends.server.api.BackupTaskListener;
+import org.opends.server.api.ExportTaskListener;
+import org.opends.server.api.ImportTaskListener;
+import org.opends.server.api.RestoreTaskListener;
+import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.service.DSRSShutdownSync;
-import org.opends.server.types.*;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.operation.*;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.SynchronizationProviderResult;
+import org.opends.server.types.operation.PluginOperation;
+import org.opends.server.types.operation.PostOperationAddOperation;
+import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
+import org.opends.server.types.operation.PostOperationModifyOperation;
+import org.opends.server.types.operation.PostOperationOperation;
+import org.opends.server.types.operation.PreOperationAddOperation;
+import org.opends.server.types.operation.PreOperationDeleteOperation;
+import org.opends.server.types.operation.PreOperationModifyDNOperation;
+import org.opends.server.types.operation.PreOperationModifyOperation;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.ReplicationRepairRequestControl.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -819,14 +848,14 @@ public class MultimasterReplication
   }
 
   /**
-   * Gets the Set of baseDN of the domains which are disabled for the external
-   * changelog.
+   * Gets the Set of domain baseDN which are disabled for the external changelog.
    *
-   * @return The Set of baseDNs which are disabled for the external changelog.
+   * @return The Set of domain baseDNs which are disabled for the external changelog.
    */
-  public static Set<String> getECLDisabledDomains()
+  public static Set<String> getExcludedChangelogDomains()
   {
-    final Set<String> disabledBaseDNs = new HashSet<String>(domains.size());
+    final Set<String> disabledBaseDNs = new HashSet<String>(domains.size() + 1);
+    disabledBaseDNs.add(DN_EXTERNAL_CHANGELOG_ROOT);
     for (LDAPReplicationDomain domain : domains.values())
     {
       if (!domain.isECLEnabled())

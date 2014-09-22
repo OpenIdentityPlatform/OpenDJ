@@ -48,8 +48,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.messages.Category;
-import org.opends.messages.Severity;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigConstants;
@@ -114,7 +112,6 @@ import com.forgerock.opendj.util.Pair;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.replication.plugin.MultimasterReplication.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
@@ -795,7 +792,7 @@ public class ChangelogBackend extends Backend<Configuration>
   private static Set<DN> getExcludedBaseDNs() throws DirectoryException
   {
     final Set<DN> excludedDNs = new HashSet<DN>();
-    for (String dn : getECLDisabledDomains())
+    for (String dn : getExcludedChangelogDomains())
     {
       excludedDNs.add(DN.valueOf(dn));
     }
