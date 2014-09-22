@@ -36,15 +36,37 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.Backend;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.*;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.opends.server.controls.LDAPPostReadRequestControl;
+import org.opends.server.controls.LDAPPreReadRequestControl;
+import org.opends.server.controls.ProxiedAuthV1Control;
+import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.core.AccessControlConfigManager;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationWrapper;
+import org.opends.server.core.PersistentSearch;
+import org.opends.server.core.PluginConfigManager;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
@@ -200,31 +222,12 @@ public class LocalBackendModifyDNOperation
     {
       registerPostResponseCallback(new Runnable()
       {
-
         @Override
         public void run()
         {
-          // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processModifyDN(newEntry, currentEntry.getName());
-          }
-
-          // Notify change listeners.
-          for (ChangeNotificationListener changeListener : DirectoryServer
-              .getChangeNotificationListeners())
-          {
-            try
-            {
-              changeListener.handleModifyDNOperation(
-                  LocalBackendModifyDNOperation.this, currentEntry, newEntry);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              logger.error(ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER, getExceptionMessage(e));
-            }
           }
         }
       });

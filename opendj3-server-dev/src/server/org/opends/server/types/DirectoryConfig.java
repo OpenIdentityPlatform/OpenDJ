@@ -31,20 +31,20 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.InvokableComponent;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+
 import com.forgerock.opendj.util.OperatingSystem;
 
 /**
@@ -1061,43 +1061,6 @@ public final class DirectoryConfig
   {
     DirectoryServer.deregisterSASLMechanismHandler(name);
   }
-
-
-
-  /**
-   * Registers the provided change notification listener with the
-   * Directory Server so that it will be notified of any add, delete,
-   * modify, or modify DN operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to
-   *                         register with the Directory Server.
-   */
-  public static void
-       registerChangeNotificationListener(
-            ChangeNotificationListener changeListener)
-  {
-    DirectoryServer.registerChangeNotificationListener(
-                         changeListener);
-  }
-
-
-
-  /**
-   * Deregisters the provided change notification listener with the
-   * Directory Server so that it will no longer be notified of any
-   * add, delete, modify, or modify DN operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to
-   *                         deregister with the Directory Server.
-   */
-  public static void deregisterChangeNotificationListener(
-                          ChangeNotificationListener changeListener)
-  {
-    DirectoryServer.deregisterChangeNotificationListener(
-                         changeListener);
-  }
-
-
 
   /**
    * Registers the provided shutdown listener with the Directory

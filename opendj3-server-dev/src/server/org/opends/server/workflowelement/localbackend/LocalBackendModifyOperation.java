@@ -40,13 +40,51 @@ import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.opends.server.api.*;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.*;
-import org.opends.server.core.*;
+import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.opends.server.controls.LDAPPostReadRequestControl;
+import org.opends.server.controls.LDAPPreReadRequestControl;
+import org.opends.server.controls.PasswordPolicyErrorType;
+import org.opends.server.controls.PasswordPolicyResponseControl;
+import org.opends.server.controls.ProxiedAuthV1Control;
+import org.opends.server.controls.ProxiedAuthV2Control;
+import org.opends.server.core.AccessControlConfigManager;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationWrapper;
+import org.opends.server.core.PasswordPolicy;
+import org.opends.server.core.PasswordPolicyState;
+import org.opends.server.core.PersistentSearch;
+import org.opends.server.core.PluginConfigManager;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.*;
+import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.AccountStatusNotification;
+import org.opends.server.types.AccountStatusNotificationType;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
@@ -314,32 +352,12 @@ public class LocalBackendModifyOperation
     {
       registerPostResponseCallback(new Runnable()
       {
-
         @Override
         public void run()
         {
-          // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processModify(modifiedEntry, currentEntry);
-          }
-
-          // Notify change listeners.
-          for (ChangeNotificationListener changeListener : DirectoryServer
-              .getChangeNotificationListeners())
-          {
-            try
-            {
-              changeListener
-                  .handleModifyOperation(LocalBackendModifyOperation.this,
-                      currentEntry, modifiedEntry);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              logger.error(ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER, getExceptionMessage(e));
-            }
           }
         }
       });

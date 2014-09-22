@@ -22,104 +22,108 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
-
-
+import java.util.EnumSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.api.ChangeNotificationListener;
-import org.opends.server.types.Entry;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult.PostResponse;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
-import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
+import org.opends.server.types.operation.PostResponseModifyOperation;
 
-
+import static org.opends.server.api.plugin.PluginType.*;
 
 /**
  * This class provides a simple change notification listener that simply counts
  * the number of times that it is invoked during processing.
  */
-public class TestChangeNotificationListener
-       implements ChangeNotificationListener
+class TestChangeNotificationListener extends InternalDirectoryServerPlugin
 {
-  // The number of times that the listener has been invoked for add operations.
-  private AtomicInteger addCount;
+  /** The number of times that the listener has been invoked for add operations. */
+  private final AtomicInteger addCount = new AtomicInteger(0);
 
-  // The number of times that the listener has been invoked for delete
-  // operations.
-  private AtomicInteger deleteCount;
+  /**
+   * The number of times that the listener has been invoked for delete
+   * operations.
+   */
+  private final AtomicInteger deleteCount = new AtomicInteger(0);
 
-  // The number of times that the listener has been invoked for modify
-  // operations.
-  private AtomicInteger modifyCount;
+  /**
+   * The number of times that the listener has been invoked for modify
+   * operations.
+   */
+  private final AtomicInteger modifyCount = new AtomicInteger(0);
 
-  // The number of times that the listener has been invoked for modify DN
-  // operations.
-  private AtomicInteger modifyDNCount;
-
-
+  /**
+   * The number of times that the listener has been invoked for modify DN
+   * operations.
+   */
+  private final AtomicInteger modifyDNCount = new AtomicInteger(0);
 
   /**
    * Creates a new instance of this change notification listener.
+   *
+   * @throws DirectoryException
+   *           If a problem occurs while creating an instance of this class
    */
-  public TestChangeNotificationListener()
+  public TestChangeNotificationListener() throws DirectoryException
   {
-    addCount      = new AtomicInteger(0);
-    deleteCount   = new AtomicInteger(0);
-    modifyCount   = new AtomicInteger(0);
-    modifyDNCount = new AtomicInteger(0);
+    super(DN.valueOf("cn=TestChangeNotificationListener"),
+        EnumSet.of(POST_RESPONSE_ADD, POST_RESPONSE_MODIFY, POST_RESPONSE_MODIFY_DN, POST_RESPONSE_DELETE),
+        true);
   }
 
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleAddOperation(PostResponseAddOperation addOperation,
-                                 Entry entry)
+  /** {@inheritDoc} */
+  @Override
+  public PostResponse doPostResponse(PostResponseAddOperation op)
   {
-    addCount.incrementAndGet();
+    if (op.getResultCode() == ResultCode.SUCCESS)
+    {
+      addCount.incrementAndGet();
+    }
+    return PostResponse.continueOperationProcessing();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
-                                    Entry entry)
+  /** {@inheritDoc} */
+  @Override
+  public PostResponse doPostResponse(PostResponseDeleteOperation op)
   {
-    deleteCount.incrementAndGet();
+    if (op.getResultCode() == ResultCode.SUCCESS)
+    {
+      deleteCount.incrementAndGet();
+    }
+    return PostResponse.continueOperationProcessing();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
-                                    Entry oldEntry, Entry newEntry)
+  /** {@inheritDoc} */
+  @Override
+  public PostResponse doPostResponse(PostResponseModifyOperation op)
   {
-    modifyCount.incrementAndGet();
+    if (op.getResultCode() == ResultCode.SUCCESS)
+    {
+      modifyCount.incrementAndGet();
+    }
+    return PostResponse.continueOperationProcessing();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleModifyDNOperation(
-                   PostResponseModifyDNOperation modifyDNOperation,
-                   Entry oldEntry, Entry newEntry)
+  /** {@inheritDoc} */
+  @Override
+  public PostResponse doPostResponse(PostResponseModifyDNOperation op)
   {
-    modifyDNCount.incrementAndGet();
+    if (op.getResultCode() == ResultCode.SUCCESS)
+    {
+      modifyDNCount.incrementAndGet();
+    }
+    return PostResponse.continueOperationProcessing();
   }
-
-
 
   /**
    * Resets all of the counts to zero.
@@ -132,8 +136,6 @@ public class TestChangeNotificationListener
     modifyDNCount.set(0);
   }
 
-
-
   /**
    * Retrieves the current invocation count for add operations.
    *
@@ -143,8 +145,6 @@ public class TestChangeNotificationListener
   {
     return addCount.get();
   }
-
-
 
   /**
    * Retrieves the current invocation count for delete operations.
@@ -156,8 +156,6 @@ public class TestChangeNotificationListener
     return deleteCount.get();
   }
 
-
-
   /**
    * Retrieves the current invocation count for modify operations.
    *
@@ -167,8 +165,6 @@ public class TestChangeNotificationListener
   {
     return modifyCount.get();
   }
-
-
 
   /**
    * Retrieves the current invocation count for modify DN operations.

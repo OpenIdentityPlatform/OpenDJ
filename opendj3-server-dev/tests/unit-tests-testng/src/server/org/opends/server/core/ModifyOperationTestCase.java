@@ -36,6 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -44,20 +45,44 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
+import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -92,55 +117,45 @@ public class ModifyOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @DataProvider(name = "modifyOperations")
-  public Object[][] getModifyOperations()
-         throws Exception
+  public Object[][] getModifyOperations() throws Exception
   {
     List<ModifyOperation> opList = new ArrayList<ModifyOperation>();
 
     List<Control> noControls = new ArrayList<Control>();
 
-
-    List<RawModification> ldapMods = new ArrayList<RawModification>();
     LDAPAttribute ldapAttr = new LDAPAttribute("description", "foo");
-    ldapMods.add(add(ldapAttr));
+    List<RawModification> ldapMods = newRawModifications(add(ldapAttr));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<RawModification>();
-    ldapMods.add(delete(ldapAttr));
+    ldapMods = newRawModifications(delete(ldapAttr));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<RawModification>();
-    ldapMods.add(replace(ldapAttr));
+    ldapMods = newRawModifications(replace(ldapAttr));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<RawModification>();
-    ArrayList<ByteString> values2 = new ArrayList<ByteString>();
-    values2.add(ByteString.valueOf("bar"));
+    ArrayList<ByteString> values2 = newArrayList(ByteString.valueOf("bar"));
     LDAPAttribute ldapAttr2 = new LDAPAttribute("description", values2);
-    ldapMods.add(delete(ldapAttr));
-    ldapMods.add(add(ldapAttr2));
+    ldapMods = newRawModifications(delete(ldapAttr), add(ldapAttr2));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
-    ldapMods = new ArrayList<RawModification>();
     ldapAttr2 = new LDAPAttribute("cn", values2);
-    ldapMods.add(replace(ldapAttr));
-    ldapMods.add(replace(ldapAttr2));
+    ldapMods = newRawModifications(replace(ldapAttr), replace(ldapAttr2));
 
     opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
     opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
@@ -149,8 +164,7 @@ public class ModifyOperationTestCase
 
 
 
-    List<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.ADD,
+    List<Modification> mods = newModifications(new Modification(ModificationType.ADD,
         Attributes.create("description", "foo")));
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
@@ -158,8 +172,7 @@ public class ModifyOperationTestCase
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.DELETE,
+    mods = newModifications(new Modification(ModificationType.DELETE,
         Attributes.create("description", "foo")));
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
@@ -167,8 +180,7 @@ public class ModifyOperationTestCase
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
+    mods = newModifications(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
@@ -176,22 +188,22 @@ public class ModifyOperationTestCase
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("description", "foo")));
-    mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("description", "bar")));
+    mods = newModifications(
+        new Modification(ModificationType.DELETE,
+            Attributes.create("description", "foo")),
+        new Modification(ModificationType.ADD,
+            Attributes.create("description", "bar")));
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
     opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
     opList.add(newModifyOperation(null, DN.valueOf("o=test"), mods));
     opList.add(newModifyOperation(noControls, DN.valueOf("o=test"), mods));
 
-    mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("cn", "bar")));
+    mods = newModifications(
+        new Modification(ModificationType.REPLACE,
+            Attributes.create("description", "foo")),
+        new Modification(ModificationType.REPLACE,
+            Attributes.create("cn", "bar")));
 
     opList.add(newModifyOperation(null, DN.rootDN(), mods));
     opList.add(newModifyOperation(noControls, DN.rootDN(), mods));
@@ -241,9 +253,8 @@ public class ModifyOperationTestCase
 
 
   /** {@inheritDoc} */
-  @Override()
-  protected Operation[] createTestOperations()
-         throws Exception
+  @Override
+  protected Operation[] createTestOperations() throws Exception
   {
     Object[][]  objs = getModifyOperations();
     Operation[] ops  = new Operation[objs.length];
@@ -285,27 +296,25 @@ public class ModifyOperationTestCase
    * Tests the <CODE>getEntryDN</CODE> method that should decode
    * the raw entry dn and return a non-null DN.
    */
-  @Test()
+  @Test
   public void testGetEntryDNInitiallyNull()
   {
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
-
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyOperation modifyOperation = newModifyOperation(null, ByteString.empty(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
 
 
-  private LDAPAttribute newLDAPAttribute(String sttributeType, String... valueStrings)
+  private LDAPAttribute newLDAPAttribute(String attributeType, String... valueStrings)
   {
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     for (String valueStr : valueStrings)
     {
       values.add(ByteString.valueOf(valueStr));
     }
-    return new LDAPAttribute(sttributeType, values);
+    return new LDAPAttribute(attributeType, values);
   }
 
   /**
@@ -314,13 +323,12 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetEntryDNInitiallyNonNull()
-         throws Exception
+  @Test
+  public void testGetEntryDNInitiallyNonNull() throws Exception
   {
-    List<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
+    List<Modification> mods = newModifications(
+        new Modification(ModificationType.REPLACE,
+            Attributes.create("description", "foo")));
     ModifyOperation modifyOperation = newModifyOperation(null, DN.rootDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
@@ -334,15 +342,13 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetEntryDNNonNullChangedToNull()
-         throws Exception
+  @Test
+  public void testGetEntryDNNonNullChangedToNull() throws Exception
   {
-    List<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("description", "foo")));
-    ModifyOperation modifyOperation =
-        newModifyOperation(null, DN.rootDN(), mods);
+    List<Modification> mods = newModifications(
+        new Modification(ModificationType.REPLACE,
+            Attributes.create("description", "foo")));
+    ModifyOperation modifyOperation = newModifyOperation(null, DN.rootDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
     modifyOperation.setRawEntryDN(ByteString.valueOf("ou=Users,o=test"));
@@ -363,9 +369,7 @@ public class ModifyOperationTestCase
          throws Exception
   {
     List<RawModification> rawMods = modifyOperation.getRawModifications();
-
-    List<RawModification> clonedMods =
-         new ArrayList<RawModification>(rawMods);
+    List<RawModification> clonedMods = new ArrayList<RawModification>(rawMods);
     modifyOperation.setRawModifications(clonedMods);
 
     LDAPAttribute attr = newLDAPAttribute("test", "test");
@@ -433,9 +437,8 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetAndAddModifications()
-         throws Exception
+  @Test
+  public void testGetAndAddModifications() throws Exception
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
@@ -446,9 +449,9 @@ public class ModifyOperationTestCase
              Attributes.create("description", "foo")));
 
 
-    List<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("l", "Austin")));
+    List<Modification> mods = newModifications(
+        new Modification(ModificationType.REPLACE,
+            Attributes.create("l", "Austin")));
 
     ModifyOperation modifyOperation =
         getRootConnection().processModify(DN.valueOf("o=test"), mods);
@@ -466,7 +469,7 @@ public class ModifyOperationTestCase
   /**
    * Tests to ensure that a modify attempt fails if an invalid DN is provided.
    */
-  @Test()
+  @Test
   public void testFailInvalidDN()
   {
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
@@ -481,7 +484,7 @@ public class ModifyOperationTestCase
    * Tests to ensure that a modify attempt fails if the target DN is a suffix
    * that doesn't exist.
    */
-  @Test()
+  @Test
   public void testFailNoSuchSuffix()
   {
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
@@ -551,9 +554,8 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessAddAttribute()
-         throws Exception
+  @Test
+  public void testSuccessAddAttribute() throws Exception
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType("description", true)));
@@ -575,9 +577,8 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessAddAttributeValue()
-         throws Exception
+  @Test
+  public void testSuccessAddAttributeValue() throws Exception
   {
     Entry e = DirectoryServer.getEntry(DN.valueOf("o=test"));
 
@@ -2402,8 +2403,7 @@ public class ModifyOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
     LDAPAttribute attr = newLDAPAttribute("entryUUID", "12345678-1234-1234-1234-1234567890ab");
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
     long modifyResponses = ldapStatistics.getModifyResponses();
@@ -2543,8 +2543,7 @@ public class ModifyOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(add(attr));
+    List<RawModification> mods = newRawModifications(add(attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
     long modifyResponses = ldapStatistics.getModifyResponses();
@@ -2690,8 +2689,7 @@ public class ModifyOperationTestCase
     assertEquals(bindResponse.getResultCode(), 0);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(add(attr));
+    List<RawModification> mods = newRawModifications(add(attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
     long modifyResponses = ldapStatistics.getModifyResponses();
@@ -2721,22 +2719,27 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessNotifyChangeListeners()
-         throws Exception
+  @Test
+  public void testSuccessNotifyChangeListeners() throws Exception
   {
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
-    DirectoryServer.registerChangeNotificationListener(changeListener);
-    assertEquals(changeListener.getModifyCount(), 0);
+    DirectoryServer.registerInternalPlugin(changeListener);
+    try
+    {
+      assertEquals(changeListener.getModifyCount(), 0);
 
-    LDAPAttribute attr = newLDAPAttribute("description", "foo");
-    ModifyOperation modifyOperation = processModify("o=test", replace(attr));
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    retrieveSuccessfulOperationElements(modifyOperation);
+      LDAPAttribute attr = newLDAPAttribute("description", "foo");
+      ModifyOperation modifyOperation = processModify("o=test", replace(attr));
+      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+      retrieveSuccessfulOperationElements(modifyOperation);
 
-    assertEquals(changeListener.getModifyCount(), 1);
-    DirectoryServer.deregisterChangeNotificationListener(changeListener);
+      assertEquals(changeListener.getModifyCount(), 1);
+    }
+    finally
+    {
+      DirectoryServer.deregisterInternalPlugin(changeListener);
+    }
   }
 
 
@@ -2748,21 +2751,26 @@ public class ModifyOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "baseDNs")
-  public void testFailDoNotNotifyChangeListeners(String baseDN)
-         throws Exception
+  public void testFailDoNotNotifyChangeListeners(String baseDN) throws Exception
   {
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
-    DirectoryServer.registerChangeNotificationListener(changeListener);
-    assertEquals(changeListener.getModifyCount(), 0);
+    DirectoryServer.registerInternalPlugin(changeListener);
+    try
+    {
+      assertEquals(changeListener.getModifyCount(), 0);
 
-    LDAPAttribute attr = newLDAPAttribute("dc", "foo");
-    ModifyOperation modifyOperation = processModify(baseDN, replace(attr));
-    assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
-    retrieveFailedOperationElements(modifyOperation);
+      LDAPAttribute attr = newLDAPAttribute("dc", "foo");
+      ModifyOperation modifyOperation = processModify(baseDN, replace(attr));
+      assertFalse(modifyOperation.getResultCode() == ResultCode.SUCCESS);
+      retrieveFailedOperationElements(modifyOperation);
 
-    assertEquals(changeListener.getModifyCount(), 0);
-    DirectoryServer.deregisterChangeNotificationListener(changeListener);
+      assertEquals(changeListener.getModifyCount(), 0);
+    }
+    finally
+    {
+      DirectoryServer.deregisterInternalPlugin(changeListener);
+    }
   }
 
 
@@ -2777,9 +2785,7 @@ public class ModifyOperationTestCase
          throws Exception
   {
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
-
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyOperation modifyOperation =
         newModifyOperation(null, ByteString.valueOf(baseDN), mods);
@@ -2803,9 +2809,7 @@ public class ModifyOperationTestCase
          throws Exception
   {
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
-
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyOperation modifyOperation =
         newModifyOperation(null, ByteString.valueOf(baseDN), mods);
@@ -2874,8 +2878,7 @@ public class ModifyOperationTestCase
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
 
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
@@ -2902,9 +2905,8 @@ public class ModifyOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPreOperationModify()
-         throws Exception
+  @Test
+  public void testDisconnectInPreOperationModify() throws Exception
   {
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -2926,8 +2928,7 @@ public class ModifyOperationTestCase
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
 
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(ByteString.valueOf("o=test"), mods);
@@ -2978,8 +2979,7 @@ public class ModifyOperationTestCase
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
 
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
@@ -3054,9 +3054,7 @@ responseLoop:
 
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
-
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(replace(attr));
+    List<RawModification> mods = newRawModifications(replace(attr));
 
     ModifyRequestProtocolOp modifyRequest =
          new ModifyRequestProtocolOp(ByteString.valueOf(baseDN), mods);
@@ -3097,10 +3095,18 @@ responseLoop:
     StaticUtils.close(s);
   }
 
+  private List<Modification> newModifications(Modification... mods)
+  {
+    return newArrayList(mods);
+  }
 
+  private List<RawModification> newRawModifications(RawModification... mods)
+  {
+    return newArrayList(mods);
+  }
 
   /**
-   * Tests a modify operation that attemtps to set a value for an attribute type
+   * Tests a modify operation that attempts to set a value for an attribute type
    * that is marked OBSOLETE in the server schema.
    *
    * @param  baseDN  The base DN for the test backend.
@@ -3219,16 +3225,14 @@ responseLoop:
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testShortCircuitInPreParse()
-         throws Exception
+  @Test
+  public void testShortCircuitInPreParse() throws Exception
   {
     List<Control> controls =
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(RawModification.create(ModificationType.REPLACE, "description",
-                                    "foo"));
+    List<RawModification> mods = newRawModifications(
+        RawModification.create(ModificationType.REPLACE, "description", "foo"));
 
     ModifyOperation modifyOperation =
         newModifyOperation(controls, ByteString.valueOf("o=test"), mods);
@@ -3269,9 +3273,7 @@ responseLoop:
          "userPassword: password");
 
     LDAPAttribute attr = newLDAPAttribute("givenName", "Test");
-
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(add(attr));
+    List<RawModification> mods = newRawModifications(add(attr));
 
     List<Control> requestControls = new ArrayList<Control>();
     requestControls.add(
@@ -3308,9 +3310,7 @@ responseLoop:
          "userPassword: password");
 
     LDAPAttribute attr = newLDAPAttribute("givenName", "Foo");
-
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(delete(attr));
+    List<RawModification> mods = newRawModifications(delete(attr));
 
     List<Control> requestControls = new ArrayList<Control>();
     requestControls.add(
@@ -3347,8 +3347,7 @@ responseLoop:
          "userPassword: password");
 
     LDAPAttribute attr = new LDAPAttribute("description");
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(delete(attr));
+    List<RawModification> mods = newRawModifications(delete(attr));
 
     List<Control> requestControls = new ArrayList<Control>();
     requestControls.add(
@@ -3523,11 +3522,10 @@ responseLoop:
    *           If an unexpected problem occurs.
    */
   @Test
-  public void testModifyDelPasswordAttributeWithOption()
-      throws Exception
+  public void testModifyDelPasswordAttributeWithOption() throws Exception
   {
     // @formatter:off
-        Entry e = TestCaseUtils.makeEntry(
+    Entry e = TestCaseUtils.makeEntry(
         "dn: cn=Test User,o=test",
         "objectClass: top",
         "objectClass: person",
@@ -3565,8 +3563,7 @@ responseLoop:
    *           If an unexpected problem occurs.
    */
   @Test
-  public void testModifyReplaceEmptyPasswordAttributeWithOption()
-      throws Exception
+  public void testModifyReplaceEmptyPasswordAttributeWithOption() throws Exception
   {
     // @formatter:off
         Entry e = TestCaseUtils.makeEntry(
@@ -3605,8 +3602,7 @@ responseLoop:
    *           If an unexpected problem occurs.
    */
   @Test
-  public void testModifyAddPasswordAttributeWithOption()
-      throws Exception
+  public void testModifyAddPasswordAttributeWithOption() throws Exception
   {
     // @formatter:off
         TestCaseUtils.addEntry(
@@ -3643,8 +3639,7 @@ responseLoop:
    *           If an unexpected problem occurs.
    */
   @Test
-  public void testModifyReplaceWithValuesPasswordAttributeWithOption()
-      throws Exception
+  public void testModifyReplaceWithValuesPasswordAttributeWithOption() throws Exception
   {
     // @formatter:off
         TestCaseUtils.addEntry(
@@ -3681,8 +3676,7 @@ responseLoop:
    *           If an unexpected problem occurs.
    */
   @Test(dataProvider = "baseDNs")
-  public void testAddCertificateWithoutBinaryOption(String baseDN)
-         throws Exception
+  public void testAddCertificateWithoutBinaryOption(String baseDN) throws Exception
   {
     TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
@@ -3755,8 +3749,8 @@ responseLoop:
     // First check that adding "dc" fails because it is not allowed by
     // inetOrgPerson.
     LDAPAttribute attr = newLDAPAttribute("dc", "foo");
-    List<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(add(attr));
+    List<RawModification> mods = newRawModifications(add(attr));
+
     ModifyOperation modifyOperation = processModify("cn=Test User," + baseDN, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
 
