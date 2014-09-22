@@ -890,8 +890,10 @@ public class ReplicationDbEnv
 
   private void debug(String message)
   {
-    logger.trace("In " + replicationServer.getMonitorInstanceName() + ", "
-        + message);
+    // replication server may be null in tests
+    logger.trace("In %s, %s",
+        (replicationServer != null ? replicationServer.getMonitorInstanceName() : "[test]"),
+        message);
   }
 
 }
