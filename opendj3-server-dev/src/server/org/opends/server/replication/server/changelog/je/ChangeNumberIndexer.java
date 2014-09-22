@@ -115,7 +115,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    * @param changelogState
    *          the changelog state used for initialization
    */
-  ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState)
+  public ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState)
   {
     this(changelogDB, changelogState, new ECLEnabledDomainPredicate());
   }
