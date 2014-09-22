@@ -29,7 +29,9 @@ package org.opends.server.api;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -40,6 +42,8 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.PersistentSearch;
+import org.opends.server.core.PersistentSearch.CancellationCallback;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.AttributeType;
@@ -98,6 +102,10 @@ public abstract class Backend<C extends Configuration>
 
   /** The writability mode for this backend. */
   private WritabilityMode writabilityMode = WritabilityMode.ENABLED;
+
+  /** The set of persistent searches registered with this backend. */
+  private final ConcurrentLinkedQueue<PersistentSearch> persistentSearches =
+      new ConcurrentLinkedQueue<PersistentSearch>();
 
   /**
    * Configure this backend based on the information in the provided
@@ -166,16 +174,26 @@ public abstract class Backend<C extends Configuration>
   /**
    * Performs any necessary work to finalize this backend, including
    * closing any underlying databases or connections and deregistering
-   * any suffixes that it manages with the Directory Server.  This may
+   * any suffixes that it manages with the Directory Server. This may
    * be called during the Directory Server shutdown process or if a
-   * backend is disabled with the server online.  It must not return
-   * until the backend is closed.
-   * <BR><BR>
-   * This method may not throw any exceptions.  If any problems are
-   * encountered, then they may be logged but the closure should
-   * progress as completely as possible.
+   * backend is disabled with the server online.
+   * It must not return until the backend is closed.
+   * <p>
+   * This method may not throw any exceptions. If any problems are encountered,
+   * then they may be logged but the closure should progress as completely as
+   * possible.
+   * <p>
+   * This method must be called by all overriding methods with
+   * <code>super.finalizeBackend()</code>.
    */
-  public abstract void finalizeBackend();
+  public void finalizeBackend()
+  {
+    for (PersistentSearch psearch : persistentSearches)
+    {
+      psearch.cancel();
+    }
+    persistentSearches.clear();
+  }
 
 
 
@@ -887,7 +905,39 @@ public abstract class Backend<C extends Configuration>
     return backendMonitor;
   }
 
+  /**
+   * Registers the provided persistent search operation with this backend so
+   * that it will be notified of any add, delete, modify, or modify DN
+   * operations that are performed.
+   *
+   * @param persistentSearch
+   *          The persistent search operation to register with this backend
+   */
+  public void registerPersistentSearch(PersistentSearch persistentSearch)
+  {
+    persistentSearches.add(persistentSearch);
 
+    persistentSearch.registerCancellationCallback(new CancellationCallback()
+    {
+      @Override
+      public void persistentSearchCancelled(PersistentSearch psearch)
+      {
+        persistentSearches.remove(psearch);
+      }
+    });
+  }
+
+  /**
+   * Returns the persistent searches currently active against this local
+   * backend.
+   *
+   * @return the list of persistent searches currently active against this local
+   *         backend
+   */
+  public Queue<PersistentSearch> getPersistentSearches()
+  {
+    return persistentSearches;
+  }
 
   /**
    * Sets the backend monitor for this backend.

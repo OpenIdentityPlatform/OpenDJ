@@ -29,6 +29,7 @@ package org.opends.server.replication.server;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.*;
 
@@ -72,7 +73,6 @@ import org.opends.server.types.RDN;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
-import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
@@ -85,6 +85,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -135,7 +136,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * When used in a search operation, it includes all attributes (user and
    * operational)
    */
-  private static final Set<String> ALL_ATTRIBUTES = newSet("*", "+");
+  private static final Set<String> ALL_ATTRIBUTES = newHashSet("*", "+");
   private static final List<Control> NO_CONTROL = null;
 
   /**
@@ -178,14 +179,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   public void PrimaryTest() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
-    // let's enable ECl manually now that we tested that ECl is not available
-    ECLWorkflowElement wfe =
-        (ECLWorkflowElement) DirectoryServer
-        .getWorkflowElement(ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
-    if (wfe != null)
-    {
-      wfe.getReplicationServer().enableECL();
-    }
 
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
@@ -352,7 +345,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * Verifies that is not possible to read the changelog without the changelog-read privilege
    */
-  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  @Test(enabled = false, dependsOnMethods = { "PrimaryTest" })
   public void ECLChangelogReadPrivilegeTest() throws Exception
   {
     AuthenticationInfo nonPrivilegedUser = new AuthenticationInfo();
@@ -368,7 +361,22 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled = true)
   public void TestECLIsNotASupportedSuffix() throws Exception
   {
-    ECLCompatTestLimits(0,0, false);
+    try
+    {
+      invoke(replicationServer, "shutdownExternalChangelog");
+      ECLCompatTestLimits(0, 0, false);
+    }
+    finally
+    {
+      invoke(replicationServer, "enableExternalChangeLog");
+    }
+  }
+
+  private void invoke(Object obj, String methodName) throws Exception
+  {
+    final Method m = obj.getClass().getDeclaredMethod(methodName);
+    m.setAccessible(true);
+    m.invoke(obj);
   }
 
   /**
@@ -561,7 +569,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker server01 = null;
     LDAPReplicationDomain domain = null;
     LDAPReplicationDomain domain2 = null;
-    Backend backend2 = null;
+    Backend<?> backend2 = null;
 
     // Use different values than other tests to avoid test interactions in concurrent test runs
     final String backendId2 = tn + 2;
@@ -642,7 +650,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker s2test = null;
     ReplicationBroker s2test2 = null;
 
-    Backend backend2 = null;
+    Backend<?> backend2 = null;
     LDAPReplicationDomain domain1 = null;
     LDAPReplicationDomain domain2 = null;
     try
@@ -954,7 +962,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /** Test ECL content after a domain has been removed. */
-  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  @Test(enabled = false, dependsOnMethods = { "PrimaryTest" })
   public void testECLAfterDomainIsRemoved() throws Exception
   {
     String testName = "testECLAfterDomainIsRemoved";
@@ -1051,9 +1059,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String cookie = "";
     LDIFWriter ldifWriter = getLDIFWriter();
 
-    Set<String> lastcookieattribute = newSet("lastExternalChangelogCookie");
-    InternalSearchOperation searchOp = searchOnRootDSE(lastcookieattribute);
-    List<SearchResultEntry> entries = searchOp.getSearchEntries();
+    final Set<String> attrs = newHashSet("lastExternalChangelogCookie");
+    List<SearchResultEntry> entries = searchOnRootDSE(attrs).getSearchEntries();
     if (entries != null)
     {
       for (SearchResultEntry resultEntry : entries)
@@ -1155,7 +1162,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         checkValue(resultEntry, "replicationcsn", csns[i - 1].toString());
         checkValue(resultEntry, "replicaidentifier", String.valueOf(SERVER_ID_1));
         checkValue(resultEntry, "changelogcookie", cookies[i - 1]);
-        checkValue(resultEntry, "changenumber", "0");
+        assertNull(getAttributeValue(resultEntry, "changenumber"));
 
         if (i==1)
         {
@@ -1347,8 +1354,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return a.iterator().next().toString();
   }
 
-  private static void checkValues(Entry entry, String attrName,
-      Set<String> expectedValues)
+  private static void checkValues(Entry entry, String attrName, Set<String> expectedValues)
   {
     final Set<String> values = new HashSet<String>();
     for (Attribute a : entry.getAttribute(attrName))
@@ -1936,7 +1942,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * Utility - create a second backend in order to test ECL with 2 suffixes.
    */
-  private static Backend initializeTestBackend(boolean createBaseEntry,
+  private static Backend<?> initializeTestBackend(boolean createBaseEntry,
       String backendId) throws Exception
   {
     DN baseDN = DN.valueOf("o=" + backendId);
@@ -1968,9 +1974,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return memoryBackend;
   }
 
-  private static void removeTestBackend(Backend... backends)
+  private static void removeTestBackend(Backend<?>... backends)
   {
-    for (Backend backend : backends)
+    for (Backend<?> backend : backends)
     {
       if (backend != null)
       {
@@ -1994,7 +2000,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker s2test = null;
     ReplicationBroker s1test2 = null;
     ReplicationBroker s2test2 = null;
-    Backend backend2 = null;
+    Backend<?> backend2 = null;
 
     try
     {
@@ -2439,7 +2445,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // available in other entries. We u
     debugInfo(tn, "Starting test \n\n");
 
-    Set<String> attributes = newSet("firstchangenumber", "lastchangenumber",
+    Set<String> attributes = newHashSet("firstchangenumber", "lastchangenumber",
         "changelog", "lastExternalChangelogCookie");
 
     debugInfo(tn, " Search: " + TEST_ROOT_DN_STRING);
@@ -2608,8 +2614,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     final String backendId3 = "test3";
     final DN baseDN3 = DN.valueOf("o=" + backendId3);
-    Backend backend2 = null;
-    Backend backend3 = null;
+    Backend<?> backend2 = null;
+    Backend<?> backend3 = null;
     LDAPReplicationDomain domain2 = null;
     LDAPReplicationDomain domain3 = null;
     LDAPReplicationDomain domain21 = null;
@@ -2707,7 +2713,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         {
           Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
 
-          Set<String> eoc = newSet("person", "inetOrgPerson", "organizationalPerson", "top");
+          Set<String> eoc = newHashSet("person", "inetOrgPerson", "organizationalPerson", "top");
           checkValues(targetEntry, "objectclass", eoc);
 
           String changeType = getAttributeValue(resultEntry, "changetype");

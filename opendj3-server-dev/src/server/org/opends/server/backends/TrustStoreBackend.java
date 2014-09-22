@@ -346,6 +346,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     configuration.addTrustStoreChangeListener(this);
 
     try

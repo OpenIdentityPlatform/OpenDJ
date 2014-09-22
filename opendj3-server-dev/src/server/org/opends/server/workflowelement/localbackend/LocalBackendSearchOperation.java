@@ -56,40 +56,20 @@ public class LocalBackendSearchOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** The backend in which the search is to be performed. */
+  private Backend<?> backend;
 
-
-  /**
-   * The backend in which the search is to be performed.
-   */
-  private Backend backend;
-
-  /**
-   * Indicates whether we should actually process the search.  This should
-   * only be false if it's a persistent search with changesOnly=true.
-   */
-  private boolean processSearch;
-
-  /**
-   * The client connection for the search operation.
-   */
+  /** The client connection for the search operation. */
   private ClientConnection clientConnection;
 
-  /**
-   * The base DN for the search.
-   */
+  /** The base DN for the search. */
   private DN baseDN;
 
-  /**
-   * The persistent search request, if applicable.
-   */
+  /** The persistent search request, if applicable. */
   private PersistentSearch persistentSearch;
 
-  /**
-   * The filter for the search.
-   */
+  /** The filter for the search. */
   private SearchFilter filter;
-
-
 
   /**
    * Creates a new operation that may be used to search for entries in a local
@@ -117,10 +97,7 @@ public class LocalBackendSearchOperation
       throws CanceledOperationException
   {
     this.backend = wfe.getBackend();
-
-    clientConnection = getClientConnection();
-
-    processSearch = true;
+    this.clientConnection = getClientConnection();
 
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
@@ -128,7 +105,7 @@ public class LocalBackendSearchOperation
     try
     {
       BooleanHolder executePostOpPlugins = new BooleanHolder(false);
-      processSearch(wfe, executePostOpPlugins);
+      processSearch(executePostOpPlugins);
 
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
@@ -154,8 +131,7 @@ public class LocalBackendSearchOperation
     }
   }
 
-  private void processSearch(LocalBackendWorkflowElement wfe,
-      BooleanHolder executePostOpPlugins) throws CanceledOperationException
+  private void processSearch(BooleanHolder executePostOpPlugins) throws CanceledOperationException
   {
     // Process the search base and filter to convert them from their raw forms
     // as provided by the client to the forms required for the rest of the
@@ -163,7 +139,7 @@ public class LocalBackendSearchOperation
     baseDN = getBaseDN();
     filter = getFilter();
 
-    if ((baseDN == null) || (filter == null))
+    if (baseDN == null || filter == null)
     {
       return;
     }
@@ -245,8 +221,13 @@ public class LocalBackendSearchOperation
 
 
     // If there's a persistent search, then register it with the server.
+    boolean processSearchNow = true;
     if (persistentSearch != null)
     {
+      // If we're only interested in changes, then we do not actually want
+      // to process the search now.
+      processSearchNow = !persistentSearch.isChangesOnly();
+
       // The Core server maintains the count of concurrent persistent searches
       // so that all the backends (Remote and Local) are aware of it. Verify
       // with the core if we have already reached the threshold.
@@ -256,7 +237,7 @@ public class LocalBackendSearchOperation
         appendErrorMessage(ERR_MAX_PSEARCH_LIMIT_EXCEEDED.get());
         return;
       }
-      wfe.registerPersistentSearch(persistentSearch);
+      backend.registerPersistentSearch(persistentSearch);
       persistentSearch.enable();
     }
 
@@ -264,7 +245,7 @@ public class LocalBackendSearchOperation
     // Process the search in the backend and all its subordinates.
     try
     {
-      if (processSearch)
+      if (processSearchNow)
       {
         backend.search(this);
       }
@@ -320,14 +301,13 @@ public class LocalBackendSearchOperation
     LocalBackendWorkflowElement.removeAllDisallowedControls(baseDN, this);
 
     List<Control> requestControls  = getRequestControls();
-    if ((requestControls != null) && (! requestControls.isEmpty()))
+    if (requestControls != null && ! requestControls.isEmpty())
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (Control c : requestControls)
       {
-        Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
-        if (oid.equals(OID_LDAP_ASSERTION))
+        if (OID_LDAP_ASSERTION.equals(oid))
         {
           LDAPAssertionRequestControl assertControl =
                 getRequestControl(LDAPAssertionRequestControl.DECODER);
@@ -397,7 +377,7 @@ public class LocalBackendSearchOperation
                                 de.getMessageObject()), de);
           }
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V1))
+        else if (OID_PROXIED_AUTH_V1.equals(oid))
         {
           // Log usage of legacy proxy authz V1 control.
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
@@ -416,16 +396,9 @@ public class LocalBackendSearchOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.rootDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getName());
-          }
+          setProxiedAuthorizationDN(getName(authorizationEntry));
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V2))
+        else if (OID_PROXIED_AUTH_V2.equals(oid))
         {
           // The requester must have the PROXIED_AUTH privilege in order to be
           // able to use this control.
@@ -440,38 +413,23 @@ public class LocalBackendSearchOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.rootDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getName());
-          }
+          setProxiedAuthorizationDN(getName(authorizationEntry));
         }
-        else if (oid.equals(OID_PERSISTENT_SEARCH))
+        else if (OID_PERSISTENT_SEARCH.equals(oid))
         {
-          PersistentSearchControl psearchControl =
-            getRequestControl(PersistentSearchControl.DECODER);
+          final PersistentSearchControl ctrl =
+              getRequestControl(PersistentSearchControl.DECODER);
 
           persistentSearch = new PersistentSearch(this,
-                                      psearchControl.getChangeTypes(),
-                                      psearchControl.getReturnECs());
-
-          // If we're only interested in changes, then we don't actually want
-          // to process the search now.
-          if (psearchControl.getChangesOnly())
-          {
-            processSearch = false;
-          }
+              ctrl.getChangeTypes(), ctrl.getChangesOnly(), ctrl.getReturnECs());
         }
-        else if (oid.equals(OID_LDAP_SUBENTRIES))
+        else if (OID_LDAP_SUBENTRIES.equals(oid))
         {
           SubentriesControl subentriesControl =
                   getRequestControl(SubentriesControl.DECODER);
           setReturnSubentriesOnly(subentriesControl.getVisibility());
         }
-        else if (oid.equals(OID_LDUP_SUBENTRIES))
+        else if (OID_LDUP_SUBENTRIES.equals(oid))
         {
           // Support for legacy draft-ietf-ldup-subentry.
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
@@ -479,25 +437,25 @@ public class LocalBackendSearchOperation
 
           setReturnSubentriesOnly(true);
         }
-        else if (oid.equals(OID_MATCHED_VALUES))
+        else if (OID_MATCHED_VALUES.equals(oid))
         {
           MatchedValuesControl matchedValuesControl =
                 getRequestControl(MatchedValuesControl.DECODER);
           setMatchedValuesControl(matchedValuesControl);
         }
-        else if (oid.equals(OID_ACCOUNT_USABLE_CONTROL))
+        else if (OID_ACCOUNT_USABLE_CONTROL.equals(oid))
         {
           setIncludeUsableControl(true);
         }
-        else if (oid.equals(OID_REAL_ATTRS_ONLY))
+        else if (OID_REAL_ATTRS_ONLY.equals(oid))
         {
           setRealAttributesOnly(true);
         }
-        else if (oid.equals(OID_VIRTUAL_ATTRS_ONLY))
+        else if (OID_VIRTUAL_ATTRS_ONLY.equals(oid))
         {
           setVirtualAttributesOnly(true);
         }
-        else if (oid.equals(OID_GET_EFFECTIVE_RIGHTS) &&
+        else if (OID_GET_EFFECTIVE_RIGHTS.equals(oid) &&
           DirectoryServer.isSupportedControl(OID_GET_EFFECTIVE_RIGHTS))
         {
           // Do nothing here and let AciHandler deal with it.
@@ -512,6 +470,11 @@ public class LocalBackendSearchOperation
         }
       }
     }
+  }
+
+  private DN getName(Entry e)
+  {
+    return e != null ? e.getName() : DN.rootDN();
   }
 
   /** Indicates if the backend supports the control corresponding to provided oid. */

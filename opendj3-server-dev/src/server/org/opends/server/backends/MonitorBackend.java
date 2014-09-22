@@ -64,7 +64,8 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The set of user-defined attributes that will be included in the base
+  /**
+   * The set of user-defined attributes that will be included in the base
    * monitor entry.
    */
   private ArrayList<Attribute> userDefinedAttributes;
@@ -331,6 +332,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeMonitorChangeListener(this);
     try
     {

@@ -90,6 +90,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   @Override
   public void finalizeConfigHandler()
   {
+    finalizeBackend();
   }
 
   /** {@inheritDoc} */
@@ -286,12 +287,6 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig arg0) throws DirectoryException
-  {
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void finalizeBackend()
   {
   }
 

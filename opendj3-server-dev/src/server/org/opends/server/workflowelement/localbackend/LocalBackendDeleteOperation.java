@@ -186,7 +186,7 @@ public class LocalBackendDeleteOperation
         @Override
         public void run()
         {
-          for (PersistentSearch psearch : wfe.getPersistentSearches())
+          for (PersistentSearch psearch : backend.getPersistentSearches())
           {
             psearch.processDelete(entry);
           }

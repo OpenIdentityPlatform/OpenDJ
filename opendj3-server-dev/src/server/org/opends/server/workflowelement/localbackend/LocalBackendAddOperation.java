@@ -215,7 +215,7 @@ public class LocalBackendAddOperation
         @Override
         public void run()
         {
-          for (PersistentSearch psearch : wfe.getPersistentSearches())
+          for (PersistentSearch psearch : backend.getPersistentSearches())
           {
             psearch.processAdd(entry);
           }

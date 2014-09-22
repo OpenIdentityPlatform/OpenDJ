@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -155,8 +156,13 @@ public final class ECLServerHandler extends ServerHandler
     private final ReplicationServerDomain rsDomain;
 
     /**
-     * Active when there are still changes supposed eligible for the ECL. It is
-     * active by default.
+     * Active when there are still changes supposed eligible for the ECL.
+     * Here is the lifecycle of this field:
+     * <ol>
+     * <li>active==true at the start of the INIT phase,</li>
+     * <li>active==false when there are no more changes for a domain in the the INIT phase,</li>
+     * <li>active==true if it is a persistent search on external changelog. It never moves again</li>
+     * </ol>
      */
     private boolean active = true;
     private UpdateMsg nextMsg;
@@ -354,8 +360,7 @@ public final class ECLServerHandler extends ServerHandler
     super(session, queueSize, replicationServer, rcvWindowSize);
     try
     {
-      DN baseDN = DN.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-      setBaseDNAndDomain(baseDN, true);
+      setBaseDNAndDomain(ChangelogBackend.CHANGELOG_BASE_DN, true);
     }
     catch(DirectoryException de)
     {
@@ -853,14 +858,6 @@ public final class ECLServerHandler extends ServerHandler
   }
 
   /**
-   * Registers this handler into its related domain and notifies the domain.
-   */
-  private void registerIntoDomain()
-  {
-    replicationServerDomain.registerHandler(this);
-  }
-
-  /**
    * Shutdown this handler.
    */
   @Override
@@ -871,14 +868,20 @@ public final class ECLServerHandler extends ServerHandler
       logger.trace(this + " shutdown()");
     }
     releaseCursor();
-    for (DomainContext domainCtxt : domainCtxts) {
-      if (!domainCtxt.unRegisterHandler()) {
-        logger.error(LocalizableMessage.raw(this + " shutdown() - error when unregistering handler "+ domainCtxt.mh));
+    if (domainCtxts != null)
+    {
+      for (DomainContext domainCtxt : domainCtxts)
+      {
+        if (!domainCtxt.unRegisterHandler())
+        {
+          logger.error(LocalizableMessage.raw(this + " shutdown() - error when unregistering handler " + domainCtxt.mh));
+        }
+        domainCtxt.stopServer();
       }
-      domainCtxt.stopServer();
+      domainCtxts = null;
     }
+
     super.shutdown();
-    domainCtxts = null;
   }
 
   private void releaseCursor()
@@ -1020,11 +1023,11 @@ public final class ECLServerHandler extends ServerHandler
       closeInitPhase();
     }
 
-    registerIntoDomain();
+    replicationServerDomain.registerHandler(this);
 
     if (logger.isTraceEnabled())
     {
-      logger.trace(getClass().getCanonicalName() + " " + getOperationId()
+      logger.trace(getClass().getSimpleName() + " " + getOperationId()
           + " initialized: " + " " + dumpState() + domaimCtxtsToString(""));
     }
   }
@@ -1372,7 +1375,7 @@ public final class ECLServerHandler extends ServerHandler
           + dumpState());
     }
 
-    // go to persistent phase if one
+    // set all domains to be active again for the persistent phase
     for (DomainContext domainCtxt : domainCtxts) domainCtxt.active = true;
 
     if (startECLSessionMsg.getPersistent() != NON_PERSISTENT)

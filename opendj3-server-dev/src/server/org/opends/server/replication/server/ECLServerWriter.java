@@ -29,7 +29,7 @@ package org.opends.server.replication.server;
 import java.io.IOException;
 import java.net.SocketException;
 
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.core.PersistentSearch;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.protocol.DoneMsg;
@@ -39,7 +39,6 @@ import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
-import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -89,9 +88,8 @@ class ECLServerWriter extends ServerWriter
    */
   private PersistentSearch findPersistentSearch(ECLServerHandler handler)
   {
-    ECLWorkflowElement wfe = (ECLWorkflowElement)
-        DirectoryServer.getWorkflowElement(ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
-    for (PersistentSearch psearch : wfe.getPersistentSearches())
+    final ChangelogBackend backend = ChangelogBackend.getInstance();
+    for (PersistentSearch psearch : backend.getPersistentSearches())
     {
       if (psearch.getSearchOperation().toString().equals(
           handler.getOperationId()))

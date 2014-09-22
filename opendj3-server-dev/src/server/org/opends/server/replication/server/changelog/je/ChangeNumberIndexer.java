@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -524,6 +525,7 @@ public class ChangeNumberIndexer extends DirectoryThread
   protected void notifyEntryAddedToChangelog(DN baseDN, long changeNumber,
       MultiDomainServerState cookie, UpdateMsg msg) throws ChangelogException
   {
+    ChangelogBackend.getInstance().notifyEntryAdded(baseDN, changeNumber, cookie.toString(), msg);
   }
 
   /**

@@ -201,6 +201,7 @@ public class BackupBackend
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeBackupChangeListener(this);
 
     try

@@ -225,7 +225,7 @@ public class LocalBackendModifyDNOperation
         @Override
         public void run()
         {
-          for (PersistentSearch psearch : wfe.getPersistentSearches())
+          for (PersistentSearch psearch : backend.getPersistentSearches())
           {
             psearch.processModifyDN(newEntry, currentEntry.getName());
           }
