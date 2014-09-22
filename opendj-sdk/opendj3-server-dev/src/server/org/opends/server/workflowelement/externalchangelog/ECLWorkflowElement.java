@@ -26,15 +26,11 @@
  */
 package org.opends.server.workflowelement.externalchangelog;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.admin.std.server.WorkflowElementCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.SearchOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.ReplicationServer;
@@ -43,23 +39,13 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Operation;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
-
-
-
 /**
  * This class defines a workflow element for the external changelog (ECL);
  * e-g an entity that handles the processing of an operation against the ECL.
  */
-public class ECLWorkflowElement extends
-    LeafWorkflowElement<WorkflowElementCfg>
+public class ECLWorkflowElement extends LeafWorkflowElement<WorkflowElementCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   *The set of persistent searches registered with this work flow element.
-   */
-  private final List<PersistentSearch> persistentSearches =
-    new CopyOnWriteArrayList<PersistentSearch>();
 
   /**
    * A string indicating the type of the workflow element.
@@ -70,7 +56,7 @@ public class ECLWorkflowElement extends
    * The replication server object to which we will submits request
    * on the ECL. Retrieved from the local DirectoryServer.
    */
-  private ReplicationServer replicationServer;
+  private final ReplicationServer replicationServer;
 
   /**
    * Creates a new instance of the External Change Log workflow element.
@@ -86,26 +72,16 @@ public class ECLWorkflowElement extends
     DirectoryServer.registerWorkflowElement(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeWorkflowElement()
   {
-    // null all fields so that any use of the finalized object will raise
-    // an NPE
+    // null all fields so that any use of the finalized object will raise a NPE
     super.initialize(ECL_WORKFLOW_ELEMENT, null);
-
-    // Cancel all persistent searches.
-    for (PersistentSearch psearch : persistentSearches) {
-      psearch.cancel();
-    }
-    persistentSearches.clear();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void execute(Operation operation) throws CanceledOperationException {
     switch (operation.getOperationType())
     {
@@ -163,45 +139,6 @@ public class ECLWorkflowElement extends
     newAttachment.add (currentLocalOperation);
     globalOperation.setAttachment(Operation.LOCALBACKENDOPERATIONS,
                                   newAttachment);
-  }
-
-  /**
-   * Registers the provided persistent search operation with this
-   * workflow element so that it will be notified of any
-   * add, delete, modify, or modify DN operations that are performed.
-   *
-   * @param persistentSearch
-   *          The persistent search operation to register with this
-   *          workflow element.
-   */
-  void registerPersistentSearch(PersistentSearch persistentSearch)
-  {
-    PersistentSearch.CancellationCallback callback =
-      new PersistentSearch.CancellationCallback()
-    {
-      public void persistentSearchCancelled(PersistentSearch psearch)
-      {
-        psearch.getSearchOperation().cancel(null);
-        persistentSearches.remove(psearch);
-      }
-    };
-
-    persistentSearches.add(persistentSearch);
-    persistentSearch.registerCancellationCallback(callback);
-  }
-
-
-
-  /**
-   * Gets the list of persistent searches currently active against
-   * this workflow element.
-   *
-   * @return The list of persistent searches currently active against
-   *         this workflow element.
-   */
-  public List<PersistentSearch> getPersistentSearches()
-  {
-    return persistentSearches;
   }
 
   /**

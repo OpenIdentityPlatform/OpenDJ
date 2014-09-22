@@ -495,6 +495,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeSchemaChangeListener(this);
 
     for (DN baseDN : baseDNs)

@@ -219,6 +219,7 @@ public class NullBackend extends Backend<BackendCfg>
   @Override
   public synchronized void finalizeBackend()
   {
+    super.finalizeBackend();
     for (DN dn : baseDNs)
     {
       try

@@ -355,7 +355,7 @@ public class LocalBackendModifyOperation
         @Override
         public void run()
         {
-          for (PersistentSearch psearch : wfe.getPersistentSearches())
+          for (PersistentSearch psearch : backend.getPersistentSearches())
           {
             psearch.processModify(modifiedEntry, currentEntry);
           }
@@ -666,7 +666,7 @@ public class LocalBackendModifyOperation
         Control c = iter.next();
         String  oid = c.getOID();
 
-        if (oid.equals(OID_LDAP_ASSERTION))
+        if (OID_LDAP_ASSERTION.equals(oid))
         {
           LDAPAssertionRequestControl assertControl =
                 getRequestControl(LDAPAssertionRequestControl.DECODER);
@@ -718,19 +718,19 @@ public class LocalBackendModifyOperation
                     entryDN, de.getMessageObject()));
           }
         }
-        else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
+        else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
         {
           noOp = true;
         }
-        else if (oid.equals(OID_PERMISSIVE_MODIFY_CONTROL))
+        else if (OID_PERMISSIVE_MODIFY_CONTROL.equals(oid))
         {
           permissiveModify = true;
         }
-        else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
+        else if (OID_LDAP_READENTRY_PREREAD.equals(oid))
         {
           preReadRequest = getRequestControl(LDAPPreReadRequestControl.DECODER);
         }
-        else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
+        else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
         {
           if (c instanceof LDAPPostReadRequestControl)
           {
@@ -742,7 +742,7 @@ public class LocalBackendModifyOperation
             iter.set(postReadRequest);
           }
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V1))
+        else if (OID_PROXIED_AUTH_V1.equals(oid))
         {
           // Log usage of legacy proxy authz V1 control.
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
@@ -763,7 +763,7 @@ public class LocalBackendModifyOperation
           setAuthorizationEntry(authorizationEntry);
           setProxiedAuthorizationDN(getName(authorizationEntry));
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V2))
+        else if (OID_PROXIED_AUTH_V2.equals(oid))
         {
           // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
@@ -780,7 +780,7 @@ public class LocalBackendModifyOperation
           setAuthorizationEntry(authorizationEntry);
           setProxiedAuthorizationDN(getName(authorizationEntry));
         }
-        else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
+        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
         {
           pwPolicyControlRequested = true;
         }
@@ -846,13 +846,11 @@ public class LocalBackendModifyOperation
       // See if the attribute is one which controls the privileges available for
       // a user.  If it is, then the client must have the PRIVILEGE_CHANGE
       // privilege.
-      if (t.hasName(OP_ATTR_PRIVILEGE_NAME))
+      if (t.hasName(OP_ATTR_PRIVILEGE_NAME)
+          && !clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
       {
-        if (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
-        {
-          throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                  ERR_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES.get());
-        }
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_MODIFY_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES.get());
       }
 
       // If the modification is not updating the password attribute,
@@ -1086,11 +1084,11 @@ public class LocalBackendModifyOperation
       numPasswords = passwordsToAdd;
     }
 
-    // If there were multiple password values, then make sure that's
-    // OK.
-    if ((!isInternalOperation())
-        && (!pwPolicyState.getAuthenticationPolicy()
-            .isAllowMultiplePasswordValues()) && (passwordsToAdd > 1))
+    // If there were multiple password values, then make sure that's OK.
+    final PasswordPolicy authPolicy = pwPolicyState.getAuthenticationPolicy();
+    if (!isInternalOperation()
+        && !authPolicy.isAllowMultiplePasswordValues()
+        && passwordsToAdd > 1)
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -1106,9 +1104,8 @@ public class LocalBackendModifyOperation
     {
       if (pwPolicyState.passwordIsPreEncoded(v))
       {
-        if ((!isInternalOperation())
-            && !pwPolicyState.getAuthenticationPolicy()
-                .isAllowPreEncodedPasswords())
+        if (!isInternalOperation()
+            && !authPolicy.isAllowPreEncodedPasswords())
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -1121,15 +1118,13 @@ public class LocalBackendModifyOperation
       }
       else
       {
-        if (m.getModificationType() == ModificationType.ADD)
+        if (m.getModificationType() == ModificationType.ADD
+            // Make sure that the password value does not already exist.
+            && pwPolicyState.passwordMatches(v))
         {
-          // Make sure that the password value doesn't already exist.
-          if (pwPolicyState.passwordMatches(v))
-          {
-            pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
-            throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                ERR_MODIFY_PASSWORD_EXISTS.get());
-          }
+          pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
+          throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+              ERR_MODIFY_PASSWORD_EXISTS.get());
         }
 
         if (newPasswords == null)
@@ -1214,7 +1209,7 @@ public class LocalBackendModifyOperation
       else
       {
         List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
-        if ((attrList == null) || (attrList.isEmpty()))
+        if (attrList == null || attrList.isEmpty())
         {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
               ERR_MODIFY_NO_EXISTING_VALUES.get());
@@ -1232,47 +1227,36 @@ public class LocalBackendModifyOperation
                     .decodeAuthPassword(av.toString());
                 PasswordStorageScheme<?> scheme = DirectoryServer
                     .getAuthPasswordStorageScheme(components[0].toString());
-                if (scheme != null)
-                {
-                  if (scheme.authPasswordMatches(v,
-                      components[1].toString(), components[2].toString()))
-                  {
-                    builder.add(av);
-                    found = true;
-                  }
-                }
-              }
-              else
-              {
-                if (av.equals(v))
-                {
-                  builder.add(v);
-                  found = true;
-                }
-              }
-            }
-            else
-            {
-              if (UserPasswordSyntax.isEncoded(av))
-              {
-                String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
-                PasswordStorageScheme<?> scheme = DirectoryServer
-                    .getPasswordStorageScheme(toLowerCase(components[0]));
                 if (scheme != null
-                    && scheme.passwordMatches(v, ByteString.valueOf(components[1])))
+                    && scheme.authPasswordMatches(v,
+                        components[1].toString(), components[2].toString()))
                 {
                   builder.add(av);
                   found = true;
                 }
               }
-              else
+              else if (av.equals(v))
               {
-                if (av.equals(v))
-                {
-                  builder.add(v);
-                  found = true;
-                }
+                builder.add(v);
+                found = true;
               }
+            }
+            else if (UserPasswordSyntax.isEncoded(av))
+            {
+              String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
+              PasswordStorageScheme<?> scheme = DirectoryServer
+                  .getPasswordStorageScheme(toLowerCase(components[0]));
+              if (scheme != null
+                  && scheme.passwordMatches(v, ByteString.valueOf(components[1])))
+              {
+                builder.add(av);
+                found = true;
+              }
+            }
+            else if (av.equals(v))
+            {
+              builder.add(v);
+              found = true;
             }
           }
         }
@@ -1706,13 +1690,8 @@ public class LocalBackendModifyOperation
   public void performAdditionalPasswordChangedProcessing()
          throws DirectoryException
   {
-    if (pwPolicyState == null)
-    {
-      // Account not managed locally so nothing to do.
-      return;
-    }
-
-    if (!passwordChanged)
+    if (!passwordChanged
+        || pwPolicyState == null) // Account not managed locally
     {
       // Nothing to do.
       return;
@@ -1743,70 +1722,62 @@ public class LocalBackendModifyOperation
 
 
     // If any of the password values should be validated, then do so now.
-    if (selfChange || !authPolicy.isSkipValidationForAdministrators())
+    if (newPasswords != null
+        && (selfChange || !authPolicy.isSkipValidationForAdministrators()))
     {
-      if (newPasswords != null)
+      HashSet<ByteString> clearPasswords = new HashSet<ByteString>(pwPolicyState.getClearPasswords());
+      if (currentPasswords != null)
       {
-        HashSet<ByteString> clearPasswords = new HashSet<ByteString>();
-        clearPasswords.addAll(pwPolicyState.getClearPasswords());
-
-        if (currentPasswords != null)
+        if (clearPasswords.isEmpty())
         {
-          if (clearPasswords.isEmpty())
+          clearPasswords.addAll(currentPasswords);
+        }
+        else
+        {
+          // NOTE:  We can't rely on the fact that Set doesn't allow
+          // duplicates because technically it's possible that the values
+          // aren't duplicates if they are ASN.1 elements with different types
+          // (like 0x04 for a standard universal octet string type versus 0x80
+          // for a simple password in a bind operation).  So we have to
+          // manually check for duplicates.
+          for (ByteString pw : currentPasswords)
           {
-            clearPasswords.addAll(currentPasswords);
-          }
-          else
-          {
-            // NOTE:  We can't rely on the fact that Set doesn't allow
-            // duplicates because technically it's possible that the values
-            // aren't duplicates if they are ASN.1 elements with different types
-            // (like 0x04 for a standard universal octet string type versus 0x80
-            // for a simple password in a bind operation).  So we have to
-            // manually check for duplicates.
-            for (ByteString pw : currentPasswords)
+            if (!clearPasswords.contains(pw))
             {
-              if (!clearPasswords.contains(pw))
-              {
-                clearPasswords.add(pw);
-              }
+              clearPasswords.add(pw);
             }
           }
         }
+      }
 
-        for (ByteString v : newPasswords)
+      for (ByteString v : newPasswords)
+      {
+        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+        if (! pwPolicyState.passwordIsAcceptable(this, modifiedEntry,
+                                 v, clearPasswords, invalidReason))
         {
-          LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-          if (! pwPolicyState.passwordIsAcceptable(this, modifiedEntry,
-                                   v, clearPasswords, invalidReason))
-          {
-            pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                ERR_MODIFY_PW_VALIDATION_FAILED.get(invalidReason));
-          }
+          pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_MODIFY_PW_VALIDATION_FAILED.get(invalidReason));
         }
       }
     }
 
-
     // If we should check the password history, then do so now.
-    if (pwPolicyState.maintainHistory())
+    if (newPasswords != null && pwPolicyState.maintainHistory())
     {
-      if (newPasswords != null)
+      for (ByteString v : newPasswords)
       {
-        for (ByteString v : newPasswords)
+        if (pwPolicyState.isPasswordInHistory(v)
+            && (selfChange || !authPolicy.isSkipValidationForAdministrators()))
         {
-          if (pwPolicyState.isPasswordInHistory(v)
-              && (selfChange || !authPolicy.isSkipValidationForAdministrators()))
-          {
-            pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                ERR_MODIFY_PW_IN_HISTORY.get());
-          }
+          pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_MODIFY_PW_IN_HISTORY.get());
         }
-
-        pwPolicyState.updatePasswordHistory();
       }
+
+      pwPolicyState.updatePasswordHistory();
     }
 
 
@@ -1862,7 +1833,7 @@ public class LocalBackendModifyOperation
       return;
     }
 
-    if (!(passwordChanged || enabledStateChanged || wasLocked))
+    if (!passwordChanged && !enabledStateChanged && !wasLocked)
     {
       // Account managed locally, but unchanged, so nothing to do.
       return;

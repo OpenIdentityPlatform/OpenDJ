@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
@@ -65,7 +64,7 @@ public class LocalBackendWorkflowElement extends
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** the backend associated with the local workflow element. */
-  private Backend backend;
+  private Backend<?> backend;
 
 
   /** the set of local backend workflow elements registered with the server. */
@@ -74,13 +73,7 @@ public class LocalBackendWorkflowElement extends
             new TreeMap<String, LocalBackendWorkflowElement>();
 
   /**
-   * The set of persistent searches registered with this work flow element.
-   */
-  private final List<PersistentSearch> persistentSearches =
-    new CopyOnWriteArrayList<PersistentSearch>();
-
-  /**
-   * a lock to guarantee safe concurrent access to the registeredLocalBackends
+   * A lock to guarantee safe concurrent access to the registeredLocalBackends
    * variable.
    */
   private static final Object registeredLocalBackendsLock = new Object();
@@ -109,9 +102,8 @@ public class LocalBackendWorkflowElement extends
    * @param workflowElementID  the workflow element identifier
    * @param backend  the backend associated to that workflow element
    */
-  private void initialize(String workflowElementID, Backend backend)
+  private void initialize(String workflowElementID, Backend<?> backend)
   {
-    // Initialize the workflow ID
     super.initialize(workflowElementID, BACKEND_WORKFLOW_ELEMENT);
 
     this.backend  = backend;
@@ -151,29 +143,16 @@ public class LocalBackendWorkflowElement extends
     processWorkflowElementConfig(configuration, true);
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeWorkflowElement()
   {
-    // null all fields so that any use of the finalized object will raise
-    // an NPE
+    // null all fields so that any use of the finalized object will raise a NPE
     super.initialize(null, null);
     backend = null;
-
-    // Cancel all persistent searches.
-    for (PersistentSearch psearch : persistentSearches) {
-      psearch.cancel();
-    }
-    persistentSearches.clear();
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LocalBackendWorkflowElementCfg configuration,
@@ -183,10 +162,7 @@ public class LocalBackendWorkflowElement extends
     return processWorkflowElementConfig(configuration, false);
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       LocalBackendWorkflowElementCfg configuration
@@ -221,7 +197,7 @@ public class LocalBackendWorkflowElement extends
     {
       // Read configuration.
       String newBackendID = configuration.getBackend();
-      Backend newBackend  = DirectoryServer.getBackend(newBackendID);
+      Backend<?> newBackend = DirectoryServer.getBackend(newBackendID);
 
       // If the backend is null (i.e. not found in the list of
       // registered backends, this is probably because we are looking
@@ -270,8 +246,7 @@ public class LocalBackendWorkflowElement extends
    *         element.
    */
   public static LocalBackendWorkflowElement createAndRegister(
-      String workflowElementID,
-      Backend backend)
+      String workflowElementID, Backend<?> backend)
   {
     // If the requested workflow element does not exist then create one.
     LocalBackendWorkflowElement localBackend =
@@ -655,11 +630,7 @@ public class LocalBackendWorkflowElement extends
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void execute(Operation operation) throws CanceledOperationException {
     switch (operation.getOperationType())
@@ -760,53 +731,10 @@ public class LocalBackendWorkflowElement extends
    * @return The backend associated with this local backend workflow
    *         element.
    */
-  public Backend getBackend()
+  public Backend<?> getBackend()
   {
     return backend;
   }
-
-
-
-  /**
-   * Registers the provided persistent search operation with this
-   * local backend workflow element so that it will be notified of any
-   * add, delete, modify, or modify DN operations that are performed.
-   *
-   * @param persistentSearch
-   *          The persistent search operation to register with this
-   *          local backend workflow element.
-   */
-  void registerPersistentSearch(PersistentSearch persistentSearch)
-  {
-    PersistentSearch.CancellationCallback callback =
-      new PersistentSearch.CancellationCallback()
-    {
-      @Override
-      public void persistentSearchCancelled(PersistentSearch psearch)
-      {
-        persistentSearches.remove(psearch);
-      }
-    };
-
-    persistentSearches.add(persistentSearch);
-    persistentSearch.registerCancellationCallback(callback);
-  }
-
-
-
-  /**
-   * Gets the list of persistent searches currently active against
-   * this local backend workflow element.
-   *
-   * @return The list of persistent searches currently active against
-   *         this local backend workflow element.
-   */
-  List<PersistentSearch> getPersistentSearches()
-  {
-    return persistentSearches;
-  }
-
-
 
   /**
    * Checks if an update operation can be performed against a backend. The
@@ -828,7 +756,7 @@ public class LocalBackendWorkflowElement extends
    * @throws DirectoryException
    *           If the update operation has been rejected.
    */
-  static void checkIfBackendIsWritable(Backend backend, Operation op,
+  static void checkIfBackendIsWritable(Backend<?> backend, Operation op,
       DN entryDN, LocalizableMessageDescriptor.Arg1<Object> serverMsg,
       LocalizableMessageDescriptor.Arg1<Object> backendMsg)
       throws DirectoryException
@@ -864,5 +792,14 @@ public class LocalBackendWorkflowElement extends
       }
     }
   }
-}
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName()
+        + " backend=" + backend
+        + " workflowElementID=" + getWorkflowElementID()
+        + " workflowElementTypeInfo=" + getWorkflowElementTypeInfo();
+  }
+}

@@ -39,6 +39,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
@@ -837,6 +838,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         csn.getServerId(), replicationServer);
     final JEReplicaDB replicaDB = pair.getFirst();
     replicaDB.add(updateMsg);
+
+    ChangelogBackend.getInstance().notifyEntryAdded(baseDN, 0, null, updateMsg);
 
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
