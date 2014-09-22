@@ -530,12 +530,30 @@ public class ReplicationDbEnv
    */
   static Entry<byte[], byte[]> toReplicaOfflineEntry(DN baseDN, CSN offlineCSN)
   {
-    final byte[] key =
-        toBytes(OFFLINE_TAG + FIELD_SEPARATOR + offlineCSN.getServerId()
-            + FIELD_SEPARATOR + baseDN.toNormalizedString());
+    final byte[] key = toReplicaOfflineKey(baseDN, offlineCSN.getServerId());
     final ByteStringBuilder data = new ByteStringBuilder(8); // store a long
     data.append(offlineCSN.getTime());
     return new SimpleImmutableEntry<byte[], byte[]>(key, data.toByteArray());
+  }
+
+  /**
+   * Return the key for a replica offline entry in the changelog state database.
+   *
+   * @param baseDN
+   *          the replica's baseDN
+   * @param serverId
+   *          the replica's serverId
+   * @return the key used in the database to store offline time of the replica
+   */
+  private static byte[] toReplicaOfflineKey(DN baseDN, int serverId)
+  {
+    return toBytes(OFFLINE_TAG + FIELD_SEPARATOR + serverId + FIELD_SEPARATOR + baseDN.toNormalizedString());
+  }
+
+  /** Returns an entry with the provided key and a null value. */
+  private SimpleImmutableEntry<byte[], byte[]> toEntryWithNullValue(byte[] key)
+  {
+    return new SimpleImmutableEntry<byte[], byte[]>(key, null);
   }
 
   private void putInChangelogStateDBIfNotExist(Entry<byte[], byte[]> entry)
@@ -722,7 +740,9 @@ public class ReplicationDbEnv
   }
 
   /**
-   * Add the information about an offline replica to the changelog state DB.
+   * Notify that replica is offline.
+   * <p>
+   * This information is stored in the changelog state DB.
    *
    * @param baseDN
    *          the domain of the offline replica
@@ -731,7 +751,7 @@ public class ReplicationDbEnv
    * @throws ChangelogException
    *           if a database problem occurred
    */
-  public void addOfflineReplica(DN baseDN, CSN offlineCSN)
+  public void notifyReplicaOffline(DN baseDN, CSN offlineCSN)
       throws ChangelogException
   {
     synchronized (stateLock)
@@ -742,6 +762,25 @@ public class ReplicationDbEnv
           "replicaOffline(baseDN=" + baseDN + ", offlineCSN=" + offlineCSN + ")");
       changelogState.addOfflineReplica(baseDN, offlineCSN);
     }
+  }
+
+  /**
+   * Notify that replica is online.
+   * <p>
+   * Update the changelog state DB if necessary (ie, replica was known to be
+   * offline).
+   *
+   * @param baseDN
+   *          the domain of replica
+   * @param serverId
+   *          the serverId of replica
+   * @throws ChangelogException
+   *           if a database problem occurred
+   */
+  public void notifyReplicaOnline(DN baseDN, int serverId) throws ChangelogException
+  {
+    deleteFromChangelogStateDB(toEntryWithNullValue(toReplicaOfflineKey(baseDN, serverId)),
+        "removeOfflineReplica(baseDN=" + baseDN + ", serverId=" + serverId + ")");
   }
 
   private void putInChangelogStateDB(Entry<byte[], byte[]> entry,

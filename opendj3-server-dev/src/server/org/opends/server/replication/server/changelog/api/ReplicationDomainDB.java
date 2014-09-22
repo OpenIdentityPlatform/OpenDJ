@@ -225,5 +225,5 @@ public interface ReplicationDomainDB
    * @throws ChangelogException
    *           If a database problem happened
    */
-  void replicaOffline(DN baseDN, CSN offlineCSN) throws ChangelogException;
+  void notifyReplicaOffline(DN baseDN, CSN offlineCSN) throws ChangelogException;
 }
