@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -33,7 +34,7 @@ import java.io.OutputStream;
  *  (a) forwards all its output to a target stream
  *  (b) keeps track of how many bytes have been written.
  */
-class MeteredStream extends OutputStream
+public final class MeteredStream extends OutputStream
 {
   OutputStream out;
   long written;
@@ -45,7 +46,7 @@ class MeteredStream extends OutputStream
    * @param out     The target output stream to keep track of.
    * @param written The number of bytes written to the stream.
    */
-  MeteredStream(OutputStream out, long written)
+  public MeteredStream(OutputStream out, long written)
   {
     this.out = out;
     this.written = written;
@@ -110,6 +111,16 @@ class MeteredStream extends OutputStream
   public void close() throws IOException
   {
     out.close();
+  }
+
+  /**
+   * Returns the number of bytes written in this stream.
+   *
+   * @return the number of bytes
+   */
+  public long getBytesWritten()
+  {
+    return written;
   }
 }
 

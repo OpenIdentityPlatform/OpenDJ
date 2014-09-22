@@ -91,7 +91,7 @@ public class TimeLimitRotationPolicy implements
    * @param writer The mutli file text writer written the log file.
    * @return true if the file should be rotated, false otherwise.
    */
-  public boolean rotateFile(MultifileTextWriter writer)
+  public boolean rotateFile(RotatableLogFile writer)
   {
     long currInterval = TimeThread.getTime() -
         writer.getLastRotationTime().getTimeInMillis();

@@ -98,7 +98,7 @@ public class SizeBasedRotationPolicy implements
    * @param writer The multi file text writer writing the log file.
    * @return true if the file needs to be rotated, false otherwise.
   */
-  public boolean rotateFile(MultifileTextWriter writer)
+  public boolean rotateFile(RotatableLogFile writer)
   {
     long fileSize = writer.getBytesWritten();
 
