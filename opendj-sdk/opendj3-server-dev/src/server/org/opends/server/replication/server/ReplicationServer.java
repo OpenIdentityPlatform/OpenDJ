@@ -669,7 +669,7 @@ public final class ReplicationServer
    * parameter.
    *
    * @param baseDN
-   *          The base Dn for which the ReplicationServerDomain must be
+   *          The base DN for which the ReplicationServerDomain must be
    *          returned.
    * @return The ReplicationServerDomain associated to the base DN given in
    *         parameter.
@@ -692,70 +692,123 @@ public final class ReplicationServer
   }
 
   /**
-   * Validate that provided state is coherent with this replication server,
+   * Validate that provided cookie is coherent with this replication server,
    * when ignoring the provided set of DNs.
    * <p>
-   * The state is coherent if and only if it exactly has the set of DNs corresponding to
-   * the replication domains.
+   * The cookie is coherent if and only if it exactly has the set of DNs corresponding to
+   * the replication domains, and the states in the cookie are not older than oldest states
+   * in the server.
    *
-   * @param state
+   * @param cookie
    *            The multi domain state (cookie) to validate.
    * @param ignoredBaseDNs
    *            The set of DNs to ignore when validating
    * @throws DirectoryException
-   *            If the state is not valid
+   *            If the cookie is not valid
    */
-  public void validateServerState(MultiDomainServerState state, Set<DN> ignoredBaseDNs) throws DirectoryException
+  public void validateCookie(MultiDomainServerState cookie, Set<DN> ignoredBaseDNs) throws DirectoryException
   {
-    // Build the two sets of DNs to compare
-    final Set<DN> activeServerDomains = new HashSet<DN>();
+    final Set<DN> activeDomains = getDNsOfActiveDomainsInServer(ignoredBaseDNs);
+    final Set<DN> cookieDomains = getDNsOfCookie(cookie);
+
+    checkNoActiveDomainIsMissingInCookie(cookie, activeDomains, cookieDomains);
+    checkNoUnknownDomainIsProvidedInCookie(cookie, activeDomains, cookieDomains);
+    checkCookieIsNotOutdated(cookie, activeDomains);
+  }
+
+  private Set<DN> getDNsOfCookie(MultiDomainServerState cookie)
+  {
+    final Set<DN> cookieDomains = new HashSet<DN>();
+    for (final DN dn : cookie)
+    {
+      cookieDomains.add(dn);
+    }
+    return cookieDomains;
+  }
+
+  private Set<DN> getDNsOfActiveDomainsInServer(final Set<DN> ignoredBaseDNs) throws DirectoryException
+  {
+    final Set<DN> activeDomains = new HashSet<DN>();
     for (final DN dn : getDomainDNs(ignoredBaseDNs))
     {
       final ServerState lastServerState = getReplicationServerDomain(dn).getLatestServerState();
       if (!lastServerState.isEmpty())
       {
-         activeServerDomains.add(dn);
+         activeDomains.add(dn);
       }
     }
-    final Set<DN> stateDomains = new HashSet<DN>();
-    for (final DN dn : state)
-    {
-      stateDomains.add(dn);
-    }
+    return activeDomains;
+  }
 
-    // The two sets of DNs are expected to be the same. Check this.
-    final Set<DN> domainsCopy = new HashSet<DN>(activeServerDomains);
-    final Set<DN> stateDomainsCopy = new HashSet<DN>(stateDomains);
-    domainsCopy.removeAll(stateDomains);
-    if (!domainsCopy.isEmpty())
+  private void checkNoUnknownDomainIsProvidedInCookie(final MultiDomainServerState cookie, final Set<DN> activeDomains,
+      final Set<DN> cookieDomains) throws DirectoryException
+  {
+    if (!activeDomains.containsAll(cookieDomains))
     {
-      final StringBuilder missingDomains = new StringBuilder();
-      for (DN dn : domainsCopy)
-      {
-        missingDomains.append(dn).append(":;");
-      }
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-          ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
-              missingDomains, "<" + state.toString() + missingDomains + ">"));
-    }
-    stateDomainsCopy.removeAll(activeServerDomains);
-    if (!stateDomainsCopy.isEmpty())
-    {
-      final StringBuilder startState = new StringBuilder();
-      for (DN dn : activeServerDomains) {
-        startState.append(dn).append(":").append(state.getServerState(dn).toString()).append(";");
+      final Set<DN> unknownCookieDomains = new HashSet<DN>(cookieDomains);
+      unknownCookieDomains.removeAll(activeDomains);
+      final StringBuilder currentStartingCookie = new StringBuilder();
+      for (DN domainDN : activeDomains) {
+        currentStartingCookie.append(domainDN).append(":").append(cookie.getServerState(domainDN)).append(";");
       }
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE.get(
-              stateDomainsCopy.toString(), startState));
+              unknownCookieDomains.toString(), currentStartingCookie));
     }
+  }
+
+  private void checkNoActiveDomainIsMissingInCookie(final MultiDomainServerState cookie, final Set<DN> activeDomains,
+      final Set<DN> cookieDomains) throws DirectoryException
+  {
+    if (!cookieDomains.containsAll(activeDomains))
+    {
+      final Set<DN> missingActiveDomains = new HashSet<DN>(activeDomains);
+      missingActiveDomains.removeAll(cookieDomains);
+      final StringBuilder missingDomains = new StringBuilder();
+      for (DN domainDN : missingActiveDomains)
+      {
+        missingDomains.append(domainDN).append(":;");
+      }
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
+              missingDomains, "<" + cookie + missingDomains + ">"));
+    }
+  }
+
+  private void checkCookieIsNotOutdated(final MultiDomainServerState cookie, final Set<DN> activeDomains)
+      throws DirectoryException
+  {
+    for (DN dn : activeDomains)
+    {
+      if (isCookieOutdatedForDomain(cookie, dn))
+      {
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get(dn.toString()));
+      }
+    }
+  }
+
+  /** Check that provided cookie is not outdated compared to the oldest state of a domain. */
+  private boolean isCookieOutdatedForDomain(MultiDomainServerState cookie, DN domainDN)
+  {
+    final ServerState domainOldestState = getReplicationServerDomain(domainDN).getOldestState();
+    final ServerState providedState = cookie.getServerState(domainDN);
+    for (final CSN oldestCsn : domainOldestState)
+    {
+      final CSN providedCsn = providedState.getCSN(oldestCsn.getServerId());
+      if (providedCsn != null && providedCsn.isOlderThan(oldestCsn))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
    * Get the ReplicationServerDomain associated to the base DN given in
    * parameter.
    *
-   * @param baseDN The base Dn for which the ReplicationServerDomain must be
+   * @param baseDN The base DN for which the ReplicationServerDomain must be
    * returned.
    * @param create Specifies whether to create the ReplicationServerDomain if
    *        it does not already exist.
