@@ -912,8 +912,10 @@ public abstract class Backend<C extends Configuration>
    *
    * @param persistentSearch
    *          The persistent search operation to register with this backend
+   * @throws DirectoryException
+   *           If a problem occurs while registering the persistent search
    */
-  public void registerPersistentSearch(PersistentSearch persistentSearch)
+  public void registerPersistentSearch(PersistentSearch persistentSearch) throws DirectoryException
   {
     persistentSearches.add(persistentSearch);
 
