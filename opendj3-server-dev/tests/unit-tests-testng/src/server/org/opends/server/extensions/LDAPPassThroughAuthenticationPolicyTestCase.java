@@ -22,11 +22,11 @@
  *
  *
  *      Portions Copyright 2011-2014 ForgeRock AS.
- *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -450,6 +450,11 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       return timeoutMS;
     }
+
+
+
+    @Override
+    public InetAddress getSourceAddress() { return null; }
 
 
 

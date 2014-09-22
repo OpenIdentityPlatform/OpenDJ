@@ -26,6 +26,7 @@
  */
 package org.opends.server.replication.plugin;
 
+import java.net.InetAddress;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -179,6 +180,12 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   {
     return replicationServers;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public InetAddress getSourceAddress() { return null; }
 
   /**
    * {@inheritDoc}
