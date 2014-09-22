@@ -25,17 +25,18 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types.operation;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.types.*;
 import org.opends.server.controls.ControlDecoder;
-
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.OperationType;
 
 /**
  * This class defines a set of methods that are available for use by
@@ -57,7 +58,7 @@ public interface PluginOperation
    *
    * @return  The operation type for this operation.
    */
-  public OperationType getOperationType();
+  OperationType getOperationType();
 
 
 
@@ -68,14 +69,14 @@ public interface PluginOperation
    * @return  The client connection with which this operation is
    *          associated.
    */
-  public ClientConnection getClientConnection();
+  ClientConnection getClientConnection();
 
 
 
   /**
    * Terminates the client connection being used to process this
    * operation.  The plugin must return a result indicating that the
-   * client connection has been teriminated.
+   * client connection has been terminated.
    *
    * @param  disconnectReason  The disconnect reason that provides the
    *                           generic cause for the disconnect.
@@ -86,9 +87,7 @@ public interface PluginOperation
    *                           may be <CODE>null</CODE> if no
    *                           notification is to be sent.
    */
-  public void disconnectClient(DisconnectReason disconnectReason,
-                               boolean sendNotification,
-                               LocalizableMessage message);
+  void disconnectClient(DisconnectReason disconnectReason, boolean sendNotification, LocalizableMessage message);
 
 
 
@@ -99,7 +98,7 @@ public interface PluginOperation
    * @return  The unique identifier that is assigned to the client
    *          connection that submitted this operation.
    */
-  public long getConnectionID();
+  long getConnectionID();
 
 
 
@@ -108,7 +107,7 @@ public interface PluginOperation
    *
    * @return  The operation ID for this operation.
    */
-  public long getOperationID();
+  long getOperationID();
 
 
 
@@ -117,7 +116,7 @@ public interface PluginOperation
    *
    * @return  The message ID assigned to this operation.
    */
-  public int getMessageID();
+  int getMessageID();
 
 
 
@@ -128,7 +127,7 @@ public interface PluginOperation
    * @return  The set of controls included in the request from the
    *          client.
    */
-  public List<Control> getRequestControls();
+  List<Control> getRequestControls();
 
 
 
@@ -145,8 +144,7 @@ public interface PluginOperation
    * @throws DirectoryException
    *           if an error occurs while decoding the control.
    */
-  public <T extends Control> T getRequestControl(ControlDecoder<T> d)
-      throws DirectoryException;
+  <T extends Control> T getRequestControl(ControlDecoder<T> d) throws DirectoryException;
 
 
 
@@ -157,7 +155,7 @@ public interface PluginOperation
    * @return  The set of controls to include in the response to the
    *          client.
    */
-  public List<Control> getResponseControls();
+  List<Control> getResponseControls();
 
 
 
@@ -168,7 +166,7 @@ public interface PluginOperation
    * @return  <CODE>true</CODE> if this is an internal operation, or
    *          <CODE>false</CODE> if it is not.
    */
-  public boolean isInternalOperation();
+  boolean isInternalOperation();
 
 
 
@@ -179,7 +177,7 @@ public interface PluginOperation
    * @return  <CODE>true</CODE> if this is a data synchronization
    *          operation, or <CODE>false</CODE> if it is not.
    */
-  public boolean isSynchronizationOperation();
+  boolean isSynchronizationOperation();
 
 
 
@@ -189,33 +187,35 @@ public interface PluginOperation
    *
    * @return  The set of attachments defined for this operation.
    */
-  public Map<String,Object> getAttachments();
+  Map<String,Object> getAttachments();
 
 
 
   /**
    * Retrieves the attachment with the specified name.
    *
+   * @param <T> the type of the attached object
    * @param  name  The name for the attachment to retrieve.  It will
    *               be treated in a case-sensitive manner.
    *
    * @return  The requested attachment object, or <CODE>null</CODE> if
    *          it does not exist.
    */
-  public Object getAttachment(String name);
+  <T> T getAttachment(String name);
 
 
 
   /**
    * Removes the attachment with the specified name.
    *
+   * @param <T> the type of the attached object
    * @param  name  The name for the attachment to remove.  It will be
    *               treated in a case-sensitive manner.
    *
    * @return  The attachment that was removed, or <CODE>null</CODE> if
    *          it does not exist.
    */
-  public Object removeAttachment(String name);
+  <T> T removeAttachment(String name);
 
 
 
@@ -224,6 +224,7 @@ public interface PluginOperation
    * already exists with the same name, it will be replaced.
    * Otherwise, a new attachment will be added.
    *
+   * @param <T> the type of the attached object
    * @param  name   The name to use for the attachment.
    * @param  value  The value to use for the attachment.
    *
@@ -231,7 +232,7 @@ public interface PluginOperation
    *          name, or <CODE>null</CODE> if there was previously no
    *          such attachment.
    */
-  public Object setAttachment(String name, Object value);
+  <T> T setAttachment(String name, Object value);
 
 
 
@@ -240,7 +241,7 @@ public interface PluginOperation
    *
    * @return  The time that processing started for this operation.
    */
-  public long getProcessingStartTime();
+  long getProcessingStartTime();
 
 
 
@@ -249,7 +250,8 @@ public interface PluginOperation
    *
    * @return  A string representation of this operation.
    */
-  public String toString();
+  @Override
+  String toString();
 
 
 
@@ -260,7 +262,7 @@ public interface PluginOperation
    * @param  buffer  The buffer into which a string representation of
    *                 this operation should be appended.
    */
-  public void toString(StringBuilder buffer);
+  void toString(StringBuilder buffer);
 
 
 
@@ -276,7 +278,6 @@ public interface PluginOperation
    * @throws CanceledOperationException if this operation should
    * be cancelled.
    */
-  public void checkIfCanceled(boolean signalTooLate)
-      throws CanceledOperationException;
+  void checkIfCanceled(boolean signalTooLate) throws CanceledOperationException;
 }
 
