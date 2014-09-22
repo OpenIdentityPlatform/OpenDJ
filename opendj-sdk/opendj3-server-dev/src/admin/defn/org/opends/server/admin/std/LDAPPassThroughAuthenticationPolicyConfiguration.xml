@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   ! -->
 <adm:managed-object name="ldap-pass-through-authentication-policy"
   plural-name="ldap-pass-through-authentication-policies" extends="authentication-policy"
@@ -180,6 +180,31 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-secondary-remote-ldap-server</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+
+  <adm:property name="source-address" multi-valued="false" mandatory="false">
+    <adm:synopsis>
+      If specified, the server will bind to the address before connecting to the
+      remote server.
+    </adm:synopsis>
+    <adm:description>
+      The address must be one assigned to an existing network interface.
+    </adm:description>
+    <adm:default-behavior>
+      <adm:alias>
+        <adm:synopsis>
+          Let the server decide.
+        </adm:synopsis>
+      </adm:alias>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:ip-address/>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-source-address</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -379,6 +379,11 @@ public final class ReplicationServer
     try
     {
       socket.setTcpNoDelay(true);
+      if (config.getSourceAddress() != null)
+      {
+        InetSocketAddress local = new InetSocketAddress(config.getSourceAddress(), 0);
+        socket.bind(local);
+      }
       int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
       socket.connect(remoteServerAddress.toInetSocketAddress(), timeoutMS);
       session = replSessionSecurity.createClientSession(socket, timeoutMS);
