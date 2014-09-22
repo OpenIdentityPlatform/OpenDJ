@@ -26,6 +26,7 @@
  */
 package org.opends.server.replication.server;
 
+import java.net.InetAddress;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -206,6 +207,12 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   {
     return serverId;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public InetAddress getSourceAddress() { return null; }
 
   /**
    * {@inheritDoc}

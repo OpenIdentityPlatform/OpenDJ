@@ -30,10 +30,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.net.ConnectException;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.net.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -1088,6 +1085,11 @@ public class ReplicationBroker
       socket = new Socket();
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
+      if (config.getSourceAddress() != null)
+      {
+        InetSocketAddress local = new InetSocketAddress(config.getSourceAddress(), 0);
+        socket.bind(local);
+      }
       int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
       socket.connect(HostPort.valueOf(serverURL).toInetSocketAddress(), timeoutMS);
       newSession = replSessionSecurity.createClientSession(socket, timeoutMS);
