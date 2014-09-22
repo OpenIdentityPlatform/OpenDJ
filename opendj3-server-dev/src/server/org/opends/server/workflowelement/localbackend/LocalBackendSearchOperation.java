@@ -504,18 +504,19 @@ public class LocalBackendSearchOperation
         }
 
         // NYI -- Add support for additional controls.
-
-        else if (c.isCritical())
+        else if (c.isCritical() && !backendSupportsControl(oid))
         {
-          if ((backend == null) || (! backend.supportsControl(oid)))
-          {
-            throw new DirectoryException(
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
-          }
+          throw new DirectoryException(
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
         }
       }
     }
   }
-}
 
+  /** Indicates if the backend supports the control corresponding to provided oid. */
+  private boolean backendSupportsControl(final String oid)
+  {
+    return backend != null && backend.supportsControl(oid);
+  }
+}
