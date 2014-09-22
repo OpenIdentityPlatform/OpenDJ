@@ -219,34 +219,33 @@ public class LocalBackendSearchOperation
     // will be overwritten.
     setResultCode(ResultCode.SUCCESS);
 
-
-    // If there's a persistent search, then register it with the server.
-    boolean processSearchNow = true;
-    if (persistentSearch != null)
-    {
-      // If we're only interested in changes, then we do not actually want
-      // to process the search now.
-      processSearchNow = !persistentSearch.isChangesOnly();
-
-      // The Core server maintains the count of concurrent persistent searches
-      // so that all the backends (Remote and Local) are aware of it. Verify
-      // with the core if we have already reached the threshold.
-      if (!DirectoryServer.allowNewPersistentSearch())
-      {
-        setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
-        appendErrorMessage(ERR_MAX_PSEARCH_LIMIT_EXCEEDED.get());
-        return;
-      }
-      backend.registerPersistentSearch(persistentSearch);
-      persistentSearch.enable();
-    }
-
-
-    // Process the search in the backend and all its subordinates.
     try
     {
+      // If there's a persistent search, then register it with the server.
+      boolean processSearchNow = true;
+      if (persistentSearch != null)
+      {
+        // If we're only interested in changes, then we do not actually want
+        // to process the search now.
+        processSearchNow = !persistentSearch.isChangesOnly();
+
+        // The Core server maintains the count of concurrent persistent searches
+        // so that all the backends (Remote and Local) are aware of it. Verify
+        // with the core if we have already reached the threshold.
+        if (!DirectoryServer.allowNewPersistentSearch())
+        {
+          setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
+          appendErrorMessage(ERR_MAX_PSEARCH_LIMIT_EXCEEDED.get());
+          return;
+        }
+        backend.registerPersistentSearch(persistentSearch);
+        persistentSearch.enable();
+      }
+
+
       if (processSearchNow)
       {
+        // Process the search in the backend and all its subordinates.
         backend.search(this);
       }
     }
