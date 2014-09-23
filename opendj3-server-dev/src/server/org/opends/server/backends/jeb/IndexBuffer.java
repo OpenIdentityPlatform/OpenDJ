@@ -214,8 +214,13 @@ public class IndexBuffer
 
     if(bufferedValues != null)
     {
+      /*
+       * OPENDJ-1375: add keys in reverse order to be consistent with single
+       * entry processing in add/delete processing. This is necessary in order
+       * to avoid deadlocks.
+       */
       Iterator<Map.Entry<ByteString, BufferedIndexValues>> keyIterator =
-          bufferedValues.entrySet().iterator();
+          bufferedValues.descendingMap().entrySet().iterator();
       while(keyIterator.hasNext())
       {
         Map.Entry<ByteString, BufferedIndexValues> bufferedKey =
