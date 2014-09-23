@@ -27,6 +27,8 @@
 package org.forgerock.opendj.ldap;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -122,6 +124,15 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         Assert.assertEquals(bsb.append(stream, 10), 5);
     }
 
+    @Test
+    public void testAppendDataInputWithNonEmptyBuilder() throws Exception {
+        final ByteStringBuilder bsb = new ByteStringBuilder();
+        bsb.append((byte) 0);
+        final DataInput stream = new DataInputStream(new ByteArrayInputStream(new byte[5]));
+        bsb.append(stream, 5);
+        Assert.assertEquals(bsb.length(), 6);
+    }
+
     @Test(dataProvider = "builderProvider", expectedExceptions = IndexOutOfBoundsException.class)
     public void testClear(final ByteStringBuilder bs, final byte[] ba) {
         bs.clear();
@@ -180,6 +191,7 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
         Assert.assertTrue(Arrays.equals(trimmedArray, ba));
     }
 
+    @SuppressWarnings("unused")
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testInvalidCapacity() {
         new ByteStringBuilder(-1);

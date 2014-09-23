@@ -494,7 +494,7 @@ public final class ByteStringBuilder implements ByteSequence {
 
         ensureAdditionalCapacity(length);
         stream.readFully(buffer, this.length, length);
-        this.length = length;
+        this.length += length;
     }
 
     /**
