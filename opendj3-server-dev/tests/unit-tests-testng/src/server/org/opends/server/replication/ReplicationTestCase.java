@@ -34,6 +34,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -46,6 +47,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.*;
@@ -78,6 +80,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /** The tracer object for the debug logger */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  private static final Set<String> ALL_ATTRIBUTES = newSet("*", "+");
+  private static final List<Control> NO_CONTROL = null;
+
   /**
    * This is the generation id matching the memory test backend with its initial
    * root entry o=test created. This matches the backend obtained calling:
@@ -108,7 +113,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   private static final String REPLICATION_DB_IMPL_PROPERTY = "org.opends.test.replicationDbImpl";
 
   public static ReplicationDBImplementation replicationDbImplementation = ReplicationDBImplementation.valueOf(
-      System.getProperty(REPLICATION_DB_IMPL_PROPERTY, ReplicationDBImplementation.JE.name()));
+      System.getProperty(REPLICATION_DB_IMPL_PROPERTY, ReplicationDBImplementation.LOG.name()));
 
   /**
    * Replication monitor stats
@@ -929,6 +934,35 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     fail("Failed to receive an expected " + msgType + " message after 5 seconds."
         + " Also received the following messages during wait time: " + msgs);
     return null;
+  }
+
+  /**
+   * Performs an internal search, waiting for at most 3 seconds for expected result code and expected
+   * number of entries. 
+   */
+  protected InternalSearchOperation waitForSearchResult(String dn, SearchScope scope, String filter,
+      ResultCode expectedResultCode, int expectedNbEntries) throws Exception
+  {
+    InternalSearchOperation searchOp = null;
+    int sizeLimitZero = 0;
+    int timeLimitZero = 0;
+    boolean typesOnlyFalse = false;
+    InternalSearchListener noSearchListener = null;
+    int count = 0;
+    do
+    {
+      Thread.sleep(10);
+      searchOp = connection.processSearch(dn, scope, DereferenceAliasesPolicy.NEVER, sizeLimitZero,
+          timeLimitZero, typesOnlyFalse, filter, ALL_ATTRIBUTES, NO_CONTROL, noSearchListener);
+      count++;
+      System.out.println(searchOp.getResultCode() + " " + searchOp.getSearchEntries().size());
+    }
+    while (count < 300 && searchOp.getResultCode() != expectedResultCode &&
+        searchOp.getSearchEntries().size() != expectedNbEntries);
+
+    final List<SearchResultEntry> entries = searchOp.getSearchEntries();
+    Assertions.assertThat(entries).hasSize(expectedNbEntries);
+    return searchOp;
   }
 
   protected static void setReplicationDBImplementation(ReplicationDBImplementation impl)
