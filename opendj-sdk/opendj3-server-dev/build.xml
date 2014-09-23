@@ -2209,7 +2209,7 @@ Please:
     <echo message="      Value must be one of: JE, LOG." />
     <echo message="      JE: use berkeley DB JE as implementation." />
     <echo message="      LOG: use log file as implementation." />
-    <echo message="      Default value is JE" />
+    <echo message="      Default value is LOG" />
     <echo message=""/>
     <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
     <echo message="      for example includes only the classes in"/>
@@ -2290,7 +2290,7 @@ Please:
 
     <!-- This sets org.opends.test.replicationDbImpl if and only if it's not
          already set. -->
-    <condition property="org.opends.test.replicationDbImpl" value="JE">
+    <condition property="org.opends.test.replicationDbImpl" value="LOG">
       <not>
         <isset property="org.opends.test.replicationDbImpl" />
       </not>
