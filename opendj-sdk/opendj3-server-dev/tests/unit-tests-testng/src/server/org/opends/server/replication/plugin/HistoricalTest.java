@@ -30,14 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AddMsg;
@@ -49,6 +45,8 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
@@ -489,9 +487,8 @@ public class HistoricalTest extends ReplicationTestCase
   @Test(enabled=true)
   public void testRecurringPurgeIn1Run() throws Exception
   {
-    int entryCnt = 10;
-
-    addEntriesWithHistorical(1, entryCnt);
+    int entryCount = 10;
+    addEntriesWithHistorical(1, entryCount);
     // leave a little delay between adding/modifying test entries
     // and configuring the purge delay.
     Thread.sleep(10);
@@ -503,7 +500,7 @@ public class HistoricalTest extends ReplicationTestCase
     TestCaseUtils.dsconfig(
         "set-replication-domain-prop",
         "--provider-name","Multimaster Synchronization",
-        "--domain-name",testName,
+        "--domain-name", testName,
         "--set","conflicts-historical-purge-delay:1m");
 
     // Let's go past the purge delay
@@ -522,11 +519,8 @@ public class HistoricalTest extends ReplicationTestCase
     executeTask(purgeConflictsHistoricalTask, maxWaitTimeInSeconds * 1000);
 
     // every entry should be purged from its hist
-    // Search for matching entries in config backend
-    InternalSearchOperation op = connection.processSearch(
-        TEST_ROOT_DN_STRING, SearchScope.WHOLE_SUBTREE, "(ds-sync-hist=*)");
-    assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage().toString());
-    Assertions.assertThat(op.getSearchEntries()).isEmpty();
+    int expectedNumberOfEntries = 0;
+    waitForSearchResult(TEST_ROOT_DN_STRING, WHOLE_SUBTREE, "(ds-sync-hist=*)", SUCCESS, expectedNumberOfEntries);
   }
 
   /**
