@@ -206,7 +206,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
                 if (bindDN == null)
                 {
                   sendAuthenticationFailure(ctx);
-                  return newFailedPromise(newErrorResult(ResultCode.CANCELLED));
+                  return newFailedPromise(newLdapException(ResultCode.CANCELLED));
                 }
                 else
                 {

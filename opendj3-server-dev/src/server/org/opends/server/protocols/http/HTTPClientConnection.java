@@ -40,7 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResultImpl;
+import org.forgerock.opendj.ldap.spi.LdapPromiseImpl;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -99,18 +99,18 @@ final class HTTPClientConnection extends ClientConnection implements
 
   /**
    * Class grouping together an {@link Operation} and its associated
-   * {@link PromiseImpl} to ensure they are both atomically added
+   * {@link LdapPromiseImpl} to ensure they are both atomically added
    * and removed from the {@link HTTPClientConnection#operationsInProgress} Map.
    */
-  private static class OperationWithFutureResult
+  private static class OperationWithPromise
   {
     final Operation operation;
-    final FutureResultImpl<Result> futureResult;
+    final LdapPromiseImpl<Result> promise;
 
-    public OperationWithFutureResult(Operation operation, FutureResultImpl<Result> futureResult)
+    public OperationWithPromise(Operation operation, LdapPromiseImpl<Result> promise)
     {
       this.operation = operation;
-      this.futureResult = futureResult;
+      this.promise = promise;
     }
 
     @Override
@@ -121,15 +121,15 @@ final class HTTPClientConnection extends ClientConnection implements
   }
 
   /** {@inheritDoc} */
-  private static final class SearchOperationWithFutureResult extends OperationWithFutureResult
+  private static final class SearchOperationWithPromise extends OperationWithPromise
   {
 
     final SearchResultHandler entryHandler;
 
-    public SearchOperationWithFutureResult(Operation operation, FutureResultImpl<Result> future,
+    public SearchOperationWithPromise(Operation operation, LdapPromiseImpl<Result> promise,
         SearchResultHandler entryHandler)
     {
-      super(operation, future);
+      super(operation, promise);
       this.entryHandler = entryHandler;
     }
   }
@@ -163,11 +163,11 @@ final class HTTPClientConnection extends ClientConnection implements
   private final boolean keepStats;
 
   /**
-   * The Map (messageID => {@link OperationWithFutureResult}) of all operations
+   * The Map (messageID => {@link OperationWithPromise}) of all operations
    * currently in progress on this connection.
    */
-  private final Map<Integer, OperationWithFutureResult> operationsInProgress =
-      new ConcurrentHashMap<Integer, OperationWithFutureResult>();
+  private final Map<Integer, OperationWithPromise> operationsInProgress =
+      new ConcurrentHashMap<Integer, OperationWithPromise>();
 
   /**
    * The number of operations performed on this connection. Used to compare with
@@ -405,13 +405,12 @@ final class HTTPClientConnection extends ClientConnection implements
           .getOperationType(), time);
     }
 
-    OperationWithFutureResult op =
-        this.operationsInProgress.get(operation.getMessageID());
+    OperationWithPromise op = this.operationsInProgress.get(operation.getMessageID());
     if (op != null)
     {
       try
       {
-        op.futureResult.handleResult(getResponseResult(operation));
+        op.promise.handleResult(getResponseResult(operation));
 
         if (keepStats)
         {
@@ -421,7 +420,7 @@ final class HTTPClientConnection extends ClientConnection implements
       }
       catch (LdapException e)
       {
-        op.futureResult.handleError(e);
+        op.promise.handleError(e);
       }
     }
   }
@@ -478,8 +477,8 @@ final class HTTPClientConnection extends ClientConnection implements
   public void sendSearchEntry(SearchOperation operation,
       SearchResultEntry searchEntry) throws DirectoryException
   {
-    SearchOperationWithFutureResult op =
-        (SearchOperationWithFutureResult) this.operationsInProgress.get(operation.getMessageID());
+    SearchOperationWithPromise op =
+        (SearchOperationWithPromise) this.operationsInProgress.get(operation.getMessageID());
     if (op != null)
     {
       op.entryHandler.handleEntry(from(searchEntry));
@@ -496,9 +495,8 @@ final class HTTPClientConnection extends ClientConnection implements
   public boolean sendSearchReference(SearchOperation operation,
       SearchResultReference searchReference) throws DirectoryException
   {
-    SearchOperationWithFutureResult op =
-        (SearchOperationWithFutureResult) this.operationsInProgress.get(operation.getMessageID());
-
+    SearchOperationWithPromise op =
+        (SearchOperationWithPromise) this.operationsInProgress.get(operation.getMessageID());
     if (op != null)
     {
       op.entryHandler.handleReference(from(searchReference));
@@ -623,10 +621,9 @@ final class HTTPClientConnection extends ClientConnection implements
   @Override
   public Collection<Operation> getOperationsInProgress()
   {
-    Collection<OperationWithFutureResult> values =
-        operationsInProgress.values();
+    Collection<OperationWithPromise> values = operationsInProgress.values();
     Collection<Operation> results = new ArrayList<Operation>(values.size());
-    for (OperationWithFutureResult op : values)
+    for (OperationWithPromise op : values)
     {
       results.add(op.operation);
     }
@@ -637,7 +634,7 @@ final class HTTPClientConnection extends ClientConnection implements
   @Override
   public Operation getOperationInProgress(int messageID)
   {
-    OperationWithFutureResult op = operationsInProgress.get(messageID);
+    OperationWithPromise op = operationsInProgress.get(messageID);
     if (op != null)
     {
       return op.operation;
@@ -647,31 +644,31 @@ final class HTTPClientConnection extends ClientConnection implements
 
   /**
    * Adds the passed in search operation to the in progress list along with the
-   * associated future and the {@code SearchResultHandler}.
+   * associated promise and the {@code SearchResultHandler}.
    *
    * @param operation
    *          the operation to add to the in progress list
-   * @param futureResult
-   *          the future associated to the operation
+   * @param promise
+   *          the promise associated to the operation
    * @param searchResultHandler
-   *          the search result handler associated to the future result
+   *          the search result handler associated to the promise result
    * @throws DirectoryException
    *           If an error occurs
    */
-  void addOperationInProgress(Operation operation, FutureResultImpl<Result> futureResult,
+  void addOperationInProgress(Operation operation, LdapPromiseImpl<Result> promise,
       SearchResultHandler searchResultHandler) throws DirectoryException
   {
     if (searchResultHandler != null)
     {
-      addOperationWithFutureResult(new SearchOperationWithFutureResult(operation, futureResult, searchResultHandler));
+      addOperationWithPromise(new SearchOperationWithPromise(operation, promise, searchResultHandler));
     }
     else
     {
-      addOperationWithFutureResult(new OperationWithFutureResult(operation, futureResult));
+      addOperationWithPromise(new OperationWithPromise(operation, promise));
     }
   }
 
-  private void addOperationWithFutureResult(OperationWithFutureResult opFuture) throws DirectoryException
+  private void addOperationWithPromise(OperationWithPromise opPromise) throws DirectoryException
   {
     synchronized (opsInProgressLock)
     {
@@ -682,7 +679,7 @@ final class HTTPClientConnection extends ClientConnection implements
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
-      operationsInProgress.put(opFuture.operation.getMessageID(), opFuture);
+      operationsInProgress.put(opPromise.operation.getMessageID(), opPromise);
     }
   }
 
@@ -690,8 +687,7 @@ final class HTTPClientConnection extends ClientConnection implements
   @Override
   public boolean removeOperationInProgress(int messageID)
   {
-    final OperationWithFutureResult previousValue =
-        operationsInProgress.remove(messageID);
+    final OperationWithPromise previousValue = operationsInProgress.remove(messageID);
     if (previousValue != null)
     {
       operationsPerformed.incrementAndGet();
@@ -710,13 +706,12 @@ final class HTTPClientConnection extends ClientConnection implements
 
   /** {@inheritDoc} */
   @Override
-  public CancelResult cancelOperation(int messageID,
-      CancelRequest cancelRequest)
+  public CancelResult cancelOperation(int messageID, CancelRequest cancelRequest)
   {
-    OperationWithFutureResult op = operationsInProgress.remove(messageID);
+    OperationWithPromise op = operationsInProgress.remove(messageID);
     if (op != null)
     {
-      op.futureResult.handleError(newErrorResult(ResultCode.CANCELLED));
+      op.promise.handleError(newLdapException(ResultCode.CANCELLED));
       return op.operation.cancel(cancelRequest);
     }
     return new CancelResult(ResultCode.NO_SUCH_OPERATION, null);
@@ -751,11 +746,11 @@ final class HTTPClientConnection extends ClientConnection implements
     {
       try
       {
-        for (OperationWithFutureResult op : operationsInProgress.values())
+        for (OperationWithPromise op : operationsInProgress.values())
         {
           try
           {
-            op.futureResult.handleError(newErrorResult(ResultCode.CANCELLED));
+            op.promise.handleError(newLdapException(ResultCode.CANCELLED));
             op.operation.abort(cancelRequest);
 
             if (keepStats)
@@ -785,7 +780,7 @@ final class HTTPClientConnection extends ClientConnection implements
   {
     synchronized (opsInProgressLock)
     {
-      OperationWithFutureResult toKeep = operationsInProgress.remove(messageID);
+      OperationWithPromise toKeep = operationsInProgress.remove(messageID);
       try
       {
         cancelAllOperations(cancelRequest);

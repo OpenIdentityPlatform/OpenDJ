@@ -34,8 +34,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
-import org.forgerock.opendj.ldap.FutureResult;
-import org.forgerock.opendj.ldap.FutureResultImpl;
+import org.forgerock.opendj.ldap.LdapPromise;
+import org.forgerock.opendj.ldap.spi.LdapPromiseImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -95,6 +95,7 @@ import org.opends.server.types.Operation;
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromiseImpl.*;
 
 /**
  * Adapter class between LDAP SDK's {@link org.forgerock.opendj.ldap.Connection}
@@ -139,15 +140,15 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
             .getCurrentConfig().getMaxConcurrentOpsPerConnection());
   }
 
-  private <R> FutureResult<R> enqueueOperation(Operation operation)
+  private <R> LdapPromise<R> enqueueOperation(Operation operation)
   {
     return enqueueOperation(operation, null);
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  private <R> FutureResult<R> enqueueOperation(Operation operation, SearchResultHandler entryHandler)
+  private <R> LdapPromise<R> enqueueOperation(Operation operation, SearchResultHandler entryHandler)
   {
-    final FutureResultImpl<R> futureResult = new FutureResultImpl(operation.getMessageID());
+    final LdapPromiseImpl<R> promise = newLdapPromiseImpl(operation.getMessageID());
 
     try
     {
@@ -162,7 +163,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
       // need this raw cast here to fool the compiler's generic type safety
       // Problem here is due to the generic type R on enqueueOperation()
-      clientConnection.addOperationInProgress(operation, (FutureResultImpl) futureResult, entryHandler);
+      clientConnection.addOperationInProgress(operation, (LdapPromiseImpl) promise, entryHandler);
       queueingStrategy.enqueueRequest(operation);
     }
     catch (Exception e)
@@ -170,10 +171,10 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       logger.traceException(e);
       clientConnection.removeOperationInProgress(operation.getMessageID());
       // TODO JNR add error message??
-      futureResult.handleError(newErrorResult(ResultCode.OPERATIONS_ERROR, e));
+      promise.handleError(newLdapException(ResultCode.OPERATIONS_ERROR, e));
     }
 
-    return futureResult;
+    return promise;
   }
 
   private ProtocolOp toRequestProtocolOp(Operation operation)
@@ -240,7 +241,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<Void> abandonAsync(AbandonRequest request)
+  public LdapPromise<Void> abandonAsync(AbandonRequest request)
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new AbandonOperationBasis(clientConnection, messageID, messageID,
@@ -249,7 +250,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<Result> addAsync(AddRequest request, IntermediateResponseHandler intermediateResponseHandler)
+  public LdapPromise<Result> addAsync(AddRequest request, IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new AddOperationBasis(clientConnection, messageID, messageID, to(request.getControls()),
@@ -265,7 +266,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<BindResult> bindAsync(BindRequest request,
+  public LdapPromise<BindResult> bindAsync(BindRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
@@ -305,7 +306,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<CompareResult> compareAsync(CompareRequest request,
+  public LdapPromise<CompareResult> compareAsync(CompareRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
@@ -317,7 +318,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<Result> deleteAsync(DeleteRequest request,
+  public LdapPromise<Result> deleteAsync(DeleteRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
@@ -327,7 +328,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request,
+  public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request,
       IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
@@ -362,7 +363,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<Result> modifyAsync(ModifyRequest request,
+  public LdapPromise<Result> modifyAsync(ModifyRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
@@ -373,7 +374,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
+  public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request,
       IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
@@ -392,7 +393,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<Result> searchAsync(final SearchRequest request,
+  public LdapPromise<Result> searchAsync(final SearchRequest request,
       final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
