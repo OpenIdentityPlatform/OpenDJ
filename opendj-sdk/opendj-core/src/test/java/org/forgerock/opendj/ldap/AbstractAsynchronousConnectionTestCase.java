@@ -53,10 +53,10 @@ import org.testng.annotations.Test;
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.responses.Responses.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -78,19 +78,19 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<Void> abandonAsync(AbandonRequest request) {
+        public LdapPromise<Void> abandonAsync(AbandonRequest request) {
             if (!resultCode.isExceptional()) {
-                return newSuccessfulFutureResult((Void) null);
+                return newSuccessfulLdapPromise((Void) null);
             } else {
-                return newFailedFutureResult(newErrorResult(resultCode));
+                return newFailedLdapPromise(newLdapException(resultCode));
             }
         }
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<Result> addAsync(AddRequest request,
+        public LdapPromise<Result> addAsync(AddRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
-            return getFutureFromResultCode(newResult(resultCode));
+            return getPromiseFromResultCode(newResult(resultCode));
         }
 
         /** {@inheritDoc} */
@@ -101,9 +101,9 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<BindResult> bindAsync(BindRequest request,
+        public LdapPromise<BindResult> bindAsync(BindRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
-            return getFutureFromResultCode(newBindResult(resultCode));
+            return getPromiseFromResultCode(newBindResult(resultCode));
         }
 
         /** {@inheritDoc} */
@@ -114,23 +114,23 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<CompareResult> compareAsync(CompareRequest request,
+        public LdapPromise<CompareResult> compareAsync(CompareRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
-            return getFutureFromResultCode(newCompareResult(resultCode));
+            return getPromiseFromResultCode(newCompareResult(resultCode));
         }
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<Result> deleteAsync(DeleteRequest request,
+        public LdapPromise<Result> deleteAsync(DeleteRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
-            return getFutureFromResultCode(newResult(resultCode));
+            return getPromiseFromResultCode(newResult(resultCode));
         }
 
         /** {@inheritDoc} */
         @Override
-        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request,
+        public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request,
                 IntermediateResponseHandler intermediateResponseHandler) {
-            return getFutureFromResultCode(request.getResultDecoder().newExtendedErrorResult(resultCode, "", ""));
+            return getPromiseFromResultCode(request.getResultDecoder().newExtendedErrorResult(resultCode, "", ""));
         }
 
         /** {@inheritDoc} */
@@ -147,16 +147,16 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<Result> modifyAsync(ModifyRequest request,
+        public LdapPromise<Result> modifyAsync(ModifyRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
-            return getFutureFromResultCode(newResult(resultCode));
+            return getPromiseFromResultCode(newResult(resultCode));
         }
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
+        public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request,
                 IntermediateResponseHandler intermediateResponseHandler) {
-            return getFutureFromResultCode(newResult(resultCode));
+            return getPromiseFromResultCode(newResult(resultCode));
         }
 
         /** {@inheritDoc} */
@@ -167,20 +167,20 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<Result> searchAsync(SearchRequest request,
+        public LdapPromise<Result> searchAsync(SearchRequest request,
                 IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler) {
             for (SearchResultEntry entry : entries) {
                 entryHandler.handleEntry(entry);
             }
 
-            return getFutureFromResultCode(newResult(resultCode));
+            return getPromiseFromResultCode(newResult(resultCode));
         }
 
-        private <T extends Result> FutureResult<T> getFutureFromResultCode(T correctResult) {
+        private <T extends Result> LdapPromise<T> getPromiseFromResultCode(T correctResult) {
             if (resultCode.isExceptional()) {
-                return newFailedFutureResult(newErrorResult(resultCode));
+                return newFailedLdapPromise(newLdapException(resultCode));
             } else {
-                return newSuccessfulFutureResult(correctResult);
+                return newSuccessfulLdapPromise(correctResult);
             }
         }
 
@@ -375,11 +375,8 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final SearchRequest request =
                 newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         SuccessHandler<SearchResultEntry> successHandler = mock(SuccessHandler.class);
-
-        FutureResult<SearchResultEntry> futureResult = (FutureResult<SearchResultEntry>) mockConnection
-                .searchSingleEntryAsync(request).onSuccess(successHandler);
-
-        assertThat(futureResult.get()).isEqualTo(entry);
+        SearchResultEntry resultEntry = mockConnection.searchSingleEntryAsync(request).onSuccess(successHandler).get();
+        assertThat(resultEntry).isEqualTo(entry);
         verify(successHandler).handleResult(any(SearchResultEntry.class));
     }
 

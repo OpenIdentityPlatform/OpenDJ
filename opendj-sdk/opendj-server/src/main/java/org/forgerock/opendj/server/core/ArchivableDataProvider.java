@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.server.core;
 
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultHandler;
 
 /**
@@ -56,9 +56,9 @@ public interface ArchivableDataProvider {
      *            The configuration to use when performing the backup.
      * @param handler
      *            A handler which will be notified when the backup completes.
-     * @return A future representing the completion of the backup.
+     * @return A promise representing the completion of the backup.
      */
-    FutureResult<Void> createBackup(BackupConfig backupConfig, ResultHandler<Void> handler);
+    LdapPromise<Void> createBackup(BackupConfig backupConfig, ResultHandler<Void> handler);
 
     /**
      * Returns the ID of this data provider.
@@ -77,9 +77,9 @@ public interface ArchivableDataProvider {
      *            The configuration to use when performing the restore.
      * @param handler
      *            A handler which will be notified when the restore completes.
-     * @return A future representing the completion of the restore.
+     * @return A promise representing the completion of the restore.
      */
-    FutureResult<Void> restoreBackup(RestoreConfig restoreConfig, ResultHandler<Void> handler);
+    LdapPromise<Void> restoreBackup(RestoreConfig restoreConfig, ResultHandler<Void> handler);
 
     /**
      * Indicates whether this data provider provides a mechanism to perform a

@@ -57,6 +57,8 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
+import static org.forgerock.opendj.ldap.LdapException.*;
+
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
@@ -172,7 +174,7 @@ public class AddRate extends ConsoleApplication {
                 } catch (IOException e) {
                     // faking an error result by notifying the Handler
                     UpdateStatsResultHandler<Result> resHandler = new UpdateStatsResultHandler<Result>(currentTime);
-                    resHandler.handleError(LdapException.newErrorResult(ResultCode.OTHER, e));
+                    resHandler.handleError(newLdapException(ResultCode.OTHER, e));
                     return null;
                 }
             }

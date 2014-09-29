@@ -26,7 +26,7 @@
 package org.forgerock.opendj.ldap.spi;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.responses.Responses.newGenericExtendedResult;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doAnswer;
@@ -48,8 +48,8 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class ConnectionStateTest extends LDAPTestCase {
-    private static final LdapException ERROR = newErrorResult(ResultCode.OTHER);
-    private static final LdapException LATE_ERROR = newErrorResult(ResultCode.BUSY);
+    private static final LdapException ERROR = newLdapException(ResultCode.OTHER);
+    private static final LdapException LATE_ERROR = newLdapException(ResultCode.BUSY);
     private static final ExtendedResult UNSOLICITED =
             newGenericExtendedResult(ResultCode.OPERATIONS_ERROR);
 

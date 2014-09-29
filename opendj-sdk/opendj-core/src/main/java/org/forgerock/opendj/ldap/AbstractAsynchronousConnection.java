@@ -104,9 +104,9 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
         return blockingGetOrThrow(searchAsync(request, handler));
     }
 
-    private <T extends Result> T blockingGetOrThrow(FutureResult<T> future) throws LdapException {
+    private <T extends Result> T blockingGetOrThrow(LdapPromise<T> promise) throws LdapException {
         try {
-            return future.getOrThrow();
+            return promise.getOrThrow();
         } catch (InterruptedException e) {
             throw interrupted(e);
         }
@@ -114,6 +114,6 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
 
     // Handle thread interruption.
     private LdapException interrupted(InterruptedException e) {
-        return newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+        return newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
     }
 }

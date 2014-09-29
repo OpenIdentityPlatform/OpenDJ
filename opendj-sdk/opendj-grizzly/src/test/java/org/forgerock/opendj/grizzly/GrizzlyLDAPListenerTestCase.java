@@ -37,13 +37,12 @@ import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
@@ -68,14 +67,16 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.promise.PromiseImpl;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-import static org.mockito.Mockito.mock;
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the LDAPListener class.
@@ -84,8 +85,8 @@ import static org.mockito.Mockito.mock;
 public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
     private static class MockServerConnection implements ServerConnection<Integer> {
-        final FutureResultImpl<Throwable> connectionError = new FutureResultImpl<Throwable>();
-        final FutureResultImpl<LDAPClientContext> context = new FutureResultImpl<LDAPClientContext>();
+        final PromiseImpl<Throwable, LdapException> connectionError = PromiseImpl.create();
+        final PromiseImpl<LDAPClientContext, LdapException> context = PromiseImpl.create();
         final CountDownLatch isClosed = new CountDownLatch(1);
 
         MockServerConnection() {
@@ -175,7 +176,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<R> resultHandler) throws UnsupportedOperationException {
-            resultHandler.handleError(LdapException.newErrorResult(request
+            resultHandler.handleError(newLdapException(request
                     .getResultDecoder().newExtendedErrorResult(ResultCode.PROTOCOL_ERROR, "",
                             "Extended operation " + request.getOID() + " not supported")));
         }
@@ -453,8 +454,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
                     } catch (final Exception e) {
                         // Unexpected.
-                        resultHandler.handleError(LdapException.newErrorResult(
-                                ResultCode.OTHER,
+                        resultHandler.handleError(newLdapException(ResultCode.OTHER,
                                 "Unexpected exception when connecting to load balancer", e));
                     }
                 }
@@ -522,7 +522,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             try {
                                 // This is expected to fail.
                                 lcf.getConnection().close();
-                                throw LdapException.newErrorResult(ResultCode.OTHER,
+                                throw newLdapException(ResultCode.OTHER,
                                         "Connection to offline server succeeded unexpectedly");
                             } catch (final ConnectionException ce) {
                                 // This is expected - so go to online server.
@@ -534,14 +534,14 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                                     lcf.getConnection().close();
                                 } catch (final Exception e) {
                                     // Unexpected.
-                                    throw LdapException.newErrorResult(
+                                    throw newLdapException(
                                                     ResultCode.OTHER,
                                                     "Unexpected exception when connecting to online server",
                                                     e);
                                 }
                             } catch (final Exception e) {
                                 // Unexpected.
-                                throw LdapException.newErrorResult(
+                                throw newLdapException(
                                                 ResultCode.OTHER,
                                                 "Unexpected exception when connecting to offline server",
                                                 e);
@@ -608,7 +608,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     try {
                         // This is expected to fail.
                         lcf.getConnection().close();
-                        resultHandler.handleError(LdapException.newErrorResult(
+                        resultHandler.handleError(newLdapException(
                                 ResultCode.OTHER,
                                 "Connection to offline server succeeded unexpectedly"));
                     } catch (final ConnectionException ce) {
@@ -620,13 +620,13 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
                         } catch (final Exception e) {
                             // Unexpected.
-                            resultHandler.handleError(LdapException.newErrorResult(
+                            resultHandler.handleError(newLdapException(
                                     ResultCode.OTHER,
                                     "Unexpected exception when connecting to online server", e));
                         }
                     } catch (final Exception e) {
                         // Unexpected.
-                        resultHandler.handleError(LdapException.newErrorResult(
+                        resultHandler.handleError(newLdapException(
                                 ResultCode.OTHER,
                                 "Unexpected exception when connecting to offline server", e));
                     }

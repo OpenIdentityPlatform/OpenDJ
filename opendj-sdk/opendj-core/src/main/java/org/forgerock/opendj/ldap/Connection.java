@@ -78,12 +78,12 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * <h4>Performing operations asynchronously</h4>
  * <p>
  * Asynchronous methods, identified by their {@code Async} suffix, are
- * non-blocking, returning a {@link FutureResult} or sub-type thereof which can
- * be used for retrieving the result using the {@link FutureResult#get} method.
- * Operation failures, for whatever reason, are signalled by the
- * {@link FutureResult#get()} method throwing an {@link LdapException}.
+ * non-blocking, returning a {@link LdapPromise} or sub-type thereof which can
+ * be used for retrieving the result using the {@link LdapPromise#get} method.
+ * Operation failures, for whatever reason, are signaled by the
+ * {@link LdapPromise#get()} method throwing an {@link LdapException}.
  * <p>
- * In addition to returning a {@code FutureResult}, all asynchronous methods
+ * In addition to returning a {@link LdapPromise}, all asynchronous methods
  * accept a {@link ResultHandler} which will be notified upon completion of the
  * operation.
  * <p>
@@ -106,12 +106,12 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * Connection connection2 = ...;
  * AddRequest request = ...;
  * // Add the entry to the first server (don't block).
- * FutureResult future1 = connection1.add(request);
+ * LdapPromise promise1 = connection1.add(request);
  * // Add the entry to the second server (in parallel).
- * FutureResult future2 = connection2.add(request);
+ * LdapPromise promise2 = connection2.add(request);
  * // Total time = is O(1) instead of O(n).
- * future1.get();
- * future2.get();
+ * promise1.get();
+ * promise2.get();
  * </pre>
  *
  * More complex client applications can take advantage of a fully asynchronous
@@ -155,18 +155,18 @@ public interface Connection extends Closeable {
      * request.
      * <p>
      * Abandon requests do not have a response, so invoking the method get() on
-     * the returned future will not block, nor return anything (it is Void), but
+     * the returned promise will not block, nor return anything (it is Void), but
      * may throw an exception if a problem occurred while sending the abandon
-     * request. In addition the returned future may be used in order to
+     * request. In addition the returned promise may be used in order to
      * determine the message ID of the abandon request.
      * <p>
      * <b>Note:</b> a more convenient approach to abandoning unfinished
      * asynchronous operations is provided via the
-     * {@link FutureResult#cancel(boolean)} method.
+     * {@link LdapPromise#cancel(boolean)} method.
      *
      * @param request
      *            The request identifying the operation to be abandoned.
-     * @return A future whose result is Void.
+     * @return A promise whose result is Void.
      * @throws UnsupportedOperationException
      *             If this connection does not support abandon operations.
      * @throws IllegalStateException
@@ -175,7 +175,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Void> abandonAsync(AbandonRequest request);
+    LdapPromise<Void> abandonAsync(AbandonRequest request);
 
     /**
      * Adds an entry to the Directory Server using the provided add request.
@@ -258,7 +258,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The add request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support add operations.
      * @throws IllegalStateException
@@ -267,7 +267,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> addAsync(AddRequest request);
+    LdapPromise<Result> addAsync(AddRequest request);
 
     /**
      * Asynchronously adds an entry to the Directory Server using the provided
@@ -279,7 +279,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support add operations.
      * @throws IllegalStateException
@@ -288,7 +288,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> addAsync(AddRequest request, IntermediateResponseHandler intermediateResponseHandler);
+    LdapPromise<Result> addAsync(AddRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Registers the provided connection event listener so that it will be
@@ -332,7 +332,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The change request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support the provided change
      *             request.
@@ -342,7 +342,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> applyChangeAsync(ChangeRecord request);
+    LdapPromise<Result> applyChangeAsync(ChangeRecord request);
 
     /**
      * Asynchronously applies the provided change request to the Directory
@@ -354,7 +354,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support the provided change
      *             request.
@@ -364,7 +364,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> applyChangeAsync(ChangeRecord request,
+    LdapPromise<Result> applyChangeAsync(ChangeRecord request,
         IntermediateResponseHandler intermediateResponseHandler);
 
     /**
@@ -426,7 +426,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The bind request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support bind operations.
      * @throws IllegalStateException
@@ -435,7 +435,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<BindResult> bindAsync(BindRequest request);
+    LdapPromise<BindResult> bindAsync(BindRequest request);
 
     /**
      * Asynchronously authenticates to the Directory Server using the provided
@@ -447,7 +447,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support bind operations.
      * @throws IllegalStateException
@@ -456,7 +456,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<BindResult> bindAsync(BindRequest request, IntermediateResponseHandler intermediateResponseHandler);
+    LdapPromise<BindResult> bindAsync(BindRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Releases any resources associated with this connection. For physical
@@ -568,7 +568,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The compare request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support compare operations.
      * @throws IllegalStateException
@@ -577,7 +577,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<CompareResult> compareAsync(CompareRequest request);
+    LdapPromise<CompareResult> compareAsync(CompareRequest request);
 
     /**
      * Asynchronously compares an entry in the Directory Server using the
@@ -589,7 +589,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support compare operations.
      * @throws IllegalStateException
@@ -598,7 +598,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<CompareResult> compareAsync(CompareRequest request,
+    LdapPromise<CompareResult> compareAsync(CompareRequest request,
         IntermediateResponseHandler intermediateResponseHandler);
 
     /**
@@ -687,7 +687,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The delete request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support delete operations.
      * @throws IllegalStateException
@@ -696,7 +696,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> deleteAsync(DeleteRequest request);
+    LdapPromise<Result> deleteAsync(DeleteRequest request);
 
     /**
      * Asynchronously deletes an entry from the Directory Server using the
@@ -708,7 +708,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support delete operations.
      * @throws IllegalStateException
@@ -717,7 +717,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> deleteAsync(DeleteRequest request, IntermediateResponseHandler intermediateResponseHandler);
+    LdapPromise<Result> deleteAsync(DeleteRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Requests that the Directory Server performs the provided extended
@@ -807,7 +807,7 @@ public interface Connection extends Closeable {
      *            The type of result returned by the extended request.
      * @param request
      *            The extended request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support extended operations.
      * @throws IllegalStateException
@@ -816,7 +816,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request);
+    <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request);
 
     /**
      * Asynchronously performs the provided extended request in the Directory
@@ -830,7 +830,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support extended operations.
      * @throws IllegalStateException
@@ -839,7 +839,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request,
+    <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request,
         IntermediateResponseHandler intermediateResponseHandler);
 
     /**
@@ -921,7 +921,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The modify request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify operations.
      * @throws IllegalStateException
@@ -930,7 +930,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> modifyAsync(ModifyRequest request);
+    LdapPromise<Result> modifyAsync(ModifyRequest request);
 
     /**
      * Asynchronously modifies an entry in the Directory Server using the
@@ -942,7 +942,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify operations.
      * @throws IllegalStateException
@@ -951,7 +951,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> modifyAsync(ModifyRequest request, IntermediateResponseHandler intermediateResponseHandler);
+    LdapPromise<Result> modifyAsync(ModifyRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Renames an entry in the Directory Server using the provided modify DN
@@ -1011,7 +1011,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The modify DN request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify DN operations.
      * @throws IllegalStateException
@@ -1020,7 +1020,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> modifyDNAsync(ModifyDNRequest request);
+    LdapPromise<Result> modifyDNAsync(ModifyDNRequest request);
 
     /**
      * Asynchronously renames an entry in the Directory Server using the
@@ -1032,7 +1032,7 @@ public interface Connection extends Closeable {
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify DN operations.
      * @throws IllegalStateException
@@ -1041,7 +1041,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
+    LdapPromise<Result> modifyDNAsync(ModifyDNRequest request,
         IntermediateResponseHandler intermediateResponseHandler);
 
     /**
@@ -1120,7 +1120,7 @@ public interface Connection extends Closeable {
      * <p>
      * If the requested entry is not returned by the Directory Server then the
      * request will fail with an {@link EntryNotFoundException}. More
-     * specifically, the returned future will never return {@code null}.
+     * specifically, the returned promise will never return {@code null}.
      * <p>
      * This method is equivalent to the following code:
      *
@@ -1136,7 +1136,7 @@ public interface Connection extends Closeable {
      *            The names of the attributes to be included with the entry,
      *            which may be {@code null} or empty indicating that all user
      *            attributes should be returned.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1145,7 +1145,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code name} was {@code null}.
      */
-    FutureResult<SearchResultEntry> readEntryAsync(DN name, Collection<String> attributeDescriptions);
+    LdapPromise<SearchResultEntry> readEntryAsync(DN name, Collection<String> attributeDescriptions);
 
     /**
      * Removes the provided connection event listener from this connection so
@@ -1328,7 +1328,7 @@ public interface Connection extends Closeable {
      *            A search result handler which can be used to asynchronously
      *            process the search result entries and references as they are
      *            received, may be {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1337,7 +1337,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> searchAsync(SearchRequest request, SearchResultHandler entryHandler);
+    LdapPromise<Result> searchAsync(SearchRequest request, SearchResultHandler entryHandler);
 
     /**
      * Asynchronously searches the Directory Server using the provided search
@@ -1353,7 +1353,7 @@ public interface Connection extends Closeable {
      *            A search result handler which can be used to asynchronously
      *            process the search result entries and references as they are
      *            received, may be {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1362,7 +1362,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> searchAsync(SearchRequest request, IntermediateResponseHandler intermediateResponseHandler,
+    LdapPromise<Result> searchAsync(SearchRequest request, IntermediateResponseHandler intermediateResponseHandler,
         SearchResultHandler entryHandler);
 
     /**
@@ -1444,13 +1444,13 @@ public interface Connection extends Closeable {
      * <p>
      * If the requested entry is not returned by the Directory Server then the
      * request will fail with an {@link EntryNotFoundException}. More
-     * specifically, the returned future will never return {@code null}. If
+     * specifically, the returned promise will never return {@code null}. If
      * multiple matching entries are returned by the Directory Server then the
      * request will fail with an {@link MultipleEntriesFoundException}.
      *
      * @param request
      *            The search request.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
      * @throws IllegalStateException
@@ -1459,5 +1459,5 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code request} was {@code null}.
      */
-    FutureResult<SearchResultEntry> searchSingleEntryAsync(SearchRequest request);
+    LdapPromise<SearchResultEntry> searchSingleEntryAsync(SearchRequest request);
 }

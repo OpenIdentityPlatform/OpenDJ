@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
@@ -73,7 +73,7 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
                     setNextSASLCredentials((ByteString) null);
                 }
             } catch (final SaslException e) {
-                throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
+                throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
             }
         }
 

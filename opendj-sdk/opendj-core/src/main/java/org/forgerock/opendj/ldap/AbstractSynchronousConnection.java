@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 /**
  * An abstract connection whose asynchronous methods are implemented in terms of
@@ -73,12 +73,12 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
      *             synchronous connections.
      */
     @Override
-    public FutureResult<Void> abandonAsync(final AbandonRequest request) {
+    public LdapPromise<Void> abandonAsync(final AbandonRequest request) {
         throw new UnsupportedOperationException("Abandon requests are not supported for synchronous connections");
     }
 
     @Override
-    public FutureResult<Result> addAsync(final AddRequest request,
+    public LdapPromise<Result> addAsync(final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(add(request));
@@ -88,7 +88,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     }
 
     @Override
-    public FutureResult<BindResult> bindAsync(final BindRequest request,
+    public LdapPromise<BindResult> bindAsync(final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(bind(request));
@@ -98,7 +98,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     }
 
     @Override
-    public FutureResult<CompareResult> compareAsync(final CompareRequest request,
+    public LdapPromise<CompareResult> compareAsync(final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(compare(request));
@@ -108,7 +108,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     }
 
     @Override
-    public FutureResult<Result> deleteAsync(final DeleteRequest request,
+    public LdapPromise<Result> deleteAsync(final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(delete(request));
@@ -118,7 +118,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     }
 
     @Override
-    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+    public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(extendedRequest(request, intermediateResponseHandler));
@@ -128,7 +128,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     }
 
     @Override
-    public FutureResult<Result> modifyAsync(final ModifyRequest request,
+    public LdapPromise<Result> modifyAsync(final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(modify(request));
@@ -138,7 +138,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     }
 
     @Override
-    public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
+    public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(modifyDN(request));
@@ -148,7 +148,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
     }
 
     @Override
-    public FutureResult<Result> searchAsync(final SearchRequest request,
+    public LdapPromise<Result> searchAsync(final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
         try {
             return onSuccess(search(request, entryHandler));
@@ -157,12 +157,12 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
         }
     }
 
-    private <R extends Result> FutureResult<R> onFailure(final LdapException e) {
-        return newFailedFutureResult(e);
+    private <R extends Result> LdapPromise<R> onFailure(final LdapException e) {
+        return newFailedLdapPromise(e);
     }
 
-    private <R extends Result> FutureResult<R> onSuccess(final R result) {
-        return newSuccessfulFutureResult(result);
+    private <R extends Result> LdapPromise<R> onSuccess(final R result) {
+        return newSuccessfulLdapPromise(result);
     }
 
 }

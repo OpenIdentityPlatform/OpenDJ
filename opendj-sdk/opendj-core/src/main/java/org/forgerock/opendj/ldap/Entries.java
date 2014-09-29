@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1084,21 +1084,21 @@ public final class Entries {
         // First parse the change.
         final AttributeDescription deltaAd = change.getAttributeDescription();
         if (change.size() != 1) {
-            throw newErrorResult(ResultCode.CONSTRAINT_VIOLATION,
+            throw newLdapException(ResultCode.CONSTRAINT_VIOLATION,
                     ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(deltaAd.toString()).toString());
         }
         final long delta;
         try {
             delta = change.parse().asLong();
         } catch (final Exception e) {
-            throw newErrorResult(ResultCode.CONSTRAINT_VIOLATION,
+            throw newLdapException(ResultCode.CONSTRAINT_VIOLATION,
                     ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(deltaAd.toString()).toString());
         }
 
         // Now apply the increment to the attribute.
         final Attribute oldAttribute = entry.getAttribute(deltaAd);
         if (oldAttribute == null) {
-            throw newErrorResult(ResultCode.NO_SUCH_ATTRIBUTE,
+            throw newLdapException(ResultCode.NO_SUCH_ATTRIBUTE,
                     ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(deltaAd.toString()).toString());
         }
 
@@ -1109,7 +1109,7 @@ public final class Entries {
                 newAttribute.add(value + delta);
             }
         } catch (final Exception e) {
-            throw newErrorResult(ResultCode.CONSTRAINT_VIOLATION,
+            throw newLdapException(ResultCode.CONSTRAINT_VIOLATION,
                     ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(deltaAd.toString()).toString());
         }
         entry.replaceAttribute(newAttribute);
@@ -1133,7 +1133,7 @@ public final class Entries {
             entry.addAttribute(change.getAttribute(), conflictingValues);
             if (!isPermissive && !conflictingValues.isEmpty()) {
                 // Duplicate values.
-                throw newErrorResult(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+                throw newLdapException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
                         ERR_ENTRY_DUPLICATE_VALUES.get(
                                 change.getAttribute().getAttributeDescriptionAsString()).toString());
             }
@@ -1142,7 +1142,7 @@ public final class Entries {
                     entry.removeAttribute(change.getAttribute(), conflictingValues);
             if (!isPermissive && (!hasChanged || !conflictingValues.isEmpty())) {
                 // Missing attribute or values.
-                throw newErrorResult(ResultCode.NO_SUCH_ATTRIBUTE, ERR_ENTRY_NO_SUCH_VALUE.get(
+                throw newLdapException(ResultCode.NO_SUCH_ATTRIBUTE, ERR_ENTRY_NO_SUCH_VALUE.get(
                         change.getAttribute().getAttributeDescriptionAsString()).toString());
             }
         } else if (modType.equals(ModificationType.REPLACE)) {
@@ -1150,7 +1150,7 @@ public final class Entries {
         } else if (modType.equals(ModificationType.INCREMENT)) {
             incrementAttribute(entry, change.getAttribute());
         } else {
-            throw newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+            throw newLdapException(ResultCode.UNWILLING_TO_PERFORM,
                     ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(String.valueOf(modType)).toString());
         }
         return entry;

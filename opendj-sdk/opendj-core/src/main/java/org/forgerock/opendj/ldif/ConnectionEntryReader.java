@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -175,7 +175,7 @@ public class ConnectionEntryReader implements EntryReader {
     }
 
     private final BufferHandler buffer;
-    private final FutureResult<Result> future;
+    private final LdapPromise<Result> promise;
     private Response nextResponse = null;
 
     /**
@@ -211,8 +211,7 @@ public class ConnectionEntryReader implements EntryReader {
         final BlockingQueue<Response> entries) {
         Reject.ifNull(connection);
         buffer = new BufferHandler(entries);
-        future = (FutureResult<Result>) connection.searchAsync(searchRequest, buffer)
-                .onSuccess(buffer).onFailure(buffer);
+        promise = connection.searchAsync(searchRequest, buffer).onSuccess(buffer).onFailure(buffer);
     }
 
     /**
@@ -222,7 +221,7 @@ public class ConnectionEntryReader implements EntryReader {
     @Override
     public void close() {
         // Cancel the search if it is still running.
-        future.cancel(true);
+        promise.cancel(true);
     }
 
     /**
@@ -243,7 +242,7 @@ public class ConnectionEntryReader implements EntryReader {
             return false;
         }
 
-        throw newErrorResult(result);
+        throw newLdapException(result);
     }
 
     /**
@@ -400,7 +399,7 @@ public class ConnectionEntryReader implements EntryReader {
             try {
                 nextResponse = buffer.responses.poll(50, TimeUnit.MILLISECONDS);
             } catch (final InterruptedException e) {
-                throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+                throw newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
             }
 
             if (nextResponse == null && buffer.isInterrupted) {

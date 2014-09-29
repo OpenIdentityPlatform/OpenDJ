@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -72,8 +72,9 @@ final class Context implements Closeable {
     private static final class CachedRead implements SearchResultHandler, ResultHandler<Result> {
         private SearchResultEntry cachedEntry;
         private final String cachedFilterString;
-        private FutureResult<Result> cachedFuture; // Guarded by latch.
-        private final CountDownLatch cachedFutureLatch = new CountDownLatch(1);
+        /**  Guarded by cachedPromiseLatch.*/
+        private LdapPromise<Result> cachedPromise;
+        private final CountDownLatch cachedPromiseLatch = new CountDownLatch(1);
         private final SearchRequest cachedRequest;
         private volatile Result cachedResult;
         private final ConcurrentLinkedQueue<SearchResultHandler> waitingResultHandlers =
@@ -121,7 +122,7 @@ final class Context implements Closeable {
             }
         }
 
-        FutureResult<Result> getFutureResult() {
+        LdapPromise<Result> getPromise() {
             /*
              * Perform uninterrupted wait since this method is unlikely to block
              * for a long time.
@@ -129,11 +130,11 @@ final class Context implements Closeable {
             boolean wasInterrupted = false;
             while (true) {
                 try {
-                    cachedFutureLatch.await();
+                    cachedPromiseLatch.await();
                     if (wasInterrupted) {
                         Thread.currentThread().interrupt();
                     }
-                    return cachedFuture;
+                    return cachedPromise;
                 } catch (final InterruptedException e) {
                     wasInterrupted = true;
                 }
@@ -160,9 +161,9 @@ final class Context implements Closeable {
             return true;
         }
 
-        void setFuture(final FutureResult<Result> future) {
-            cachedFuture = future;
-            cachedFutureLatch.countDown();
+        void setPromise(final LdapPromise<Result> promise) {
+            cachedPromise = promise;
+            cachedPromiseLatch.countDown();
         }
 
         private void drainQueue() {
@@ -315,12 +316,12 @@ final class Context implements Closeable {
          */
         return new AbstractAsynchronousConnection() {
             @Override
-            public FutureResult<Void> abandonAsync(final AbandonRequest request) {
+            public LdapPromise<Void> abandonAsync(final AbandonRequest request) {
                 return connection.abandonAsync(request);
             }
 
             @Override
-            public FutureResult<Result> addAsync(final AddRequest request,
+            public LdapPromise<Result> addAsync(final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
                 return connection.addAsync(withControls(request), intermediateResponseHandler);
             }
@@ -331,7 +332,7 @@ final class Context implements Closeable {
             }
 
             @Override
-            public FutureResult<BindResult> bindAsync(final BindRequest request,
+            public LdapPromise<BindResult> bindAsync(final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
                 /*
                  * Simple brute force implementation in case the bind operation
@@ -352,20 +353,20 @@ final class Context implements Closeable {
             }
 
             @Override
-            public FutureResult<CompareResult> compareAsync(final CompareRequest request,
+            public LdapPromise<CompareResult> compareAsync(final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
                 return connection.compareAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
-            public FutureResult<Result> deleteAsync(final DeleteRequest request,
+            public LdapPromise<Result> deleteAsync(final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
                 evict(request.getName());
                 return connection.deleteAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
-            public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+            public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
                 /*
                  * Simple brute force implementation in case the extended
@@ -386,14 +387,14 @@ final class Context implements Closeable {
             }
 
             @Override
-            public FutureResult<Result> modifyAsync(final ModifyRequest request,
+            public LdapPromise<Result> modifyAsync(final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
                 evict(request.getName());
                 return connection.modifyAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
-            public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
+            public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
                 // Simple brute force implementation: clear the cachedReads.
                 evictAll();
@@ -409,7 +410,7 @@ final class Context implements Closeable {
              * Try and re-use a cached result if possible.
              */
             @Override
-            public FutureResult<Result> searchAsync(final SearchRequest request,
+            public LdapPromise<Result> searchAsync(final SearchRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
                 /*
                  * Don't attempt caching if this search is not a read (base
@@ -428,18 +429,18 @@ final class Context implements Closeable {
                 if (cachedRead != null && cachedRead.isMatchingRead(request)) {
                     // The cached read matches this read request.
                     cachedRead.addResultHandler(entryHandler);
-                    return cachedRead.getFutureResult();
+                    return cachedRead.getPromise();
                 } else {
                     // Cache the read, possibly evicting a non-matching cached read.
                     final CachedRead pendingCachedRead = new CachedRead(request, entryHandler);
                     synchronized (cachedReads) {
                         cachedReads.put(request.getName(), pendingCachedRead);
                     }
-                    final FutureResult<Result> future = (FutureResult<Result>) connection
+                    final LdapPromise<Result> promise = (LdapPromise<Result>) connection
                             .searchAsync(withControls(request), intermediateResponseHandler, pendingCachedRead)
                             .onSuccess(pendingCachedRead).onFailure(pendingCachedRead);
-                    pendingCachedRead.setFuture(future);
-                    return future;
+                    pendingCachedRead.setPromise(promise);
+                    return promise;
                 }
             }
 

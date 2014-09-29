@@ -32,7 +32,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_CONTEXT_CREATE_ERR
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
 import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -74,7 +74,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
             if (authenticationID == null) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw LdapException.newErrorResult(Responses.newResult(
+                throw newLdapException(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "No authentication ID specified for GSSAPI SASL authentication"));
             }
@@ -82,7 +82,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
             if (password == null) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw LdapException.newErrorResult(Responses.newResult(
+                throw newLdapException(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "No password specified for GSSAPI SASL authentication"));
             }
@@ -113,7 +113,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                 final LocalizableMessage message =
                         ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED.get(StaticUtils
                                 .getExceptionMessage(e));
-                throw LdapException.newErrorResult(Responses.newResult(
+                throw newLdapException(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR)
                         .setDiagnosticMessage(message.toString()).setCause(e));
             }
@@ -137,7 +137,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                         } catch (final SaslException e) {
                             // FIXME: I18N need to have a better error message.
                             // FIXME: Is this the best result code?
-                            throw LdapException.newErrorResult(Responses.newResult(
+                            throw newLdapException(Responses.newResult(
                                     ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                                     "An error occurred during multi-stage authentication")
                                     .setCause(e));
@@ -215,7 +215,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                                     }
                                     return saslClient;
                                 } catch (final SaslException e) {
-                                    throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
+                                    throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
                                 }
                             }
                         });
@@ -227,7 +227,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                     final LocalizableMessage msg =
                             ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_NAME,
                                     getExceptionMessage(e));
-                    throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, msg.toString(), e);
+                    throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, msg.toString(), e);
                 }
             }
         }
@@ -254,7 +254,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                     final LocalizableMessage msg =
                             ERR_SASL_PROTOCOL_ERROR
                                     .get(SASL_MECHANISM_NAME, getExceptionMessage(e));
-                    throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, msg.toString(), e);
+                    throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, msg.toString(), e);
                 }
             }
         }
@@ -276,7 +276,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
             } catch (final SaslException e) {
                 final LocalizableMessage msg =
                         ERR_SASL_PROTOCOL_ERROR.get(SASL_MECHANISM_NAME, getExceptionMessage(e));
-                throw newErrorResult(ResultCode.CLIENT_SIDE_DECODING_ERROR, msg.toString(), e);
+                throw newLdapException(ResultCode.CLIENT_SIDE_DECODING_ERROR, msg.toString(), e);
             }
         }
 
@@ -287,7 +287,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
             } catch (final SaslException e) {
                 final LocalizableMessage msg =
                         ERR_SASL_PROTOCOL_ERROR.get(SASL_MECHANISM_NAME, getExceptionMessage(e));
-                throw newErrorResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR, msg.toString(), e);
+                throw newLdapException(ResultCode.CLIENT_SIDE_ENCODING_ERROR, msg.toString(), e);
             }
         }
 

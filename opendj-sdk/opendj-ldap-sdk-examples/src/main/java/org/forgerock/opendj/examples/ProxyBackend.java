@@ -123,7 +123,7 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
 
         if (request.getAuthenticationType() != BindRequest.AUTHENTICATION_TYPE_SIMPLE) {
             // TODO: SASL authentication not implemented.
-            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR,
+            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR,
                     "non-SIMPLE authentication not supported: " + request.getAuthenticationType()));
         } else {
             // Authenticate using a separate bind connection pool, because
@@ -188,11 +188,11 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         final ResultHandler<R> resultHandler) {
         if (CancelExtendedRequest.OID.equals(request.getOID())) {
             // TODO: not implemented.
-            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR,
+            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR,
                 "Cancel extended request operation not supported"));
         } else if (StartTLSExtendedRequest.OID.equals(request.getOID())) {
             // TODO: not implemented.
-            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR,
+            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR,
                 "StartTLS extended request operation not supported"));
         } else {
             // Forward all other extended operations.

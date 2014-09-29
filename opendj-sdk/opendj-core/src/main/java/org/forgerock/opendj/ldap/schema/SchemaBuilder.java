@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -67,10 +67,10 @@ import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -114,7 +114,7 @@ public final class SchemaBuilder {
 
         if (subentryAttr == null || subentryAttr.isEmpty()) {
             // Did not get the subschema sub-entry attribute.
-            throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+            throw newLdapException(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
                     ERR_NO_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString()).toString());
         }
 
@@ -123,7 +123,7 @@ public final class SchemaBuilder {
         try {
             subschemaDN = DN.valueOf(dnString);
         } catch (final LocalizedIllegalArgumentException e) {
-            throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+            throw newLdapException(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
                     ERR_INVALID_SUBSCHEMA_SUBENTRY_ATTR.get(name.toString(), dnString,
                             e.getMessageObject()).toString());
         }
@@ -1956,7 +1956,7 @@ public final class SchemaBuilder {
      * @param overwrite
      *            {@code true} if existing schema elements with the same
      *            conflicting OIDs should be overwritten.
-     * @return A future representing the updated schema builder.
+     * @return A promise representing the updated schema builder.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -1965,19 +1965,17 @@ public final class SchemaBuilder {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public FutureResult<SchemaBuilder> addSchemaAsync(final Connection connection, final DN name,
+    public LdapPromise<SchemaBuilder> addSchemaAsync(final Connection connection, final DN name,
         final boolean overwrite) {
         // The call to addSchema will perform copyOnWrite.
-        final SearchRequest request = getReadSchemaSearchRequest(name);
-
-        return asFutureResult(connection.searchSingleEntryAsync(request).then(
+        return connection.searchSingleEntryAsync(getReadSchemaSearchRequest(name)).then(
                 new Function<SearchResultEntry, SchemaBuilder, LdapException>() {
                     @Override
                     public SchemaBuilder apply(SearchResultEntry result) throws LdapException {
                         addSchema(result, overwrite);
                         return SchemaBuilder.this;
                     }
-                }));
+                });
     }
 
     /**
@@ -2033,8 +2031,7 @@ public final class SchemaBuilder {
      * <p>
      * This implementation first reads the {@code subschemaSubentry} attribute
      * of the entry in order to identify the schema and then invokes
-     * {@link #addSchemaAsync(Connection, DN, ResultHandler, boolean)} to read
-     * the schema.
+     * {@link #addSchemaAsync(Connection, DN, boolean)} to read the schema.
      *
      * @param connection
      *            A connection to the Directory Server whose schema is to be
@@ -2045,7 +2042,7 @@ public final class SchemaBuilder {
      * @param overwrite
      *            {@code true} if existing schema elements with the same
      *            conflicting OIDs should be overwritten.
-     * @return A future representing the updated schema builder.
+     * @return A promise representing the updated schema builder.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -2054,19 +2051,16 @@ public final class SchemaBuilder {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public FutureResult<SchemaBuilder> addSchemaForEntryAsync(final Connection connection, final DN name,
-        final boolean overwrite) {
-        final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
-
-        return asFutureResult(connection.searchSingleEntryAsync(request).thenAsync(
+    public LdapPromise<SchemaBuilder> addSchemaForEntryAsync(final Connection connection, final DN name,
+            final boolean overwrite) {
+        return connection.searchSingleEntryAsync(getReadSchemaForEntrySearchRequest(name)).thenAsync(
                 new AsyncFunction<SearchResultEntry, SchemaBuilder, LdapException>() {
                     @Override
-                    public Promise<SchemaBuilder, LdapException> apply(SearchResultEntry result)
-                            throws LdapException {
+                    public Promise<SchemaBuilder, LdapException> apply(SearchResultEntry result) throws LdapException {
                         final DN subschemaDN = getSubschemaSubentryDN(name, result);
                         return addSchemaAsync(connection, subschemaDN, overwrite);
                     }
-                }));
+                });
     }
 
     /**

@@ -34,8 +34,8 @@ import java.util.logging.Level;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldap.spi.BindResultLdapPromiseImpl;
 import org.forgerock.util.promise.FailureHandler;
 import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
@@ -52,11 +52,13 @@ import org.testng.annotations.Test;
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.ldap.responses.Responses.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromiseImpl.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -142,7 +144,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          * the response once we have attempted a bind.
          */
         when(connection.searchAsync(any(SearchRequest.class), any(SearchResultHandler.class))).thenReturn(
-            FutureResultWrapper.newSuccessfulFutureResult(Responses.newResult(ResultCode.SUCCESS)));
+            newSuccessfulLdapPromise(newResult(SUCCESS)));
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
         scheduler.runAllTasks(); // Send the heartbeat.
 
@@ -290,7 +292,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     @Test(description = "OPENDJ-1348")
     public void testBindPreventsHeartBeatTimeout() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
-        mockBindAsyncResponse();
+        BindResultLdapPromiseImpl promise = mockBindAsyncResponse();
         hbc = hbcf.getConnection();
 
         /*
@@ -298,7 +300,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          * the response once we have attempted a heartbeat.
          */
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
-        FutureResult<BindResult> future = hbc.bindAsync(newSimpleBindRequest());
+        hbc.bindAsync(newSimpleBindRequest());
 
         verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
 
@@ -309,7 +311,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Send fake bind response, releasing the heartbeat.
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11099L);
-        ((ResultHandler) future).handleResult(newResult(ResultCode.SUCCESS));
+        ((PromiseImpl) promise.getWrappedPromise()).handleResult(newResult(SUCCESS));
 
         // Check that bind response acts as heartbeat.
         assertThat(hbc.isValid()).isTrue();
@@ -345,16 +347,11 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testHeartBeatWhileBindInProgress() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
-        mockBindAsyncResponse();
+        //Trapping the callback of mockedConnection.bindAsync
+        BindResultLdapPromiseImpl promise = mockBindAsyncResponse();
         hbc = hbcf.getConnection();
+        hbc.bindAsync(newSimpleBindRequest());
 
-        /*
-         * Send a bind request, trapping the bind call-back so that we can send
-         * the response once we have attempted a heartbeat.
-         */
-        FutureResult result = hbc.bindAsync(newSimpleBindRequest());
-
-        // Capture the bind result handler.
         verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
 
         /*
@@ -367,7 +364,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         verify(connection, times(1)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
 
         // Send fake bind response, releasing the heartbeat.
-        ((ResultHandler) result).handleResult(newResult(ResultCode.SUCCESS));
+        ((PromiseImpl) promise.getWrappedPromise()).handleResult(newResult(SUCCESS));
 
         // Attempt to send a heartbeat again.
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(16000L);
@@ -404,42 +401,43 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Create heart beat connection factory.
         scheduler = new MockScheduler();
-        hbcf =
-                new HeartBeatConnectionFactory(factory, 10000, 100, TimeUnit.MILLISECONDS,
-                        HEARTBEAT, scheduler);
+        hbcf = new HeartBeatConnectionFactory(factory, 10000, 100, TimeUnit.MILLISECONDS, HEARTBEAT, scheduler);
 
         // Set initial time stamp.
         hbcf.timeSource = mockTimeSource(0);
     }
 
-    private void mockBindAsyncResponse() {
-        doAnswer(new Answer<FutureResult<Result>>() {
+    private BindResultLdapPromiseImpl mockBindAsyncResponse() {
+        final BindResultLdapPromiseImpl bindPromise = newBindLdapPromise(-1, null, null, null, connection);
+        doAnswer(new Answer<LdapPromise<BindResult>>() {
             @Override
-            public FutureResult<Result> answer(final InvocationOnMock invocation) throws Throwable {
-                return new FutureResultImpl<Result>();
+            public LdapPromise<BindResult> answer(final InvocationOnMock invocation) throws Throwable {
+                return bindPromise;
             }
         }).when(connection).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
+
+        return bindPromise;
     }
 
     private Connection mockHeartBeatResponse(final Connection mockConnection,
-        final List<ConnectionEventListener> listeners, final ResultCode resultCode) {
-        Answer<FutureResult<Result>> answer = new Answer<FutureResult<Result>>() {
+            final List<ConnectionEventListener> listeners, final ResultCode resultCode) {
+        Answer<LdapPromise<Result>> answer = new Answer<LdapPromise<Result>>() {
             @Override
-            public FutureResult<Result> answer(final InvocationOnMock invocation) throws Throwable {
+            public LdapPromise<Result> answer(final InvocationOnMock invocation) throws Throwable {
                 if (resultCode == null) {
-                    return null;
+                    return newLdapPromiseImpl();
                 }
 
                 if (resultCode.isExceptional()) {
-                    final LdapException error = newErrorResult(resultCode);
+                    final LdapException error = newLdapException(resultCode);
                     if (error instanceof ConnectionException) {
                         for (final ConnectionEventListener listener : listeners) {
                             listener.handleConnectionError(false, error);
                         }
                     }
-                    return newFailedFutureResult(error);
+                    return newFailedLdapPromise(error);
                 } else {
-                    return newSuccessfulFutureResult(newResult(resultCode));
+                    return newSuccessfulLdapPromise(newResult(resultCode));
                 }
             }
         };

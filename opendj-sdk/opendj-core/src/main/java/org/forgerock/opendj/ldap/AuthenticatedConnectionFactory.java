@@ -64,7 +64,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
          * Bind operations are not supported by pre-authenticated connections.
          * These methods will always throw {@code UnsupportedOperationException}.
          */
-        public FutureResult<BindResult> bindAsync(final BindRequest request,
+        public LdapPromise<BindResult> bindAsync(final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<? super BindResult> resultHandler) {
             throw new UnsupportedOperationException();

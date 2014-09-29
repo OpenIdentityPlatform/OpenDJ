@@ -417,7 +417,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                      * order and may cause the JSON resources to be returned in a different order to the
                                      * order in which the primary LDAP search results were received. This is benign at
                                      * the moment, but will need resolving when we implement server side sorting. A
-                                     * possible fix will be to use a queue of pending resources (futures?). However,
+                                     * possible fix will be to use a queue of pending resources (promises?). However,
                                      * the queue cannot be unbounded in case it grows very large, but it cannot be
                                      * bounded either since that could cause a deadlock between rest2ldap and the LDAP
                                      * server (imagine the case where the server has a single worker thread which is

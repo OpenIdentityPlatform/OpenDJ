@@ -32,10 +32,9 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResult;
-import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -51,6 +50,8 @@ import org.forgerock.util.promise.AsyncFunction;
 import org.forgerock.util.promise.FailureHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.SuccessHandler;
+
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 /**
  * An example client application which searches a Directory Server using the
@@ -84,7 +85,7 @@ public final class SearchAsync {
                         @Override
                         public void handleError(LdapException error) {
                             System.err.println("Cancel request failed with result code: "
-                                + error.getResult().getResultCode().intValue());
+                                    + error.getResult().getResultCode().intValue());
                             CANCEL_LATCH.countDown();
                         }
                     });
@@ -114,8 +115,8 @@ public final class SearchAsync {
         }
 
     }
-    // --- JCite search result handler ---
 
+    // --- JCite search result handler ---
 
     // --- JCite decl1 ---
     private static final CountDownLatch COMPLETION_LATCH = new CountDownLatch(1);
@@ -134,6 +135,7 @@ public final class SearchAsync {
     // --- JCite decl2 ---
     static int requestID;
     static int entryCount = 0;
+
     // --- JCite decl2 ---
 
     /**
@@ -178,7 +180,6 @@ public final class SearchAsync {
             return;
         }
 
-
         // Initiate the asynchronous connect, bind, and search.
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
 
@@ -191,10 +192,10 @@ public final class SearchAsync {
         }).thenAsync(new AsyncFunction<BindResult, Result, LdapException>() {
             @Override
             public Promise<Result, LdapException> apply(BindResult result) throws LdapException {
-                FutureResult<Result> future = FutureResultWrapper.asFutureResult(connection.searchAsync(
-                        Requests.newSearchRequest(baseDN, scope, filter, attributes), new SearchResultHandlerImpl()));
-                requestID = future.getRequestID();
-                return future;
+                LdapPromise<Result> promise = connection.searchAsync(
+                        Requests.newSearchRequest(baseDN, scope, filter, attributes), new SearchResultHandlerImpl());
+                requestID = promise.getRequestID();
+                return promise;
             }
         }).onSuccess(new SuccessHandler<Result>() {
             @Override

@@ -28,7 +28,9 @@
 package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
+import static org.forgerock.opendj.ldap.responses.Responses.*;
 
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
@@ -41,7 +43,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
-import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -73,7 +74,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
                     setNextSASLCredentials((ByteString) null);
                 }
             } catch (final SaslException e) {
-                throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
+                throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
             }
         }
 
@@ -100,8 +101,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
             } catch (final SaslException e) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw LdapException.newErrorResult(Responses.newResult(
-                        ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
+                throw newLdapException(newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "An error occurred during multi-stage authentication").setCause(e));
             }
         }
