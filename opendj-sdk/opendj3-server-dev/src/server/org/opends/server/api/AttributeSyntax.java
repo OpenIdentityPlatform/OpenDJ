@@ -178,7 +178,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          substring matches will not be allowed for this type by
    *          default.
    */
-  public abstract SubstringMatchingRule getSubstringMatchingRule();
+  public abstract MatchingRule getSubstringMatchingRule();
 
 
 

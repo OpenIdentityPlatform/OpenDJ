@@ -116,7 +116,6 @@ import org.opends.server.api.PasswordValidator;
 import org.opends.server.api.RestoreTaskListener;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.TrustManagerProvider;
 import org.opends.server.api.WorkQueue;
@@ -3171,9 +3170,9 @@ public final class DirectoryServer
    * @return  The requested substring matching rule, or <CODE>null</CODE> if no
    *          such matching rule has been defined in the server.
    */
-  public static SubstringMatchingRule getSubstringMatchingRule(String lowerName)
+  public static MatchingRule getSubstringMatchingRule(String lowerName)
   {
-    return (SubstringMatchingRule) directoryServer.schema.getMatchingRule(lowerName);
+    return (MatchingRule) directoryServer.schema.getMatchingRule(lowerName);
   }
 
   /**
@@ -3190,7 +3189,7 @@ public final class DirectoryServer
    *                              <CODE>false</CODE>
    */
   public static void registerSubstringMatchingRule(
-      SubstringMatchingRule matchingRule, boolean overwriteExisting)
+      MatchingRule matchingRule, boolean overwriteExisting)
       throws DirectoryException
   {
     directoryServer.schema.registerMatchingRule(matchingRule, overwriteExisting);
@@ -3201,7 +3200,7 @@ public final class DirectoryServer
    *
    * @param  matchingRule  The matching rule to deregister with the server.
    */
-  public static void deregisterSubstringMatchingRule(SubstringMatchingRule
+  public static void deregisterSubstringMatchingRule(MatchingRule
                                                      matchingRule)
   {
     directoryServer.schema.deregisterMatchingRule(matchingRule);

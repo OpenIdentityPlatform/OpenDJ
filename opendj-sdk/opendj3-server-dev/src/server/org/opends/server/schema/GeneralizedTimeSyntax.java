@@ -39,7 +39,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -78,7 +77,7 @@ public class GeneralizedTimeSyntax
   private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
-  private SubstringMatchingRule defaultSubstringMatchingRule;
+  private MatchingRule defaultSubstringMatchingRule;
 
 
 
@@ -209,7 +208,7 @@ public class GeneralizedTimeSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }

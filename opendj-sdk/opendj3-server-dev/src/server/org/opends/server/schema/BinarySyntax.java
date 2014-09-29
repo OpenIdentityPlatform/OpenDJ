@@ -55,7 +55,7 @@ public class BinarySyntax
   private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
-  private SubstringMatchingRule defaultSubstringMatchingRule;
+  private MatchingRule defaultSubstringMatchingRule;
 
 
   /**
@@ -182,7 +182,7 @@ public class BinarySyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }

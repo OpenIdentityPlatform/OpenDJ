@@ -801,7 +801,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
   }
 
-  private SubstringMatchingRule getSubstringMatchingRule()
+  private MatchingRule getSubstringMatchingRule()
   {
     if (substring.getSelectedIndex() == 0)
     {
@@ -809,7 +809,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
     else
     {
-      return (SubstringMatchingRule)substring.getSelectedItem();
+      return (MatchingRule)substring.getSelectedItem();
     }
   }
 

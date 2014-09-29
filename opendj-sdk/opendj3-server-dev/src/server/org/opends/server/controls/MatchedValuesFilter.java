@@ -40,7 +40,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
@@ -157,7 +156,7 @@ public class MatchedValuesFilter
   private final String rawAttributeType;
 
   // The substring matching rule for this matched values filter.
-  private SubstringMatchingRule substringMatchingRule;
+  private MatchingRule substringMatchingRule;
 
   /**
    * The assertion created from substring matching rule using values of this
@@ -1106,7 +1105,7 @@ public class MatchedValuesFilter
    * @return  The substring matching rule that should be used for this matched
    *          values filter, or <CODE>null</CODE> if there is none.
    */
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     if (substringMatchingRule == null)
     {

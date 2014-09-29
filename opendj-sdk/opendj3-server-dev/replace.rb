@@ -35,6 +35,26 @@ class Replace
   DSML_DIR = ["src/dsml/org"]
 
   # Replacement for matching rules
+  MRULES_TO_SDK = {
+    :dirs => JAVA_DIRS + SNMP_DIR,
+    :extensions => ["java"],
+    :stopwords => ["MatchingRule"],
+    :replacements =>
+      [
+        /import org.opends.server.api.MatchingRule;/,
+        'import org.forgerock.opendj.ldap.schema.MatchingRule;',
+
+        # For MR factories
+        /\binitializeMatchingRule\(MatchingRuleCfg configuration\)/,
+        "initializeMatchingRule(ServerContext serverContext, MatchingRuleCfg configuration)",
+
+        # For MR factories
+        /\bmatchingRule = new \w*MatchingRule();/,
+        "matchingRule = serverContext.getSchemaNG().getMatchingRule(EMR_);"
+
+       ]
+  }
+
   MRULES = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
@@ -42,10 +62,10 @@ class Replace
     :replacements =>
       [
 
-        /import org.opends.server.api.EqualityMatchingRule;/,
-        'import org.opends.server.api.MatchingRule;',
+        /import org.opends.server.api.SubstringMatchingRule;/,
+        '',
 
-        /\bEqualityMatchingRule\b/,
+        /\bSubstringMatchingRule\b/,
         "MatchingRule",
 
        ]
@@ -194,7 +214,6 @@ class Replace
       ]
   }
 
-
   # Replacement for types
   TYPES = {
     :dirs => JAVA_DIRS,
@@ -323,9 +342,9 @@ class Replace
       ]
   }
 
-  # List of replacements to run
-  REPLACEMENTS = [ MRULES ]
+  ###############################  List of replacements to run #################################
 
+  REPLACEMENTS = [ MRULES ]
 
   ################################### Processing methods ########################################
 

@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.types.AttributeType;
 
 /**
@@ -43,7 +43,7 @@ import org.opends.server.types.AttributeType;
 public class SubstringIndexer extends ExtensibleIndexer
 {
 
-  private SubstringMatchingRule substringRule;
+  private MatchingRule substringRule;
 
   /**
    * Create a new attribute substring indexer for the given index configuration.

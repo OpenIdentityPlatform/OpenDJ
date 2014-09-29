@@ -74,7 +74,7 @@ public class LDAPSyntaxDescriptionSyntax
   private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
-  private SubstringMatchingRule defaultSubstringMatchingRule;
+  private MatchingRule defaultSubstringMatchingRule;
 
 
 
@@ -202,7 +202,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }
@@ -1056,7 +1056,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule()
+    public MatchingRule getSubstringMatchingRule()
     {
       return subSyntax.getSubstringMatchingRule();
     }
@@ -1104,7 +1104,7 @@ public class LDAPSyntaxDescriptionSyntax
     private MatchingRule equalityMatchingRule;
 
     //The substring matching rule.
-    private SubstringMatchingRule substringMatchingRule;
+    private MatchingRule substringMatchingRule;
 
     //The ordering matching rule.
     private MatchingRule orderingMatchingRule;
@@ -1244,7 +1244,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule()
+    public MatchingRule getSubstringMatchingRule()
     {
       if(substringMatchingRule == null)
       {
@@ -1300,7 +1300,7 @@ public class LDAPSyntaxDescriptionSyntax
     private MatchingRule equalityMatchingRule;
 
     //The substring matching rule.
-    private SubstringMatchingRule substringMatchingRule;
+    private MatchingRule substringMatchingRule;
 
     //The ordering matching rule.
     private MatchingRule orderingMatchingRule;
@@ -1460,7 +1460,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public SubstringMatchingRule getSubstringMatchingRule()
+    public MatchingRule getSubstringMatchingRule()
     {
       if(substringMatchingRule == null)
       {
