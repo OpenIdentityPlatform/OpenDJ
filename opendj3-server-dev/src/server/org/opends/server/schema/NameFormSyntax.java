@@ -39,7 +39,6 @@ import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -68,7 +67,7 @@ public class NameFormSyntax
   private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
-  private SubstringMatchingRule defaultSubstringMatchingRule;
+  private MatchingRule defaultSubstringMatchingRule;
 
 
 
@@ -181,7 +180,7 @@ public class NameFormSyntax
    * {@inheritDoc}
    */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }

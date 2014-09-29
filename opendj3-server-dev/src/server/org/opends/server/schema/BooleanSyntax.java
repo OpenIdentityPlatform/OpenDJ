@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;
 
@@ -170,7 +169,7 @@ public class BooleanSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     // Substring matches are not allowed by default.
     return null;

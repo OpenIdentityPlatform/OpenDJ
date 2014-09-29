@@ -44,7 +44,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.CoreMessages.*;
@@ -3617,7 +3616,7 @@ outerComponentLoop:
       return false;
     }
 
-    SubstringMatchingRule rule = attributeType.getSubstringMatchingRule();
+    MatchingRule rule = attributeType.getSubstringMatchingRule();
     if (rule == null)
     {
       return false;

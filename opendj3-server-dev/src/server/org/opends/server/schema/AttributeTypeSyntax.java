@@ -43,7 +43,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeTypeDescriptionAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
@@ -81,7 +80,7 @@ public class AttributeTypeSyntax
   private MatchingRule defaultOrderingMatchingRule;
 
   /** The default substring matching rule for this syntax. */
-  private SubstringMatchingRule defaultSubstringMatchingRule;
+  private MatchingRule defaultSubstringMatchingRule;
 
   /** If true strip the suggested minimum upper bound from the syntax OID. */
   private static boolean stripMinimumUpperBound=false;
@@ -196,7 +195,7 @@ public class AttributeTypeSyntax
 
   /** {@inheritDoc} */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }
@@ -430,7 +429,7 @@ public class AttributeTypeSyntax
     MatchingRule approximateMatchingRule = null;
     MatchingRule equalityMatchingRule = null;
     MatchingRule orderingMatchingRule = null;
-    SubstringMatchingRule substringMatchingRule = null;
+    MatchingRule substringMatchingRule = null;
     AttributeUsage attributeUsage = AttributeUsage.USER_APPLICATIONS;
     boolean isCollective = false;
     boolean isNoUserModification = false;
@@ -676,8 +675,8 @@ public class AttributeTypeSyntax
         // for this attribute type.
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
-        SubstringMatchingRule smr =
-             (SubstringMatchingRule) schema.getMatchingRule(woidBuffer.toString());
+        MatchingRule smr =
+             (MatchingRule) schema.getMatchingRule(woidBuffer.toString());
         if (smr == null)
         {
           // This is bad because we have no idea what the substring matching

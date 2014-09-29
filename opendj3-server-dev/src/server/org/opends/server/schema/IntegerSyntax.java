@@ -33,7 +33,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -58,7 +57,7 @@ public class IntegerSyntax
   private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
-  private SubstringMatchingRule defaultSubstringMatchingRule;
+  private MatchingRule defaultSubstringMatchingRule;
 
 
   /**
@@ -185,7 +184,7 @@ public class IntegerSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }

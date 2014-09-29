@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -59,7 +58,7 @@ public final class SubtreeSpecificationSyntax
   private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
-  private SubstringMatchingRule defaultSubstringMatchingRule;
+  private MatchingRule defaultSubstringMatchingRule;
 
   /**
    * Creates a new instance of this syntax. Note that the only thing
@@ -173,7 +172,7 @@ public final class SubtreeSpecificationSyntax
    *         default.
    */
   @Override
-  public SubstringMatchingRule getSubstringMatchingRule() {
+  public MatchingRule getSubstringMatchingRule() {
 
     return defaultSubstringMatchingRule;
   }

@@ -87,7 +87,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.ObjectClass;
@@ -1202,7 +1201,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
   }
 
-  private SubstringMatchingRule getSubstringMatchingRule()
+  private MatchingRule getSubstringMatchingRule()
   {
     if (substring.getSelectedIndex() == 0)
     {
@@ -1210,7 +1209,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
     else
     {
-      return (SubstringMatchingRule)substring.getSelectedItem();
+      return (MatchingRule)substring.getSelectedItem();
     }
   }
 

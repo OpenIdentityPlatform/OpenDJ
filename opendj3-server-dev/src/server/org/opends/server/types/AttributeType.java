@@ -34,7 +34,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import static org.forgerock.util.Reject.*;
@@ -112,7 +111,7 @@ public final class AttributeType
   private final String definition;
 
   // The substring matching rule for this attribute type.
-  private final SubstringMatchingRule substringMatchingRule;
+  private final MatchingRule substringMatchingRule;
 
   // True once this attribute type has been removed from the schema.
   private volatile boolean isDirty = false;
@@ -252,7 +251,7 @@ public final class AttributeType
                        MatchingRule approximateMatchingRule,
                        MatchingRule equalityMatchingRule,
                        MatchingRule orderingMatchingRule,
-                       SubstringMatchingRule substringMatchingRule,
+                       MatchingRule substringMatchingRule,
                        AttributeUsage attributeUsage,
                        boolean isCollective,
                        boolean isNoUserModification,
@@ -488,7 +487,7 @@ public final class AttributeType
    * @return  The matching rule that should be used for substring
    *          matching with this attribute type.
    */
-  public SubstringMatchingRule getSubstringMatchingRule()
+  public MatchingRule getSubstringMatchingRule()
   {
     return substringMatchingRule;
   }

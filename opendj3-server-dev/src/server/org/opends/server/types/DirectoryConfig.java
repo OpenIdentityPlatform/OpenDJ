@@ -41,7 +41,6 @@ import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 
@@ -280,7 +279,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static SubstringMatchingRule
+  public static MatchingRule
        getSubstringMatchingRule(String lowerName)
   {
     return DirectoryServer.getSubstringMatchingRule(lowerName);
