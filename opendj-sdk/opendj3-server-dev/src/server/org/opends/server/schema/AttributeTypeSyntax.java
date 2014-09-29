@@ -675,8 +675,7 @@ public class AttributeTypeSyntax
         // for this attribute type.
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
-        MatchingRule smr =
-             (MatchingRule) schema.getMatchingRule(woidBuffer.toString());
+        MatchingRule smr = schema.getMatchingRule(woidBuffer.toString());
         if (smr == null)
         {
           // This is bad because we have no idea what the substring matching

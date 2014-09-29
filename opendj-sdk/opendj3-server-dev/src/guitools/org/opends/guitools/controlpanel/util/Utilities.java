@@ -124,6 +124,7 @@ import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -2859,7 +2860,7 @@ public class Utilities
    * @return {@code true} if this matching rule is a substring mathing rule.
    */
   public static boolean isSubstringMatchingRule(MatchingRule matchingRule) {
-    return matchingRule instanceof MatchingRule;
+    return matchingRule instanceof SubstringMatchingRule;
   }
 
   /**

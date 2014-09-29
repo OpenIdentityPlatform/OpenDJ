@@ -3172,7 +3172,7 @@ public final class DirectoryServer
    */
   public static MatchingRule getSubstringMatchingRule(String lowerName)
   {
-    return (MatchingRule) directoryServer.schema.getMatchingRule(lowerName);
+    return directoryServer.schema.getMatchingRule(lowerName);
   }
 
   /**
