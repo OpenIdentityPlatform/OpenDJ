@@ -26,7 +26,7 @@ package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.Attributes.singletonAttribute;
 import static org.forgerock.opendj.ldap.Entries.modifyEntry;
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 import static org.forgerock.opendj.ldap.responses.Responses.newBindResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newCompareResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newResult;
@@ -238,7 +238,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 final DN dn = request.getName();
                 final DN parent = dn.parent();
                 if (entries.containsKey(dn)) {
-                    throw newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '"
+                    throw newLdapException(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '"
                             + dn.toString() + "' already exists");
                 } else if (!entries.containsKey(parent)) {
                     noSuchObject(parent);
@@ -268,25 +268,25 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                         && request.getAuthenticationType() == BindRequest.AUTHENTICATION_TYPE_SIMPLE) {
                     password = ((GenericBindRequest) request).getAuthenticationValue();
                 } else {
-                    throw newErrorResult(ResultCode.PROTOCOL_ERROR,
+                    throw newLdapException(ResultCode.PROTOCOL_ERROR,
                             "non-SIMPLE authentication not supported: "
                                     + request.getAuthenticationType());
                 }
                 entry = getRequiredEntry(null, username);
                 if (!entry.containsAttribute("userPassword", password)) {
-                    throw newErrorResult(ResultCode.INVALID_CREDENTIALS, "Wrong password");
+                    throw newLdapException(ResultCode.INVALID_CREDENTIALS, "Wrong password");
                 }
             }
             resultHandler.handleResult(getBindResult(request, entry, entry));
         } catch (final LocalizedIllegalArgumentException e) {
-            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
+            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e));
         } catch (final EntryNotFoundException e) {
             /*
              * Usually you would not include a diagnostic message, but we'll add
              * one here because the memory back-end is not intended for
              * production use.
              */
-            resultHandler.handleError(newErrorResult(ResultCode.INVALID_CREDENTIALS,
+            resultHandler.handleError(newLdapException(ResultCode.INVALID_CREDENTIALS,
                     "Unknown user"));
         } catch (final LdapException e) {
             resultHandler.handleError(e);
@@ -332,13 +332,13 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     if (next == null || !next.isChildOf(dn)) {
                         entries.remove(dn);
                     } else {
-                        throw newErrorResult(ResultCode.NOT_ALLOWED_ON_NONLEAF);
+                        throw newLdapException(ResultCode.NOT_ALLOWED_ON_NONLEAF);
                     }
                 }
             }
             resultHandler.handleResult(getResult(request, entry, null));
         } catch (final DecodeException e) {
-            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
+            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e));
         } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
@@ -349,7 +349,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final RequestContext requestContext, final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<R> resultHandler) {
-        resultHandler.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+        resultHandler.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
                 "Extended request operation not supported"));
     }
 
@@ -376,7 +376,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleModifyDN(final RequestContext requestContext, final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<Result> resultHandler) {
-        resultHandler.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+        resultHandler.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
                 "ModifyDN request operation not supported"));
     }
 
@@ -403,10 +403,11 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     request.getSizeLimit(), scope,
                     request.getControl(SimplePagedResultsControl.DECODER, new DecodeOptions()));
             } else {
-                throw newErrorResult(ResultCode.PROTOCOL_ERROR, "Search request contains an unsupported search scope");
+                throw newLdapException(ResultCode.PROTOCOL_ERROR,
+                        "Search request contains an unsupported search scope");
             }
         } catch (DecodeException e) {
-            resultHandler.handleError(LdapException.newErrorResult(ResultCode.PROTOCOL_ERROR, e.getMessage(), e));
+            resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e.getMessage(), e));
         } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
@@ -445,7 +446,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                         final Entry entry = reader.readEntry();
                         final DN dn = entry.getName();
                         if (!overwrite && entries.containsKey(dn)) {
-                            throw newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS,
+                            throw newLdapException(ResultCode.ENTRY_ALREADY_EXISTS,
                                     "Attempted to add the entry '" + dn + "' multiple times");
                         } else {
                             entries.put(dn, entry);
@@ -508,7 +509,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
 
                     // Check size limit.
                     if (sizeLimit > 0 && numberOfResults >= sizeLimit) {
-                        throw newErrorResult(newResult(ResultCode.SIZE_LIMIT_EXCEEDED));
+                        throw newLdapException(newResult(ResultCode.SIZE_LIMIT_EXCEEDED));
                     }
 
                     // Ignore this entry if we haven't reached the first page yet.
@@ -548,7 +549,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     request.getControl(PreReadRequestControl.DECODER, decodeOptions);
             if (preRead != null) {
                 if (preRead.isCritical() && before == null) {
-                    throw newErrorResult(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+                    throw newLdapException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
                 } else {
                     final AttributeFilter filter =
                             new AttributeFilter(preRead.getAttributes(), schema);
@@ -562,7 +563,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     request.getControl(PostReadRequestControl.DECODER, decodeOptions);
             if (postRead != null) {
                 if (postRead.isCritical() && after == null) {
-                    throw newErrorResult(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+                    throw newLdapException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
                 } else {
                     final AttributeFilter filter =
                             new AttributeFilter(postRead.getAttributes(), schema);
@@ -572,7 +573,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             return result;
         } catch (final DecodeException e) {
-            throw newErrorResult(ResultCode.PROTOCOL_ERROR, e);
+            throw newLdapException(ResultCode.PROTOCOL_ERROR, e);
         }
     }
 
@@ -599,13 +600,13 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             try {
                 control = request.getControl(AssertionRequestControl.DECODER, decodeOptions);
             } catch (final DecodeException e) {
-                throw newErrorResult(ResultCode.PROTOCOL_ERROR, e);
+                throw newLdapException(ResultCode.PROTOCOL_ERROR, e);
             }
             if (control != null) {
                 final Filter filter = control.getFilter();
                 final Matcher matcher = filter.matcher(schema);
                 if (!matcher.matches(entry).toBoolean()) {
-                    throw newErrorResult(ResultCode.ASSERTION_FAILED, "The filter '"
+                    throw newLdapException(ResultCode.ASSERTION_FAILED, "The filter '"
                             + filter.toString() + "' did not match the entry '"
                             + entry.getName().toString() + "'");
                 }
@@ -619,7 +620,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     }
 
     private void noSuchObject(final DN dn) throws LdapException {
-        throw newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry '" + dn.toString()
+        throw newLdapException(ResultCode.NO_SUCH_OBJECT, "The entry '" + dn.toString()
                 + "' does not exist");
     }
 

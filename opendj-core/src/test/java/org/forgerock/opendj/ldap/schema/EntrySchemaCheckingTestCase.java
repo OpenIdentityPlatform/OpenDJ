@@ -26,6 +26,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.defaultPolicy;
 import static org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.ignoreAll;
 
@@ -1111,7 +1112,7 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
 
             public Entry getEntry(final DN dn) throws LdapException {
                 if (e == null) {
-                    throw LdapException.newErrorResult(ResultCode.NO_SUCH_OBJECT,
+                    throw newLdapException(ResultCode.NO_SUCH_OBJECT,
                             "no such entry " + dn.toString());
                 }
 

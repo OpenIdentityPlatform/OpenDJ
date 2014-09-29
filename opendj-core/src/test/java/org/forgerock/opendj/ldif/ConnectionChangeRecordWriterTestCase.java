@@ -255,7 +255,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
                         if (handler != null) {
                             // Data here if needed.
                         }
-                        return newErrorResult(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
+                        return newLdapException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
                     }
                 });
 

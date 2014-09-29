@@ -41,23 +41,23 @@ import org.forgerock.opendj.ldap.responses.Result;
 public class LdapException extends IOException {
 
     /**
-     * Creates a new error result exception with the provided result code and an
+     * Creates a new LDAP exception with the provided result code and an
      * empty diagnostic message.
      *
      * @param resultCode
      *            The result code.
-     * @return The new error result exception.
+     * @return The new LDAP exception.
      * @throws IllegalArgumentException
      *             If the provided result code does not represent a failure.
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static LdapException newErrorResult(ResultCode resultCode) {
-        return newErrorResult(resultCode, null, null);
+    public static LdapException newLdapException(ResultCode resultCode) {
+        return newLdapException(resultCode, null, null);
     }
 
     /**
-     * Creates a new error result exception with the provided result code and
+     * Creates a new LDAP exception with the provided result code and
      * diagnostic message.
      *
      * @param resultCode
@@ -65,19 +65,19 @@ public class LdapException extends IOException {
      * @param diagnosticMessage
      *            The diagnostic message, which may be empty or {@code null}
      *            indicating that none was provided.
-     * @return The new error result exception.
+     * @return The new LDAP exception.
      * @throws IllegalArgumentException
      *             If the provided result code does not represent a failure.
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static LdapException newErrorResult(ResultCode resultCode,
+    public static LdapException newLdapException(ResultCode resultCode,
             CharSequence diagnosticMessage) {
-        return newErrorResult(resultCode, diagnosticMessage, null);
+        return newLdapException(resultCode, diagnosticMessage, null);
     }
 
     /**
-     * Creates a new error result exception with the provided result code and
+     * Creates a new LDAP exception with the provided result code and
      * cause. The diagnostic message will be taken from the cause, if provided.
      *
      * @param resultCode
@@ -85,18 +85,18 @@ public class LdapException extends IOException {
      * @param cause
      *            The throwable cause, which may be {@code null} indicating that
      *            none was provided.
-     * @return The new error result exception.
+     * @return The new LDAP exception.
      * @throws IllegalArgumentException
      *             If the provided result code does not represent a failure.
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static LdapException newErrorResult(ResultCode resultCode, Throwable cause) {
-        return newErrorResult(resultCode, null, cause);
+    public static LdapException newLdapException(ResultCode resultCode, Throwable cause) {
+        return newLdapException(resultCode, null, cause);
     }
 
     /**
-     * Creates a new error result exception with the provided result code,
+     * Creates a new LDAP exception with the provided result code,
      * diagnostic message, and cause.
      *
      * @param resultCode
@@ -107,13 +107,13 @@ public class LdapException extends IOException {
      * @param cause
      *            The throwable cause, which may be {@code null} indicating that
      *            none was provided.
-     * @return The new error result exception.
+     * @return The new LDAP exception.
      * @throws IllegalArgumentException
      *             If the provided result code does not represent a failure.
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static LdapException newErrorResult(ResultCode resultCode,
+    public static LdapException newLdapException(ResultCode resultCode,
             CharSequence diagnosticMessage, Throwable cause) {
         final Result result = Responses.newResult(resultCode);
         if (diagnosticMessage != null) {
@@ -122,21 +122,21 @@ public class LdapException extends IOException {
             result.setDiagnosticMessage(cause.getLocalizedMessage());
         }
         result.setCause(cause);
-        return newErrorResult(result);
+        return newLdapException(result);
     }
 
     /**
-     * Creates a new error result exception using the provided result.
+     * Creates a new LDAP exception using the provided result.
      *
      * @param result
      *            The result whose result code indicates a failure.
-     * @return The error result exception wrapping the provided result.
+     * @return The LDAP exception wrapping the provided result.
      * @throws IllegalArgumentException
      *             If the provided result does not represent a failure.
      * @throws NullPointerException
      *             If {@code result} was {@code null}.
      */
-    public static LdapException newErrorResult(final Result result) {
+    public static LdapException newLdapException(final Result result) {
         if (!result.getResultCode().isExceptional()) {
             throw new IllegalArgumentException("Attempted to wrap a successful result: " + result);
         }
@@ -196,7 +196,7 @@ public class LdapException extends IOException {
     private final Result result;
 
     /**
-     * Creates a new error result exception using the provided result.
+     * Creates a new LDAP exception using the provided result.
      *
      * @param result
      *            The error result.

@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
@@ -62,7 +62,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
                     setNextSASLCredentials((ByteString) null);
                 }
             } catch (final SaslException e) {
-                throw newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
+                throw newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, e);
             }
         }
 
@@ -89,7 +89,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
             } catch (final SaslException e) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw LdapException.newErrorResult(Responses.newResult(
+                throw newLdapException(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "An error occurred during multi-stage authentication").setCause(e));
             }

@@ -98,11 +98,11 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
          * Create load-balancer with two failed connection factories.
          */
         final ConnectionFactory first = mock(ConnectionFactory.class, "first");
-        final LdapException firstError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException firstError = newLdapException(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(first.getConnection()).thenThrow(firstError);
 
         final ConnectionFactory second = mock(ConnectionFactory.class, "second");
-        final LdapException secondError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException secondError = newLdapException(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(second.getConnection()).thenThrow(secondError);
 
         final ConnectionFactory loadBalancer =
@@ -137,12 +137,12 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
          */
         final ConnectionFactory first = mock(ConnectionFactory.class, "first");
         final ConnectionFactory firstAsync = mockAsync(first);
-        final LdapException firstError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException firstError = newLdapException(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(first.getConnection()).thenThrow(firstError).thenReturn(mock(Connection.class));
 
         final ConnectionFactory second = mock(ConnectionFactory.class, "second");
         final ConnectionFactory secondAsync = mockAsync(second);
-        final LdapException secondError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException secondError = newLdapException(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(second.getConnection()).thenThrow(secondError);
 
         final LoadBalancerEventListener listener = mock(LoadBalancerEventListener.class);

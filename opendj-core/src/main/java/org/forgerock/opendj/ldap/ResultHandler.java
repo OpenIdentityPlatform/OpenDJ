@@ -39,7 +39,7 @@ import org.forgerock.util.promise.SuccessHandler;
  * asynchronously to a remote Directory Server using an
  * {@link ConnectionFactory}. The {@link #handleResult} method is invoked when
  * the operation or connection attempt completes successfully. The
- * {@link #handleErrorResult} method is invoked if the operation or connection
+ * {@link #handleError(LdapException)} method is invoked if the operation or connection
  * attempt fails.
  * <p>
  * Implementations of these methods should complete in a timely manner so as to

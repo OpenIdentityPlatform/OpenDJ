@@ -44,7 +44,7 @@ import org.mockito.stubbing.OngoingStubbing;
 import com.forgerock.opendj.util.TimeSource;
 
 import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -174,7 +174,7 @@ public final class TestCaseUtils {
             @Override
             public Promise<Connection, LdapException> answer(final InvocationOnMock invocation)
                     throws Throwable {
-                return newSuccessfulFutureResult(factory.getConnection());
+                return newSuccessfulLdapPromise(factory.getConnection());
             }
         });
         return factory;

@@ -21,49 +21,63 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.IntermediateResponse;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
+import org.forgerock.util.promise.Promises;
 
+import static org.forgerock.opendj.ldap.LdapException.*;
 
 /**
- * Abstract future result implementation.
+ * This class provides an implementation of the {@link LdapPromise}.
  *
+ * @param <R>
+ *            The type of the associated {@link Request}.
  * @param <S>
- *            The type of result returned by this future.
+ *            The type of result returned by this promise.
+ * @see Promise
+ * @see Promises
+ * @see LdapPromise
  */
-public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends FutureResultImpl<S> implements
-    IntermediateResponseHandler {
-    private final Connection connection;
+public abstract class ResultLdapPromiseImpl<R extends Request, S extends Result> extends LdapPromiseImpl<S>
+        implements LdapPromise<S>, IntermediateResponseHandler {
+    private final R request;
     private IntermediateResponseHandler intermediateResponseHandler;
     private volatile long timestamp;
 
-    /**
-     * Creates a future result.
-     *
-     * @param requestID
-     *            identifier of the request
-     * @param intermediateResponseHandler
-     *            handler that consumes intermediate responses from extended
-     *            operations
-     * @param connection
-     *            the connection to directory server
-     */
-    protected AbstractLDAPFutureResultImpl(final int requestID,
-        final IntermediateResponseHandler intermediateResponseHandler, final Connection connection) {
-        super(requestID);
-        this.connection = connection;
+    ResultLdapPromiseImpl(final int requestID, final R request,
+            final IntermediateResponseHandler intermediateResponseHandler, final Connection connection) {
+        this(new PromiseImpl<S, LdapException>() {
+            @Override
+            protected final LdapException tryCancel(final boolean mayInterruptIfRunning) {
+                /*
+                 * This will abandon the request, but will also recursively cancel this
+                 * future. There is no risk of an infinite loop because the state of
+                 * this future has already been changed.
+                 */
+                connection.abandonAsync(Requests.newAbandonRequest(requestID));
+                return newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED);
+            }
+        }, requestID, request, intermediateResponseHandler, connection);
+    }
+
+    ResultLdapPromiseImpl(final PromiseImpl<S, LdapException> impl, final int requestID, final R request,
+            final IntermediateResponseHandler intermediateResponseHandler, final Connection connection) {
+        super(impl, requestID);
+        this.request = request;
         this.intermediateResponseHandler = intermediateResponseHandler;
         this.timestamp = System.currentTimeMillis();
     }
@@ -71,48 +85,25 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends Fut
     /** {@inheritDoc} */
     @Override
     public final boolean handleIntermediateResponse(final IntermediateResponse response) {
-        // FIXME: there's a potential race condition here - the future could
+        // FIXME: there's a potential race condition here - the promise could
         // get cancelled between the isDone() call and the handler
         // invocation. We'd need to add support for intermediate handlers in
         // the synchronizer.
         if (!isDone()) {
             updateTimestamp();
             if (intermediateResponseHandler != null
-                && !intermediateResponseHandler.handleIntermediateResponse(response)) {
+                    && !intermediateResponseHandler.handleIntermediateResponse(response)) {
                 intermediateResponseHandler = null;
             }
         }
         return true;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected final LdapException tryCancel(final boolean mayInterruptIfRunning) {
-        /*
-         * No other operations can be performed while a bind or startTLS
-         * operations is active. Therefore it is not possible to cancel bind or
-         * startTLS requests, since doing so will leave the connection in a
-         * state which prevents other operations from being performed.
-         */
-        if (isBindOrStartTLS()) {
-            return null;
-        }
-
-        /*
-         * This will abandon the request, but will also recursively cancel this
-         * future. There is no risk of an infinite loop because the state of
-         * this future has already been changed.
-         */
-        connection.abandonAsync(Requests.newAbandonRequest(getRequestID()));
-        return LdapException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
-    }
-
-
     /**
-     * Returns {@code true} if this future represents the result of a bind or
+     * Returns {@code true} if this promise represents the result of a bind or
      * StartTLS request. The default implementation is to return {@code false}.
      *
-     * @return {@code true} if this future represents the result of a bind or
+     * @return {@code true} if this promise represents the result of a bind or
      *         StartTLS request.
      */
     public boolean isBindOrStartTLS() {
@@ -120,65 +111,65 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends Fut
     }
 
     /**
-     * Appends a string representation of this future's state to the provided
-     * builder.
+     * Returns a string representation of this promise's state.
      *
-     * @param sb
-     *            The string builder.
+     * @return String representation of this promise's state.
      */
-    protected void toString(final StringBuilder sb) {
-        sb.append(" requestID = ");
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("( requestID = ");
         sb.append(getRequestID());
         sb.append(" timestamp = ");
         sb.append(timestamp);
+        sb.append(" request = ");
+        sb.append(getRequest());
+        sb.append(" )");
+        return sb.toString();
     }
 
     /**
-     * Sets the result associated to this future as an error result.
+     * Sets the result associated to this promise as an error result.
      *
      * @param result
      *            result of an operation
      */
     public final void adaptErrorResult(final Result result) {
-        final S errorResult =
-            newErrorResult(result.getResultCode(), result.getDiagnosticMessage(), result.getCause());
+        final S errorResult = newErrorResult(result.getResultCode(), result.getDiagnosticMessage(), result.getCause());
         setResultOrError(errorResult);
     }
 
     /**
-     * Returns the creation time of this future.
+     * Returns the creation time of this promise.
      *
-     * @return the timestamp indicating creation time of this future
+     * @return the timestamp indicating creation time of this promise
      */
     public final long getTimestamp() {
         return timestamp;
     }
 
-    /**
-     * Create a new error result.
-     *
-     * @param resultCode
-     *            operation result code
-     * @param diagnosticMessage
-     *            message associated to the error
-     * @param cause
-     *            cause of the error
-     * @return the error result
-     */
-    protected abstract S newErrorResult(ResultCode resultCode, String diagnosticMessage, Throwable cause);
+    abstract S newErrorResult(ResultCode resultCode, String diagnosticMessage, Throwable cause);
 
     /**
-     * Sets the result associated to this future.
+     * Sets the result associated to this promise.
      *
      * @param result
      *            the result of operation
      */
     public final void setResultOrError(final S result) {
         if (result.getResultCode().isExceptional()) {
-            handleError(LdapException.newErrorResult(result));
+            getWrappedPromise().handleError(newLdapException(result));
         } else {
-            handleResult(result);
+            getWrappedPromise().handleResult(result);
         }
+    }
+
+    /**
+     * Returns the attached request.
+     *
+     * @return The request.
+     */
+    public R getRequest() {
+        return request;
     }
 
     final void updateTimestamp() {

@@ -33,7 +33,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.INFO_CANCELED_BY_CLIENT_ERR
 import static com.forgerock.opendj.ldap.CoreMessages.INFO_CANCELED_BY_SERVER_DISCONNECT;
 import static com.forgerock.opendj.ldap.CoreMessages.INFO_CLIENT_CONNECTION_CLOSING;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_CLIENT_DUPLICATE_MESSAGE_ID;
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -103,7 +103,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 final R cancelResult =
                         request.getResultDecoder().newExtendedErrorResult(ResultCode.TOO_LATE, "",
                                 "");
-                resultHandler.handleError(LdapException.newErrorResult(cancelResult));
+                resultHandler.handleError(newLdapException(cancelResult));
             }
         }
 
@@ -210,7 +210,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                      * Don't change state: let the handler ack the cancellation
                      * request.
                      */
-                    throw (CancelledResultException) newErrorResult(ResultCode.CANCELLED,
+                    throw (CancelledResultException) newLdapException(ResultCode.CANCELLED,
                             cancelRequestReason.toString());
                 case TOO_LATE:
                     /* Already too late. Nothing to do. */
@@ -293,7 +293,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 if (cancelResultHandler != null) {
                     final Result result =
                             Responses.newGenericExtendedResult(ResultCode.CANNOT_CANCEL);
-                    cancelResultHandler.handleError(newErrorResult(result));
+                    cancelResultHandler.handleError(newLdapException(result));
                 }
                 return;
             }
@@ -370,7 +370,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                     cancelResultHandler.handleResult(result);
                 } else {
                     final Result result = Responses.newGenericExtendedResult(ResultCode.TOO_LATE);
-                    cancelResultHandler.handleError(LdapException.newErrorResult(result));
+                    cancelResultHandler.handleError(newLdapException(result));
                 }
             }
         }
@@ -606,7 +606,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                                     new DecodeOptions());
                 } catch (final DecodeException e) {
                     // Couldn't decode a cancel request.
-                    resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, e
+                    resultHandler.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, e
                             .getLocalizedMessage()));
                     return;
                 }
@@ -632,7 +632,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                          * Couldn't find the request. Invoke on context in order
                          * to remove pending request.
                          */
-                        requestContext.handleError(newErrorResult(ResultCode.NO_SUCH_OPERATION));
+                        requestContext.handleError(newLdapException(ResultCode.NO_SUCH_OPERATION));
                     }
                 }
             } else {
@@ -707,13 +707,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
 
             if (isClosed.get()) {
                 final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
-                requestContext.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+                requestContext.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM,
                         message.toString()));
                 return false;
             } else if (pendingRequests.putIfAbsent(messageID, requestContext) != null) {
                 final LocalizableMessage message =
                         WARN_CLIENT_DUPLICATE_MESSAGE_ID.get(requestContext.getMessageID());
-                requestContext.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, message.toString()));
+                requestContext.handleError(newLdapException(ResultCode.PROTOCOL_ERROR, message.toString()));
                 return false;
             } else if (isClosed.get()) {
                 /*
@@ -723,7 +723,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 pendingRequests.remove(messageID);
 
                 final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
-                requestContext.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM, message.toString()));
+                requestContext.handleError(newLdapException(ResultCode.UNWILLING_TO_PERFORM, message.toString()));
                 return false;
             } else {
                 /*

@@ -28,6 +28,7 @@ package org.forgerock.opendj.config.client.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.Connections.newInternalConnection;
+import static org.forgerock.opendj.ldap.LdapException.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -271,7 +272,7 @@ public final class LDAPClientTest extends AdminTestCase {
         Connection c = new AbstractConnectionWrapper<Connection>(newInternalConnection(backend)) {
             @Override
             public Result add(Entry entry) throws LdapException {
-                throw LdapException.newErrorResult(resultCodeOfThrownException);
+                throw newLdapException(resultCodeOfThrownException);
             }
         };
         ManagementContext ctx =
@@ -387,7 +388,7 @@ public final class LDAPClientTest extends AdminTestCase {
         Connection c = new AbstractConnectionWrapper<Connection>(newInternalConnection(backend)) {
             @Override
             public SearchResultEntry readEntry(DN name, String... attributeDescriptions) throws LdapException {
-                throw LdapException.newErrorResult(resultCodeOfThrownException);
+                throw newLdapException(resultCodeOfThrownException);
             }
         };
         ManagementContext ctx =

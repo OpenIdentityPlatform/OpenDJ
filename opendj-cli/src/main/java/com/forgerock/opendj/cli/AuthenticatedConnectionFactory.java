@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
@@ -99,7 +99,7 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
         /** {@inheritDoc} */
         @Override
-        public FutureResult<BindResult> bindAsync(BindRequest request,
+        public LdapPromise<BindResult> bindAsync(BindRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
             throw new UnsupportedOperationException();
         }
@@ -120,19 +120,19 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
          * associated with this connection. If re-authentication fails for some
          * reason then this connection will be automatically closed.
          *
-         * @return A future representing the result of the operation.
+         * @return A promise representing the result of the operation.
          * @throws UnsupportedOperationException
          *             If this connection does not support rebind operations.
          * @throws IllegalStateException
          *             If this connection has already been closed, i.e. if
          *             {@code isClosed() == true}.
          */
-        public FutureResult<BindResult> rebindAsync() {
+        public LdapPromise<BindResult> rebindAsync() {
             if (request == null) {
                 throw new UnsupportedOperationException();
             }
 
-            return (FutureResult<BindResult>) connection.bindAsync(request)
+            return (LdapPromise<BindResult>) connection.bindAsync(request)
                     .onSuccess(new SuccessHandler<BindResult>() {
                         @Override
                         public void handleResult(final BindResult result) {

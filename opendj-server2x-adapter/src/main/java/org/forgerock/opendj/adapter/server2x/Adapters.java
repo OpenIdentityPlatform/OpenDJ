@@ -79,6 +79,7 @@ import org.opends.server.types.SearchResultReference;
 
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 
 /**
@@ -190,7 +191,7 @@ public final class Adapters {
         try {
             return newConnection(new InternalClientConnection(to(dn)));
         } catch (DirectoryException e) {
-            throw LdapException.newErrorResult(Responses.newResult(ResultCode.NO_SUCH_OBJECT));
+            throw newLdapException(Responses.newResult(ResultCode.NO_SUCH_OBJECT));
         }
     }
 
@@ -346,8 +347,7 @@ public final class Adapters {
                     bindClient.dispose();
 
                 } else { // not supported
-                    throw LdapException.newErrorResult(Responses
-                            .newResult(ResultCode.AUTH_METHOD_NOT_SUPPORTED));
+                    throw newLdapException(Responses.newResult(ResultCode.AUTH_METHOD_NOT_SUPPORTED));
                 }
                 BindResult result =
                         Responses.newBindResult(getResultCode(bindOperation));
@@ -356,7 +356,7 @@ public final class Adapters {
                 if (result.isSuccess()) {
                     return result;
                 } else {
-                    throw LdapException.newErrorResult(result);
+                    throw newLdapException(result);
                 }
             }
 

@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -127,14 +127,14 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         try {
             for (int i = 0; i < ITERATIONS; i++) {
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
-                final Promise<? extends Connection, LdapException> future = factory.getConnectionAsync();
-                future.onFailure(getFailureHandler(promise));
+                final Promise<? extends Connection, LdapException> connectionPromise = factory.getConnectionAsync();
+                connectionPromise.onFailure(getFailureHandler(promise));
 
                 ConnectionException e = (ConnectionException) promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                 assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
                 // Wait for the connect to timeout.
                 try {
-                    future.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    connectionPromise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                     fail("The connect request succeeded unexpectedly");
                 } catch (ConnectionException ce) {
                     assertThat(ce.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
@@ -164,8 +164,8 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
             final MockConnectionEventListener listener = new MockConnectionEventListener();
             connection.addConnectionEventListener(listener);
             final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
-            final FutureResult<BindResult> future = connection.bindAsync(newSimpleBindRequest());
-            future.onFailure(getFailureHandler(promise));
+            final LdapPromise<BindResult> bindPromise = connection.bindAsync(newSimpleBindRequest());
+            bindPromise.onFailure(getFailureHandler(promise));
             waitForBind();
 
             TimeoutResultException e = (TimeoutResultException) promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
@@ -173,7 +173,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
 
             // Wait for the request to timeout.
             try {
-                future.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
+                bindPromise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                 fail("The bind request succeeded unexpectedly");
             } catch (TimeoutResultException te) {
                 verifyResultCodeIsClientSideTimeout(te);
@@ -214,17 +214,17 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
 
                 // Now bind with timeout.
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
-                final FutureResult<BindResult> future = connection.bindAsync(newSimpleBindRequest());
-                future.onFailure(getFailureHandler(promise));
+                final LdapPromise<BindResult> bindPromise = connection.bindAsync(newSimpleBindRequest());
+                bindPromise.onFailure(getFailureHandler(promise));
                 waitForBind();
 
                 // Wait for the request to timeout and check the handler was invoked.
                 TimeoutResultException e = (TimeoutResultException) promise.getOrThrow(5, TimeUnit.SECONDS);
                 verifyResultCodeIsClientSideTimeout(e);
 
-                // Now check the future was completed as expected.
+                // Now check the promise was completed as expected.
                 try {
-                    future.getOrThrow(5, TimeUnit.SECONDS);
+                    bindPromise.getOrThrow(5, TimeUnit.SECONDS);
                     fail("The bind request succeeded unexpectedly");
                 } catch (TimeoutResultException te) {
                     verifyResultCodeIsClientSideTimeout(te);
@@ -267,15 +267,16 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                 final ConnectionEventListener listener = mock(ConnectionEventListener.class);
                 connection.addConnectionEventListener(listener);
                 final PromiseImpl<LdapException, NeverThrowsException> promise = PromiseImpl.create();
-                final FutureResult<SearchResultEntry> future = connection.readEntryAsync(DN.valueOf("cn=test"), null);
-                future.onFailure(getFailureHandler(promise));
+                final LdapPromise<SearchResultEntry> connectionPromise =
+                        connection.readEntryAsync(DN.valueOf("cn=test"), null);
+                connectionPromise.onFailure(getFailureHandler(promise));
                 waitForSearch();
 
                 LdapException e = promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                 verifyResultCodeIsClientSideTimeout(e);
                 // Wait for the request to timeout.
                 try {
-                    future.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    connectionPromise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                     fail("The search request succeeded unexpectedly");
                 } catch (TimeoutResultException te) {
                     verifyResultCodeIsClientSideTimeout(te);

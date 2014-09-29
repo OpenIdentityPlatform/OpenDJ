@@ -71,7 +71,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
 
         @Override
         public void close() {
-            // Should we cancel the future?
+            // Should we cancel the promise?
             factory.close();
         }
 
@@ -362,7 +362,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
          * policy here such as waiting indefinitely, or for a configurable
          * timeout period.
          */
-        throw newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+        throw newLdapException(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
                 "No operational connection factories available", lastFailure);
     }
 }

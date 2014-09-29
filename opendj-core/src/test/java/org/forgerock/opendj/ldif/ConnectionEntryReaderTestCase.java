@@ -26,23 +26,11 @@
 
 package org.forgerock.opendj.ldif;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
-import static org.forgerock.opendj.ldap.responses.Responses.newResult;
-import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry;
-import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultReference;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.FutureResult;
-import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
@@ -55,6 +43,14 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.responses.Responses.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the ConnectionEntryReader functionality.
@@ -251,9 +247,9 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         final Connection connection = mock(Connection.class);
         // @formatter:off
         when(connection.searchAsync(same(SEARCH), any(SearchResultHandler.class))).thenAnswer(
-            new Answer<FutureResult<Result>>() {
+            new Answer<LdapPromise<Result>>() {
                 @Override
-                public FutureResult<Result> answer(final InvocationOnMock invocation) throws Throwable {
+                public LdapPromise<Result> answer(final InvocationOnMock invocation) throws Throwable {
                     // Execute handler and return future.
                     final SearchResultHandler handler = (SearchResultHandler) invocation.getArguments()[1];
                     if (handler != null) {
@@ -268,9 +264,9 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
                     }
                     final Result result = (Result) responses[responses.length - 1];
                     if (result.isSuccess()) {
-                        return FutureResultWrapper.newSuccessfulFutureResult(result);
+                        return newSuccessfulLdapPromise(result);
                     } else {
-                        return FutureResultWrapper.newFailedFutureResult(newErrorResult(result));
+                        return newFailedLdapPromise(newLdapException(result));
                     }
                 }
             });

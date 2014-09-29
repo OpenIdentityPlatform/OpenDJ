@@ -61,6 +61,8 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
 
+import static org.forgerock.opendj.ldap.LdapException.*;
+
 /**
  * Common utility methods.
  */
@@ -635,7 +637,7 @@ public final class Converters {
         if (result.isSuccess()) {
             return result;
         } else {
-            throw LdapException.newErrorResult(result);
+            throw newLdapException(result);
         }
     }
 

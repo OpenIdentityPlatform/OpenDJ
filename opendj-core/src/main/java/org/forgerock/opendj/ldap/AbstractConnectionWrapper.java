@@ -82,7 +82,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Void> abandonAsync(final AbandonRequest request) {
+    public LdapPromise<Void> abandonAsync(final AbandonRequest request) {
         return connection.abandonAsync(request);
     }
 
@@ -122,7 +122,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> addAsync(final AddRequest request) {
+    public LdapPromise<Result> addAsync(final AddRequest request) {
         return connection.addAsync(request);
     }
 
@@ -132,7 +132,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> addAsync(final AddRequest request,
+    public LdapPromise<Result> addAsync(final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
         return connection.addAsync(request, intermediateResponseHandler);
     }
@@ -163,7 +163,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> applyChangeAsync(ChangeRecord request) {
+    public LdapPromise<Result> applyChangeAsync(ChangeRecord request) {
         return connection.applyChangeAsync(request);
     }
 
@@ -173,7 +173,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> applyChangeAsync(ChangeRecord request,
+    public LdapPromise<Result> applyChangeAsync(ChangeRecord request,
             IntermediateResponseHandler intermediateResponseHandler) {
         return connection.applyChangeAsync(request, intermediateResponseHandler);
     }
@@ -204,7 +204,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<BindResult> bindAsync(final BindRequest request) {
+    public LdapPromise<BindResult> bindAsync(final BindRequest request) {
         return connection.bindAsync(request);
     }
 
@@ -214,7 +214,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<BindResult> bindAsync(BindRequest request,
+    public LdapPromise<BindResult> bindAsync(BindRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
         return connection.bindAsync(request, intermediateResponseHandler);
     }
@@ -266,7 +266,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<CompareResult> compareAsync(final CompareRequest request) {
+    public LdapPromise<CompareResult> compareAsync(final CompareRequest request) {
         return connection.compareAsync(request);
     }
 
@@ -276,7 +276,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<CompareResult> compareAsync(CompareRequest request,
+    public LdapPromise<CompareResult> compareAsync(CompareRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
         return connection.compareAsync(request, intermediateResponseHandler);
     }
@@ -307,7 +307,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> deleteAsync(final DeleteRequest request) {
+    public LdapPromise<Result> deleteAsync(final DeleteRequest request) {
         return connection.deleteAsync(request);
     }
 
@@ -317,7 +317,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> deleteAsync(DeleteRequest request,
+    public LdapPromise<Result> deleteAsync(DeleteRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
         return connection.deleteAsync(request, intermediateResponseHandler);
     }
@@ -370,7 +370,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request) {
+    public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request) {
         return connection.extendedRequestAsync(request);
     }
 
@@ -380,7 +380,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request,
+    public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request,
             IntermediateResponseHandler intermediateResponseHandler) {
         return connection.extendedRequestAsync(request, intermediateResponseHandler);
     }
@@ -431,7 +431,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> modifyAsync(final ModifyRequest request) {
+    public LdapPromise<Result> modifyAsync(final ModifyRequest request) {
         return connection.modifyAsync(request);
     }
 
@@ -441,7 +441,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> modifyAsync(ModifyRequest request,
+    public LdapPromise<Result> modifyAsync(ModifyRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
         return connection.modifyAsync(request, intermediateResponseHandler);
     }
@@ -472,7 +472,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request) {
+    public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request) {
         return connection.modifyDNAsync(request);
     }
 
@@ -482,7 +482,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
+    public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request,
             IntermediateResponseHandler intermediateResponseHandler) {
         return modifyDNAsync(request, intermediateResponseHandler);
     }
@@ -513,7 +513,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
+    public LdapPromise<SearchResultEntry> readEntryAsync(final DN name,
             final Collection<String> attributeDescriptions) {
         return connection.readEntryAsync(name, attributeDescriptions);
     }
@@ -588,7 +588,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> searchAsync(final SearchRequest request,
+    public LdapPromise<Result> searchAsync(final SearchRequest request,
             final SearchResultHandler resultHandler) {
         return connection.searchAsync(request, resultHandler);
     }
@@ -599,7 +599,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<Result> searchAsync(SearchRequest request,
+    public LdapPromise<Result> searchAsync(SearchRequest request,
             IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler) {
         return connection.searchAsync(request, intermediateResponseHandler, entryHandler);
     }
@@ -631,7 +631,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public FutureResult<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
+    public LdapPromise<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
         return connection.searchSingleEntryAsync(request);
     }
 

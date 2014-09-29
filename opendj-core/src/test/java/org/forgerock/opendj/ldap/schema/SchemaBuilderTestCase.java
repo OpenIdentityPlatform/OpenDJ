@@ -36,20 +36,17 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResult;
-import org.forgerock.opendj.ldap.FutureResultWrapper;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.util.promise.Promise;
 import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
-import static org.forgerock.util.promise.Promises.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -1992,9 +1989,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         };
 
         // Send a search entry result promise :
-        Promise<SearchResultEntry, LdapException> promise =
-                newSuccessfulPromise(Responses.newSearchResultEntry(entry));
-        FutureResult<SearchResultEntry> result = FutureResultWrapper.asFutureResult(promise);
+        LdapPromise<SearchResultEntry> result =
+                newSuccessfulLdapPromise(Responses.newSearchResultEntry(entry));
         when(connection.searchSingleEntryAsync((SearchRequest) any())).thenReturn(result);
         DN testDN = DN.valueOf("uid=bjensen,ou=People,dc=example,dc=com");
         // @formatter:on

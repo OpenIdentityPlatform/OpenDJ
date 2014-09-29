@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.util.Reject;
@@ -54,7 +54,7 @@ import org.forgerock.util.promise.Function;
 import com.forgerock.opendj.util.StaticUtils;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.*;
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
@@ -989,7 +989,7 @@ public final class Schema {
      * <p>
      * If the requested schema is not returned by the Directory Server then the
      * request will fail with an {@link EntryNotFoundException}. More
-     * specifically, the returned future will never return {@code null}.
+     * specifically, the returned promise will never return {@code null}.
      *
      * @param connection
      *            A connection to the Directory Server whose schema is to be
@@ -997,7 +997,7 @@ public final class Schema {
      * @param name
      *            The distinguished name of the subschema sub-entry.
      *            the operation result when it is received, may be {@code null}.
-     * @return A future representing the retrieved schema.
+     * @return A promise representing the retrieved schema.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -1006,15 +1006,15 @@ public final class Schema {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public static FutureResult<Schema> readSchemaAsync(final Connection connection, final DN name) {
+    public static LdapPromise<Schema> readSchemaAsync(final Connection connection, final DN name) {
         final SchemaBuilder builder = new SchemaBuilder();
-        return asFutureResult(builder.addSchemaAsync(connection, name, true).then(
+        return builder.addSchemaAsync(connection, name, true).then(
                 new Function<SchemaBuilder, Schema, LdapException>() {
                     @Override
                     public Schema apply(SchemaBuilder builder) throws LdapException {
                         return builder.toSchema();
                     }
-                }));
+                });
     }
 
     /**
@@ -1060,7 +1060,7 @@ public final class Schema {
      * <p>
      * If the requested entry or its associated schema are not returned by the
      * Directory Server then the request will fail with an
-     * {@link EntryNotFoundException}. More specifically, the returned future
+     * {@link EntryNotFoundException}. More specifically, the returned promise
      * will never return {@code null}.
      * <p>
      * This implementation first reads the {@code subschemaSubentry} attribute
@@ -1074,7 +1074,7 @@ public final class Schema {
      * @param name
      *            The distinguished name of the entry whose schema is to be
      *            located.
-     * @return A future representing the retrieved schema.
+     * @return A promise representing the retrieved schema.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -1083,16 +1083,15 @@ public final class Schema {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public static FutureResult<Schema> readSchemaForEntryAsync(final Connection connection, final DN name) {
+    public static LdapPromise<Schema> readSchemaForEntryAsync(final Connection connection, final DN name) {
         final SchemaBuilder builder = new SchemaBuilder();
-        return asFutureResult(builder.addSchemaForEntryAsync(connection, name, true).then(
+        return builder.addSchemaForEntryAsync(connection, name, true).then(
             new Function<SchemaBuilder, Schema, LdapException>() {
-
                 @Override
                 public Schema apply(SchemaBuilder builder) throws LdapException {
                     return builder.toSchema();
                 }
-            }));
+            });
     }
 
     /**

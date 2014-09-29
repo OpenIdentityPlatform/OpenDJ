@@ -57,8 +57,7 @@ public interface TransportProvider extends Provider {
      *            The LDAP options to use when creating connections.
      * @return an implementation of {@code LDAPConnectionFactory}
      */
-    LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port,
-            LDAPOptions options);
+    LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port, LDAPOptions options);
 
   /**
      * Returns an implementation of {@code LDAPListener}.

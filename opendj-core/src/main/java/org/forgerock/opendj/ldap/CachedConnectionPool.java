@@ -61,6 +61,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.FailureHandler;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.SuccessHandler;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
@@ -110,25 +111,24 @@ final class CachedConnectionPool implements ConnectionPool {
                     currentPoolSize(), maxPoolSize, error));
 
             /*
-             * There may be many pending futures waiting for a connection
+             * There may be many pending promises waiting for a connection
              * attempt to succeed. In some situations the number of pending
-             * futures may exceed the pool size and the number of outstanding
-             * connection attempts. If only one pending future is resolved per
-             * failed connection attempt then some pending futures will be left
+             * promises may exceed the pool size and the number of outstanding
+             * connection attempts. If only one pending promises is resolved per
+             * failed connection attempt then some pending promises will be left
              * unresolved. Therefore, a failed connection attempt must fail all
-             * pending futures, even if some of the subsequent connection
+             * pending promises, even if some of the subsequent connection
              * attempts succeed, which is unlikely (if one fails, then they are
              * all likely to fail).
              */
-            final List<QueueElement> waitingFutures =
-                    new LinkedList<CachedConnectionPool.QueueElement>();
+            final List<QueueElement> waitingPromises = new LinkedList<CachedConnectionPool.QueueElement>();
             synchronized (queue) {
-                while (hasWaitingFutures()) {
-                    waitingFutures.add(queue.removeFirst());
+                while (hasWaitingPromises()) {
+                    waitingPromises.add(queue.removeFirst());
                 }
             }
-            for (QueueElement waitingFuture : waitingFutures) {
-                waitingFuture.getWaitingFuture().handleError(error);
+            for (QueueElement waitingPromise : waitingPromises) {
+                waitingPromise.getWaitingPromise().handleError(error);
             }
         }
     }
@@ -152,7 +152,7 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<Void> abandonAsync(final AbandonRequest request) {
+        public LdapPromise<Void> abandonAsync(final AbandonRequest request) {
             return checkState().abandonAsync(request);
         }
 
@@ -172,12 +172,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<Result> addAsync(AddRequest request) {
+        public LdapPromise<Result> addAsync(AddRequest request) {
             return addAsync(request, null);
         }
 
         @Override
-        public FutureResult<Result> addAsync(final AddRequest request,
+        public LdapPromise<Result> addAsync(final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().addAsync(request, intermediateResponseHandler);
         }
@@ -220,12 +220,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<Result> applyChangeAsync(final ChangeRecord request) {
+        public LdapPromise<Result> applyChangeAsync(final ChangeRecord request) {
             return checkState().applyChangeAsync(request, null);
         }
 
         @Override
-        public FutureResult<Result> applyChangeAsync(final ChangeRecord request,
+        public LdapPromise<Result> applyChangeAsync(final ChangeRecord request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().applyChangeAsync(request, intermediateResponseHandler);
         }
@@ -241,12 +241,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<BindResult> bindAsync(BindRequest request) {
+        public LdapPromise<BindResult> bindAsync(BindRequest request) {
             return bindAsync(request, null);
         }
 
         @Override
-        public FutureResult<BindResult> bindAsync(final BindRequest request,
+        public LdapPromise<BindResult> bindAsync(final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().bindAsync(request, intermediateResponseHandler);
         }
@@ -277,7 +277,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 /*
                  * The connection may have been disconnected by the remote
                  * server, but the server may still be available. In order to
-                 * avoid leaving pending futures hanging indefinitely, we should
+                 * avoid leaving pending promises hanging indefinitely, we should
                  * try to reconnect immediately. No need to release/acquire
                  * availableConnections.
                  */
@@ -315,12 +315,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<CompareResult> compareAsync(CompareRequest request) {
+        public LdapPromise<CompareResult> compareAsync(CompareRequest request) {
             return compareAsync(request, null);
         }
 
         @Override
-        public FutureResult<CompareResult> compareAsync(final CompareRequest request,
+        public LdapPromise<CompareResult> compareAsync(final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().compareAsync(request, intermediateResponseHandler);
         }
@@ -336,12 +336,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<Result> deleteAsync(DeleteRequest request) {
+        public LdapPromise<Result> deleteAsync(DeleteRequest request) {
             return deleteAsync(request, null);
         }
 
         @Override
-        public FutureResult<Result> deleteAsync(final DeleteRequest request,
+        public LdapPromise<Result> deleteAsync(final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().deleteAsync(request, intermediateResponseHandler);
         }
@@ -369,12 +369,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request) {
+        public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(ExtendedRequest<R> request) {
             return extendedRequestAsync(request, null);
         }
 
         @Override
-        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+        public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().extendedRequestAsync(request, intermediateResponseHandler);
         }
@@ -439,12 +439,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<Result> modifyAsync(ModifyRequest request) {
+        public LdapPromise<Result> modifyAsync(ModifyRequest request) {
             return modifyAsync(request, null);
         }
 
         @Override
-        public FutureResult<Result> modifyAsync(final ModifyRequest request,
+        public LdapPromise<Result> modifyAsync(final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().modifyAsync(request, intermediateResponseHandler);
         }
@@ -460,12 +460,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<Result> modifyDNAsync(ModifyDNRequest request) {
+        public LdapPromise<Result> modifyDNAsync(ModifyDNRequest request) {
             return modifyDNAsync(request, null);
         }
 
         @Override
-        public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
+        public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler) {
             return checkState().modifyDNAsync(request, intermediateResponseHandler);
         }
@@ -483,7 +483,7 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
+        public LdapPromise<SearchResultEntry> readEntryAsync(final DN name,
                 final Collection<String> attributeDescriptions) {
             return checkState().readEntryAsync(name, attributeDescriptions);
         }
@@ -528,12 +528,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<Result> searchAsync(SearchRequest request, SearchResultHandler resultHandler) {
+        public LdapPromise<Result> searchAsync(SearchRequest request, SearchResultHandler resultHandler) {
             return searchAsync(request, null, resultHandler);
         }
 
         @Override
-        public FutureResult<Result> searchAsync(final SearchRequest request,
+        public LdapPromise<Result> searchAsync(final SearchRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
             return checkState().searchAsync(request, intermediateResponseHandler, entryHandler);
         }
@@ -550,7 +550,7 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public FutureResult<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
+        public LdapPromise<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
             return checkState().searchSingleEntryAsync(request);
         }
 
@@ -612,9 +612,8 @@ final class CachedConnectionPool implements ConnectionPool {
             }
         }
 
-        private boolean isTimedOutQueuedConnection(final QueueElement holder,
-                final long timeoutMillis) {
-            return holder != null && !holder.isWaitingFuture() && holder.hasTimedOut(timeoutMillis);
+        private boolean isTimedOutQueuedConnection(final QueueElement holder, final long timeoutMillis) {
+            return holder != null && !holder.isWaitingPromise() && holder.hasTimedOut(timeoutMillis);
         }
     }
 
@@ -630,14 +629,13 @@ final class CachedConnectionPool implements ConnectionPool {
         @Override
         protected void finalize() throws Throwable {
             if (!isClosed()) {
-                logIfDebugEnabled("CONNECTION POOL: connection leaked! It was allocated here: ",
-                        stackTrace);
+                logIfDebugEnabled("CONNECTION POOL: connection leaked! It was allocated here: ", stackTrace);
             }
         }
     }
 
     /**
-     * A queue element is either a pending connection request future awaiting an
+     * A queue element is either a pending connection request promise awaiting an
      * {@code Connection} or it is an unused {@code Connection} awaiting a
      * connection request.
      */
@@ -652,9 +650,8 @@ final class CachedConnectionPool implements ConnectionPool {
             this.stack = null;
         }
 
-        QueueElement(final long timestampMillis,
-            final StackTraceElement[] stack) {
-            this.value = new FutureResultImpl<Connection>();
+        QueueElement(final long timestampMillis, final StackTraceElement[] stack) {
+            this.value = PromiseImpl.create();
             this.timestampMillis = timestampMillis;
             this.stack = stack;
         }
@@ -677,16 +674,16 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @SuppressWarnings("unchecked")
-        FutureResultImpl<Connection> getWaitingFuture() {
-            return (FutureResultImpl<Connection>) value;
+        PromiseImpl<Connection, LdapException> getWaitingPromise() {
+            return (PromiseImpl<Connection, LdapException>) value;
         }
 
         boolean hasTimedOut(final long timeLimitMillis) {
             return timestampMillis < timeLimitMillis;
         }
 
-        boolean isWaitingFuture() {
-            return value instanceof FutureResultImpl;
+        boolean isWaitingPromise() {
+            return value instanceof PromiseImpl;
         }
     }
 
@@ -790,7 +787,7 @@ final class CachedConnectionPool implements ConnectionPool {
         try {
             return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
-            throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+            throw newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
         }
     }
 
@@ -810,15 +807,15 @@ final class CachedConnectionPool implements ConnectionPool {
                 }
             }
 
-            if (holder.isWaitingFuture()) {
+            if (holder.isWaitingPromise()) {
                 // Grow the pool if needed.
-                final FutureResult<Connection> future = holder.getWaitingFuture();
-                if (!future.isDone() && availableConnections.tryAcquire()) {
+                final Promise<Connection, LdapException> promise = holder.getWaitingPromise();
+                if (!promise.isDone() && availableConnections.tryAcquire()) {
                     pendingConnectionAttempts.incrementAndGet();
                     factory.getConnectionAsync().onSuccess(connectionSuccessHandler)
                                                 .onFailure(connectionFailureHandler);
                 }
-                return future;
+                return promise;
             }
 
             // There was a completed connection attempt.
@@ -845,7 +842,7 @@ final class CachedConnectionPool implements ConnectionPool {
         int blocked = 0;
         synchronized (queue) {
             for (QueueElement qe : queue) {
-                if (qe.isWaitingFuture()) {
+                if (qe.isWaitingPromise()) {
                     blocked++;
                 } else {
                     in++;
@@ -874,11 +871,11 @@ final class CachedConnectionPool implements ConnectionPool {
     }
 
     private boolean hasWaitingConnections() {
-        return !queue.isEmpty() && !queue.getFirst().isWaitingFuture();
+        return !queue.isEmpty() && !queue.getFirst().isWaitingPromise();
     }
 
-    private boolean hasWaitingFutures() {
-        return !queue.isEmpty() && queue.getFirst().isWaitingFuture();
+    private boolean hasWaitingPromises() {
+        return !queue.isEmpty() && queue.getFirst().isWaitingPromise();
     }
 
     private void publishConnection(final Connection connection) {
@@ -886,7 +883,7 @@ final class CachedConnectionPool implements ConnectionPool {
         boolean connectionPoolIsClosing = false;
 
         synchronized (queue) {
-            if (hasWaitingFutures()) {
+            if (hasWaitingPromises()) {
                 connectionPoolIsClosing = isClosed;
                 holder = queue.removeFirst();
             } else if (isClosed) {
@@ -899,7 +896,7 @@ final class CachedConnectionPool implements ConnectionPool {
             }
         }
 
-        // There was waiting future, so complete it.
+        // There was waiting promise, so complete it.
         if (connectionPoolIsClosing) {
             // The connection will be closed, so decrease the pool size.
             availableConnections.release();
@@ -911,16 +908,16 @@ final class CachedConnectionPool implements ConnectionPool {
 
             if (holder != null) {
                 final LdapException e =
-                        LdapException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
+                        newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED,
                                 ERR_CONNECTION_POOL_CLOSING.get(toString()).toString());
-                holder.getWaitingFuture().handleError(e);
+                holder.getWaitingPromise().handleError(e);
 
                 logger.debug(LocalizableMessage.raw(
                         "Connection attempt failed: availableConnections=%d, maxPoolSize=%d",
                         currentPoolSize(), maxPoolSize, e));
             }
         } else {
-            holder.getWaitingFuture().handleResult(
+            holder.getWaitingPromise().handleResult(
                     newPooledConnection(connection, holder.getStackTrace()));
         }
     }

@@ -168,7 +168,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                     @Override
                     public void handleResult(Result result) {
                         if (subFilters.size() >= SEARCH_MAX_CANDIDATES) {
-                            failureHandler.handleError(newErrorResult(ResultCode.ADMIN_LIMIT_EXCEEDED));
+                            failureHandler.handleError(newLdapException(ResultCode.ADMIN_LIMIT_EXCEEDED));
                         } else if (subFilters.size() == 1) {
                             h.handleResult(subFilters.get(0));
                         } else {

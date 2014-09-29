@@ -47,7 +47,7 @@ import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -88,8 +88,8 @@ import org.testng.annotations.Test;
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
@@ -255,13 +255,12 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     }
 
     /**
-     * Tests the async connection in the blocking mode. This is not fully async
-     * as it blocks on the future.
+     * Tests the async connection in the blocking mode. This is not fully async as it blocks on the promise.
      *
      * @throws Exception
      */
     @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
-    public void testBlockingFutureNoHandler(ConnectionFactory factory) throws Exception {
+    public void testBlockingPromiseNoHandler(ConnectionFactory factory) throws Exception {
         final Promise<? extends Connection, LdapException> promise = factory.getConnectionAsync();
         final Connection con = promise.get();
         // quickly check if it is a valid connection.
@@ -276,8 +275,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      * @throws Exception
      */
     @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
-    public void testNonBlockingFutureWithHandler(ConnectionFactory factory) throws Exception {
-        // Use the handler to get the result asynchronously.
+    public void testNonBlockingPromiseWithHandler(ConnectionFactory factory) throws Exception {
+        // Use the promise to get the result asynchronously.
         final PromiseImpl<Connection, LdapException> promise = PromiseImpl.create();
 
         factory.getConnectionAsync().onSuccess(new SuccessHandler<Connection>() {
@@ -287,7 +286,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                 promise.handleResult(con);
             }
         }).onFailure(new FailureHandler<LdapException>() {
-
             @Override
             public void handleError(LdapException error) {
                 promise.handleError(error);
@@ -297,7 +295,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         // Since we don't have anything to do, we would rather
         // be notified by the promise when the other thread calls our handler.
-        promise.getOrThrow(); // should do a timed wait rather?
+        // should do a timed wait rather?
+        promise.getOrThrow();
     }
 
     /**
@@ -379,10 +378,10 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         // Mock underlying connection factory which always succeeds.
         final ConnectionFactory mockFactory = mock(ConnectionFactory.class);
-        when(mockFactory.getConnectionAsync()).thenAnswer(new Answer<FutureResult<Connection>>() {
+        when(mockFactory.getConnectionAsync()).thenAnswer(new Answer<LdapPromise<Connection>>() {
 
             @Override
-            public FutureResult<Connection> answer(InvocationOnMock invocation) throws Throwable {
+            public LdapPromise<Connection> answer(InvocationOnMock invocation) throws Throwable {
                 // Update state.
                 final int connectionID = realConnectionCount.getAndIncrement();
                 realConnectionIsClosed[connectionID] = false;
@@ -400,7 +399,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                 when(mockConnection.isValid()).thenReturn(true);
                 when(mockConnection.toString()).thenReturn("Mock connection " + connectionID);
 
-                return newSuccessfulFutureResult(mockConnection);
+                return newSuccessfulLdapPromise(mockConnection);
             }
         });
 
@@ -537,7 +536,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                         contextHolder.set((LDAPClientContext) invocation.getArguments()[0]);
                         connectLatch.countDown(); /* is this needed? */
                         if (config.closeOnAccept) {
-                            throw newErrorResult(ResultCode.UNAVAILABLE);
+                            throw newLdapException(ResultCode.UNAVAILABLE);
                         } else {
                             // Return a mock connection which always succeeds for binds.
                             ServerConnection<Integer> mockConnection = mock(ServerConnection.class);

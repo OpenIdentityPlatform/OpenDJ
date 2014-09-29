@@ -29,34 +29,34 @@ package org.forgerock.opendj.ldap.spi;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.BindClient;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.util.promise.PromiseImpl;
 
 /**
- * Bind result future implementation.
+ * Bind result promise implementation.
  */
-public final class LDAPBindFutureResultImpl extends AbstractLDAPFutureResultImpl<BindResult> {
+public final class BindResultLdapPromiseImpl extends ResultLdapPromiseImpl<BindRequest, BindResult> {
     private final BindClient bindClient;
 
-    /**
-     * Creates an bind future result.
-     *
-     * @param requestID
-     *            identifier of the request
-     * @param bindClient
-     *            client that binds to the server
-     * @param intermediateResponseHandler
-     *            handler that consumes intermediate responses from extended
-     *            operations
-     * @param connection
-     *            the connection to directory server
-     */
-    public LDAPBindFutureResultImpl(final int requestID, final BindClient bindClient,
+    BindResultLdapPromiseImpl(final int requestID, final BindRequest request, final BindClient bindClient,
             final IntermediateResponseHandler intermediateResponseHandler,
             final Connection connection) {
-        super(requestID, intermediateResponseHandler, connection);
+        super(new PromiseImpl<BindResult, LdapException>() {
+            protected LdapException tryCancel(boolean mayInterruptIfRunning) {
+                /*
+                 * No other operations can be performed while a bind is active.
+                 * Therefore it is not possible to cancel bind or requests,
+                 * since doing so will leave the connection in a state which
+                 * prevents other operations from being performed.
+                 */
+                return null;
+            }
+        }, requestID, request, intermediateResponseHandler, connection);
         this.bindClient = bindClient;
     }
 
@@ -65,28 +65,17 @@ public final class LDAPBindFutureResultImpl extends AbstractLDAPFutureResultImpl
         return true;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("LDAPBindFutureResultImpl(");
-        sb.append("bindClient = ");
-        sb.append(bindClient);
-        super.toString(sb);
-        sb.append(")");
-        return sb.toString();
-    }
-
     /**
-     * Returns the client.
+     * Returns the bind client.
      *
-     * @return the bind client
+     * @return The bind client.
      */
     public BindClient getBindClient() {
         return bindClient;
     }
 
     @Override
-    protected BindResult newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
+    BindResult newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
             final Throwable cause) {
         return Responses.newBindResult(resultCode).setDiagnosticMessage(diagnosticMessage)
                 .setCause(cause);

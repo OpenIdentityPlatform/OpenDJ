@@ -40,34 +40,17 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
 /**
- * Search result future implementation.
+ * Search result promise implementation.
  */
-public final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultImpl<Result> implements
+public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<SearchRequest, Result> implements
         SearchResultHandler {
     private SearchResultHandler searchResultHandler;
-    private final SearchRequest request;
     private final boolean isPersistentSearch;
 
-    /**
-     * Creates a search future result.
-     *
-     * @param requestID
-     *            identifier of the request
-     * @param request
-     *            search request
-     * @param resultHandler
-     *            handler that consumes search result
-     * @param intermediateResponseHandler
-     *            handler that consumes intermediate responses from extended
-     *            operations
-     * @param connection
-     *            the connection to directory server
-     */
-    public LDAPSearchFutureResultImpl(final int requestID, final SearchRequest request,
+    SearchResultLdapPromiseImpl(final int requestID, final SearchRequest request,
         final SearchResultHandler resultHandler, final IntermediateResponseHandler intermediateResponseHandler,
         final Connection connection) {
-        super(requestID, intermediateResponseHandler, connection);
-        this.request = request;
+        super(requestID, request, intermediateResponseHandler, connection);
         this.searchResultHandler = resultHandler;
         this.isPersistentSearch =
             request.containsControl(PersistentSearchRequestControl.OID)
@@ -75,8 +58,9 @@ public final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultIm
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean handleEntry(final SearchResultEntry entry) {
-        // FIXME: there's a potential race condition here - the future could
+        // FIXME: there's a potential race condition here - the promise could
         // get cancelled between the isDone() call and the handler
         // invocation. We'd need to add support for intermediate handlers in
         // the synchronizer.
@@ -92,8 +76,9 @@ public final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultIm
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean handleReference(final SearchResultReference reference) {
-        // FIXME: there's a potential race condition here - the future could
+        // FIXME: there's a potential race condition here - the promise could
         // get cancelled between the isDone() call and the handler
         // invocation. We'd need to add support for intermediate handlers in
         // the synchronizer.
@@ -109,38 +94,16 @@ public final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultIm
     }
 
     @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("LDAPSearchFutureResultImpl(");
-        sb.append("request = ");
-        sb.append(request);
-        super.toString(sb);
-        sb.append(")");
-        return sb.toString();
-    }
-
-    /**
-     * Returns the search request.
-     *
-     * @return the search request
-     */
-    SearchRequest getRequest() {
-        return request;
-    }
-
-    @Override
-    protected Result newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
+    Result newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
             final Throwable cause) {
         return Responses.newResult(resultCode).setDiagnosticMessage(diagnosticMessage).setCause(
                 cause);
     }
 
-
-    /** {@inheritDoc} */
     @Override
-    public
-    boolean checkForTimeout() {
+    public boolean checkForTimeout() {
         // Persistent searches should not time out.
         return !isPersistentSearch;
     }
+
 }

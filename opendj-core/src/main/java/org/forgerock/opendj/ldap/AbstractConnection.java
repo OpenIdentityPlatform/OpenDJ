@@ -54,6 +54,7 @@ import org.forgerock.util.promise.Function;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
@@ -98,7 +99,7 @@ public abstract class AbstractConnection implements Connection {
          */
         private LdapException filterError(final LdapException error) {
             if (error.getResult().getResultCode().equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
-                return newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+                return newLdapException(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
                         ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES_NO_COUNT.get().toString());
             } else {
                 return error;
@@ -117,15 +118,15 @@ public abstract class AbstractConnection implements Connection {
         private SearchResultEntry getSingleEntry() throws LdapException {
             if (entryCount == 0) {
                 // Did not find any entries.
-                throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
+                throw newLdapException(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
                         ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
             } else if (entryCount > 1) {
                 // Got more entries than expected.
-                throw newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+                throw newLdapException(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
                         ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount).toString());
             } else if (firstReference != null) {
                 // Got an unexpected search result reference.
-                throw newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+                throw newLdapException(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
                         ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(firstReference.getURIs().iterator().next())
                         .toString());
             } else {
@@ -193,7 +194,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<Result> addAsync(final AddRequest request) {
+    public LdapPromise<Result> addAsync(final AddRequest request) {
         return addAsync(request, null);
     }
 
@@ -208,33 +209,33 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<Result> applyChangeAsync(ChangeRecord request) {
+    public LdapPromise<Result> applyChangeAsync(ChangeRecord request) {
         return applyChangeAsync(request, null);
     }
 
     @Override
-    public FutureResult<Result> applyChangeAsync(final ChangeRecord request,
+    public LdapPromise<Result> applyChangeAsync(final ChangeRecord request,
             final IntermediateResponseHandler intermediateResponseHandler) {
-        final ChangeRecordVisitor<FutureResult<Result>, Connection> visitor =
-            new ChangeRecordVisitor<FutureResult<Result>, Connection>() {
+        final ChangeRecordVisitor<LdapPromise<Result>, Connection> visitor =
+            new ChangeRecordVisitor<LdapPromise<Result>, Connection>() {
 
                 @Override
-                public FutureResult<Result> visitChangeRecord(final Connection p, final AddRequest change) {
+                public LdapPromise<Result> visitChangeRecord(final Connection p, final AddRequest change) {
                     return p.addAsync(change, intermediateResponseHandler);
                 }
 
                 @Override
-                public FutureResult<Result> visitChangeRecord(final Connection p, final DeleteRequest change) {
+                public LdapPromise<Result> visitChangeRecord(final Connection p, final DeleteRequest change) {
                     return p.deleteAsync(change, intermediateResponseHandler);
                 }
 
                 @Override
-                public FutureResult<Result> visitChangeRecord(final Connection p, final ModifyDNRequest change) {
+                public LdapPromise<Result> visitChangeRecord(final Connection p, final ModifyDNRequest change) {
                     return p.modifyDNAsync(change, intermediateResponseHandler);
                 }
 
                 @Override
-                public FutureResult<Result> visitChangeRecord(final Connection p, final ModifyRequest change) {
+                public LdapPromise<Result> visitChangeRecord(final Connection p, final ModifyRequest change) {
                     return p.modifyAsync(change, intermediateResponseHandler);
                 }
             };
@@ -247,7 +248,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<BindResult> bindAsync(final BindRequest request) {
+    public LdapPromise<BindResult> bindAsync(final BindRequest request) {
         return bindAsync(request, null);
     }
 
@@ -263,7 +264,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<CompareResult> compareAsync(final CompareRequest request) {
+    public LdapPromise<CompareResult> compareAsync(final CompareRequest request) {
         return compareAsync(request, null);
     }
 
@@ -273,7 +274,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<Result> deleteAsync(final DeleteRequest request) {
+    public LdapPromise<Result> deleteAsync(final DeleteRequest request) {
         return deleteAsync(request, null);
     }
 
@@ -294,7 +295,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request) {
+    public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request) {
         return extendedRequestAsync(request, null);
     }
 
@@ -304,7 +305,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<Result> modifyAsync(final ModifyRequest request) {
+    public LdapPromise<Result> modifyAsync(final ModifyRequest request) {
         return modifyAsync(request, null);
     }
 
@@ -314,7 +315,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request) {
+    public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request) {
         return modifyDNAsync(request, null);
     }
 
@@ -334,7 +335,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
+    public LdapPromise<SearchResultEntry> readEntryAsync(final DN name,
             final Collection<String> attributeDescriptions) {
         final SearchRequest request = Requests.newSingleEntrySearchRequest(name, SearchScope.BASE_OBJECT,
                 Filter.objectClassPresent());
@@ -386,7 +387,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<Result> searchAsync(final SearchRequest request, final SearchResultHandler resultHandler) {
+    public LdapPromise<Result> searchAsync(final SearchRequest request, final SearchResultHandler resultHandler) {
         return searchAsync(request, null, resultHandler);
     }
 
@@ -410,20 +411,20 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public FutureResult<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
+    public LdapPromise<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
         final SingleEntryHandler handler = new SingleEntryHandler();
-        return FutureResultWrapper.asFutureResult(searchAsync(enforceSingleEntrySearchRequest(request), handler).then(
-            new Function<Result, SearchResultEntry, LdapException>() {
-                @Override
-                public SearchResultEntry apply(final Result value) throws LdapException {
-                    return handler.getSingleEntry();
-                }
-            }, new Function<LdapException, SearchResultEntry, LdapException>() {
-                @Override
-                public SearchResultEntry apply(final LdapException error) throws LdapException {
-                    throw handler.filterError(error);
-                }
-            }));
+        return asPromise(searchAsync(enforceSingleEntrySearchRequest(request), handler).then(
+                new Function<Result, SearchResultEntry, LdapException>() {
+                    @Override
+                    public SearchResultEntry apply(final Result value) throws LdapException {
+                        return handler.getSingleEntry();
+                    }
+                }, new Function<LdapException, SearchResultEntry, LdapException>() {
+                    @Override
+                    public SearchResultEntry apply(final LdapException error) throws LdapException {
+                        throw handler.filterError(error);
+                    }
+                }));
     }
 
     /**

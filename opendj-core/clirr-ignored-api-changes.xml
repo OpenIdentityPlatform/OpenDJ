@@ -307,4 +307,36 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <differenceType>8001</differenceType>
     <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/*Connection*</className>
+    <differenceType>7006</differenceType>
+    <method>*Async*</method>
+    <to>org.forgerock.opendj.ldap.LdapPromise</to>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/RootDSE</className>
+    <differenceType>7006</differenceType>
+    <method>*Async*</method>
+    <to>org.forgerock.opendj.ldap.LdapPromise</to>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema*</className>
+    <differenceType>7006</differenceType>
+    <method>*Async*</method>
+    <to>org.forgerock.opendj.ldap.LdapPromise</to>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Connection</className>
+    <differenceType>7012</differenceType>
+    <method>org.forgerock.opendj.ldap.LdapPromise *Async(*)</method>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/FutureResult</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
 </differences>

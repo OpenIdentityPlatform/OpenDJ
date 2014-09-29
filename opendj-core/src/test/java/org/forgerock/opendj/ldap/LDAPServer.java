@@ -76,6 +76,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 
 /**
@@ -177,7 +178,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (entryMap.containsKey(dn)) {
                 // duplicate entry.
                 result = Responses.newResult(ResultCode.ENTRY_ALREADY_EXISTS);
-                handler.handleError(LdapException.newErrorResult(result));
+                handler.handleError(newLdapException(result));
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -195,7 +196,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
-                handler.handleError(LdapException.newErrorResult(result));
+                handler.handleError(newLdapException(result));
                 requestsInProgress.remove(context);
                 return;
             }
@@ -284,7 +285,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                     try {
                                         return saslServer.unwrap(incoming, offset, len);
                                     } catch (SaslException e) {
-                                        throw LdapException.newErrorResult(
+                                        throw newLdapException(
                                                 Responses.newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
                                     }
                                 }
@@ -294,7 +295,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                     try {
                                         return saslServer.wrap(outgoing, offset, len);
                                     } catch (SaslException e) {
-                                        throw LdapException.newErrorResult(
+                                        throw newLdapException(
                                                 Responses.newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
                                     }
                                 }
@@ -309,7 +310,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                 ByteString.wrap(challenge)));
                     }
                 } catch (Exception e) {
-                    resultHandler.handleError(LdapException.newErrorResult(Responses
+                    resultHandler.handleError(newLdapException(Responses
                             .newBindResult(ResultCode.OPERATIONS_ERROR).setCause(e)
                             .setDiagnosticMessage(e.toString())));
                 }
@@ -357,7 +358,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (!entryMap.containsKey(dn)) {
                 // entry not found.
                 result = Responses.newCompareResult(ResultCode.NO_SUCH_ATTRIBUTE);
-                resultHandler.handleError(LdapException.newErrorResult(result));
+                resultHandler.handleError(newLdapException(result));
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -372,7 +373,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                     final ByteString s = it.next();
                     if (abReq.isCanceled()) {
                         final Result r = Responses.newResult(ResultCode.CANCELLED);
-                        resultHandler.handleError(LdapException.newErrorResult(r));
+                        resultHandler.handleError(newLdapException(r));
                         requestsInProgress.remove(context);
                         return;
                     }
@@ -401,7 +402,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (!entryMap.containsKey(dn)) {
                 // entry is not found.
                 result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-                handler.handleError(LdapException.newErrorResult(result));
+                handler.handleError(newLdapException(result));
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -409,7 +410,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
-                handler.handleError(LdapException.newErrorResult(result));
+                handler.handleError(newLdapException(result));
                 requestsInProgress.remove(context);
                 return;
             }
@@ -461,7 +462,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (!entryMap.containsKey(dn)) {
                 // Entry not found.
                 result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-                resultHandler.handleError(LdapException.newErrorResult(result));
+                resultHandler.handleError(newLdapException(result));
                 // Should searchResultHandler handle anything?
 
                 // doesn't matter if it was canceled.
@@ -471,7 +472,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
-                resultHandler.handleError(LdapException.newErrorResult(result));
+                resultHandler.handleError(newLdapException(result));
                 requestsInProgress.remove(context);
                 return;
             }

@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap;
 
 import org.forgerock.util.promise.Promise;
 
-import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.forgerock.util.promise.Promises.*;
 
 
@@ -79,7 +79,7 @@ final class InternalConnectionFactory<C> implements ConnectionFactory {
         try {
             serverConnection = factory.handleAccept(clientContext);
         } catch (final LdapException e) {
-            return newFailedFutureResult(e);
+            return newFailedLdapPromise(e);
         }
 
         return newSuccessfulPromise((Connection) new InternalConnection(serverConnection));

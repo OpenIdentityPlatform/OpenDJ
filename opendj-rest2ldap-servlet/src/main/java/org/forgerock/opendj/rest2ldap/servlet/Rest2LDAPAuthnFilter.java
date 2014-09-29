@@ -252,10 +252,10 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                                      */
                                     if (error instanceof EntryNotFoundException
                                             || error instanceof MultipleEntriesFoundException) {
-                                        normalizedError = newErrorResult(ResultCode.INVALID_CREDENTIALS, error);
+                                        normalizedError = newLdapException(ResultCode.INVALID_CREDENTIALS, error);
                                     } else if (error instanceof AuthenticationException
                                             || error instanceof AuthorizationException) {
-                                        normalizedError = newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, error);
+                                        normalizedError = newLdapException(ResultCode.CLIENT_SIDE_LOCAL_ERROR, error);
                                     } else {
                                         normalizedError = error;
                                     }

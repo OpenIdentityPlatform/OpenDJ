@@ -27,15 +27,19 @@
 
 package org.forgerock.opendj.ldap;
 
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Function;
 import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
 
 /**
  * A handle which can be used to retrieve the Result of an asynchronous Request.
  *
  * @param <S>
- *            The type of result returned by this future result.
+ *            The type of result returned by this promise.
  */
-public interface FutureResult<S> extends Promise<S, LdapException> {
+public interface LdapPromise<S> extends Promise<S, LdapException> {
     /**
      * Returns the request ID of the request if appropriate.
      *
@@ -43,4 +47,29 @@ public interface FutureResult<S> extends Promise<S, LdapException> {
      */
     int getRequestID();
 
+    @Override
+    LdapPromise<S> onSuccess(SuccessHandler<? super S> onSuccess);
+
+    @Override
+    LdapPromise<S> onFailure(FailureHandler<? super LdapException> onFailure);
+
+    @Override
+    LdapPromise<S> onSuccessOrFailure(Runnable onSuccessOrFailure);
+
+    @Override
+    // @Checkstyle:ignore
+    <VOUT> LdapPromise<VOUT> then(Function<? super S, VOUT, LdapException> onSuccess);
+
+    @Override
+    LdapPromise<S> then(SuccessHandler<? super S> onSuccess);
+
+    @Override
+    LdapPromise<S> then(SuccessHandler<? super S> onSuccess, FailureHandler<? super LdapException> onFailure);
+
+    @Override
+    LdapPromise<S> thenAlways(Runnable onSuccessOrFailure);
+
+    @Override
+    // @Checkstyle:ignore
+    <VOUT> LdapPromise<VOUT> thenAsync(AsyncFunction<? super S, VOUT, LdapException> onSuccess);
 }

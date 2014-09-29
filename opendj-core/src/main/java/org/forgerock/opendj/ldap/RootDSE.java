@@ -34,11 +34,12 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Function;
 
 import com.forgerock.opendj.util.Collections2;
 
-import org.forgerock.util.Reject;
-import org.forgerock.util.promise.Function;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 /**
  * The root DSE is a DSA-specific Entry (DSE) and not part of any naming context
@@ -133,7 +134,7 @@ public final class RootDSE {
      * <p>
      * If the Root DSE is not returned by the Directory Server then the request
      * will fail with an {@link EntryNotFoundException}. More specifically, the
-     * returned future will never return {@code null}.
+     * returned promise will never return {@code null}.
      *
      * @param connection
      *            A connection to the Directory Server whose Root DSE is to be
@@ -141,7 +142,7 @@ public final class RootDSE {
      * @param handler
      *            A result handler which can be used to asynchronously process
      *            the operation result when it is received, may be {@code null}.
-     * @return A future representing the result of the operation.
+     * @return A promise representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
      * @throws IllegalStateException
@@ -150,15 +151,15 @@ public final class RootDSE {
      * @throws NullPointerException
      *             If the {@code connection} was {@code null}.
      */
-    public static FutureResult<RootDSE> readRootDSEAsync(final Connection connection,
+    public static LdapPromise<RootDSE> readRootDSEAsync(final Connection connection,
             final ResultHandler<? super RootDSE> handler) {
-        return FutureResultWrapper.asFutureResult(connection.searchSingleEntryAsync(SEARCH_REQUEST).then(
+        return connection.searchSingleEntryAsync(SEARCH_REQUEST).then(
             new Function<SearchResultEntry, RootDSE, LdapException>() {
                 @Override
                 public RootDSE apply(SearchResultEntry result) {
                     return valueOf(result);
                 }
-            }));
+            });
     }
 
     /**

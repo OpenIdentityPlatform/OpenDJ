@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.server.core;
 
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldif.EntryReader;
 
@@ -63,7 +63,7 @@ public interface ImportableDataProvider {
      *            The entry reader.
      * @param handler
      *            A handler which will be notified when the import completes.
-     * @return A future representing the completion of the import.
+     * @return A promise representing the completion of the import.
      */
-    FutureResult<Void> importEntries(EntryReader reader, ResultHandler<Void> handler);
+    LdapPromise<Void> importEntries(EntryReader reader, ResultHandler<Void> handler);
 }

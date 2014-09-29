@@ -73,7 +73,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
         try {
             return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
-            throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
+            throw newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
         }
     }
 

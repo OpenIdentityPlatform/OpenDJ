@@ -102,7 +102,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         connection.addConnectionEventListener(listener);
         assertThat(listeners).hasSize(1);
         listeners.get(0).handleConnectionError(false,
-                newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN));
+                newLdapException(ResultCode.CLIENT_SIDE_SERVER_DOWN));
         verify(listener, times(0)).handleConnectionClosed();
         verify(listener).handleConnectionError(eq(false), isA(ConnectionException.class));
         verify(listener, times(0)).handleUnsolicitedNotification(any(ExtendedResult.class));
@@ -242,19 +242,18 @@ public class ConnectionPoolTestCase extends SdkTestCase {
 
         /*
          * Grab another connection and check that this attempt blocks (if there
-         * is a connection available immediately then the future will be
+         * is a connection available immediately then the promise will be
          * completed immediately).
          */
-        final Promise<? extends Connection, LdapException> future = pool.getConnectionAsync();
-        assertThat(future.isDone()).isFalse();
+        final Promise<? extends Connection, LdapException> promise = pool.getConnectionAsync();
+        assertThat(promise.isDone()).isFalse();
 
-        // Release a connection and verify that it is immediately redeemed by
-        // the future.
+        // Release a connection and verify that it is immediately redeemed by the promise.
         pc2.close();
-        assertThat(future.isDone()).isTrue();
+        assertThat(promise.isDone()).isTrue();
 
         // Check that returned connection routes request to released connection.
-        final Connection pc3 = future.get();
+        final Connection pc3 = promise.get();
         assertThat(pc3.bind(bind2).getResultCode()).isEqualTo(ResultCode.SUCCESS);
         verify(factory, times(2)).getConnection();
         verify(connection2).bind(bind2);
@@ -509,12 +508,12 @@ public class ConnectionPoolTestCase extends SdkTestCase {
     }
 
     /**
-     * Test that all outstanding pending connection futures are completed when a
+     * Test that all outstanding pending connection promises are completed when a
      * connection request fails.
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test(description = "OPENDJ-1348", timeOut = 10000)
-    public void testNewConnectionFailureFlushesAllPendingFutures() throws Exception {
+    public void testNewConnectionFailureFlushesAllPendingPromises() throws Exception {
         final ConnectionFactory factory = mock(ConnectionFactory.class);
         final int poolSize = 2;
         final ConnectionPool pool = Connections.newFixedConnectionPool(factory, poolSize);
@@ -526,21 +525,21 @@ public class ConnectionPoolTestCase extends SdkTestCase {
             }
         }).when(factory).getConnectionAsync();
 
-        List<Promise<? extends Connection, LdapException>> futures =
+        List<Promise<? extends Connection, LdapException>> promises =
                 new ArrayList<Promise<? extends Connection, LdapException>>();
         for (int i = 0; i < poolSize + 1; i++) {
-            futures.add(pool.getConnectionAsync());
+            promises.add(pool.getConnectionAsync());
         }
         // factory.getConnectionAsync() has been called by the pool poolSize times
         verify(factory, times(poolSize)).getConnectionAsync();
-        final LdapException connectError = LdapException.newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
-        for (Promise<? extends Connection, LdapException> future : futures) {
+        final LdapException connectError = newLdapException(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+        for (Promise<? extends Connection, LdapException> promise : promises) {
             // Simulate that an error happened with the created connections
-            ((FutureResultImpl) future).handleError(connectError);
+            ((PromiseImpl) promise).handleError(connectError);
 
             try {
-                // Before the fix for OPENDJ-1348 the third future.get() would hang.
-                future.getOrThrow();
+                // Before the fix for OPENDJ-1348 the third promise.get() would hang.
+                promise.getOrThrow();
                 Assert.fail("Expected an exception to be thrown");
             } catch (LdapException e) {
                 assertThat(e).isSameAs(connectError);
