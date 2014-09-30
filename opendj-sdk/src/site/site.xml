@@ -20,13 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !
 -->
 <project name="${project.name}"
  xmlns="http://maven.apache.org/DECORATION/1.0.1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1 http://maven.apache.org/xsd/decoration-1.0.1.xsd">
+ xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.1
+                     http://maven.apache.org/xsd/decoration-1.0.1.xsd">
 
  <skin>
   <groupId>org.forgerock.commons</groupId>
@@ -86,9 +87,10 @@
    <item name="Release Notes" href="./opendj-server/doc/release-notes/index.html" />
    <item name="Installation Guide" href="./opendj-server/doc/install-guide/index.html" />
    <item name="Administration Guide" href="./opendj-server/doc/admin-guide/index.html" />
-   <item name="Developer Guide" href="./doc/dev-guide/index.html" />
    <item name="Config Reference" href="./opendj-server/configref/index.html" />
    <item name="Plugin Javadoc" href="./opendj-server/javadoc/index.html" />
+   <item name="SDK Release Notes" href="./doc/sdk-release-notes/index.html" />
+   <item name="SDK Developer Guide" href="./doc/dev-guide/index.html" />
    <item name="SDK Javadoc" href="./opendj-core/apidocs/index.html" />
   </menu>
   
