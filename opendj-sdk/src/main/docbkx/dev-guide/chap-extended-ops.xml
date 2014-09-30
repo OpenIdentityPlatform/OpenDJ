@@ -130,8 +130,13 @@ supportedExtension: 1.3.6.1.4.1.1466.20037</computeroutput>
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.SearchAsync:--- JCite search result handler ---]</programlisting>
 
+  <!-- FixMe workaround pending OPENDJ-1538: Update dev guide for change from Futures to Promises
   <programlisting language="java"
-  >[jcp:org.forgerock.opendj.examples.SearchAsync:--- JCite cancel result handler ---]</programlisting>
+  >jcp:org.forgerock.opendj.examples.SearchAsync:- - - JCite cancel result handler - - -]</programlisting>
+  -->
+  <programlisting>
+   Coming soon... pending OPENDJ-1538: Update dev guide for change from Futures to Promises
+  </programlisting>
 
   <para>OpenDJ directory server supports the cancel operation. If OpenDJ
   directory server manages to return all entries in
