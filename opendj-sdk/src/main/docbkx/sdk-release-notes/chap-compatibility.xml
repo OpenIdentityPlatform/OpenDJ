@@ -39,11 +39,50 @@
  <section xml:id="changes">
   <title>Major Changes</title>
 
+<!--
   <para>
    This maintenance release is binary-compatible with
    OpenDJ LDAP SDK ${docPreviousVersion}.
    It does not introduce major changes.
   </para>
+-->
+
+  <itemizedlist>
+   <para>
+    This release introduces the following changes.
+   </para>
+
+   <listitem>
+    <para>
+     When specifying a branch in <command>makeldif</command> templates,
+     you must now also specify the object classes for the branch.
+     For example, suppose a template creates an organizational unit branch as follows:
+    </para>
+
+    <programlisting language="ldif">
+branch: ou=People,[suffix]
+    </programlisting>
+
+    <para>
+     You now create the organization unit branch as follows:
+    </para>
+
+    <programlisting language="ldif">
+branch: ou=People,[suffix]
+objectClass: top
+objectClass: organizationalUnit
+    </programlisting>
+
+    <para>
+     For details on writing <command>makeldif</command> templates, see
+     <link
+      xlink:show="new"
+      xlink:href="dev-guide#makeldif-template-5"
+      xlink:role=""
+     >makeldif.template</link>.
+    </para>
+   </listitem>
+  </itemizedlist>
  </section>
 
  <section xml:id="deprecation">
