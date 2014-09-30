@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2012-2013 ForgeRock AS
+  !      Copyright 2012-2014 ForgeRock AS
   !
 -->
 <refentry xml:id='makeldif-template-5'
@@ -32,7 +32,7 @@
           xmlns:xlink='http://www.w3.org/1999/xlink'>
  <info>
   <copyright>
-   <year>2012-2013</year>
+   <year>2012-2014</year>
    <holder>ForgeRock AS</holder>
   </copyright>
  </info>
@@ -66,13 +66,18 @@ define <replaceable>constant-name</replaceable>=<replaceable>value</replaceable>
 # makeldif generates the necessary object class definitions and RDNs.
 #
 # A branch can have subordinateTemplates that define templates to use for
-# the branch entry.
+# the branch entry. The optional <replaceable>number</replaceable> at the end
+# of the subordinateTemplate specification defines how many entries to generate.
+# If you do not specify a number, makeldif continues to generate entries
+# indefinitely until you interrupt the command.
 #
 # A branch can have additional attributes generated on the branch entry. See
 # the Description below for more information on specifying attribute values.
 #
 branch: <replaceable>suffix-dn</replaceable>
-[subordinateTemplate: <replaceable>template-name</replaceable>:<replaceable>number</replaceable>
+objectClass: top
+objectClass: <replaceable>suffix-object-class</replaceable>
+[subordinateTemplate: <replaceable>template-name</replaceable>[:<replaceable>number</replaceable>]
 ...]
 [<replaceable>attribute</replaceable>: <replaceable>attr-value</replaceable>
 ...]
@@ -559,8 +564,12 @@ define numusers=50
 define numorgs=10
 
 branch: [suffix]
+objectClass: top
+objectClass: domain
 
 branch: ou=People,[suffix]
+objectClass: top
+objectClass: organizationalUnit
 subordinateTemplate: orgunit:[numorgs]
 description: This is the People container
 telephoneNumber: +33 00010002
