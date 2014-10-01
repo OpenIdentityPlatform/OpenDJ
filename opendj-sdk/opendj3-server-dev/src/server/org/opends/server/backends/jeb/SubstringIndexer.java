@@ -43,7 +43,7 @@ import org.opends.server.types.AttributeType;
 public class SubstringIndexer extends ExtensibleIndexer
 {
 
-  private MatchingRule substringRule;
+  private final MatchingRule substringRule;
 
   /**
    * Create a new attribute substring indexer for the given index configuration.
@@ -60,8 +60,7 @@ public class SubstringIndexer extends ExtensibleIndexer
   @Override
   public String getIndexID()
   {
-    // TODO Auto-generated method stub
-    throw new RuntimeException();
+    throw new RuntimeException("Code is not implemented");
   }
 
   /** {@inheritDoc} */
