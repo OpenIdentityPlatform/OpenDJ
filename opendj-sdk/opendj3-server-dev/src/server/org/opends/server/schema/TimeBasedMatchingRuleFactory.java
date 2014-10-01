@@ -27,7 +27,15 @@
 package org.opends.server.schema;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -42,7 +50,12 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.api.*;
+import org.opends.server.api.AbstractMatchingRule;
+import org.opends.server.api.ExtensibleIndexer;
+import org.opends.server.api.ExtensibleMatchingRule;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.api.MatchingRuleFactory;
+import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
