@@ -34,12 +34,13 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.DSInfo;
@@ -57,6 +58,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.mockito.Mockito.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
@@ -68,7 +70,8 @@ import static org.testng.Assert.*;
 public class StateMachineTest extends ReplicationTestCase
 {
 
-  private static final String EXAMPLE_DN = "dc=example,dc=com";  // Server id definitions
+  /** Server id definitions. */
+  private static final String EXAMPLE_DN = "dc=example,dc=com";
   private static DN EXAMPLE_DN_;
 
   private static final int DS1_ID = 1;
@@ -82,7 +85,7 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationServer rs1;
   /** The tracer object for the debug logger */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private int initWindow = 100;
+  private final int initWindow = 100;
 
   private void debugInfo(String s)
   {
@@ -193,8 +196,7 @@ public class StateMachineTest extends ReplicationTestCase
    * server
    */
   @SuppressWarnings("unchecked")
-  private LDAPReplicationDomain createReplicationDomain(int dsId)
-      throws Exception
+  private LDAPReplicationDomain createReplicationDomain(int dsId) throws Exception
   {
     SortedSet<String> replServers = new TreeSet<String>();
     replServers.add("localhost:" + rs1Port);
@@ -206,9 +208,9 @@ public class StateMachineTest extends ReplicationTestCase
         DirectoryServer.getSynchronizationProviders().get(0);
     if (provider instanceof ConfigurationChangeListener)
     {
-      ConfigurationChangeListener<MultimasterReplicationFakeConf> mmr =
-          (ConfigurationChangeListener<MultimasterReplicationFakeConf>) provider;
-      mmr.applyConfigurationChange(new MultimasterReplicationFakeConf());
+      ConfigurationChangeListener<ReplicationSynchronizationProviderCfg> mmr =
+          (ConfigurationChangeListener<ReplicationSynchronizationProviderCfg>) provider;
+      mmr.applyConfigurationChange(mock(ReplicationSynchronizationProviderCfg.class));
     }
 
     return replicationDomain;
@@ -730,12 +732,14 @@ public class StateMachineTest extends ReplicationTestCase
   private class BrokerInitializer
   {
 
-    private ReplicationBroker rb = null;
+    private ReplicationBroker rb;
     private int serverId = -1;
-    private long userId = 0;
-    private int destId = -1; // Server id of server to initialize
-    private long nEntries = -1; // Number of entries to send to dest
-    private boolean createReader = false;
+    private long userId;
+    /** Server id of server to initialize. */
+    private int destId = -1;
+    /** Number of entries to send to dest. */
+    private long nEntries = -1;
+    private boolean createReader;
 
     /**
      * If the BrokerInitializer is to be used for a lot of entries to send
@@ -744,7 +748,7 @@ public class StateMachineTest extends ReplicationTestCase
      * he wants. If not enabled, the user is responsible to call the receive
      * method of the broker himself.
      */
-    private BrokerReader reader = null;
+    private BrokerReader reader;
 
     /**
      * Creates a broker initializer. Also creates a reader according to request
@@ -850,11 +854,11 @@ public class StateMachineTest extends ReplicationTestCase
   private class BrokerWriter extends Thread
   {
 
-    private ReplicationBroker rb = null;
+    private ReplicationBroker rb;
     private int serverId = -1;
-    private long userId = 0;
+    private long userId;
     private AtomicBoolean shutdown = new AtomicBoolean(false);
-    /** The writer starts suspended */
+    /** The writer starts suspended. */
     private AtomicBoolean suspended = new AtomicBoolean(true);
     /**
      * Tells a sending session is finished. A session is sending messages
@@ -862,11 +866,11 @@ public class StateMachineTest extends ReplicationTestCase
      * method runs.
      */
     private AtomicBoolean sessionDone = new AtomicBoolean(true);
-    private boolean careAboutAmountOfChanges = false;
-    /** Number of sent changes */
-    private int nChangesSent = 0;
-    private int nChangesSentLimit = 0;
-    CSNGenerator gen = null;
+    private boolean careAboutAmountOfChanges;
+    /** Number of sent changes. */
+    private int nChangesSent;
+    private int nChangesSentLimit;
+    private CSNGenerator gen;
     private Object sleeper = new Object();
     /**
      * If the BrokerWriter is to be used for a lot of changes to send (which is
@@ -875,7 +879,7 @@ public class StateMachineTest extends ReplicationTestCase
      * If not enabled, the user is responsible to call the receive method of
      * the broker himself.
      */
-    private BrokerReader reader = null;
+    private BrokerReader reader;
 
     /** Creates a broker writer. Also creates a reader according to request */
     public BrokerWriter(ReplicationBroker rb, int serverId,

@@ -46,7 +46,7 @@ public class ApproximateIndexer extends ExtensibleIndexer
   /**
    * The attribute type approximate matching rule.
    */
-  private MatchingRule approximateRule;
+  private final MatchingRule approximateRule;
 
   /**
    * Create a new attribute approximate indexer for the given index
@@ -63,8 +63,7 @@ public class ApproximateIndexer extends ExtensibleIndexer
   @Override
   public String getIndexID()
   {
-    // TODO Auto-generated method stub
-    throw new RuntimeException();
+    throw new RuntimeException("Code is not implemented");
   }
 
   /** {@inheritDoc} */
