@@ -44,12 +44,28 @@ class Replace
         /import org.opends.server.api.MatchingRule;/,
         'import org.forgerock.opendj.ldap.schema.MatchingRule;',
 
-        # For MR factories
-        /\binitializeMatchingRule\(MatchingRuleCfg configuration\)/,
-        "initializeMatchingRule(ServerContext serverContext, MatchingRuleCfg configuration)",
+      ]
+  }
 
-        # For MR factories
-        /\bmatchingRule = new \w*MatchingRule();/,
+  MRULES_FACTORIES = {
+    :dirs => ["src/server/org/opends/server/schema"],
+    :extensions => ["java"],
+    :stopwords => [],
+    :replacements =>
+      [
+        /import org.opends.server.api.MatchingRule;/,
+        'import org.forgerock.opendj.ldap.schema.MatchingRule;',
+
+        /private MatchingRule matchingRule;/,
+        "private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;",
+
+        /public final Collection<MatchingRule> getMatchingRules\(\)/,
+        "public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()",
+
+        /public final void initializeMatchingRule\(MatchingRuleCfg configuration\)/,
+        "public final void initializeMatchingRule(ServerContext serverContext, MatchingRuleCfg configuration)",
+
+        /\bmatchingRule = new \w*MatchingRule\(\);/,
         "matchingRule = serverContext.getSchemaNG().getMatchingRule(EMR_);"
 
        ]
@@ -344,7 +360,7 @@ class Replace
 
   ###############################  List of replacements to run #################################
 
-  REPLACEMENTS = [ MRULES ]
+  REPLACEMENTS = [ MRULES_TO_SDK, MRULES_FACTORIES ]
 
   ################################### Processing methods ########################################
 

@@ -26,22 +26,26 @@
  */
 package org.opends.server.schema;
 
-
-
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DirectoryException;
