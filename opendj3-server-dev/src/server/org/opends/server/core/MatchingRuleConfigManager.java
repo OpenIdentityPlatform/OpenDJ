@@ -26,32 +26,32 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Utils;
-
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.MatchingRuleCfgDefn;
+import org.opends.server.admin.std.server.MatchingRuleCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MatchingRuleUse;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -71,15 +71,13 @@ public class MatchingRuleConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated matching
-  // rule Factories.
+  /**
+   * A mapping between the DNs of the config entries and the associated matching
+   * rule Factories.
+   */
   private ConcurrentHashMap<DN,MatchingRuleFactory> matchingRuleFactories;
 
-
-
-  /**
-   * Creates a new instance of this matching rule config manager.
-   */
+  /** Creates a new instance of this matching rule config manager. */
   public MatchingRuleConfigManager()
   {
     matchingRuleFactories = new ConcurrentHashMap<DN,MatchingRuleFactory>();
@@ -154,9 +152,8 @@ public class MatchingRuleConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(MatchingRuleCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -182,9 +179,8 @@ public class MatchingRuleConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(MatchingRuleCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
@@ -241,9 +237,8 @@ public class MatchingRuleConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(MatchingRuleCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -251,65 +246,25 @@ public class MatchingRuleConfigManager
     // defined attribute types or matching rule uses that use the matching rule.
     // If so, then don't allow it to be deleted.
     boolean configAcceptable = true;
-    MatchingRuleFactory<?> factory =
-            matchingRuleFactories.get(configuration.dn());
+    MatchingRuleFactory<?> factory = matchingRuleFactories.get(configuration.dn());
     for(MatchingRule matchingRule: factory.getMatchingRules())
     {
       if (matchingRule != null)
       {
-        String oid = matchingRule.getOID();
         for (AttributeType at : DirectoryServer.getAttributeTypes().values())
         {
-          MatchingRule amr = at.getApproximateMatchingRule();
-          if ((amr != null) && oid.equals(amr.getOID()))
+          final String attr = at.getNameOrOID();
+          if (!isDeleteAcceptable(at.getApproximateMatchingRule(), matchingRule, attr, unacceptableReasons)
+              || !isDeleteAcceptable(at.getEqualityMatchingRule(), matchingRule, attr, unacceptableReasons)
+              || !isDeleteAcceptable(at.getOrderingMatchingRule(), matchingRule, attr, unacceptableReasons)
+              || !isDeleteAcceptable(at.getSubstringMatchingRule(), matchingRule, attr, unacceptableReasons))
           {
-            LocalizableMessage message =
-                    WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getNameOrOID(),
-                            at.getNameOrOID());
-            unacceptableReasons.add(message);
-
-            configAcceptable = false;
-            continue;
-          }
-
-          MatchingRule emr = at.getEqualityMatchingRule();
-          if ((emr != null) && oid.equals(emr.getOID()))
-          {
-            LocalizableMessage message =
-                    WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getNameOrOID(), at.getNameOrOID());
-            unacceptableReasons.add(message);
-
-            configAcceptable = false;
-            continue;
-          }
-
-          MatchingRule omr = at.getOrderingMatchingRule();
-          if ((omr != null) && oid.equals(omr.getOID()))
-          {
-            LocalizableMessage message =
-                    WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getNameOrOID(), at.getNameOrOID());
-            unacceptableReasons.add(message);
-
-            configAcceptable = false;
-            continue;
-          }
-
-          MatchingRule smr = at.getSubstringMatchingRule();
-          if ((smr != null) && oid.equals(smr.getOID()))
-          {
-            LocalizableMessage message =
-                    WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getNameOrOID(), at.getNameOrOID());
-            unacceptableReasons.add(message);
-
             configAcceptable = false;
             continue;
           }
         }
 
+        final String oid = matchingRule.getOID();
         for (MatchingRuleUse mru :
                 DirectoryServer.getMatchingRuleUses().values())
         {
@@ -330,20 +285,27 @@ public class MatchingRuleConfigManager
     return configAcceptable;
   }
 
+  private boolean isDeleteAcceptable(MatchingRule mr, MatchingRule matchingRule, String attr,
+      List<LocalizableMessage> unacceptableReasons)
+  {
+    if (mr != null && matchingRule.getOID().equals(mr.getOID()))
+    {
+      unacceptableReasons.add(WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(matchingRule.getNameOrOID(), attr));
+      return false;
+    }
+    return true;
+  }
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationDelete(
-                                 MatchingRuleCfg configuration)
+  /** {@inheritDoc} */
+  @Override
+  public ConfigChangeResult applyConfigurationDelete(MatchingRuleCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
     ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
 
-    MatchingRuleFactory<?> factory =
-            matchingRuleFactories.remove(configuration.dn());
+    MatchingRuleFactory<?> factory = matchingRuleFactories.remove(configuration.dn());
     if (factory != null)
     {
       for(MatchingRule matchingRule: factory.getMatchingRules())
@@ -358,9 +320,8 @@ public class MatchingRuleConfigManager
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(MatchingRuleCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -384,8 +345,7 @@ public class MatchingRuleConfigManager
     {
       // If the matching rule is currently enabled and the change would make it
       // disabled, then only allow it if the matching rule isn't already in use.
-      MatchingRuleFactory<?> factory =
-              matchingRuleFactories.get(configuration.dn());
+      MatchingRuleFactory<?> factory = matchingRuleFactories.get(configuration.dn());
       if(factory == null)
       {
         //Factory was disabled again.
@@ -395,58 +355,20 @@ public class MatchingRuleConfigManager
       {
         if (matchingRule != null)
         {
-          String oid = matchingRule.getOID();
           for (AttributeType at : DirectoryServer.getAttributeTypes().values())
           {
-            MatchingRule amr = at.getApproximateMatchingRule();
-            if ((amr != null) && oid.equals(amr.getOID()))
+            final String attr = at.getNameOrOID();
+            if (!isDisableAcceptable(at.getApproximateMatchingRule(), matchingRule, attr, unacceptableReasons)
+                || !isDisableAcceptable(at.getEqualityMatchingRule(), matchingRule, attr, unacceptableReasons)
+                || !isDisableAcceptable(at.getOrderingMatchingRule(), matchingRule, attr, unacceptableReasons)
+                || !isDisableAcceptable(at.getSubstringMatchingRule(), matchingRule, attr, unacceptableReasons))
             {
-              LocalizableMessage message =
-                      WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
-                              matchingRule.getNameOrOID(), at.getNameOrOID());
-              unacceptableReasons.add(message);
-
-              configAcceptable = false;
-              continue;
-            }
-
-            MatchingRule emr = at.getEqualityMatchingRule();
-            if ((emr != null) && oid.equals(emr.getOID()))
-            {
-              LocalizableMessage message =
-                      WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
-                              matchingRule.getNameOrOID(), at.getNameOrOID());
-              unacceptableReasons.add(message);
-
-              configAcceptable = false;
-              continue;
-            }
-
-            MatchingRule omr = at.getOrderingMatchingRule();
-            if ((omr != null) && oid.equals(omr.getOID()))
-            {
-              LocalizableMessage message =
-                      WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
-                              matchingRule.getNameOrOID(), at.getNameOrOID());
-              unacceptableReasons.add(message);
-
-              configAcceptable = false;
-              continue;
-            }
-
-            MatchingRule smr = at.getSubstringMatchingRule();
-            if ((smr != null) && oid.equals(smr.getOID()))
-            {
-              LocalizableMessage message =
-                      WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT
-                      .get(matchingRule.getNameOrOID(), at.getNameOrOID());
-              unacceptableReasons.add(message);
-
               configAcceptable = false;
               continue;
             }
           }
 
+          final String oid = matchingRule.getOID();
           for (MatchingRuleUse mru :
                DirectoryServer.getMatchingRuleUses().values())
           {
@@ -467,11 +389,20 @@ public class MatchingRuleConfigManager
     return configAcceptable;
   }
 
+  private boolean isDisableAcceptable(MatchingRule mr, MatchingRule matchingRule,
+      String attrNameOrOID, Collection<LocalizableMessage> unacceptableReasons)
+  {
+    if (mr != null && matchingRule.getOID().equals(mr.getOID()))
+    {
+      unacceptableReasons.add(
+          WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(matchingRule.getNameOrOID(), attrNameOrOID));
+      return false;
+    }
+    return true;
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  MatchingRuleCfg configuration)
   {
@@ -580,10 +511,8 @@ public class MatchingRuleConfigManager
     try
     {
       MatchingRuleFactory factory = null;
-      MatchingRuleCfgDefn definition =
-              MatchingRuleCfgDefn.getInstance();
-      ClassPropertyDefinition propertyDefinition =
-           definition.getJavaClassPropertyDefinition();
+      MatchingRuleCfgDefn definition = MatchingRuleCfgDefn.getInstance();
+      ClassPropertyDefinition propertyDefinition = definition.getJavaClassPropertyDefinition();
       Class<? extends MatchingRuleFactory> matchingRuleFactoryClass =
            propertyDefinition.loadClass(className,
                                         MatchingRuleFactory.class);
@@ -614,4 +543,3 @@ public class MatchingRuleConfigManager
     }
   }
 }
-
