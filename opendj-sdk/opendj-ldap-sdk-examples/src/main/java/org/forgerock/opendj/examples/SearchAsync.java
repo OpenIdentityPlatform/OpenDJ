@@ -24,7 +24,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.examples;
 
 import java.io.IOException;
@@ -51,8 +50,6 @@ import org.forgerock.util.promise.FailureHandler;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.SuccessHandler;
 
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
-
 /**
  * An example client application which searches a Directory Server using the
  * asynchronous APIs. This example takes the following command line parameters:
@@ -70,7 +67,7 @@ public final class SearchAsync {
         public synchronized boolean handleEntry(final SearchResultEntry entry) {
             try {
                 if (entryCount < 10) {
-                    WRITER.writeComment("Search result entry: " + entry.getName().toString());
+                    WRITER.writeComment("Search result entry: " + entry.getName());
                     WRITER.writeEntry(entry);
                     ++entryCount;
                 } else { // Cancel the search.
@@ -104,7 +101,7 @@ public final class SearchAsync {
         @Override
         public synchronized boolean handleReference(final SearchResultReference reference) {
             try {
-                WRITER.writeComment("Search result reference: " + reference.getURIs().toString());
+                WRITER.writeComment("Search result reference: " + reference.getURIs());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 resultCode = ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
@@ -129,13 +126,12 @@ public final class SearchAsync {
     private static SearchScope scope;
     private static String filter;
     private static String[] attributes;
-    private static Connection connection = null;
-    private static int resultCode = 0;
+    private static Connection connection;
+    private static int resultCode;
 
     // --- JCite decl2 ---
     static int requestID;
-    static int entryCount = 0;
-
+    static int entryCount;
     // --- JCite decl2 ---
 
     /**

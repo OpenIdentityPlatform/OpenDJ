@@ -24,7 +24,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Collection;
@@ -38,8 +37,6 @@ import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Function;
 
 import com.forgerock.opendj.util.Collections2;
-
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 /**
  * The root DSE is a DSA-specific Entry (DSE) and not part of any naming context
@@ -210,7 +207,7 @@ public final class RootDSE {
 
     private final Entry entry;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private RootDSE(final Entry entry) {
         this.entry = entry;
     }

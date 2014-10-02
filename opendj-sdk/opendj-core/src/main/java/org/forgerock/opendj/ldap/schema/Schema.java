@@ -54,7 +54,6 @@ import org.forgerock.util.promise.Function;
 import com.forgerock.opendj.util.StaticUtils;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.*;
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
@@ -570,11 +569,10 @@ public final class Schema {
         public List<AttributeType> getAttributeTypesWithName(final String name) {
             final List<AttributeType> attributes =
                     name2AttributeTypes.get(StaticUtils.toLowerCase(name));
-            if (attributes == null) {
-                return Collections.emptyList();
-            } else {
+            if (attributes != null) {
                 return attributes;
             }
+            return Collections.emptyList();
         }
 
         @Override
@@ -606,11 +604,10 @@ public final class Schema {
         @Override
         public Collection<DITContentRule> getDITContentRulesWithName(final String name) {
             final List<DITContentRule> rules = name2ContentRules.get(StaticUtils.toLowerCase(name));
-            if (rules == null) {
-                return Collections.emptyList();
-            } else {
+            if (rules != null) {
                 return rules;
             }
+            return Collections.emptyList();
         }
 
         @Override
@@ -626,22 +623,20 @@ public final class Schema {
         @Override
         public Collection<DITStructureRule> getDITStructureRules(final NameForm nameForm) {
             final List<DITStructureRule> rules = nameForm2StructureRules.get(nameForm.getOID());
-            if (rules == null) {
-                return Collections.emptyList();
-            } else {
+            if (rules != null) {
                 return rules;
             }
+            return Collections.emptyList();
         }
 
         @Override
         public Collection<DITStructureRule> getDITStructureRulesWithName(final String name) {
             final List<DITStructureRule> rules =
                     name2StructureRules.get(StaticUtils.toLowerCase(name));
-            if (rules == null) {
-                return Collections.emptyList();
-            } else {
+            if (rules != null) {
                 return rules;
             }
+            return Collections.emptyList();
         }
 
         @Override
@@ -673,11 +668,10 @@ public final class Schema {
         @Override
         public Collection<MatchingRule> getMatchingRulesWithName(final String name) {
             final List<MatchingRule> rules = name2MatchingRules.get(StaticUtils.toLowerCase(name));
-            if (rules == null) {
-                return Collections.emptyList();
-            } else {
+            if (rules != null) {
                 return rules;
             }
+            return Collections.emptyList();
         }
 
         @Override
@@ -711,11 +705,10 @@ public final class Schema {
         public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(final String name) {
             final List<MatchingRuleUse> rules =
                     name2MatchingRuleUses.get(StaticUtils.toLowerCase(name));
-            if (rules == null) {
-                return Collections.emptyList();
-            } else {
+            if (rules != null) {
                 return rules;
             }
+            return Collections.emptyList();
         }
 
         @Override
@@ -742,21 +735,19 @@ public final class Schema {
         @Override
         public Collection<NameForm> getNameForms(final ObjectClass structuralClass) {
             final List<NameForm> forms = objectClass2NameForms.get(structuralClass.getOID());
-            if (forms == null) {
-                return Collections.emptyList();
-            } else {
+            if (forms != null) {
                 return forms;
             }
+            return Collections.emptyList();
         }
 
         @Override
         public Collection<NameForm> getNameFormsWithName(final String name) {
             final List<NameForm> forms = name2NameForms.get(StaticUtils.toLowerCase(name));
-            if (forms == null) {
-                return Collections.emptyList();
-            } else {
+            if (forms != null) {
                 return forms;
             }
+            return Collections.emptyList();
         }
 
         @Override
@@ -783,11 +774,10 @@ public final class Schema {
         @Override
         public Collection<ObjectClass> getObjectClassesWithName(final String name) {
             final List<ObjectClass> classes = name2ObjectClasses.get(StaticUtils.toLowerCase(name));
-            if (classes == null) {
-                return Collections.emptyList();
-            } else {
+            if (classes != null) {
                 return classes;
             }
+            return Collections.emptyList();
         }
 
         @Override
@@ -1876,10 +1866,8 @@ public final class Schema {
                 } catch (final UnknownSchemaElementException e) {
                     if (policy.checkAttributesAndObjectClasses().needsChecking()) {
                         if (errorMessages != null) {
-                            final LocalizableMessage message =
-                                    ERR_ENTRY_SCHEMA_UNKNOWN_OBJECT_CLASS.get(entry.getName()
-                                            .toString(), objectClassName);
-                            errorMessages.add(message);
+                            errorMessages.add(ERR_ENTRY_SCHEMA_UNKNOWN_OBJECT_CLASS.get(
+                                    entry.getName(), objectClassName));
                         }
                         if (policy.checkAttributesAndObjectClasses().isReject()) {
                             return false;
@@ -1892,18 +1880,14 @@ public final class Schema {
                     if (structuralObjectClass == null
                             || objectClass.isDescendantOf(structuralObjectClass)) {
                         structuralObjectClass = objectClass;
-                    } else if (!structuralObjectClass.isDescendantOf(objectClass)) {
-                        if (policy.requireSingleStructuralObjectClass().needsChecking()) {
-                            if (errorMessages != null) {
-                                final LocalizableMessage message =
-                                        ERR_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES.get(entry
-                                                .getName().toString(), structuralObjectClass
-                                                .getNameOrOID(), objectClassName);
-                                errorMessages.add(message);
-                            }
-                            if (policy.requireSingleStructuralObjectClass().isReject()) {
-                                return false;
-                            }
+                    } else if (!structuralObjectClass.isDescendantOf(objectClass)
+                            && policy.requireSingleStructuralObjectClass().needsChecking()) {
+                        if (errorMessages != null) {
+                            errorMessages.add(ERR_ENTRY_SCHEMA_MULTIPLE_STRUCTURAL_CLASSES.get(
+                                    entry.getName(), structuralObjectClass.getNameOrOID(), objectClassName));
+                        }
+                        if (policy.requireSingleStructuralObjectClass().isReject()) {
+                            return false;
                         }
                     }
                 }
@@ -1916,9 +1900,7 @@ public final class Schema {
         if (structuralObjectClass == null) {
             if (policy.requireSingleStructuralObjectClass().needsChecking()) {
                 if (errorMessages != null) {
-                    final LocalizableMessage message =
-                            ERR_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS.get(entry.getName().toString());
-                    errorMessages.add(message);
+                    errorMessages.add(ERR_ENTRY_SCHEMA_NO_STRUCTURAL_CLASS.get(entry.getName()));
                 }
                 if (policy.requireSingleStructuralObjectClass().isReject()) {
                     return false;
@@ -2015,12 +1997,11 @@ public final class Schema {
                     parentEntryHasBeenRead = true;
                 }
 
-                if (parentStructuralObjectClass != null) {
-                    if (checkDITStructureRule(entry, ruleWarnings, rule,
-                            structuralObjectClass, parentStructuralObjectClass)) {
-                        foundValidRule = true;
-                        break;
-                    }
+                if (parentStructuralObjectClass != null
+                      && checkDITStructureRule(entry, ruleWarnings, rule,
+                          structuralObjectClass, parentStructuralObjectClass)) {
+                    foundValidRule = true;
+                    break;
                 }
             }
 
@@ -2057,11 +2038,8 @@ public final class Schema {
                             for (final DITStructureRule rule : getDITStructureRules(nf)) {
                                 if (!rule.isObsolete()) {
                                     if (errorMessages != null) {
-                                        final LocalizableMessage message =
-                                                ERR_ENTRY_SCHEMA_DSR_MISSING_DSR.get(entry
-                                                        .getName().toString(), rule
-                                                        .getNameOrRuleID());
-                                        errorMessages.add(message);
+                                        errorMessages.add(ERR_ENTRY_SCHEMA_DSR_MISSING_DSR.get(
+                                                entry.getName(), rule.getNameOrRuleID()));
                                     }
                                     if (policy.checkDITStructureRules().isReject()) {
                                         return false;
@@ -2096,19 +2074,15 @@ public final class Schema {
             for (final ObjectClass objectClass : objectClasses) {
                 // Make sure that any auxiliary object classes are permitted by
                 // the content rule.
-                if (checkDITContentRule) {
-                    if (objectClass.getObjectClassType() == ObjectClassType.AUXILIARY
-                            && !ditContentRule.getAuxiliaryClasses().contains(objectClass)) {
-                        if (errorMessages != null) {
-                            final LocalizableMessage message =
-                                    ERR_ENTRY_SCHEMA_DCR_PROHIBITED_AUXILIARY_OC.get(entry
-                                            .getName().toString(), objectClass.getNameOrOID(),
-                                            ditContentRule.getNameOrOID());
-                            errorMessages.add(message);
-                        }
-                        if (policy.checkDITContentRules().isReject()) {
-                            return false;
-                        }
+                if (checkDITContentRule
+                        && objectClass.getObjectClassType() == ObjectClassType.AUXILIARY
+                        && !ditContentRule.getAuxiliaryClasses().contains(objectClass)) {
+                    if (errorMessages != null) {
+                        errorMessages.add(ERR_ENTRY_SCHEMA_DCR_PROHIBITED_AUXILIARY_OC.get(
+                                entry.getName(), objectClass.getNameOrOID(), ditContentRule.getNameOrOID()));
+                    }
+                    if (policy.checkDITContentRules().isReject()) {
+                        return false;
                     }
                 }
 
@@ -2120,11 +2094,8 @@ public final class Schema {
                                 Attributes.emptyAttribute(AttributeDescription.create(t));
                         if (!entry.containsAttribute(a, null)) {
                             if (errorMessages != null) {
-                                final LocalizableMessage message =
-                                        ERR_ENTRY_SCHEMA_OC_MISSING_MUST_ATTRIBUTES.get(entry
-                                                .getName().toString(), t.getNameOrOID(),
-                                                objectClass.getNameOrOID());
-                                errorMessages.add(message);
+                                errorMessages.add(ERR_ENTRY_SCHEMA_OC_MISSING_MUST_ATTRIBUTES.get(
+                                        entry.getName(), t.getNameOrOID(), objectClass.getNameOrOID()));
                             }
                             if (policy.checkAttributesAndObjectClasses().isReject()) {
                                 return false;
@@ -2141,11 +2112,8 @@ public final class Schema {
                     final Attribute a = Attributes.emptyAttribute(AttributeDescription.create(t));
                     if (!entry.containsAttribute(a, null)) {
                         if (errorMessages != null) {
-                            final LocalizableMessage message =
-                                    ERR_ENTRY_SCHEMA_DCR_MISSING_MUST_ATTRIBUTES.get(entry
-                                            .getName().toString(), t.getNameOrOID(), ditContentRule
-                                            .getNameOrOID());
-                            errorMessages.add(message);
+                            errorMessages.add(ERR_ENTRY_SCHEMA_DCR_MISSING_MUST_ATTRIBUTES.get(
+                                    entry.getName(), t.getNameOrOID(), ditContentRule.getNameOrOID()));
                         }
                         if (policy.checkDITContentRules().isReject()) {
                             return false;
@@ -2159,11 +2127,8 @@ public final class Schema {
                     final Attribute a = Attributes.emptyAttribute(AttributeDescription.create(t));
                     if (entry.containsAttribute(a, null)) {
                         if (errorMessages != null) {
-                            final LocalizableMessage message =
-                                    ERR_ENTRY_SCHEMA_DCR_PROHIBITED_ATTRIBUTES.get(entry.getName()
-                                            .toString(), t.getNameOrOID(), ditContentRule
-                                            .getNameOrOID());
-                            errorMessages.add(message);
+                            errorMessages.add(ERR_ENTRY_SCHEMA_DCR_PROHIBITED_ATTRIBUTES.get(
+                                    entry.getName(), t.getNameOrOID(), ditContentRule.getNameOrOID()));
                         }
                         if (policy.checkDITContentRules().isReject()) {
                             return false;
@@ -2178,39 +2143,33 @@ public final class Schema {
             for (final Attribute attribute : entry.getAllAttributes()) {
                 final AttributeType t = attribute.getAttributeDescription().getAttributeType();
 
-                if (!t.isOperational()) {
-                    if (checkObjectClasses || checkDITContentRule) {
-                        boolean isAllowed = false;
-                        for (final ObjectClass objectClass : objectClasses) {
-                            if (objectClass.isRequiredOrOptional(t)) {
-                                isAllowed = true;
-                                break;
-                            }
+                if (!t.isOperational()
+                        && (checkObjectClasses || checkDITContentRule)) {
+                    boolean isAllowed = false;
+                    for (final ObjectClass objectClass : objectClasses) {
+                        if (objectClass.isRequiredOrOptional(t)) {
+                            isAllowed = true;
+                            break;
                         }
-                        if (!isAllowed && ditContentRule != null) {
-                            if (ditContentRule.isRequiredOrOptional(t)) {
-                                isAllowed = true;
+                    }
+                    if (!isAllowed && ditContentRule != null && ditContentRule.isRequiredOrOptional(t)) {
+                        isAllowed = true;
+                    }
+                    if (!isAllowed) {
+                        if (errorMessages != null) {
+                            final LocalizableMessage message;
+                            if (ditContentRule == null) {
+                                message = ERR_ENTRY_SCHEMA_OC_DISALLOWED_ATTRIBUTES.get(
+                                        entry.getName(), t.getNameOrOID());
+                            } else {
+                                message = ERR_ENTRY_SCHEMA_DCR_DISALLOWED_ATTRIBUTES.get(
+                                        entry.getName(), t.getNameOrOID(), ditContentRule.getNameOrOID());
                             }
+                            errorMessages.add(message);
                         }
-                        if (!isAllowed) {
-                            if (errorMessages != null) {
-                                final LocalizableMessage message;
-                                if (ditContentRule == null) {
-                                    message =
-                                            ERR_ENTRY_SCHEMA_OC_DISALLOWED_ATTRIBUTES.get(entry
-                                                    .getName().toString(), t.getNameOrOID());
-                                } else {
-                                    message =
-                                            ERR_ENTRY_SCHEMA_DCR_DISALLOWED_ATTRIBUTES.get(entry
-                                                    .getName().toString(), t.getNameOrOID(),
-                                                    ditContentRule.getNameOrOID());
-                                }
-                                errorMessages.add(message);
-                            }
-                            if (policy.checkAttributesAndObjectClasses().isReject()
-                                    || policy.checkDITContentRules().isReject()) {
-                                return false;
-                            }
+                        if (policy.checkAttributesAndObjectClasses().isReject()
+                                || policy.checkDITContentRules().isReject()) {
+                            return false;
                         }
                     }
                 }
@@ -2221,20 +2180,16 @@ public final class Schema {
 
                     if (sz == 0) {
                         if (errorMessages != null) {
-                            final LocalizableMessage message =
-                                    ERR_ENTRY_SCHEMA_AT_EMPTY_ATTRIBUTE.get(entry.getName()
-                                            .toString(), t.getNameOrOID());
-                            errorMessages.add(message);
+                            errorMessages.add(ERR_ENTRY_SCHEMA_AT_EMPTY_ATTRIBUTE.get(
+                                    entry.getName(), t.getNameOrOID()));
                         }
                         if (policy.checkAttributeValues().isReject()) {
                             return false;
                         }
                     } else if (sz > 1 && t.isSingleValue()) {
                         if (errorMessages != null) {
-                            final LocalizableMessage message =
-                                    ERR_ENTRY_SCHEMA_AT_SINGLE_VALUED_ATTRIBUTE.get(entry.getName()
-                                            .toString(), t.getNameOrOID());
-                            errorMessages.add(message);
+                            errorMessages.add(ERR_ENTRY_SCHEMA_AT_SINGLE_VALUED_ATTRIBUTE.get(
+                                    entry.getName(), t.getNameOrOID()));
                         }
                         if (policy.checkAttributeValues().isReject()) {
                             return false;
@@ -2260,11 +2215,9 @@ public final class Schema {
 
         if (!matchFound) {
             if (ruleWarnings != null) {
-                final LocalizableMessage message =
-                        ERR_ENTRY_SCHEMA_DSR_ILLEGAL_OC.get(entry.getName().toString(), rule
-                                .getNameOrRuleID(), structuralObjectClass.getNameOrOID(),
-                                parentStructuralObjectClass.getNameOrOID());
-                ruleWarnings.add(message);
+                ruleWarnings.add(ERR_ENTRY_SCHEMA_DSR_ILLEGAL_OC.get(
+                        entry.getName(), rule.getNameOrRuleID(), structuralObjectClass.getNameOrOID(),
+                        parentStructuralObjectClass.getNameOrOID()));
             }
             return false;
         }
@@ -2280,10 +2233,8 @@ public final class Schema {
             for (final AttributeType t : nameForm.getRequiredAttributes()) {
                 if (rdn.getAttributeValue(t) == null) {
                     if (nameFormWarnings != null) {
-                        final LocalizableMessage message =
-                                ERR_ENTRY_SCHEMA_NF_MISSING_MUST_ATTRIBUTES.get(entry.getName()
-                                        .toString(), t.getNameOrOID(), nameForm.getNameOrOID());
-                        nameFormWarnings.add(message);
+                        nameFormWarnings.add(ERR_ENTRY_SCHEMA_NF_MISSING_MUST_ATTRIBUTES.get(
+                                entry.getName(), t.getNameOrOID(), nameForm.getNameOrOID()));
                     }
                     return false;
                 }
@@ -2294,10 +2245,8 @@ public final class Schema {
                 final AttributeType t = ava.getAttributeType();
                 if (!nameForm.isRequiredOrOptional(t)) {
                     if (nameFormWarnings != null) {
-                        final LocalizableMessage message =
-                                ERR_ENTRY_SCHEMA_NF_DISALLOWED_ATTRIBUTES.get(entry.getName()
-                                        .toString(), t.getNameOrOID(), nameForm.getNameOrOID());
-                        nameFormWarnings.add(message);
+                        nameFormWarnings.add(ERR_ENTRY_SCHEMA_NF_DISALLOWED_ATTRIBUTES.get(
+                                entry.getName(), t.getNameOrOID(), nameForm.getNameOrOID()));
                     }
                     return false;
                 }
@@ -2316,10 +2265,8 @@ public final class Schema {
                     policy.checkDITStructureRulesEntryResolver().getEntry(entry.getName().parent());
         } catch (final LdapException e) {
             if (ruleWarnings != null) {
-                final LocalizableMessage message =
-                        ERR_ENTRY_SCHEMA_DSR_PARENT_NOT_FOUND.get(entry.getName().toString(), e
-                                .getResult().getDiagnosticMessage());
-                ruleWarnings.add(message);
+                ruleWarnings.add(ERR_ENTRY_SCHEMA_DSR_PARENT_NOT_FOUND.get(
+                        entry.getName(), e.getResult().getDiagnosticMessage()));
             }
             return null;
         }
@@ -2328,9 +2275,7 @@ public final class Schema {
                 Entries.getStructuralObjectClass(parentEntry, this);
         if (parentStructuralObjectClass == null) {
             if (ruleWarnings != null) {
-                final LocalizableMessage message =
-                        ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(entry.getName().toString());
-                ruleWarnings.add(message);
+                ruleWarnings.add(ERR_ENTRY_SCHEMA_DSR_NO_PARENT_OC.get(entry.getName()));
             }
             return null;
         }
