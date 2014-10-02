@@ -24,14 +24,16 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-package org.opends.server.replication.common;
+package org.opends.server.replication.server;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -40,8 +42,7 @@ import static org.opends.messages.ExtensionMessages.*;
  * This class implements a virtual attribute provider that specifies the
  * changelog attribute of the root DSE entry that contain the baseDn of the ECL.
  */
-public class ChangelogBaseDNVirtualAttributeProvider
-       extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
+class ChangelogBaseDNVirtualAttributeProvider extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
 {
 
   /**
@@ -61,14 +62,14 @@ public class ChangelogBaseDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     if (values == null)
@@ -80,7 +81,7 @@ public class ChangelogBaseDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -90,14 +91,12 @@ public class ChangelogBaseDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
-  public void processSearch(VirtualAttributeRule rule,
-                            SearchOperation searchOperation)
+  @Override
+  public void processSearch(VirtualAttributeRule rule, SearchOperation searchOperation)
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-    final LocalizableMessage message = ERR_CHANGELOGBASEDN_VATTR_NOT_SEARCHABLE.get(
-            rule.getAttributeType().getNameOrOID());
-    searchOperation.appendErrorMessage(message);
+    searchOperation.appendErrorMessage(ERR_CHANGELOGBASEDN_VATTR_NOT_SEARCHABLE.get(
+            rule.getAttributeType().getNameOrOID()));
   }
 
 }

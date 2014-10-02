@@ -24,24 +24,24 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-package org.opends.server.replication.common;
+package org.opends.server.replication.server;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;
 
 /**
- * Virtual attribute returning the oldest change number from the changelogDB.
+ * Virtual attribute returning the newest change number from the changelogDB.
  */
-public class FirstChangeNumberVirtualAttributeProvider
-       extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
+class LastChangeNumberVirtualAttributeProvider extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
 {
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -52,16 +52,15 @@ public class FirstChangeNumberVirtualAttributeProvider
    * Creates a new instance of this member virtual attribute provider.
    *
    * @param replicationServer
-   *          The replication server.
+   *            The replication server.
    */
-  public FirstChangeNumberVirtualAttributeProvider(ReplicationServer replicationServer)
+  public LastChangeNumberVirtualAttributeProvider(ReplicationServer replicationServer)
   {
-    super();
     this.replicationServer = replicationServer;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return false;
@@ -76,7 +75,7 @@ public class FirstChangeNumberVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry,VirtualAttributeRule rule)
   {
     String value = "0";
@@ -84,8 +83,7 @@ public class FirstChangeNumberVirtualAttributeProvider
     {
       if (replicationServer != null)
       {
-        final long[] limits = replicationServer.getECLChangeNumberLimits();
-        value = String.valueOf(limits[0]);
+        value = String.valueOf(replicationServer.getNewestChangeNumber());
       }
     }
     catch(Exception e)
@@ -100,7 +98,7 @@ public class FirstChangeNumberVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -111,14 +109,12 @@ public class FirstChangeNumberVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
-  public void processSearch(VirtualAttributeRule rule,
-                            SearchOperation searchOperation)
+  @Override
+  public void processSearch(VirtualAttributeRule rule, SearchOperation searchOperation)
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-    final LocalizableMessage message = ERR_FIRSTCHANGENUMBER_VATTR_NOT_SEARCHABLE.get(
-            rule.getAttributeType().getNameOrOID());
-    searchOperation.appendErrorMessage(message);
+    searchOperation.appendErrorMessage(ERR_LASTCHANGENUMBER_VATTR_NOT_SEARCHABLE.get(rule.getAttributeType()
+        .getNameOrOID()));
   }
 
 }
