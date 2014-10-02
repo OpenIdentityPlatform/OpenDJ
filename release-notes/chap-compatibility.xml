@@ -147,14 +147,10 @@
   <para>The <command>dsframework</command> command is Deprecated and likely
   to be removed in a future release.</para>
 
-  <itemizedlist>
-   <para>The following OpenDJ LDAP SDK methods are Deprecated and likely to be
-   removed in a future release.</para>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport</literal></para></listitem>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport</literal></para></listitem>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport</literal></para></listitem>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport</literal></para></listitem>
-  </itemizedlist>
+  <para>
+   The next major version of OpenDJ LDAP SDK includes
+   improvements and changes that are not compatible with the 2.x SDK.
+  </para>
  </section>
  
  <section xml:id="removed-functionality">
