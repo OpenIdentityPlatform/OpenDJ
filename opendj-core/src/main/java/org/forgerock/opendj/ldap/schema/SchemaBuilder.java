@@ -25,7 +25,6 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.ArrayList;
@@ -50,8 +49,8 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -70,7 +69,6 @@ import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -82,14 +80,13 @@ public final class SchemaBuilder {
 
     private static final String ATTR_SUBSCHEMA_SUBENTRY = "subschemaSubentry";
 
-    private static final String[] SUBSCHEMA_ATTRS = new String[] { ATTR_LDAP_SYNTAXES,
+    private static final String[] SUBSCHEMA_ATTRS = { ATTR_LDAP_SYNTAXES,
         ATTR_ATTRIBUTE_TYPES, ATTR_DIT_CONTENT_RULES, ATTR_DIT_STRUCTURE_RULES,
         ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULES, ATTR_NAME_FORMS, ATTR_OBJECT_CLASSES };
 
     private static final Filter SUBSCHEMA_FILTER = Filter.valueOf("(objectClass=subschema)");
 
-    private static final String[] SUBSCHEMA_SUBENTRY_ATTRS =
-            new String[] { ATTR_SUBSCHEMA_SUBENTRY };
+    private static final String[] SUBSCHEMA_SUBENTRY_ATTRS = { ATTR_SUBSCHEMA_SUBENTRY };
 
     /**
      * Constructs a search request for retrieving the subschemaSubentry
