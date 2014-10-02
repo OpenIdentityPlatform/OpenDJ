@@ -24,26 +24,28 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-package org.opends.server.replication.common;
+package org.opends.server.replication.server;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.replication.plugin.MultimasterReplication.*;
 
 /**
- * Virtual attribute returning the newest change number from the changelogDB.
+ * This class implements a virtual attribute provider in the root-dse entry
+ * that contains the last (newest) cookie (cross domain state)
+ * available in the server.
  */
-public class LastChangeNumberVirtualAttributeProvider
-       extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
+class LastCookieVirtualProvider extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
 {
-  /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private final ReplicationServer replicationServer;
@@ -54,17 +56,9 @@ public class LastChangeNumberVirtualAttributeProvider
    * @param replicationServer
    *            The replication server.
    */
-  public LastChangeNumberVirtualAttributeProvider(ReplicationServer replicationServer)
+  public LastCookieVirtualProvider(ReplicationServer replicationServer)
   {
-    super();
     this.replicationServer = replicationServer;
-  }
-
-  /** {@inheritDoc} */
-  @Override()
-  public boolean isMultiValued()
-  {
-    return false;
   }
 
   /** {@inheritDoc} */
@@ -76,50 +70,50 @@ public class LastChangeNumberVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
-  public Attribute getValues(Entry entry,VirtualAttributeRule rule)
+  @Override
+  public boolean isMultiValued()
   {
-    String value = "0";
+    return false;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
+  {
     try
     {
       if (replicationServer != null)
       {
-        final long[] limits = replicationServer.getECLChangeNumberLimits();
-        value = String.valueOf(limits[1]);
+        String newestCookie = replicationServer.getNewestECLCookie(getExcludedChangelogDomains()).toString();
+        return Attributes.create(rule.getAttributeType(), newestCookie);
       }
     }
-    catch(Exception e)
+    catch (Exception e)
     {
-      // We got an error computing this change number.
-      // Rather than returning 0 which is no change, return -1 to
-      // indicate the error.
-      value = "-1";
       logger.traceException(e);
     }
-    return Attributes.create(rule.getAttributeType(), value);
+    return Attributes.empty(rule.getAttributeType());
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
   {
-    // We do not allow search for this change number. It's a read-only
+    // We do not allow search for the lastCookie. It's a read-only
     // attribute of the RootDSE.
     return false;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {
     searchOperation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-    final LocalizableMessage message = ERR_LASTCHANGENUMBER_VATTR_NOT_SEARCHABLE.get(
-            rule.getAttributeType().getNameOrOID());
-    searchOperation.appendErrorMessage(message);
+    searchOperation.appendErrorMessage(ERR_LASTCOOKIE_VATTR_NOT_SEARCHABLE.get(
+            rule.getAttributeType().getNameOrOID()));
   }
 
 }
-

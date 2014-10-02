@@ -38,14 +38,16 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.common.*;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.MultiDomainServerState;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
@@ -1225,38 +1227,50 @@ public final class ReplicationServer
   }
 
   /**
-   * Get the oldest and newest change numbers.
+   * Returns the oldest change number in the change number index DB.
    *
-   * @return an array of size 2 holding the oldest and newest change numbers at
-   *         indexes 0 and 1.
+   * @return the oldest change number in the change number index DB
    * @throws DirectoryException
-   *           When it happens.
+   *           When a problem happens
    */
-  public long[] getECLChangeNumberLimits() throws DirectoryException
+  public long getOldestChangeNumber() throws DirectoryException
   {
     try
     {
       final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
       final ChangeNumberIndexRecord oldestRecord = cnIndexDB.getOldestRecord();
-      if (oldestRecord == null)
+      if (oldestRecord != null)
       {
-        // The database is empty, just keep increasing numbers since last time
-        // we generated one change number.
-        final long lastGeneratedCN = cnIndexDB.getLastGeneratedChangeNumber();
-        return new long[] { lastGeneratedCN, lastGeneratedCN };
+        return oldestRecord.getChangeNumber();
       }
+      // database is empty
+      return cnIndexDB.getLastGeneratedChangeNumber();
+    }
+    catch (ChangelogException e)
+    {
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR, e);
+    }
+  }
 
+  /**
+   * Returns the newest change number in the change number index DB.
+   *
+   * @return the newest change number in the change number index DB
+   * @throws DirectoryException
+   *           When a problem happens
+   */
+  public long getNewestChangeNumber() throws DirectoryException
+  {
+    try
+    {
+      final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
       final ChangeNumberIndexRecord newestRecord = cnIndexDB.getNewestRecord();
-      if (newestRecord == null)
+      if (newestRecord != null)
       {
-        // Edge case: DB was cleaned (or purged) in between calls to
-        // getOldest*() and getNewest*().
-        // The only remaining solution is to fail fast.
-        throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
-            ERR_READING_OLDEST_THEN_NEWEST_IN_CHANGENUMBER_DATABASE.get());
+        return newestRecord.getChangeNumber();
       }
-      return new long[] { oldestRecord.getChangeNumber(),
-        newestRecord.getChangeNumber() };
+      // database is empty
+      return cnIndexDB.getLastGeneratedChangeNumber();
     }
     catch (ChangelogException e)
     {
