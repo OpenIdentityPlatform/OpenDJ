@@ -47,6 +47,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.RootDSEBackendCfg;
 import org.opends.server.api.Backend;
@@ -55,8 +56,8 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.types.*;
@@ -109,7 +110,7 @@ public class RootDSEBackend
    * The set of subordinate base DNs and their associated backends that will be
    * used for non-base searches.
    */
-  private ConcurrentHashMap<DN,Backend> subordinateBaseDNs;
+  private ConcurrentHashMap<DN, Backend<?>> subordinateBaseDNs;
 
   /** The set of objectclasses that will be used in the root DSE entry. */
   private HashMap<ObjectClass,String> dseObjectClasses;
@@ -165,32 +166,8 @@ public class RootDSEBackend
       throw new ConfigException(message);
     }
 
-    // Get the set of user-defined attributes for the configuration entry.  Any
-    // attributes that we don't recognize will be included directly in the root
-    // DSE.
     userDefinedAttributes = new ArrayList<Attribute>();
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getUserAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isDSEConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getOperationalAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isDSEConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
+    addAllUserDefinedAttrs(userDefinedAttributes, configEntry.getEntry());
 
 
     // Create the set of base DNs that we will handle.  In this case, it's just
@@ -212,10 +189,10 @@ public class RootDSEBackend
       }
       else
       {
-        subordinateBaseDNs = new ConcurrentHashMap<DN,Backend>();
+        subordinateBaseDNs = new ConcurrentHashMap<DN, Backend<?>>();
         for (DN baseDN : subDNs)
         {
-          Backend backend = DirectoryServer.getBackend(baseDN);
+          Backend<?> backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
             logger.warn(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE, baseDN);
@@ -280,6 +257,35 @@ public class RootDSEBackend
 
     // Register as a change listener.
     currentConfig.addChangeListener(this);
+  }
+
+  /**
+   * Get the set of user-defined attributes for the configuration entry. Any
+   * attributes that we do not recognize will be included directly in the root
+   * DSE.
+   */
+  private void addAllUserDefinedAttrs(ArrayList<Attribute> userDefinedAttrs, Entry configEntry)
+  {
+    for (List<Attribute> attrs : configEntry.getUserAttributes().values())
+    {
+      for (Attribute a : attrs)
+      {
+        if (!isDSEConfigAttribute(a))
+        {
+          userDefinedAttrs.add(a);
+        }
+      }
+    }
+    for (List<Attribute> attrs : configEntry.getOperationalAttributes().values())
+    {
+      for (Attribute a : attrs)
+      {
+        if (!isDSEConfigAttribute(a))
+        {
+          userDefinedAttrs.add(a);
+        }
+      }
+    }
   }
 
   /** {@inheritDoc} */
@@ -365,20 +371,10 @@ public class RootDSEBackend
 
     long count = 0;
 
-    Map<DN,Backend> baseMap;
-    if (subordinateBaseDNs == null)
-    {
-      baseMap = DirectoryServer.getPublicNamingContexts();
-    }
-    else
-    {
-      baseMap = subordinateBaseDNs;
-    }
-
-    for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
+    for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
     {
       DN subBase = entry.getKey();
-      Backend b = entry.getValue();
+      Backend<?> b = entry.getValue();
       Entry subBaseEntry = b.getEntry(subBase);
       if (subBaseEntry != null)
       {
@@ -422,7 +418,7 @@ public class RootDSEBackend
     // specified.
     if (subordinateBaseDNs != null)
     {
-      for (Backend b : subordinateBaseDNs.values())
+      for (Backend<?> b : subordinateBaseDNs.values())
       {
         if (b.handlesEntry(entryDN))
         {
@@ -458,7 +454,7 @@ public class RootDSEBackend
    *          client connection.
    * @return The root DSE entry for the Directory Server.
    */
-  public Entry getRootDSE(ClientConnection connection)
+  private Entry getRootDSE(ClientConnection connection)
   {
     HashMap<AttributeType,List<Attribute>> dseUserAttrs =
          new HashMap<AttributeType,List<Attribute>>();
@@ -793,22 +789,12 @@ public class RootDSEBackend
 
     // If it was not the null DN, then iterate through the associated
     // subordinate backends to make the determination.
-    Map<DN,Backend> baseMap;
-    if (subordinateBaseDNs == null)
-    {
-      baseMap = DirectoryServer.getPublicNamingContexts();
-    }
-    else
-    {
-      baseMap = subordinateBaseDNs;
-    }
-
-    for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
+    for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
     {
       DN baseDN = entry.getKey();
       if (entryDN.isDescendantOf(baseDN))
       {
-        Backend b = entry.getValue();
+        Backend<?> b = entry.getValue();
         if (b.entryExists(entryDN))
         {
           return true;
@@ -882,22 +868,12 @@ public class RootDSEBackend
 
 
       case SINGLE_LEVEL:
-        Map<DN,Backend> baseMap;
-        if (subordinateBaseDNs == null)
+        for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
         {
-          baseMap = DirectoryServer.getPublicNamingContexts();
-        }
-        else
-        {
-          baseMap = subordinateBaseDNs;
-        }
-
-        for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
-        {
-          DN subBase = entry.getKey();
           searchOperation.checkIfCanceled(false);
 
-          Backend b = entry.getValue();
+          DN subBase = entry.getKey();
+          Backend<?> b = entry.getValue();
           Entry subBaseEntry = b.getEntry(subBase);
           if (subBaseEntry != null && filter.matchesEntry(subBaseEntry))
           {
@@ -909,25 +885,16 @@ public class RootDSEBackend
 
       case WHOLE_SUBTREE:
       case SUBORDINATES:
-        if (subordinateBaseDNs == null)
-        {
-          baseMap = DirectoryServer.getPublicNamingContexts();
-        }
-        else
-        {
-          baseMap = subordinateBaseDNs;
-        }
-
         try
         {
-          for (Map.Entry<DN,Backend> entry : baseMap.entrySet())
+          for (Map.Entry<DN, Backend<?>> entry : getSubordinateBaseDNs().entrySet())
           {
             searchOperation.checkIfCanceled(false);
 
             DN subBase = entry.getKey();
-            searchOperation.setBaseDN(subBase);
+            Backend<?> b = entry.getValue();
 
-            Backend b = entry.getValue();
+            searchOperation.setBaseDN(subBase);
             try
             {
               b.search(searchOperation);
@@ -975,6 +942,16 @@ public class RootDSEBackend
                 searchOperation.getScope());
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private Map<DN, Backend<?>> getSubordinateBaseDNs()
+  {
+    if (subordinateBaseDNs != null)
+    {
+      return subordinateBaseDNs;
+    }
+    return (Map) DirectoryServer.getPublicNamingContexts();
   }
 
   /** {@inheritDoc} */
@@ -1136,7 +1113,7 @@ public class RootDSEBackend
       {
         for (DN baseDN : subDNs)
         {
-          Backend backend = DirectoryServer.getBackend(baseDN);
+          Backend<?> backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
             unacceptableReasons.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
@@ -1164,11 +1141,11 @@ public class RootDSEBackend
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
 
     // Check to see if we should apply a new set of base DNs.
-    ConcurrentHashMap<DN,Backend> subBases;
+    ConcurrentHashMap<DN, Backend<?>> subBases;
     try
     {
       Set<DN> subDNs = cfg.getSubordinateBaseDN();
@@ -1179,10 +1156,10 @@ public class RootDSEBackend
       }
       else
       {
-        subBases = new ConcurrentHashMap<DN,Backend>();
+        subBases = new ConcurrentHashMap<DN, Backend<?>>();
         for (DN baseDN : subDNs)
         {
-          Backend backend = DirectoryServer.getBackend(baseDN);
+          Backend<?> backend = DirectoryServer.getBackend(baseDN);
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.
@@ -1225,29 +1202,7 @@ public class RootDSEBackend
     try
     {
       ConfigEntry configEntry = DirectoryServer.getConfigEntry(configEntryDN);
-
-      for (List<Attribute> attrs :
-           configEntry.getEntry().getUserAttributes().values())
-      {
-        for (Attribute a : attrs)
-        {
-          if (! isDSEConfigAttribute(a))
-          {
-            userAttrs.add(a);
-          }
-        }
-      }
-      for (List<Attribute> attrs :
-           configEntry.getEntry().getOperationalAttributes().values())
-      {
-        for (Attribute a : attrs)
-        {
-          if (! isDSEConfigAttribute(a))
-          {
-            userAttrs.add(a);
-          }
-        }
-      }
+      addAllUserDefinedAttrs(userAttrs, configEntry.getEntry());
     }
     catch (ConfigException e)
     {
@@ -1269,17 +1224,7 @@ public class RootDSEBackend
       }
       else
       {
-        StringBuilder basesStr = new StringBuilder("{ ");
-        for (DN dn : subordinateBaseDNs.keySet())
-        {
-          if (basesStr.length() > 0)
-          {
-            basesStr.append(", ");
-          }
-          basesStr.append(dn);
-        }
-        basesStr.append(" }");
-
+        String basesStr = "{ " + Utils.joinAsString(", ", subordinateBaseDNs.keySet()) + " }";
         messages.add(INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(basesStr));
       }
 
