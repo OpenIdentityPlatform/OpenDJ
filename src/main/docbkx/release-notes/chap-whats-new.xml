@@ -55,6 +55,37 @@
    </para>
 
    <itemizedlist>
+    <para>
+     The following improvement is new in OpenDJ 2.6.2.
+    </para>
+
+    <listitem>
+     <para>
+      OpenDJ server can now bind to a local address
+      when making outgoing connections
+      (<link
+       xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1565"
+       xlink:show="new"
+      >OPENDJ-1565</link>).
+     </para>
+
+     <para>
+      This improvement introduces a new configuration attribute,
+      <literal>source-address</literal>,
+      that you can set for Replication Domains, Replication Servers,
+      and LDAP Pass Through Authentication Policies.
+      If the <literal>source-address</literal> property is set to an IP address,
+      OpenDJ binds to the address before connecting to the remote server.
+      The address must be one assigned to an existing network interface.
+     </para>
+    </listitem>
+   </itemizedlist>
+
+   <itemizedlist>
+    <para>
+     The following improvements are new in OpenDJ 2.6.1.
+    </para>
+
     <listitem>
      <para>
       OpenDJ directory server ships with updated Commons REST,

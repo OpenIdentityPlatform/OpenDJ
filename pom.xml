@@ -118,10 +118,11 @@
 
     <!-- START Documentation properties -->
     <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
-    <docPreviousVersion>2.6.0</docPreviousVersion>
+    <docPreviousVersion>2.6.1</docPreviousVersion>
+    <stableServerVersion>2.6.0</stableServerVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.1.3</frDocPluginVersion>
+    <frDocPluginVersion>2.1.4</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
