@@ -31,12 +31,14 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
@@ -58,6 +60,8 @@ import com.forgerock.opendj.cli.MultiColumnPrinter;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.util.StaticUtils;
 
+import static java.util.concurrent.TimeUnit.*;
+
 import static org.forgerock.util.Utils.*;
 
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
@@ -66,16 +70,170 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
  * Benchmark application framework.
  */
 abstract class PerformanceRunner implements ConnectionEventListener {
+    private static final class ResponseTimeBuckets {
+        private static final long NS_1_US = NANOSECONDS.convert(1, MICROSECONDS);
+        private static final long NS_100_US = NANOSECONDS.convert(100, MICROSECONDS);
+        private static final long NS_1_MS = NANOSECONDS.convert(1, MILLISECONDS);
+        private static final long NS_10_MS = NANOSECONDS.convert(10, MILLISECONDS);
+        private static final long NS_100_MS = NANOSECONDS.convert(100, MILLISECONDS);
+        private static final long NS_1_S = NANOSECONDS.convert(1, SECONDS);
+        private static final long NS_5_S = NANOSECONDS.convert(5, SECONDS);
+
+        private static final int NB_INDEX = 2120;
+        private static final int RANGE_100_MICROSECONDS_START_INDEX = 1000;
+        private static final int RANGE_1_MILLISECOND_START_INDEX = 1090;
+        private static final int RANGE_100_MILLISECONDS_START_INDEX = 2080;
+
+        /**
+         * Array of response time buckets.
+         *
+         * <pre>
+         * index    0 ->  999: 1000 buckets for    0ms -    1ms  interval with       1 µs increments
+         * index 1000 -> 1089:   90 buckets for    1ms -   10ms  interval with     100 µs increments
+         * index 1090 -> 2079:  990 buckets for   10ms - 1000ms  interval with    1000 µs increments
+         * index 2080 -> 2119:   40 buckets for 1000ms - 5000ms  interval with 100 000 µs increments
+         * </pre>
+         */
+        private final AtomicLong[] index2Frequency = new AtomicLong[NB_INDEX];
+
+        /**
+         * Store the lower bounds (in microseconds) of the eTime buckets.
+         */
+        private final long[] index2Etime = new long[NB_INDEX];
+
+        /**
+         * Sorted map used for storing response times from 5s+ with 500 millisecond increments.
+         *
+         * Keys (Long in microseconds) of this map must respect this pattern: n * 500 000 + 5 000 000,
+         * where n is a natural integer.
+         */
+        private final ConcurrentSkipListMap<Long, AtomicLong> bigEtimes = new ConcurrentSkipListMap<Long, AtomicLong>();
+
+        /**
+         * Initialize both index2Frequency and index2Etime arrays.
+         */
+        private ResponseTimeBuckets() {
+            // Helpful variables to compute index2Etime values.
+            long rangeWidthMicroSecs;
+            long rangeStart = 0;
+            long initialTimeMicroSecs = 0;
+
+            for (int i = 0; i < NB_INDEX; i++) {
+                index2Frequency[i] = new AtomicLong();
+                if (i < RANGE_100_MICROSECONDS_START_INDEX) {
+                    // 0ms-1ms in 1 us increments
+                    rangeWidthMicroSecs = 1;
+                } else if (i < RANGE_1_MILLISECOND_START_INDEX) {
+                    // 1ms-10ms in 100 us increments
+                    rangeWidthMicroSecs = 100;
+                    rangeStart = RANGE_100_MICROSECONDS_START_INDEX;
+                    initialTimeMicroSecs = MICROSECONDS.convert(1, MILLISECONDS);
+                } else if (i < RANGE_100_MILLISECONDS_START_INDEX) {
+                    // 10ms-1000ms in 1000 us increments
+                    rangeWidthMicroSecs = MICROSECONDS.convert(1, MILLISECONDS);
+                    rangeStart = RANGE_1_MILLISECOND_START_INDEX;
+                    initialTimeMicroSecs = MICROSECONDS.convert(10, MILLISECONDS);
+                } else {
+                    // 1000ms-5000ms with 100 000 us increments
+                    rangeWidthMicroSecs = MICROSECONDS.convert(100, MILLISECONDS);
+                    rangeStart = RANGE_100_MILLISECONDS_START_INDEX;
+                    initialTimeMicroSecs = MICROSECONDS.convert(1, SECONDS);
+                }
+                index2Etime[i] = (i - rangeStart) * rangeWidthMicroSecs + initialTimeMicroSecs;
+            }
+        }
+
+        /**
+         * Compute the closest response time values for each percentile given in
+         * parameter. Percentiles array has to be sorted from lower to higher
+         * percentiles.
+         *
+         * @param percentiles
+         *            array of {@code double}
+         *
+         * @param nbData
+         *            number of response times recorded.
+         *
+         * @return array of response times in microseconds corresponding to
+         *         percentiles.
+         */
+        private List<Long> getPercentile(double[] percentiles, long nbData) {
+            List<Long> responseTimes = new ArrayList<Long>();
+            Queue<Long> nbDataThresholds = new LinkedList<Long>();
+            long nbDataSum = nbData;
+
+            for (int i = percentiles.length - 1; i >= 0; i--) {
+                nbDataThresholds.add((long) (percentiles[i] * nbData) / 100);
+            }
+
+            Iterator<Entry<Long, AtomicLong>> iter = bigEtimes.descendingMap().entrySet().iterator();
+            while (iter.hasNext() && !nbDataThresholds.isEmpty()) {
+                Entry<Long, AtomicLong> currentETime = iter.next();
+                nbDataSum -= currentETime.getValue().get();
+                computePercentiles(nbDataThresholds, responseTimes, nbDataSum, currentETime.getKey());
+            }
+
+            int stdTimeIndex = NB_INDEX - 1;
+            while (stdTimeIndex >= 0 && !nbDataThresholds.isEmpty()) {
+                long currentETime = index2Etime[stdTimeIndex];
+                nbDataSum -= index2Frequency[stdTimeIndex].get();
+                computePercentiles(nbDataThresholds, responseTimes, nbDataSum, currentETime);
+                stdTimeIndex--;
+            }
+
+            return responseTimes;
+        }
+
+        private void computePercentiles(Queue<Long> currentDataThreshold, List<Long> responseTimes, long currentSum,
+                long currentETime) {
+            while (currentDataThreshold.peek() != null && currentDataThreshold.peek() > currentSum) {
+                responseTimes.add(currentETime);
+                currentDataThreshold.poll();
+            }
+        }
+
+        private void addTimeToInterval(long responseTimeNanoSecs) {
+            if (responseTimeNanoSecs >= NS_5_S) {
+                long matchingKey = responseTimeNanoSecs / NS_100_MS;
+                matchingKey -= matchingKey % 5;
+                matchingKey = matchingKey * MICROSECONDS.convert(100, MILLISECONDS);
+                // We now have a key corresponding to pattern 5 000 000 + n * 500 000 µs
+                AtomicLong existingKey = bigEtimes.putIfAbsent(matchingKey, new AtomicLong(1));
+                if (existingKey != null) {
+                    existingKey.getAndIncrement();
+                }
+                return;
+            }
+
+            final int startRangeIndex;
+            final long rangeWidthNanoSecs;
+            if (responseTimeNanoSecs < NS_1_MS) {
+                rangeWidthNanoSecs = NS_1_US;
+                startRangeIndex = 0;
+            } else if (responseTimeNanoSecs < NS_10_MS) {
+                rangeWidthNanoSecs = NS_100_US;
+                startRangeIndex = RANGE_100_MICROSECONDS_START_INDEX - 10;
+            } else if (responseTimeNanoSecs < NS_1_S) {
+                rangeWidthNanoSecs = NS_1_MS;
+                startRangeIndex = RANGE_1_MILLISECOND_START_INDEX - 10;
+            } else {
+                rangeWidthNanoSecs = NS_100_MS;
+                startRangeIndex = RANGE_100_MILLISECONDS_START_INDEX - 10;
+            }
+            final int intervalIndex = ((int) (responseTimeNanoSecs / rangeWidthNanoSecs)) + startRangeIndex;
+            index2Frequency[intervalIndex].getAndIncrement();
+        }
+    }
+
+
     /**
      * Statistics thread base implementation.
      */
     class StatsThread extends Thread {
         private final String[] additionalColumns;
         private final List<GarbageCollectorMXBean> beans;
-        private final Set<Double> percentiles;
+        private final double[] percentiles;
         private final int numColumns;
-        private ReversableArray etimes = new ReversableArray(100000);
-        private final ReversableArray array = new ReversableArray(200000);
         protected long totalSuccessCount;
         protected long totalOperationCount;
         protected long totalFailedCount;
@@ -93,20 +251,18 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             super("Stats Thread");
 
             this.additionalColumns = additionalColumns;
-
-            final TreeSet<Double> pSet = new TreeSet<Double>();
             if (!percentilesArgument.isPresent()) {
-                pSet.add(.1);
-                pSet.add(.01);
-                pSet.add(.001);
+                this.percentiles = new double[]{99.9, 99.99, 99.999};
             } else {
+                this.percentiles = new double[percentilesArgument.getValues().size()];
+                int index = 0;
                 for (final String percentile : percentilesArgument.getValues()) {
-                    pSet.add(100.0 - Double.parseDouble(percentile));
+                    percentiles[index++] = Double.parseDouble(percentile);
                 }
+                Arrays.sort(percentiles);
             }
-            this.percentiles = pSet.descendingSet();
-            this.numColumns =
-                    5 + this.percentiles.size() + additionalColumns.length + (isAsync ? 1 : 0);
+
+            this.numColumns = 5 + this.percentiles.length + additionalColumns.length + (isAsync ? 1 : 0);
             this.beans = ManagementFactory.getGarbageCollectorMXBeans();
         }
 
@@ -125,9 +281,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 int[] span = new int[numColumns];
                 span[0] = 2;
                 span[1] = 0;
-                span[2] = 2 + this.percentiles.size();
-                Arrays.fill(span, 3, 4 + this.percentiles.size(), 0);
-                Arrays.fill(span, 4 + this.percentiles.size(), span.length, 1);
+                span[2] = 2 + this.percentiles.length;
+                Arrays.fill(span, 3, 4 + this.percentiles.length, 0);
+                Arrays.fill(span, 4 + this.percentiles.length, span.length, 1);
                 printer.addTitle(title, span);
                 title = new String[numColumns];
                 Arrays.fill(title, "");
@@ -140,8 +296,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 title[2] = "recent";
                 title[3] = "average";
                 int i = 4;
-                for (final Double percentile : this.percentiles) {
-                    title[i++] = Double.toString(100.0 - percentile) + "%";
+                for (double percentile :percentiles) {
+                    title[i++] = percentile + "%";
                 }
                 title[i++] = "err/sec";
                 if (isAsync) {
@@ -164,9 +320,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 app.getOutputStream().print("Recent response time (milliseconds)");
                 app.getOutputStream().print(",");
                 app.getOutputStream().print("Average response time (milliseconds)");
-                for (final Double percentile : this.percentiles) {
+                for (final double percentile : this.percentiles) {
                     app.getOutputStream().print(",");
-                    app.getOutputStream().print(Double.toString(100.0 - percentile));
+                    app.getOutputStream().print(percentile);
                     app.getOutputStream().print("% response time (milliseconds)");
                 }
                 app.getOutputStream().print(",");
@@ -231,80 +387,29 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 strings[1] = String.format("%.1f", totalResultCount / averageDuration);
 
                 if (resultCount > 0) {
-                    strings[2] =
-                            String.format("%.3f", (waitTime - (gcDuration - lastGCDuration))
-                                    / (double) resultCount / 1000000.0);
+                    strings[2] = String.format("%.3f", (waitTime - (gcDuration - lastGCDuration))
+                            / (double) resultCount / 1000000.0);
                 } else {
                     strings[2] = "-";
                 }
 
                 if (totalResultCount > 0) {
                     strings[3] =
-                            String.format("%.3f", (totalWaitTime - gcDuration)
-                                    / (double) totalResultCount / 1000000.0);
+                            String.format("%.3f", (totalWaitTime - gcDuration) / (double) totalResultCount / 1000000.0);
                 } else {
                     strings[3] = "-";
                 }
 
-                boolean changed = false;
-                etimes = eTimeBuffer.getAndSet(etimes);
-                final int appendLength = Math.min(array.remaining(), etimes.size());
-                if (appendLength > 0) {
-                    array.append(etimes, appendLength);
-                    for (int i = array.size - appendLength; i < array.size; i++) {
-                        array.siftUp(0, i);
-                    }
-                    changed = true;
-                }
-
-                // Our window buffer is now full. Replace smallest with anything
-                // larger and re-heapify
-                for (int i = appendLength; i < etimes.size(); i++) {
-                    if (etimes.get(i) > array.get(0)) {
-                        array.set(0, etimes.get(i));
-                        array.siftDown(0, array.size() - 1);
-                        changed = true;
-                    }
-                }
-                etimes.clear();
-
-                if (changed) {
-                    // Perform heapsort
-                    int i = array.size() - 1;
-                    while (i > 0) {
-                        array.swap(i, 0);
-                        array.siftDown(0, i - 1);
-                        i--;
-                    }
-                    array.reverse();
-                }
-
-                // Now everything is ordered from smallest to largest
-                int index;
                 int i = 4;
-                for (final Double percent : percentiles) {
-                    if (array.size() <= 0) {
-                        strings[i++] = "-";
-                    } else {
-                        index =
-                                array.size()
-                                        - (int) Math.floor((percent / 100.0) * totalResultCount)
-                                        - 1;
-                        if (index < 0) {
-                            strings[i++] = String.format("*%.3f", array.get(0) / 1000000.0);
-                        } else {
-                            strings[i++] = String.format("%.3f", array.get(index) / 1000000.0);
-                        }
-                    }
+                List<Long> computedPercentiles = eTimesBuckets.getPercentile(percentiles, totalOperationCount);
+                for (int j = computedPercentiles.size() - 1; j >= 0; j--) {
+                    strings[i++] = String.format("%.2f", computedPercentiles.get(j) / 1000.0);
                 }
                 strings[i++] = String.format("%.1f", failedCount / recentDuration);
                 if (isAsync) {
-                    if (resultCount > 0) {
-                        strings[i++] = String.format("%.1f", (double) operationCount / resultCount);
-                    } else {
-                        strings[i++] = "-";
-                    }
+                    strings[i++] = resultCount > 0 ? String.format("%.1f", (double) operationCount / resultCount) : "-";
                 }
+
                 for (final String column : getAdditionalColumns()) {
                     strings[i++] = column;
                 }
@@ -384,15 +489,10 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         private void updateStats() {
-            final long eTime = System.nanoTime() - currentTime;
-            waitRecentTime.getAndAdd(eTime);
-            synchronized (this) {
-                final ReversableArray array = eTimeBuffer.get();
-                if (array.remaining() == 0) {
-                    array.set(array.size() - 1, eTime);
-                } else {
-                    array.append(eTime);
-                }
+            if (!isWarmingUp) {
+                final long eTime = System.nanoTime() - currentTime;
+                waitRecentTime.getAndAdd(eTime);
+                eTimesBuckets.addTimeToInterval(eTime);
             }
         }
     }
@@ -491,128 +591,13 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                         continue;
                     }
 
-                    sleepTimeInMS += targetTimeInMS - ((System.nanoTime() - start) / 1000000.0);
+                    sleepTimeInMS += targetTimeInMS - (System.nanoTime() - start) / 1000000.0;
                     if (sleepTimeInMS < -60000) {
-                        // If we fall behind by 60 seconds, just forget about
-                        // catching up
+                        // If we fall behind by 60 seconds, just forget about catching up
                         sleepTimeInMS = -60000;
                     }
                 }
             }
-        }
-    }
-
-    private static class ReversableArray {
-        private final long[] array;
-
-        private boolean reversed;
-
-        private int size;
-
-        public ReversableArray(final int capacity) {
-            this.array = new long[capacity];
-        }
-
-        public void append(final long value) {
-            if (size == array.length) {
-                throw new IndexOutOfBoundsException();
-            }
-
-            if (!reversed) {
-                array[size] = value;
-            } else {
-                System.arraycopy(array, 0, array, 1, size);
-                array[0] = value;
-            }
-            size++;
-        }
-
-        public void append(final ReversableArray a, final int length) {
-            if (length > a.size() || length > remaining()) {
-                throw new IndexOutOfBoundsException();
-            }
-            if (!reversed) {
-                System.arraycopy(a.array, 0, array, size, length);
-            } else {
-                System.arraycopy(array, 0, array, length, size);
-                System.arraycopy(a.array, 0, array, 0, length);
-            }
-            size += length;
-        }
-
-        public void clear() {
-            size = 0;
-        }
-
-        public long get(final int index) {
-            if (index >= size) {
-                throw new IndexOutOfBoundsException();
-            }
-            if (!reversed) {
-                return array[index];
-            } else {
-                return array[size - index - 1];
-            }
-        }
-
-        public int remaining() {
-            return array.length - size;
-        }
-
-        public void reverse() {
-            reversed = !reversed;
-        }
-
-        public void set(final int index, final long value) {
-            if (index >= size) {
-                throw new IndexOutOfBoundsException();
-            }
-            if (!reversed) {
-                array[index] = value;
-            } else {
-                array[size - index - 1] = value;
-            }
-        }
-
-        public void siftDown(final int start, final int end) {
-            int root = start;
-            int child;
-            while (root * 2 + 1 <= end) {
-                child = root * 2 + 1;
-                if (child + 1 <= end && get(child) > get(child + 1)) {
-                    child = child + 1;
-                }
-                if (get(root) > get(child)) {
-                    swap(root, child);
-                    root = child;
-                } else {
-                    return;
-                }
-            }
-        }
-
-        public void siftUp(final int start, final int end) {
-            int child = end;
-            int parent;
-            while (child > start) {
-                parent = (int) Math.floor((child - 1) / 2.0);
-                if (get(parent) > get(child)) {
-                    swap(parent, child);
-                    child = parent;
-                } else {
-                    return;
-                }
-            }
-        }
-
-        public int size() {
-            return size;
-        }
-
-        private void swap(final int i, final int i2) {
-            final long temp = get(i);
-            set(i, get(i2));
-            set(i2, temp);
         }
     }
 
@@ -621,9 +606,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     protected final AtomicInteger successRecentCount = new AtomicInteger();
     protected final AtomicInteger failedRecentCount = new AtomicInteger();
     private final AtomicLong waitRecentTime = new AtomicLong();
+    private final ResponseTimeBuckets eTimesBuckets = new ResponseTimeBuckets();
 
-    private final AtomicReference<ReversableArray> eTimeBuffer =
-            new AtomicReference<ReversableArray>(new ReversableArray(100000));
 
     private final ConsoleApplication app;
     private DataSource[] dataSourcePrototypes;
