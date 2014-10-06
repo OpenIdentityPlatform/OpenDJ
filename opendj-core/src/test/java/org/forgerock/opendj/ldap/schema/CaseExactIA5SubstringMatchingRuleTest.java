@@ -33,14 +33,16 @@ import org.testng.annotations.DataProvider;
 /**
  * Test the CaseExactIA5SubstringMatchingRule.
  */
+@SuppressWarnings("javadoc")
 public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRuleTest {
 
     @Override
     @DataProvider(name = "substringInvalidAssertionValues")
     public Object[][] createMatchingRuleInvalidAssertionValues() {
-        return new Object[][] { { "12345678\uFFFD", new String[0], null },
-            { null, new String[] { "12345678\uFFFD" }, null },
-            { null, new String[0], "12345678\uFFFD" }, };
+        return new Object[][] {
+            { "12345678\uFFFD", new String[0], null },
+            { null, strings("12345678\uFFFD"), null },
+            { null, strings(), "12345678\uFFFD" }, };
     }
 
     @Override
@@ -49,13 +51,12 @@ public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRule
         return new Object[][] { { "12345678\uFFFD" }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringFinalMatchData")
     public Object[][] createSubstringFinalMatchData() {
-        return new Object[][] { { "this is a value", "value", ConditionResult.TRUE },
+        return new Object[][] {
+            { "this is a value", "value", ConditionResult.TRUE },
             { "this is a value", "alue", ConditionResult.TRUE },
             { "this is a value", "ue", ConditionResult.TRUE },
             { "this is a value", "e", ConditionResult.TRUE },
@@ -68,13 +69,12 @@ public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRule
             { "end with space    ", "space", ConditionResult.TRUE }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringInitialMatchData")
     public Object[][] createSubstringInitialMatchData() {
-        return new Object[][] { { "this is a value", "this", ConditionResult.TRUE },
+        return new Object[][] {
+            { "this is a value", "this", ConditionResult.TRUE },
             { "this is a value", "th", ConditionResult.TRUE },
             { "this is a value", "t", ConditionResult.TRUE },
             { "this is a value", "is", ConditionResult.FALSE },
@@ -85,33 +85,29 @@ public class CaseExactIA5SubstringMatchingRuleTest extends SubstringMatchingRule
             { "this is a value", "THIS", ConditionResult.FALSE }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringMiddleMatchData")
     public Object[][] createSubstringMiddleMatchData() {
         return new Object[][] {
-            { "this is a value", new String[] { "this" }, ConditionResult.TRUE },
-            { "this is a value", new String[] { "is" }, ConditionResult.TRUE },
-            { "this is a value", new String[] { "a" }, ConditionResult.TRUE },
-            { "this is a value", new String[] { "value" }, ConditionResult.TRUE },
-            { "this is a value", new String[] { " " }, ConditionResult.TRUE },
-            { "this is a value", new String[] { "this", "is", "a", "value" }, ConditionResult.TRUE },
+            { "this is a value", strings("this"), ConditionResult.TRUE },
+            { "this is a value", strings("is"), ConditionResult.TRUE },
+            { "this is a value", strings("a"), ConditionResult.TRUE },
+            { "this is a value", strings("value"), ConditionResult.TRUE },
+            { "this is a value", strings(" "), ConditionResult.TRUE },
+            { "this is a value", strings("this", "is", "a", "value"), ConditionResult.TRUE },
             // The matching rule requires ordered non overlapping substrings
             // Issue #730 was not valid.
-            { "this is a value", new String[] { "value", "this" }, ConditionResult.FALSE },
-            { "this is a value", new String[] { "this", "this is" }, ConditionResult.FALSE },
-            { "this is a value", new String[] { "his is", "a val", }, ConditionResult.TRUE },
-            { "this is a value", new String[] { "not", }, ConditionResult.FALSE },
-            { "this is a value", new String[] { "THIS", }, ConditionResult.FALSE },
-            { "this is a value", new String[] { "this", "not" }, ConditionResult.FALSE },
-            { "this is a value", new String[] { "    " }, ConditionResult.TRUE }, };
+            { "this is a value", strings("value", "this"), ConditionResult.FALSE },
+            { "this is a value", strings("this", "this is"), ConditionResult.FALSE },
+            { "this is a value", strings("his is", "a val"), ConditionResult.TRUE },
+            { "this is a value", strings("not"), ConditionResult.FALSE },
+            { "this is a value", strings("THIS"), ConditionResult.FALSE },
+            { "this is a value", strings("this", "not"), ConditionResult.FALSE },
+            { "this is a value", strings("    "), ConditionResult.TRUE }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(SMR_CASE_EXACT_IA5_OID);
