@@ -219,4 +219,8 @@ public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
      * @return An instance of the matching rule to test.
      */
     protected abstract MatchingRule getRule();
+
+    protected String[] strings(String... strings) {
+        return strings;
+    }
 }
