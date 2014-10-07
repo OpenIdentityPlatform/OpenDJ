@@ -296,8 +296,7 @@ public class IsMemberOfVirtualAttributeProvider
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {
-    SearchFilter filter = searchOperation.getFilter();
-    Group<?> group = extractGroup(rule.getAttributeType(), filter);
+    Group<?> group = extractGroup(rule.getAttributeType(), searchOperation.getFilter());
     if (group == null)
     {
       return;
@@ -312,12 +311,18 @@ public class IsMemberOfVirtualAttributeProvider
       {
         returnedDNs = new HashSet<String>();
       }
-      returnGroupMembers(searchOperation, filter, group.getMembers(), returnedDNs);
+      if (returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
+      {
+        return;
+      }
       // Now check members of nested groups
       for (DN dn : nestedGroupsDNs)
       {
         group = DirectoryServer.getGroupManager().getGroupInstance(dn);
-        returnGroupMembers(searchOperation, filter, group.getMembers(), returnedDNs);
+        if (returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
+        {
+          return;
+        }
       }
     }
     catch (DirectoryException de)
@@ -326,12 +331,26 @@ public class IsMemberOfVirtualAttributeProvider
     }
   }
 
-  private void returnGroupMembers(SearchOperation searchOperation, SearchFilter filter,
+  /**
+   *
+   * @param searchOperation the search operation being processed.
+   * @param memberList the list of members of the group being processed.
+   * @param returnedDNs a set to store the DNs of entries already returned,
+   *                    null if there's no need to track for entries.
+   * @return  <CODE>true</CODE> if the caller should continue processing the
+   *          search request and sending additional entries and references, or
+   *          <CODE>false</CODE> if not for some reason (e.g., the size limit
+   *          has been reached or the search has been abandoned).
+   * @throws DirectoryException If a problem occurs while attempting to send
+   *          the entry to the client and the search should be terminated.
+   */
+  private boolean returnGroupMembers(SearchOperation searchOperation,
                                   MemberList memberList, Set<String> returnedDNs)
           throws DirectoryException
   {
     DN baseDN = searchOperation.getBaseDN();
     SearchScope scope  = searchOperation.getScope();
+    SearchFilter filter = searchOperation.getFilter();
     while (memberList.hasMoreMembers())
     {
       try
@@ -345,7 +364,7 @@ public class IsMemberOfVirtualAttributeProvider
           {
             if (!searchOperation.returnEntry(e, null))
             {
-              return;
+              return false;
             }
           }
         }
@@ -358,6 +377,7 @@ public class IsMemberOfVirtualAttributeProvider
         }
       }
     }
+    return true;
   }
 
 
