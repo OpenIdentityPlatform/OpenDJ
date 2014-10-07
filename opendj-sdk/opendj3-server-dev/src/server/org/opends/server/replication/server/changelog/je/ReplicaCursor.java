@@ -31,10 +31,8 @@ import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.types.DN;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * {@link DBCursor} over a replica returning {@link UpdateMsg}s.
@@ -51,7 +49,7 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
       new AtomicReference<ReplicaOfflineMsg>();
   private UpdateMsg currentRecord;
 
-  private final Pair<DN, Integer> replicaID;
+  private final ReplicaId replicaId;
   private final ReplicationDomainDB domainDB;
 
   /**
@@ -64,16 +62,15 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
    * @param offlineCSN
    *          the offline CSN from which to builder the
    *          {@link ReplicaOfflineMsg} to return
-   * @param replicaID
-   *          the baseDN => serverId pair to uniquely identify the replica
+   * @param replicaId
+   *          the replica identifier
    * @param domainDB
    *          the DB for the provided replication domain
    */
-  public ReplicaCursor(DBCursor<UpdateMsg> cursor, CSN offlineCSN,
-      Pair<DN, Integer> replicaID, ReplicationDomainDB domainDB)
+  public ReplicaCursor(DBCursor<UpdateMsg> cursor, CSN offlineCSN, ReplicaId replicaId, ReplicationDomainDB domainDB)
   {
     this.cursor = cursor;
-    this.replicaID = replicaID;
+    this.replicaId = replicaId;
     this.domainDB = domainDB;
     setOfflineCSN(offlineCSN);
   }
@@ -103,9 +100,9 @@ public class ReplicaCursor implements DBCursor<UpdateMsg>
    *
    * @return the replica identifier that this cursor is associated to
    */
-  public Pair<DN, Integer> getReplicaID()
+  public ReplicaId getReplicaId()
   {
-    return replicaID;
+    return replicaId;
   }
 
   /** {@inheritDoc} */

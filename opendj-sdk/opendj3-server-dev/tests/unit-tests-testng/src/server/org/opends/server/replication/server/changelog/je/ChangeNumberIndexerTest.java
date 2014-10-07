@@ -46,11 +46,15 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
-import org.testng.annotations.*;
-
-import com.forgerock.opendj.util.Pair;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
@@ -134,7 +138,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
   private List<DN> eclEnabledDomains;
   private MultiDomainDBCursor multiDomainCursor;
-  private Map<Pair<DN, Integer>, SequentialDBCursor> replicaDBCursors;
+  private Map<ReplicaId, SequentialDBCursor> replicaDBCursors;
   private Map<DN, DomainDBCursor> domainDBCursors;
   private ChangelogState initialState;
   private Map<DN, ServerState> domainNewestCSNs;
@@ -163,7 +167,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     multiDomainCursor = new MultiDomainDBCursor(domainDB, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
     initialState = new ChangelogState();
-    replicaDBCursors = new HashMap<Pair<DN, Integer>, SequentialDBCursor>();
+    replicaDBCursors = new HashMap<ReplicaId, SequentialDBCursor>();
     domainDBCursors = new HashMap<DN, DomainDBCursor>();
     domainNewestCSNs = new HashMap<DN, ServerState>();
 
@@ -550,7 +554,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   private void addReplica(DN baseDN, int serverId) throws Exception
   {
     final SequentialDBCursor replicaDBCursor = new SequentialDBCursor();
-    replicaDBCursors.put(Pair.of(baseDN, serverId), replicaDBCursor);
+    replicaDBCursors.put(ReplicaId.of(baseDN, serverId), replicaDBCursor);
 
     if (predicate.isECLEnabledDomain(baseDN))
     {
@@ -634,7 +638,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     for (ReplicatedUpdateMsg msg : msgs)
     {
       final SequentialDBCursor cursor =
-          replicaDBCursors.get(Pair.of(msg.getBaseDN(), msg.getCSN().getServerId()));
+          replicaDBCursors.get(ReplicaId.of(msg.getBaseDN(), msg.getCSN().getServerId()));
       if (msg.isEmptyCursor())
       {
         cursor.add(null);
