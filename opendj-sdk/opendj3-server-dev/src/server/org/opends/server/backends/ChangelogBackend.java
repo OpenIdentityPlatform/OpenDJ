@@ -544,38 +544,60 @@ public class ChangelogBackend extends Backend<Configuration>
         ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN), getBackendID()));
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Runs the "initial search" phase (as opposed to a "persistent search"
+   * phase). The "initial search" phase is the only search run by normal
+   * searches, but it is also run by persistent searches with
+   * <code>changesOnly=false</code>. Persistent searches with
+   * <code>changesOnly=true</code> never execute this code.
+   * <p>
+   * Note: this method is executed only once per persistent search, single
+   * threaded.
+   */
   @Override
   public void search(final SearchOperation searchOperation) throws DirectoryException
   {
     checkChangelogReadPrivilege(searchOperation);
 
-    final SearchParams params = buildSearchParameters(searchOperation);
+    final Set<DN> excludedBaseDNs = getExcludedBaseDNs();
+    final MultiDomainServerState cookie = getCookieFromControl(searchOperation, excludedBaseDNs);
 
-    optimizeSearchParameters(params, searchOperation.getBaseDN(), searchOperation.getFilter());
+    final ChangeNumberRange range = optimizeSearch(searchOperation.getBaseDN(), searchOperation.getFilter());
     try
     {
-      initialSearch(params, searchOperation);
+      final boolean isPersistentSearch = isPersistentSearch(searchOperation);
+      if (cookie != null)
+      {
+        initialSearchFromCookie(
+            getCookieEntrySender(SearchPhase.INITIAL, searchOperation, cookie, excludedBaseDNs, isPersistentSearch));
+      }
+      else
+      {
+        initialSearchFromChangeNumber(
+            getChangeNumberEntrySender(SearchPhase.INITIAL, searchOperation, range, isPersistentSearch));
+      }
     }
     catch (ChangelogException e)
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_CHANGELOG_BACKEND_SEARCH.get(
-          searchOperation.getBaseDN().toString(),
-          searchOperation.getFilter().toString(),
-          stackTraceToSingleLineString(e)));
+          searchOperation.getBaseDN(), searchOperation.getFilter(), stackTraceToSingleLineString(e)));
     }
   }
 
-  private SearchParams buildSearchParameters(final SearchOperation searchOperation) throws DirectoryException
+  private MultiDomainServerState getCookieFromControl(final SearchOperation searchOperation, Set<DN> excludedBaseDNs)
+      throws DirectoryException
   {
-    final SearchParams params = new SearchParams(getExcludedBaseDNs());
     final ExternalChangelogRequestControl eclRequestControl =
         searchOperation.getRequestControl(ExternalChangelogRequestControl.DECODER);
     if (eclRequestControl != null)
     {
-      params.cookie = eclRequestControl.getCookie();
+      final MultiDomainServerState cookie = eclRequestControl.getCookie();
+      validateProvidedCookie(cookie, excludedBaseDNs);
+      return cookie;
     }
-    return params;
+    return null;
   }
 
   /** {@inheritDoc} */
@@ -685,70 +707,23 @@ public class ChangelogBackend extends Backend<Configuration>
   }
 
   /**
-   * Represent the search parameters specific to the changelog.
-   *
+   * Represent the change number range targeted by a search operation.
+   * <p>
    * This class should be visible for tests.
    */
-  static class SearchParams
+  static final class ChangeNumberRange
   {
-    private final Set<DN> excludedBaseDNs;
-    private long lowestChangeNumber = -1;
-    private long highestChangeNumber = -1;
-    private CSN csn = new CSN(0, 0, 0);
-    private MultiDomainServerState cookie;
-
-    /**
-     * Creates search parameters.
-     */
-    SearchParams()
-    {
-      this(Collections.<DN> emptySet());
-    }
-
-    /**
-     * Creates search parameters with provided id and excluded domain DNs.
-     *
-     * @param excludedBaseDNs
-     *          Set of DNs to exclude from search.
-     */
-    SearchParams(final Set<DN> excludedBaseDNs)
-    {
-      this.excludedBaseDNs = excludedBaseDNs;
-    }
-
-    /**
-     * Returns whether this search is cookie based.
-     *
-     * @return true if this search is cookie-based, false if this search is
-     *         change number-based.
-     */
-    private boolean isCookieBasedSearch()
-    {
-      return cookie != null;
-    }
-
-    /**
-     * Indicates if provided change number is compatible with last change
-     * number.
-     *
-     * @param changeNumber
-     *          The change number to test.
-     * @return {@code true} if and only if the provided change number is in the
-     *         range of the last change number.
-     */
-    boolean changeNumberIsInRange(long changeNumber)
-    {
-      return highestChangeNumber == -1 || changeNumber <= highestChangeNumber;
-    }
+    private long lowerBound = -1;
+    private long upperBound = -1;
 
     /**
      * Returns the lowest change number to retrieve (inclusive).
      *
      * @return the lowest change number
      */
-    long getLowestChangeNumber()
+    long getLowerBound()
     {
-      return lowestChangeNumber;
+      return lowerBound;
     }
 
     /**
@@ -756,29 +731,9 @@ public class ChangelogBackend extends Backend<Configuration>
      *
      * @return the highest change number
      */
-    long getHighestChangeNumber()
+    long getUpperBound()
     {
-      return highestChangeNumber;
-    }
-
-    /**
-     * Returns the CSN to retrieve.
-     *
-     * @return the CSN, which may be the default CSN with zero values.
-     */
-    CSN getCSN()
-    {
-      return csn;
-    }
-
-    /**
-     * Returns the set of DNs to exclude from the search.
-     *
-     * @return the DNs corresponding to domains to exclude from the search.
-     */
-    Set<DN> getExcludedBaseDNs()
-    {
-      return excludedBaseDNs;
+      return upperBound;
     }
   }
 
@@ -801,15 +756,13 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /**
    * Optimize the search parameters by analyzing the DN and filter.
-   * Populate the provided SearchParams with optimizations found.
    *
-   * @param params the search parameters that are specific to external changelog
    * @param baseDN the provided search baseDN.
    * @param userFilter the provided search filter.
+   * @return the optimized change number range
    * @throws DirectoryException when an exception occurs.
    */
-   void optimizeSearchParameters(final SearchParams params, final DN baseDN, final SearchFilter userFilter)
-       throws DirectoryException
+  ChangeNumberRange optimizeSearch(final DN baseDN, final SearchFilter userFilter) throws DirectoryException
   {
     SearchFilter equalityFilter = null;
     switch (baseDN.size())
@@ -828,10 +781,7 @@ public class ChangelogBackend extends Backend<Configuration>
       break;
     }
 
-    final SearchParams optimized = optimizeSearchUsingFilter(equalityFilter != null ? equalityFilter : userFilter);
-    params.lowestChangeNumber = optimized.lowestChangeNumber;
-    params.highestChangeNumber = optimized.highestChangeNumber;
-    params.csn = optimized.csn;
+    return optimizeSearchUsingFilter(equalityFilter != null ? equalityFilter : userFilter);
   }
 
   /**
@@ -856,70 +806,71 @@ public class ChangelogBackend extends Backend<Configuration>
     return null;
   }
 
-  private SearchParams optimizeSearchUsingFilter(final SearchFilter filter) throws DirectoryException
+  private ChangeNumberRange optimizeSearchUsingFilter(final SearchFilter filter) throws DirectoryException
   {
-    final SearchParams params = new SearchParams();
+    final ChangeNumberRange range = new ChangeNumberRange();
     if (filter == null)
     {
-      return params;
+      return range;
     }
 
     if (matches(filter, FilterType.GREATER_OR_EQUAL, CHANGE_NUMBER_ATTR))
     {
-      params.lowestChangeNumber = decodeChangeNumber(filter.getAssertionValue());
+      range.lowerBound = decodeChangeNumber(filter.getAssertionValue());
     }
     else if (matches(filter, FilterType.LESS_OR_EQUAL, CHANGE_NUMBER_ATTR))
     {
-      params.highestChangeNumber = decodeChangeNumber(filter.getAssertionValue());
+      range.upperBound = decodeChangeNumber(filter.getAssertionValue());
     }
     else if (matches(filter, FilterType.EQUALITY, CHANGE_NUMBER_ATTR))
     {
       final long number = decodeChangeNumber(filter.getAssertionValue());
-      params.lowestChangeNumber = number;
-      params.highestChangeNumber = number;
+      range.lowerBound = number;
+      range.upperBound = number;
     }
     else if (matches(filter, FilterType.EQUALITY, "replicationcsn"))
     {
       // == exact CSN
-      params.csn = new CSN(filter.getAssertionValue().toString());
+      // validate provided CSN is correct
+      new CSN(filter.getAssertionValue().toString());
     }
     else if (filter.getFilterType() == FilterType.AND)
     {
       // TODO: it looks like it could be generalized to N components, not only two
       final Collection<SearchFilter> components = filter.getFilterComponents();
       final SearchFilter filters[] = components.toArray(new SearchFilter[0]);
-      long last1 = -1;
-      long first1 = -1;
-      long last2 = -1;
-      long first2 = -1;
+      long upper1 = -1;
+      long lower1 = -1;
+      long upper2 = -1;
+      long lower2 = -1;
       if (filters.length > 0)
       {
-        SearchParams msg1 = optimizeSearchUsingFilter(filters[0]);
-        last1 = msg1.highestChangeNumber;
-        first1 = msg1.lowestChangeNumber;
+        ChangeNumberRange range1 = optimizeSearchUsingFilter(filters[0]);
+        upper1 = range1.upperBound;
+        lower1 = range1.lowerBound;
       }
       if (filters.length > 1)
       {
-        SearchParams msg2 = optimizeSearchUsingFilter(filters[1]);
-        last2 = msg2.highestChangeNumber;
-        first2 = msg2.lowestChangeNumber;
+        ChangeNumberRange range2 = optimizeSearchUsingFilter(filters[1]);
+        upper2 = range2.upperBound;
+        lower2 = range2.lowerBound;
       }
-      if (last1 == -1)
+      if (upper1 == -1)
       {
-        params.highestChangeNumber = last2;
+        range.upperBound = upper2;
       }
-      else if (last2 == -1)
+      else if (upper2 == -1)
       {
-        params.highestChangeNumber = last1;
+        range.upperBound = upper1;
       }
       else
       {
-        params.highestChangeNumber = Math.min(last1, last2);
+        range.upperBound = Math.min(upper1, upper2);
       }
 
-      params.lowestChangeNumber = Math.max(first1, first2);
+      range.lowerBound = Math.max(lower1, lower2);
     }
-    return params;
+    return range;
   }
 
   private static long decodeChangeNumber(final ByteString assertionValue)
@@ -944,46 +895,12 @@ public class ChangelogBackend extends Backend<Configuration>
   }
 
   /**
-   * Runs the "initial search" phase (as opposed to a "persistent search" phase).
-   * The "initial search" phase is the only search run by normal searches,
-   * but it is also run by persistent searches with <code>changesOnly=false</code>.
-   * Persistent searches with <code>changesOnly=true</code> never execute this code.
-   * <p>
-   * Note: this method is executed only once per persistent search, single threaded.
-   */
-  private void initialSearch(final SearchParams searchParams, final SearchOperation searchOperation)
-      throws DirectoryException, ChangelogException
-  {
-    if (searchParams.isCookieBasedSearch())
-    {
-      initialSearchFromCookie(searchParams, searchOperation);
-    }
-    else
-    {
-      initialSearchFromChangeNumber(searchParams, searchOperation);
-    }
-  }
-
-  /**
    * Search the changelog when a cookie control is provided.
    */
-  private void initialSearchFromCookie(final SearchParams searchParams, final SearchOperation searchOperation)
+  private void initialSearchFromCookie(final CookieEntrySender entrySender)
       throws DirectoryException, ChangelogException
   {
-    validateProvidedCookie(searchParams);
-
-    final CookieEntrySender entrySender;
-    if (isPersistentSearch(searchOperation))
-    {
-      entrySender = searchOperation.getAttachment(ENTRY_SENDER_ATTACHMENT);
-    }
-    else
-    {
-      entrySender = new CookieEntrySender(searchOperation, SearchPhase.INITIAL);
-    }
-    entrySender.setCookie(searchParams.cookie);
-
-    if (!sendBaseChangelogEntry(searchOperation))
+    if (!sendBaseChangelogEntry(entrySender.searchOp))
     { // only return the base entry: stop here
       return;
     }
@@ -993,7 +910,7 @@ public class ChangelogBackend extends Backend<Configuration>
     {
       final ReplicationDomainDB replicationDomainDB = getChangelogDB().getReplicationDomainDB();
       final MultiDomainDBCursor cursor = replicationDomainDB.getCursorFrom(
-          searchParams.cookie, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, searchParams.getExcludedBaseDNs());
+          entrySender.cookie, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, entrySender.excludedBaseDNs);
       replicaUpdatesCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor);
 
       final boolean continueSearch = sendCookieEntriesFromCursor(entrySender, replicaUpdatesCursor);
@@ -1008,6 +925,16 @@ public class ChangelogBackend extends Backend<Configuration>
       entrySender.finalizeInitialSearch();
       StaticUtils.close(replicaUpdatesCursor);
     }
+  }
+
+  private CookieEntrySender getCookieEntrySender(SearchPhase startPhase, final SearchOperation searchOperation,
+      MultiDomainServerState cookie, Set<DN> excludedBaseDNs, boolean isPersistentSearch)
+  {
+    if (isPersistentSearch && SearchPhase.INITIAL.equals(startPhase))
+    {
+      return searchOperation.getAttachment(ENTRY_SENDER_ATTACHMENT);
+    }
+    return new CookieEntrySender(searchOperation, startPhase, cookie, excludedBaseDNs);
   }
 
   private boolean sendCookieEntriesFromCursor(final CookieEntrySender entrySender,
@@ -1039,8 +966,7 @@ public class ChangelogBackend extends Backend<Configuration>
   @Override
   public void registerPersistentSearch(PersistentSearch pSearch) throws DirectoryException
   {
-    validatePersistentSearch(pSearch);
-    initializeEntrySender(pSearch);
+    initializePersistentSearch(pSearch);
 
     if (isCookieBased(pSearch.getSearchOperation()))
     {
@@ -1053,42 +979,47 @@ public class ChangelogBackend extends Backend<Configuration>
     super.registerPersistentSearch(pSearch);
   }
 
-  private void validatePersistentSearch(final PersistentSearch pSearch) throws DirectoryException
+  private void initializePersistentSearch(PersistentSearch pSearch) throws DirectoryException
   {
+    final SearchOperation searchOp = pSearch.getSearchOperation();
+
     // Validation must be done during registration for changes only persistent searches.
     // Otherwise, when there is an initial search phase,
     // validation is performed by the search() method.
+    ChangeNumberRange range = null;
     if (pSearch.isChangesOnly())
     {
-      final SearchOperation searchOperation = pSearch.getSearchOperation();
-      checkChangelogReadPrivilege(searchOperation);
-      final SearchParams params = buildSearchParameters(searchOperation);
+      checkChangelogReadPrivilege(searchOp);
       // next line also validates some search parameters
-      optimizeSearchParameters(params, searchOperation.getBaseDN(), searchOperation.getFilter());
-      validateProvidedCookie(params);
+      range = optimizeSearch(searchOp.getBaseDN(), searchOp.getFilter());
     }
-  }
 
-  private void initializeEntrySender(PersistentSearch pSearch)
-  {
+
     final SearchPhase startPhase = pSearch.isChangesOnly() ? SearchPhase.PERSISTENT : SearchPhase.INITIAL;
-
-    final SearchOperation searchOp = pSearch.getSearchOperation();
     if (isCookieBased(searchOp))
     {
-      final CookieEntrySender entrySender = new CookieEntrySender(searchOp, startPhase);
-      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT, entrySender);
-      if (pSearch.isChangesOnly())
-      {
-        // this changesOnly persistent search will not go through #initialSearch()
-        // so we must initialize the cookie here
-        entrySender.setCookie(getNewestCookie(searchOp));
-      }
+      final Set<DN> excludedBaseDNs = getExcludedBaseDNs();
+      final MultiDomainServerState cookie = getCookie(pSearch.isChangesOnly(), searchOp, excludedBaseDNs);
+      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT,
+          new CookieEntrySender(searchOp, startPhase, cookie, excludedBaseDNs));
     }
     else
     {
-      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT, new ChangeNumberEntrySender(searchOp, startPhase));
+      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT,
+          new ChangeNumberEntrySender(searchOp, startPhase, range));
     }
+  }
+
+  private MultiDomainServerState getCookie(boolean isChangesOnly, SearchOperation searchOp, Set<DN> excludedBaseDNs)
+      throws DirectoryException
+  {
+    if (isChangesOnly)
+    {
+      // this changesOnly persistent search will not go through #initialSearch()
+      // so we must initialize the cookie here
+      return getNewestCookie(searchOp);
+    }
+    return getCookieFromControl(searchOp, excludedBaseDNs);
   }
 
   private MultiDomainServerState getNewestCookie(SearchOperation searchOp)
@@ -1116,46 +1047,38 @@ public class ChangelogBackend extends Backend<Configuration>
    * @throws DirectoryException
    *           If the state is not valid
    */
-  private void validateProvidedCookie(final SearchParams searchParams) throws DirectoryException
+  private void validateProvidedCookie(final MultiDomainServerState cookie, Set<DN> excludedBaseDNs)
+      throws DirectoryException
   {
-    final MultiDomainServerState cookie = searchParams.cookie;
     if (cookie != null && !cookie.isEmpty())
     {
-      replicationServer.validateCookie(cookie, searchParams.getExcludedBaseDNs());
+      replicationServer.validateCookie(cookie, excludedBaseDNs);
     }
   }
 
   /**
    * Search the changelog using change number(s).
    */
-  private void initialSearchFromChangeNumber(final SearchParams params, final SearchOperation searchOperation)
+  private void initialSearchFromChangeNumber(final ChangeNumberEntrySender entrySender)
       throws ChangelogException, DirectoryException
   {
-    // "initial search" phase must return the base entry immediately
-    sendBaseChangelogEntry(searchOperation);
-
-    final ChangeNumberEntrySender entrySender;
-    if (isPersistentSearch(searchOperation))
-    {
-      entrySender = searchOperation.getAttachment(ENTRY_SENDER_ATTACHMENT);
-    }
-    else
-    {
-      entrySender = new ChangeNumberEntrySender(searchOperation, SearchPhase.INITIAL);
+    if (!sendBaseChangelogEntry(entrySender.searchOp))
+    { // only return the base entry: stop here
+      return;
     }
 
     DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor = null;
     final AtomicReference<MultiDomainDBCursor> replicaUpdatesCursor = new AtomicReference<MultiDomainDBCursor>();
     try
     {
-      cnIndexDBCursor = getCNIndexDBCursor(params.lowestChangeNumber);
+      cnIndexDBCursor = getCNIndexDBCursor(entrySender.lowestChangeNumber);
       MultiDomainServerState cookie = new MultiDomainServerState();
       final boolean continueSearch =
-          sendChangeNumberEntriesFromCursors(entrySender, params, cnIndexDBCursor, replicaUpdatesCursor, cookie);
+          sendChangeNumberEntriesFromCursors(entrySender, cnIndexDBCursor, replicaUpdatesCursor, cookie);
       if (continueSearch)
       {
         entrySender.transitioningToPersistentSearchPhase();
-        sendChangeNumberEntriesFromCursors(entrySender, params, cnIndexDBCursor, replicaUpdatesCursor, cookie);
+        sendChangeNumberEntriesFromCursors(entrySender, cnIndexDBCursor, replicaUpdatesCursor, cookie);
       }
     }
     finally
@@ -1165,10 +1088,19 @@ public class ChangelogBackend extends Backend<Configuration>
     }
   }
 
+  private ChangeNumberEntrySender getChangeNumberEntrySender(SearchPhase startPhase,
+      final SearchOperation searchOperation, ChangeNumberRange range, boolean isPersistentSearch)
+  {
+    if (isPersistentSearch && SearchPhase.INITIAL.equals(startPhase))
+    {
+      return searchOperation.getAttachment(ENTRY_SENDER_ATTACHMENT);
+    }
+    return new ChangeNumberEntrySender(searchOperation, SearchPhase.INITIAL, range);
+  }
+
   private boolean sendChangeNumberEntriesFromCursors(final ChangeNumberEntrySender entrySender,
-      final SearchParams params, DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor,
-      AtomicReference<MultiDomainDBCursor> replicaUpdatesCursor, MultiDomainServerState cookie)
-          throws ChangelogException, DirectoryException
+      DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor, AtomicReference<MultiDomainDBCursor> replicaUpdatesCursor,
+      MultiDomainServerState cookie) throws ChangelogException, DirectoryException
   {
     boolean continueSearch = true;
     while (continueSearch && cnIndexDBCursor.next())
@@ -1184,7 +1116,7 @@ public class ChangelogBackend extends Backend<Configuration>
       {
         cookie.update(cnIndexRecord.getBaseDN(), cnIndexRecord.getCSN());
       }
-      continueSearch = params.changeNumberIsInRange(cnIndexRecord.getChangeNumber());
+      continueSearch = entrySender.changeNumberIsInRange(cnIndexRecord.getChangeNumber());
       if (continueSearch)
       {
         final UpdateMsg updateMsg = findReplicaUpdateMessage(cnIndexRecord, replicaUpdatesCursor.get());
@@ -1565,6 +1497,8 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /**
    * Create and returns the base changelog entry to the underlying search operation.
+   * <p>
+   * "initial search" phase must return the base entry immediately.
    *
    * @return {@code true} if search should continue, {@code false} otherwise
    */
@@ -1753,12 +1687,30 @@ public class ChangelogBackend extends Backend<Configuration>
   private static class ChangeNumberEntrySender
   {
     private final SearchOperation searchOp;
+    private final long lowestChangeNumber;
+    private final long highestChangeNumber;
     private final SendEntryData<Long> sendEntryData;
 
-    private ChangeNumberEntrySender(SearchOperation searchOp, SearchPhase startPhase)
+    private ChangeNumberEntrySender(SearchOperation searchOp, SearchPhase startPhase, ChangeNumberRange range)
     {
       this.searchOp = searchOp;
       this.sendEntryData = new SendEntryData<Long>(startPhase);
+      this.lowestChangeNumber = range.lowerBound;
+      this.highestChangeNumber = range.upperBound;
+    }
+
+    /**
+     * Indicates if provided change number is compatible with last change
+     * number.
+     *
+     * @param changeNumber
+     *          The change number to test.
+     * @return {@code true} if and only if the provided change number is in the
+     *         range of the last change number.
+     */
+    boolean changeNumberIsInRange(long changeNumber)
+    {
+      return highestChangeNumber == -1 || changeNumber <= highestChangeNumber;
     }
 
     private void finalizeInitialSearch()
@@ -1796,19 +1748,18 @@ public class ChangelogBackend extends Backend<Configuration>
   private static class CookieEntrySender {
     private final SearchOperation searchOp;
     private final SearchPhase startPhase;
-    private MultiDomainServerState cookie;
+    private final Set<DN> excludedBaseDNs;
+    private final MultiDomainServerState cookie;
     private final ConcurrentSkipListMap<Pair<DN, Integer>, SendEntryData<CSN>> replicaIdToSendEntryData =
         new ConcurrentSkipListMap<Pair<DN, Integer>, SendEntryData<CSN>>(Pair.COMPARATOR);
 
-    private CookieEntrySender(SearchOperation searchOp, SearchPhase startPhase)
+    private CookieEntrySender(SearchOperation searchOp, SearchPhase startPhase, MultiDomainServerState cookie,
+        Set<DN> excludedBaseDNs)
     {
       this.searchOp = searchOp;
       this.startPhase = startPhase;
-    }
-
-    private void setCookie(MultiDomainServerState cookie)
-    {
       this.cookie = cookie;
+      this.excludedBaseDNs = excludedBaseDNs;
     }
 
     private void finalizeInitialSearch()

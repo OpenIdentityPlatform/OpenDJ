@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.backends.ChangelogBackend.SearchParams;
+import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
 import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -814,16 +814,15 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   @Test(dataProvider="getFilters")
-  public void optimizeFiltersWithChangeNumber(String dn, String filter, long expectedFirstCN, long expectedLastCN)
+  public void optimizeFiltersWithChangeNumber(String dn, String filterString, long expectedFirstCN, long expectedLastCN)
       throws Exception
   {
     final ChangelogBackend backend = new ChangelogBackend(null, null);
     final DN baseDN = DN.valueOf(dn);
-    final SearchParams searchParams = new SearchParams();
+    final SearchFilter filter = SearchFilter.createFilterFromString(filterString);
+    final ChangeNumberRange range = backend.optimizeSearch(baseDN, filter);
 
-    backend.optimizeSearchParameters(searchParams, baseDN, SearchFilter.createFilterFromString(filter));
-
-    assertSearchParameters(searchParams, expectedFirstCN, expectedLastCN, null);
+    assertChangeNumberRange(range, expectedFirstCN, expectedLastCN);
   }
 
   @Test
@@ -832,12 +831,10 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     final ChangelogBackend backend = new ChangelogBackend(null, null);
     final DN baseDN = DN.valueOf("cn=changelog");
     final CSN csn = new CSNGenerator(1, 0).newCSN();
-    final SearchParams searchParams = new SearchParams();
+    SearchFilter filter = SearchFilter.createFilterFromString("(replicationcsn=" + csn + ")");
+    final ChangeNumberRange range = backend.optimizeSearch(baseDN, filter);
 
-    backend.optimizeSearchParameters(searchParams, baseDN,
-        SearchFilter.createFilterFromString("(replicationcsn=" + csn + ")"));
-
-    assertSearchParameters(searchParams, -1, -1, csn);
+    assertChangeNumberRange(range, -1, -1);
   }
 
   private List<SearchResultEntry> assertChangelogAttributesInRootDSE(boolean isECLEnabled,
@@ -953,12 +950,11 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return results;
   }
 
-  private void assertSearchParameters(SearchParams searchParams, long firstChangeNumber,
-      long lastChangeNumber, CSN csn) throws Exception
+  private void assertChangeNumberRange(ChangeNumberRange range, long firstChangeNumber, long lastChangeNumber)
+      throws Exception
   {
-    assertEquals(searchParams.getLowestChangeNumber(), firstChangeNumber);
-    assertEquals(searchParams.getHighestChangeNumber(), lastChangeNumber);
-    assertEquals(searchParams.getCSN(), csn == null ? new CSN(0, 0, 0) : csn);
+    assertEquals(range.getLowerBound(), firstChangeNumber);
+    assertEquals(range.getUpperBound(), lastChangeNumber);
   }
 
   private CSN[] generateAndPublishUpdateMsgForEachOperationType(String testName, boolean checkLastCookie)
