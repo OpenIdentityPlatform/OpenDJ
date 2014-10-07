@@ -82,7 +82,7 @@ public final class ReplicaId implements Comparable<ReplicaId>
   {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((baseDN == null) ? 0 : baseDN.hashCode());
+    result = prime * result + (baseDN == null ? 0 : baseDN.hashCode());
     return prime * result + serverId;
   }
 
@@ -94,7 +94,7 @@ public final class ReplicaId implements Comparable<ReplicaId>
     {
       return true;
     }
-    if (obj instanceof ReplicaId)
+    if (!(obj instanceof ReplicaId))
     {
       return false;
     }
