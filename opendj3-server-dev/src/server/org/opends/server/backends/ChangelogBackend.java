@@ -76,6 +76,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecor
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredicate;
 import org.opends.server.replication.server.changelog.je.ECLMultiDomainDBCursor;
@@ -106,8 +107,6 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.util.Pair;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
@@ -1750,8 +1749,8 @@ public class ChangelogBackend extends Backend<Configuration>
     private final SearchPhase startPhase;
     private final Set<DN> excludedBaseDNs;
     private final MultiDomainServerState cookie;
-    private final ConcurrentSkipListMap<Pair<DN, Integer>, SendEntryData<CSN>> replicaIdToSendEntryData =
-        new ConcurrentSkipListMap<Pair<DN, Integer>, SendEntryData<CSN>>(Pair.COMPARATOR);
+    private final ConcurrentSkipListMap<ReplicaId, SendEntryData<CSN>> replicaIdToSendEntryData =
+        new ConcurrentSkipListMap<ReplicaId, SendEntryData<CSN>>();
 
     private CookieEntrySender(SearchOperation searchOp, SearchPhase startPhase, MultiDomainServerState cookie,
         Set<DN> excludedBaseDNs)
@@ -1780,7 +1779,7 @@ public class ChangelogBackend extends Backend<Configuration>
 
     private SendEntryData<CSN> getSendEntryData(DN baseDN, CSN csn)
     {
-      final Pair<DN, Integer> replicaId = Pair.of(baseDN, csn.getServerId());
+      final ReplicaId replicaId = ReplicaId.of(baseDN, csn.getServerId());
       SendEntryData<CSN> data = replicaIdToSendEntryData.get(replicaId);
       if (data == null)
       {
