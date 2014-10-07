@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -303,34 +303,60 @@ public class IsMemberOfVirtualAttributeProvider
       return;
     }
 
-    DN          baseDN = searchOperation.getBaseDN();
-    SearchScope scope  = searchOperation.getScope();
     try
     {
-      MemberList  memberList = group.getMembers();
-      while (memberList.hasMoreMembers())
+      // Check for nested groups to see if we need to keep track of returned entries
+      List<DN> nestedGroupsDNs = group.getNestedGroupDNs();
+      HashSet<String> returnedDNs = null;
+      if (!nestedGroupsDNs.isEmpty())
       {
-        try
-        {
-          Entry e = memberList.nextMemberEntry();
-          if (e.matchesBaseAndScope(baseDN, scope) &&
-              filter.matchesEntry(e))
-          {
-            searchOperation.returnEntry(e, null);
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
+        returnedDNs = new HashSet<String>();
+      }
+      returnGroupMembers(searchOperation, filter, group.getMembers(), returnedDNs);
+      // Now check members of nested groups
+      for (DN dn : nestedGroupsDNs)
+      {
+        group = DirectoryServer.getGroupManager().getGroupInstance(dn);
+        returnGroupMembers(searchOperation, filter, group.getMembers(), returnedDNs);
       }
     }
     catch (DirectoryException de)
     {
       searchOperation.setResponseData(de);
+    }
+  }
+
+  private void returnGroupMembers(SearchOperation searchOperation, SearchFilter filter,
+                                  MemberList memberList, Set<String> returnedDNs)
+          throws DirectoryException
+  {
+    DN baseDN = searchOperation.getBaseDN();
+    SearchScope scope  = searchOperation.getScope();
+    while (memberList.hasMoreMembers())
+    {
+      try
+      {
+        Entry e = memberList.nextMemberEntry();
+        if (e.matchesBaseAndScope(baseDN, scope) &&
+            filter.matchesEntry(e))
+        {
+          if (returnedDNs == null
+              || returnedDNs.add(e.getDN().toNormalizedString()))
+          {
+            if (!searchOperation.returnEntry(e, null))
+            {
+              return;
+            }
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+      }
     }
   }
 
