@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -1309,28 +1309,30 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     builder.append("\nobjectClass: domain");
     builder.append("\ndc: example");
 
-    builder.append("\n\ndn: ou=People"+SUFFIX);
+    builder.append("\n\ndn: ou=People").append(SUFFIX);
     builder.append("\nobjectClass: organizationalunit");
     builder.append("\nou: People");
     //Go beyond ALL ID threshold.
     for(int i=0;i<4001;i++)
     {
-      builder.append("\n\ndn: cn=user." + i + ",ou=People"+SUFFIX);
+      builder.append("\n\ndn: cn=user.").append(i)
+             .append(",ou=People").append(SUFFIX);
       builder.append("\nobjectclass: person");
-      builder.append("\ncn: user." + i);
-      builder.append("\nsn: " + i);
+      builder.append("\ncn: user.").append(i);
+      builder.append("\nsn: ").append(i);
     }
 
     //Add the group information.
-    builder.append("\n\ndn: ou=Groups"+SUFFIX);
+    builder.append("\n\ndn: ou=Groups").append(SUFFIX);
     builder.append("\nobjectclass: organizationalunit");
     builder.append("\nou: Groups");
 
     //Dynamic group.
-    builder.append("\n\ndn: cn=MyDGrp,ou=Groups"+SUFFIX);
+    builder.append("\n\ndn: cn=MyDGrp,ou=Groups").append(SUFFIX);
     builder.append("\nobjectClass: groupOfURLs");
     builder.append("\ncn: MyDGrp");
-    builder.append("\nmemberURL: ldap:///ou=people"+SUFFIX+"??sub?(objectclass=person)");
+    builder.append("\nmemberURL: ldap:///ou=people").append(SUFFIX)
+           .append("??sub?(objectclass=person)");
     TestCaseUtils.addEntries(builder.toString());
     //Verify the entry.
     Entry e =
