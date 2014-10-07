@@ -51,11 +51,15 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         private final ByteSequence normalizedAssertionValue;
 
         static DefaultAssertion equality(final ByteSequence normalizedAssertionValue) {
-            return new DefaultAssertion("equality", normalizedAssertionValue);
+            return named("equality", normalizedAssertionValue);
         }
 
         static DefaultAssertion approximate(final ByteSequence normalizedAssertionValue) {
-            return new DefaultAssertion("approximate", normalizedAssertionValue);
+            return named("approximate", normalizedAssertionValue);
+        }
+
+        static DefaultAssertion named(final String indexID, final ByteSequence normalizedAssertionValue) {
+            return new DefaultAssertion(indexID, normalizedAssertionValue);
         }
 
         private DefaultAssertion(final String indexID, final ByteSequence normalizedAssertionValue) {
@@ -92,7 +96,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         public String getIndexID() {
             return indexID;
         }
-    };
+    }
 
     private static final Assertion UNDEFINED_ASSERTION = new Assertion() {
         @Override

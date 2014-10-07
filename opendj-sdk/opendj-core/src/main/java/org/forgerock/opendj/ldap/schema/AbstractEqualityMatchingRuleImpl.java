@@ -39,8 +39,7 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  */
 abstract class AbstractEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
-    private final Collection<? extends Indexer> indexers =
-            Collections.singleton(new DefaultIndexer("equality"));
+    private final Collection<? extends Indexer> indexers = Collections.singleton(new DefaultIndexer("equality"));
 
     AbstractEqualityMatchingRuleImpl() {
         // Nothing to do.

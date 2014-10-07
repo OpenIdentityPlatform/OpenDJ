@@ -47,11 +47,19 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  */
 abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
-    private final Collection<? extends Indexer> indexers =
-            Collections.singleton(new DefaultIndexer("ordering"));
+    private final Collection<? extends Indexer> indexers;
 
+    private final String indexId;
+
+    /** Constructor for default matching rules. */
     AbstractOrderingMatchingRuleImpl() {
-        // Nothing to do.
+        this("ordering");
+    }
+
+    /** Constructor for non-default matching rules. */
+    AbstractOrderingMatchingRuleImpl(String indexId) {
+        this.indexId = indexId;
+        this.indexers = Collections.singleton(new DefaultIndexer(indexId));
     }
 
     /** {@inheritDoc} */
@@ -67,15 +75,14 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
 
             @Override
             public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                return factory.createRangeMatchQuery("ordering", ByteString.empty(), normAssertion, false, false);
+                return factory.createRangeMatchQuery(indexId, ByteString.empty(), normAssertion, false, false);
             }
         };
     }
 
     /** {@inheritDoc} */
     @Override
-    public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value)
-            throws DecodeException {
+    public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value) throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
             @Override
@@ -85,7 +92,36 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
 
             @Override
             public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                return factory.createRangeMatchQuery("ordering", normAssertion, ByteString.empty(), true, false);
+                return factory.createRangeMatchQuery(indexId, normAssertion, ByteString.empty(), true, false);
+            }
+        };
+    }
+
+    /**
+     * Retrieves the normalized form of the provided assertion value, which is
+     * best suited for efficiently performing greater than matching
+     * operations on that value. The assertion value is guaranteed to be valid
+     * against this matching rule's assertion syntax.
+     *
+     * @param schema
+     *            The schema in which this matching rule is defined.
+     * @param assertionValue
+     *            The syntax checked assertion value to be normalized.
+     * @return The normalized version of the provided assertion value.
+     * @throws DecodeException
+     *             if an syntax error occurred while parsing the value.
+     */
+    public Assertion getGreaterThanAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException {
+        final ByteString normAssertion = normalizeAttributeValue(schema, assertionValue);
+        return new Assertion() {
+            @Override
+            public ConditionResult matches(final ByteSequence attributeValue) {
+                return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) > 0);
+            }
+
+            @Override
+            public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+                return factory.createRangeMatchQuery(indexId, normAssertion, ByteString.empty(), false, false);
             }
         };
     }
@@ -103,7 +139,7 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
 
             @Override
             public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                return factory.createRangeMatchQuery("ordering", ByteString.empty(), normAssertion, false, true);
+                return factory.createRangeMatchQuery(indexId, ByteString.empty(), normAssertion, false, true);
             }
         };
     }
