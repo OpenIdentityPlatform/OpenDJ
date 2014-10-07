@@ -27,6 +27,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -311,31 +312,32 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 printer.addTitle(title, span);
                 printer.printTitle();
             } else {
-                app.getOutputStream().print("Time (seconds)");
-                app.getOutputStream().print(",");
-                app.getOutputStream().print("Recent throughput (ops/second)");
-                app.getOutputStream().print(",");
-                app.getOutputStream().print("Average throughput (ops/second)");
-                app.getOutputStream().print(",");
-                app.getOutputStream().print("Recent response time (milliseconds)");
-                app.getOutputStream().print(",");
-                app.getOutputStream().print("Average response time (milliseconds)");
+                final PrintStream out = app.getOutputStream();
+                out.print("Time (seconds)");
+                out.print(",");
+                out.print("Recent throughput (ops/second)");
+                out.print(",");
+                out.print("Average throughput (ops/second)");
+                out.print(",");
+                out.print("Recent response time (milliseconds)");
+                out.print(",");
+                out.print("Average response time (milliseconds)");
                 for (final double percentile : this.percentiles) {
-                    app.getOutputStream().print(",");
-                    app.getOutputStream().print(percentile);
-                    app.getOutputStream().print("% response time (milliseconds)");
+                    out.print(",");
+                    out.print(percentile);
+                    out.print("% response time (milliseconds)");
                 }
-                app.getOutputStream().print(",");
-                app.getOutputStream().print("Errors/second");
+                out.print(",");
+                out.print("Errors/second");
                 if (isAsync) {
-                    app.getOutputStream().print(",");
-                    app.getOutputStream().print("Requests/response");
+                    out.print(",");
+                    out.print("Requests/response");
                 }
                 for (final String column : additionalColumns) {
-                    app.getOutputStream().print(",");
-                    app.getOutputStream().print(column);
+                    out.print(",");
+                    out.print(column);
                 }
-                app.getOutputStream().println();
+                out.println();
                 printer = null;
             }
 
@@ -418,12 +420,13 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     printer.printRow(strings);
                 } else {
                     // Script-friendly.
-                    app.getOutputStream().print(averageDuration);
+                    final PrintStream out = app.getOutputStream();
+                    out.print(averageDuration);
                     for (final String s : strings) {
-                        app.getOutputStream().print(",");
-                        app.getOutputStream().print(s);
+                        out.print(",");
+                        out.print(s);
                     }
-                    app.getOutputStream().println();
+                    out.println();
                 }
             }
         }
