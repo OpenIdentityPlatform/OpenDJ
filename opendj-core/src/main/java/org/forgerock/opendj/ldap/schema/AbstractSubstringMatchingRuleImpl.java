@@ -34,7 +34,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -66,7 +65,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
      * <li>normFinal will contain "final"</li>
      * </ul>
      */
-    static final class DefaultSubstringAssertion implements Assertion {
+    final class DefaultSubstringAssertion implements Assertion {
         /** Normalized substring for the text before the first '*' character. */
         private final ByteString normInitial;
         /** Normalized substrings for all text chunks in between '*' characters. */
@@ -74,8 +73,9 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         /** Normalized substring for the text after the last '*' character. */
         private final ByteString normFinal;
 
-        private DefaultSubstringAssertion(final ByteString normInitial,
-                final ByteString[] normAnys, final ByteString normFinal) {
+
+        private DefaultSubstringAssertion(final ByteString normInitial, final ByteString[] normAnys,
+                final ByteString normFinal) {
             this.normInitial = normInitial;
             this.normAnys = normAnys;
             this.normFinal = normFinal;
@@ -149,7 +149,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             final Collection<T> subqueries = new LinkedList<T>();
             if (normInitial != null) {
                 // relies on the fact that equality indexes are also ordered
-                subqueries.add(rangeMatch(factory, "equality", normInitial));
+                subqueries.add(rangeMatch(factory, equalityIndexId, normInitial));
             }
             if (normAnys != null) {
                 for (ByteString normAny : normAnys) {
@@ -163,6 +163,11 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 // Add this one last to minimize the risk to run the same search twice
                 // (possible overlapping with the use of equality index at the start of this method)
                 substringMatch(factory, normInitial, subqueries);
+            }
+
+            if (normInitial == null && (normAnys == null || normAnys.length == 0) && normFinal == null) {
+                // Can happen with a filter like "cn:en.6:=*", just return an empty record
+                return factory.createMatchAllQuery();
             }
             return factory.createIntersectionQuery(subqueries);
         }
@@ -197,7 +202,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             // There are two cases, depending on whether the user-provided
             // substring is smaller than the configured index substring length or not.
             if (normSubstring.length() < substrLength) {
-                subqueries.add(rangeMatch(factory, "substring", normSubstring));
+                subqueries.add(rangeMatch(factory, substringIndexId, normSubstring));
             } else {
                 // Break the value up into fragments of length equal to the
                 // index substring length, and read those keys.
@@ -213,7 +218,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 }
 
                 for (ByteSequence key : substringKeys) {
-                    subqueries.add(factory.createExactMatchQuery("substring", key));
+                    subqueries.add(factory.createExactMatchQuery(substringIndexId, key));
                 }
             }
         }
@@ -243,15 +248,27 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         /** {@inheritDoc} */
         @Override
         public String getIndexID() {
-            return "substring";
+            return substringIndexId;
         }
     }
 
-    private final Collection<? extends Indexer> indexers =
-              Collections.singleton(new SubstringIndexer());
+    private final Collection<? extends Indexer> indexers = Collections.singleton(new SubstringIndexer());
 
+    /** Identifier of the substring index. */
+    private final String substringIndexId;
+
+    /** Identifier of the equality index. */
+    private final String equalityIndexId;
+
+    /** Constructor for default matching rules. */
     AbstractSubstringMatchingRuleImpl() {
-        // Nothing to do.
+        this("substring", "equality");
+    }
+
+    /** Constructor for non-default matching rules. */
+    AbstractSubstringMatchingRuleImpl(String substringIndexId, String equalityIndexId) {
+        this.substringIndexId = substringIndexId;
+        this.equalityIndexId = equalityIndexId;
     }
 
     /** {@inheritDoc} */
@@ -276,7 +293,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
         ByteString bytes = evaluateEscapes(reader, escapeChars, false);
         if (bytes.length() > 0) {
-            initialString = normalizeSubString(schema, bytes);
+            initialString = bytes;
         }
         if (reader.remaining() == 0) {
             throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS.get(assertionValue));
@@ -292,10 +309,10 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 if (anyStrings == null) {
                     anyStrings = new LinkedList<ByteSequence>();
                 }
-                anyStrings.add(normalizeSubString(schema, bytes));
+                anyStrings.add(bytes);
             } else {
                 if (bytes.length() > 0) {
-                    finalString = normalizeSubString(schema, bytes);
+                    finalString = bytes;
                 }
                 break;
             }
@@ -399,17 +416,13 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                     }
                 }
             }
-            final LocalizableMessage message = ERR_INVALID_ESCAPE_CHAR.get(reader.getString(), c1);
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_INVALID_ESCAPE_CHAR.get(reader.getString(), c1));
         }
 
         // The two positions must be the hex characters that
         // comprise the escaped value.
         if (reader.remaining() == 0) {
-            final LocalizableMessage message =
-                    ERR_HEX_DECODE_INVALID_LENGTH.get(reader.getString());
-
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_HEX_DECODE_INVALID_LENGTH.get(reader.getString()));
         }
 
         final char c2 = reader.read();
@@ -469,9 +482,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             b |= 0x0F;
             break;
         default:
-            final LocalizableMessage message =
-                    ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] { c1, c2 }), c1);
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_HEX_DECODE_INVALID_CHARACTER.get(new String(new char[] { c1, c2 }), c1));
         }
         return (char) b;
     }

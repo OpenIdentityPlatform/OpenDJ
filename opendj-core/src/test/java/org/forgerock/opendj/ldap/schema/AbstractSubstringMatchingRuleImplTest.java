@@ -62,17 +62,24 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
 
     }
 
-    private static class FakeIndexQueryFactory implements IndexQueryFactory<String> {
+    static class FakeIndexQueryFactory implements IndexQueryFactory<String> {
 
         private final IndexingOptions options;
+        private final boolean normalizedValuesAreReadable;
 
         public FakeIndexQueryFactory(IndexingOptions options) {
+            this(options, true);
+        }
+
+        public FakeIndexQueryFactory(IndexingOptions options, boolean normalizedValuesAreReadable) {
             this.options = options;
+            this.normalizedValuesAreReadable = normalizedValuesAreReadable;
         }
 
         @Override
         public String createExactMatchQuery(String indexID, ByteSequence key) {
-            return "exactMatch(" + indexID + ", value=='" + key + "')";
+            String keyValue = normalizedValuesAreReadable ? key.toString() : key.toByteString().toHexString();
+            return "exactMatch(" + indexID + ", value=='" + keyValue + "')";
         }
 
         @Override
@@ -81,13 +88,17 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         }
 
         @Override
-        public String createRangeMatchQuery(String indexID, ByteSequence lower,
-                ByteSequence upper, boolean lowerIncluded, boolean upperIncluded) {
+        public String createRangeMatchQuery(String indexID, ByteSequence lower, ByteSequence upper,
+                boolean lowerIncluded, boolean upperIncluded) {
             final StringBuilder sb = new StringBuilder("rangeMatch");
             sb.append("(");
             sb.append(indexID);
             sb.append(", '");
-            sb.append(lower);
+            if (normalizedValuesAreReadable) {
+                sb.append(lower);
+            } else if (!lower.isEmpty()) {
+                sb.append(lower.toByteString().toHexString());
+            }
             sb.append("' <");
             if (lowerIncluded) {
                 sb.append("=");
@@ -97,7 +108,11 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
                 sb.append("=");
             }
             sb.append(" '");
-            sb.append(upper);
+            if (normalizedValuesAreReadable) {
+                sb.append(upper);
+            } else if (!upper.isEmpty()) {
+                sb.append(upper.toByteString().toHexString());
+            }
             sb.append("')");
             return sb.toString();
         }
@@ -123,7 +138,7 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
         return new FakeSubstringMatchingRuleImpl();
     }
 
-    private IndexingOptions newIndexingOptions() {
+    static IndexingOptions newIndexingOptions() {
         final IndexingOptions options = mock(IndexingOptions.class);
         when(options.substringKeySize()).thenReturn(3);
         return options;
