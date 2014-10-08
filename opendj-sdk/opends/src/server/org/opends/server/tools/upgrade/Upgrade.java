@@ -336,6 +336,18 @@ public final class Upgrade
         "add: ds-cfg-default-root-privilege-name",
         "ds-cfg-default-root-privilege-name: changelog-read"));
 
+    /** See OPENDJ-1580 */
+    register("2.7.0.10908",
+        addConfigEntry(INFO_UPGRADE_TASK_10908_SUMMARY.get(),
+            "dn: cn=PKCS5S2,cn=Password Storage Schemes,cn=config",
+            "changetype: add",
+            "objectClass: top",
+            "objectClass: ds-cfg-password-storage-scheme",
+            "objectClass: ds-cfg-pkcs5s2-password-storage-scheme",
+            "cn: PKCS5S2",
+            "ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme",
+            "ds-cfg-enabled: true"));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
