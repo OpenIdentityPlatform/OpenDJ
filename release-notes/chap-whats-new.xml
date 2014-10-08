@@ -167,7 +167,7 @@
     <listitem>
      <para>
       <link xlink:show="new"
-            xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/install-guide/"><citetitle
+            xlink:href="${coreDocBase}/install-guide/"><citetitle
               >OpenDJ ${stableServerVersion} Installation Guide</citetitle></link>
      </para>
     </listitem>
@@ -175,7 +175,7 @@
     <listitem>
      <para>
       <link xlink:show="new"
-            xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/admin-guide/"><citetitle
+            xlink:href="${coreDocBase}/admin-guide/"><citetitle
               >OpenDJ ${stableServerVersion} Administration Guide</citetitle></link>
      </para>
     </listitem>
@@ -191,7 +191,7 @@
     <listitem>
      <para>
       <link xlink:show="new"
-            xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/dev-guide/"><citetitle
+            xlink:href="${coreDocBase}/dev-guide/"><citetitle
               >OpenDJ ${stableServerVersion} Developer's Guide</citetitle></link>
      </para>
     </listitem>
