@@ -33,6 +33,7 @@ import java.util.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.MatchedValuesControl;
@@ -45,7 +46,6 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
@@ -78,11 +78,7 @@ public class SearchOperationTestCase extends OperationTestCase
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
       Entry suffixEntry = StaticUtils.createEntry(suffixDN);
-      AddOperation addOperation =
-           connection.processAdd(suffixEntry.getName(),
-                                 suffixEntry.getObjectClasses(),
-                                 suffixEntry.getUserAttributes(),
-                                 suffixEntry.getOperationalAttributes());
+      AddOperation addOperation = connection.processAdd(suffixEntry);
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
       assertNotNull(DirectoryServer.getEntry(suffixEntry.getName()));
     }
@@ -92,11 +88,7 @@ public class SearchOperationTestCase extends OperationTestCase
     if (DirectoryServer.getEntry(baseDN) == null)
     {
       Entry baseEntry = StaticUtils.createEntry(baseDN);
-      AddOperation addOperation =
-           connection.processAdd(baseEntry.getName(),
-                                 baseEntry.getObjectClasses(),
-                                 baseEntry.getUserAttributes(),
-                                 baseEntry.getOperationalAttributes());
+      AddOperation addOperation = connection.processAdd(baseEntry);
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
       assertNotNull(DirectoryServer.getEntry(baseEntry.getName()));
     }
@@ -105,11 +97,7 @@ public class SearchOperationTestCase extends OperationTestCase
     Entry ldapSubentry = TestCaseUtils.makeEntry(
          "dn: cn=subentry," + BASE,
          "objectclass: ldapsubentry");
-    AddOperation addOperation =
-         connection.processAdd(ldapSubentry.getName(),
-                               ldapSubentry.getObjectClasses(),
-                               ldapSubentry.getUserAttributes(),
-                               ldapSubentry.getOperationalAttributes());
+    AddOperation addOperation = connection.processAdd(ldapSubentry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(ldapSubentry.getName()));
 
@@ -153,11 +141,7 @@ public class SearchOperationTestCase extends OperationTestCase
     // The add operation changes the attributes, so let's duplicate the entry.
     Entry duplicateEntry = testEntry.duplicate(false);
 
-    addOperation =
-         connection.processAdd(duplicateEntry.getName(),
-                               duplicateEntry.getObjectClasses(),
-                               duplicateEntry.getUserAttributes(),
-                               duplicateEntry.getOperationalAttributes());
+    addOperation = connection.processAdd(duplicateEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(testEntry.getName()));
 
@@ -168,11 +152,7 @@ public class SearchOperationTestCase extends OperationTestCase
          "objectclass: referral",
          "ref: ldap://hostb/OU=People,O=MNN,C=US",
          "ref: ldap://hostc/OU=People,O=MNN,C=US");
-    addOperation =
-         connection.processAdd(referralEntry.getName(),
-                               referralEntry.getObjectClasses(),
-                               referralEntry.getUserAttributes(),
-                               referralEntry.getOperationalAttributes());
+    addOperation = connection.processAdd(referralEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(referralEntry.getName()));
 
@@ -181,11 +161,7 @@ public class SearchOperationTestCase extends OperationTestCase
         "objectclass: top",
         "objectclass: organizationalunit",
         "ou: level1");
-    addOperation =
-        connection.processAdd(level1Entry.getName(),
-                              level1Entry.getObjectClasses(),
-                              level1Entry.getUserAttributes(),
-                              level1Entry.getOperationalAttributes());
+    addOperation = connection.processAdd(level1Entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(level1Entry.getName()));
 
@@ -194,11 +170,7 @@ public class SearchOperationTestCase extends OperationTestCase
         "objectclass: top",
         "objectclass: organizationalunit",
         "ou: level2");
-    addOperation =
-        connection.processAdd(level2Entry.getName(),
-                              level2Entry.getObjectClasses(),
-                              level2Entry.getUserAttributes(),
-                              level2Entry.getOperationalAttributes());
+    addOperation = connection.processAdd(level2Entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(level2Entry.getName()));
 
@@ -209,11 +181,7 @@ public class SearchOperationTestCase extends OperationTestCase
         "ref: ldap://hostb/OU=People,O=MNN,C=US",
         "ref: ldap://hostc/OU=People,O=MNN,C=US",
         "ref: ldap://hostd/OU=People,O=MNN,C=US");
-   addOperation =
-        connection.processAdd(referral2Entry.getName(),
-                              referral2Entry.getObjectClasses(),
-                              referral2Entry.getUserAttributes(),
-                              referral2Entry.getOperationalAttributes());
+    addOperation = connection.processAdd(referral2Entry);
    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
    assertNotNull(DirectoryServer.getEntry(referral2Entry.getName()));
   }

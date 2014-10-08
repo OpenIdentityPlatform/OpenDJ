@@ -24,42 +24,41 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS.
  */
-
-
 package org.opends.server.tasks;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.opends.server.api.TestTaskListener;
+import java.io.File;
+import java.util.UUID;
+
+import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.opends.server.TestCaseUtils;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.api.TestTaskListener.*;
 import static org.testng.Assert.*;
-
-import java.util.UUID;
-import java.io.File;
 
 /**
  * Tests the backup and restore tasks.
  */
+@SuppressWarnings("javadoc")
 public class TestBackupAndRestore extends TasksTestCase
 {
   @BeforeClass
   public final void setUp() throws Exception {
     TestCaseUtils.startServer();
-    TestTaskListener.registerListeners();
+    registerListeners();
   }
-
 
   @AfterClass
   public final void cleanUp() throws Exception {
-    TestTaskListener.deregisterListeners();
+    deregisterListeners();
   }
-
 
   /**
    * Backup and restore tasks test data provider.
@@ -74,8 +73,7 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // A valid backup task.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-backup",
@@ -89,8 +87,7 @@ public class TestBackupAndRestore extends TasksTestCase
               // Incompatible settings of backup-directory-path and
               // incremental-base-id.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-backup",
@@ -104,8 +101,7 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // Incompatible settings for backend-id and backup-all.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-backup",
@@ -118,8 +114,7 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // Neither of backend-id or backup-all specified.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-backup",
@@ -130,8 +125,7 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // Incompatible settings for incremental and incremental-base-id.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-backup",
@@ -145,8 +139,7 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // Incompatible settings for hash and sign-hash.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-backup",
@@ -161,8 +154,7 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // Specified backend does not support backup.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-backup",
@@ -174,22 +166,19 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // A valid restore task.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-restore",
                    "ds-task-class-name: org.opends.server.tasks.RestoreTask",
-                   "ds-backup-directory-path: bak" + File.separator +
-                        "userRoot"
+                   "ds-backup-directory-path: bak" + File.separator + "userRoot"
               ),
               TaskState.COMPLETED_SUCCESSFULLY
          },
          {
               // Non-existent restore directory-path.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-restore",
@@ -201,8 +190,7 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // Invalid restore directory-path.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-restore",
@@ -214,22 +202,18 @@ public class TestBackupAndRestore extends TasksTestCase
          {
               // Invalid restore backup-id.
               TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() +
-                        ",cn=Scheduled Tasks,cn=Tasks",
+                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
                    "objectclass: top",
                    "objectclass: ds-task",
                    "objectclass: ds-task-restore",
                    "ds-task-class-name: org.opends.server.tasks.RestoreTask",
-                   "ds-backup-directory-path: bak" + File.separator +
-                        "userRoot",
+                   "ds-backup-directory-path: bak" + File.separator + "userRoot",
                    "ds-backup-id: monday"
               ),
               TaskState.STOPPED_BY_ERROR
          },
     };
   }
-
-
 
   /**
    * Test that various backup and restore task definitions complete with the
@@ -238,38 +222,32 @@ public class TestBackupAndRestore extends TasksTestCase
    * @param expectedState The expected completion state of the task.
    */
   @Test(dataProvider = "backups")
-  public void testBackups(Entry taskEntry, TaskState expectedState)
-       throws Exception
+  public void testBackups(Entry taskEntry, TaskState expectedState) throws Exception
   {
-    int backupBeginCount  = TestTaskListener.backupBeginCount.get();
-    int backupEndCount    = TestTaskListener.backupEndCount.get();
-    int restoreBeginCount = TestTaskListener.restoreBeginCount.get();
-    int restoreEndCount   = TestTaskListener.restoreEndCount.get();
+    final int backupBeginCountStart = backupBeginCount.get();
+    final int backupEndCountStart = backupEndCount.get();
+    final int restoreBeginCountStart = restoreBeginCount.get();
+    final int restoreEndCountStart = restoreEndCount.get();
 
-    ObjectClass backupClass =
-         DirectoryServer.getObjectClass("ds-task-backup", true);
+    ObjectClass backupClass = DirectoryServer.getObjectClass("ds-task-backup", true);
 
-    testTask(taskEntry, expectedState);
-    if ((expectedState == TaskState.COMPLETED_SUCCESSFULLY) ||
-        (expectedState == TaskState.COMPLETED_WITH_ERRORS))
+    testTask(taskEntry, expectedState, 30);
+    if (expectedState == TaskState.COMPLETED_SUCCESSFULLY ||
+        expectedState == TaskState.COMPLETED_WITH_ERRORS)
     {
       if (taskEntry.hasObjectClass(backupClass))
       {
         // The backup task can back up multiple backends at the same time, so
         // we the count may be incremented by more than one in those cases.
-        assertTrue(TestTaskListener.backupBeginCount.get() > backupBeginCount);
-        assertTrue(TestTaskListener.backupEndCount.get() > backupEndCount);
-        assertEquals(TestTaskListener.backupBeginCount.get(),
-                     TestTaskListener.backupEndCount.get());
+        assertThat(backupBeginCount.get()).isGreaterThan(backupBeginCountStart);
+        assertThat(backupEndCount.get()).isGreaterThan(backupEndCountStart);
+        assertEquals(backupBeginCount.get(), backupEndCount.get());
       }
       else
       {
-        assertEquals(TestTaskListener.restoreBeginCount.get(),
-                     (restoreBeginCount+1));
-        assertEquals(TestTaskListener.restoreEndCount.get(),
-                     (restoreEndCount+1));
-        assertEquals(TestTaskListener.restoreBeginCount.get(),
-                     TestTaskListener.restoreEndCount.get());
+        assertEquals(restoreBeginCount.get(), restoreBeginCountStart + 1);
+        assertEquals(restoreEndCount.get(), restoreEndCountStart + 1);
+        assertEquals(restoreBeginCount.get(), restoreEndCount.get());
       }
     }
   }

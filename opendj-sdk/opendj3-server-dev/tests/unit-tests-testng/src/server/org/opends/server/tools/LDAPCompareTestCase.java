@@ -26,21 +26,18 @@
  */
 package org.opends.server.tools;
 
-
-
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
@@ -48,10 +45,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the LDAPCompare tool.
@@ -534,7 +530,7 @@ public class LDAPCompareTestCase
   public void testMultipleCompareAllTrue() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Backend memoryBackend =
+    Backend<?> memoryBackend =
         DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
     String dn1 = "arg=success,o=test1,o=test";
     String dn2 = "arg=success,o=test2,o=test";
@@ -587,7 +583,7 @@ public class LDAPCompareTestCase
   public void testMultipleCompareOneCompareIsFalse() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Backend memoryBackend =
+    Backend<?> memoryBackend =
         DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
     String dn1 = "arg=success,o=test1,o=test";
     String dn2 = "arg=fail,o=test2,o=test";
@@ -640,7 +636,7 @@ public class LDAPCompareTestCase
   public void testMultipleCompareOneNoSuchObject() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    Backend memoryBackend =
+    Backend<?> memoryBackend =
         DirectoryServer.getBackend(TestCaseUtils.TEST_BACKEND_ID);
     String dn1 = "arg=success,o=test1,o=test";
     addEntriesUpToParentDN(memoryBackend, DN.valueOf(dn1));
@@ -681,8 +677,7 @@ public class LDAPCompareTestCase
   }
 
 
-  private void addEntriesUpToParentDN(Backend backend, DN entryDN)
-      throws Exception
+  private void addEntriesUpToParentDN(Backend<?> backend, DN entryDN) throws Exception
   {
     if (!backend.entryExists(entryDN.parent()))
     {
@@ -904,11 +899,7 @@ public class LDAPCompareTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -977,11 +968,7 @@ public class LDAPCompareTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1052,11 +1039,7 @@ public class LDAPCompareTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1108,11 +1091,7 @@ public class LDAPCompareTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1184,11 +1163,7 @@ public class LDAPCompareTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1252,11 +1227,7 @@ public class LDAPCompareTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1318,11 +1289,7 @@ public class LDAPCompareTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 

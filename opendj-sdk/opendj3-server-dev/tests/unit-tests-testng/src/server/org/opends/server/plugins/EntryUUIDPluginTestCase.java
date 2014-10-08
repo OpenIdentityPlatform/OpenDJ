@@ -28,34 +28,32 @@ package org.opends.server.plugins;
 
 
 
-import static org.testng.Assert.*;
-
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.EntryUUIDPluginCfgDefn;
 import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the
@@ -343,11 +341,7 @@ public class EntryUUIDPluginTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     e = DirectoryConfig.getEntry(e.getName());
@@ -375,11 +369,7 @@ public class EntryUUIDPluginTestCase
                                       "cn: test",
                                       "entryUUID: " + UUID.randomUUID());
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     e = DirectoryConfig.getEntry(e.getName());

@@ -26,28 +26,23 @@
  */
 package org.opends.server.tools;
 
-
-
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
-import static org.testng.Assert.*;
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the LDAPDelete tool.
@@ -506,9 +501,6 @@ public class LDAPDeleteTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
-                            "config" + File.separator + "client.truststore";
-
     String[] args =
     {
       "-h", "127.0.0.1",
@@ -603,11 +595,7 @@ public class LDAPDeleteTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -730,11 +718,7 @@ public class LDAPDeleteTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -786,11 +770,7 @@ public class LDAPDeleteTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -833,11 +813,7 @@ public class LDAPDeleteTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 

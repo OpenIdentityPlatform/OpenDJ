@@ -28,6 +28,7 @@ package org.opends.server.extensions;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SASLMechanismHandler;
@@ -41,11 +42,11 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -71,14 +72,11 @@ public class PlainSASLMechanismHandlerTestCase
   /**
    * Tests to ensure that the SASL PLAIN mechanism is loaded and available in
    * the server, and that it reports that it is password based and not secure.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testSASLPlainLoaded()
   {
-    SASLMechanismHandler handler =
-         DirectoryServer.getSASLMechanismHandler("PLAIN");
+    SASLMechanismHandler<?> handler = DirectoryServer.getSASLMechanismHandler("PLAIN");
     assertNotNull(handler);
 
     assertTrue(handler.isPasswordBased("PLAIN"));
@@ -93,11 +91,9 @@ public class PlainSASLMechanismHandlerTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testSASLPlainAdvertised()
-         throws Exception
+  public void testSASLPlainAdvertised() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation op =
          conn.processSearch(ByteString.empty(), SearchScope.BASE_OBJECT,
               LDAPFilter.decode("(supportedSASLMechanisms=PLAIN)"));
@@ -159,13 +155,9 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.toString());
+                   "userPassword: " + password);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -208,13 +200,9 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.toString());
+                   "userPassword: " + password);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -258,13 +246,9 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.toString());
+                   "userPassword: " + password);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -308,13 +292,9 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.toString());
+                   "userPassword: " + password);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -359,13 +339,9 @@ public class PlainSASLMechanismHandlerTestCase
                    "givenName: Test",
                    "sn: User",
                    "cn: Test User",
-                   "userPassword: " + password.toString());
+                   "userPassword: " + password);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -498,11 +474,8 @@ public class PlainSASLMechanismHandlerTestCase
                    "cn: Test User",
                    "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    InternalClientConnection.getRootConnection();
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 

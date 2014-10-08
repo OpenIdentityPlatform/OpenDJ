@@ -71,15 +71,20 @@ import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.Schema;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
 
+import com.forgerock.opendj.util.OperatingSystem;
+
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
-import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * This class defines some utility functions which can be used by test cases.
@@ -473,7 +478,7 @@ public final class TestCaseUtils {
       ConfigurationFramework.getInstance()
           .initialize(testInstallRoot.getAbsolutePath(),
               testInstanceRoot.getAbsolutePath());
-      
+
       AccessLogger.getInstance().addLogPublisher(
           (AccessLogPublisher) TextAccessLogPublisher
               .getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));
@@ -1928,17 +1933,17 @@ public final class TestCaseUtils {
 
   public static <T> Set<T> newSet(T... elems)
   {
-    return new HashSet<T>(Arrays.asList(elems));
+    return newHashSet(elems);
   }
 
   public static <T> SortedSet<T> newSortedSet(T... elems)
   {
-    return new TreeSet<T>(Arrays.asList(elems));
+    return newTreeSet(elems);
   }
 
   public static <T> List<T> newList(T... elems)
   {
-    return new ArrayList<T>(Arrays.asList(elems));
+    return newArrayList(elems);
   }
 
   public static HashSet<PluginType> getPluginTypes(Entry e)

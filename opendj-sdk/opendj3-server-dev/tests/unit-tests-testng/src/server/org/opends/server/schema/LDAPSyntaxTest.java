@@ -31,6 +31,10 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.AddOperation;
@@ -38,16 +42,13 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -57,18 +58,14 @@ import static org.testng.Assert.*;
 public class LDAPSyntaxTest extends AttributeSyntaxTest
 {
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected AttributeSyntax<?> getRule()
   {
     return new LDAPSyntaxDescriptionSyntax();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   @DataProvider(name="acceptableValues")
   public Object[][] createAcceptableValues()
@@ -343,13 +340,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       "cn: syntax-test",
       "sn: xyz",
       "test-attr-regex: invalid regex");
-      InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation = conn.processAdd(entry.getName(),
-                                     entry.getObjectClasses(),
-                                     entry.getUserAttributes(),
-                                     entry.getOperationalAttributes());
+      AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(),
             ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
@@ -446,13 +437,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       "cn: syntax-test",
       "sn: xyz",
       "test-attr-enum: arbit-day");
-      InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation = conn.processAdd(entry.getName(),
-                                     entry.getObjectClasses(),
-                                     entry.getUserAttributes(),
-                                     entry.getOperationalAttributes());
+      AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(),
             ResultCode.INVALID_ATTRIBUTE_SYNTAX);
 
@@ -596,29 +581,30 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
 
 
-  //Parses the OID from the syntax defitions.
+  /** Parses the OID from the syntax defitions. */
   private String getOIDFromLdapSyntax(String valueStr)
   {
     int pos    = 0;
     int length = valueStr.length();
 
-    while ((pos < length) && (valueStr.charAt(pos) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
     // The next character must be an open parenthesis.  If it is not, then that
     // is an error.
-    char c = valueStr.charAt(pos++);
+    assertEquals(valueStr.charAt(pos++), '(');
 
     // Skip over any spaces immediately following the opening parenthesis.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && valueStr.charAt(pos) == ' ')
     {
       pos++;
     }
     int oidStartPos = pos;
 
-    while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
-          && (c = valueStr.charAt(pos)) != ')')
+    while (pos < length
+        && valueStr.charAt(pos) != ' '
+        && valueStr.charAt(pos) != ')')
     {
       pos++;
     }
@@ -626,7 +612,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
   }
 
 
-  //Adds a substitutionsyntax to the schema.
+  /** Adds a substitutionsyntax to the schema. */
   private void addSubtitutionSyntax() throws Exception
   {
     //Add the substitution syntax for an unimplemented syntax.
@@ -642,7 +628,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
 
 
-  //Deletes the substitutionSyntax from the schema.
+  /** Deletes the substitutionSyntax from the schema. */
   private void deleteSubstitutionSyntax() throws Exception
   {
     //delete the substitution syntax.
@@ -657,7 +643,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
   }
 
 
-   //Adds a regex syntax to the schema.
+  /** Adds a regex syntax to the schema. */
   private void addRegexSyntax() throws Exception
   {
     //Add the substitution syntax for an unimplemented syntax.
@@ -683,7 +669,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
 
 
-  //Deletes the regex syntax from the schema.
+  /** Deletes the regex syntax from the schema. */
   private void deleteRegexSyntax() throws Exception
   {
     //delete the substitution syntax.
@@ -711,7 +697,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
 
 
-     //Adds an enum syntax to the schema.
+  /** Adds an enum syntax to the schema. */
   private void addEnumSyntax() throws Exception
   {
     //Add the enum syntax.
@@ -737,7 +723,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
 
 
-  //Deletes the enum syntax from the schema.
+  /** Deletes the enum syntax from the schema. */
   private void deleteEnumSyntax() throws Exception
   {
     int resultCode = TestCaseUtils.applyModifications(true,

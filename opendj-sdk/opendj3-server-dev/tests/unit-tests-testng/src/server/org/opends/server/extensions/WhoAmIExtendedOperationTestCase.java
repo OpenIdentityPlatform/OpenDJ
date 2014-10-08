@@ -26,17 +26,14 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.AddOperation;
@@ -50,14 +47,16 @@ import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.LDAPAuthenticationHandler;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.testng.Assert.*;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the "Who Am I?" extended operation.
@@ -139,15 +138,11 @@ public class WhoAmIExtendedOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOp = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                         e.getUserAttributes(),
-                                         e.getOperationalAttributes());
+    AddOperation addOp = getRootConnection().processAdd(e);
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
 
 
-    conn = new InternalClientConnection(new AuthenticationInfo(e, false));
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo(e, false));
     ExtendedOperation extOp =
          conn.processExtendedOperation(OID_WHO_AM_I_REQUEST, null);
     assertEquals(extOp.getResultCode(), ResultCode.SUCCESS);
@@ -242,11 +237,7 @@ public class WhoAmIExtendedOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOp = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                         e.getUserAttributes(),
-                                         e.getOperationalAttributes());
+    AddOperation addOp = getRootConnection().processAdd(e);
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
 
 

@@ -27,25 +27,24 @@
 
 package org.opends.server.tasks;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.DataProvider;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.AddOperation;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.api.TestTaskListener;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.backends.task.TaskState;
-
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.util.UUID;
 
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.TestTaskListener;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ObjectClass;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
 
 /**
  * Tests invocation of the import and export tasks, but does not aim to
@@ -408,15 +407,7 @@ public class TestImportAndExport extends TasksTestCase
   public void testBadTask(Entry taskEntry, ResultCode resultCode)
       throws Exception
   {
-    InternalClientConnection connection =
-        InternalClientConnection.getRootConnection();
-
-    // Add the task.
-    AddOperation addOperation =
-        connection.processAdd(taskEntry.getName(),
-                              taskEntry.getObjectClasses(),
-                              taskEntry.getUserAttributes(),
-                              taskEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(taskEntry);
     assertEquals(addOperation.getResultCode(), resultCode);
   }
 

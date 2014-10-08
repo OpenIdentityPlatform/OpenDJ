@@ -29,26 +29,27 @@ package org.opends.server.extensions;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
 import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -349,12 +350,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -372,7 +368,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -414,12 +410,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -436,7 +427,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -478,12 +469,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -534,12 +520,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -557,7 +538,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -599,12 +580,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -622,7 +598,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -664,12 +640,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -687,7 +658,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -729,12 +700,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -752,7 +718,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -794,12 +760,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -816,7 +777,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -858,12 +819,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -880,7 +836,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -922,12 +878,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -945,7 +896,7 @@ public class PasswordModifyExtendedOperationTestCase
                  0);
 
     // Perform an internal bind to verify the password was actually changed.
-    conn = new InternalClientConnection(new AuthenticationInfo());
+    InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo());
     BindOperation bindOperation =
          conn.processSimpleBind(userEntry.getName(),
                                 ByteString.valueOf("newPassword"));
@@ -1169,12 +1120,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1223,15 +1169,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-pre-encoded-passwords";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1293,12 +1235,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     /* Make sure preEncoded passwords are rejected */
@@ -1307,8 +1244,7 @@ public class PasswordModifyExtendedOperationTestCase
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "false")));
-    ModifyOperation modifyOperation =
-        conn.processModify(DN.valueOf(dnStr), mods);
+    ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -1355,12 +1291,7 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     /* Make sure preEncoded passwords are rejected */
@@ -1369,8 +1300,7 @@ public class PasswordModifyExtendedOperationTestCase
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "false")));
-    ModifyOperation modifyOperation =
-        conn.processModify(DN.valueOf(dnStr), mods);
+    ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -1483,15 +1413,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-user-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1551,15 +1477,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-allow-user-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1620,15 +1542,10 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-password-change-requires-current-password";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1689,15 +1606,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-authentication";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1757,15 +1670,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1825,15 +1734,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-require-secure-password-changes";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1894,15 +1799,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-min-password-age";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -1961,15 +1862,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr  = "ds-cfg-min-password-age";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -2030,16 +1927,10 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-
-
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr1 = "ds-cfg-max-password-age";
     String attr2 = "ds-cfg-expire-passwords-without-warning";
@@ -2112,16 +2003,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr1 = "ds-cfg-max-password-age";
     String attr2 = "ds-cfg-expire-passwords-without-warning";
@@ -2200,16 +2086,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -2270,16 +2151,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-generator";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -2339,16 +2215,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-validator";
     String valDN =
@@ -2409,16 +2280,11 @@ public class PasswordModifyExtendedOperationTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-
+    InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
     String attr = "ds-cfg-password-validator";
     String valDN =
@@ -2493,10 +2359,7 @@ public class PasswordModifyExtendedOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2568,10 +2431,7 @@ public class PasswordModifyExtendedOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 

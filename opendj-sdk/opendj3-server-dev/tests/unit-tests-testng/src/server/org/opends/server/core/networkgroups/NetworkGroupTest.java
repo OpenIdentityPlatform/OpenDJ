@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -37,9 +38,7 @@ import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
@@ -56,9 +55,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class NetworkGroupTest extends DirectoryServerTestCase {
   //===========================================================================
-  //
   //                      B E F O R E    C L A S S
-  //
   //===========================================================================
 
   /**
@@ -75,9 +72,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   }
 
   //===========================================================================
-  //
   //                      D A T A    P R O V I D E R
-  //
   //===========================================================================
 
   /**
@@ -276,9 +271,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   }
 
 
-  /**
-   * Provides the priorities for 3 network groups
-   */
+  /** Provides the priorities for 3 network groups. */
   @DataProvider (name = "PrioritySet_0")
   public Object[][] initPrioritySet_0()
   {
@@ -314,9 +307,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
 
   //===========================================================================
-  //
   //                        T E S T   C A S E S
-  //
   //===========================================================================
 
 
@@ -409,8 +400,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null,
             existsInDefault);
 
-    // Dump the default network group
-    dump(defaultNG, "defaultNetworkGroup> ");
 
     // let's get the admin network group -- it should always exist
     NetworkGroup adminNG = NetworkGroup.getAdminNetworkGroup();
@@ -420,8 +409,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     doCheckNetworkGroup(adminNG, dnToSearch, dnSubordinate, null,
             existsInAdmin);
 
-    // Dump the default network group
-    dump(adminNG, "adminNetworkGroup> ");
 
     // let's get the internal network group -- it should always exist
     NetworkGroup internalNG = NetworkGroup.getInternalNetworkGroup();
@@ -430,9 +417,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // let's check the routing through the network group
     doCheckNetworkGroup(internalNG, dnToSearch, dnSubordinate, null,
             existsInInternal);
-
-    // Dump the default network group
-    dump(internalNG, "internalNetworkGroup> ");
   }
 
 
@@ -1068,15 +1052,10 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       int expectedNamingContexts
       ) throws Exception
   {
-    SearchOperation search = connection.processSearch(
-        DN.valueOf(""),
-        SearchScope.SINGLE_LEVEL,
-        LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+    SearchOperation search = connection.processSearch("", SearchScope.SINGLE_LEVEL, "(objectClass=*)");
 
     // Check the number of found naming context
-    ResultCode expectedRC =
-      (shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
-    assertEquals(search.getResultCode(), expectedRC);
+    assertEquals(search.getResultCode(), shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
     if (shouldExist)
     {
       assertEquals(search.getEntriesSent(), expectedNamingContexts);
@@ -1097,21 +1076,10 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       boolean shouldExist
       ) throws Exception
   {
-    SearchOperation search = connection.processSearch(
-        DN.valueOf(baseDN),
-        SearchScope.BASE_OBJECT,
-        LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+    SearchOperation search = connection.processSearch(baseDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
 
     // Compare the result code with the expected one
-    ResultCode resultCode = search.getResultCode();
-    if (shouldExist)
-    {
-      assertEquals(resultCode, ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(resultCode, ResultCode.NO_SUCH_OBJECT);
-    }
+    assertEquals(search.getResultCode(), shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
   }
 
 
@@ -1133,12 +1101,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
         "objectClass: organization",
         "o: " + namingAttribute);
 
-   AddOperation addOperation = connection.processAdd(
-       e.getName(),
-       e.getObjectClasses(),
-       e.getUserAttributes(),
-       e.getOperationalAttributes());
-
+   AddOperation addOperation = connection.processAdd(e);
    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1267,31 +1230,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   private void write(String msg)
   {
     System.out.print(msg);
-  }
-
-
-  /**
-   * Prints a text to System.out.
-   */
-  private void writeln(String msg)
-  {
-    write(msg + "\n");
-  }
-
-
-
-  /**
-   * Dump the network group info to the console.
-   */
-  private void dump(NetworkGroup networkGroup, String prompt)
-  {
-    final boolean doDump = false;
-
-    if (doDump)
-    {
-      StringBuilder sb = networkGroup.toString(prompt);
-      writeln(sb.toString());
-    }
   }
 
 }

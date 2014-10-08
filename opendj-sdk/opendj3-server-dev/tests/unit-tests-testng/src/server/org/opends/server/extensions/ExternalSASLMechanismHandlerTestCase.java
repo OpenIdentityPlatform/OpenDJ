@@ -35,13 +35,14 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExternalSASLMechanismHandlerCfgDefn;
 import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -53,15 +54,13 @@ import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the EXTERNAL SASL mechanism handler.
@@ -206,11 +205,7 @@ public class ExternalSASLMechanismHandlerTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -262,11 +257,7 @@ public class ExternalSASLMechanismHandlerTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -384,14 +375,11 @@ public class ExternalSASLMechanismHandlerTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -466,11 +454,7 @@ public class ExternalSASLMechanismHandlerTestCase
          "sn: User",
          "userCertificate;binary:: " + Base64.encode(certBytes));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -536,11 +520,7 @@ public class ExternalSASLMechanismHandlerTestCase
          "sn: User",
          "userCertificate;binary:: " + Certificate);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -601,11 +581,8 @@ public class ExternalSASLMechanismHandlerTestCase
          "sn: User",
          "userCertificate;binary:: " + Base64.encode(certBytes));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    InternalClientConnection conn = getRootConnection();
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -688,11 +665,8 @@ public class ExternalSASLMechanismHandlerTestCase
          "sn: User",
          "userCertificate;binary:: " + Certificate);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    InternalClientConnection conn = getRootConnection();
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
