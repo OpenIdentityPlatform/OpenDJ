@@ -1311,7 +1311,7 @@ public class BackupManager
     if (backupInfo == null)
     {
       Message message =
-          ERR_JEB_BACKUP_MISSING_BACKUPID.get(backupDir.getPath(), backupID);
+          ERR_JEB_BACKUP_MISSING_BACKUPID.get(backupID, backupDir.getPath());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
