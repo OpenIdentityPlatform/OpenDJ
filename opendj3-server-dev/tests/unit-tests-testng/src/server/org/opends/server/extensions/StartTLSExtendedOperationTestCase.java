@@ -26,24 +26,19 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.io.File;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the StartTLS extended operation handler.
@@ -196,11 +191,7 @@ public class StartTLSExtendedOperationTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -252,11 +243,7 @@ public class StartTLSExtendedOperationTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 

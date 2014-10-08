@@ -33,6 +33,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -47,11 +48,11 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -67,7 +68,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -294,7 +295,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessAdd1()
          throws Exception
   {
@@ -313,9 +314,7 @@ public class InternalClientConnectionTestCase
     values.add(ByteString.valueOf("test"));
     attrs.add(new LDAPAttribute("cn", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(dn, attrs);
+    AddOperation addOperation = getRootConnection().processAdd(dn, attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -327,7 +326,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessAdd2()
          throws Exception
   {
@@ -338,11 +337,7 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -354,12 +349,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSimpleBind1()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
          conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("password"));
@@ -374,12 +368,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSimpleBind2()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
          conn.processSimpleBind(DN.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("password"));
@@ -394,15 +387,14 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSASLBind1()
          throws Exception
   {
     ByteString creds =
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
          conn.processSASLBind(ByteString.empty(), "PLAIN", creds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -416,15 +408,14 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSASLBind2()
          throws Exception
   {
     ByteString creds =
          ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     BindOperation bindOperation =
          conn.processSASLBind(DN.rootDN(), "PLAIN", creds);
     assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
@@ -438,7 +429,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessCompare1()
          throws Exception
   {
@@ -449,14 +440,11 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     CompareOperation compareOperation =
          conn.processCompare(ByteString.valueOf("cn=test,o=test"), "cn",
                              ByteString.valueOf("test"));
@@ -471,7 +459,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessCompare2()
          throws Exception
   {
@@ -482,14 +470,11 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
+    InternalClientConnection conn = getRootConnection();
     CompareOperation compareOperation =
          conn.processCompare(DN.valueOf("cn=test,o=test"),
                              DirectoryServer.getAttributeType("cn", true),
@@ -505,7 +490,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessDelete1()
          throws Exception
   {
@@ -516,16 +501,12 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("cn=test,o=test"));
+         getRootConnection().processDelete(ByteString.valueOf("cn=test,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -537,7 +518,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessDelete2()
          throws Exception
   {
@@ -548,16 +529,11 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test,o=test"));
+         getRootConnection().processDelete(DN.valueOf("cn=test,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -568,12 +544,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessExtendedOperation()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ExtendedOperation extendedOperation =
          conn.processExtendedOperation(OID_WHO_AM_I_REQUEST, null);
     assertEquals(extendedOperation.getResultCode(), ResultCode.SUCCESS);
@@ -587,7 +562,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessModify1()
          throws Exception
   {
@@ -598,11 +573,7 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -613,6 +584,7 @@ public class InternalClientConnectionTestCase
     mods.add(new LDAPModification(ModificationType.REPLACE,
                                   new LDAPAttribute("description", values)));
 
+    InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation =
          conn.processModify(ByteString.valueOf("cn=test,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -626,7 +598,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessModify2()
          throws Exception
   {
@@ -637,18 +609,14 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "This is a test")));
 
+    InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation =
          conn.processModify(DN.valueOf("cn=test,o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -662,7 +630,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessModifyDN1()
          throws Exception
   {
@@ -673,14 +641,10 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(ByteString.valueOf("cn=test,o=test"),
                               ByteString.valueOf("cn=test2"), true);
@@ -695,7 +659,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessModifyDN2()
          throws Exception
   {
@@ -706,14 +670,10 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(ByteString.valueOf("cn=test,o=test"),
                               ByteString.valueOf("cn=test2"), true,
@@ -730,7 +690,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessModifyDN3()
          throws Exception
   {
@@ -741,11 +701,8 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    InternalClientConnection conn = getRootConnection();
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -763,7 +720,7 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessModifyDN4()
          throws Exception
   {
@@ -774,11 +731,8 @@ public class InternalClientConnectionTestCase
                                       "objectClass: device",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                                e.getUserAttributes(),
-                                                e.getOperationalAttributes());
+    InternalClientConnection conn = getRootConnection();
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -798,12 +752,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSearch1()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             LDAPFilter.decode("(objectClass=*)"));
@@ -820,12 +773,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSearch2()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             DereferenceAliasesPolicy.NEVER, 0, 0, false,
@@ -845,15 +797,14 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSearch3()
          throws Exception
   {
     TestInternalSearchListener searchListener =
          new TestInternalSearchListener();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             DereferenceAliasesPolicy.NEVER, 0, 0, false,
@@ -872,12 +823,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSearch4()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString("(objectClass=*)"));
@@ -894,12 +844,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSearch5()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
               DereferenceAliasesPolicy.NEVER, 0, 0, false,
@@ -919,15 +868,14 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSearch6()
          throws Exception
   {
     TestInternalSearchListener searchListener =
          new TestInternalSearchListener();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
               DereferenceAliasesPolicy.NEVER, 0, 0, false,
@@ -945,12 +893,11 @@ public class InternalClientConnectionTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSendSearchReference()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
                             LDAPFilter.decode("(objectClass=*)"));
@@ -969,12 +916,10 @@ public class InternalClientConnectionTestCase
   /**
    * Tests the <CODE>sendIntermediateResponseMessage</CODE> method.
    */
-  @Test()
+  @Test
   public void testSendIntermediateResponseMessage()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    assertFalse(conn.sendIntermediateResponseMessage(null));
+    assertFalse(getRootConnection().sendIntermediateResponseMessage(null));
   }
 
 
@@ -982,12 +927,10 @@ public class InternalClientConnectionTestCase
   /**
    * Tests the <CODE>disconnect</CODE> method.
    */
-  @Test()
+  @Test
   public void testDisconnect()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    conn.disconnect(DisconnectReason.OTHER, false,
+    getRootConnection().disconnect(DisconnectReason.OTHER, false,
             LocalizableMessage.raw("testDisconnect"));
   }
 
@@ -998,12 +941,10 @@ public class InternalClientConnectionTestCase
   /**
    * Tests the <CODE>removeOperationInProgress</CODE> method.
    */
-  @Test()
+  @Test
   public void testRemoveOperationInProgress()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    assertFalse(conn.removeOperationInProgress(1));
+    assertFalse(getRootConnection().removeOperationInProgress(1));
   }
 
 
@@ -1011,13 +952,11 @@ public class InternalClientConnectionTestCase
   /**
    * Tests the <CODE>cancelOperation</CODE> method.
    */
-  @Test()
+  @Test
   public void testCancelOperation()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     CancelResult cancelResult =
-         conn.cancelOperation(1,
+         getRootConnection().cancelOperation(1,
               new CancelRequest(true, LocalizableMessage.raw("testCancelOperation")));
     assertEquals(cancelResult.getResultCode(), ResultCode.CANNOT_CANCEL);
   }
@@ -1027,12 +966,10 @@ public class InternalClientConnectionTestCase
   /**
    * Tests the <CODE>cancelAllOperations</CODE> method.
    */
-  @Test()
+  @Test
   public void testCancelAllOperations()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    conn.cancelAllOperations(new CancelRequest(true,
+    getRootConnection().cancelAllOperations(new CancelRequest(true,
             LocalizableMessage.raw("testCancelOperation")));
   }
 
@@ -1041,12 +978,10 @@ public class InternalClientConnectionTestCase
   /**
    * Tests the <CODE>cancelAllOperationsExcept</CODE> method.
    */
-  @Test()
+  @Test
   public void testCancelAllOperationsExcept()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    conn.cancelAllOperationsExcept(
+    getRootConnection().cancelAllOperationsExcept(
             new CancelRequest(true, LocalizableMessage.raw("testCancelOperation")), 1);
   }
 
@@ -1055,16 +990,10 @@ public class InternalClientConnectionTestCase
   /**
    * Tests the <CODE>toString</CODE> method.
    */
-  @Test()
+  @Test
   public void testToString()
   {
-    StringBuilder buffer = new StringBuilder();
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    conn.toString(buffer);
-
-    assertFalse(buffer.toString().equals(""));
+    assertFalse(getRootConnection().toString().equals(""));
   }
 }
 

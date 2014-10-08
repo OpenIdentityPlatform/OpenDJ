@@ -27,10 +27,10 @@
  */
 package org.opends.server.crypto;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.*;
 import java.security.cert.Certificate;
@@ -546,10 +546,7 @@ public class CryptoManagerImpl
             final Entry entry = new Entry(entryDN, null, null, null);
             entry.addObjectClass(DirectoryServer.getTopObjectClass());
             entry.addObjectClass(ocCertRequest);
-            AddOperation addOperation = icc.processAdd(entry.getName(),
-                    entry.getObjectClasses(),
-                    entry.getUserAttributes(),
-                    entry.getOperationalAttributes());
+            AddOperation addOperation = icc.processAdd(entry);
             if (ResultCode.SUCCESS != addOperation.getResultCode()) {
               throw new DirectoryException(
                       addOperation.getResultCode(),
@@ -681,10 +678,7 @@ public class CryptoManagerImpl
         final Attribute certificateAttr = builder.toAttribute();
         entry.addAttribute(certificateAttr, new ArrayList<ByteString>(0));
 
-        AddOperation addOperation = icc.processAdd(entry.getName(),
-                entry.getObjectClasses(),
-                entry.getUserAttributes(),
-                entry.getOperationalAttributes());
+        AddOperation addOperation = icc.processAdd(entry);
         if (ResultCode.SUCCESS != addOperation.getResultCode()) {
           throw new DirectoryException(
                   addOperation.getResultCode(),

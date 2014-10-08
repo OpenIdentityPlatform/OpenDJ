@@ -27,13 +27,13 @@
 
 package org.opends.server.core;
 
-import static org.testng.Assert.*;
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
@@ -43,11 +43,11 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class CompareOperationTestCase extends OperationTestCase
@@ -96,11 +96,7 @@ public class CompareOperationTestCase extends OperationTestCase
          "aci: (targetattr=\"*\")(version 3.0; acl \"Proxy Rights\"; " +
               "allow(proxy) userdn=\"ldap:///uid=proxy.user,o=test\";)"
     );
-    AddOperation addOperation =
-         connection.processAdd(entry.getName(),
-                               entry.getObjectClasses(),
-                               entry.getUserAttributes(),
-                               entry.getOperationalAttributes());
+    AddOperation addOperation = connection.processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(entry.getName()));
 

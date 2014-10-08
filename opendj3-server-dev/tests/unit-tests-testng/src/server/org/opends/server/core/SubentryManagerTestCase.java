@@ -28,12 +28,13 @@
 package org.opends.server.core;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -43,14 +44,26 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.SubEntry;
+import org.opends.server.types.SubtreeSpecification;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -84,11 +97,9 @@ public class SubentryManagerTestCase extends CoreTestCase
     SubentryManager manager = DirectoryServer.getSubentryManager();
     assertNotNull(manager);
     List<SubEntry> subentryList = manager.getSubentries(testEntry.getName());
-    assertNotNull(subentryList);
-    assertTrue(subentryList.isEmpty());
+    assertThat(subentryList).isEmpty();
     subentryList = manager.getCollectiveSubentries(testEntry.getName());
-    assertNotNull(subentryList);
-    assertTrue(subentryList.isEmpty());
+    assertThat(subentryList).isEmpty();
 
     TestCaseUtils.clearJEBackend(false, "userRoot", SUFFIX);
   }
@@ -104,62 +115,56 @@ public class SubentryManagerTestCase extends CoreTestCase
   {
     SubentryManager manager = DirectoryServer.getSubentryManager();
     assertNotNull(manager);
+
     List<SubEntry> subentryList = manager.getSubentries(testEntry.getName());
-    assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 2);
-    assertEquals(subentryList.get(0).getDN(), ldapSubentry.getName());
-    assertEquals(subentryList.get(1).getDN(), legacyLdapSubentry.getName());
-    subentryList.clear();
+    assertThat(getDns(subentryList)).containsExactly(ldapSubentry.getName(), legacyLdapSubentry.getName());
+
     subentryList = manager.getSubentries(testEntry);
-    assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 2);
-    assertEquals(subentryList.get(0).getEntry(), ldapSubentry);
-    assertEquals(subentryList.get(1).getEntry(), legacyLdapSubentry);
-    subentryList.clear();
+    assertThat(getEntries(subentryList)).containsExactly(ldapSubentry, legacyLdapSubentry);
+
     subentryList = manager.getCollectiveSubentries(testEntry.getName());
-    assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 1);
-    assertEquals(subentryList.get(0).getDN(), collectiveSubentry.getName());
-    subentryList.clear();
+    assertThat(getDns(subentryList)).containsExactly(collectiveSubentry.getName());
+
     subentryList = manager.getCollectiveSubentries(testEntry);
+    // FIXME following line does not work because server's Entry.equals() is not reflexive
+    // assertThat(getEntries(subentryList)).containsExactly(collectiveSubentry);
     assertNotNull(subentryList);
     assertEquals(subentryList.size(), 1);
     assertEquals(subentryList.get(0).getEntry(), collectiveSubentry);
-    subentryList.clear();
+
     subentryList = manager.getSubentries(legacyLdapSubentry.getName().parent());
-    assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 1);
-    assertEquals(subentryList.get(0).getEntry(), legacyLdapSubentry);
-    subentryList.clear();
+    assertThat(getEntries(subentryList)).containsExactly(legacyLdapSubentry);
+
     subentryList = manager.getSubentries(legacyLdapSubentry.getName().parent().parent());
-    assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 0);
+    assertThat(subentryList).isEmpty();
+  }
+
+  private List<Entry> getEntries(List<SubEntry> subentries)
+  {
+    final List<Entry> results = new ArrayList<Entry>();
+    for (SubEntry subEntry : subentries)
+    {
+      results.add(subEntry.getEntry());
+    }
+    return results;
+  }
+
+  private List<DN> getDns(List<SubEntry> subentries)
+  {
+    final List<DN> results = new ArrayList<DN>();
+    for (SubEntry subEntry : subentries)
+    {
+      results.add(subEntry.getDN());
+    }
+    return results;
   }
 
   @Test
   public void testCollectiveAttributes() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("real-overrides-virtual"));
-    LDAPAttribute attr = new LDAPAttribute(
-            "collectiveConflictBehavior", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         collectiveSubentry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-    Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType("c-l");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("Savoie")));
-
-    attrType = DirectoryServer.getAttributeType("preferredlanguage");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
+    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
+    hasValues(testEntry.getName(), "c-l", "Savoie");
+    hasValues(testEntry.getName(), "preferredlanguage", "fr");
   }
 
 
@@ -224,16 +229,14 @@ public class SubentryManagerTestCase extends CoreTestCase
     try
     {
       // Normal user will not inherit the collective description attribute.
-      Entry e = DirectoryServer.getEntry(DN
-          .valueOf("uid=normal user,ou=people,o=test"));
+      Entry e = DirectoryServer.getEntry(DN.valueOf("uid=normal user,ou=people,o=test"));
       assertNotNull(e);
 
       List<Attribute> description = e.getAttribute("description");
       assertNull(description);
 
       // Collective user will inherit the collective description attribute.
-      e = DirectoryServer.getEntry(DN
-          .valueOf("uid=collective user,ou=people,o=test"));
+      e = DirectoryServer.getEntry(DN.valueOf("uid=collective user,ou=people,o=test"));
       assertNotNull(e);
 
       description = e.getAttribute("description");
@@ -255,9 +258,6 @@ public class SubentryManagerTestCase extends CoreTestCase
   @Test
   public void testInheritedCollectiveAttributes() throws Exception
   {
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
     // Add test inherited from DN collective subentry.
     Entry collectiveDNInheritedSubentry = TestCaseUtils.makeEntry(
          "dn: cn=Inherited From DN Collective Subentry," + SUFFIX,
@@ -269,14 +269,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "inheritAttribute: postalAddress",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Inherited From DN Collective Subentry");
-    AddOperation addOperation =
-         connection.processAdd(collectiveDNInheritedSubentry.getName(),
-             collectiveDNInheritedSubentry.getObjectClasses(),
-             collectiveDNInheritedSubentry.getUserAttributes(),
-             collectiveDNInheritedSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(
-            collectiveDNInheritedSubentry.getName()));
+    addEntry(collectiveDNInheritedSubentry);
 
     // Add test inherited from RDN collective subentry.
     Entry collectiveRDNInheritedSubentry = TestCaseUtils.makeEntry(
@@ -291,26 +284,11 @@ public class SubentryManagerTestCase extends CoreTestCase
          "inheritAttribute: telephoneNumber",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Inherited From RDN Collective Subentry");
-    addOperation =
-         connection.processAdd(collectiveRDNInheritedSubentry.getName(),
-             collectiveRDNInheritedSubentry.getObjectClasses(),
-             collectiveRDNInheritedSubentry.getUserAttributes(),
-             collectiveRDNInheritedSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(
-            collectiveRDNInheritedSubentry.getName()));
+    addEntry(collectiveRDNInheritedSubentry);
 
     // Test Inherited Collective Attributes on test entry.
-    Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType("postaladdress");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            ByteString.valueOf("Sub City, Collective Street, AK 47")));
-
-    attrType = DirectoryServer.getAttributeType("telephonenumber");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            ByteString.valueOf("+1 999 999 9999")));
+    hasValues(testEntry.getName(), "postaladdress", "Sub City, Collective Street, AK 47");
+    hasValues(testEntry.getName(), "telephonenumber", "+1 999 999 9999");
 
     // Cleanup.
     TestCaseUtils.deleteEntry(collectiveRDNInheritedSubentry.getName());
@@ -320,99 +298,63 @@ public class SubentryManagerTestCase extends CoreTestCase
   @Test
   public void testCollectiveAttributeConflict() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("ja"));
-    LDAPAttribute attr = new LDAPAttribute(
-            "preferredLanguage", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         testEntry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    DN dn = testEntry.getName();
+    replaceAttribute(testEntry, "preferredLanguage", "ja");
 
     // real-overrides-virtual.
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("real-overrides-virtual"));
-    attr = new LDAPAttribute(
-            "collectiveConflictBehavior", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         collectiveSubentry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-    Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType("preferredlanguage");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("ja")));
-    assertFalse(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
+    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
+    hasValues(dn, "preferredlanguage", "ja");
+    doesNotHaveValues(dn, "preferredlanguage", "fr");
 
     // virtual-overrides-real.
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("virtual-overrides-real"));
-    attr = new LDAPAttribute(
-            "collectiveConflictBehavior", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         collectiveSubentry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType("preferredlanguage");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
-    assertFalse(entry.hasValue(attrType, null, ByteString.valueOf("ja")));
+    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "virtual-overrides-real");
+    hasValues(dn, "preferredlanguage", "fr");
+    doesNotHaveValues(dn, "preferredlanguage", "ja");
 
     // merge-real-and-virtual.
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("merge-real-and-virtual"));
-    attr = new LDAPAttribute(
-            "collectiveConflictBehavior", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         collectiveSubentry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType("preferredlanguage");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("ja")));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
+    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "merge-real-and-virtual");
+    hasValues(dn, "preferredlanguage", "ja", "fr");
 
     // cleanup.
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("ja"));
-    attr = new LDAPAttribute(
-            "preferredLanguage", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.DELETE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         testEntry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    deleteAttribute(testEntry, "preferredLanguage", "ja");
+  }
+
+  private void hasValues(DN dn, String attrTypeLower, String... values) throws DirectoryException
+  {
+    Entry entry = DirectoryServer.getEntry(dn);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeLower);
+    assertTrue(entry.hasAttribute(attrType));
+    for (String value : values)
+    {
+      assertTrue(entry.hasValue(attrType, null, ByteString.valueOf(value)));
+    }
+  }
+
+  private void doesNotHaveValues(DN dn, String attrTypeLower, String... values) throws DirectoryException
+  {
+    Entry entry = DirectoryServer.getEntry(dn);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeLower);
+    assertTrue(entry.hasAttribute(attrType));
+    for (String value : values)
+    {
+      assertFalse(entry.hasValue(attrType, null, ByteString.valueOf(value)));
+    }
+  }
+
+  private void hasNoAttribute(DN dn, String lowerName) throws Exception
+  {
+    Entry entry = DirectoryServer.getEntry(dn);
+    AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+    assertFalse(entry.hasAttribute(attrType));
   }
 
   @Test
   public void testCollectiveAttributeSubentries() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-    attributes.add("collectiveAttributeSubentries");
+    Set<String> attributes = newSet("collectiveAttributeSubentries");
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf(testEntry.getName().toString()),
               SearchScope.BASE_OBJECT,
@@ -427,86 +369,53 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
     AttributeType attrType = DirectoryServer.getAttributeType("collectiveattributesubentries");
-    assertTrue(searchOperation.getSearchEntries().getFirst().hasValue(
-            attrType, null, ByteString.valueOf(collectiveSubentry.getName())));
+    Entry e = searchOperation.getSearchEntries().getFirst();
+    assertTrue(e.hasValue(attrType, null, ByteString.valueOf(collectiveSubentry.getName())));
   }
 
   @Test
   public void testCollectiveExclusions() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    DN dn = testEntry.getName();
 
-    ArrayList<ByteString> values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("real-overrides-virtual"));
-    LDAPAttribute attr = new LDAPAttribute(
-            "collectiveConflictBehavior", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    ModifyOperation modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         collectiveSubentry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("c-l"));
-    attr = new LDAPAttribute("collectiveExclusions", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         testEntry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
+    replaceAttribute(testEntry, "collectiveExclusions", "c-l");
+    hasNoAttribute(dn, "c-l");
+    hasValues(dn, "preferredlanguage", "fr");
 
-    Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType("c-l");
-    assertFalse(entry.hasAttribute(attrType));
-    attrType = DirectoryServer.getAttributeType("preferredlanguage");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
+    replaceAttribute(testEntry, "collectiveExclusions", "preferredLanguage");
+    hasNoAttribute(dn, "preferredlanguage");
+    hasValues(dn, "c-l", "Savoie");
 
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("preferredLanguage"));
-    attr = new LDAPAttribute("collectiveExclusions", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         testEntry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType("preferredlanguage");
-    assertFalse(entry.hasAttribute(attrType));
-    attrType = DirectoryServer.getAttributeType("c-l");
-    assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("Savoie")));
-
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("excludeAllCollectiveAttributes"));
-    attr = new LDAPAttribute("collectiveExclusions", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         testEntry.getName().toNormalizedString()), mods);
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType("preferredlanguage");
-    assertFalse(entry.hasAttribute(attrType));
-    attrType = DirectoryServer.getAttributeType("c-l");
-    assertFalse(entry.hasAttribute(attrType));
+    replaceAttribute(testEntry, "collectiveExclusions", "excludeAllCollectiveAttributes");
+    hasNoAttribute(dn, "preferredlanguage");
+    hasNoAttribute(dn, "c-l");
 
     // cleanup.
-    values = new ArrayList<ByteString>();
-    values.add(ByteString.valueOf("excludeAllCollectiveAttributes"));
-    attr = new LDAPAttribute("collectiveExclusions", values);
-    mods = new ArrayList<RawModification>();
-    mods.add(new LDAPModification(ModificationType.DELETE, attr));
-    modifyOperation =
-         conn.processModify(ByteString.valueOf(
-         testEntry.getName().toNormalizedString()), mods);
+    deleteAttribute(testEntry, "collectiveExclusions", "excludeAllCollectiveAttributes");
+  }
+
+  private void deleteAttribute(Entry e, String attrType, String oldValue)
+  {
+    InternalClientConnection conn = getRootConnection();
+    List<RawModification> mods = newRawModifications(DELETE, attrType, oldValue);
+    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toNormalizedString()), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private void replaceAttribute(Entry e, String attrType, String newValue)
+  {
+    InternalClientConnection conn = getRootConnection();
+    List<RawModification> mods = newRawModifications(REPLACE, attrType, newValue);
+    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toNormalizedString()), mods);
+    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
+  }
+
+  private List<RawModification> newRawModifications(ModificationType modType, String attrType, String value)
+  {
+    ArrayList<ByteString> values = newArrayList(ByteString.valueOf(value));
+    LDAPAttribute attr = new LDAPAttribute(attrType, values);
+    return newList((RawModification) new LDAPModification(modType, attr));
   }
 
   @Test
@@ -526,7 +435,6 @@ public class SubentryManagerTestCase extends CoreTestCase
 
     assertTrue(DirectoryServer.getSubentryManager().getCollectiveSubentries(
             DN.valueOf("uid=rogasawara," + BASE)).isEmpty());
-
     assertTrue(DirectoryServer.getSubentryManager().getSubentries(
             DN.valueOf("uid=rogasawara," + BASE)).isEmpty());
 
@@ -610,9 +518,6 @@ public class SubentryManagerTestCase extends CoreTestCase
       }
     }
 
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
     // Add Relative Spec test subentry.
     Entry relativeSubentry = TestCaseUtils.makeEntry(
          "dn: cn=Relative Subentry," + SUFFIX,
@@ -620,13 +525,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "objectclass: subentry",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\", specificationFilter \"(objectClass=*)\"}",
          "cn: Subentry");
-    AddOperation addOperation =
-         connection.processAdd(relativeSubentry.getName(),
-                               relativeSubentry.getObjectClasses(),
-                               relativeSubentry.getUserAttributes(),
-                               relativeSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(relativeSubentry.getName()));
+    addEntry(relativeSubentry);
 
     List<SubEntry> relativeSubList =
             DirectoryServer.getSubentryManager().getSubentries();
@@ -645,35 +544,18 @@ public class SubentryManagerTestCase extends CoreTestCase
 
   private void addTestEntries() throws Exception
   {
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
     // Add suffix entry.
     DN suffixDN = DN.valueOf(SUFFIX);
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
-      Entry suffixEntry = StaticUtils.createEntry(suffixDN);
-      AddOperation addOperation =
-           connection.processAdd(suffixEntry.getName(),
-                                 suffixEntry.getObjectClasses(),
-                                 suffixEntry.getUserAttributes(),
-                                 suffixEntry.getOperationalAttributes());
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(suffixEntry.getName()));
+      addEntry(StaticUtils.createEntry(suffixDN));
     }
 
     // Add base entry.
     DN baseDN = DN.valueOf(BASE);
     if (DirectoryServer.getEntry(baseDN) == null)
     {
-      Entry baseEntry = StaticUtils.createEntry(baseDN);
-      AddOperation addOperation =
-           connection.processAdd(baseEntry.getName(),
-                                 baseEntry.getObjectClasses(),
-                                 baseEntry.getUserAttributes(),
-                                 baseEntry.getOperationalAttributes());
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(baseEntry.getName()));
+      addEntry(StaticUtils.createEntry(baseDN));
     }
 
     // Add role entry.
@@ -685,13 +567,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "telephoneNumber: +1 999 999 9999",
          "cn: Sales"
     );
-    AddOperation addOperation =
-         connection.processAdd(roleEntry.getName(),
-                               roleEntry.getObjectClasses(),
-                               roleEntry.getUserAttributes(),
-                               roleEntry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(roleEntry.getName()));
+    addEntry(roleEntry);
 
     // Add test entry.
     testEntry = TestCaseUtils.makeEntry(
@@ -709,13 +585,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "manager: cn=Sales," + BASE,
          "title: Sales"
     );
-    addOperation =
-         connection.processAdd(testEntry.getName(),
-                               testEntry.getObjectClasses(),
-                               testEntry.getUserAttributes(),
-                               testEntry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(testEntry.getName()));
+    addEntry(testEntry);
 
     // Add test subentry.
     ldapSubentry = TestCaseUtils.makeEntry(
@@ -724,13 +594,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "objectclass: subentry",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Subentry");
-    addOperation =
-         connection.processAdd(ldapSubentry.getName(),
-                               ldapSubentry.getObjectClasses(),
-                               ldapSubentry.getUserAttributes(),
-                               ldapSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(ldapSubentry.getName()));
+    addEntry(ldapSubentry);
 
     // Add test legacy subentry.
     legacyLdapSubentry = TestCaseUtils.makeEntry(
@@ -738,13 +602,7 @@ public class SubentryManagerTestCase extends CoreTestCase
          "objectClass: top",
          "objectclass: ldapSubentry",
          "cn: Legacy Subentry");
-    addOperation =
-         connection.processAdd(legacyLdapSubentry.getName(),
-                               legacyLdapSubentry.getObjectClasses(),
-                               legacyLdapSubentry.getUserAttributes(),
-                               legacyLdapSubentry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(legacyLdapSubentry.getName()));
+    addEntry(legacyLdapSubentry);
 
     // Add test collective subentry.
     collectiveSubentry = TestCaseUtils.makeEntry(
@@ -757,12 +615,13 @@ public class SubentryManagerTestCase extends CoreTestCase
          "preferredLanguage;collective: fr",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Collective Subentry");
-    addOperation =
-         connection.processAdd(collectiveSubentry.getName(),
-                               collectiveSubentry.getObjectClasses(),
-                               collectiveSubentry.getUserAttributes(),
-                               collectiveSubentry.getOperationalAttributes());
+    addEntry(collectiveSubentry);
+  }
+
+  private void addEntry(Entry e) throws DirectoryException
+  {
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(collectiveSubentry.getName()));
+    assertNotNull(DirectoryServer.getEntry(e.getName()));
   }
 }

@@ -26,14 +26,14 @@
  */
 package org.opends.server.admin.server;
 
-
-
 import java.util.List;
 
 import javax.naming.OperationNotSupportedException;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
@@ -42,25 +42,23 @@ import org.opends.server.admin.TestChildCfgDefn;
 import org.opends.server.admin.TestParentCfg;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.std.server.RootCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
 
 /**
  * Test cases for constraints on the server-side.
  */
 public final class ConstraintTest extends AdminTestCase {
 
-  // Child DN.
+  /** Child DN. */
   private static final String TEST_CHILD_1_DN = "cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config";
 
 
@@ -71,18 +69,16 @@ public final class ConstraintTest extends AdminTestCase {
   private static class AddListener implements
       ConfigurationAddListener<TestChildCfg> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       return true;
@@ -98,9 +94,8 @@ public final class ConstraintTest extends AdminTestCase {
   private static class DeleteListener implements
       ConfigurationDeleteListener<TestChildCfg> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationDelete(
         TestChildCfg configuration) {
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
@@ -108,9 +103,8 @@ public final class ConstraintTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       return true;
@@ -126,9 +120,8 @@ public final class ConstraintTest extends AdminTestCase {
   private static class ChangeListener implements
       ConfigurationChangeListener<TestChildCfg> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public ConfigChangeResult applyConfigurationChange(
         TestChildCfg configuration) {
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
@@ -136,9 +129,8 @@ public final class ConstraintTest extends AdminTestCase {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
         List<LocalizableMessage> unacceptableReasons) {
       return true;
@@ -146,7 +138,7 @@ public final class ConstraintTest extends AdminTestCase {
 
   }
 
-  // Test child 1 LDIF.
+  /** Test child 1 LDIF. */
   private static final String[] TEST_CHILD_1 = new String[] {
       "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -158,7 +150,7 @@ public final class ConstraintTest extends AdminTestCase {
       "ds-cfg-conflict-behavior: virtual-overrides-real"
   };
 
-  // Test LDIF.
+  /** Test LDIF. */
   private static final String[] TEST_LDIF = new String[] {
       // Base entries.
       "dn: cn=test parents,cn=config",
@@ -185,8 +177,8 @@ public final class ConstraintTest extends AdminTestCase {
       "",
   };
 
-  // JNDI LDAP context.
-  private JNDIDirContextAdaptor adaptor = null;
+  /** JNDI LDAP context. */
+  private JNDIDirContextAdaptor adaptor;
 
 
 
@@ -243,12 +235,7 @@ public final class ConstraintTest extends AdminTestCase {
       parent.getTestChild("test child 1");
     } finally {
       TestCfg.removeConstraint(constraint);
-
-      try {
-        deleteSubtree(TEST_CHILD_1_DN);
-      } catch (Exception e) {
-        // Do nothing.
-      }
+      deleteSubtreeNoException(TEST_CHILD_1_DN);
     }
   }
 
@@ -283,12 +270,7 @@ public final class ConstraintTest extends AdminTestCase {
       }
     } finally {
       TestCfg.removeConstraint(constraint);
-
-      try {
-        deleteSubtree(TEST_CHILD_1_DN);
-      } catch (Exception e) {
-        // Do nothing.
-      }
+      deleteSubtreeNoException(TEST_CHILD_1_DN);
     }
   }
 
@@ -314,11 +296,7 @@ public final class ConstraintTest extends AdminTestCase {
         // Add the entry.
         addEntry(ResultCode.SUCCESS, TEST_CHILD_1);
       } finally {
-        try {
-          deleteSubtree(TEST_CHILD_1_DN);
-        } catch (Exception e) {
-          // Do nothing.
-        }
+        deleteSubtreeNoException(TEST_CHILD_1_DN);
       }
     } finally {
       TestCfg.removeConstraint(constraint);
@@ -348,11 +326,7 @@ public final class ConstraintTest extends AdminTestCase {
         // Add the entry.
         addEntry(ResultCode.UNWILLING_TO_PERFORM, TEST_CHILD_1);
       } finally {
-        try {
-          deleteSubtree(TEST_CHILD_1_DN);
-        } catch (Exception e) {
-          // Do nothing.
-        }
+        deleteSubtreeNoException(TEST_CHILD_1_DN);
       }
     } finally {
       TestCfg.removeConstraint(constraint);
@@ -386,13 +360,7 @@ public final class ConstraintTest extends AdminTestCase {
     } finally {
       TestCfg.removeConstraint(constraint);
       parent.removeTestChildDeleteListener(listener);
-
-      try {
-        // Clean up.
-        deleteSubtree(TEST_CHILD_1_DN);
-      } catch (Exception e) {
-        // Ignore.
-      }
+      deleteSubtreeNoException(TEST_CHILD_1_DN);
     }
   }
 
@@ -428,13 +396,7 @@ public final class ConstraintTest extends AdminTestCase {
     } finally {
       TestCfg.removeConstraint(constraint);
       parent.removeTestChildDeleteListener(listener);
-
-      try {
-        // Clean up.
-        deleteSubtree(TEST_CHILD_1_DN);
-      } catch (Exception e) {
-        // Ignore.
-      }
+      deleteSubtreeNoException(TEST_CHILD_1_DN);
     }
   }
 
@@ -478,11 +440,7 @@ public final class ConstraintTest extends AdminTestCase {
       Assert.assertEquals(result, ResultCode.SUCCESS.intValue());
     } finally {
       TestCfg.removeConstraint(constraint);
-      try {
-        deleteSubtree(TEST_CHILD_1_DN);
-      } catch (Exception e) {
-        // Ignore.
-      }
+      deleteSubtreeNoException(TEST_CHILD_1_DN);
     }
   }
 
@@ -525,40 +483,35 @@ public final class ConstraintTest extends AdminTestCase {
       Assert.assertEquals(result, ResultCode.UNWILLING_TO_PERFORM.intValue());
     } finally {
       TestCfg.removeConstraint(constraint);
-      try {
-        deleteSubtree(TEST_CHILD_1_DN);
-      } catch (Exception e) {
-        // Ignore.
-      }
+      deleteSubtreeNoException(TEST_CHILD_1_DN);
     }
   }
 
-
-
-  // Add an entry and check its result.
+  /** Add an entry and check its result. */
   private void addEntry(ResultCode expected, String... lines) throws Exception {
     Entry entry = TestCaseUtils.makeEntry(lines);
-
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
-
-    AddOperation add = conn.processAdd(entry.getName(), entry.getObjectClasses(),
-        entry.getUserAttributes(), entry.getOperationalAttributes());
-
-    Assert.assertEquals(add.getResultCode(), expected, add.getErrorMessage()
-        .toString());
+    AddOperation add = getRootConnection().processAdd(entry);
+    assertEquals(add.getResultCode(), expected, add.getErrorMessage().toString());
   }
 
+  private void deleteSubtreeNoException(String dn)
+  {
+    try
+    {
+      deleteSubtree(dn);
+    }
+    catch (Exception e)
+    {
+      // Ignore.
+    }
+  }
 
-
-  // Deletes the named sub-tree.
+  /** Deletes the named sub-tree. */
   private void deleteSubtree(String dn) throws Exception {
     getAdaptor().deleteSubtree(new LdapName(dn));
   }
 
-
-
-  // Gets the JNDI connection for the test server instance.
+  /** Gets the JNDI connection for the test server instance. */
   private synchronized JNDIDirContextAdaptor getAdaptor() throws Exception {
     if (adaptor == null) {
       adaptor = JNDIDirContextAdaptor.simpleSSLBind("127.0.0.1", TestCaseUtils
@@ -567,16 +520,12 @@ public final class ConstraintTest extends AdminTestCase {
     return adaptor;
   }
 
-
-
-  // Gets the named parent configuration.
-  private TestParentCfg getParent(String name) throws IllegalArgumentException,
-      ConfigException {
+  /** Gets the named parent configuration. */
+  private TestParentCfg getParent(String name) throws Exception {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
-    TestParentCfg parent = root.getChild(
+    return root.getChild(
         TestCfg.getTestOneToManyParentRelationDefinition(), name)
         .getConfiguration();
-    return parent;
   }
 }

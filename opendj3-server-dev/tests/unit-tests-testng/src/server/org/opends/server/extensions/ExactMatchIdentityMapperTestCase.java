@@ -29,14 +29,15 @@ package org.opends.server.extensions;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExactMatchIdentityMapperCfgDefn;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -44,11 +45,11 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -326,12 +327,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -392,12 +388,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -459,12 +450,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -522,12 +508,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -585,12 +566,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     userEntry = TestCaseUtils.makeEntry(
@@ -604,10 +580,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -670,12 +643,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Bar",
          "cn: Bar",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -736,12 +704,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Bar",
          "cn: Bar",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -802,12 +765,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Bar",
          "cn: Bar",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -852,12 +810,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -871,6 +824,7 @@ public class ExactMatchIdentityMapperTestCase
     assertNull(mappedEntry);
 
 
+    InternalClientConnection conn = getRootConnection();
     // Create a modification to change the map attribute from uid to cn.
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("cn"));
@@ -941,12 +895,7 @@ public class ExactMatchIdentityMapperTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -956,6 +905,7 @@ public class ExactMatchIdentityMapperTestCase
     assertEquals(mappedEntry.getName(), DN.valueOf("uid=test,o=test"));
 
 
+    InternalClientConnection conn = getRootConnection();
     // Create a modification to set the map base DN to "dc=example,dc=com".
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("dc=example,dc=com"));

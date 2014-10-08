@@ -26,32 +26,27 @@
  */
 package org.opends.server.core;
 
-
-
 import java.util.ArrayList;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of generic test cases that cover adding, modifying, and removing
@@ -65,14 +60,11 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
-
-
 
   /**
    * Tests that the server will reject an attempt to register a base DN that is
@@ -80,9 +72,8 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testRegisterBaseThatAlreadyExists()
-         throws Exception
+  @Test
+  public void testRegisterBaseThatAlreadyExists() throws Exception
   {
     TestCaseUtils.initializeTestBackend(false);
 
@@ -90,12 +81,7 @@ public class BackendConfigManagerTestCase
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
-                         backendEntry.getUserAttributes(),
-                         backendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(backendEntry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -108,8 +94,7 @@ public class BackendConfigManagerTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(expectedExceptions = { DirectoryException.class })
-  public void testDeregisterNonExistentBaseDN()
-         throws Exception
+  public void testDeregisterNonExistentBaseDN() throws Exception
   {
     DirectoryServer.deregisterBaseDN(DN.valueOf("o=unregistered"));
   }
@@ -122,9 +107,8 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testRegisterBackendIDThatAlreadyExists()
-         throws Exception
+  @Test
+  public void testRegisterBackendIDThatAlreadyExists() throws Exception
   {
     TestCaseUtils.initializeTestBackend(false);
 
@@ -132,12 +116,7 @@ public class BackendConfigManagerTestCase
     String backendID = "test";
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
-                         backendEntry.getUserAttributes(),
-                         backendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(backendEntry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -149,25 +128,19 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddAndRemoveDisabledBackend()
-         throws Exception
+  @Test
+  public void testAddAndRemoveDisabledBackend() throws Exception
   {
     DN baseDN = DN.valueOf("o=bcmtest");
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
-                         backendEntry.getUserAttributes(),
-                         backendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(backendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(backendID));
     assertNull(DirectoryServer.getBackendWithBaseDN(baseDN));
 
-    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getName());
+    DeleteOperation deleteOperation = getRootConnection().processDelete(backendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -179,23 +152,17 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddAndRemoveEnabledBackend()
-         throws Exception
+  @Test
+  public void testAddAndRemoveEnabledBackend() throws Exception
   {
     DN baseDN = DN.valueOf("o=bcmtest");
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, true, baseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
-                         backendEntry.getUserAttributes(),
-                         backendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(backendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend backend = DirectoryServer.getBackend(backendID);
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
     assertNotNull(backend);
     assertEquals(backend, DirectoryServer.getBackendWithBaseDN(baseDN));
     assertNull(backend.getParentBackend());
@@ -204,13 +171,11 @@ public class BackendConfigManagerTestCase
     assertTrue(DirectoryServer.isNamingContext(baseDN));
 
     Entry e = createEntry(baseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(backend.entryExists(baseDN));
 
-    DeleteOperation deleteOperation = conn.processDelete(backendEntry.getName());
+    DeleteOperation deleteOperation = getRootConnection().processDelete(backendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(backendID));
   }
@@ -224,26 +189,21 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testEnableAndDisableBackend()
-         throws Exception
+  @Test
+  public void testEnableAndDisableBackend() throws Exception
   {
     // Create the backend and make it disabled.
     DN baseDN = DN.valueOf("o=bcmtest");
     String backendID = createBackendID(baseDN);
     Entry backendEntry = createBackendEntry(backendID, false, baseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(backendEntry.getName(), backendEntry.getObjectClasses(),
-                         backendEntry.getUserAttributes(),
-                         backendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(backendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(backendID));
     assertFalse(DirectoryServer.isNamingContext(baseDN));
 
 
+    InternalClientConnection conn = getRootConnection();
     // Modify the backend to enable it.
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
@@ -252,7 +212,7 @@ public class BackendConfigManagerTestCase
          conn.processModify(backendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend backend = DirectoryServer.getBackend(backendID);
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
     assertNotNull(backend);
     assertEquals(backend, DirectoryServer.getBackendWithBaseDN(baseDN));
     assertNull(backend.getParentBackend());
@@ -261,9 +221,7 @@ public class BackendConfigManagerTestCase
     assertTrue(DirectoryServer.isNamingContext(baseDN));
 
     Entry e = createEntry(baseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(backend.entryExists(baseDN));
 
@@ -272,8 +230,7 @@ public class BackendConfigManagerTestCase
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("ds-cfg-enabled", "false")));
-    modifyOperation =
-         conn.processModify(backendEntry.getName(), mods);
+    modifyOperation = conn.processModify(backendEntry.getName(), mods);
     assertNull(DirectoryServer.getBackend(backendID));
     assertFalse(DirectoryServer.entryExists(baseDN));
     assertFalse(DirectoryServer.isNamingContext(baseDN));
@@ -292,9 +249,8 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddNestedBackendParentFirst()
-         throws Exception
+  @Test
+  public void testAddNestedBackendParentFirst() throws Exception
   {
     // Create the parent backend and the corresponding base entry.
     DN parentBaseDN = DN.valueOf("o=parent");
@@ -302,16 +258,10 @@ public class BackendConfigManagerTestCase
     Entry parentBackendEntry = createBackendEntry(parentBackendID, true,
                                                   parentBaseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(parentBackendEntry.getName(),
-                         parentBackendEntry.getObjectClasses(),
-                         parentBackendEntry.getUserAttributes(),
-                         parentBackendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(parentBackendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend parentBackend = DirectoryServer.getBackend(parentBackendID);
+    Backend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
     assertNotNull(parentBackend);
     assertEquals(parentBackend,
                  DirectoryServer.getBackendWithBaseDN(parentBaseDN));
@@ -321,9 +271,7 @@ public class BackendConfigManagerTestCase
     assertTrue(DirectoryServer.isNamingContext(parentBaseDN));
 
     Entry e = createEntry(parentBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(parentBackend.entryExists(parentBaseDN));
 
@@ -334,14 +282,10 @@ public class BackendConfigManagerTestCase
     Entry childBackendEntry = createBackendEntry(childBackendID, true,
                                                  childBaseDN);
 
-    addOperation =
-         conn.processAdd(childBackendEntry.getName(),
-                         childBackendEntry.getObjectClasses(),
-                         childBackendEntry.getUserAttributes(),
-                         childBackendEntry.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(childBackendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend childBackend = DirectoryServer.getBackend(childBackendID);
+    Backend<?> childBackend = DirectoryServer.getBackend(childBackendID);
     assertNotNull(childBackend);
     assertEquals(childBackend,
                  DirectoryServer.getBackendWithBaseDN(childBaseDN));
@@ -352,13 +296,12 @@ public class BackendConfigManagerTestCase
     assertFalse(DirectoryServer.isNamingContext(childBaseDN));
 
     e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(childBackend.entryExists(childBaseDN));
 
 
+    InternalClientConnection conn = getRootConnection();
     // Make sure that both entries exist.
     InternalSearchOperation internalSearch =
          conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
@@ -394,9 +337,8 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddNestedBackendChildFirst()
-         throws Exception
+  @Test
+  public void testAddNestedBackendChildFirst() throws Exception
   {
     // Create the child backend and the corresponding base entry (at the time
     // of the creation, it will be a naming context).
@@ -405,16 +347,10 @@ public class BackendConfigManagerTestCase
     Entry childBackendEntry = createBackendEntry(childBackendID, true,
                                                  childBaseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(childBackendEntry.getName(),
-                         childBackendEntry.getObjectClasses(),
-                         childBackendEntry.getUserAttributes(),
-                         childBackendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(childBackendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend childBackend = DirectoryServer.getBackend(childBackendID);
+    Backend<?> childBackend = DirectoryServer.getBackend(childBackendID);
     assertNotNull(childBackend);
     assertEquals(childBackend,
                  DirectoryServer.getBackendWithBaseDN(childBaseDN));
@@ -424,9 +360,7 @@ public class BackendConfigManagerTestCase
     assertFalse(childBackend.entryExists(childBaseDN));
 
     Entry e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(childBackend.entryExists(childBaseDN));
     assertTrue(DirectoryServer.isNamingContext(childBaseDN));
@@ -439,14 +373,10 @@ public class BackendConfigManagerTestCase
     Entry parentBackendEntry = createBackendEntry(parentBackendID, true,
                                                   parentBaseDN);
 
-    addOperation =
-         conn.processAdd(parentBackendEntry.getName(),
-                         parentBackendEntry.getObjectClasses(),
-                         parentBackendEntry.getUserAttributes(),
-                         parentBackendEntry.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(parentBackendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend parentBackend = DirectoryServer.getBackend(parentBackendID);
+    Backend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
     assertNotNull(parentBackend);
     assertEquals(parentBackend,
                  DirectoryServer.getBackendWithBaseDN(parentBaseDN));
@@ -455,15 +385,14 @@ public class BackendConfigManagerTestCase
     assertTrue(parentBackend.getSubordinateBackends().length == 1);
 
     e = createEntry(parentBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(parentBackend.entryExists(parentBaseDN));
     assertTrue(DirectoryServer.isNamingContext(parentBaseDN));
     assertFalse(DirectoryServer.isNamingContext(childBaseDN));
 
 
+    InternalClientConnection conn = getRootConnection();
     // Verify that we can see both entries with a subtree search.
     InternalSearchOperation internalSearch =
          conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
@@ -493,9 +422,8 @@ public class BackendConfigManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testInsertIntermediateBackend()
-         throws Exception
+  @Test
+  public void testInsertIntermediateBackend() throws Exception
   {
     // Add the parent backend to the server and its corresponding base entry.
     DN parentBaseDN = DN.valueOf("o=parent");
@@ -503,16 +431,10 @@ public class BackendConfigManagerTestCase
     Entry parentBackendEntry = createBackendEntry(parentBackendID, true,
                                                   parentBaseDN);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(parentBackendEntry.getName(),
-                         parentBackendEntry.getObjectClasses(),
-                         parentBackendEntry.getUserAttributes(),
-                         parentBackendEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(parentBackendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend parentBackend = DirectoryServer.getBackend(parentBackendID);
+    Backend<?> parentBackend = DirectoryServer.getBackend(parentBackendID);
     assertNotNull(parentBackend);
     assertEquals(parentBackend,
                  DirectoryServer.getBackendWithBaseDN(parentBaseDN));
@@ -521,9 +443,7 @@ public class BackendConfigManagerTestCase
     assertFalse(parentBackend.entryExists(parentBaseDN));
 
     Entry e = createEntry(parentBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(parentBackend.entryExists(parentBaseDN));
     assertTrue(DirectoryServer.isNamingContext(parentBaseDN));
@@ -535,14 +455,10 @@ public class BackendConfigManagerTestCase
     Entry grandchildBackendEntry = createBackendEntry(grandchildBackendID, true,
                                                       grandchildBaseDN);
 
-    addOperation =
-         conn.processAdd(grandchildBackendEntry.getName(),
-                         grandchildBackendEntry.getObjectClasses(),
-                         grandchildBackendEntry.getUserAttributes(),
-                         grandchildBackendEntry.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(grandchildBackendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend grandchildBackend = DirectoryServer.getBackend(grandchildBackendID);
+    Backend<?> grandchildBackend = DirectoryServer.getBackend(grandchildBackendID);
     assertNotNull(grandchildBackend);
     assertEquals(grandchildBackend,
                  DirectoryServer.getBackendWithBaseDN(grandchildBaseDN));
@@ -554,9 +470,7 @@ public class BackendConfigManagerTestCase
     // Verify that we can't create the grandchild base entry because its parent
     // doesn't exist.
     e = createEntry(grandchildBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
     assertFalse(grandchildBackend.entryExists(grandchildBaseDN));
 
@@ -567,14 +481,10 @@ public class BackendConfigManagerTestCase
     Entry childBackendEntry = createBackendEntry(childBackendID, true,
                                                  childBaseDN);
 
-    addOperation =
-         conn.processAdd(childBackendEntry.getName(),
-                         childBackendEntry.getObjectClasses(),
-                         childBackendEntry.getUserAttributes(),
-                         childBackendEntry.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(childBackendEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    Backend childBackend = DirectoryServer.getBackend(childBackendID);
+    Backend<?> childBackend = DirectoryServer.getBackend(childBackendID);
     assertNotNull(childBackend);
     assertEquals(childBackend,
                  DirectoryServer.getBackendWithBaseDN(childBaseDN));
@@ -587,21 +497,18 @@ public class BackendConfigManagerTestCase
     assertEquals(grandchildBackend.getParentBackend(), childBackend);
 
     e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(childBackend.entryExists(childBaseDN));
 
     // Now we can create the grandchild base entry.
     e = createEntry(grandchildBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(grandchildBackend.entryExists(grandchildBaseDN));
 
 
+    InternalClientConnection conn = getRootConnection();
     // Verify that a subtree search can see all three entries.
     InternalSearchOperation internalSearch =
          conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
@@ -667,9 +574,7 @@ public class BackendConfigManagerTestCase
     // Add the child entry back into the server to get things back to the way
     // they were before we disabled the backend.
     e = createEntry(childBaseDN);
-    addOperation = conn.processAdd(e.getName(), e.getObjectClasses(),
-                                   e.getUserAttributes(),
-                                   e.getOperationalAttributes());
+    addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(childBackend.entryExists(childBaseDN));
 

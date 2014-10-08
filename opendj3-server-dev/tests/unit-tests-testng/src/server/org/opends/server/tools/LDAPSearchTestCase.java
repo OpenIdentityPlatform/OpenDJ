@@ -32,22 +32,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.testng.Assert.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the LDAPSearch tool.
@@ -633,11 +630,7 @@ public class LDAPSearchTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -688,11 +681,7 @@ public class LDAPSearchTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -744,11 +733,7 @@ public class LDAPSearchTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -800,11 +785,7 @@ public class LDAPSearchTestCase
          "givenName: Test",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -858,11 +839,7 @@ public class LDAPSearchTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -909,11 +886,7 @@ public class LDAPSearchTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1478,11 +1451,7 @@ public class LDAPSearchTestCase
                                       "objectClass: ldapSubEntry",
                                       "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =

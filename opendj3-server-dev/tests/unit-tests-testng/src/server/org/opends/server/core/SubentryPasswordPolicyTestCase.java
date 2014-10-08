@@ -26,33 +26,30 @@
  */
 package org.opends.server.core;
 
-
-
 import java.util.Collection;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.PasswordValidator;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.util.StaticUtils;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.api.AuthenticationPolicy;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.util.StaticUtils;
-import org.testng.annotations.AfterClass;
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
-
 
 /**
  * A set of test cases for the Directory Server subentry password policy.
  */
+@SuppressWarnings("javadoc")
 public class SubentryPasswordPolicyTestCase
        extends CoreTestCase
 {
@@ -65,19 +62,12 @@ public class SubentryPasswordPolicyTestCase
     TestCaseUtils.startServer();
     TestCaseUtils.clearJEBackend(false, "userRoot", SUFFIX);
 
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
     // Add suffix entry.
     DN suffixDN = DN.valueOf(SUFFIX);
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
       Entry suffixEntry = StaticUtils.createEntry(suffixDN);
-      AddOperation addOperation =
-           connection.processAdd(suffixEntry.getName(),
-                                 suffixEntry.getObjectClasses(),
-                                 suffixEntry.getUserAttributes(),
-                                 suffixEntry.getOperationalAttributes());
+      AddOperation addOperation = getRootConnection().processAdd(suffixEntry);
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
       assertNotNull(DirectoryServer.getEntry(suffixEntry.getName()));
     }
@@ -87,11 +77,7 @@ public class SubentryPasswordPolicyTestCase
     if (DirectoryServer.getEntry(baseDN) == null)
     {
       Entry baseEntry = StaticUtils.createEntry(baseDN);
-      AddOperation addOperation =
-           connection.processAdd(baseEntry.getName(),
-                                 baseEntry.getObjectClasses(),
-                                 baseEntry.getUserAttributes(),
-                                 baseEntry.getOperationalAttributes());
+      AddOperation addOperation = getRootConnection().processAdd(baseEntry);
       assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
       assertNotNull(DirectoryServer.getEntry(baseEntry.getName()));
     }
@@ -111,11 +97,7 @@ public class SubentryPasswordPolicyTestCase
          "cn: Rodney Ogasawara",
          "title: Sales, Director"
     );
-    AddOperation addOperation =
-         connection.processAdd(testEntry.getName(),
-                               testEntry.getObjectClasses(),
-                               testEntry.getUserAttributes(),
-                               testEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(testEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(testEntry.getName()));
   }
@@ -257,14 +239,7 @@ public class SubentryPasswordPolicyTestCase
   public void testInvalidConfigurations(Entry e)
          throws Exception
   {
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         connection.processAdd(e.getName(),
-                               e.getObjectClasses(),
-                               e.getUserAttributes(),
-                               e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertTrue(addOperation.getResultCode() != ResultCode.SUCCESS);
     assertNull(DirectoryServer.getEntry(e.getName()));
   }
@@ -306,14 +281,7 @@ public class SubentryPasswordPolicyTestCase
          "pwdSafeModify: TRUE"
     );
 
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         connection.processAdd(policyEntry.getName(),
-                               policyEntry.getObjectClasses(),
-                               policyEntry.getUserAttributes(),
-                               policyEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(policyEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
@@ -333,8 +301,7 @@ public class SubentryPasswordPolicyTestCase
     assertEquals(policy.getPasswordHistoryCount(), 5);
     assertEquals(policy.getPasswordExpirationWarningInterval(), 864000);
     assertEquals(policy.getGraceLoginCount(), 3);
-    assertEquals(policy.getLockoutFailureExpirationInterval(),
-            3600);
+    assertEquals(policy.getLockoutFailureExpirationInterval(), 3600);
     assertEquals(policy.isAllowUserPasswordChanges(), false);
     assertEquals(policy.isPasswordChangeRequiresCurrentPassword(), true);
 
@@ -410,14 +377,7 @@ public class SubentryPasswordPolicyTestCase
         "ds-cfg-password-validator: cn=Length-Based Password Validator,cn=Password Validators,cn=config"
     );
 
-    InternalClientConnection connection =
-        InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-        connection.processAdd(policyEntry.getName(),
-            policyEntry.getObjectClasses(),
-            policyEntry.getUserAttributes(),
-            policyEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(policyEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
@@ -492,14 +452,7 @@ public class SubentryPasswordPolicyTestCase
          "pwdAttribute: userPassword"
         );
 
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         connection.processAdd(policyEntry.getName(),
-                               policyEntry.getObjectClasses(),
-                               policyEntry.getUserAttributes(),
-                               policyEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(policyEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 

@@ -28,21 +28,21 @@ package org.opends.server.extensions;
 
 
 
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.OID_CANCEL_REQUEST;
-import static org.opends.server.util.ServerConstants.OID_WHO_AM_I_REQUEST;
-import static org.testng.Assert.assertEquals;
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.plugins.DelayPreOpPlugin;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Writer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
@@ -64,18 +64,16 @@ import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the cancel extended operation handler.
@@ -292,11 +290,7 @@ public class CancelExtendedOperationTestCase
          "objectClass: top",
          "objectClass: device",
          "cn: test");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -547,11 +541,7 @@ public class CancelExtendedOperationTestCase
          "objectClass: top",
          "objectClass: device",
          "cn: test");
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 

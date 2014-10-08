@@ -1211,11 +1211,7 @@ public class AddOperationTestCase
     Map<AttributeType,List<Attribute>> userAttrs = entry.getUserAttributes();
     userAttrs.put(attrType, newArrayList(Attributes.empty(attrType)));
 
-    InternalClientConnection conn = getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(), userAttrs,
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 

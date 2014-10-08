@@ -32,23 +32,20 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.testng.Assert.*;
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
-
+import static org.testng.Assert.*;
 
 
 /**
@@ -552,11 +549,7 @@ public class LDAPModifyTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -606,11 +599,7 @@ public class LDAPModifyTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -661,11 +650,7 @@ public class LDAPModifyTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -716,11 +701,7 @@ public class LDAPModifyTestCase
          "ds-privilege-name: bypass-acl",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -773,11 +754,7 @@ public class LDAPModifyTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -823,11 +800,7 @@ public class LDAPModifyTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1210,11 +1183,7 @@ public class LDAPModifyTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile(
@@ -1258,11 +1227,7 @@ public class LDAPModifyTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile(
@@ -1393,11 +1358,7 @@ public class LDAPModifyTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile("dn: ou=People,o=test",
@@ -1526,11 +1487,7 @@ public class LDAPModifyTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile("dn: ou=People,o=test",
@@ -1663,11 +1620,7 @@ public class LDAPModifyTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile("dn: ou=People,o=test",

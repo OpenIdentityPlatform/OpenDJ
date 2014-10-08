@@ -28,11 +28,6 @@ package org.opends.server.extensions;
 
 
 
-import static org.opends.server.util.ServerConstants.SASL_MECHANISM_DIGEST_MD5;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -57,7 +52,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the DIGEST-MD5 SASL mechanism handler.
@@ -228,11 +225,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -279,11 +272,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -330,11 +319,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -381,11 +366,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -430,11 +411,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -479,11 +456,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -528,11 +501,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -577,11 +546,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -626,11 +591,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -840,11 +801,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -863,7 +820,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
     assertEquals(LDAPSearch.mainSearch(args, false, null, System.err), 0);
 
 
-    DeleteOperation deleteOperation = conn.processDelete(e.getName());
+    DeleteOperation deleteOperation = getRootConnection().processDelete(e.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

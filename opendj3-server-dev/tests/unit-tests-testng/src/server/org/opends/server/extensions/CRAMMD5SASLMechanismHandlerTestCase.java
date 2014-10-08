@@ -26,38 +26,33 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.List;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            CramMD5SASLMechanismHandlerCfgDefn;
-import org.opends.server.admin.std.server.
-            CramMD5SASLMechanismHandlerCfg;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.meta.CramMD5SASLMechanismHandlerCfgDefn;
+import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the CRAM-MD5 SASL mechanism handler.
  */
+@SuppressWarnings("javadoc")
 public class CRAMMD5SASLMechanismHandlerTestCase
        extends ExtensionsTestCase
 {
@@ -66,14 +61,11 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
-
-
 
   /**
    * Retrieves a set of invalid configuration entries.
@@ -81,8 +73,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @DataProvider(name = "invalidConfigs")
-  public Object[][] getInvalidConfigs()
-         throws Exception
+  public Object[][] getInvalidConfigs() throws Exception
   {
     List<Entry> entries = TestCaseUtils.makeEntries(
          "dn: cn=CRAM-MD5,cn=SASL Mechanisms,cn=config",
@@ -211,11 +202,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -261,11 +248,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -314,11 +297,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -364,11 +343,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -414,11 +389,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -462,11 +433,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -510,11 +477,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -558,11 +521,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
@@ -606,11 +565,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =

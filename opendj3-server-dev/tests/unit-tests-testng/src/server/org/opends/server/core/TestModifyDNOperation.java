@@ -27,11 +27,20 @@
  */
 package org.opends.server.core;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-import static org.testng.Assert.*;
+import java.net.Socket;
+import java.util.Collections;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
+import javax.naming.Context;
+import javax.naming.InvalidNameException;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.InitialDirContext;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ProxiedAuthV1Control;
@@ -43,21 +52,12 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
-import java.net.Socket;
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-
-import javax.naming.Context;
-import javax.naming.InvalidNameException;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.InitialDirContext;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class TestModifyDNOperation extends OperationTestCase
@@ -121,27 +121,15 @@ public class TestModifyDNOperation extends OperationTestCase
       "description: This is the description for Aaccf Amar."
     );
 
-    AddOperation addOperation =
-         connection.processAdd(exampleCom.getName(),
-                               exampleCom.getObjectClasses(),
-                               exampleCom.getUserAttributes(),
-                               exampleCom.getOperationalAttributes());
+    AddOperation addOperation = connection.processAdd(exampleCom);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(exampleCom.getName()));
 
-    addOperation =
-         connection.processAdd(people.getName(),
-                               people.getObjectClasses(),
-                               people.getUserAttributes(),
-                               people.getOperationalAttributes());
+    addOperation = connection.processAdd(people);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(people.getName()));
 
-    addOperation =
-         connection.processAdd(entry.getName(),
-                               entry.getObjectClasses(),
-                               entry.getUserAttributes(),
-                               entry.getOperationalAttributes());
+    addOperation = connection.processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getEntry(entry.getName()));
 

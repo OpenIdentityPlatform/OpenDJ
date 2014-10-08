@@ -33,6 +33,7 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -42,11 +43,11 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -1714,13 +1715,8 @@ public class BindOperationTestCase
          "sn: User",
          "cn: Test User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-//         new InternalClientConnection(new AuthenticationInfo());
-
-    AddOperation addOperation =
-         conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-                         e.getOperationalAttributes());
+    InternalClientConnection conn = getRootConnection();
+    AddOperation addOperation = conn.processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     BindOperation bindOperation =

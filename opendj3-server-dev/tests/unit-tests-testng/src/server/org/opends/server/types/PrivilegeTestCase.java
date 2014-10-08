@@ -470,10 +470,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "sn: Root",
       "userPassword: password");
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(entry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     DN dnToRemove = entry.getName();
@@ -598,10 +595,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "l;collective: Test",
       "subtreeSpecification: {}");
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(entry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     DN dnToRemove = entry.getName();
@@ -959,10 +953,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask",
       "ds-task-schema-file-name: 05-" + identifier + ".ldif");
 
-    AddOperation addOperation =
-         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
-                         taskEntry.getUserAttributes(),
-                         taskEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(taskEntry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -1007,10 +998,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-backup-directory-path: bak",
       "ds-task-backup-all: TRUE");
 
-    AddOperation addOperation =
-         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
-                         taskEntry.getUserAttributes(),
-                         taskEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(taskEntry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -1051,10 +1039,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-class-name: org.opends.server.tasks.RestoreTask",
       "ds-backup-directory-path: bak" + File.separator + "userRoot");
 
-    AddOperation addOperation =
-         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
-                         taskEntry.getUserAttributes(),
-                         taskEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(taskEntry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -1098,10 +1083,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-export-backend-id: userRoot",
       "ds-task-export-ldif-file: " + tempFilePath);
 
-    AddOperation addOperation =
-         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
-                         taskEntry.getUserAttributes(),
-                         taskEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(taskEntry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -1149,10 +1131,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-import-backend-id: userRoot",
       "ds-task-import-ldif-file: " + path);
 
-    AddOperation addOperation =
-         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
-                         taskEntry.getUserAttributes(),
-                         taskEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(taskEntry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)
@@ -1189,10 +1168,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-rebuild-base-dn: dc=example,dc=com",
       "ds-task-rebuild-index: cn");
 
-    AddOperation addOperation =
-         conn.processAdd(taskEntry.getName(), taskEntry.getObjectClasses(),
-                         taskEntry.getUserAttributes(),
-                         taskEntry.getOperationalAttributes());
+    AddOperation addOperation = conn.processAdd(taskEntry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
 
     if (hasPrivilege)

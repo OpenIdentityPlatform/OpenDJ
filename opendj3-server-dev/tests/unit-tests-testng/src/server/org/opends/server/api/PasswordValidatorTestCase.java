@@ -32,14 +32,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Set;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.extensions.TestPasswordValidator;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -49,15 +47,14 @@ import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPWriter;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawModification;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of generic test cases for password validators.
@@ -131,12 +128,7 @@ public class PasswordValidatorTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -189,12 +181,7 @@ public class PasswordValidatorTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -251,13 +238,7 @@ public class PasswordValidatorTestCase
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
 
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -309,12 +290,7 @@ public class PasswordValidatorTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -372,12 +348,7 @@ public class PasswordValidatorTestCase
               "cn=Password Policies,cn=config");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -434,12 +405,7 @@ public class PasswordValidatorTestCase
               "cn=Password Policies,cn=config");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -494,12 +460,7 @@ public class PasswordValidatorTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -572,12 +533,7 @@ public class PasswordValidatorTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -654,12 +610,7 @@ public class PasswordValidatorTestCase
          "userPassword: password");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -743,12 +694,7 @@ public class PasswordValidatorTestCase
               "cn=Password Policies,cn=config");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -827,12 +773,7 @@ public class PasswordValidatorTestCase
               "cn=Password Policies,cn=config");
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(userEntry.getName(), userEntry.getObjectClasses(),
-                         userEntry.getUserAttributes(),
-                         userEntry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(userEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
