@@ -139,10 +139,10 @@
     <publicationDate>${pubDate}</publicationDate>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
-    <coreDocBase>http://docs.forgerock.org/en/opendj/${docTargetVersion}/</coreDocBase>
-    <configRefBase>http://docs.forgerock.org/en/opendj/${docTargetVersion}/configref/</configRefBase>
-    <serverJavadocBase>http://docs.forgerock.org/en/opendj/${docTargetVersion}/javadoc/</serverJavadocBase>
-    <sdkJavadocBase>http://docs.forgerock.org/en/opendj/${sdkDocTargetVersion}/apidocs/</sdkJavadocBase>
+    <coreDocBase>http://docs.forgerock.org/en/opendj/${stableServerVersion}</coreDocBase>
+    <configRefBase>${coreDocBase}/configref/</configRefBase>
+    <serverJavadocBase>${coreDocBase}/javadoc/</serverJavadocBase>
+    <sdkJavadocBase>${coreDocBase}/apidocs/</sdkJavadocBase>
     <!-- END Documentation properties -->
   </properties>
   <build>
