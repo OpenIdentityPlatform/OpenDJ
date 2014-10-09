@@ -331,14 +331,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -434,14 +430,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -464,15 +456,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     InternalClientConnection conn = getRootConnection();
     CompareOperation compareOperation =
@@ -495,15 +482,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     DeleteOperation deleteOperation =
          getRootConnection().processDelete(ByteString.valueOf("cn=test,o=test"));
@@ -523,14 +505,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     DeleteOperation deleteOperation =
          getRootConnection().processDelete(DN.valueOf("cn=test,o=test"));
@@ -567,15 +545,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("This is a test"));
@@ -603,14 +576,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
@@ -635,14 +604,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
@@ -664,14 +629,10 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
@@ -695,17 +656,12 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
 
     InternalClientConnection conn = getRootConnection();
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(DN.valueOf("cn=test,o=test"),
                               RDN.decode("cn=test2"), true);
@@ -725,17 +681,12 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
 
     InternalClientConnection conn = getRootConnection();
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN(DN.valueOf("cn=test,o=test"),
                               RDN.decode("cn=test2"), true,

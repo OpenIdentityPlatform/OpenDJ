@@ -26,41 +26,35 @@
  */
 package org.opends.server.tools;
 
-
-
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
-
 
 /**
  * A set of test cases for the LDAPModify tool.
  */
+@SuppressWarnings("javadoc")
 public class LDAPModifyTestCase
        extends ToolsTestCase
 {
-  // The path to a file containing an invalid bind password.
+  /** The path to a file containing an invalid bind password. */
   private String invalidPasswordFile;
 
-  // The path to a file containing a valid bind password.
+  /** The path to a file containing a valid bind password. */
   private String validPasswordFile;
 
-  // The path to a file containing a simple, valid modification.
+  /** The path to a file containing a simple, valid modification. */
   private String modifyFilePath;
 
 
@@ -537,8 +531,7 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -548,9 +541,6 @@ public class LDAPModifyTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -587,8 +577,7 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -598,9 +587,6 @@ public class LDAPModifyTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -638,8 +624,7 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -649,9 +634,6 @@ public class LDAPModifyTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -689,8 +671,7 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -700,9 +681,6 @@ public class LDAPModifyTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -738,8 +716,7 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -753,9 +730,6 @@ public class LDAPModifyTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -784,8 +758,7 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -799,9 +772,6 @@ public class LDAPModifyTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -1176,15 +1146,11 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: ou=People,o=test",
          "objectClass: top",
          "objectClass: organizationalUnit",
          "ou: People");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile(
          "dn: ou=People,o=test",
@@ -1220,15 +1186,11 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: ou=People,o=test",
          "objectClass: top",
          "objectClass: organizationalUnit",
          "ou: People");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile(
          "dn: ou=People,o=test",
@@ -1351,15 +1313,11 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: ou=People,o=test",
          "objectClass: top",
          "objectClass: organizationalUnit",
          "ou: People");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile("dn: ou=People,o=test",
                                                "changetype: moddn",
@@ -1480,15 +1438,11 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: ou=People,o=test",
          "objectClass: top",
          "objectClass: organizationalUnit",
          "ou: People");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile("dn: ou=People,o=test",
                                                "changetype: moddn",
@@ -1613,15 +1567,11 @@ public class LDAPModifyTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: ou=People,o=test",
          "objectClass: top",
          "objectClass: organizationalUnit",
          "ou: People");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String path = TestCaseUtils.createTempFile("dn: ou=People,o=test",
                                                "changetype: moddn",

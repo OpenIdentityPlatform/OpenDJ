@@ -31,13 +31,10 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
@@ -45,13 +42,13 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the LDAPCompare tool.
  */
+@SuppressWarnings("javadoc")
 public class LDAPCompareTestCase
        extends ToolsTestCase
 {
@@ -887,8 +884,7 @@ public class LDAPCompareTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -898,9 +894,6 @@ public class LDAPCompareTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -956,8 +949,7 @@ public class LDAPCompareTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -967,9 +959,6 @@ public class LDAPCompareTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -1027,8 +1016,7 @@ public class LDAPCompareTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1038,9 +1026,6 @@ public class LDAPCompareTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -1079,8 +1064,7 @@ public class LDAPCompareTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1090,9 +1074,6 @@ public class LDAPCompareTestCase
          "givenName: Test",
          "ds-privilege-name: bypass-acl",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -1147,8 +1128,7 @@ public class LDAPCompareTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1162,9 +1142,6 @@ public class LDAPCompareTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -1210,8 +1187,7 @@ public class LDAPCompareTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1226,9 +1202,6 @@ public class LDAPCompareTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -1276,8 +1249,7 @@ public class LDAPCompareTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1288,9 +1260,6 @@ public class LDAPCompareTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =

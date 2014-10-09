@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -38,10 +36,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -64,13 +60,11 @@ import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.opends.server.types.Entry;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -282,17 +276,12 @@ public class CancelExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-
     // Add an entry to the server that we can delete.
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=test,o=test",
          "objectClass: top",
          "objectClass: device",
          "cn: test");
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.
@@ -533,17 +522,12 @@ public class CancelExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-
     // Add an entry to the server that we can rename.
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=test,o=test",
          "objectClass: top",
          "objectClass: device",
          "cn: test");
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     // Create a new connection to the Directory Server and authenticate as
     // the Directory Manager.

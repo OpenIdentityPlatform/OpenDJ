@@ -32,7 +32,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -144,8 +143,7 @@ public class PlainSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
                    "dn: uid=test.user,o=test",
                    "objectClass: top",
                    "objectClass: person",
@@ -156,9 +154,6 @@ public class PlainSASLMechanismHandlerTestCase
                    "sn: User",
                    "cn: Test User",
                    "userPassword: " + password);
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
@@ -189,8 +184,7 @@ public class PlainSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
                    "dn: uid=test.user,o=test",
                    "objectClass: top",
                    "objectClass: person",
@@ -201,9 +195,6 @@ public class PlainSASLMechanismHandlerTestCase
                    "sn: User",
                    "cn: Test User",
                    "userPassword: " + password);
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
@@ -235,8 +226,7 @@ public class PlainSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
                    "dn: uid=test.user,o=test",
                    "objectClass: top",
                    "objectClass: person",
@@ -247,9 +237,6 @@ public class PlainSASLMechanismHandlerTestCase
                    "sn: User",
                    "cn: Test User",
                    "userPassword: " + password);
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
@@ -281,8 +268,7 @@ public class PlainSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    Entry e = TestCaseUtils.addEntry(
                    "dn: uid=test.user,o=test",
                    "objectClass: top",
                    "objectClass: person",
@@ -293,9 +279,6 @@ public class PlainSASLMechanismHandlerTestCase
                    "sn: User",
                    "cn: Test User",
                    "userPassword: " + password);
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
@@ -328,8 +311,7 @@ public class PlainSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    Entry e = TestCaseUtils.addEntry(
                    "dn: uid=test.user,o=test",
                    "objectClass: top",
                    "objectClass: person",
@@ -340,9 +322,6 @@ public class PlainSASLMechanismHandlerTestCase
                    "sn: User",
                    "cn: Test User",
                    "userPassword: " + password);
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     ByteStringBuilder saslCredBytes = new ByteStringBuilder();
@@ -461,8 +440,7 @@ public class PlainSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
                    "dn: uid=test.user,o=test",
                    "objectClass: top",
                    "objectClass: person",
@@ -473,11 +451,6 @@ public class PlainSASLMechanismHandlerTestCase
                    "sn: User",
                    "cn: Test User",
                    "userPassword: password");
-
-    InternalClientConnection.getRootConnection();
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     InternalClientConnection anonymousConn =
          new InternalClientConnection(new AuthenticationInfo());

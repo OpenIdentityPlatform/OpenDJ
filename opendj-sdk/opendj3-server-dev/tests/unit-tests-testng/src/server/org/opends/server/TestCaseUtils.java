@@ -1359,15 +1359,17 @@ public final class TestCaseUtils {
    * operation.
    *
    * @param  lines  The lines that make up the entry to be added.
-   *
+   * @return the added entry
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void addEntry(String... lines) throws Exception
+  public static Entry addEntry(String... lines) throws Exception
   {
     Entry entry = makeEntry(lines);
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
         addOperation.getErrorMessage().toString());
+    assertNotNull(DirectoryServer.getEntry(entry.getName()));
+    return entry;
   }
 
 

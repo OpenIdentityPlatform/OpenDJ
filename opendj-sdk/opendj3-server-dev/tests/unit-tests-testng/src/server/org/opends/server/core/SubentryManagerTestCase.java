@@ -259,7 +259,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   public void testInheritedCollectiveAttributes() throws Exception
   {
     // Add test inherited from DN collective subentry.
-    Entry collectiveDNInheritedSubentry = TestCaseUtils.makeEntry(
+    Entry collectiveDNInheritedSubentry = addEntry(
          "dn: cn=Inherited From DN Collective Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: subentry",
@@ -269,10 +269,9 @@ public class SubentryManagerTestCase extends CoreTestCase
          "inheritAttribute: postalAddress",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Inherited From DN Collective Subentry");
-    addEntry(collectiveDNInheritedSubentry);
 
     // Add test inherited from RDN collective subentry.
-    Entry collectiveRDNInheritedSubentry = TestCaseUtils.makeEntry(
+    Entry collectiveRDNInheritedSubentry = addEntry(
          "dn: cn=Inherited From RDN Collective Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: subentry",
@@ -284,7 +283,6 @@ public class SubentryManagerTestCase extends CoreTestCase
          "inheritAttribute: telephoneNumber",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Inherited From RDN Collective Subentry");
-    addEntry(collectiveRDNInheritedSubentry);
 
     // Test Inherited Collective Attributes on test entry.
     hasValues(testEntry.getName(), "postaladdress", "Sub City, Collective Street, AK 47");
@@ -519,13 +517,12 @@ public class SubentryManagerTestCase extends CoreTestCase
     }
 
     // Add Relative Spec test subentry.
-    Entry relativeSubentry = TestCaseUtils.makeEntry(
+    Entry relativeSubentry = addEntry(
          "dn: cn=Relative Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: subentry",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\", specificationFilter \"(objectClass=*)\"}",
          "cn: Subentry");
-    addEntry(relativeSubentry);
 
     List<SubEntry> relativeSubList =
             DirectoryServer.getSubentryManager().getSubentries();
@@ -559,7 +556,7 @@ public class SubentryManagerTestCase extends CoreTestCase
     }
 
     // Add role entry.
-    Entry roleEntry = TestCaseUtils.makeEntry(
+    addEntry(
          "dn: cn=Sales," + BASE,
          "objectclass: top",
          "objectclass: organizationalRole",
@@ -567,10 +564,9 @@ public class SubentryManagerTestCase extends CoreTestCase
          "telephoneNumber: +1 999 999 9999",
          "cn: Sales"
     );
-    addEntry(roleEntry);
 
     // Add test entry.
-    testEntry = TestCaseUtils.makeEntry(
+    testEntry = addEntry(
          "dn: uid=rogasawara," + BASE,
          "objectclass: top",
          "objectclass: person",
@@ -585,27 +581,24 @@ public class SubentryManagerTestCase extends CoreTestCase
          "manager: cn=Sales," + BASE,
          "title: Sales"
     );
-    addEntry(testEntry);
 
     // Add test subentry.
-    ldapSubentry = TestCaseUtils.makeEntry(
+    ldapSubentry = addEntry(
          "dn: cn=Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: subentry",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Subentry");
-    addEntry(ldapSubentry);
 
     // Add test legacy subentry.
-    legacyLdapSubentry = TestCaseUtils.makeEntry(
+    legacyLdapSubentry = addEntry(
          "dn: cn=Legacy Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: ldapSubentry",
          "cn: Legacy Subentry");
-    addEntry(legacyLdapSubentry);
 
     // Add test collective subentry.
-    collectiveSubentry = TestCaseUtils.makeEntry(
+    collectiveSubentry = addEntry(
          "dn: cn=Collective Subentry," + SUFFIX,
          "objectClass: top",
          "objectclass: subentry",
@@ -615,13 +608,5 @@ public class SubentryManagerTestCase extends CoreTestCase
          "preferredLanguage;collective: fr",
          "subtreeSpecification: {base \"ou=Test SubEntry Manager\"}",
          "cn: Collective Subentry");
-    addEntry(collectiveSubentry);
-  }
-
-  private void addEntry(Entry e) throws DirectoryException
-  {
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(e.getName()));
   }
 }

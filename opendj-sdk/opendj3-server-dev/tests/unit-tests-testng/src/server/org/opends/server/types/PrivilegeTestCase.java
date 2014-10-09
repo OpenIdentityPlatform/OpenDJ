@@ -30,7 +30,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -47,13 +53,28 @@ import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.*;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.CompareOperation;
+import org.opends.server.core.CompareOperationBasis;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.tools.*;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPPasswordModify;
+import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.LDAPWriter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -381,26 +402,12 @@ public class PrivilegeTestCase extends TypesTestCase
 
   private void assertPrivilege(ResultCode actual, boolean hasPrivilege)
   {
-    if (hasPrivilege)
-    {
-      assertEquals(actual, ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(actual, ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-    }
+    assertEquals(actual, hasPrivilege ? SUCCESS : INSUFFICIENT_ACCESS_RIGHTS);
   }
 
   private void assertProxyPrivilege(ResultCode actual, boolean hasProxyPrivilege)
   {
-    if (hasProxyPrivilege)
-    {
-      assertEquals(actual, ResultCode.SUCCESS);
-    }
-    else
-    {
-      assertEquals(actual, ResultCode.AUTHORIZATION_DENIED);
-    }
+    assertEquals(actual, hasProxyPrivilege ? SUCCESS : AUTHORIZATION_DENIED);
   }
 
   /**
@@ -428,12 +435,11 @@ public class PrivilegeTestCase extends TypesTestCase
              ByteString.valueOf("config"));
     if (hasPrivilege)
     {
-      assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
+      assertEquals(compareOperation.getResultCode(), COMPARE_TRUE);
     }
     else
     {
-      assertEquals(compareOperation.getResultCode(),
-                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+      assertEquals(compareOperation.getResultCode(), INSUFFICIENT_ACCESS_RIGHTS);
     }
   }
 
@@ -553,13 +559,11 @@ public class PrivilegeTestCase extends TypesTestCase
     {
       // We don't support modify DN operations in the server configuration, but
       // at least we need to make sure we're getting past the privilege check.
-      assertEquals(modifyDNOperation.getResultCode(),
-                   ResultCode.UNWILLING_TO_PERFORM);
+      assertEquals(modifyDNOperation.getResultCode(), UNWILLING_TO_PERFORM);
     }
     else
     {
-      assertEquals(modifyDNOperation.getResultCode(),
-                   ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+      assertEquals(modifyDNOperation.getResultCode(), INSUFFICIENT_ACCESS_RIGHTS);
     }
   }
 
@@ -945,13 +949,18 @@ public class PrivilegeTestCase extends TypesTestCase
     }
     writer.close();
 
-    Entry taskEntry = TestCaseUtils.makeEntry(
+    assertPrivilege(conn, hasPrivilege,
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
       "objectClass: top",
       "objectClass: ds-task",
       "objectClass: ds-task-add-schema-file",
       "ds-task-class-name: org.opends.server.tasks.AddSchemaFileTask",
       "ds-task-schema-file-name: 05-" + identifier + ".ldif");
+  }
+
+  private void assertPrivilege(InternalClientConnection conn, boolean hasPrivilege, String... lines) throws Exception
+  {
+    Entry taskEntry = TestCaseUtils.makeEntry(lines);
 
     AddOperation addOperation = conn.processAdd(taskEntry);
     assertPrivilege(addOperation.getResultCode(), hasPrivilege);
@@ -989,7 +998,7 @@ public class PrivilegeTestCase extends TypesTestCase
     assertEquals(conn.hasPrivilege(Privilege.BACKEND_BACKUP, null),
                  hasPrivilege);
 
-    Entry taskEntry = TestCaseUtils.makeEntry(
+    assertPrivilege(conn, hasPrivilege,
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
       "objectclass: top",
       "objectclass: ds-task",
@@ -997,16 +1006,6 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-class-name: org.opends.server.tasks.BackupTask",
       "ds-backup-directory-path: bak",
       "ds-task-backup-all: TRUE");
-
-    AddOperation addOperation = conn.processAdd(taskEntry);
-    assertPrivilege(addOperation.getResultCode(), hasPrivilege);
-
-    if (hasPrivilege)
-    {
-      Task task = getCompletedTask(taskEntry.getName());
-      assertNotNull(task);
-      assertTrue(TaskState.isSuccessful(task.getTaskState()));
-    }
   }
 
 
@@ -1031,23 +1030,13 @@ public class PrivilegeTestCase extends TypesTestCase
     assertEquals(conn.hasPrivilege(Privilege.BACKEND_RESTORE, null),
                  hasPrivilege);
 
-    Entry taskEntry = TestCaseUtils.makeEntry(
+    assertPrivilege(conn, hasPrivilege,
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
       "objectclass: top",
       "objectclass: ds-task",
       "objectclass: ds-task-restore",
       "ds-task-class-name: org.opends.server.tasks.RestoreTask",
       "ds-backup-directory-path: bak" + File.separator + "userRoot");
-
-    AddOperation addOperation = conn.processAdd(taskEntry);
-    assertPrivilege(addOperation.getResultCode(), hasPrivilege);
-
-    if (hasPrivilege)
-    {
-      Task task = getCompletedTask(taskEntry.getName());
-      assertNotNull(task);
-      assertTrue(TaskState.isSuccessful(task.getTaskState()));
-    }
   }
 
 
@@ -1074,24 +1063,19 @@ public class PrivilegeTestCase extends TypesTestCase
     String tempFilePath = tempFile.getAbsolutePath();
     tempFile.delete();
 
-    Entry taskEntry = TestCaseUtils.makeEntry(
-      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-      "objectclass: top",
-      "objectclass: ds-task",
-      "objectclass: ds-task-export",
-      "ds-task-class-name: org.opends.server.tasks.ExportTask",
-      "ds-task-export-backend-id: userRoot",
-      "ds-task-export-ldif-file: " + tempFilePath);
-
-    AddOperation addOperation = conn.processAdd(taskEntry);
-    assertPrivilege(addOperation.getResultCode(), hasPrivilege);
-
-    if (hasPrivilege)
+    try
     {
-      Task task = getCompletedTask(taskEntry.getName());
-      assertNotNull(task);
-      assertTrue(TaskState.isSuccessful(task.getTaskState()));
-
+      assertPrivilege(conn, hasPrivilege,
+          "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+          "objectclass: top",
+          "objectclass: ds-task",
+          "objectclass: ds-task-export",
+          "ds-task-class-name: org.opends.server.tasks.ExportTask",
+          "ds-task-export-backend-id: userRoot",
+          "ds-task-export-ldif-file: " + tempFilePath);
+    }
+    finally
+    {
       tempFile.delete();
     }
   }
@@ -1122,7 +1106,7 @@ public class PrivilegeTestCase extends TypesTestCase
       "objectClass: domain",
       "dc: example");
 
-    Entry taskEntry = TestCaseUtils.makeEntry(
+    assertPrivilege(conn, hasPrivilege,
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
       "objectclass: top",
       "objectclass: ds-task",
@@ -1130,16 +1114,6 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-class-name: org.opends.server.tasks.ImportTask",
       "ds-task-import-backend-id: userRoot",
       "ds-task-import-ldif-file: " + path);
-
-    AddOperation addOperation = conn.processAdd(taskEntry);
-    assertPrivilege(addOperation.getResultCode(), hasPrivilege);
-
-    if (hasPrivilege)
-    {
-      Task task = getCompletedTask(taskEntry.getName());
-      assertNotNull(task);
-      assertTrue(TaskState.isSuccessful(task.getTaskState()));
-    }
   }
 
   /**
@@ -1159,7 +1133,7 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.LDIF_IMPORT, null), hasPrivilege);
 
-    Entry taskEntry = TestCaseUtils.makeEntry(
+    assertPrivilege(conn, hasPrivilege,
       "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
       "objectclass: top",
       "objectclass: ds-task",
@@ -1167,16 +1141,6 @@ public class PrivilegeTestCase extends TypesTestCase
       "ds-task-class-name: org.opends.server.tasks.RebuildTask",
       "ds-task-rebuild-base-dn: dc=example,dc=com",
       "ds-task-rebuild-index: cn");
-
-    AddOperation addOperation = conn.processAdd(taskEntry);
-    assertPrivilege(addOperation.getResultCode(), hasPrivilege);
-
-    if (hasPrivilege)
-    {
-      Task task = getCompletedTask(taskEntry.getName());
-      assertNotNull(task);
-      assertTrue(TaskState.isSuccessful(task.getTaskState()));
-    }
   }
 
 
@@ -1308,7 +1272,6 @@ public class PrivilegeTestCase extends TypesTestCase
                               DirectoryServer.getAttributeType("cn", true),
                               ByteString.valueOf("PWReset Target"));
     compareOperation.run();
-
     if (hasProxyPrivilege)
     {
       assertEquals(compareOperation.getResultCode(), COMPARE_TRUE);
@@ -1460,7 +1423,6 @@ public class PrivilegeTestCase extends TypesTestCase
                               DirectoryServer.getAttributeType("cn", true),
              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
-
     if (hasProxyPrivilege)
     {
       assertEquals(compareOperation.getResultCode(), COMPARE_TRUE);

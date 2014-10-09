@@ -62,11 +62,8 @@ public class CompareOperationTestCase extends OperationTestCase
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
     // Add a test entry.
-    entry = TestCaseUtils.makeEntry(
+    entry = TestCaseUtils.addEntry(
          "dn: uid=rogasawara,o=test",
          "userpassword: password",
          "objectclass: top",
@@ -96,9 +93,6 @@ public class CompareOperationTestCase extends OperationTestCase
          "aci: (targetattr=\"*\")(version 3.0; acl \"Proxy Rights\"; " +
               "allow(proxy) userdn=\"ldap:///uid=proxy.user,o=test\";)"
     );
-    AddOperation addOperation = connection.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(entry.getName()));
 
     // Add a user capable of using the proxied authorization control.
     TestCaseUtils.addEntry(

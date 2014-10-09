@@ -632,12 +632,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void task(String task) throws Exception
   {
-    Entry taskEntry = TestCaseUtils.makeEntry(task);
-
-    // Add the task.
-    AddOperation addOperation = connection.processAdd(taskEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
-                 "Add of the task definition was not successful");
+    Entry taskEntry = TestCaseUtils.addEntry(task);
 
     // Wait until the task completes.
     SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
@@ -938,7 +933,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   /**
    * Performs an internal search, waiting for at most 3 seconds for expected result code and expected
-   * number of entries. 
+   * number of entries.
    */
   protected InternalSearchOperation waitForSearchResult(String dn, SearchScope scope, String filter,
       ResultCode expectedResultCode, int expectedNbEntries) throws Exception

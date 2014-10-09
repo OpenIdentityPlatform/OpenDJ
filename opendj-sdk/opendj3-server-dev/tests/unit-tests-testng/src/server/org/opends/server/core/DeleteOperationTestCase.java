@@ -32,11 +32,12 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
@@ -44,8 +45,6 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 import org.testng.annotations.AfterMethod;
@@ -219,21 +218,12 @@ public class DeleteOperationTestCase extends OperationTestCase
 
   private DeleteOperation processDeleteRaw(String entryDN)
   {
-    InternalClientConnection conn = getRootConnection();
-    return conn.processDelete(ByteString.valueOf(entryDN));
+    return getRootConnection().processDelete(ByteString.valueOf(entryDN));
   }
 
   private DeleteOperation processDelete(String entryDN) throws DirectoryException
   {
-    InternalClientConnection conn = getRootConnection();
-    return conn.processDelete(DN.valueOf(entryDN));
-  }
-
-  private void processAdd(String... entryLines) throws Exception
-  {
-    Entry e = TestCaseUtils.makeEntry(entryLines);
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    return getRootConnection().processDelete(DN.valueOf(entryDN));
   }
 
   /**
@@ -319,8 +309,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   public void testDeleteWithValidRawDNLeaf() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    processAdd("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                "objectClass: top",
                "objectClass: device",
                "cn: test");
@@ -341,8 +330,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   public void testDeleteWithValidProcessedDNLeaf() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    processAdd("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                "objectClass: top",
                "objectClass: device",
                "cn: test");
@@ -480,8 +468,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   public void testDeleteWithNonLeafRawDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    processAdd("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                "objectClass: top",
                "objectClass: device",
                "cn: test");
@@ -501,8 +488,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   public void testDeleteWithNonLeafProcessedDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    processAdd("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                "objectClass: top",
                "objectClass: device",
                "cn: test");

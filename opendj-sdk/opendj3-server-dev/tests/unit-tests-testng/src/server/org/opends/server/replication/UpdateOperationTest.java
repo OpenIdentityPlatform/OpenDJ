@@ -114,11 +114,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     baseDN = DN.valueOf("ou=People," + TEST_ROOT_DN_STRING);
 
     // Create necessary backend top level entry
-    String topEntry = "dn: " + baseDN + "\n"
-        + "objectClass: top\n"
-        + "objectClass: organizationalUnit\n"
-        + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-    addEntry(TestCaseUtils.entryFromLdifString(topEntry));
+    TestCaseUtils.addEntry(
+        "dn: " + baseDN,
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "entryUUID: 11111111-1111-1111-1111-111111111111");
 
     baseUUID = getEntryUUID(baseDN);
 
@@ -152,20 +152,30 @@ public class UpdateOperationTest extends ReplicationTestCase
 
   private void testSetUp(String tc) throws Exception
   {
-    personEntry = TestCaseUtils.entryFromLdifString("dn: uid=user.1." + tc + "," + baseDN + "\n"
-        + "objectClass: top\n" + "objectClass: person\n"
-        + "objectClass: organizationalPerson\n"
-        + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-        + "homePhone: 951-245-7634\n"
-        + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-        + "mobile: 027-085-0537\n"
-        + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-        + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-        + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-        + "street: 17984 Thirteenth Street\n"
-        + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-        + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-        + "userPassword: password\n" + "initials: AA\n");
+    personEntry = TestCaseUtils.makeEntry(
+        "dn: uid=user.1." + tc + "," + baseDN + "",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "homePhone: 951-245-7634",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "mobile: 027-085-0537",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street $Rockford, NC  85762",
+        "mail: user.1@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "pager: 508-763-4246",
+        "street: 17984 Thirteenth Street",
+        "telephoneNumber: 216-564-6748",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA");
 
     /*
      * The 2 entries defined in the following code are used for the naming
@@ -175,71 +185,90 @@ public class UpdateOperationTest extends ReplicationTestCase
     user1entryUUID = "33333333-3333-3333-3333-333333333333";
     user1entrysecondUUID = "22222222-2222-2222-2222-222222222222";
     user1dn = DN.valueOf("uid=user1" + tc + "," + baseDN);
-    personWithUUIDEntry = TestCaseUtils.entryFromLdifString("dn: "+ user1dn + "\n"
-      + "objectClass: top\n" + "objectClass: person\n"
-      + "objectClass: organizationalPerson\n"
-      + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-      + "homePhone: 951-245-7634\n"
-      + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-      + "mobile: 027-085-0537\n"
-      + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-      + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-      + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-      + "street: 17984 Thirteenth Street\n"
-      + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-      + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-      + "userPassword: password\n" + "initials: AA\n"
-      + "entryUUID: " + user1entryUUID + "\n");
+    personWithUUIDEntry = TestCaseUtils.makeEntry(
+        "dn: "+ user1dn + "",
+        "objectClass: top", "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson", "uid: user.1",
+        "homePhone: 951-245-7634",
+        "description: This is the description for Aaccf Amar.", "st: NC",
+        "mobile: 027-085-0537",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street $Rockford, NC  85762", "mail: user.1@example.com",
+        "cn: Aaccf Amar", "l: Rockford", "pager: 508-763-4246",
+        "street: 17984 Thirteenth Street",
+        "telephoneNumber: 216-564-6748", "employeeNumber: 1",
+        "sn: Amar", "givenName: Aaccf", "postalCode: 85762",
+        "userPassword: password", "initials: AA",
+        "entryUUID: " + user1entryUUID + "\n");
 
-    personWithSecondUniqueID = TestCaseUtils.entryFromLdifString("dn: "+ user1dn + "\n"
-      + "objectClass: top\n" + "objectClass: person\n"
-      + "objectClass: organizationalPerson\n"
-      + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-      + "homePhone: 951-245-7634\n"
-      + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-      + "mobile: 027-085-0537\n"
-      + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-      + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-      + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-      + "street: 17984 Thirteenth Street\n"
-      + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-      + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-      + "userPassword: password\n" + "initials: AA\n"
-      + "entryUUID: "+ user1entrysecondUUID + "\n");
+    personWithSecondUniqueID = TestCaseUtils.makeEntry(
+        "dn: "+ user1dn,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "homePhone: 951-245-7634",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "mobile: 027-085-0537",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street $Rockford, NC  85762",
+        "mail: user.1@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "pager: 508-763-4246",
+        "street: 17984 Thirteenth Street",
+        "telephoneNumber: 216-564-6748",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA",
+        "entryUUID: "+ user1entrysecondUUID);
 
     user3UUID = "44444444-4444-4444-4444-444444444444";
     user3dn = DN.valueOf("uid=user3" + tc + "," + baseDN);
-    user3Entry = TestCaseUtils.entryFromLdifString("dn: "+ user3dn + "\n"
-      + "objectClass: top\n" + "objectClass: person\n"
-      + "objectClass: organizationalPerson\n"
-      + "objectClass: inetOrgPerson\n" + "uid: user.1\n"
-      + "homePhone: 951-245-7634\n"
-      + "description: This is the description for Aaccf Amar.\n" + "st: NC\n"
-      + "mobile: 027-085-0537\n"
-      + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-      + "$Rockford, NC  85762\n" + "mail: user.3@example.com\n"
-      + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-      + "street: 17984 Thirteenth Street\n"
-      + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-      + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-      + "userPassword: password\n" + "initials: AA\n"
-      + "entryUUID: " + user3UUID + "\n");
+    user3Entry = TestCaseUtils.makeEntry("dn: "+ user3dn,
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: user.1",
+        "homePhone: 951-245-7634",
+        "description: This is the description for Aaccf Amar.",
+        "st: NC",
+        "mobile: 027-085-0537",
+        "postalAddress: Aaccf Amar$17984 Thirteenth Street $Rockford, NC  85762",
+        "mail: user.3@example.com",
+        "cn: Aaccf Amar",
+        "l: Rockford",
+        "pager: 508-763-4246",
+        "street: 17984 Thirteenth Street",
+        "telephoneNumber: 216-564-6748",
+        "employeeNumber: 1",
+        "sn: Amar",
+        "givenName: Aaccf",
+        "postalCode: 85762",
+        "userPassword: password",
+        "initials: AA",
+        "entryUUID: " + user3UUID);
 
     domain1dn = DN.valueOf("dc=domain1," + baseDN);
     domain2dn = DN.valueOf("dc=domain2,dc=domain1," + baseDN);
     domain3dn = DN.valueOf("dc=domain3,dc=domain1," + baseDN);
-    domain1 = TestCaseUtils.entryFromLdifString(
-        "dn:" + domain1dn + "\n"
-        + "objectClass:domain\n"
-        + "dc:domain1");
-    domain2 = TestCaseUtils.entryFromLdifString(
-        "dn:" + domain2dn + "\n"
-        + "objectClass:domain\n"
-        + "dc:domain2");
-    domain3 = TestCaseUtils.entryFromLdifString(
-        "dn:" + domain3dn + "\n"
-        + "objectClass:domain\n"
-        + "dc:domain3");
+    domain1 = TestCaseUtils.makeEntry(
+        "dn:" + domain1dn,
+        "objectClass:domain",
+        "dc:domain1");
+    domain2 = TestCaseUtils.makeEntry(
+        "dn:" + domain2dn,
+        "objectClass:domain",
+        "dc:domain2");
+    domain3 = TestCaseUtils.makeEntry(
+        "dn:" + domain3dn,
+        "objectClass:domain",
+        "dc:domain3");
   }
 
   /**
@@ -845,11 +874,11 @@ public class UpdateOperationTest extends ReplicationTestCase
       DN baseDN2 = DN.valueOf("ou=baseDn2," + baseDN);
 
       // - create parent entry 1 with baseDn1
-      connection.processAdd(TestCaseUtils.entryFromLdifString(
-          "dn: " + baseDN1 + "\n"
-              + "objectClass: top\n"
-              + "objectClass: organizationalUnit\n"
-              + "entryUUID: 55555555-5555-5555-5555-555555555555\n"));
+      connection.processAdd(TestCaseUtils.makeEntry(
+          "dn: " + baseDN1,
+          "objectClass: top",
+          "objectClass: organizationalUnit",
+          "entryUUID: 55555555-5555-5555-5555-555555555555"));
       assertNotNull(getEntry(baseDN1, 10000, true),
           "Entry not added: " + baseDN1);
 
@@ -871,11 +900,11 @@ public class UpdateOperationTest extends ReplicationTestCase
           "Entry not moved from " + baseDN1 + " to " + baseDN2);
 
       // - add new parent entry 2 with baseDn1
-      connection.processAdd(TestCaseUtils.entryFromLdifString(
-          "dn: " + baseDN1 + "\n"
-              + "objectClass: top\n"
-              + "objectClass: organizationalUnit\n"
-              + "entryUUID: 66666666-6666-6666-6666-666666666666\n"));
+      connection.processAdd(TestCaseUtils.makeEntry(
+          "dn: " + baseDN1,
+          "objectClass: top",
+          "objectClass: organizationalUnit",
+          "entryUUID: 66666666-6666-6666-6666-666666666666"));
 
       // - publish msg
       updateMonitorCount(baseDN, resolvedMonitorAttr);
@@ -1290,24 +1319,30 @@ public class UpdateOperationTest extends ReplicationTestCase
       CSNGenerator gen = new CSNGenerator(serverId, 0);
 
       // Create a test entry.
-      Entry tmp = TestCaseUtils.entryFromLdifString(
-      "dn: uid=user.2," + baseDN + "\n"
-          + "objectClass: top\n" + "objectClass: person\n"
-          + "objectClass: organizationalPerson\n"
-          + "objectClass: inetOrgPerson\n" + "uid: user.2\n"
-          + "homePhone: 951-245-7634\n"
-          + "description: This is the description for Aaccf Amar.\n"
-          + "st: NC\n"
-          + "mobile: 027-085-0537\n"
-          + "postalAddress: Aaccf Amar$17984 Thirteenth Street"
-          + "$Rockford, NC  85762\n" + "mail: user.1@example.com\n"
-          + "cn: Aaccf Amar\n" + "l: Rockford\n" + "pager: 508-763-4246\n"
-          + "street: 17984 Thirteenth Street\n"
-          + "telephoneNumber: 216-564-6748\n" + "employeeNumber: 1\n"
-          + "sn: Amar\n" + "givenName: Aaccf\n" + "postalCode: 85762\n"
-          + "userPassword: password\n" + "initials: AA\n");
-      AddOperation addOp = connection.processAdd(tmp);
-      assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
+      Entry tmp = TestCaseUtils.addEntry(
+          "dn: uid=user.2," + baseDN,
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: user.2",
+          "homePhone: 951-245-7634",
+          "description: This is the description for Aaccf Amar.",
+          "st: NC",
+          "mobile: 027-085-0537",
+          "postalAddress: Aaccf Amar$17984 Thirteenth Street $Rockford, NC  85762",
+          "mail: user.1@example.com",
+          "cn: Aaccf Amar",
+          "l: Rockford",
+          "pager: 508-763-4246",
+          "street: 17984 Thirteenth Street",
+          "telephoneNumber: 216-564-6748",
+          "employeeNumber: 1",
+          "sn: Amar",
+          "givenName: Aaccf",
+          "postalCode: 85762",
+          "userPassword: password",
+          "initials: AA");
 
       long initialCount = getMonitorAttrValue(baseDN, "replayed-updates");
 

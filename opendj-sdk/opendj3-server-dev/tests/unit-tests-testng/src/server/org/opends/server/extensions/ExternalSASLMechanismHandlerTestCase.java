@@ -43,7 +43,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExternalSASLMechanismHandlerCfgDefn;
 import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -194,8 +193,7 @@ public class ExternalSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -204,10 +202,6 @@ public class ExternalSASLMechanismHandlerTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
@@ -246,8 +240,7 @@ public class ExternalSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -256,10 +249,6 @@ public class ExternalSASLMechanismHandlerTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
@@ -364,8 +353,7 @@ public class ExternalSASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -374,10 +362,6 @@ public class ExternalSASLMechanismHandlerTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     InternalClientConnection conn = getRootConnection();
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
@@ -443,7 +427,7 @@ public class ExternalSASLMechanismHandlerTestCase
     inputStream.close();
     byte[] certBytes = ks.getCertificate("client-cert").getEncoded();
 
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -453,9 +437,6 @@ public class ExternalSASLMechanismHandlerTestCase
          "givenName: Test",
          "sn: User",
          "userCertificate;binary:: " + Base64.encode(certBytes));
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -509,7 +490,7 @@ public class ExternalSASLMechanismHandlerTestCase
       "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
       "1AIUXiE3Qcck";
 
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -519,9 +500,6 @@ public class ExternalSASLMechanismHandlerTestCase
          "givenName: Test",
          "sn: User",
          "userCertificate;binary:: " + Certificate);
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
@@ -570,7 +548,7 @@ public class ExternalSASLMechanismHandlerTestCase
     inputStream.close();
     byte[] certBytes = ks.getCertificate("client-cert").getEncoded();
 
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -582,10 +560,6 @@ public class ExternalSASLMechanismHandlerTestCase
          "userCertificate;binary:: " + Base64.encode(certBytes));
 
     InternalClientConnection conn = getRootConnection();
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();
@@ -654,7 +628,7 @@ public class ExternalSASLMechanismHandlerTestCase
       "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
       "1AIUXiE3Qcck";
 
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -666,10 +640,6 @@ public class ExternalSASLMechanismHandlerTestCase
          "userCertificate;binary:: " + Certificate);
 
     InternalClientConnection conn = getRootConnection();
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
     String dnStr    = "cn=EXTERNAL,cn=SASL Mechanisms,cn=config";
     String attrName = "ds-cfg-certificate-validation-policy";
     ArrayList<Modification> mods = new ArrayList<Modification>();

@@ -35,13 +35,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.EntryUUIDPluginCfgDefn;
 import org.opends.server.admin.std.server.EntryUUIDPluginCfg;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
@@ -52,7 +50,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -335,17 +332,10 @@ public class EntryUUIDPluginTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    Entry e = TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    e = DirectoryConfig.getEntry(e.getName());
-    assertNotNull(e);
     assertNotNull(e.getAttribute("entryuuid"));
   }
 
@@ -363,17 +353,11 @@ public class EntryUUIDPluginTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    Entry e = TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test",
                                       "entryUUID: " + UUID.randomUUID());
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    e = DirectoryConfig.getEntry(e.getName());
-    assertNotNull(e);
     assertNotNull(e.getAttribute("entryuuid"));
   }
 }

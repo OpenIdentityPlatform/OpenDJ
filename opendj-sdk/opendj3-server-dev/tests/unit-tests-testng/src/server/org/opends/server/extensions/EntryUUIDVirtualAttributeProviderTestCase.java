@@ -34,11 +34,9 @@ import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -155,19 +153,11 @@ public class EntryUUIDVirtualAttributeProviderTestCase
 
     TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
 
-    Entry e = TestCaseUtils.makeEntry(
+    Entry e = TestCaseUtils.addEntry(
       "dn: dc=example,dc=com",
       "objectClass: top",
       "objectClass: domain",
       "dc: example");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    e = DirectoryServer.getEntry(e.getName());
-    assertNotNull(e);
     assertTrue(e.hasAttribute(entryUUIDType));
 
     List<Attribute> attrList = e.getAttribute(entryUUIDType);

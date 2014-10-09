@@ -66,24 +66,17 @@ public class SubentryPasswordPolicyTestCase
     DN suffixDN = DN.valueOf(SUFFIX);
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
-      Entry suffixEntry = StaticUtils.createEntry(suffixDN);
-      AddOperation addOperation = getRootConnection().processAdd(suffixEntry);
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(suffixEntry.getName()));
+      createEntry(suffixDN);
     }
 
     // Add base entry.
     DN baseDN = DN.valueOf(BASE);
     if (DirectoryServer.getEntry(baseDN) == null)
     {
-      Entry baseEntry = StaticUtils.createEntry(baseDN);
-      AddOperation addOperation = getRootConnection().processAdd(baseEntry);
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(baseEntry.getName()));
+      createEntry(baseDN);
     }
 
-    // Add test entry.
-    Entry testEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=rogasawara," + BASE,
          "objectclass: top",
          "objectclass: person",
@@ -97,9 +90,14 @@ public class SubentryPasswordPolicyTestCase
          "cn: Rodney Ogasawara",
          "title: Sales, Director"
     );
-    AddOperation addOperation = getRootConnection().processAdd(testEntry);
+  }
+
+  private void createEntry(DN suffixDN) throws Exception
+  {
+    Entry e = StaticUtils.createEntry(suffixDN);
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(testEntry.getName()));
+    assertNotNull(DirectoryServer.getEntry(e.getName()));
   }
 
   @AfterClass
@@ -260,7 +258,7 @@ public class SubentryPasswordPolicyTestCase
 
     // The values are selected on a basis that they
     // should differ from default password policy.
-    Entry policyEntry = TestCaseUtils.makeEntry(
+    Entry policyEntry = TestCaseUtils.addEntry(
          "dn: cn=Temp Policy," + SUFFIX,
          "objectClass: top",
          "objectClass: pwdPolicy",
@@ -280,10 +278,6 @@ public class SubentryPasswordPolicyTestCase
          "pwdAllowUserChange: FALSE",
          "pwdSafeModify: TRUE"
     );
-
-    AddOperation addOperation = getRootConnection().processAdd(policyEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
     PasswordPolicy policy = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(
             DN.valueOf("cn=Temp Policy," + SUFFIX));
@@ -353,7 +347,7 @@ public class SubentryPasswordPolicyTestCase
 
     // The values are selected on a basis that they
     // should differ from default password policy.
-    Entry policyEntry = TestCaseUtils.makeEntry(
+    Entry policyEntry = TestCaseUtils.addEntry(
         "dn: cn=Temp Validator Policy," + SUFFIX,
         "objectClass: top",
         "objectClass: pwdPolicy",
@@ -376,10 +370,6 @@ public class SubentryPasswordPolicyTestCase
         "ds-cfg-password-validator: cn=Unique Characters,cn=Password Validators,cn=config",
         "ds-cfg-password-validator: cn=Length-Based Password Validator,cn=Password Validators,cn=config"
     );
-
-    AddOperation addOperation = getRootConnection().processAdd(policyEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
     PasswordPolicy policy = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(
         DN.valueOf("cn=Temp Validator Policy," + SUFFIX));
@@ -439,7 +429,7 @@ public class SubentryPasswordPolicyTestCase
 
     // Add new subentry policy with the
     // scope to apply to the user entry.
-    Entry policyEntry = TestCaseUtils.makeEntry(
+    Entry policyEntry = TestCaseUtils.addEntry(
          "dn: cn=Temp Policy," + SUFFIX,
          "objectClass: top",
          "objectClass: pwdPolicy",
@@ -451,10 +441,6 @@ public class SubentryPasswordPolicyTestCase
          "pwdMustChange: true",
          "pwdAttribute: userPassword"
         );
-
-    AddOperation addOperation = getRootConnection().processAdd(policyEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(policyEntry.getName()));
 
     // Make sure just added policy is in effect.
     testEntry = DirectoryServer.getEntry(DN.valueOf(

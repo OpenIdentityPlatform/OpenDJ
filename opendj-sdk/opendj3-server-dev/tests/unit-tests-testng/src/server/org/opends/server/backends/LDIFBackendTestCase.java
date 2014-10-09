@@ -30,6 +30,8 @@ import java.io.File;
 import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.task.Task;
@@ -45,14 +47,13 @@ import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tasks.TasksTestCase;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -225,9 +226,7 @@ public class LDIFBackendTestCase
       "objectClass: organizationalUnit",
       "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e);
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.ENTRY_ALREADY_EXISTS);
   }
 
@@ -249,9 +248,7 @@ public class LDIFBackendTestCase
       "objectClass: organizationalUnit",
       "ou: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e);
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
     assertEquals(addOperation.getMatchedDN(), DN.valueOf("o=ldif"));
   }
@@ -291,16 +288,11 @@ public class LDIFBackendTestCase
     assertFalse(DirectoryServer.entryExists(
                     DN.valueOf("uid=user.1,ou=People,o=ldif")));
 
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: o=ldif",
       "objectClass: top",
       "objectClass: organization",
       "o: ldif");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=ldif")));
     assertFalse(DirectoryServer.entryExists(
                     DN.valueOf("uid=user.1,ou=People,o=ldif")));
