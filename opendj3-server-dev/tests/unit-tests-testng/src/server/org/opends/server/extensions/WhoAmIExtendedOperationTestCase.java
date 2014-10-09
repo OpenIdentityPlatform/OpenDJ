@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
@@ -54,7 +53,6 @@ import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -125,8 +123,7 @@ public class WhoAmIExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    Entry e = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -137,9 +134,6 @@ public class WhoAmIExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOp = getRootConnection().processAdd(e);
-    assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = new InternalClientConnection(new AuthenticationInfo(e, false));
@@ -224,8 +218,7 @@ public class WhoAmIExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -236,9 +229,6 @@ public class WhoAmIExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOp = getRootConnection().processAdd(e);
-    assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());

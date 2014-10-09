@@ -47,6 +47,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -547,56 +548,44 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Initialize a backend with a base entry.
     TestCaseUtils.clearJEBackend(true, "userRoot", suffix);
 
-    // Create a client connection for the test.
-    InternalClientConnection connection =
-      InternalClientConnection.getRootConnection();
-
     // Check that suffix is accessible while suffix2 is not.
-    searchEntry(connection, suffix,  true);
-    searchEntry(connection, suffix2, false);
+    searchEntry(suffix, true);
+    searchEntry(suffix2, false);
 
     // Add a new suffix in the backend and create a base entry for the
     // new suffix.
     String backendConfigDN = "ds-cfg-backend-id=userRoot," + DN_BACKEND_BASE;
-    modifyAttribute(
-        connection, backendConfigDN,
-        ModificationType.ADD, backendBaseDNName, suffix2);
-    addBaseEntry(connection, suffix2, "networkgroup suffix");
+    modifyAttribute(backendConfigDN, ModificationType.ADD, backendBaseDNName, suffix2);
+    addBaseEntry(suffix2, "networkgroup suffix");
 
     // Both old and new suffix should be accessible.
-    searchEntry(connection, suffix,  true);
-    searchEntry(connection, suffix2, true);
+    searchEntry(suffix, true);
+    searchEntry(suffix2, true);
 
     // Remove the new suffix...
-    modifyAttribute(
-        connection, backendConfigDN,
-        ModificationType.DELETE, backendBaseDNName, suffix2);
+    modifyAttribute(backendConfigDN, ModificationType.DELETE, backendBaseDNName, suffix2);
 
     // ...and check that the removed suffix is no more accessible.
-    searchEntry(connection, suffix,  true);
-    searchEntry(connection, suffix2, false);
+    searchEntry(suffix, true);
+    searchEntry(suffix2, false);
 
     // Replace the suffix with suffix2 in the backend
-    modifyAttribute(
-        connection, backendConfigDN,
-        ModificationType.REPLACE, backendBaseDNName, suffix2);
+    modifyAttribute(backendConfigDN, ModificationType.REPLACE, backendBaseDNName, suffix2);
 
     // Now none of the suffixes are accessible: this means the entries
     // under the old suffix are not moved to the new suffix.
-    searchEntry(connection, suffix,  false);
-    searchEntry(connection, suffix2, false);
+    searchEntry(suffix, false);
+    searchEntry(suffix2, false);
 
     // Add a base entry for the new suffix
-    addBaseEntry(connection, suffix2, "networkgroup suffix");
+    addBaseEntry(suffix2, "networkgroup suffix");
 
     // The new suffix is accessible while the old one is not.
-    searchEntry(connection, suffix,  false);
-    searchEntry(connection, suffix2, true);
+    searchEntry(suffix, false);
+    searchEntry(suffix2, true);
 
     // Reset the configuration with previous suffix
-    modifyAttribute(
-        connection, backendConfigDN,
-        ModificationType.REPLACE, backendBaseDNName, suffix);
+    modifyAttribute(backendConfigDN, ModificationType.REPLACE, backendBaseDNName, suffix);
   }
 
 
@@ -1066,17 +1055,12 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   /**
    * Searches an entry on a given connection.
    *
-   * @param connection    the connection to use for the search request
    * @param baseDN        the request base DN string
    * @param shouldExist   if true the searched entry is expected to be found
    */
-  private void searchEntry(
-      InternalClientConnection connection,
-      String  baseDN,
-      boolean shouldExist
-      ) throws Exception
+  private void searchEntry(String baseDN, boolean shouldExist) throws Exception
   {
-    SearchOperation search = connection.processSearch(baseDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchOperation search = getRootConnection().processSearch(baseDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
 
     // Compare the result code with the expected one
     assertEquals(search.getResultCode(), shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
@@ -1086,38 +1070,28 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   /**
    * Creates a base entry for the given suffix.
    *
-   * @param connection  the connection to use for the add request
    * @param suffix      the suffix for which the base entry is to be created
    */
-  private void addBaseEntry(
-      InternalClientConnection connection,
-      String  suffix,
-      String  namingAttribute
-      ) throws Exception
+  private void addBaseEntry(String suffix, String namingAttribute) throws Exception
   {
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
         "dn: " + suffix,
         "objectClass: top",
         "objectClass: organization",
         "o: " + namingAttribute);
-
-   AddOperation addOperation = connection.processAdd(e);
-   assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
   /**
    * Adds/Deletes/Replaces an attribute in a given entry.
    *
-   * @param connection      the connection to use for the modify request
    * @param baseDN          the request base DN string
    * @param modType         the modification type (add/delete/replace)
    * @param attributeName   the name  of the attribute to add/delete/replace
    * @param attributeValue  the value of the attribute to add/delete/replace
    */
   private void modifyAttribute(
-      InternalClientConnection connection,
-      String  baseDN,
+      String baseDN,
       ModificationType modType,
       String  attributeName,
       String  attributeValue
@@ -1127,8 +1101,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     Attribute attributeToModify =
       Attributes.create(attributeName, attributeValue);
     mods.add(new Modification(modType, attributeToModify));
-    ModifyOperation modifyOperation = connection.processModify(
-        DN.valueOf(baseDN), mods);
+    ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(baseDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

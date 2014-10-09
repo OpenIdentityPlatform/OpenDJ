@@ -52,6 +52,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -70,36 +71,24 @@ public class SearchOperationTestCase extends OperationTestCase
     TestCaseUtils.startServer();
     TestCaseUtils.clearJEBackend(true,"userRoot","dc=example,dc=com");
 
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
 
     // Add the suffix entry.
     DN suffixDN = DN.valueOf(SUFFIX);
     if (DirectoryServer.getEntry(suffixDN) == null)
     {
-      Entry suffixEntry = StaticUtils.createEntry(suffixDN);
-      AddOperation addOperation = connection.processAdd(suffixEntry);
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(suffixEntry.getName()));
+      processAdd(StaticUtils.createEntry(suffixDN));
     }
 
     // Add a search base entry.
     DN baseDN = DN.valueOf(BASE);
     if (DirectoryServer.getEntry(baseDN) == null)
     {
-      Entry baseEntry = StaticUtils.createEntry(baseDN);
-      AddOperation addOperation = connection.processAdd(baseEntry);
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-      assertNotNull(DirectoryServer.getEntry(baseEntry.getName()));
+      processAdd(StaticUtils.createEntry(baseDN));
     }
 
-    // Add a test ldapsubentry.
-    Entry ldapSubentry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=subentry," + BASE,
          "objectclass: ldapsubentry");
-    AddOperation addOperation = connection.processAdd(ldapSubentry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(ldapSubentry.getName()));
 
     // Add a test entry.
     testEntry = TestCaseUtils.makeEntry(
@@ -139,51 +128,45 @@ public class SearchOperationTestCase extends OperationTestCase
     }
 
     // The add operation changes the attributes, so let's duplicate the entry.
-    Entry duplicateEntry = testEntry.duplicate(false);
+    processAdd(testEntry.duplicate(false));
 
-    addOperation = connection.processAdd(duplicateEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(testEntry.getName()));
-
-    // Add a test referral entry.
-    Entry referralEntry = TestCaseUtils.makeEntry(
+    // referral entry.
+    TestCaseUtils.addEntry(
          "dn: ou=People," + BASE,
          "objectclass: extensibleobject",
          "objectclass: referral",
          "ref: ldap://hostb/OU=People,O=MNN,C=US",
          "ref: ldap://hostc/OU=People,O=MNN,C=US");
-    addOperation = connection.processAdd(referralEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(referralEntry.getName()));
 
-    Entry level1Entry = TestCaseUtils.makeEntry(
+    // level 1 entry.
+    TestCaseUtils.addEntry(
         "dn: ou=level1," + BASE,
         "objectclass: top",
         "objectclass: organizationalunit",
         "ou: level1");
-    addOperation = connection.processAdd(level1Entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(level1Entry.getName()));
 
-    Entry level2Entry = TestCaseUtils.makeEntry(
+    // level 2 entry.
+    TestCaseUtils.addEntry(
         "dn: ou=level2,ou=level1," + BASE,
         "objectclass: top",
         "objectclass: organizationalunit",
         "ou: level2");
-    addOperation = connection.processAdd(level2Entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(level2Entry.getName()));
 
-    Entry referral2Entry = TestCaseUtils.makeEntry(
+    // referral 2 entry.
+    TestCaseUtils.addEntry(
         "dn: ou=level3,ou=level2,ou=level1," + BASE,
         "objectclass: extensibleobject",
         "objectclass: referral",
         "ref: ldap://hostb/OU=People,O=MNN,C=US",
         "ref: ldap://hostc/OU=People,O=MNN,C=US",
         "ref: ldap://hostd/OU=People,O=MNN,C=US");
-    addOperation = connection.processAdd(referral2Entry);
-   assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-   assertNotNull(DirectoryServer.getEntry(referral2Entry.getName()));
+  }
+
+  private void processAdd(Entry e) throws DirectoryException
+  {
+    AddOperation addOperation = getRootConnection().processAdd(e);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    assertNotNull(DirectoryServer.getEntry(e.getName()));
   }
 
 

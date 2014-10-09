@@ -37,15 +37,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.controls.PasswordPolicyRequestControl;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.AnonymousSASLMechanismHandler;
 import org.opends.server.types.Control;
-import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -53,7 +50,6 @@ import org.testng.annotations.Test;
 
 import com.forgerock.opendj.cli.ClientException;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -716,8 +712,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -730,10 +725,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     SASLMechanismHandler<?> cramMD5Handler =
          DirectoryServer.getSASLMechanismHandler("CRAM-MD5");
@@ -784,8 +775,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -798,9 +788,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -928,8 +915,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -942,9 +928,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -990,8 +973,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1002,9 +984,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -1221,8 +1200,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1235,9 +1213,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -1279,8 +1254,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1293,9 +1267,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     SASLMechanismHandler<?> digestMD5Handler =
@@ -1352,8 +1323,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1366,9 +1336,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -1410,8 +1377,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1424,9 +1390,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -1720,8 +1683,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1734,9 +1696,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -2189,8 +2148,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2203,9 +2161,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -2256,8 +2211,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2268,9 +2222,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -2322,8 +2273,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2336,9 +2286,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -2382,8 +2329,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2393,9 +2339,6 @@ public class LDAPAuthenticationHandlerTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     SASLMechanismHandler<?> externalHandler =
@@ -2454,8 +2397,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2465,9 +2407,6 @@ public class LDAPAuthenticationHandlerTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -2514,8 +2453,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2525,9 +2463,6 @@ public class LDAPAuthenticationHandlerTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     SASLMechanismHandler<?> externalHandler =
@@ -2590,8 +2525,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2601,9 +2535,6 @@ public class LDAPAuthenticationHandlerTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -3229,8 +3160,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -3241,9 +3171,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     SASLMechanismHandler<?> plainHandler =
@@ -3295,8 +3222,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -3307,9 +3233,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -3681,8 +3604,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -3693,9 +3615,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -3735,8 +3654,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -3747,9 +3665,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -3873,8 +3788,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -3885,9 +3799,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -3962,8 +3873,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -3976,9 +3886,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -4020,8 +3927,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -4034,9 +3940,6 @@ public class LDAPAuthenticationHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -4079,8 +3982,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -4090,9 +3992,6 @@ public class LDAPAuthenticationHandlerTestCase
          "givenName: Test",
          "sn: User",
          "cn: Test User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -4140,8 +4039,7 @@ public class LDAPAuthenticationHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -4152,9 +4050,6 @@ public class LDAPAuthenticationHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());

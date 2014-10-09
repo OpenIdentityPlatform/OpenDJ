@@ -56,11 +56,13 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
 import org.testng.annotations.*;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
  * Unit test to test Referential Integrity plugin.
  */
+@SuppressWarnings("javadoc")
 public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
   //Config DNs and attributes.
@@ -1045,9 +1047,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       builder.add(valString);
     }
     mods.add(new Modification(ModificationType.ADD, builder.toAttribute()));
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    return conn.processModify(dn, mods);
+    return getRootConnection().processModify(dn, mods);
   }
 
 /**
@@ -1069,9 +1069,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       builder.add(valString);
     }
     mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    return conn.processModify(dn, mods);
+    return getRootConnection().processModify(dn, mods);
   }
 
 
@@ -1095,9 +1093,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       mods.add(new Modification(ModificationType.DELETE,
           Attributes.empty(attrType)));
     }
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    conn.processModify(dn, mods);
+    getRootConnection().processModify(dn, mods);
   }
 
   /**
@@ -1117,8 +1113,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   }
 
   private void deleteEntries(String... dns) throws Exception{
-    InternalClientConnection conn =
-                                 InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     for(String dn : dns) {
          DeleteOperation op=conn.processDelete(DN.valueOf(dn));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
@@ -1129,8 +1124,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
   private void deleteSubtree(String... dns) throws Exception
   {
-    InternalClientConnection conn = InternalClientConnection
-        .getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     SubtreeDeleteControl control = new SubtreeDeleteControl(true);
     List<Control> controls = new ArrayList<Control>(1);
@@ -1172,8 +1166,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
           throws Exception {
     AttributeType type= getAttrType(attr);
     String filterStr="(" + attr + "=*)";
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation operation = conn.processSearch(DN.valueOf(entryDN),
             SearchScope.BASE_OBJECT,
             DereferenceAliasesPolicy.NEVER, 0, 0, false,
@@ -1196,12 +1189,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    *
    */
   private void addEntries(String... dns) throws Exception {
-        InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     for(String dn : dns) {
-      Entry e=makeEntry(dn);
-      AddOperation op=conn.processAdd(e);
-      assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+      addEntry(dn);
     }
   }
 
@@ -1212,8 +1201,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @return The created entry.
    * @throws Exception  If the entry can't be created.
    */
-  private Entry makeEntry(String dn) throws Exception {
-      return TestCaseUtils.makeEntry(
+  private Entry addEntry(String dn) throws Exception {
+    return TestCaseUtils.addEntry(
             "dn: " + dn,
             "objectClass: top",
             "objectClass: person",
@@ -1240,8 +1229,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    */
   private void
   doModDN(String dn, String rdn, String newSuperior) throws Exception {
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modDNop;
     if(newSuperior != null)
         modDNop = conn.processModifyDN(DN.valueOf(dn), RDN.decode(rdn), true,
@@ -1282,18 +1270,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    Entry entry = null;
-    AddOperation addOperation = null;
+    addEntry("uid=manager,ou=people,ou=dept,o=test");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    entry = makeEntry("uid=manager,ou=people,ou=dept,o=test");
-
-    addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
       "objectclass: top",
       "objectclass: person",
@@ -1304,9 +1283,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "sn: employee",
       "givenname: employee",
       "manager: uid=manager,ou=people,ou=dept,o=test");
-
-    addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
   /**
@@ -1339,18 +1315,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    Entry entry = null;
-    AddOperation addOperation = null;
+    addEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
-
-    addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
       "objectclass: top",
       "objectclass: person",
@@ -1361,9 +1328,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "sn: employee",
       "givenname: employee",
       "manager: uid=manager,ou=people,ou=dept,dc=example,dc=com");
-
-    addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
     /**
@@ -1395,13 +1359,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    Entry entry = null;
-    AddOperation addOperation = null;
-
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    entry = TestCaseUtils.makeEntry(
+    Entry entry = TestCaseUtils.makeEntry(
       "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
       "objectclass: top",
       "objectclass: person",
@@ -1413,7 +1371,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "givenname: employee",
       "manager: uid=bad,ou=people,ou=dept,dc=example,dc=com");
 
-    addOperation = conn.processAdd(entry);
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
   }
@@ -1449,18 +1407,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=gropuOfNames)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    Entry entry = null;
-    AddOperation addOperation = null;
+    addEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
-
-    addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = TestCaseUtils.makeEntry(
+    Entry entry = TestCaseUtils.makeEntry(
       "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
       "objectclass: top",
       "objectclass: person",
@@ -1472,7 +1421,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "givenname: employee",
       "manager: uid=manager,ou=people,ou=dept,dc=example,dc=com");
 
-    addOperation = conn.processAdd(entry);
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
   }
@@ -1509,18 +1458,9 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    Entry entry = null;
-    AddOperation addOperation = null;
+    addEntry("uid=manager,ou=people,ou=dept,o=test");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    entry = makeEntry("uid=manager,ou=people,ou=dept,o=test");
-
-    addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    entry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: uid=employee,ou=people,ou=dept,dc=example,dc=com",
       "objectclass: top",
       "objectclass: person",
@@ -1531,10 +1471,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "sn: employee",
       "givenname: employee",
       "manager: uid=manager,ou=people,ou=dept,o=test");
-
-    addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(),
-                 ResultCode.SUCCESS);
   }
 
   /**
@@ -1566,10 +1502,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    Entry entry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: cn=referent group,ou=groups,dc=example,dc=com",
       "objectclass: top",
       "objectclass: groupofnames",
@@ -1580,9 +1513,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "member: uid=user.4,ou=people,ou=dept,dc=example,dc=com",
       "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
       );
-
-    AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
   /**
@@ -1614,10 +1544,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
     Entry entry = TestCaseUtils.makeEntry(
       "dn: cn=referent group,ou=groups,dc=example,dc=com",
       "objectclass: top",
@@ -1630,7 +1556,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
       );
 
-    AddOperation addOperation = conn.processAdd(entry);
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
   }
@@ -1665,9 +1591,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
     Entry entry = TestCaseUtils.makeEntry(
       "dn: cn=referent group,ou=groups,dc=example,dc=com",
       "objectclass: top",
@@ -1680,7 +1603,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
       );
 
-    AddOperation addOperation = conn.processAdd(entry);
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(),
                  ResultCode.CONSTRAINT_VIOLATION);
   }
@@ -1717,10 +1640,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    Entry entry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: cn=referent group,ou=groups,dc=example,dc=com",
       "objectclass: top",
       "objectclass: groupofnames",
@@ -1731,10 +1651,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "member: uid=user.4,ou=people,ou=dept,dc=example,dc=com",
       "member: uid=user.5,ou=people,ou=dept,dc=example,dc=com"
       );
-
-    AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(),
-                 ResultCode.SUCCESS);
   }
 
   /**
@@ -1763,13 +1679,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
-
-    AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
@@ -1804,13 +1714,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
-
-    AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
@@ -1849,13 +1753,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=posixAccount)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
-
-    AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addEntry("uid=manager,ou=people,ou=dept,dc=example,dc=com");
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
@@ -1893,13 +1791,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "manager:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    Entry entry = makeEntry("uid=manager,ou=people,ou=dept,o=test");
-
-    AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    addEntry("uid=manager,ou=people,ou=dept,o=test");
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,o=test");

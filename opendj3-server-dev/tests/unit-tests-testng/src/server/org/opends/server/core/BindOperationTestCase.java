@@ -1703,8 +1703,7 @@ public class BindOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1716,9 +1715,6 @@ public class BindOperationTestCase
          "cn: Test User");
 
     InternalClientConnection conn = getRootConnection();
-    AddOperation addOperation = conn.processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
     BindOperation bindOperation =
          conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
                                 ByteString.valueOf("password"));

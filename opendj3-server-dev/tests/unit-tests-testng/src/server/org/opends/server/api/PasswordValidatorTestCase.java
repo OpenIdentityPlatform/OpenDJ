@@ -34,9 +34,7 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
 import org.opends.server.extensions.TestPasswordValidator;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
@@ -47,13 +45,11 @@ import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.Entry;
 import org.opends.server.types.RawModification;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -113,8 +109,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -126,10 +121,6 @@ public class PasswordValidatorTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -166,8 +157,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -179,10 +169,6 @@ public class PasswordValidatorTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     TestPasswordValidator.setNextReturnValue(false);
@@ -224,8 +210,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -237,10 +222,6 @@ public class PasswordValidatorTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String[] args =
     {
@@ -275,8 +256,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -288,10 +268,6 @@ public class PasswordValidatorTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -331,8 +307,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -346,10 +321,6 @@ public class PasswordValidatorTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -388,8 +359,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -403,10 +373,6 @@ public class PasswordValidatorTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -445,8 +411,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -458,10 +423,6 @@ public class PasswordValidatorTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -518,8 +479,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -531,10 +491,6 @@ public class PasswordValidatorTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -595,8 +551,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -608,10 +563,6 @@ public class PasswordValidatorTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -677,8 +628,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -692,10 +642,6 @@ public class PasswordValidatorTestCase
          "ds-privilege-name: bypass-acl",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -756,8 +702,7 @@ public class PasswordValidatorTestCase
     TestPasswordValidator.setNextInvalidReason(null);
 
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -771,10 +716,6 @@ public class PasswordValidatorTestCase
          "ds-privilege-name: bypass-acl",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());

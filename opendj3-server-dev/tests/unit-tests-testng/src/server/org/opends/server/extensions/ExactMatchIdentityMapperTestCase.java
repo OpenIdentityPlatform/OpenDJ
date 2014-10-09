@@ -38,7 +38,6 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExactMatchIdentityMapperCfgDefn;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -316,7 +315,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -327,8 +326,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Ensure that the identity mapper is able to establish the mapping
@@ -377,7 +374,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -388,8 +385,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Ensure that the identity mapper is able to establish the mapping
@@ -439,7 +434,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -450,8 +445,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Ensure that the identity mapper is able to establish the mapping
@@ -497,7 +490,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -508,8 +501,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Ensure that the identity mapper is able to establish the mapping
@@ -555,7 +546,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create two user entries and add them to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -566,10 +557,8 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
-    userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test2,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -580,8 +569,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Test",
          "cn: Test",
          "userPassword: password");
-    addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Ensure that the identity mapper is able to establish the mapping
@@ -632,7 +619,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=foo,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -643,8 +630,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Bar",
          "cn: Bar",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Ensure that the identity mapper is able to establish the mapping
@@ -693,7 +678,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=foo,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -704,8 +689,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Bar",
          "cn: Bar",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Ensure that the identity mapper is able to establish the mapping
@@ -754,7 +737,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=foo,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -765,9 +748,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: Bar",
          "cn: Bar",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     // Ensure that the identity mapper is able to establish the mapping
     // successfully.
@@ -799,7 +779,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -810,8 +790,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Verify that "test" works for the initial configuration but "test user"
@@ -884,7 +862,7 @@ public class ExactMatchIdentityMapperTestCase
 
     // Create a user entry and add it to the directory.
     TestCaseUtils.initializeTestBackend(true);
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -895,8 +873,6 @@ public class ExactMatchIdentityMapperTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     // Verify that we can retrieve the user.

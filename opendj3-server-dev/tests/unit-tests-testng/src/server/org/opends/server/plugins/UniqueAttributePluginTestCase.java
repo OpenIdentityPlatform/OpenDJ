@@ -42,10 +42,10 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
 import org.testng.annotations.*;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -736,9 +736,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
      mods.add(new Modification(ModificationType.DELETE,
          Attributes.empty(attrType)));
     }
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    conn.processModify(dn, mods);
+    getRootConnection().processModify(dn, mods);
   }
 
 
@@ -752,9 +750,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
       builder.add(valString);
     }
     mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    conn.processModify(dn, mods);
+    getRootConnection().processModify(dn, mods);
   }
 
 
@@ -767,9 +763,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    * @throws Exception If an error occurs.
    */
   private void addEntry(Entry e, ResultCode rc) throws Exception {
-        InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation = conn.processAdd(e);
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), rc);
   }
 
@@ -865,12 +859,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    * @param dn The DN of the entry to modify.
    * @param rc The expected return code.
    */
-  private void
-  doMods(LinkedList<Modification> mods, DN dn, ResultCode rc ) {
-    InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    ModifyOperation modifyOperation =
-            conn.processModify(dn, mods);
+  private void doMods(LinkedList<Modification> mods, DN dn, ResultCode rc) {
+    ModifyOperation modifyOperation = getRootConnection().processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(),  rc);
   }
 
@@ -883,12 +873,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    * @param newSuperior New superior to move to.
    * @param rc Expected return code from operation.
    */
-  private void
-  doModDN(DN dn, RDN rdn, boolean delOld, DN newSuperior, ResultCode rc) {
-        InternalClientConnection conn =
-            InternalClientConnection.getRootConnection();
-    ModifyDNOperation modifyDNOperation =
-            conn.processModifyDN(dn, rdn, delOld, newSuperior);
-    assertEquals(modifyDNOperation.getResultCode(),  rc);
+  private void doModDN(DN dn, RDN rdn, boolean delOld, DN newSuperior, ResultCode rc) {
+    ModifyDNOperation modifyDNOperation = getRootConnection().processModifyDN(dn, rdn, delOld, newSuperior);
+    assertEquals(modifyDNOperation.getResultCode(), rc);
   }
 }

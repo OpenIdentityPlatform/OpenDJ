@@ -38,7 +38,6 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LastModPluginCfgDefn;
 import org.opends.server.admin.std.server.LastModPluginCfg;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
@@ -282,17 +281,10 @@ public class LastModPluginTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    Entry e = TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-    e = DirectoryConfig.getEntry(e.getName());
-    assertNotNull(e);
     assertNotNull(e.getAttribute("creatorsname"));
     assertNotNull(e.getAttribute("createtimestamp"));
   }
@@ -338,14 +330,10 @@ public class LastModPluginTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    Entry e = TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: device",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     ModifyDNOperation modifyDNOperation =
         getRootConnection().processModifyDN(e.getName(), RDN.decode("cn=test2"), false);

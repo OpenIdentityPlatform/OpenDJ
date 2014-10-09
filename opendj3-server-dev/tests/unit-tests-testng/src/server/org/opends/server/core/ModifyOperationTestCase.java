@@ -646,7 +646,7 @@ public class ModifyOperationTestCase
   public void testFailAddToSingleValuedAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -677,7 +677,7 @@ public class ModifyOperationTestCase
   public void testFailAddToSingleValuedOperationalAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -709,7 +709,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceSingleValuedWithMultipleValues(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -741,7 +741,7 @@ public class ModifyOperationTestCase
        String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -800,15 +800,6 @@ public class ModifyOperationTestCase
     return conn.processModify(ByteString.valueOf(entryDN), mods, requestControls);
   }
 
-  private void processAdd(String... entryLines) throws Exception
-  {
-    Entry entry = TestCaseUtils.makeEntry(entryLines);
-    AddOperation addOperation = getRootConnection().processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
-
-
   /**
    * Tests to ensure that a modify attempt fails if an attempt is made to add a
    * value that matches one that already exists.
@@ -819,7 +810,7 @@ public class ModifyOperationTestCase
   public void testFailAddDuplicateValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -850,7 +841,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceWithDuplicates(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -881,7 +872,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceWithSyntaxViolation(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -913,7 +904,7 @@ public class ModifyOperationTestCase
   public void testFailAddSyntaxViolation(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -944,7 +935,7 @@ public class ModifyOperationTestCase
   public void testFailAddDisallowedAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -977,7 +968,7 @@ public class ModifyOperationTestCase
        String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1009,7 +1000,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceRDNAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1040,7 +1031,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRDNAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1071,7 +1062,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRDNValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1102,7 +1093,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceOneOfMultipleRDNAttributes(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1133,7 +1124,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveOneOfMultipleRDNValues(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1164,7 +1155,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveCompleteAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1195,7 +1186,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneOfManyValues(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1228,7 +1219,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOnlyValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1260,7 +1251,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveAllOfManyValues(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1293,7 +1284,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRequiredAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1324,7 +1315,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRequiredAttributeValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1355,7 +1346,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithNew(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1387,7 +1378,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithSame(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1437,7 +1428,7 @@ public class ModifyOperationTestCase
   public void testSuccessDeleteAndAddSameValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1488,7 +1479,7 @@ public class ModifyOperationTestCase
   public void testSuccessDeleteAttributeWithOption(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1540,7 +1531,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithNothing(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1572,7 +1563,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceNonExistingWithNothing(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1603,7 +1594,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceNonExistingWithNew(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1634,7 +1625,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOnlyExistingAndAddNew(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1667,7 +1658,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneExistingAndAddNew(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1701,7 +1692,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneExistingAndAddMultipleNew(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1734,7 +1725,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistentAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1764,7 +1755,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistentValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1795,7 +1786,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveAllObjectClasses(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1826,7 +1817,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceObjectClassesWithNothing(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1857,7 +1848,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveStructuralObjectclass(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: ou=People," + baseDN,
          "objectClass: top",
          "objectClass: organizationalUnit",
@@ -1882,7 +1873,7 @@ public class ModifyOperationTestCase
   public void testFailAddSecondStructuralObjectClass(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: ou=People," + baseDN,
          "objectClass: top",
          "objectClass: organizationalUnit",
@@ -1907,7 +1898,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByOne(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1946,7 +1937,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByTen(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1985,7 +1976,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByNegativeOne(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2038,7 +2029,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementNonNumeric(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2069,7 +2060,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementValueNonNumeric(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2101,7 +2092,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementMultiValued(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2134,7 +2125,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementNoIncrementValues(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2166,7 +2157,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementMultipleIncrementValues(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2198,7 +2189,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementNonExisting(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2229,7 +2220,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveUnneededAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2267,7 +2258,7 @@ public class ModifyOperationTestCase
   public void testSuccessAddAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2307,7 +2298,7 @@ public class ModifyOperationTestCase
   public void testFailAddDuplicateObjectClass(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2340,7 +2331,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistingObjectClass(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2373,7 +2364,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceNoUserModification(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2435,7 +2426,7 @@ public class ModifyOperationTestCase
   public void testFailServerCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2472,7 +2463,7 @@ public class ModifyOperationTestCase
   public void testSucceedServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2509,7 +2500,7 @@ public class ModifyOperationTestCase
   public void testFailServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2577,7 +2568,7 @@ public class ModifyOperationTestCase
   public void testFailBackendCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2615,7 +2606,7 @@ public class ModifyOperationTestCase
   public void testSucceedBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2653,7 +2644,7 @@ public class ModifyOperationTestCase
   public void testFailBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3259,7 +3250,7 @@ responseLoop:
   public void testSuccessPermissiveModifyControlAddDuplicateValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3296,7 +3287,7 @@ responseLoop:
   public void testSuccessPermissiveModifyControlRemoveNonExistentValue(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3333,7 +3324,7 @@ responseLoop:
   public void testSuccessPermissiveModifyControlRemoveNonExistentAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3372,7 +3363,7 @@ responseLoop:
   public void testModifyDelAddPasswordAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=testPassword01.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3417,7 +3408,7 @@ responseLoop:
   public void testModifyDelOneAddOnePasswordAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=testPassword02.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3463,7 +3454,7 @@ responseLoop:
   public void testModifyDelEncryptedAddOnePasswordAttribute(String baseDN)
          throws Exception
   {
-    processAdd(
+    TestCaseUtils.addEntry(
          "dn: uid=testPassword03.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3742,7 +3733,7 @@ responseLoop:
   {
     String baseDN = "dc=example,dc=com";
     TestCaseUtils.clearJEBackend(true, "userRoot", baseDN);
-    processAdd("dn: cn=Test User," + baseDN,
+    TestCaseUtils.addEntry("dn: cn=Test User," + baseDN,
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "sn: User", "cn: Test User");
 
@@ -3775,7 +3766,7 @@ responseLoop:
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
       // Add new entry and modify.
-      processAdd("dn: cn=Test User2," + baseDN,
+      TestCaseUtils.addEntry("dn: cn=Test User2," + baseDN,
           "objectClass: top", "objectClass: person",
           "objectClass: organizationalPerson", "sn: User2", "cn: Test User2");
 
@@ -3800,7 +3791,7 @@ responseLoop:
       assertEquals(result, 0, "Schema update failed");
 
       // Add new entry and modify (this time it should fail).
-      processAdd("dn: cn=Test User3," + baseDN,
+      TestCaseUtils.addEntry("dn: cn=Test User3," + baseDN,
           "objectClass: top", "objectClass: person",
           "objectClass: organizationalPerson", "sn: User3", "cn: Test User3");
 

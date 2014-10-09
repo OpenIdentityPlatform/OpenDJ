@@ -335,8 +335,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -348,10 +347,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -395,8 +390,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -408,10 +402,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -454,8 +444,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -467,10 +456,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -505,8 +490,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -518,10 +502,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -565,8 +545,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -578,10 +557,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -625,8 +600,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -638,10 +612,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -685,8 +655,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -698,10 +667,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -745,8 +710,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -758,11 +722,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String[] args =
     {
@@ -804,8 +763,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -817,11 +775,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String[] args =
     {
@@ -863,8 +816,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -876,11 +828,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String[] args =
     {
@@ -1106,8 +1053,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1118,11 +1064,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String[] args =
     {
@@ -1155,8 +1096,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1167,11 +1107,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
@@ -1221,8 +1156,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1233,10 +1167,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     /* Make sure preEncoded passwords are rejected */
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
@@ -1277,8 +1207,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1289,10 +1218,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     /* Make sure preEncoded passwords are rejected */
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
@@ -1399,8 +1324,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1411,10 +1335,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -1463,8 +1383,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1475,10 +1394,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -1528,8 +1443,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1540,10 +1454,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
@@ -1592,8 +1502,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1604,10 +1513,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -1656,8 +1561,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1668,10 +1572,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -1720,8 +1620,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1732,10 +1631,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -1785,8 +1680,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1797,10 +1691,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -1848,8 +1738,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1860,10 +1749,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -1913,8 +1798,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -1925,10 +1809,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
@@ -1988,8 +1868,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    Entry userEntry = TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2001,11 +1880,6 @@ public class PasswordModifyExtendedOperationTestCase
          "cn: Test User",
          "ds-privilege-name: bypass-acl",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     InternalClientConnection conn = getRootConnection();
     String dnStr = "cn=Default Password Policy,cn=Password Policies,cn=config";
@@ -2072,8 +1946,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2084,10 +1957,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -2137,8 +2006,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2149,10 +2017,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -2201,8 +2065,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2213,10 +2076,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -2266,8 +2125,7 @@ public class PasswordModifyExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry userEntry = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -2278,10 +2136,6 @@ public class PasswordModifyExtendedOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-
-    AddOperation addOperation = getRootConnection().processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     InternalClientConnection conn = getRootConnection();
@@ -2333,19 +2187,6 @@ public class PasswordModifyExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry userEntry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "userPassword: password",
-         "userPassword: password2");
-
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -2358,9 +2199,18 @@ public class PasswordModifyExtendedOperationTestCase
          conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-
-    AddOperation addOperation = conn.processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.addEntry(
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "userPassword: password2");
 
 
     String[] args =
@@ -2402,23 +2252,6 @@ public class PasswordModifyExtendedOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry userEntry = TestCaseUtils.makeEntry(
-         "dn: uid=test.user,o=test",
-         "objectClass: top",
-         "objectClass: person",
-         "objectClass: organizationalPerson",
-         "objectClass: inetOrgPerson",
-         "objectClass: authPasswordObject",
-         "uid: test.user",
-         "givenName: Test",
-         "sn: User",
-         "cn: Test User",
-         "authPassword: password",
-         "authPassword: password2",
-         "ds-pwp-password-policy-dn: cn=SHA1 AuthPassword Policy," +
-              "cn=Password Policies,cn=config");
-
-
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     String dnStr = "cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config";
@@ -2430,9 +2263,21 @@ public class PasswordModifyExtendedOperationTestCase
          conn.processModify(DN.valueOf(dnStr), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
-
-    AddOperation addOperation = conn.processAdd(userEntry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+    TestCaseUtils.addEntry(
+        "dn: uid=test.user,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "objectClass: authPasswordObject",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "authPassword: password",
+        "authPassword: password2",
+        "ds-pwp-password-policy-dn: cn=SHA1 AuthPassword Policy," +
+        "cn=Password Policies,cn=config");
 
 
     String[] args =

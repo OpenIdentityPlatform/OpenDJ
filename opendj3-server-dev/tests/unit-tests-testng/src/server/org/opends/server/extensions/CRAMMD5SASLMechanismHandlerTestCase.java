@@ -35,7 +35,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.CramMD5SASLMechanismHandlerCfgDefn;
 import org.opends.server.admin.std.server.CramMD5SASLMechanismHandlerCfg;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -45,7 +44,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -187,8 +185,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -201,9 +198,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -233,8 +227,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -247,9 +240,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -278,12 +268,11 @@ public class CRAMMD5SASLMechanismHandlerTestCase
   public void testLDAPBindSuccessWithDNAndLongPassword()
          throws Exception
   {
-    TestCaseUtils.initializeTestBackend(true);
-
     String password =
          "reallyreallyreallyreallyreallyreallyreallyreallyreallylongpassword";
 
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -296,9 +285,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "userPassword: " + password,
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -328,8 +314,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -342,9 +327,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -374,8 +356,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -388,9 +369,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -420,8 +398,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -432,9 +409,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -464,8 +438,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -476,9 +449,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -508,8 +478,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -520,9 +489,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -552,8 +518,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -564,9 +529,6 @@ public class CRAMMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {

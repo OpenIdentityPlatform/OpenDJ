@@ -48,7 +48,6 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -395,18 +394,12 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-
     // Add an entry to the server that we can delete.
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=test,o=test",
          "objectClass: top",
          "objectClass: device",
          "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     // Establish a connection to the server and bind as a root user.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -611,18 +604,12 @@ public class AbandonOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-
     // Add an entry to the server that we can rename.
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=test,o=test",
          "objectClass: top",
          "objectClass: device",
          "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     // Establish a connection to the server and bind as a root user.
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());

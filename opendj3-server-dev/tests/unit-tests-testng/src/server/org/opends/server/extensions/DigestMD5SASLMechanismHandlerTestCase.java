@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -37,7 +35,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.DigestMD5SASLMechanismHandlerCfgDefn;
 import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -142,8 +139,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   /**
    * Tests the process of initializing the handler with invalid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
-   *
+   * @param  e  The configuration entry to use for the initialization.
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "invalidConfigs",
@@ -210,8 +206,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -224,9 +219,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -257,8 +249,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -271,9 +262,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -304,8 +292,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -318,9 +305,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -351,8 +335,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -365,9 +348,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -398,8 +378,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -410,9 +389,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -443,8 +419,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -455,9 +430,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -488,8 +460,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -500,9 +471,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -533,8 +501,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -545,9 +512,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -578,8 +542,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -590,9 +553,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
@@ -786,7 +746,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   public void testSuccessfulBindReversiblePasswordWithRootDN()
          throws Exception
   {
-    Entry e = TestCaseUtils.makeEntry(
+    Entry e = TestCaseUtils.addEntry(
          "dn: cn=Second Root DN,cn=Root DNs,cn=config",
          "objectClass: top",
          "objectClass: person",
@@ -800,9 +760,6 @@ public class DigestMD5SASLMechanismHandlerTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {

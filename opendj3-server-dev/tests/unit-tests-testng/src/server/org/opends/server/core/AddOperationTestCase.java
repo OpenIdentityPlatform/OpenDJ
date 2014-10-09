@@ -42,12 +42,29 @@ import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.*;
+import org.opends.server.protocols.ldap.AddRequestProtocolOp;
+import org.opends.server.protocols.ldap.AddResponseProtocolOp;
+import org.opends.server.protocols.ldap.BindRequestProtocolOp;
+import org.opends.server.protocols.ldap.BindResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
@@ -516,8 +533,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
         new LDAPAttribute("ou", byteStrings("People")));
 
-    AddOperation addOperation =
-         getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=test", attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -561,8 +577,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
         new LDAPAttribute("ou", byteStrings("People")));
 
-    AddOperation addOperation =
-         getRootConnection().processAdd(ByteString.valueOf("invalid"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd("invalid", attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -583,8 +598,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "organization")),
         new LDAPAttribute("o", byteStrings("test")));
 
-    AddOperation addOperation =
-         getRootConnection().processAdd(ByteString.valueOf("o=test"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd("o=test", attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -605,8 +619,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "organization")),
         new LDAPAttribute("o", byteStrings("undefined")));
 
-    AddOperation addOperation =
-         getRootConnection().processAdd(ByteString.valueOf("o=undefined"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd("o=undefined", attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -627,10 +640,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
         new LDAPAttribute("ou", byteStrings("People")));
 
-    InternalClientConnection conn = getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("ou=People,o=undefined"), attrs);
+    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=undefined", attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -651,11 +661,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "organizationalUnit")),
         new LDAPAttribute("ou", byteStrings("People")));
 
-    InternalClientConnection conn = getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("ou=People,o=missing,o=test"),
-                         attrs);
+    AddOperation addOperation = getRootConnection().processAdd("ou=People,o=missing,o=test", attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -711,11 +717,7 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "undefined")),
         new LDAPAttribute("ou", byteStrings("People")));
 
-    InternalClientConnection conn = getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
-                         attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -768,11 +770,7 @@ public class AddOperationTestCase
         new LDAPAttribute("ou", byteStrings("People")),
         new LDAPAttribute("description", byteStrings("bar")));
 
-    InternalClientConnection conn = getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
-                         attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -793,11 +791,7 @@ public class AddOperationTestCase
         new LDAPAttribute("ou", byteStrings("People")),
         new LDAPAttribute("description;lang-en-us", byteStrings("foo")));
 
-    InternalClientConnection conn = getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
-                         attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -819,11 +813,7 @@ public class AddOperationTestCase
         new LDAPAttribute("ou", byteStrings("People")),
         new LDAPAttribute("description;lang-en-us", byteStrings("foo")));
 
-    InternalClientConnection conn = getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("ou=People,o=test"),
-                         attrs);
+    AddOperation addOperation = getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -876,10 +866,8 @@ public class AddOperationTestCase
         new LDAPAttribute("objectClass", byteStrings("top", "ds-root-dse", "extensibleObject")),
         new LDAPAttribute("cn", byteStrings("Root DSE")));
 
-    InternalClientConnection conn = getRootConnection();
-
     AddOperation addOperation =
-         conn.processAdd(ByteString.empty(), attrs);
+         getRootConnection().processAdd(ByteString.empty(), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 

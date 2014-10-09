@@ -28,16 +28,12 @@ package org.opends.server.extensions;
 
 import java.io.File;
 
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -180,8 +176,7 @@ public class StartTLSExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -190,10 +185,6 @@ public class StartTLSExtendedOperationTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                           "config" + File.separator + "client.keystore";
@@ -232,8 +223,7 @@ public class StartTLSExtendedOperationTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -242,9 +232,6 @@ public class StartTLSExtendedOperationTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath = DirectoryServer.getInstanceRoot() + File.separator +

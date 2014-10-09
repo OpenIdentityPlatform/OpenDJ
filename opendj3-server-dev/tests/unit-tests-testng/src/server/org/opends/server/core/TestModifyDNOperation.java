@@ -73,11 +73,8 @@ public class TestModifyDNOperation extends OperationTestCase
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
 
-    InternalClientConnection connection =
-         InternalClientConnection.getRootConnection();
-
     // Add the example.com entry
-    Entry exampleCom = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: dc=example,dc=com",
       "objectclass: top",
       "objectclass: domain",
@@ -87,7 +84,7 @@ public class TestModifyDNOperation extends OperationTestCase
     );
 
     // Add the people entry
-    Entry people = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
       "dn: ou=People,dc=example,dc=com",
       "objectclass: top",
       "objectclass: organizationalUnit",
@@ -95,7 +92,7 @@ public class TestModifyDNOperation extends OperationTestCase
     );
 
     // Add a test entry.
-    entry = TestCaseUtils.makeEntry(
+    entry = TestCaseUtils.addEntry(
       "dn: uid=user.0,ou=People,dc=example,dc=com",
       "objectClass: top",
       "objectClass: person",
@@ -120,18 +117,6 @@ public class TestModifyDNOperation extends OperationTestCase
       "postalAddress: Aaccf Amar$99262 Eleventh Street$Salem, NM  36530",
       "description: This is the description for Aaccf Amar."
     );
-
-    AddOperation addOperation = connection.processAdd(exampleCom);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(exampleCom.getName()));
-
-    addOperation = connection.processAdd(people);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(people.getName()));
-
-    addOperation = connection.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(DirectoryServer.getEntry(entry.getName()));
 
     // Add a user capable of using the proxied authorization control.
     TestCaseUtils.addEntry(

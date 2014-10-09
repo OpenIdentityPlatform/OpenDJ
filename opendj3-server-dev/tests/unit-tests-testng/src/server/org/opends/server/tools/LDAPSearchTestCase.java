@@ -32,23 +32,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the LDAPSearch tool.
  */
+@SuppressWarnings("javadoc")
 public class LDAPSearchTestCase
        extends ToolsTestCase
 {
@@ -619,8 +616,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -629,9 +625,6 @@ public class LDAPSearchTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -670,8 +663,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -680,9 +672,6 @@ public class LDAPSearchTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -722,8 +711,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -732,9 +720,6 @@ public class LDAPSearchTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -774,8 +759,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: cn=Test User,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -784,9 +768,6 @@ public class LDAPSearchTestCase
          "cn: Test User",
          "givenName: Test",
          "sn: User");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String keyStorePath   = DirectoryServer.getInstanceRoot() + File.separator +
@@ -824,8 +805,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -838,9 +818,6 @@ public class LDAPSearchTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -871,8 +848,7 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry(
+    TestCaseUtils.addEntry(
          "dn: uid=test.user,o=test",
          "objectClass: top",
          "objectClass: person",
@@ -885,9 +861,6 @@ public class LDAPSearchTestCase
          "userPassword: password",
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
 
     String[] args =
@@ -1445,14 +1418,10 @@ public class LDAPSearchTestCase
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
+    TestCaseUtils.addEntry("dn: cn=test,o=test",
                                       "objectClass: top",
                                       "objectClass: ldapSubEntry",
                                       "cn: test");
-
-    AddOperation addOperation = getRootConnection().processAdd(e);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     String[] args =
     {
