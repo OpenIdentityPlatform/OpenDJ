@@ -28,7 +28,6 @@ package org.opends.server.tasks;
 
 import java.util.Set;
 
-import org.assertj.core.api.SoftAssertions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
@@ -92,7 +91,8 @@ public class TasksTestCase extends DirectoryServerTestCase {
     }
     while (completionTime == null && timedOut);
 
-    assertNotNull(completionTime, "The task had not completed after " + timeout + " seconds.");
+    assertNotNull(completionTime, "The task had not completed after " + timeout + " seconds.\n"
+        + "resultEntry=[" + resultEntry + "]");
 
     // Check that the task state is as expected.
     String stateString = parseAttribute(resultEntry, ATTR_TASK_STATE).asString();
@@ -102,11 +102,12 @@ public class TasksTestCase extends DirectoryServerTestCase {
 
     // Check that the task contains some log messages.
     Set<String> logMessages = parseAttribute(resultEntry, ATTR_TASK_LOG_MESSAGES).asSetOfString();
-    final String msg = "No log messages were written to the task entry on a failed task";
-    SoftAssertions softly = new SoftAssertions();
-    softly.assertThat(taskState).as(msg).isNotEqualTo(TaskState.COMPLETED_SUCCESSFULLY);
-    softly.assertThat(logMessages).as(msg).isNotEmpty();
-    softly.assertAll();
+    if (taskState != TaskState.COMPLETED_SUCCESSFULLY && logMessages.size() == 0)
+    {
+      fail("No log messages were written to the task entry on a failed task.\n"
+          + "taskState=" + taskState
+          + "logMessages size=" + logMessages.size() + " and content=[" + logMessages + "]");
+    }
   }
 
   private AttributeParser parseAttribute(Entry resultEntry, String attrName)

@@ -27,6 +27,8 @@
 package org.opends.server.tasks;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
@@ -72,147 +74,107 @@ public class TestBackupAndRestore extends TasksTestCase
     return new Object[][] {
          {
               // A valid backup task.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-backup",
-                   "ds-task-class-name: org.opends.server.tasks.BackupTask",
-                   "ds-backup-directory-path: bak",
-                   "ds-task-backup-all: TRUE"
-              ),
+              TestCaseUtils.makeEntry(backupTask(
+                  "ds-task-backup-all: TRUE")),
               TaskState.COMPLETED_SUCCESSFULLY
          },
          {
               // Incompatible settings of backup-directory-path and
               // incremental-base-id.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-backup",
-                   "ds-task-class-name: org.opends.server.tasks.BackupTask",
-                   "ds-backup-directory-path: bak",
-                   "ds-task-backup-incremental: TRUE",
-                   "ds-task-backup-incremental-base-id: monday",
-                   "ds-task-backup-all: TRUE"),
+              TestCaseUtils.makeEntry(backupTask(
+                  "ds-task-backup-all: TRUE",
+                  "ds-task-backup-incremental: TRUE",
+                  "ds-task-backup-incremental-base-id: monday")),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // Incompatible settings for backend-id and backup-all.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-backup",
-                   "ds-task-class-name: org.opends.server.tasks.BackupTask",
-                   "ds-backup-directory-path: bak",
-                   "ds-task-backup-backend-id: example",
-                   "ds-task-backup-all: TRUE"),
+              TestCaseUtils.makeEntry(backupTask(
+                  "ds-task-backup-all: TRUE",
+                  "ds-task-backup-backend-id: example")),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // Neither of backend-id or backup-all specified.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-backup",
-                   "ds-task-class-name: org.opends.server.tasks.BackupTask",
-                   "ds-backup-directory-path: bak"),
+              TestCaseUtils.makeEntry(backupTask()),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // Incompatible settings for incremental and incremental-base-id.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-backup",
-                   "ds-task-class-name: org.opends.server.tasks.BackupTask",
-                   "ds-backup-directory-path: bak",
+              TestCaseUtils.makeEntry(backupTask(
                    "ds-task-backup-all: TRUE",
-                   "ds-task-backup-incremental-base-id: monday",
-                   "ds-task-backup-incremental: FALSE"),
+                   "ds-task-backup-incremental: FALSE",
+                   "ds-task-backup-incremental-base-id: monday")),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // Incompatible settings for hash and sign-hash.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-backup",
-                   "ds-task-class-name: org.opends.server.tasks.BackupTask",
-                   "ds-backup-directory-path: bak",
+              TestCaseUtils.makeEntry(backupTask(
                    "ds-task-backup-all: TRUE",
                    "ds-task-backup-hash: FALSE",
-                   "ds-task-backup-sign-hash: TRUE"
-                   ),
+                   "ds-task-backup-sign-hash: TRUE")),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // Specified backend does not support backup.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-backup",
-                   "ds-task-class-name: org.opends.server.tasks.BackupTask",
-                   "ds-backup-directory-path: bak",
-                   "ds-task-backup-backend-id: monitor"),
+              TestCaseUtils.makeEntry(backupTask(
+                   "ds-task-backup-backend-id: monitor")),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // A valid restore task.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-restore",
-                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
-                   "ds-backup-directory-path: bak" + File.separator + "userRoot"
-              ),
+              TestCaseUtils.makeEntry(restoreTask(
+                   "ds-backup-directory-path: bak" + File.separator + "userRoot")),
               TaskState.COMPLETED_SUCCESSFULLY
          },
          {
               // Non-existent restore directory-path.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-restore",
-                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+              TestCaseUtils.makeEntry(restoreTask(
                    "ds-backup-directory-path: missing"
-              ),
+              )),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // Invalid restore directory-path.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-restore",
-                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+              TestCaseUtils.makeEntry(restoreTask(
                    "ds-backup-directory-path: bak"
-              ),
+              )),
               TaskState.STOPPED_BY_ERROR
          },
          {
               // Invalid restore backup-id.
-              TestCaseUtils.makeEntry(
-                   "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-                   "objectclass: top",
-                   "objectclass: ds-task",
-                   "objectclass: ds-task-restore",
-                   "ds-task-class-name: org.opends.server.tasks.RestoreTask",
+              TestCaseUtils.makeEntry(restoreTask(
                    "ds-backup-directory-path: bak" + File.separator + "userRoot",
                    "ds-backup-id: monday"
-              ),
+              )),
               TaskState.STOPPED_BY_ERROR
          },
     };
+  }
+
+  private String[] backupTask(String... additionalLdif)
+  {
+    final ArrayList<String> l = new ArrayList<String>(Arrays.asList(
+        "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+        "objectclass: top",
+        "objectclass: ds-task",
+        "objectclass: ds-task-backup",
+        "ds-task-class-name: org.opends.server.tasks.BackupTask",
+        "ds-backup-directory-path: bak"));
+    l.addAll(Arrays.asList(additionalLdif));
+    return l.toArray(new String[0]);
+  }
+
+  private String[] restoreTask(String... additionalLdif)
+  {
+    final ArrayList<String> l = new ArrayList<String>(Arrays.asList(
+        "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+        "objectclass: top",
+        "objectclass: ds-task",
+        "objectclass: ds-task-restore",
+        "ds-task-class-name: org.opends.server.tasks.RestoreTask"));
+    l.addAll(Arrays.asList(additionalLdif));
+    return l.toArray(new String[0]);
   }
 
   /**
