@@ -311,7 +311,7 @@ public class IsMemberOfVirtualAttributeProvider
       {
         returnedDNs = new HashSet<String>();
       }
-      if (returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
+      if (!returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
       {
         return;
       }
@@ -319,7 +319,7 @@ public class IsMemberOfVirtualAttributeProvider
       for (DN dn : nestedGroupsDNs)
       {
         group = DirectoryServer.getGroupManager().getGroupInstance(dn);
-        if (returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
+        if (!returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
         {
           return;
         }
