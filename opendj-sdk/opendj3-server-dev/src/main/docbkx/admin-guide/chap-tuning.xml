@@ -368,7 +368,7 @@ $ <userinput>dsconfig \
   <section xml:id="perf-data-storage">
    <title>Data Storage Settings</title>
    
-   <para>By default, OpenDJ compressing attribute descriptions and object class
+   <para>By default, OpenDJ compresses attribute descriptions and object class
    sets to reduce data size. This is called compact encoding.</para>
 
    <para>
