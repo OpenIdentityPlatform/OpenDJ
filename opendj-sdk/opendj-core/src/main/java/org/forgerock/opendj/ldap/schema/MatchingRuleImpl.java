@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  * a new matching rule.
  */
 public interface MatchingRuleImpl {
+
     /**
      * Get a comparator that can be used to compare the attribute values
      * normalized by this matching rule.
@@ -54,9 +55,9 @@ public interface MatchingRuleImpl {
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
-     * best suited for efficiently performing matching operations on that value.
-     * The assertion value is guaranteed to be valid against this matching
-     * rule's assertion syntax.
+     * best suited for efficiently performing less than matching operations on
+     * that value. The assertion value is guaranteed to be valid against this
+     * matching rule's assertion syntax.
      *
      * @param schema
      *            The schema in which this matching rule is defined.
@@ -106,12 +107,11 @@ public interface MatchingRuleImpl {
      * @throws DecodeException
      *             if an syntax error occurred while parsing the value.
      */
-    Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value)
-            throws DecodeException;
+    Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException;
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
-     * best suited for efficiently performing greater than or equal matching
+     * best suited for efficiently performing less than or equal matching
      * operations on that value. The assertion value is guaranteed to be valid
      * against this matching rule's assertion syntax.
      *
@@ -123,8 +123,7 @@ public interface MatchingRuleImpl {
      * @throws DecodeException
      *             if an syntax error occurred while parsing the value.
      */
-    Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value)
-            throws DecodeException;
+    Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException;
 
     /**
      * Retrieves the normalized form of the provided attribute value, which is
@@ -138,8 +137,7 @@ public interface MatchingRuleImpl {
      * @throws DecodeException
      *             if an syntax error occurred while parsing the value.
      */
-    ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
-            throws DecodeException;
+    ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException;
 
     /**
      * Returns the indexers for this matching rule.
