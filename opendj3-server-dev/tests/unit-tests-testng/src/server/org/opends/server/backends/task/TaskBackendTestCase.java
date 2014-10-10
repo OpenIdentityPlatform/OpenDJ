@@ -30,23 +30,21 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-
 import java.util.UUID;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
 
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.BackendTestCase;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TasksTestCase;
 import org.opends.server.types.DN;
-
-import org.forgerock.opendj.ldap.ResultCode;
-import static org.testng.Assert.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases that can be used to test the task backend.
@@ -118,7 +116,6 @@ public class TaskBackendTestCase
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-scheduled-start-time: " + startTimeStr,
       "ds-task-dummy-sleep-time: 30000");
-    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
     Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isPending(task.getTaskState()));
@@ -155,7 +152,6 @@ public class TaskBackendTestCase
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-dummy-sleep-time: 300000");
-    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
 
     // Wait until we're sure that the task has started running.
@@ -204,7 +200,6 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask");
-    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
 
     // Wait until the task has completed.
@@ -252,7 +247,6 @@ public class TaskBackendTestCase
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-scheduled-start-time: " + startTimeStr,
       "ds-task-dummy-sleep-time: 30000");
-    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
 
     Task task = TasksTestCase.getTask(DN.valueOf(taskDN));
     assertTrue(TaskState.isPending(task.getTaskState()));
@@ -306,8 +300,6 @@ public class TaskBackendTestCase
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-dummy-sleep-time: 300000");
-    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
-
 
     // Wait until we're sure that the task has started running.
     long startTime = System.currentTimeMillis();
@@ -379,8 +371,6 @@ public class TaskBackendTestCase
       "objectClass: extensibleObject",
       "ds-task-id: " + taskID,
       "ds-task-class-name: org.opends.server.tasks.DummyTask");
-    assertTrue(DirectoryServer.entryExists(DN.valueOf(taskDN)));
-
 
     // Wait until the task has completed.
     Task task = TasksTestCase.getCompletedTask(DN.valueOf(taskDN));

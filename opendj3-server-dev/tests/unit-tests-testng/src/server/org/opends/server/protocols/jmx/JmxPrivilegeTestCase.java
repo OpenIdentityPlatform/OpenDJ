@@ -37,6 +37,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
@@ -60,13 +61,13 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -1485,15 +1486,15 @@ public class JmxPrivilegeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testUpdateUserPrivileges()
-         throws Exception
+  @Test
+  public void testUpdateUserPrivileges() throws Exception
   {
-    InternalClientConnection rootConnection =
-      InternalClientConnection.getRootConnection();
+    InternalClientConnection rootConnection = getRootConnection();
 
-    TestCaseUtils.addEntry(
-      "dn: cn=Test User,o=test",
+    final String dnStr = "cn=Test User,o=test";
+    final DN dn = DN.valueOf(dnStr);
+    Entry testEntry = TestCaseUtils.addEntry(
+      "dn: " + dnStr,
       "objectClass: top",
       "objectClass: person",
       "objectClass: organizationalPerson",
@@ -1503,9 +1504,6 @@ public class JmxPrivilegeTestCase
       "sn: User",
       "userPassword: password");
 
-
-    Entry testEntry =
-               DirectoryServer.getEntry(DN.valueOf("cn=Test User,o=test"));
     AuthenticationInfo authInfo = new AuthenticationInfo(testEntry, false);
     JmxConnectionHandler jmxCtx = getJmxConnectionHandler();
     JmxClientConnection testConnection =
@@ -1524,8 +1522,7 @@ public class JmxPrivilegeTestCase
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-privilege-name", "jmx-read")));
-    ModifyOperation modifyOperation =
-         rootConnection.processModify(DN.valueOf("cn=Test User,o=test"), mods);
+    ModifyOperation modifyOperation = rootConnection.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(testConnection.hasPrivilege(Privilege.JMX_READ, null));
 
@@ -1535,14 +1532,11 @@ public class JmxPrivilegeTestCase
     mods.clear();
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("ds-privilege-name", "jmx-read")));
-    modifyOperation =
-         rootConnection.processModify(DN.valueOf("cn=Test User,o=test"), mods);
+    modifyOperation = rootConnection.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(testConnection.hasPrivilege(Privilege.JMX_READ, null));
 
-
-    DeleteOperation deleteOperation =
-         rootConnection.processDelete(DN.valueOf("cn=Test User,o=test"));
+    DeleteOperation deleteOperation = rootConnection.processDelete(dn);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1554,7 +1548,7 @@ public class JmxPrivilegeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUpdateRootPrivileges()
          throws Exception
   {

@@ -126,7 +126,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAndDelete()
          throws Exception
   {
@@ -216,7 +216,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAlreadyExists()
          throws Exception
   {
@@ -238,7 +238,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNoParent()
          throws Exception
   {
@@ -262,9 +262,8 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddBaseEntry()
-         throws Exception
+  @Test
+  public void testAddBaseEntry() throws Exception
   {
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=ldif")));
     assertTrue(DirectoryServer.entryExists(
@@ -310,7 +309,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBind()
          throws Exception
   {
@@ -336,12 +335,10 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testCompare()
-         throws Exception
+  @Test
+  public void testCompare() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     CompareOperation compareOperation =
          conn.processCompare("uid=user.1,ou=People,o=ldif", "uid", "user.1");
     assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
@@ -354,9 +351,8 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testModify()
-         throws Exception
+  @Test
+  public void testModify() throws Exception
   {
     String path = TestCaseUtils.createTempFile(
       "dn: o=ldif",
@@ -382,7 +378,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleModifyDN()
          throws Exception
   {
@@ -398,8 +394,7 @@ public class LDIFBackendTestCase
     assertTrue(DirectoryServer.entryExists(beforeDN));
     assertFalse(DirectoryServer.entryExists(afterDN));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
       conn.processModifyDN("ou=leaf before,o=ldif", "ou=leaf after", true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
@@ -419,7 +414,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNTargetAlreadyExists()
          throws Exception
   {
@@ -428,10 +423,8 @@ public class LDIFBackendTestCase
       "objectClass: top",
       "objectClass: organizationalUnit",
       "ou: new entry");
-    assertTrue(DirectoryServer.entryExists(DN.valueOf("ou=new entry,o=ldif")));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
          conn.processModifyDN("ou=new entry,o=ldif", "ou=People", true);
     assertEquals(modifyDNOperation.getResultCode(),
@@ -451,7 +444,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNWithNewSuperior()
          throws Exception
   {
@@ -467,8 +460,7 @@ public class LDIFBackendTestCase
     assertTrue(DirectoryServer.entryExists(beforeDN));
     assertFalse(DirectoryServer.entryExists(afterDN));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
       conn.processModifyDN("ou=leaf before,o=ldif", "ou=leaf after", true,
                            "ou=People,o=ldif");
@@ -489,7 +481,7 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNSubtreeRename()
          throws Exception
   {
@@ -504,8 +496,7 @@ public class LDIFBackendTestCase
     assertTrue(DirectoryServer.entryExists(childBeforeDN));
     assertFalse(DirectoryServer.entryExists(childAfterDN));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modifyDNOperation =
       conn.processModifyDN("ou=People,o=ldif", "ou=Users", true);
     assertEquals(modifyDNOperation.getResultCode(), ResultCode.SUCCESS);
@@ -533,15 +524,11 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testBaseSearch()
-         throws Exception
+  @Test
+  public void testBaseSearch() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch("o=ldif", SearchScope.BASE_OBJECT,
-                         "(objectClass=*)");
+        getRootConnection().processSearch("o=ldif", SearchScope.BASE_OBJECT, "(objectClass=*)");
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
   }
@@ -554,15 +541,11 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testBaseSearchNonMatchingFilter()
-         throws Exception
+  @Test
+  public void testBaseSearchNonMatchingFilter() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch("o=ldif", SearchScope.BASE_OBJECT,
-                         "(o=not ldif)");
+        getRootConnection().processSearch("o=ldif", SearchScope.BASE_OBJECT, "(o=not ldif)");
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
@@ -575,12 +558,10 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testBaseSearchNoSuchEntry()
-         throws Exception
+  @Test
+  public void testBaseSearchNoSuchEntry() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch("o=nonexistent2,o=nonexistent1,o=ldif",
                             SearchScope.BASE_OBJECT, "(objectClass=*)");
@@ -595,12 +576,11 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSingleLevelSearch()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch("o=ldif", SearchScope.SINGLE_LEVEL,
                          "(objectClass=*)");
@@ -615,12 +595,10 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSubtreeSearch()
-         throws Exception
+  @Test
+  public void testSubtreeSearch() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch("o=ldif", SearchScope.WHOLE_SUBTREE,
                             "(uid=user.1)");
@@ -636,12 +614,10 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSubordinateSubtreeSearch()
-         throws Exception
+  @Test
+  public void testSubordinateSubtreeSearch() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch("o=ldif", SearchScope.SUBORDINATES,
                             "(uid=user.1)");
@@ -656,11 +632,11 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasSubordinates()
          throws Exception
   {
-    Backend b = DirectoryServer.getBackend("ldifRoot");
+    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
 
@@ -687,11 +663,11 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testNumSubordinates()
          throws Exception
   {
-    Backend b = DirectoryServer.getBackend("ldifRoot");
+    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
 
@@ -721,11 +697,11 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDIFExport()
          throws Exception
   {
-    Backend b = DirectoryServer.getBackend("ldifRoot");
+    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
     assertTrue(b.supportsLDIFExport());
@@ -755,11 +731,11 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMiscellaneousBackendMethods()
          throws Exception
   {
-    Backend b = DirectoryServer.getBackend("ldifRoot");
+    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
     assertNotNull(b);
     assertTrue(b instanceof LDIFBackend);
 
