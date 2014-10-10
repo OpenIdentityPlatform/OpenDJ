@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.core.DirectoryServer;
@@ -41,8 +42,10 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.RDN;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
@@ -461,11 +464,6 @@ public class NamingConflictTest extends ReplicationTestCase
 
       TestCaseUtils.addEntry(parentEntry);
       TestCaseUtils.addEntry(childEntry);
-
-      assertTrue(DirectoryServer.entryExists(parentEntry.getName()),
-      "Parent entry expected to exist.");
-      assertTrue(DirectoryServer.entryExists(childEntry.getName()),
-      "Child  entry expected to be exist.");
 
       String parentUUID = getEntryUUID(parentEntry.getName());
       String childUUID = getEntryUUID(childEntry.getName());

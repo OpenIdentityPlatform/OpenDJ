@@ -1364,12 +1364,13 @@ public final class TestCaseUtils {
    */
   public static Entry addEntry(String... lines) throws Exception
   {
-    Entry entry = makeEntry(lines);
+    final Entry entry = makeEntry(lines);
     AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
         addOperation.getErrorMessage().toString());
-    assertNotNull(DirectoryServer.getEntry(entry.getName()));
-    return entry;
+    final Entry e = DirectoryServer.getEntry(entry.getName());
+    assertNotNull(e);
+    return e;
   }
 
 

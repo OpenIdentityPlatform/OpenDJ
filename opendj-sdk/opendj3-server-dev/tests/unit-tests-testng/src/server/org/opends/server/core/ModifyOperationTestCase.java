@@ -3454,8 +3454,9 @@ responseLoop:
   public void testModifyDelEncryptedAddOnePasswordAttribute(String baseDN)
          throws Exception
   {
-    TestCaseUtils.addEntry(
-         "dn: uid=testPassword03.user," + baseDN,
+    String dn = "uid=testPassword03.user," + baseDN;
+    Entry e = TestCaseUtils.addEntry(
+         "dn: " + dn,
          "objectClass: top",
          "objectClass: person",
          "objectClass: organizationalPerson",
@@ -3467,8 +3468,6 @@ responseLoop:
          "displayName: Test User",
          "userPassword: password");
 
-    Entry e = DirectoryServer.getEntry(
-            DN.valueOf("uid=testPassword03.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("userpassword", true));
     assertNotNull(attrList);
@@ -3484,7 +3483,7 @@ responseLoop:
     assertNotNull(passwd);
 
     String path = TestCaseUtils.createTempFile(
-         "dn: uid=testPassword03.user," + baseDN,
+         "dn: " + dn,
          "changetype: modify",
          "delete: userPassword",
          "userPassword: " + passwd,
