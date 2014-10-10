@@ -35,7 +35,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -52,6 +51,8 @@ import com.forgerock.opendj.util.TimeSource;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
+
+import static org.forgerock.opendj.ldap.DecodeException.*;
 
 /**
  * Implementations of time-based matching rules.
@@ -106,7 +107,7 @@ public final class TimeBasedMatchingRulesImpl {
     /**
      * This class defines a matching rule which is used for time-based searches.
      */
-    private abstract static class TimeBasedMatchingRuleImpl extends AbstractMatchingRuleImpl {
+    private static abstract class TimeBasedMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
         /** Unit tests can inject fake timestamps if necessary. */
         final TimeSource timeSource = TimeSource.DEFAULT;
@@ -117,20 +118,20 @@ public final class TimeBasedMatchingRulesImpl {
             try {
                 return ByteString.valueOf(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
             } catch (final LocalizedIllegalArgumentException e) {
-                throw DecodeException.error(e.getMessageObject());
+                throw error(e.getMessageObject());
             }
         }
 
         /** Utility method to convert the provided integer and the provided byte representing a digit to an integer. */
         int multiplyByTenAndAddUnits(int number, byte digitByte) {
-            return number * 10 + (digitByte - 48);
+            return number * 10 + (digitByte - '0');
         }
     }
 
     /**
      * Defines the relative time ordering matching rule.
      */
-    private abstract static class RelativeTimeOrderingMatchingRuleImpl extends TimeBasedMatchingRuleImpl {
+    private static abstract class RelativeTimeOrderingMatchingRuleImpl extends TimeBasedMatchingRuleImpl {
 
         final Indexer indexer = new DefaultIndexer(RELATIVE_TIME_INDEX_ID + "." + EXTENSIBLE_INDEX_ID);
 
@@ -195,28 +196,26 @@ public final class TimeBasedMatchingRulesImpl {
                 } else {
                     if (containsTimeUnit) {
                         // We already have time unit found by now.
-                        throw DecodeException.error(WARN_ATTR_CONFLICTING_ASSERTION_FORMAT.get(assertionValue));
-                    } else {
-                        switch (b) {
-                        case 's':
-                            second = number;
-                            break;
-                        case 'm':
-                            minute = number;
-                            break;
-                        case 'h':
-                            hour = number;
-                            break;
-                        case 'd':
-                            day = number;
-                            break;
-                        case 'w':
-                            week = number;
-                            break;
-                        default:
-                            throw DecodeException.error(
-                                WARN_ATTR_INVALID_RELATIVE_TIME_ASSERTION_FORMAT.get(assertionValue, (char) b));
-                        }
+                        throw error(WARN_ATTR_CONFLICTING_ASSERTION_FORMAT.get(assertionValue));
+                    }
+                    switch (b) {
+                    case 's':
+                        second = number;
+                        break;
+                    case 'm':
+                        minute = number;
+                        break;
+                    case 'h':
+                        hour = number;
+                        break;
+                    case 'd':
+                        day = number;
+                        break;
+                    case 'w':
+                        week = number;
+                        break;
+                    default:
+                        throw error(WARN_ATTR_INVALID_RELATIVE_TIME_ASSERTION_FORMAT.get(assertionValue, (char) b));
                     }
                     containsTimeUnit = true;
                     number = 0;
@@ -391,54 +390,48 @@ public final class TimeBasedMatchingRulesImpl {
                     switch (b) {
                     case 's':
                         if (second != initValue) {
-                            decodeError(WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(assertionValue, date));
-                        } else {
-                            second = number;
+                            throw error(WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(assertionValue, date));
                         }
+                        second = number;
                         break;
                     case 'm':
                         if (minute != initValue) {
-                            decodeError(WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(assertionValue, date));
-                        } else {
-                            minute = number;
+                            throw error(WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(assertionValue, date));
                         }
+                        minute = number;
                         break;
                     case 'h':
                         if (hour != initValue) {
-                            decodeError(WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(assertionValue, date));
-                        } else {
-                            hour = number;
+                            throw error(WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(assertionValue, date));
                         }
+                        hour = number;
                         break;
                     case 'D':
                         if (number == 0) {
-                            decodeError(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, number));
+                            throw error(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, number));
                         } else if (date != initDate) {
-                            decodeError(WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(assertionValue, date));
-                        } else {
-                            date = number;
+                            throw error(WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(assertionValue, date));
                         }
+                        date = number;
                         break;
                     case 'M':
                         if (number == 0) {
-                            decodeError(WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(assertionValue, number));
+                            throw error(WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(assertionValue, number));
                         } else if (month != initValue) {
-                            decodeError(WARN_ATTR_DUPLICATE_MONTH_ASSERTION_FORMAT.get(assertionValue, month));
-                        } else {
-                            month = number;
+                            throw error(WARN_ATTR_DUPLICATE_MONTH_ASSERTION_FORMAT.get(assertionValue, month));
                         }
+                        month = number;
                         break;
                     case 'Y':
                         if (number == 0) {
-                            decodeError(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, number));
+                            throw error(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, number));
                         } else if (year != initDate) {
-                            decodeError(WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
-                        } else {
-                            year = number;
+                            throw error(WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
                         }
+                        year = number;
                         break;
                     default:
-                        decodeError(WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.get(assertionValue, (char) b));
+                        throw error(WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.get(assertionValue, (char) b));
                     }
                     number = 0;
                 }
@@ -450,20 +443,20 @@ public final class TimeBasedMatchingRulesImpl {
             // -1 values are allowed when these values have not been provided
             if (year < 0) {
                 // A future date is allowed.
-                decodeError(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
+                throw error(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
             }
             if (isDateInvalid(date, month, year)) {
-                decodeError(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, date));
+                throw error(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, date));
             }
             if (hour < initValue || hour > 23) {
-                decodeError(WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(assertionValue, hour));
+                throw error(WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(assertionValue, hour));
             }
             if (minute < initValue || minute > 59) {
-                decodeError(WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(assertionValue, minute));
+                throw error(WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(assertionValue, minute));
             }
             // Consider leap seconds.
             if (second < initValue || second > 60) {
-                decodeError(WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(assertionValue, second));
+                throw error(WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(assertionValue, second));
             }
 
             // Since we reached here we have a valid assertion value.
@@ -471,10 +464,6 @@ public final class TimeBasedMatchingRulesImpl {
             return new ByteStringBuilder(6 * 4)
                 .append(second).append(minute).append(hour)
                 .append(date).append(month).append(year).toByteString();
-        }
-
-        private void decodeError(LocalizableMessage message) throws DecodeException {
-            throw DecodeException.error(message);
         }
 
         private boolean isDateInvalid(int date, int month, int year) {
@@ -502,37 +491,14 @@ public final class TimeBasedMatchingRulesImpl {
         }
 
         private int toCalendarMonth(int month, ByteSequence value) throws DecodeException {
-            switch (month) {
-            case -1:
+            if (month == -1) {
                 // just allow this.
                 return -1;
-            case 1:
-                return Calendar.JANUARY;
-            case 2:
-                return Calendar.FEBRUARY;
-            case 3:
-                return Calendar.MARCH;
-            case 4:
-                return Calendar.APRIL;
-            case 5:
-                return Calendar.MAY;
-            case 6:
-                return Calendar.JUNE;
-            case 7:
-                return Calendar.JULY;
-            case 8:
-                return Calendar.AUGUST;
-            case 9:
-                return Calendar.SEPTEMBER;
-            case 10:
-                return Calendar.OCTOBER;
-            case 11:
-                return Calendar.NOVEMBER;
-            case 12:
-                return Calendar.DECEMBER;
-            default:
-                throw DecodeException.error(WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, month));
+            } else if (1 <= month && month <= 12) {
+                // java.util.Calendar months are numbered from 0
+                return month - 1;
             }
+            throw error(WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, month));
         }
 
         private ConditionResult valuesMatch(ByteSequence attributeValue, ByteSequence assertionValue) {
