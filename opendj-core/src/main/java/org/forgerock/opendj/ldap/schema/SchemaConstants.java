@@ -425,6 +425,21 @@ final class SchemaConstants {
     public static final String EMR_WORD_OID = "2.5.13.32";
 
     /**
+     * The Description for the partialDateAndTimeMatchingRule ordering matching rule.
+     */
+    public static final String MR_PARTIAL_DATE_AND_TIME_DESCRIPTION = "partial date and time matching";
+
+    /**
+     * The Name for the partialDateAndTimeMatchingRule ordering matching rule.
+     */
+    public static final String MR_PARTIAL_DATE_AND_TIME_NAME = "partialDateAndTimeMatchingRule";
+
+    /**
+     * The OID for the partialDateAndTimeMatchingRule ordering matching rule.
+     */
+    public static final String MR_PARTIAL_DATE_AND_TIME_OID = OID_OPENDS_SERVER_MATCHING_RULE_BASE  + ".7";
+
+    /**
      * The name for the caseExactOrderingMatch ordering matching rule.
      */
     public static final String OMR_CASE_EXACT_NAME = "caseExactOrderingMatch";
@@ -483,6 +498,48 @@ final class SchemaConstants {
      * The OID for the octetStringOrderingMatch ordering matching rule.
      */
     public static final String OMR_OCTET_STRING_OID = "2.5.13.18";
+
+    /**
+     * The Description for the relativeTimeGreaterThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_GREATER_THAN_DESCRIPTION =
+        "greater-than relative time for time-based searches";
+
+    /**
+     * The Name for the relativeTimeGreaterThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_GREATER_THAN_NAME = "relativeTimeGTOrderingMatch";
+
+    /**
+     * The alternative name for the relativeTimeGreaterThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_GREATER_THAN_ALT_NAME = "relativeTimeOrderingMatch.gt";
+
+    /**
+     * The OID for the relativeTimeGreaterThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_GREATER_THAN_OID = OID_OPENDS_SERVER_MATCHING_RULE_BASE  + ".5";
+
+    /**
+     * The Description for the relativeTimeLessThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_LESS_THAN_DESCRIPTION =
+        "less-than relative time for time-based searches";
+
+    /**
+     * The Name for the relativeTimeLessThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_LESS_THAN_NAME = "relativeTimeLTOrderingMatch";
+
+    /**
+     * The alternative name for the relativeTimeLessThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_LESS_THAN_ALT_NAME = "relativeTimeOrderingMatch.lt";
+
+    /**
+     * The OID for the relativeTimeLessThan ordering matching rule.
+     */
+    public static final String OMR_RELATIVE_TIME_LESS_THAN_OID = OID_OPENDS_SERVER_MATCHING_RULE_BASE  + ".6";
 
     /**
      * The name for the uuidOrderingMatch ordering matching rule.

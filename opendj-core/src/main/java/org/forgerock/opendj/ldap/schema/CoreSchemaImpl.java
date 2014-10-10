@@ -28,6 +28,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.TimeBasedMatchingRulesImpl.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -683,6 +684,21 @@ final class CoreSchemaImpl {
         builder.buildMatchingRule(AMR_DOUBLE_METAPHONE_OID).names(Collections.singletonList(AMR_DOUBLE_METAPHONE_NAME))
                 .description(AMR_DOUBLE_METAPHONE_DESCRIPTION).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
                 .extraProperties(OPENDJ_ORIGIN).implementation(new DoubleMetaphoneApproximateMatchingRuleImpl())
+                .addToSchema();
+        builder.buildMatchingRule(OMR_RELATIVE_TIME_GREATER_THAN_OID)
+                .names(OMR_RELATIVE_TIME_GREATER_THAN_NAME, OMR_RELATIVE_TIME_GREATER_THAN_ALT_NAME)
+                .description(OMR_RELATIVE_TIME_GREATER_THAN_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+                .extraProperties(OPENDJ_ORIGIN).implementation(relativeTimeGTOMatchingRule())
+                .addToSchema();
+        builder.buildMatchingRule(OMR_RELATIVE_TIME_LESS_THAN_OID)
+                .names(OMR_RELATIVE_TIME_LESS_THAN_NAME, OMR_RELATIVE_TIME_LESS_THAN_ALT_NAME)
+                .description(OMR_RELATIVE_TIME_LESS_THAN_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+                .extraProperties(OPENDJ_ORIGIN).implementation(relativeTimeLTOMatchingRule())
+                .addToSchema();
+        builder.buildMatchingRule(MR_PARTIAL_DATE_AND_TIME_OID)
+                .names(Collections.singletonList(MR_PARTIAL_DATE_AND_TIME_NAME))
+                .description(MR_PARTIAL_DATE_AND_TIME_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+                .extraProperties(OPENDJ_ORIGIN).implementation(partialDateAndTimeMatchingRule())
                 .addToSchema();
     }
 
