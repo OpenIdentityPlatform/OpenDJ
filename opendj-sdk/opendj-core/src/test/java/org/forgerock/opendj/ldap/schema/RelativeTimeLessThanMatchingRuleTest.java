@@ -114,17 +114,7 @@ public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
     /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
-        // Note that oid and names are not used by the test (ie, they could be any value, test should pass anyway)
-        // Only the implementation class and the provided locale are really tested here.
-        String oid = "1.3.6.1.4.1.26027.1.4.6";
-        Schema schema = new SchemaBuilder(Schema.getCoreSchema()).
-            buildMatchingRule(oid).
-                syntaxOID(SchemaConstants.SYNTAX_GENERALIZED_TIME_OID).
-                names("relativeTimeLTOrderingMatch.lt").
-                implementation(TimeBasedMatchingRulesImpl.relativeTimeLTOMatchingRule()).
-                addToSchema().
-            toSchema();
-        return schema.getMatchingRule(oid);
+        return CoreSchema.getRelativeTimeLessThanMatchingRule();
     }
 
     @Test

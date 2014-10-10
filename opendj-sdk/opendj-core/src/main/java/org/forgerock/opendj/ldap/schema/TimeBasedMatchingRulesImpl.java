@@ -57,7 +57,7 @@ import static org.forgerock.opendj.ldap.DecodeException.*;
 /**
  * Implementations of time-based matching rules.
  */
-public final class TimeBasedMatchingRulesImpl {
+final class TimeBasedMatchingRulesImpl {
 
     private static final String RELATIVE_TIME_INDEX_ID = "rt";
     private static final String PARTIAL_DATE_TIME_INDEX_ID = "pdt";
@@ -82,7 +82,7 @@ public final class TimeBasedMatchingRulesImpl {
      *
      * @return the matching rule implementation
      */
-    public static MatchingRuleImpl relativeTimeGTOMatchingRule() {
+    static MatchingRuleImpl relativeTimeGTOMatchingRule() {
         return new RelativeTimeGreaterThanOrderingMatchingRuleImpl();
     }
 
@@ -91,7 +91,7 @@ public final class TimeBasedMatchingRulesImpl {
      *
      * @return the matching rule implementation
      */
-    public static MatchingRuleImpl relativeTimeLTOMatchingRule() {
+    static MatchingRuleImpl relativeTimeLTOMatchingRule() {
         return new RelativeTimeLessThanOrderingMatchingRuleImpl();
     }
 
@@ -100,7 +100,7 @@ public final class TimeBasedMatchingRulesImpl {
      *
      * @return the matching rule implementation
      */
-    public static MatchingRuleImpl partialDateAndTimeMatchingRule() {
+    static MatchingRuleImpl partialDateAndTimeMatchingRule() {
         return new PartialDateAndTimeMatchingRuleImpl();
     }
 

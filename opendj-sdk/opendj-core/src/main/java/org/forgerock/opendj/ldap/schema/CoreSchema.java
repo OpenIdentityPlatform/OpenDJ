@@ -145,6 +145,8 @@ public final class CoreSchema {
         = CoreSchemaImpl.getInstance().getMatchingRule("2.5.13.13");
     private static final MatchingRule CASE_EXACT_IA5_MATCHING_RULE
         = CoreSchemaImpl.getInstance().getMatchingRule("1.3.6.1.4.1.1466.109.114.1");
+    private static final MatchingRule CASE_EXACT_IA5_SUBSTRING_MATCHING_RULE
+        = CoreSchemaImpl.getInstance().getMatchingRule("1.3.6.1.4.1.26027.1.4.902");
     private static final MatchingRule CASE_EXACT_MATCHING_RULE
         = CoreSchemaImpl.getInstance().getMatchingRule("2.5.13.5");
     private static final MatchingRule CASE_EXACT_ORDERING_MATCHING_RULE
@@ -199,10 +201,16 @@ public final class CoreSchema {
         = CoreSchemaImpl.getInstance().getMatchingRule("2.5.13.18");
     private static final MatchingRule OCTET_STRING_SUBSTRINGS_MATCHING_RULE
         = CoreSchemaImpl.getInstance().getMatchingRule("2.5.13.19");
+    private static final MatchingRule PARTIAL_DATE_AND_TIME_MATCHING_RULE
+        = CoreSchemaImpl.getInstance().getMatchingRule("1.3.6.1.4.1.26027.1.4.7");
     private static final MatchingRule PRESENTATION_ADDRESS_MATCHING_RULE
         = CoreSchemaImpl.getInstance().getMatchingRule("2.5.13.22");
     private static final MatchingRule PROTOCOL_INFORMATION_MATCHING_RULE
         = CoreSchemaImpl.getInstance().getMatchingRule("2.5.13.24");
+    private static final MatchingRule RELATIVE_TIME_GREATER_THAN_ORDERING_MATCHING_RULE
+        = CoreSchemaImpl.getInstance().getMatchingRule("1.3.6.1.4.1.26027.1.4.5");
+    private static final MatchingRule RELATIVE_TIME_LESS_THAN_ORDERING_MATCHING_RULE
+        = CoreSchemaImpl.getInstance().getMatchingRule("1.3.6.1.4.1.26027.1.4.6");
     private static final MatchingRule TELEPHONE_NUMBER_MATCHING_RULE
         = CoreSchemaImpl.getInstance().getMatchingRule("2.5.13.20");
     private static final MatchingRule TELEPHONE_NUMBER_SUBSTRINGS_MATCHING_RULE
@@ -936,7 +944,17 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code caseExactSubstringsMatch} Matching Rule which has the OID {@code 2.5.13.7}.
+     * Returns a reference to the {@code caseExactIA5SubstringsMatch} Matching Rule which has the OID {@code 2.5.13.7}.
+     *
+     * @return A reference to the {@code caseExactIA5SubstringsMatch} Matching Rule.
+     */
+    public static MatchingRule getCaseExactIA5SubstringsMatchingRule() {
+        return CASE_EXACT_IA5_SUBSTRING_MATCHING_RULE;
+    }
+
+    /**
+     * Returns a reference to the {@code caseExactSubstringsMatch} Matching Rule which has the
+     * OID {@code 1.3.6.1.4.1.26027.1.4.902}.
      *
      * @return A reference to the {@code caseExactSubstringsMatch} Matching Rule.
      */
@@ -1168,6 +1186,16 @@ public final class CoreSchema {
     }
 
     /**
+     * Returns a reference to the {@code partialDateAndTime} Matching Rule
+     * which has the OID {@code 1.3.6.1.4.1.26027.1.4.7}.
+     *
+     * @return A reference to the {@code partialDateAndTime} Matching Rule.
+     */
+    public static MatchingRule getPartialDateAndTimeMatchingRule() {
+        return PARTIAL_DATE_AND_TIME_MATCHING_RULE;
+    }
+
+    /**
      * Returns a reference to the {@code presentationAddressMatch} Matching Rule which has the OID {@code 2.5.13.22}.
      *
      * @return A reference to the {@code presentationAddressMatch} Matching Rule.
@@ -1183,6 +1211,26 @@ public final class CoreSchema {
      */
     public static MatchingRule getProtocolInformationMatchingRule() {
         return PROTOCOL_INFORMATION_MATCHING_RULE;
+    }
+
+    /**
+     * Returns a reference to the {@code relativeTimeGreaterThan} Matching Rule
+     * which has the OID {@code 1.3.6.1.4.1.26027.1.4.5}.
+     *
+     * @return A reference to the {@code relativeTimeGreaterThan} Matching Rule.
+     */
+    public static MatchingRule getRelativeTimeGreaterThanMatchingRule() {
+        return RELATIVE_TIME_GREATER_THAN_ORDERING_MATCHING_RULE;
+    }
+
+    /**
+     * Returns a reference to the {@code relativeTimeLessThan} Matching Rule
+     * which has the OID {@code 1.3.6.1.4.1.26027.1.4.6}.
+     *
+     * @return A reference to the {@code relativeTimeLessThan} Matching Rule.
+     */
+    public static MatchingRule getRelativeTimeLessThanMatchingRule() {
+        return RELATIVE_TIME_LESS_THAN_ORDERING_MATCHING_RULE;
     }
 
     /**
