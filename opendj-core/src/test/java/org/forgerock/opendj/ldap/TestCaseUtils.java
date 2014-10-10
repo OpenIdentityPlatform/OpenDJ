@@ -41,7 +41,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.OngoingStubbing;
 
-import com.forgerock.opendj.util.TimeSource;
+import org.forgerock.util.time.TimeService;
 
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
@@ -216,7 +216,7 @@ public final class TestCaseUtils {
     }
 
     /**
-     * Returns a mock {@link TimeSource} which can be used for injecting fake
+     * Returns a mock {@link TimeService} which can be used for injecting fake
      * time stamps into components.
      *
      * @param times
@@ -224,9 +224,9 @@ public final class TestCaseUtils {
      *            time source.
      * @return The mock time source.
      */
-    public static TimeSource mockTimeSource(final long... times) {
-        final TimeSource mock = mock(TimeSource.class);
-        OngoingStubbing<Long> stubbing = when(mock.currentTimeMillis());
+    public static TimeService mockTimeService(final long... times) {
+        final TimeService mock = mock(TimeService.class);
+        OngoingStubbing<Long> stubbing = when(mock.now());
         for (long t : times) {
             stubbing = stubbing.thenReturn(t);
         }

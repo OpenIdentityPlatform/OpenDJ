@@ -47,7 +47,7 @@ import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
-import com.forgerock.opendj.util.TimeSource;
+import org.forgerock.util.time.TimeService;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -110,7 +110,7 @@ public final class TimeBasedMatchingRulesImpl {
     private static abstract class TimeBasedMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
         /** Unit tests can inject fake timestamps if necessary. */
-        final TimeSource timeSource = TimeSource.DEFAULT;
+        final TimeService timeService = TimeService.SYSTEM;
 
         /** {@inheritDoc} */
         @Override
@@ -228,7 +228,7 @@ public final class TimeBasedMatchingRulesImpl {
             }
 
             long delta = (second + minute * 60 + hour * 3600 + day * 24 * 3600 + week * 7 * 24 * 3600) * 1000;
-            long now = timeSource.currentTimeMillis();
+            long now = timeService.now();
             return ByteString.valueOf(signed ? now - delta : now + delta);
         }
 

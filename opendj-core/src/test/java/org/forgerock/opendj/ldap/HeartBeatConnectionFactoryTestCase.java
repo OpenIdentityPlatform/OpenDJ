@@ -145,7 +145,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          */
         when(connection.searchAsync(any(SearchRequest.class), any(SearchResultHandler.class))).thenReturn(
             newSuccessfulLdapPromise(newResult(SUCCESS)));
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
+        when(hbcf.timeService.now()).thenReturn(11000L);
         scheduler.runAllTasks(); // Send the heartbeat.
 
         // Capture the heartbeat search result handler.
@@ -241,14 +241,14 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         assertThat(hbc.isValid()).isTrue();
 
         // Invoke heartbeat after the connection is considered idle.
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(6000L);
+        when(hbcf.timeService.now()).thenReturn(6000L);
         scheduler.runAllTasks();
         verifyHeartBeatSent(connection, 2); // Heartbeat sent.
         assertThat(hbc.isValid()).isTrue();
 
         // Now force the heartbeat to fail.
         mockHeartBeatResponse(connection, listeners, ResultCode.CLIENT_SIDE_SERVER_DOWN);
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
+        when(hbcf.timeService.now()).thenReturn(11000L);
         scheduler.runAllTasks();
         verifyHeartBeatSent(connection, 3);
         assertThat(hbc.isValid()).isFalse();
@@ -278,11 +278,11 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Now force the heartbeat to fail due to timeout.
         mockHeartBeatResponse(connection, listeners, null /* no response */);
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
+        when(hbcf.timeService.now()).thenReturn(11000L);
         scheduler.runAllTasks(); // Send the heartbeat.
         verifyHeartBeatSent(connection, 2);
         assertThat(hbc.isValid()).isTrue(); // Not checked yet.
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(12000L);
+        when(hbcf.timeService.now()).thenReturn(12000L);
         scheduler.runAllTasks(); // Check for heartbeat.
         assertThat(hbc.isValid()).isFalse(); // Now invalid.
         assertThat(hbc.isClosed()).isFalse();
@@ -299,23 +299,23 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          * Send a bind request, trapping the bind call-back so that we can send
          * the response once we have attempted a heartbeat.
          */
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
+        when(hbcf.timeService.now()).thenReturn(11000L);
         hbc.bindAsync(newSimpleBindRequest());
 
         verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
 
         // Verify no heartbeat is sent because there is a bind in progress.
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11001L);
+        when(hbcf.timeService.now()).thenReturn(11001L);
         scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.sendHeartBeat()
         verify(connection, times(1)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
 
         // Send fake bind response, releasing the heartbeat.
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11099L);
+        when(hbcf.timeService.now()).thenReturn(11099L);
         ((PromiseImpl) promise.getWrappedPromise()).handleResult(newResult(SUCCESS));
 
         // Check that bind response acts as heartbeat.
         assertThat(hbc.isValid()).isTrue();
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11100L);
+        when(hbcf.timeService.now()).thenReturn(11100L);
         scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.checkForHeartBeat()
         assertThat(hbc.isValid()).isTrue();
     }
@@ -327,18 +327,18 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         hbc = hbcf.getConnection();
 
         // Send another bind request which will timeout.
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(20000L);
+        when(hbcf.timeService.now()).thenReturn(20000L);
         hbc.bindAsync(newSimpleBindRequest());
         verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
 
         // Verify no heartbeat is sent because there is a bind in progress.
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(20001L);
+        when(hbcf.timeService.now()).thenReturn(20001L);
         scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.sendHeartBeat()
         verify(connection, times(1)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
 
         // Check that lack of bind response acts as heartbeat timeout.
         assertThat(hbc.isValid()).isTrue();
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(20100L);
+        when(hbcf.timeService.now()).thenReturn(20100L);
         scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.checkForHeartBeat()
         assertThat(hbc.isValid()).isFalse();
     }
@@ -358,7 +358,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          * Now attempt the heartbeat which should not happen because there is a
          * bind in progress.
          */
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
+        when(hbcf.timeService.now()).thenReturn(11000L);
         // Attempt to send the heartbeat.
         scheduler.runAllTasks();
         verify(connection, times(1)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
@@ -367,7 +367,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         ((PromiseImpl) promise.getWrappedPromise()).handleResult(newResult(SUCCESS));
 
         // Attempt to send a heartbeat again.
-        when(hbcf.timeSource.currentTimeMillis()).thenReturn(16000L);
+        when(hbcf.timeService.now()).thenReturn(16000L);
         // Attempt to send the heartbeat.
         scheduler.runAllTasks();
         verify(connection, times(2)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
@@ -404,7 +404,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         hbcf = new HeartBeatConnectionFactory(factory, 10000, 100, TimeUnit.MILLISECONDS, HEARTBEAT, scheduler);
 
         // Set initial time stamp.
-        hbcf.timeSource = mockTimeSource(0);
+        hbcf.timeService = mockTimeService(0);
     }
 
     private BindResultLdapPromiseImpl mockBindAsyncResponse() {

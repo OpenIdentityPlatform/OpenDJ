@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.Fa
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.TimeSource;
+import org.forgerock.util.time.TimeService;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.*;
@@ -112,7 +112,7 @@ public class PartialDateAndTimeMatchingRuleTestCase extends MatchingRuleTest {
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
         final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(TimeSource.DEFAULT.currentTimeMillis());
+        calendar.setTimeInMillis(TimeService.SYSTEM.now());
         final Date nowDate = calendar.getTime();
         calendar.add(Calendar.MONTH, 1);
         final Date oneMonthAheadDate = calendar.getTime();

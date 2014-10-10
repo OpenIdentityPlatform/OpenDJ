@@ -26,11 +26,11 @@
 package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.TestCaseUtils.mockTimeSource;
+import static org.forgerock.opendj.ldap.TestCaseUtils.mockTimeService;
 
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.TimeSource;
+import org.forgerock.util.time.TimeService;
 
 @SuppressWarnings("javadoc")
 public class TestCaseUtilsTestCase extends SdkTestCase {
@@ -40,14 +40,14 @@ public class TestCaseUtilsTestCase extends SdkTestCase {
      */
     @Test
     public void testMockTimeSource() {
-        final TimeSource mock1 = mockTimeSource(10);
-        assertThat(mock1.currentTimeMillis()).isEqualTo(10);
-        assertThat(mock1.currentTimeMillis()).isEqualTo(10);
+        final TimeService mock1 = mockTimeService(10);
+        assertThat(mock1.now()).isEqualTo(10);
+        assertThat(mock1.now()).isEqualTo(10);
 
-        final TimeSource mock2 = mockTimeSource(10, 20, 30);
-        assertThat(mock2.currentTimeMillis()).isEqualTo(10);
-        assertThat(mock2.currentTimeMillis()).isEqualTo(20);
-        assertThat(mock2.currentTimeMillis()).isEqualTo(30);
-        assertThat(mock2.currentTimeMillis()).isEqualTo(30);
+        final TimeService mock2 = mockTimeService(10, 20, 30);
+        assertThat(mock2.now()).isEqualTo(10);
+        assertThat(mock2.now()).isEqualTo(20);
+        assertThat(mock2.now()).isEqualTo(30);
+        assertThat(mock2.now()).isEqualTo(30);
     }
 }
