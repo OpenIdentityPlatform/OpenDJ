@@ -121,30 +121,9 @@ public final class TimeBasedMatchingRulesImpl {
             }
         }
 
-        int multiplyByTenAndAddUnits(int number, byte b) {
-            switch (b) {
-            case '0':
-                return number * 10;
-            case '1':
-                return number * 10 + 1;
-            case '2':
-                return number * 10 + 2;
-            case '3':
-                return number * 10 + 3;
-            case '4':
-                return number * 10 + 4;
-            case '5':
-                return number * 10 + 5;
-            case '6':
-                return number * 10 + 6;
-            case '7':
-                return number * 10 + 7;
-            case '8':
-                return number * 10 + 8;
-            case '9':
-                return number * 10 + 9;
-            }
-            return number;
+        /** Utility method to convert the provided integer and the provided byte representing a digit to an integer. */
+        int multiplyByTenAndAddUnits(int number, byte digitByte) {
+            return number * 10 + (digitByte - 48);
         }
     }
 
@@ -409,61 +388,57 @@ public final class TimeBasedMatchingRulesImpl {
                 if (isDigit((char) b)) {
                     number = multiplyByTenAndAddUnits(number, b);
                 } else {
-                    LocalizableMessage message = null;
                     switch (b) {
                     case 's':
                         if (second != initValue) {
-                            message = WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(assertionValue, date);
+                            decodeError(WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(assertionValue, date));
                         } else {
                             second = number;
                         }
                         break;
                     case 'm':
                         if (minute != initValue) {
-                            message = WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(assertionValue, date);
+                            decodeError(WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(assertionValue, date));
                         } else {
                             minute = number;
                         }
                         break;
                     case 'h':
                         if (hour != initValue) {
-                            message = WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(assertionValue, date);
+                            decodeError(WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(assertionValue, date));
                         } else {
                             hour = number;
                         }
                         break;
                     case 'D':
                         if (number == 0) {
-                            message = WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, number);
+                            decodeError(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, number));
                         } else if (date != initDate) {
-                            message = WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(assertionValue, date);
+                            decodeError(WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(assertionValue, date));
                         } else {
                             date = number;
                         }
                         break;
                     case 'M':
                         if (number == 0) {
-                            message = WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(assertionValue, number);
+                            decodeError(WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(assertionValue, number));
                         } else if (month != initValue) {
-                            message = WARN_ATTR_DUPLICATE_MONTH_ASSERTION_FORMAT.get(assertionValue, month);
+                            decodeError(WARN_ATTR_DUPLICATE_MONTH_ASSERTION_FORMAT.get(assertionValue, month));
                         } else {
                             month = number;
                         }
                         break;
                     case 'Y':
                         if (number == 0) {
-                            message = WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, number);
+                            decodeError(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, number));
                         } else if (year != initDate) {
-                            message = WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.get(assertionValue, year);
+                            decodeError(WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
                         } else {
                             year = number;
                         }
                         break;
                     default:
-                        message = WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.get(assertionValue, (char) b);
-                    }
-                    if (message != null) {
-                        throw DecodeException.error(message);
+                        decodeError(WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.get(assertionValue, (char) b));
                     }
                     number = 0;
                 }
@@ -475,20 +450,20 @@ public final class TimeBasedMatchingRulesImpl {
             // -1 values are allowed when these values have not been provided
             if (year < 0) {
                 // A future date is allowed.
-                throw DecodeException.error(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
+                decodeError(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(assertionValue, year));
             }
             if (isDateInvalid(date, month, year)) {
-                throw DecodeException.error(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, date));
+                decodeError(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(assertionValue, date));
             }
             if (hour < initValue || hour > 23) {
-                throw DecodeException.error(WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(assertionValue, hour));
+                decodeError(WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(assertionValue, hour));
             }
             if (minute < initValue || minute > 59) {
-                throw DecodeException.error(WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(assertionValue, minute));
+                decodeError(WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(assertionValue, minute));
             }
             // Consider leap seconds.
             if (second < initValue || second > 60) {
-                throw DecodeException.error(WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(assertionValue, second));
+                decodeError(WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(assertionValue, second));
             }
 
             // Since we reached here we have a valid assertion value.
@@ -496,6 +471,10 @@ public final class TimeBasedMatchingRulesImpl {
             return new ByteStringBuilder(6 * 4)
                 .append(second).append(minute).append(hour)
                 .append(date).append(month).append(year).toByteString();
+        }
+
+        private void decodeError(LocalizableMessage message) throws DecodeException {
+            throw DecodeException.error(message);
         }
 
         private boolean isDateInvalid(int date, int month, int year) {
