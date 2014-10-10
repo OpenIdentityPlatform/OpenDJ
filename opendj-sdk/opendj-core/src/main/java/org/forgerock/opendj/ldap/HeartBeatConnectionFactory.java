@@ -71,7 +71,7 @@ import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.SuccessHandler;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
-import com.forgerock.opendj.util.TimeSource;
+import org.forgerock.util.time.TimeService;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromiseImpl.*;
@@ -160,7 +160,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * Timestamp of last response received (any response, not just heart
          * beats).
          */
-        private volatile long lastResponseTimestamp = timeSource.currentTimeMillis(); // Assume valid at creation.
+        private volatile long lastResponseTimestamp = timeService.now(); // Assume valid at creation.
 
         private ConnectionImpl(final Connection connection) {
             this.connection = connection;
@@ -392,7 +392,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                  * only flag the connection as failed if no activity has been
                  * seen on the connection since the heart beat was sent.
                  */
-                final long currentTimeMillis = timeSource.currentTimeMillis();
+                final long currentTimeMillis = timeService.now();
                 if (lastResponseTimestamp < (currentTimeMillis - timeoutMS)) {
                     logger.warn(LocalizableMessage.raw("No heartbeat detected for connection '%s'", connection));
                     handleConnectionError(false, newHeartBeatTimeoutError());
@@ -470,7 +470,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
              * Only send the heart beat if the connection has been idle for some
              * time.
              */
-            final long currentTimeMillis = timeSource.currentTimeMillis();
+            final long currentTimeMillis = timeService.now();
             if (currentTimeMillis < (lastResponseTimestamp + minDelayMS)) {
                 return false;
             }
@@ -546,7 +546,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         private <R> R timestamp(final R response) {
             if (!(response instanceof ConnectionException)) {
-                lastResponseTimestamp = timeSource.currentTimeMillis();
+                lastResponseTimestamp = timeService.now();
             }
             return response;
         }
@@ -748,7 +748,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
      * This is package private in order to allow unit tests to inject fake time
      * stamps.
      */
-    TimeSource timeSource = TimeSource.DEFAULT;
+    TimeService timeService = TimeService.SYSTEM;
 
     /**
      * Scheduled task which checks that all heart beats have been received

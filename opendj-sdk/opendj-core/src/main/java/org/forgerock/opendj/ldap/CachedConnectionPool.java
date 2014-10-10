@@ -65,7 +65,7 @@ import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.SuccessHandler;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
-import com.forgerock.opendj.util.TimeSource;
+import org.forgerock.util.time.TimeService;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
@@ -590,7 +590,7 @@ final class CachedConnectionPool implements ConnectionPool {
                  * since we don't want to hold the lock too long.
                  */
                 idleConnections = new LinkedList<Connection>();
-                final long timeoutMillis = timeSource.currentTimeMillis() - idleTimeoutMillis;
+                final long timeoutMillis = timeService.now() - idleTimeoutMillis;
                 int nonCoreConnectionCount = currentPoolSize() - corePoolSize;
                 for (QueueElement holder = queue.peek(); nonCoreConnectionCount > 0
                         && isTimedOutQueuedConnection(holder, timeoutMillis); holder = queue.peek()) {
@@ -693,7 +693,7 @@ final class CachedConnectionPool implements ConnectionPool {
      * This is package private in order to allow unit tests to inject fake time
      * stamps.
      */
-    TimeSource timeSource = TimeSource.DEFAULT;
+    TimeService timeService = TimeService.SYSTEM;
 
     private final Semaphore availableConnections;
     private final SuccessHandler<Connection> connectionSuccessHandler = new ConnectionSuccessHandler();
@@ -802,7 +802,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 } else if (hasWaitingConnections()) {
                     holder = queue.removeFirst();
                 } else {
-                    holder = new QueueElement(timeSource.currentTimeMillis(), getStackTraceIfDebugEnabled());
+                    holder = new QueueElement(timeService.now(), getStackTraceIfDebugEnabled());
                     queue.add(holder);
                 }
             }
@@ -890,7 +890,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 connectionPoolIsClosing = true;
                 holder = null;
             } else {
-                holder = new QueueElement(connection, timeSource.currentTimeMillis());
+                holder = new QueueElement(connection, timeService.now());
                 queue.add(holder);
                 return;
             }

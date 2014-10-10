@@ -444,7 +444,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         assertThat(scheduler.isScheduled()).isTrue();
 
         // First populate the pool with idle connections at time 0.
-        pool.timeSource = mockTimeSource(0);
+        pool.timeService = mockTimeService(0);
 
         assertThat(pool.currentPoolSize()).isEqualTo(0);
         Connection c1 = pool.getConnection();
@@ -459,12 +459,12 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         assertThat(pool.currentPoolSize()).isEqualTo(4);
 
         // First purge at time 50 is no-op because no connections have expired.
-        when(pool.timeSource.currentTimeMillis()).thenReturn(50L);
+        when(pool.timeService.now()).thenReturn(50L);
         scheduler.runFirstTask();
         assertThat(pool.currentPoolSize()).isEqualTo(4);
 
         // Second purge at time 150 should remove 2 non-core connections.
-        when(pool.timeSource.currentTimeMillis()).thenReturn(150L);
+        when(pool.timeService.now()).thenReturn(150L);
         scheduler.runFirstTask();
         assertThat(pool.currentPoolSize()).isEqualTo(2);
 
@@ -474,7 +474,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         verify(pooledConnection4, times(0)).close();
 
         // Regrow the pool at time 200.
-        when(pool.timeSource.currentTimeMillis()).thenReturn(200L);
+        when(pool.timeService.now()).thenReturn(200L);
         Connection c5 = pool.getConnection(); // pooledConnection3
         Connection c6 = pool.getConnection(); // pooledConnection4
         Connection c7 = pool.getConnection(); // pooledConnection5
@@ -487,12 +487,12 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         assertThat(pool.currentPoolSize()).isEqualTo(4);
 
         // Third purge at time 250 should not remove any connections.
-        when(pool.timeSource.currentTimeMillis()).thenReturn(250L);
+        when(pool.timeService.now()).thenReturn(250L);
         scheduler.runFirstTask();
         assertThat(pool.currentPoolSize()).isEqualTo(4);
 
         // Fourth purge at time 350 should remove 2 non-core connections.
-        when(pool.timeSource.currentTimeMillis()).thenReturn(350L);
+        when(pool.timeService.now()).thenReturn(350L);
         scheduler.runFirstTask();
         assertThat(pool.currentPoolSize()).isEqualTo(2);
 

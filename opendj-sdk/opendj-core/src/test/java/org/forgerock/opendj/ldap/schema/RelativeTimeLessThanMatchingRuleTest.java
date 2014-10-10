@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.Fa
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.TimeSource;
+import org.forgerock.util.time.TimeService;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.*;
@@ -45,9 +45,7 @@ import static org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImpl
 @Test
 public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
@@ -79,14 +77,12 @@ public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
         final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(TimeSource.DEFAULT.currentTimeMillis());
+        calendar.setTimeInMillis(TimeService.SYSTEM.now());
         final Date nowDate = calendar.getTime();
         calendar.add(Calendar.MONTH, 1);
         final Date oneMonthAheadDate = calendar.getTime();
@@ -115,9 +111,7 @@ public class RelativeTimeLessThanMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         // Note that oid and names are not used by the test (ie, they could be any value, test should pass anyway)
