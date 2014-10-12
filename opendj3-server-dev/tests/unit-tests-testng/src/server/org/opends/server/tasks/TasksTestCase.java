@@ -89,7 +89,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
       completionTime = parseAttribute(resultEntry, ATTR_TASK_COMPLETION_TIME).asString();
       timedOut = System.currentTimeMillis() - startMillisecs > 1000 * timeout;
     }
-    while (completionTime == null && timedOut);
+    while (completionTime == null && !timedOut);
 
     assertNotNull(completionTime, "The task had not completed after " + timeout + " seconds.\n"
         + "resultEntry=[" + resultEntry + "]");
