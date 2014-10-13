@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -303,11 +303,11 @@ public final class VirtualListViewRequestControl implements Control {
             final ByteString contextID) {
         Validator.ensureTrue(beforeCount >= 0, "beforeCount is less than 0");
         Validator.ensureTrue(afterCount >= 0, "afterCount is less than 0");
-        Validator.ensureTrue(offset > 0, "beforeCount is less than 1");
-        Validator.ensureTrue(contentCount >= 0, "afterCount is less than 0");
+        Validator.ensureTrue(offset > 0, "offset is less than 1");
+        Validator.ensureTrue(contentCount >= 0, "contentCount is less than 0");
 
-        return new VirtualListViewRequestControl(isCritical, beforeCount, afterCount, offset,
-                contentCount, null, contextID);
+        return new VirtualListViewRequestControl(isCritical, beforeCount, afterCount, contentCount,
+                offset, null, contextID);
     }
 
     private final int beforeCount;
