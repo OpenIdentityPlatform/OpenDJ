@@ -302,11 +302,11 @@ public final class VirtualListViewRequestControl implements Control {
             final ByteString contextID) {
         Reject.ifFalse(beforeCount >= 0, "beforeCount is less than 0");
         Reject.ifFalse(afterCount >= 0, "afterCount is less than 0");
-        Reject.ifFalse(offset > 0, "beforeCount is less than 1");
-        Reject.ifFalse(contentCount >= 0, "afterCount is less than 0");
+        Reject.ifFalse(offset > 0, "offset is less than 1");
+        Reject.ifFalse(contentCount >= 0, "contentCount is less than 0");
 
-        return new VirtualListViewRequestControl(isCritical, beforeCount, afterCount, offset,
-                contentCount, null, contextID);
+        return new VirtualListViewRequestControl(isCritical, beforeCount, afterCount, contentCount,
+                offset, null, contextID);
     }
 
     private final int beforeCount;
