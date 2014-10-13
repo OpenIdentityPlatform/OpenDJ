@@ -28,6 +28,7 @@
 package org.opends.server.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -63,7 +64,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -125,15 +125,15 @@ public class SubentryManagerTestCase extends CoreTestCase
     subentryList = manager.getCollectiveSubentries(testEntry.getName());
     assertThat(getDns(subentryList)).containsExactly(collectiveSubentry.getName());
 
+    // Other unit tests may have modified the sub-entry causing it to contain
+    // modify timestamps, etc, so get a fresh copy.
+    Entry refreshedCollectiveSubentry = DirectoryServer.getEntry(collectiveSubentry.getName());
     subentryList = manager.getCollectiveSubentries(testEntry);
-    // FIXME following line does not work because server's Entry.equals() is not reflexive
-    // assertThat(getEntries(subentryList)).containsExactly(collectiveSubentry);
-    assertNotNull(subentryList);
-    assertEquals(subentryList.size(), 1);
-    assertEquals(subentryList.get(0).getEntry(), collectiveSubentry);
+    assertThat(getEntries(subentryList)).containsExactly(refreshedCollectiveSubentry);
 
+    Entry refreshedLegacyLdapSubentry = DirectoryServer.getEntry(legacyLdapSubentry.getName());
     subentryList = manager.getSubentries(legacyLdapSubentry.getName().parent());
-    assertThat(getEntries(subentryList)).containsExactly(legacyLdapSubentry);
+    assertThat(getEntries(subentryList)).containsExactly(refreshedLegacyLdapSubentry);
 
     subentryList = manager.getSubentries(legacyLdapSubentry.getName().parent().parent());
     assertThat(subentryList).isEmpty();
@@ -162,9 +162,16 @@ public class SubentryManagerTestCase extends CoreTestCase
   @Test
   public void testCollectiveAttributes() throws Exception
   {
-    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
-    hasValues(testEntry.getName(), "c-l", "Savoie");
-    hasValues(testEntry.getName(), "preferredlanguage", "fr");
+    try
+    {
+      replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
+      hasValues(testEntry.getName(), "c-l", "Savoie");
+      hasValues(testEntry.getName(), "preferredlanguage", "fr");
+    }
+    finally
+    {
+      deleteAttribute(collectiveSubentry, "collectiveConflictBehavior");
+    }
   }
 
 
@@ -296,25 +303,31 @@ public class SubentryManagerTestCase extends CoreTestCase
   @Test
   public void testCollectiveAttributeConflict() throws Exception
   {
-    DN dn = testEntry.getName();
-    replaceAttribute(testEntry, "preferredLanguage", "ja");
+    try
+    {
+      DN dn = testEntry.getName();
+      replaceAttribute(testEntry, "preferredLanguage", "ja");
 
-    // real-overrides-virtual.
-    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
-    hasValues(dn, "preferredlanguage", "ja");
-    doesNotHaveValues(dn, "preferredlanguage", "fr");
+      // real-overrides-virtual.
+      replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
+      hasValues(dn, "preferredlanguage", "ja");
+      doesNotHaveValues(dn, "preferredlanguage", "fr");
 
-    // virtual-overrides-real.
-    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "virtual-overrides-real");
-    hasValues(dn, "preferredlanguage", "fr");
-    doesNotHaveValues(dn, "preferredlanguage", "ja");
+      // virtual-overrides-real.
+      replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "virtual-overrides-real");
+      hasValues(dn, "preferredlanguage", "fr");
+      doesNotHaveValues(dn, "preferredlanguage", "ja");
 
-    // merge-real-and-virtual.
-    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "merge-real-and-virtual");
-    hasValues(dn, "preferredlanguage", "ja", "fr");
-
-    // cleanup.
-    deleteAttribute(testEntry, "preferredLanguage", "ja");
+      // merge-real-and-virtual.
+      replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "merge-real-and-virtual");
+      hasValues(dn, "preferredlanguage", "ja", "fr");
+    }
+    finally
+    {
+      // cleanup.
+      deleteAttribute(testEntry, "preferredLanguage");
+      deleteAttribute(collectiveSubentry, "collectiveConflictBehavior");
+    }
   }
 
   private void hasValues(DN dn, String attrTypeLower, String... values) throws DirectoryException
@@ -374,29 +387,35 @@ public class SubentryManagerTestCase extends CoreTestCase
   @Test
   public void testCollectiveExclusions() throws Exception
   {
-    DN dn = testEntry.getName();
+    try
+    {
+      DN dn = testEntry.getName();
 
-    replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
-    replaceAttribute(testEntry, "collectiveExclusions", "c-l");
-    hasNoAttribute(dn, "c-l");
-    hasValues(dn, "preferredlanguage", "fr");
+      replaceAttribute(collectiveSubentry, "collectiveConflictBehavior", "real-overrides-virtual");
+      replaceAttribute(testEntry, "collectiveExclusions", "c-l");
+      hasNoAttribute(dn, "c-l");
+      hasValues(dn, "preferredlanguage", "fr");
 
-    replaceAttribute(testEntry, "collectiveExclusions", "preferredLanguage");
-    hasNoAttribute(dn, "preferredlanguage");
-    hasValues(dn, "c-l", "Savoie");
+      replaceAttribute(testEntry, "collectiveExclusions", "preferredLanguage");
+      hasNoAttribute(dn, "preferredlanguage");
+      hasValues(dn, "c-l", "Savoie");
 
-    replaceAttribute(testEntry, "collectiveExclusions", "excludeAllCollectiveAttributes");
-    hasNoAttribute(dn, "preferredlanguage");
-    hasNoAttribute(dn, "c-l");
-
-    // cleanup.
-    deleteAttribute(testEntry, "collectiveExclusions", "excludeAllCollectiveAttributes");
+      replaceAttribute(testEntry, "collectiveExclusions", "excludeAllCollectiveAttributes");
+      hasNoAttribute(dn, "preferredlanguage");
+      hasNoAttribute(dn, "c-l");
+    }
+    finally
+    {
+      // cleanup.
+      deleteAttribute(testEntry, "collectiveExclusions");
+      deleteAttribute(collectiveSubentry, "collectiveConflictBehavior");
+    }
   }
 
-  private void deleteAttribute(Entry e, String attrType, String oldValue)
+  private void deleteAttribute(Entry e, String attrType)
   {
     InternalClientConnection conn = getRootConnection();
-    List<RawModification> mods = newRawModifications(DELETE, attrType, oldValue);
+    List<RawModification> mods = newRawModifications(DELETE, attrType);
     ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toNormalizedString()), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -409,10 +428,12 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  private List<RawModification> newRawModifications(ModificationType modType, String attrType, String value)
+
+
+  private List<RawModification> newRawModifications(ModificationType modType,
+      String attrType, String... values)
   {
-    ArrayList<ByteString> values = newArrayList(ByteString.valueOf(value));
-    LDAPAttribute attr = new LDAPAttribute(attrType, values);
+    LDAPAttribute attr = new LDAPAttribute(attrType, Arrays.asList(values));
     return newList((RawModification) new LDAPModification(modType, attr));
   }
 
