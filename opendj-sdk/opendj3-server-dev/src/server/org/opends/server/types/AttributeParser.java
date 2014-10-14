@@ -135,6 +135,7 @@ public final class AttributeParser {
               {
                 // use the new code that is not yet committed and compiled (with Void parameter)
                 final Method method = f.getClass().getMethod("apply", Object.class, Void.class);
+                method.setAccessible(true);
                 return (T) method.invoke(f, value, null);
               }
               catch (NoSuchMethodException e2)
