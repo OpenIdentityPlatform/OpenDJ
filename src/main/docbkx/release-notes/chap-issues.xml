@@ -153,7 +153,7 @@
   <para>The following important issues remained open at the time this release
   became available.</para>
 
-  <!-- List generated at 11:18:43 20141014 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+%28resolution+%3D+unresolved+or+%28fixVersion+not+in+%28%222.6.0%22%2C+%222.6.1%22%2C+%222.6.2%22%29+AND+fixVersion+%3E+%222.6.2%22%29%29+AND+component+not+in+%28Documentation%2C+QA%2C+%22opendj+sdk%22%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
+  <!-- List generated at 11:44:24 20141014 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+type+%3D+Bug+AND+%28resolution+%3D+unresolved+or+%28fixVersion+not+in+%28%222.6.0%22%2C+%222.6.1%22%2C+%222.6.2%22%29+AND+fixVersion+%3E+%222.6.2%22%29%29+AND+component+not+in+%28Documentation%2C+QA%2C+%22opendj+sdk%22%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
   <itemizedlist>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1586" xlink:show="new">OPENDJ-1586</link>: Nested Groups fail to return indirect members with db's larger than 10 entries</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1431" xlink:show="new">OPENDJ-1431</link>: Trimming of draftcndb gets stuck, changelog keeps growing in size</para></listitem>
@@ -185,7 +185,6 @@
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-862" xlink:show="new">OPENDJ-862</link>: Strange ds-privilege-name behavior</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-810" xlink:show="new">OPENDJ-810</link>: Non-atomic password state updates</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-640" xlink:show="new">OPENDJ-640</link>: Text Query Against indexed telephoneNumber Attribute Very Slow</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-609" xlink:show="new">OPENDJ-609</link>: Replicas out of sync after add/delete ops</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-573" xlink:show="new">OPENDJ-573</link>: mustChangePassword function makes-up password change state</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-557" xlink:show="new">OPENDJ-557</link>: Identical changes recorded in duplicate changelog records</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-527" xlink:show="new">OPENDJ-527</link>: rebuild-index --rebuildAll corrupts the indexes for certain data sets </para></listitem>
