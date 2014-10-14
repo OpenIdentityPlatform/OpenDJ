@@ -120,7 +120,7 @@
     <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
     <docPreviousVersion>2.6.1</docPreviousVersion>
     <stableServerVersion>2.6.0</stableServerVersion>
-    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
+    <sdkDocTargetVersion>2.6.9</sdkDocTargetVersion>
 
     <frDocPluginVersion>2.1.4</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
