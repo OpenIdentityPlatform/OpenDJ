@@ -25,15 +25,19 @@
  */
 package org.opends.server.types;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
+
 
 /**
  * A fluent API for parsing attributes as different types of object. An
@@ -103,7 +107,7 @@ public final class AttributeParser {
      *            The function which should be used to decode the value.
      * @return The first value decoded as a {@code T}.
      */
-    public <T> T as(final Function<ByteString, ? extends T, Void> f) {
+    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f) {
         return as(f, null);
     }
 
@@ -120,66 +124,12 @@ public final class AttributeParser {
      *            The default value to return if the attribute is empty.
      * @return The first value decoded as a {@code T}.
      */
-    @SuppressWarnings("unchecked")
-    public <T> T as(final Function<ByteString, ? extends T, Void> f, final T defaultValue) {
+    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f, final T defaultValue) {
         if (!isEmpty(attribute)) {
-            ByteString value = attribute.iterator().next();
-            try
-            {
-              // use existing already committed code
-              return f.apply(value, null);
-            }
-            catch (NoSuchMethodError e1)
-            {
-              try
-              {
-                // use the new code that is not yet committed and compiled (with Void parameter)
-                final Method method = f.getClass().getMethod("apply", Object.class, Void.class);
-                method.setAccessible(true);
-                return (T) method.invoke(f, value, null);
-              }
-              catch (NoSuchMethodException e2)
-              {
-                return invokeForgerockUtilFunctionApply(f, value);
-              }
-              catch (SecurityException e2)
-              {
-                return invokeForgerockUtilFunctionApply(f, value);
-              }
-              catch (IllegalAccessException e)
-              {
-                return invokeForgerockUtilFunctionApply(f, value);
-              }
-              catch (InvocationTargetException e)
-              {
-                return invokeForgerockUtilFunctionApply(f, value);
-              }
-              catch (RuntimeException e2)
-              {
-                throw e2;
-              }
-            }
+            return f.apply(attribute.iterator().next());
         } else {
             return defaultValue;
         }
-    }
-
-    private <T> T invokeForgerockUtilFunctionApply(final Function<ByteString, ? extends T, Void> f, ByteString value)
-    {
-      try
-      {
-        // use forgerock util Function
-        final Method method = f.getClass().getMethod("apply", Object.class);
-        return (T) method.invoke(f, value);
-      }
-      catch (RuntimeException e3)
-      {
-        throw e3;
-      }
-      catch (Exception e3)
-      {
-        throw new RuntimeException(e3);
-      }
     }
 
     /**
@@ -307,12 +257,12 @@ public final class AttributeParser {
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, Void> f,
+    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
             final Collection<? extends T> defaultValues) {
         if (!isEmpty(attribute)) {
             final LinkedHashSet<T> result = new LinkedHashSet<T>(attribute.size());
             for (final ByteString v : attribute) {
-                result.add(f.apply(v, null));
+                result.add(f.apply(v));
             }
             return result;
         } else if (defaultValues != null) {
@@ -335,7 +285,7 @@ public final class AttributeParser {
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, Void> f,
+    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
             final T... defaultValues) {
         return asSetOf(f, Arrays.asList(defaultValues));
     }
