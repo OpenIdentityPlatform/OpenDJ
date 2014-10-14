@@ -34,6 +34,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -42,7 +44,6 @@ import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.types.SearchFilter.*;
 import static org.testng.Assert.*;
 
 /**
@@ -138,8 +139,8 @@ public class InternalSearchMonitorTestCase
 
     for (SearchResultEntry sre : op.getSearchEntries())
     {
-      final InternalSearchOperation readOp = conn.processSearch(
-          sre.getName(), BASE_OBJECT, createFilterFromString("(objectClass=*)"));
+      final SearchRequest request = newSearchRequest(sre.getName(), BASE_OBJECT, "(objectClass=*)");
+      final InternalSearchOperation readOp = conn.processSearch(request);
       assertEquals(readOp.getResultCode(), ResultCode.SUCCESS,
           "Failed to read " + sre.getName() + " entry. Got error message: " + readOp.getErrorMessage());
     }

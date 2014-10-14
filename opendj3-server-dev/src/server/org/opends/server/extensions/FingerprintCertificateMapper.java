@@ -35,22 +35,24 @@ import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server.FingerprintCertificateMapperCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.CertificateMapper;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -233,14 +235,14 @@ public class FingerprintCertificateMapper
     // For each base DN, issue an internal search in an attempt to map the
     // certificate.
     Entry userEntry = null;
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     for (DN baseDN : baseDNs)
     {
-      InternalSearchOperation searchOperation =
-           conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
-                              DereferenceAliasesPolicy.NEVER, 1, 10,
-                              false, filter, requestedAttributes);
+      final SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
+          .setSizeLimit(1)
+          .setTimeLimit(10)
+          .addAttribute(requestedAttributes);
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
       switch (searchOperation.getResultCode().asEnum())
       {

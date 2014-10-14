@@ -26,10 +26,7 @@
  */
 package org.opends.server.crypto;
 
-import java.util.LinkedHashSet;
-
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
@@ -39,14 +36,16 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -108,19 +107,9 @@ public class GetSymmetricKeyExtendedOperationTestCase
             .append(FILTER_CIPHER_TRANSFORMATION_NAME)
             .append(FILTER_CIPHER_KEY_LENGTH)
             .append(")").toString();
-    final LinkedHashSet<String> requestedAttributes
-            = new LinkedHashSet<String>();
-    requestedAttributes.add(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
-    final InternalClientConnection icc
-            = InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOp = icc.processSearch(
-            baseDN,
-            SearchScope.SINGLE_LEVEL,
-            DereferenceAliasesPolicy.NEVER,
-            /* size limit */ 0, /* time limit */ 0,
-            /* types only */ false,
-            SearchFilter.createFilterFromString(searchFilter),
-            requestedAttributes);
+    final SearchRequest request = newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, searchFilter)
+        .addAttribute(ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
     assertTrue(0 < searchOp.getSearchEntries().size());
 
     final InternalClientConnection internalConnection =

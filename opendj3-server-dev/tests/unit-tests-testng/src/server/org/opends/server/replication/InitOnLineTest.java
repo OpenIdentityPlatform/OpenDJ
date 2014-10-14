@@ -38,6 +38,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.*;
@@ -48,7 +49,6 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -58,6 +58,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -262,14 +263,11 @@ public class InitOnLineTest extends ReplicationTestCase
     // Wait until the task completes.
     int timeout = 2000;
 
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectclass=*)");
-
     long startMillisecs = System.currentTimeMillis();
     do
     {
-      InternalSearchOperation searchOperation = connection.processSearch(
-          taskEntry.getName(), SearchScope.BASE_OBJECT, filter);
+      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
+      InternalSearchOperation searchOperation = connection.processSearch(request);
       Entry resultEntry = searchOperation.getSearchEntries().getFirst();
 
       String completionTime = resultEntry.parseAttribute(

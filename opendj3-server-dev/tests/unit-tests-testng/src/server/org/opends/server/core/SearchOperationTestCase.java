@@ -42,16 +42,18 @@ import org.opends.server.controls.SubentriesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -1179,8 +1181,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     // Real attributes (these are all user attributes).
     List<String> realAttrTypes =
-        Arrays.asList("objectclass", "uid", "cn", "sn", "givenname",
-            "userpassword");
+        Arrays.asList("objectclass", "uid", "cn", "sn", "givenname", "userpassword");
 
     // Virtual attributes (these are all operational attributes).
     List<String> virtualAttrTypes =
@@ -1201,50 +1202,32 @@ public class SearchOperationTestCase extends OperationTestCase
         "cn: Test User",
         "userPassword: password");
 
-    Entry userEntry = DirectoryServer.getEntry(userDN);
-    assertNotNull(userEntry);
-
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    final SearchRequest request = Requests.newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+    request.setTypesOnly(typesOnly);
     switch (filterType)
     {
     case DEFAULT:
       // Only user attributes.
-      attributes = null;
       break;
     case WILDCARDS:
-      attributes.add("*");
-      attributes.add("+");
+      request.addAttribute("*", "+");
       break;
     case ENUMERATED:
-      attributes.addAll(realAttrTypes);
-      attributes.addAll(virtualAttrTypes);
+      request.addAttribute(realAttrTypes);
+      request.addAttribute(virtualAttrTypes);
       break;
     }
-
-    List<Control> controls = new LinkedList<Control>();
 
     if (stripRealAttributes)
     {
-      controls.add(new LDAPControl(ServerConstants.OID_VIRTUAL_ATTRS_ONLY,
-          false));
+      request.addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, false));
     }
-
     if (stripVirtualAttributes)
     {
-      controls.add(new LDAPControl(ServerConstants.OID_REAL_ATTRS_ONLY,
-          false));
+      request.addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, false));
     }
 
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    InternalSearchOperation search =
-        conn.processSearch(userDNString, SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, // Size limit
-            0, // Time limit
-            typesOnly, // Types only
-            "(objectClass=*)", attributes, controls, null);
-
+    InternalSearchOperation search = getRootConnection().processSearch(request);
     assertEquals(search.getResultCode(), ResultCode.SUCCESS);
 
     LinkedList<SearchResultEntry> entries = search.getSearchEntries();
@@ -1279,16 +1262,14 @@ public class SearchOperationTestCase extends OperationTestCase
           {
             if (!attr.isEmpty())
             {
-              messages.add("Unexpected non-empty real attribute: "
-                  + attrType);
+              messages.add("Unexpected non-empty real attribute: " + attrType);
             }
           }
           else
           {
             if (attr.isEmpty())
             {
-              messages.add("Unexpected empty real attribute: "
-                  + attrType);
+              messages.add("Unexpected empty real attribute: " + attrType);
             }
           }
         }
@@ -1336,23 +1317,21 @@ public class SearchOperationTestCase extends OperationTestCase
           {
             if (!attr.isEmpty())
             {
-              messages.add("Unexpected non-empty virtual attribute: "
-                  + attrType);
+              messages.add("Unexpected non-empty virtual attribute: " + attrType);
             }
           }
           else
           {
             if (attr.isEmpty())
             {
-              messages.add("Unexpected empty virtual attribute: "
-                  + attrType);
+              messages.add("Unexpected empty virtual attribute: " + attrType);
             }
           }
         }
       }
     }
 
-    assertTrue(messages.isEmpty(), "Entry invalid: " + messages);
+    assertThat(messages).isEmpty();
   }
 
 
@@ -1373,25 +1352,18 @@ public class SearchOperationTestCase extends OperationTestCase
             Arrays.asList("objectClass", "cn", "cn;lang-fr") },
         {
             Arrays.asList("*", "+"),
-            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN",
-                "createTimestamp") },
+            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN", "createTimestamp") },
         {
-            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN",
-                "createTimestamp"),
-            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN",
-                "createTimestamp") },
+            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN", "createTimestamp"),
+            Arrays.asList("objectClass", "cn", "cn;lang-fr", "entryDN", "createTimestamp") },
         {
-            Arrays.asList("OBJECTCLASS", "commonName", "commonName;LANG-FR", "entrydn",
-                "CREATETIMESTAMP"),
-            Arrays.asList("OBJECTCLASS", "commonName",
-                "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP") },
+            Arrays.asList("OBJECTCLASS", "commonName", "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP"),
+            Arrays.asList("OBJECTCLASS", "commonName", "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP") },
         {
             Arrays.asList("*", "+", "OBJECTCLASS", "commonName",
                 "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP"),
-            Arrays.asList("OBJECTCLASS", "commonName",
-                "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP") },
-        { Arrays.asList("name"),
-            Arrays.asList("givenName", "sn", "cn", "cn;lang-fr") },
+            Arrays.asList("OBJECTCLASS", "commonName", "commonName;LANG-FR", "entrydn", "CREATETIMESTAMP") },
+        { Arrays.asList("name"), Arrays.asList("givenName", "sn", "cn", "cn;lang-fr") },
         { Arrays.asList("name;lang-fr"), Arrays.asList("cn;lang-fr") },
         { Arrays.asList("name;LANG-FR"), Arrays.asList("cn;LANG-FR") }, };
   }
@@ -1431,22 +1403,9 @@ public class SearchOperationTestCase extends OperationTestCase
         "cn;lang-fr: Test Usager",
         "userPassword: password");
 
-    Entry userEntry = DirectoryServer.getEntry(userDN);
-    assertNotNull(userEntry);
-
-    LinkedHashSet<String> attributes =
-      new LinkedHashSet<String>(requestedAttributes);
-
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    InternalSearchOperation search =
-      conn.processSearch(userDNString, SearchScope.BASE_OBJECT,
-          DereferenceAliasesPolicy.NEVER, 0, // Size limit
-          0, // Time limit
-          false, // Types only
-          "(objectClass=*)", attributes);
-
+    SearchRequest request = Requests.newSearchRequest(userDNString, SearchScope.BASE_OBJECT, "(objectClass=*)")
+        .addAttribute(requestedAttributes);
+    InternalSearchOperation search = getRootConnection().processSearch(request);
     assertEquals(search.getResultCode(), ResultCode.SUCCESS);
 
     LinkedList<SearchResultEntry> entries = search.getSearchEntries();
@@ -1464,8 +1423,7 @@ public class SearchOperationTestCase extends OperationTestCase
       actualNames.add(attribute.getNameWithOptions());
     }
 
-    assertTrue(actualNames.containsAll(expectedAttributes),
-        "Expected: " + expectedAttributes + " got " + actualNames);
+    assertThat(actualNames).containsAll(expectedAttributes);
   }
 
 
@@ -1503,9 +1461,6 @@ public class SearchOperationTestCase extends OperationTestCase
         "cn;lang-fr: Test Usager",
         "userPassword: password");
 
-    Entry userEntry = DirectoryServer.getEntry(userDN);
-    assertNotNull(userEntry);
-
     LinkedHashSet<String> attributes =
       new LinkedHashSet<String>(requestedAttributes);
 
@@ -1534,8 +1489,7 @@ public class SearchOperationTestCase extends OperationTestCase
       actualNames.add(attribute.getAttributeType());
     }
 
-    assertTrue(actualNames.containsAll(expectedAttributes),
-        "Expected: " + expectedAttributes + " got " + actualNames);
+    assertThat(actualNames).containsAll(expectedAttributes);
   }
 
 

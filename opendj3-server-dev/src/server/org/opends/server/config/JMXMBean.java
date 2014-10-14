@@ -37,8 +37,8 @@ import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
 import javax.management.DynamicMBean;
-import javax.management.MBeanAttributeInfo;
 import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanConstructorInfo;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
@@ -50,6 +50,7 @@ import javax.management.ObjectName;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
@@ -60,13 +61,18 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.JmxClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InvokableMethod;
+import org.opends.server.types.LDAPException;
 
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -470,48 +476,35 @@ public final class JMXMBean
     //
     // prepare the ldap search
 
-    LDAPFilter filter;
     try
     {
-      filter = LDAPFilter.decode("objectclass=*");
-    }
-    catch (LDAPException e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
-          get(attributeName, configEntryDN, getExceptionMessage(e));
-      throw new AttributeNotFoundException(message.toString());
-    }
-
-    //
-    // Perform the Ldap operation for
-    //  - ACI Check
-    //  - Loggin purpose
-    InternalSearchOperation op=null;
-    if (clientConnection instanceof JmxClientConnection) {
+      //
+      // Perform the Ldap operation for
+      //  - ACI Check
+      //  - Loggin purpose
+      InternalSearchOperation op=null;
+      if (clientConnection instanceof JmxClientConnection) {
         op = ((JmxClientConnection)clientConnection).processSearch(
             ByteString.valueOf(configEntryDN.toString()),
-             SearchScope.BASE_OBJECT, filter);
-    }
-    else if (clientConnection instanceof InternalClientConnection) {
-        op = ((InternalClientConnection)clientConnection).processSearch(
-            ByteString.valueOf(configEntryDN.toString()),
-             SearchScope.BASE_OBJECT, filter);
-    }
-    // BUG : op may be null
-    ResultCode rc = op.getResultCode();
-    if (rc != ResultCode.SUCCESS) {
-       clientConnection = null ;
+                SearchScope.BASE_OBJECT, getTrueFilter());
+      }
+      else if (clientConnection instanceof InternalClientConnection) {
+        SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT, "(objectclass=*)");
+        op = ((InternalClientConnection) clientConnection).processSearch(request);
+      }
+      // BUG : op may be null
+      ResultCode rc = op.getResultCode();
+      if (rc != ResultCode.SUCCESS) {
+        LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
+            get(attributeName, configEntryDN, op.getErrorMessage());
+        throw new AttributeNotFoundException(message.toString());
+      }
 
-       LocalizableMessage message = ERR_CONFIG_JMX_CANNOT_GET_ATTRIBUTE.
-         get(attributeName, configEntryDN, op.getErrorMessage());
-       throw new AttributeNotFoundException(message.toString());
-    }
-
-    try
-    {
       return getJmxAttribute(attributeName);
+    }
+    catch (AttributeNotFoundException e)
+    {
+      throw e;
     }
     catch (Exception e)
     {
@@ -520,6 +513,20 @@ public final class JMXMBean
       LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(configEntryDN, attributeName);
       logger.error(message);
       throw new AttributeNotFoundException(message.toString());
+    }
+  }
+
+  private LDAPFilter getTrueFilter()
+  {
+    try
+    {
+      return LDAPFilter.decode("(objectclass=*)");
+    }
+    catch (LDAPException e)
+    {
+      // can never happen
+      logger.traceException(e);
+      return null;
     }
   }
 
@@ -564,37 +571,35 @@ public final class JMXMBean
     }
 
     //
-    // prepare the ldap search
-    LDAPFilter filter;
-    try
-    {
-      filter = LDAPFilter.decode("objectclass=*");
+    // Perform the Ldap operation for
+    //  - ACI Check
+    //  - Loggin purpose
+    InternalSearchOperation op = null;
+    if (clientConnection instanceof JmxClientConnection) {
+      op = ((JmxClientConnection)clientConnection).processSearch(
+          ByteString.valueOf(configEntryDN.toString()),
+              SearchScope.BASE_OBJECT, getTrueFilter());
     }
-    catch (LDAPException e)
+    else if (clientConnection instanceof InternalClientConnection) {
+      try
+      {
+        SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT, "(objectclass=*)");
+        op = ((InternalClientConnection) clientConnection).processSearch(request);
+      }
+      catch (DirectoryException e)
+      {
+        logger.traceException(e);
+      }
+    }
+
+    if (op == null)
     {
       return null;
     }
 
-    //
-    // Perform the Ldap operation for
-    //  - ACI Check
-    //  - Loggin purpose
-    InternalSearchOperation op=null;
-    if (clientConnection instanceof JmxClientConnection) {
-      op = ((JmxClientConnection)clientConnection).processSearch(
-          ByteString.valueOf(configEntryDN.toString()),
-        SearchScope.BASE_OBJECT, filter);
-    }
-    else if (clientConnection instanceof InternalClientConnection) {
-      op = ((InternalClientConnection)clientConnection).processSearch(
-          ByteString.valueOf(configEntryDN.toString()),
-        SearchScope.BASE_OBJECT, filter);
-    }
-    // BUG: op may be null
     ResultCode rc = op.getResultCode();
     if (rc != ResultCode.SUCCESS)
     {
-      clientConnection = null ;
       return null;
     }
 
@@ -668,7 +673,6 @@ monitorLoop:
     }
 
     return attrList;
-
   }
 
   /**
@@ -865,5 +869,3 @@ monitorLoop:
     return clientConnection;
   }
 }
-
-

@@ -61,6 +61,8 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -91,6 +93,7 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.service.ReplicationMonitor.*;
@@ -647,26 +650,20 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               + "entry " + getBaseDNString());
     }
 
-    LDAPFilter filter;
+    InternalSearchOperation search;
     try
     {
-      filter = LDAPFilter.decode("(objectclass=*)");
-    } catch (LDAPException e)
+      // Search the domain root entry that is used to save the generation id
+      SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.BASE_OBJECT, "(objectclass=*)")
+          .addAttribute(REPLICATION_GENERATION_ID, REPLICATION_FRACTIONAL_EXCLUDE, REPLICATION_FRACTIONAL_INCLUDE);
+      search = conn.processSearch(request);
+    }
+    catch (DirectoryException e)
     {
       // Can not happen
       return false;
     }
 
-    // Search the domain root entry that is used to save the generation id
-    final ByteString asn1BaseDn = ByteString.valueOf(getBaseDNString());
-    final Set<String> attributes = newSet(
-        REPLICATION_GENERATION_ID,
-        REPLICATION_FRACTIONAL_EXCLUDE,
-        REPLICATION_FRACTIONAL_INCLUDE);
-    InternalSearchOperation search = conn.processSearch(asn1BaseDn,
-      SearchScope.BASE_OBJECT,
-      DereferenceAliasesPolicy.ALWAYS, 0, 0, false,
-      filter, attributes);
     if (search.getResultCode() != ResultCode.SUCCESS
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
@@ -2164,7 +2161,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        SearchScope.WHOLE_SUBTREE,
        DereferenceAliasesPolicy.NEVER,
        0, 0, false, filter,
-       USER_AND_REPL_OPERATIONAL_ATTRS, null);
+       USER_AND_REPL_OPERATIONAL_ATTRS, null, null);
 
      Entry entryToRename = null;
      CSN entryToRenameCSN = null;
@@ -2554,13 +2551,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     try
     {
-      final Set<String> attrs = newSet(ENTRYUUID_ATTRIBUTE_NAME);
-
-      final InternalSearchOperation search = getRootConnection().processSearch(
-          dn, SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.NEVER,
-          0, 0, false,
-          SearchFilter.createFilterFromString("(objectclass=*)"),
-          attrs);
+      final SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT, "(objectclass=*)")
+          .addAttribute(ENTRYUUID_ATTRIBUTE_NAME);
+      final InternalSearchOperation search = getRootConnection().processSearch(request);
       final SearchResultEntry resultEntry = getFirstResult(search);
       if (resultEntry != null)
       {
@@ -2598,9 +2591,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     try
     {
-      InternalSearchOperation search = conn.processSearch(getBaseDN(),
-            SearchScope.WHOLE_SUBTREE,
-            SearchFilter.createFilterFromString("entryuuid="+uuid));
+      final SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.WHOLE_SUBTREE, "entryuuid=" + uuid);
+      InternalSearchOperation search = conn.processSearch(request);
       final SearchResultEntry resultEntry = getFirstResult(search);
       if (resultEntry != null)
       {
@@ -3005,15 +2997,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     // Find an rename child entries.
     try
     {
-      final Set<String> attrs =
-          newSet(ENTRYUUID_ATTRIBUTE_NAME, HISTORICAL_ATTRIBUTE_NAME);
-
-      InternalSearchOperation op =
-          conn.processSearch(entryDN, SearchScope.SINGLE_LEVEL,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"),
-              attrs);
-
+      final SearchRequest request = newSearchRequest(entryDN, SearchScope.SINGLE_LEVEL, "(objectClass=*)")
+          .addAttribute(ENTRYUUID_ATTRIBUTE_NAME, HISTORICAL_ATTRIBUTE_NAME);
+      InternalSearchOperation op = conn.processSearch(request);
       if (op.getResultCode() == ResultCode.SUCCESS)
       {
         for (SearchResultEntry entry : op.getSearchEntries())
@@ -3332,20 +3318,15 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
      * Search the database entry that is used to periodically
      * save the generation id
      */
-    final Set<String> attributes = newSet(REPLICATION_GENERATION_ID);
-    final String filter = "(objectclass=*)";
-    InternalSearchOperation search = conn.processSearch(getBaseDNString(),
-        SearchScope.BASE_OBJECT,
-        DereferenceAliasesPolicy.ALWAYS, 0, 0, false,
-        filter,attributes);
+    final SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.BASE_OBJECT, "(objectclass=*)")
+        .addAttribute(REPLICATION_GENERATION_ID);
+    InternalSearchOperation search = conn.processSearch(request);
     if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)
     {
       // if the base entry does not exist look for the generationID
       // in the config entry.
-      search = conn.processSearch(config.dn().toString(),
-          SearchScope.BASE_OBJECT,
-          DereferenceAliasesPolicy.ALWAYS, 0, 0, false,
-          filter,attributes);
+      request.setName(config.dn());
+      search = conn.processSearch(request);
     }
 
     boolean found = false;
@@ -4274,17 +4255,12 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       maxValueForId = lastCSN.toString();
     }
 
-    LDAPFilter filter = LDAPFilter.decode(
+    String filter =
         "(&(" + HISTORICAL_ATTRIBUTE_NAME + ">=dummy:" + fromCSN + ")" +
-          "(" + HISTORICAL_ATTRIBUTE_NAME + "<=dummy:" + maxValueForId + "))");
-
-    return getRootConnection().processSearch(
-      ByteString.valueOf(baseDN.toString()),
-      SearchScope.WHOLE_SUBTREE,
-      DereferenceAliasesPolicy.NEVER,
-      0, 0, false, filter,
-      USER_AND_REPL_OPERATIONAL_ATTRS,
-      resultListener);
+          "(" + HISTORICAL_ATTRIBUTE_NAME + "<=dummy:" + maxValueForId + "))";
+    SearchRequest request = Requests.newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
+        .addAttribute(USER_AND_REPL_OPERATIONAL_ATTRS);
+    return getRootConnection().processSearch(request, resultListener);
   }
 
   /**
@@ -5053,24 +5029,10 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
          + "lastCSNPurgedFromHist: "
          + lastCSNPurgedFromHist.toStringUI());
 
-     LDAPFilter filter = null;
-     try
-     {
-       filter = LDAPFilter.decode(
-         "(" + EntryHistorical.HISTORICAL_ATTRIBUTE_NAME + ">=dummy:"
-         + lastCSNPurgedFromHist + ")");
-
-     } catch (LDAPException e)
-     {
-       // Not possible. We know the filter just above is correct.
-     }
-
-     InternalSearchOperation searchOp = conn.processSearch(
-         ByteString.valueOf(getBaseDNString()),
-         SearchScope.WHOLE_SUBTREE,
-         DereferenceAliasesPolicy.NEVER,
-         0, 0, false, filter,
-         USER_AND_REPL_OPERATIONAL_ATTRS, null);
+    String filter = "(" + HISTORICAL_ATTRIBUTE_NAME + ">=dummy:" + lastCSNPurgedFromHist + ")";
+    SearchRequest request = Requests.newSearchRequest(getBaseDN(), SearchScope.WHOLE_SUBTREE, filter)
+        .addAttribute(USER_AND_REPL_OPERATIONAL_ATTRS);
+    InternalSearchOperation searchOp = conn.processSearch(request);
 
      int count = 0;
      if (task != null)

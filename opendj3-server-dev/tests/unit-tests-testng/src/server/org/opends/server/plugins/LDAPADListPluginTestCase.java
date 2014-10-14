@@ -28,29 +28,25 @@ package org.opends.server.plugins;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.LDAPAttributeDescriptionListPluginCfgDefn;
+import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
+import org.opends.server.api.plugin.PluginType;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            LDAPAttributeDescriptionListPluginCfgDefn;
-import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
-import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -210,20 +206,14 @@ public class LDAPADListPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoPreParseSearchWithEmptyAttrList()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>();
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
+    final SearchRequest request = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
 
@@ -239,21 +229,15 @@ public class LDAPADListPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoPreParseSearchWithRequestedAttribute()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>();
-    attrList.add("o");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
+    SearchRequest request = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)")
+        .addAttribute("o");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
 
@@ -269,21 +253,15 @@ public class LDAPADListPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoPreParseSearchWithRequestedObjectClass()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>();
-    attrList.add("@organization");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
+    final SearchRequest request = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)")
+        .addAttribute("@organization");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
 
@@ -299,21 +277,15 @@ public class LDAPADListPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoPreParseSearchWithRequestedUndefinedObjectClass()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>();
-    attrList.add("@undefined");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
+    final SearchRequest request =
+        newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("@undefined");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
 

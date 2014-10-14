@@ -35,17 +35,18 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -265,9 +266,8 @@ public class BackendConfigManagerTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Make sure that both entries exist.
-    InternalSearchOperation internalSearch =
-         conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
+    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    InternalSearchOperation internalSearch = conn.processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
     assertEquals(internalSearch.getSearchEntries().size(), 2);
 
@@ -275,8 +275,7 @@ public class BackendConfigManagerTestCase
 
     // Make sure that we can't remove the parent backend with the child still
     // in place.
-    DeleteOperation deleteOperation =
-         conn.processDelete(parentBackendEntry.getName());
+    DeleteOperation deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
     assertNotNull(DirectoryServer.getBackend(parentBackendID));
 
@@ -337,23 +336,20 @@ public class BackendConfigManagerTestCase
     assertFalse(DirectoryServer.isNamingContext(childBaseDN));
 
 
-    InternalClientConnection conn = getRootConnection();
     // Verify that we can see both entries with a subtree search.
-    InternalSearchOperation internalSearch =
-         conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
+    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
     assertEquals(internalSearch.getSearchEntries().size(), 2);
 
 
     // Delete the backends from the server.
-    DeleteOperation deleteOperation =
-         conn.processDelete(childBackendEntry.getName());
+    DeleteOperation deleteOperation = getRootConnection().processDelete(childBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(childBackendID));
     assertTrue(parentBackend.getSubordinateBackends().length == 0);
 
-    deleteOperation = conn.processDelete(parentBackendEntry.getName());
+    deleteOperation = getRootConnection().processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(parentBackendID));
   }
@@ -433,30 +429,19 @@ public class BackendConfigManagerTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Verify that a subtree search can see all three entries.
-    InternalSearchOperation internalSearch =
-         conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(internalSearch.getSearchEntries().size(), 3);
+    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    assertSearchResultsSize(request, 3);
 
 
     // Disable the intermediate (child) backend.  This should be allowed.
     ArrayList<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE,
-        Attributes.create("ds-cfg-enabled",
-                                            "false")));
+    mods.add(new Modification(ModificationType.REPLACE, Attributes.create("ds-cfg-enabled", "false")));
     ModifyOperation modifyOperation =
          conn.processModify(childBackendEntry.getName(), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
-    // Make sure that we now only see two entries with the subtree search
-    // (and those two entries should be the parent and grandchild base entries).
-    internalSearch =
-         conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(internalSearch.getSearchEntries().size(), 2);
+    assertSearchResultsSize(request, 2);
 
 
     // Re-enable the intermediate backend.
@@ -478,11 +463,7 @@ public class BackendConfigManagerTestCase
     // entries across stops and restarts, a subtree search below the parent
     // should still only return two entries, which means that it's going through
     // the entire chain of backends.
-    internalSearch =
-         conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(internalSearch.getSearchEntries().size(), 2);
+    assertSearchResultsSize(request, 2);
 
 
     // Add the child entry back into the server to get things back to the way
@@ -490,13 +471,8 @@ public class BackendConfigManagerTestCase
     createEntry(childBaseDN, childBackend);
 
 
-    // We should again be able to see all three entries when performing a
-    // search.
-    internalSearch =
-         conn.processSearch(parentBaseDN, SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-    assertEquals(internalSearch.getSearchEntries().size(), 3);
+    // We should again be able to see all three entries when performing a search
+    assertSearchResultsSize(request, 3);
 
 
     // Get rid of the entries in the proper order.
@@ -515,6 +491,13 @@ public class BackendConfigManagerTestCase
     deleteOperation = conn.processDelete(parentBackendEntry.getName());
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertNull(DirectoryServer.getBackend(parentBackendID));
+  }
+
+  private void assertSearchResultsSize(final SearchRequest request, int expected)
+  {
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
+    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(internalSearch.getSearchEntries().size(), expected);
   }
 
   private void createBackend(DN childBaseDN, Backend<?> childBackend, Backend<?> parentBackend,

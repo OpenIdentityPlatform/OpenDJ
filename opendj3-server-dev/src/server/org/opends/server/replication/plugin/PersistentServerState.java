@@ -36,6 +36,8 @@ import org.forgerock.opendj.ldap.*;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
@@ -158,15 +160,13 @@ class PersistentServerState
   {
     try
     {
-      SearchFilter filter =
-          SearchFilter.createFilterFromString("objectclass=*");
+      final SearchRequest request =
+          newSearchRequest(baseDN, SearchScope.BASE_OBJECT, "objectclass=*").addAttribute(REPLICATION_STATE);
       /*
        * Search the database entry that is used to periodically
        * save the ServerState
        */
-      final InternalSearchOperation search = getRootConnection().processSearch(
-          baseDN, SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.NEVER,
-          0, 0, false, filter, Collections.singleton(REPLICATION_STATE));
+      final InternalSearchOperation search = getRootConnection().processSearch(request);
       final ResultCode resultCode = search.getResultCode();
       if (resultCode != ResultCode.SUCCESS
           && resultCode != ResultCode.NO_SUCH_OBJECT)
@@ -194,15 +194,11 @@ class PersistentServerState
   {
     try
     {
-      SearchFilter filter = SearchFilter.createFilterFromString(
-          "(&(objectclass=ds-cfg-replication-domain)"
-          + "(ds-cfg-base-dn=" + baseDN + "))");
-
-      final InternalSearchOperation op = getRootConnection().processSearch(
-          DN.valueOf("cn=config"),
-          SearchScope.SUBORDINATES,
-          DereferenceAliasesPolicy.NEVER,
-          1, 0, false, filter, Collections.singleton(REPLICATION_STATE));
+      String filter = "(&(objectclass=ds-cfg-replication-domain)" + "(ds-cfg-base-dn=" + baseDN + "))";
+      final SearchRequest request = newSearchRequest("cn=config", SearchScope.SUBORDINATES, filter)
+          .setSizeLimit(1)
+          .addAttribute(REPLICATION_STATE);
+      final InternalSearchOperation op = getRootConnection().processSearch(request);
       return getFirstResult(op);
     }
     catch (DirectoryException e)

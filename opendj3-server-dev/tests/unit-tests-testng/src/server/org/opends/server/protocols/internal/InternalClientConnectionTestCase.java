@@ -27,11 +27,9 @@
 package org.opends.server.protocols.internal;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -45,14 +43,25 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.*;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.SearchResultReference;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -704,13 +713,10 @@ public class InternalClientConnectionTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testProcessSearch1()
-         throws Exception
+  public void testProcessSearch1() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
-                            LDAPFilter.decode("(objectClass=*)"));
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
     assertTrue(searchOperation.getSearchReferences().isEmpty());
@@ -725,15 +731,10 @@ public class InternalClientConnectionTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testProcessSearch2()
-         throws Exception
+  public void testProcessSearch2() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            LDAPFilter.decode("(objectClass=*)"),
-                            new LinkedHashSet<String>());
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
     assertTrue(searchOperation.getSearchReferences().isEmpty());
@@ -749,18 +750,12 @@ public class InternalClientConnectionTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testProcessSearch3()
-         throws Exception
+  public void testProcessSearch3() throws Exception
   {
-    TestInternalSearchListener searchListener =
-         new TestInternalSearchListener();
+    TestInternalSearchListener searchListener = new TestInternalSearchListener();
 
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            LDAPFilter.decode("(objectClass=*)"),
-                            new LinkedHashSet<String>(), searchListener);
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request, searchListener);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchListener.getSearchEntries().isEmpty());
     assertTrue(searchListener.getSearchReferences().isEmpty());
@@ -775,13 +770,10 @@ public class InternalClientConnectionTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testProcessSearch4()
-         throws Exception
+  public void testProcessSearch4() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
+    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
     assertTrue(searchOperation.getSearchReferences().isEmpty());
@@ -796,15 +788,10 @@ public class InternalClientConnectionTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testProcessSearch5()
-         throws Exception
+  public void testProcessSearch5() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"),
-              new LinkedHashSet<String>());
+    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
     assertTrue(searchOperation.getSearchReferences().isEmpty());
@@ -820,18 +807,13 @@ public class InternalClientConnectionTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testProcessSearch6()
-         throws Exception
+  public void testProcessSearch6() throws Exception
   {
     TestInternalSearchListener searchListener =
          new TestInternalSearchListener();
 
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"),
-              new LinkedHashSet<String>(), searchListener);
+    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request, searchListener);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchListener.getSearchEntries().isEmpty());
     assertTrue(searchListener.getSearchReferences().isEmpty());
@@ -849,9 +831,7 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
-                            LDAPFilter.decode("(objectClass=*)"));
+    InternalSearchOperation searchOperation = conn.processSearch("", SearchScope.BASE_OBJECT, "(objectClass=*)");
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
     assertTrue(searchOperation.getSearchReferences().isEmpty());

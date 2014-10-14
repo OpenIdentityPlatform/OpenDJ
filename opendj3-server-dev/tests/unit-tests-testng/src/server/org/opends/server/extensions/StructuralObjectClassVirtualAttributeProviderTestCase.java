@@ -26,33 +26,36 @@
  */
 package org.opends.server.extensions;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
-
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the structural object class virtual attribute
@@ -287,17 +290,9 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrInMatchingFilter(DN entryDN,String oc)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString(oc);
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("structuralObjectClass");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, oc)
+        .addAttribute("structuralObjectClass");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -320,17 +315,9 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrInNonMatchingFilter(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(structuralObjectClass=abc)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("structuralObjectClass");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(structuralObjectClass=abc)")
+        .addAttribute("structuralObjectClass");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
 

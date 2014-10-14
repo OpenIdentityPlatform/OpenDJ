@@ -33,7 +33,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -48,11 +47,14 @@ import org.opends.server.api.plugin.PluginResult.PreOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -651,15 +653,13 @@ public class UniqueAttributePlugin
       filter = SearchFilter.createORFilter(equalityFilters);
     }
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     for (DN baseDN : baseDNs)
     {
-      InternalSearchOperation searchOperation =
-           conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
-                              DereferenceAliasesPolicy.NEVER, 2, 0,
-                              false, filter, SEARCH_ATTRS);
+      final SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
+          .setSizeLimit(2)
+          .addAttribute(SEARCH_ATTRS);
+      InternalSearchOperation searchOperation = conn.processSearch(request);
       for (SearchResultEntry e : searchOperation.getSearchEntries())
       {
         if (! e.getName().equals(targetDN))

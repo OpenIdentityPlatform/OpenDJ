@@ -37,9 +37,9 @@ import org.opends.server.admin.std.server.ResourceLimitsQOSPolicyCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.DN;
-import org.opends.server.types.SearchFilter;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -182,10 +182,8 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     InternalClientConnection conn1 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn1);
 
-    InternalSearchOperation search = conn1.processSearch(
-        DN.valueOf("dc=example,dc=com"),
-        SearchScope.BASE_OBJECT,
-        LDAPFilter.decode(searchFilter).toSearchFilter());
+    final SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.BASE_OBJECT, searchFilter);
+    InternalSearchOperation search = conn1.processSearch(request);
 
     assertOperationIsAllowed(limits, conn1, search, success);
     limits.removeConnection(conn1);
@@ -207,25 +205,19 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn);
 
-    final DN dn = DN.valueOf("dc=example,dc=com");
-    final SearchFilter all = SearchFilter.createFilterFromString("(objectclass=*)");
-
-    final InternalSearchOperation search1 =
-        conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
+    final SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.BASE_OBJECT, "(objectclass=*)");
+    final InternalSearchOperation search1 = conn.processSearch(request);
     assertOperationIsAllowed(limits, conn, search1, true,
         "First operation should be allowed");
 
-    final InternalSearchOperation search2 =
-        conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
-    assertOperationIsAllowed(limits, conn,
-        search2, false,
+    final InternalSearchOperation search2 = conn.processSearch(request);
+    assertOperationIsAllowed(limits, conn, search2, false,
         "Second operation in the same interval should be disallowed");
 
     // Wait for the end of the interval => counters are reset
     Thread.sleep(interval);
 
-    final InternalSearchOperation search3 =
-        conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
+    final InternalSearchOperation search3 = conn.processSearch(request);
     assertOperationIsAllowed(limits, conn, search3, true,
         "Third operation should be allowed");
   }

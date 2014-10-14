@@ -25,19 +25,17 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.server.protocols.internal.InternalClientConnection;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
-
-import java.util.LinkedHashSet;
 
 /**
  * Utility class providing common code for extensions tests.
@@ -49,13 +47,8 @@ class ExtensionTestUtils
   public static void testSearchEmptyAttrs(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT, filter);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -66,17 +59,10 @@ class ExtensionTestUtils
   public static void testSearchNoAttrs(DN entryDN, AttributeType attributeType)
       throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add(SchemaConstants.NO_ATTRIBUTES);
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
-            attrList);
+    final SearchRequest request =
+        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+            .addAttribute(SchemaConstants.NO_ATTRIBUTES);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -87,17 +73,9 @@ class ExtensionTestUtils
   public static void testSearchAllUserAttrs(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("*");
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
-            attrList);
+    final SearchRequest request =
+        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("*");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -108,17 +86,9 @@ class ExtensionTestUtils
   public static void testSearchAllOperationalAttrs(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("+");
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
-            attrList);
+    final SearchRequest request =
+        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("+");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -129,17 +99,9 @@ class ExtensionTestUtils
   public static void testSearchAttr(DN entryDN, String attrName,
       AttributeType attributeType) throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add(attrName);
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
-            attrList);
+    final SearchRequest request =
+        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute(attrName);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -150,17 +112,9 @@ class ExtensionTestUtils
   public static void testSearchExcludeAttr(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("objectClass");
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
-            attrList);
+    final SearchRequest request =
+        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("objectClass");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);

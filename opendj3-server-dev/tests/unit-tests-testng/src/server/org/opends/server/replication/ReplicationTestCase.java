@@ -26,7 +26,12 @@
  */
 package org.opends.server.replication;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import org.assertj.core.api.Assertions;
@@ -34,7 +39,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -47,10 +51,14 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.*;
+import org.opends.server.replication.plugin.DomainFakeCfg;
+import org.opends.server.replication.plugin.DummyReplicationDomain;
+import org.opends.server.replication.plugin.GenerationIdChecksum;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
@@ -58,7 +66,13 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Modification;
+import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -67,6 +81,7 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -79,9 +94,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   /** The tracer object for the debug logger */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  private static final Set<String> ALL_ATTRIBUTES = newSet("*", "+");
-  private static final List<Control> NO_CONTROL = null;
 
   /**
    * This is the generation id matching the memory test backend with its initial
@@ -635,16 +647,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     Entry taskEntry = TestCaseUtils.addEntry(task);
 
     // Wait until the task completes.
-    SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
     Entry resultEntry = null;
     String completionTime = null;
     long startMillisecs = System.currentTimeMillis();
     do
     {
-      InternalSearchOperation searchOperation =
-           connection.processSearch(taskEntry.getName(),
-                                    SearchScope.BASE_OBJECT,
-                                    filter);
+      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
+      InternalSearchOperation searchOperation = connection.processSearch(request);
       if (searchOperation.getSearchEntries().isEmpty())
       {
         continue;
@@ -735,13 +744,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     long startTime = System.currentTimeMillis();
 
-    SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
     Entry resultEntry = null;
     TaskState taskState = null;
     do
     {
-      InternalSearchOperation searchOperation =
-          connection.processSearch(taskEntry.getName(), SearchScope.BASE_OBJECT, filter);
+      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
+      InternalSearchOperation searchOperation = connection.processSearch(request);
       resultEntry = searchOperation.getSearchEntries().getFirst();
 
       // Check that the task state is as expected.
@@ -939,21 +947,17 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       ResultCode expectedResultCode, int expectedNbEntries) throws Exception
   {
     InternalSearchOperation searchOp = null;
-    int sizeLimitZero = 0;
-    int timeLimitZero = 0;
-    boolean typesOnlyFalse = false;
-    InternalSearchListener noSearchListener = null;
     int count = 0;
     do
     {
       Thread.sleep(10);
-      searchOp = connection.processSearch(dn, scope, DereferenceAliasesPolicy.NEVER, sizeLimitZero,
-          timeLimitZero, typesOnlyFalse, filter, ALL_ATTRIBUTES, NO_CONTROL, noSearchListener);
+      final SearchRequest request = newSearchRequest(dn, scope, filter).addAttribute("*", "+");
+      searchOp = connection.processSearch(request);
       count++;
-      System.out.println(searchOp.getResultCode() + " " + searchOp.getSearchEntries().size());
     }
-    while (count < 300 && searchOp.getResultCode() != expectedResultCode &&
-        searchOp.getSearchEntries().size() != expectedNbEntries);
+    while (count < 300
+        && searchOp.getResultCode() != expectedResultCode
+        && searchOp.getSearchEntries().size() != expectedNbEntries);
 
     final List<SearchResultEntry> entries = searchOp.getSearchEntries();
     Assertions.assertThat(entries).hasSize(expectedNbEntries);

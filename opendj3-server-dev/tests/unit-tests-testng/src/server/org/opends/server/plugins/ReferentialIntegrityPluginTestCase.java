@@ -34,7 +34,6 @@ import java.util.List;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -48,6 +47,8 @@ import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
@@ -1165,13 +1166,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                                      String... dns)
           throws Exception {
     AttributeType type= getAttrType(attr);
-    String filterStr="(" + attr + "=*)";
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation operation = conn.processSearch(DN.valueOf(entryDN),
-            SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-            SearchFilter.createFilterFromString(filterStr),
-            null);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(" + attr + "=*)");
+    InternalSearchOperation operation = getRootConnection().processSearch(request);
     for (SearchResultEntry entry : operation.getSearchEntries()) {
       for(String dn : dns) {
         ByteString value = ByteString.valueOf(dn);

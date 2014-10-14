@@ -38,12 +38,15 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -350,25 +353,15 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttrInMatchingFilter(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(hasSubordinates=" + hasSubs + ")");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("hasSubordinates");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(hasSubordinates=" + hasSubs + ")")
+        .addAttribute("hasSubordinates");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
     assertNotNull(e);
     assertTrue(e.hasAttribute(hasSubordinatesType));
   }
-
-
 
   /**
    * Performs an internal search to retrieve the specified entry, ensuring that
@@ -383,17 +376,9 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttrInNonMatchingFilter(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(hasSubordinates=wrong)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("hasSubordinates");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request =
+        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(hasSubordinates=wrong)").addAttribute("hasSubordinates");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
 
@@ -412,23 +397,10 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttrRealAttrsOnly(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("hasSubordinates");
-
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), requestControls,
-                                     entryDN, SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, attrList, null);
-    searchOperation.run();
+    SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+        .addAttribute("hasSubordinates")
+        .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);

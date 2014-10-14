@@ -37,6 +37,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
@@ -252,8 +254,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     DN schemaDN = DN.valueOf("cn=schema");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     DeleteOperationBasis deleteOperation =
          new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
                              null, schemaDN);
@@ -274,8 +275,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     DN currentSchemaDN = DN.valueOf("cn=schema");
     DN newSchemaDN     = DN.valueOf("cn=newschema");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ModifyDNOperationBasis modifyDNOperation =
          new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
                                InternalClientConnection.nextMessageID(), null,
@@ -301,11 +301,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     String filterString = "(|(objectClass=*)(objectClass=ldapSubentry))";
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("cn=schema"), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString(filterString));
+    final SearchRequest request = newSearchRequest("cn=schema", SearchScope.BASE_OBJECT, filterString);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -319,16 +316,12 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testSimpleOneLevelSearch()
-         throws Exception
+  public void testSimpleOneLevelSearch() throws Exception
   {
     String filterString = "(|(objectClass=*)(objectClass=ldapSubentry))";
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("cn=schema"), SearchScope.SINGLE_LEVEL,
-              SearchFilter.createFilterFromString(filterString));
+    final SearchRequest request = newSearchRequest("cn=schema", SearchScope.SINGLE_LEVEL, filterString);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(searchOperation.getSearchEntries().isEmpty());
@@ -348,11 +341,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     String filterString = "(|(objectClass=*)(objectClass=ldapSubentry))";
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("cn=schema"), SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString(filterString));
+    final SearchRequest request = newSearchRequest("cn=schema", SearchScope.WHOLE_SUBTREE, filterString);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -372,12 +362,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     String filterString = "(|(objectClass=*)(objectClass=ldapSubentry))";
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.valueOf("cn=schema"),
-              SearchScope.SUBORDINATES,
-              SearchFilter.createFilterFromString(filterString));
+    final SearchRequest request = newSearchRequest("cn=schema", SearchScope.SUBORDINATES, filterString);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(searchOperation.getSearchEntries().isEmpty());
@@ -392,19 +378,17 @@ public class SchemaBackendTestCase extends BackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testSearchMatchedDN()
-         throws Exception
+  public void testSearchMatchedDN() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     DN baseDN = DN.valueOf("o=bogus,cn=schema");
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
     for (SearchScope scope : SearchScope.values())
     {
-      InternalSearchOperation searchOperation =
-           conn.processSearch(baseDN, scope, filter);
+      final SearchRequest request = newSearchRequest(baseDN, scope, filter);
+      InternalSearchOperation searchOperation = conn.processSearch(request);
       assertNotNull(searchOperation.getMatchedDN(),
                     "No matched DN for scope " + scope);
     }

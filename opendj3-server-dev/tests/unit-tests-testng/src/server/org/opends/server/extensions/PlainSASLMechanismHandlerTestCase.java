@@ -36,10 +36,12 @@ import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -92,10 +94,9 @@ public class PlainSASLMechanismHandlerTestCase
   @Test()
   public void testSASLPlainAdvertised() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation op =
-         conn.processSearch(ByteString.empty(), SearchScope.BASE_OBJECT,
-              LDAPFilter.decode("(supportedSASLMechanisms=PLAIN)"));
+    SearchRequest request =
+        Requests.newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(supportedSASLMechanisms=PLAIN)");
+    InternalSearchOperation op = getRootConnection().processSearch(request);
     assertFalse(op.getSearchEntries().isEmpty());
   }
 

@@ -27,7 +27,6 @@ package org.opends.server.extensions;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -36,7 +35,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -59,6 +57,8 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationWrapper;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
@@ -849,12 +849,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   private Entry readEntry(InternalClientConnection conn, String userDN)
       throws DirectoryException
   {
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(2);
-    attrList.add("*");
-    attrList.add(ETAG);
-    InternalSearchOperation searchOperation = conn.processSearch(userDN,
-        SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.NEVER, 0, 0,
-        false, "(objectClass=*)", attrList);
+    SearchRequest request = Requests.newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)", "*", ETAG);
+    InternalSearchOperation searchOperation = conn.processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
     Entry e = searchOperation.getSearchEntries().get(0);

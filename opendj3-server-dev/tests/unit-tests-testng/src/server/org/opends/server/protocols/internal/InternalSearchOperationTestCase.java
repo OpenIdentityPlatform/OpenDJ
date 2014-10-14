@@ -31,14 +31,15 @@ import java.util.LinkedHashSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -72,10 +73,9 @@ public class InternalSearchOperationTestCase
   public void testConstructor1WithoutListener()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
+    InternalClientConnection conn = getRootConnection();
+    new InternalSearchOperation(conn, nextOperationID(),
+                                nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
@@ -94,10 +94,9 @@ public class InternalSearchOperationTestCase
   public void testConstructor1WithListener()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
+    InternalClientConnection conn = getRootConnection();
+    new InternalSearchOperation(conn, nextOperationID(),
+                                nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
@@ -120,10 +119,9 @@ public class InternalSearchOperationTestCase
     SearchFilter searchFilter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
+    InternalClientConnection conn = getRootConnection();
+    new InternalSearchOperation(conn, nextOperationID(),
+                                nextMessageID(), new ArrayList<Control>(),
                                 DN.rootDN(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, searchFilter,
@@ -145,10 +143,9 @@ public class InternalSearchOperationTestCase
     SearchFilter searchFilter =
          SearchFilter.createFilterFromString("(objectClass=*)");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
+    InternalClientConnection conn = getRootConnection();
+    new InternalSearchOperation(conn, nextOperationID(),
+                                nextMessageID(), new ArrayList<Control>(),
                                 DN.rootDN(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, searchFilter,
@@ -165,14 +162,10 @@ public class InternalSearchOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testGetSearchEntriesAndReferences()
-         throws Exception
+  public void testGetSearchEntriesAndReferences() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
-                            LDAPFilter.decode("(objectClass=*)"));
+    SearchRequest request = Requests.newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
     assertTrue(searchOperation.getSearchReferences().isEmpty());
@@ -186,14 +179,12 @@ public class InternalSearchOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testAddSearchEntryWithoutListener()
-         throws Exception
+  public void testAddSearchEntryWithoutListener() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),
+         new InternalSearchOperation(conn, nextOperationID(),
+                                     nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
@@ -219,11 +210,10 @@ public class InternalSearchOperationTestCase
   public void testAddSearchEntryWithListener()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),
+         new InternalSearchOperation(conn, nextOperationID(),
+                                     nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
@@ -250,11 +240,10 @@ public class InternalSearchOperationTestCase
   public void testAddSearchReferenceWithoutListener()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),
+         new InternalSearchOperation(conn, nextOperationID(),
+                                     nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
@@ -279,11 +268,10 @@ public class InternalSearchOperationTestCase
   public void testAddSearchReferenceWithListener()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),
+         new InternalSearchOperation(conn, nextOperationID(),
+                                     nextMessageID(),
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,

@@ -35,22 +35,24 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.admin.std.server.IdentityMapperCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.IdentityMapper;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 
 /**
  * This class provides an implementation of a Directory Server identity mapper
@@ -208,14 +210,14 @@ public class ExactMatchIdentityMapper
     }
 
     SearchResultEntry matchingEntry = null;
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     for (DN baseDN : baseDNs)
     {
-      InternalSearchOperation internalSearch =
-           conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
-                              DereferenceAliasesPolicy.NEVER, 1, 10,
-                              false, filter, requestedAttributes);
+      final SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
+          .setSizeLimit(1)
+          .setTimeLimit(10)
+          .addAttribute(requestedAttributes);
+      InternalSearchOperation internalSearch = conn.processSearch(request);
 
       switch (internalSearch.getResultCode().asEnum())
       {
