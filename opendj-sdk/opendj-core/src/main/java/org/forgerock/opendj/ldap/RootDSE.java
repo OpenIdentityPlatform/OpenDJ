@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Collections2;
 
@@ -413,7 +414,7 @@ public final class RootDSE {
 
     private <N> Collection<N> getMultiValuedAttribute(
             final AttributeDescription attributeDescription,
-        final org.forgerock.opendj.ldap.Function<ByteString, N, Void> function) {
+        final Function<ByteString, N, NeverThrowsException> function) {
         // The returned collection is unmodifiable because we may need to
         // return an empty collection if the attribute does not exist in the
         // underlying entry. If a value is then added to the returned empty
@@ -429,12 +430,12 @@ public final class RootDSE {
     }
 
     private <N> N getSingleValuedAttribute(final AttributeDescription attributeDescription,
-        final org.forgerock.opendj.ldap.Function<ByteString, N, Void> function) {
+        final Function<ByteString, N, NeverThrowsException> function) {
         final Attribute attr = entry.getAttribute(attributeDescription);
         if (attr == null || attr.isEmpty()) {
             return null;
         } else {
-            return function.apply(attr.firstValue(), null);
+            return function.apply(attr.firstValue());
         }
     }
 

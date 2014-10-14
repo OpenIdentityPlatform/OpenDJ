@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2013 ForgeRock AS.
+ * Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -22,7 +22,6 @@ import static org.forgerock.opendj.ldap.Functions.byteStringToBoolean;
 import static org.forgerock.opendj.ldap.Functions.byteStringToGeneralizedTime;
 import static org.forgerock.opendj.ldap.Functions.byteStringToLong;
 import static org.forgerock.opendj.ldap.Functions.byteStringToString;
-import static org.forgerock.opendj.ldap.Functions.fixedFunction;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getBooleanSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getGeneralizedTimeSyntax;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.getIntegerSyntax;
@@ -42,10 +41,11 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 /**
  * Internal utility methods.
@@ -109,56 +109,19 @@ final class Utils {
         }
     }
 
-    private static final Function<Object, ByteString, Void> BASE64_TO_BYTESTRING =
-            new Function<Object, ByteString, Void>() {
+    private static final Function<Object, ByteString, NeverThrowsException> BASE64_TO_BYTESTRING =
+            new Function<Object, ByteString, NeverThrowsException>() {
                 @Override
-                public ByteString apply(final Object value, final Void p) {
+                public ByteString apply(final Object value) {
                     return ByteString.valueOfBase64(String.valueOf(value));
                 }
             };
 
-    private static final Function<ByteString, String, Void> BYTESTRING_TO_BASE64 =
-            new Function<ByteString, String, Void>() {
+    private static final Function<ByteString, String, NeverThrowsException> BYTESTRING_TO_BASE64 =
+            new Function<ByteString, String, NeverThrowsException>() {
                 @Override
-                public String apply(final ByteString value, final Void p) {
+                public String apply(final ByteString value) {
                     return value.toBase64String();
-                }
-            };
-
-    private static final Function<ByteString, Object, AttributeDescription> BYTESTRING_TO_JSON =
-            new Function<ByteString, Object, AttributeDescription>() {
-                @Override
-                public Object apply(final ByteString value, final AttributeDescription ad) {
-                    final Syntax syntax = ad.getAttributeType().getSyntax();
-                    if (syntax.equals(getBooleanSyntax())) {
-                        return byteStringToBoolean().apply(value, null);
-                    } else if (syntax.equals(getIntegerSyntax())) {
-                        return byteStringToLong().apply(value, null);
-                    } else if (syntax.equals(getGeneralizedTimeSyntax())) {
-                        return printDateTime(byteStringToGeneralizedTime().apply(value, null)
-                                .toCalendar());
-                    } else {
-                        return byteStringToString().apply(value, null);
-                    }
-                }
-            };
-
-    private static final Function<Object, ByteString, AttributeDescription> JSON_TO_BYTESTRING =
-            new Function<Object, ByteString, AttributeDescription>() {
-                @Override
-                public ByteString apply(final Object value, final AttributeDescription ad) {
-                    if (isJSONPrimitive(value)) {
-                        final Syntax syntax = ad.getAttributeType().getSyntax();
-                        if (syntax.equals(getGeneralizedTimeSyntax())) {
-                            return ByteString.valueOf(GeneralizedTime.valueOf(parseDateTime(value
-                                    .toString())));
-                        } else {
-                            return ByteString.valueOf(value);
-                        }
-                    } else {
-                        throw new IllegalArgumentException("Unrecognized type of JSON value: "
-                                + value.getClass().getName());
-                    }
                 }
             };
 
@@ -188,23 +151,36 @@ final class Utils {
     }
 
     static Object attributeToJson(final Attribute a) {
-        final Function<ByteString, Object, Void> f =
-                fixedFunction(BYTESTRING_TO_JSON, a.getAttributeDescription());
-        final boolean isSingleValued =
-                a.getAttributeDescription().getAttributeType().isSingleValue();
+        final Function<ByteString, Object, NeverThrowsException> f = byteStringToJson(a.getAttributeDescription());
+        final boolean isSingleValued = a.getAttributeDescription().getAttributeType().isSingleValue();
         return isSingleValued ? a.parse().as(f) : asList(a.parse().asSetOf(f));
     }
 
-    static Function<Object, ByteString, Void> base64ToByteString() {
+    static Function<Object, ByteString, NeverThrowsException> base64ToByteString() {
         return BASE64_TO_BYTESTRING;
     }
 
-    static Function<ByteString, String, Void> byteStringToBase64() {
+    static Function<ByteString, String, NeverThrowsException> byteStringToBase64() {
         return BYTESTRING_TO_BASE64;
     }
 
-    static Function<ByteString, Object, AttributeDescription> byteStringToJson() {
-        return BYTESTRING_TO_JSON;
+    static Function<ByteString, Object, NeverThrowsException> byteStringToJson(final AttributeDescription ad) {
+        return new Function<ByteString, Object, NeverThrowsException>() {
+            @Override
+            public Object apply(final ByteString value) {
+                final Syntax syntax = ad.getAttributeType().getSyntax();
+                if (syntax.equals(getBooleanSyntax())) {
+                    return byteStringToBoolean().apply(value);
+                } else if (syntax.equals(getIntegerSyntax())) {
+                    return byteStringToLong().apply(value);
+                } else if (syntax.equals(getGeneralizedTimeSyntax())) {
+                    return printDateTime(byteStringToGeneralizedTime().apply(value)
+                            .toCalendar());
+                } else {
+                    return byteStringToString().apply(value);
+                }
+            }
+        };
     }
 
     static <T> T ensureNotNull(final T object) {
@@ -247,17 +223,17 @@ final class Utils {
     }
 
     static Attribute jsonToAttribute(final Object value, final AttributeDescription ad) {
-        return jsonToAttribute(value, ad, fixedFunction(jsonToByteString(), ad));
+        return jsonToAttribute(value, ad, jsonToByteString(ad));
     }
 
     static Attribute jsonToAttribute(final Object value, final AttributeDescription ad,
-            final Function<Object, ByteString, Void> f) {
+            final Function<Object, ByteString, NeverThrowsException> f) {
         if (isJSONPrimitive(value)) {
-            return new LinkedAttribute(ad, f.apply(value, null));
+            return new LinkedAttribute(ad, f.apply(value));
         } else if (value instanceof Collection<?>) {
             final Attribute a = new LinkedAttribute(ad);
             for (final Object o : (Collection<?>) value) {
-                a.add(f.apply(o, null));
+                a.add(f.apply(o));
             }
             return a;
         } else {
@@ -266,8 +242,23 @@ final class Utils {
         }
     }
 
-    static Function<Object, ByteString, AttributeDescription> jsonToByteString() {
-        return JSON_TO_BYTESTRING;
+    static Function<Object, ByteString, NeverThrowsException> jsonToByteString(final AttributeDescription ad) {
+        return new Function<Object, ByteString, NeverThrowsException>() {
+            @Override
+            public ByteString apply(final Object value) {
+                if (isJSONPrimitive(value)) {
+                    final Syntax syntax = ad.getAttributeType().getSyntax();
+                    if (syntax.equals(getGeneralizedTimeSyntax())) {
+                        return ByteString.valueOf(GeneralizedTime.valueOf(parseDateTime(value.toString())));
+                    } else {
+                        return ByteString.valueOf(value);
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unrecognized type of JSON value: "
+                            + value.getClass().getName());
+                }
+            }
+        };
     }
 
     static Filter toFilter(final boolean value) {
@@ -335,7 +326,7 @@ final class Utils {
      *            A result handler which accepts results of type {@code N}.
      * @return A result handler which accepts results of type {@code M}.
      */
-    static <M, N> ResultHandler<M> transform(final Function<M, N, Void> f,
+    static <M, N> ResultHandler<M> transform(final Function<M, N, NeverThrowsException> f,
             final ResultHandler<N> handler) {
         return new ResultHandler<M>() {
             @Override
@@ -346,7 +337,7 @@ final class Utils {
             @Override
             public void handleResult(final M result) {
                 try {
-                    handler.handleResult(f.apply(result, null));
+                    handler.handleResult(f.apply(result));
                 } catch (final Throwable t) {
                     handler.handleError(asResourceException(t));
                 }

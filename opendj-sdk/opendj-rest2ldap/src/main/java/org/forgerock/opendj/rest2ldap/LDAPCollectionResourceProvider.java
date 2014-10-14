@@ -54,7 +54,6 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -74,6 +73,8 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.PromiseImpl;
 import org.forgerock.util.promise.Promises;
@@ -635,9 +636,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final String actualResourceId = nameStrategy.getResourceId(c, entry);
         final String revision = getRevisionFromEntry(entry);
         attributeMapper.read(c, new JsonPointer(), entry, transform(
-                new Function<JsonValue, Resource, Void>() {
+                new Function<JsonValue, Resource, NeverThrowsException>() {
                     @Override
-                    public Resource apply(final JsonValue value, final Void p) {
+                    public Resource apply(final JsonValue value) {
                         return new Resource(actualResourceId, revision, new JsonValue(value));
                     }
                 }, handler));
@@ -873,9 +874,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     @Override
                     public Void visitNotFilter(final ResultHandler<Filter> p,
                             final QueryFilter subFilter) {
-                        subFilter.accept(this, transform(new Function<Filter, Filter, Void>() {
+                        subFilter.accept(this, transform(new Function<Filter, Filter, NeverThrowsException>() {
                             @Override
-                            public Filter apply(final Filter value, final Void p) {
+                            public Filter apply(final Filter value) {
                                 if (value == null || value == alwaysFalse()) {
                                     return alwaysTrue();
                                 } else if (value == alwaysTrue()) {

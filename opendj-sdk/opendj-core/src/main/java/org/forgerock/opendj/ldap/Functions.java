@@ -22,20 +22,21 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
-
-import static com.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_INTEGER_FAIL;
-import static com.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_LONG_FAIL;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.StaticUtils;
+
+import static org.forgerock.opendj.ldap.schema.Schema.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * Common {@link Function} implementations which may be used when parsing
@@ -47,63 +48,37 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 public final class Functions {
 
-    private static final class FixedFunction<M, N, P> implements Function<M, N, Void> {
-        private final Function<M, N, P> function;
-
-        private final P parameter;
-
-        private FixedFunction(final Function<M, N, P> function, final P p) {
-            this.function = function;
-            this.parameter = p;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        public N apply(final M value, final Void p) {
-            return function.apply(value, parameter);
-        }
-
-    }
-
-    private static final Function<ByteString, String, Void> BYTESTRING_TO_STRING =
-            new Function<ByteString, String, Void>() {
-                public String apply(final ByteString value, final Void p) {
+    private static final Function<ByteString, String, NeverThrowsException> BYTESTRING_TO_STRING =
+            new Function<ByteString, String, NeverThrowsException>() {
+                public String apply(final ByteString value) {
                     return value.toString();
                 }
             };
 
-    private static final Function<Object, Object, Void> IDENTITY =
-            new Function<Object, Object, Void>() {
-                public Object apply(final Object value, final Void p) {
+    private static final Function<Object, Object, NeverThrowsException> IDENTITY =
+            new Function<Object, Object, NeverThrowsException>() {
+                public Object apply(final Object value) {
                     return value;
                 }
             };
 
-    private static final Function<String, String, Void> NORMALIZE_STRING =
-            new Function<String, String, Void>() {
-                public String apply(final String value, final Void p) {
+    private static final Function<String, String, NeverThrowsException> NORMALIZE_STRING =
+            new Function<String, String, NeverThrowsException>() {
+                public String apply(final String value) {
                     return StaticUtils.toLowerCase(value).trim();
                 }
             };
 
-    private static final Function<Object, ByteString, Void> OBJECT_TO_BYTESTRING =
-            new Function<Object, ByteString, Void>() {
-                public ByteString apply(final Object value, final Void p) {
+    private static final Function<Object, ByteString, NeverThrowsException> OBJECT_TO_BYTESTRING =
+            new Function<Object, ByteString, NeverThrowsException>() {
+                public ByteString apply(final Object value) {
                     return ByteString.valueOf(value);
                 }
             };
 
-    private static final Function<String, AttributeDescription, Schema> STRING_TO_ATTRIBUTE_DESCRIPTION =
-            new Function<String, AttributeDescription, Schema>() {
-                public AttributeDescription apply(final String value, final Schema p) {
-                    return AttributeDescription.valueOf(value, p);
-                }
-            };
-
-    private static final Function<String, Boolean, Void> STRING_TO_BOOLEAN =
-            new Function<String, Boolean, Void>() {
-                public Boolean apply(final String value, final Void p) {
+    private static final Function<String, Boolean, NeverThrowsException> STRING_TO_BOOLEAN =
+            new Function<String, Boolean, NeverThrowsException>() {
+                public Boolean apply(final String value) {
                     final String valueString = StaticUtils.toLowerCase(value);
 
                     if (valueString.equals("true") || valueString.equals("yes")
@@ -120,23 +95,16 @@ public final class Functions {
                 }
             };
 
-    private static final Function<String, DN, Schema> STRING_TO_DN =
-            new Function<String, DN, Schema>() {
-                public DN apply(final String value, final Schema p) {
-                    return DN.valueOf(value, p);
-                }
-            };
-
-    private static final Function<String, GeneralizedTime, Void> STRING_TO_GENERALIZED_TIME =
-            new Function<String, GeneralizedTime, Void>() {
-                public GeneralizedTime apply(final String value, final Void p) {
+    private static final Function<String, GeneralizedTime, NeverThrowsException> STRING_TO_GENERALIZED_TIME =
+            new Function<String, GeneralizedTime, NeverThrowsException>() {
+                public GeneralizedTime apply(final String value) {
                     return GeneralizedTime.valueOf(value);
                 }
             };
 
-    private static final Function<String, Integer, Void> STRING_TO_INTEGER =
-            new Function<String, Integer, Void>() {
-                public Integer apply(final String value, final Void p) {
+    private static final Function<String, Integer, NeverThrowsException> STRING_TO_INTEGER =
+            new Function<String, Integer, NeverThrowsException>() {
+                public Integer apply(final String value) {
                     try {
                         return Integer.valueOf(value);
                     } catch (final NumberFormatException e) {
@@ -146,9 +114,9 @@ public final class Functions {
                 }
             };
 
-    private static final Function<String, Long, Void> STRING_TO_LONG =
-            new Function<String, Long, Void>() {
-                public Long apply(final String value, final Void p) {
+    private static final Function<String, Long, NeverThrowsException> STRING_TO_LONG =
+            new Function<String, Long, NeverThrowsException>() {
+                public Long apply(final String value) {
                     try {
                         return Long.valueOf(value);
                     } catch (final NumberFormatException e) {
@@ -158,22 +126,16 @@ public final class Functions {
                 }
             };
 
-    private static final Function<ByteString, AttributeDescription, Schema> BYTESTRING_TO_ATTRIBUTE_DESCRIPTION =
-            composeSecondP(byteStringToString(), STRING_TO_ATTRIBUTE_DESCRIPTION);
-
-    private static final Function<ByteString, Boolean, Void> BYTESTRING_TO_BOOLEAN = compose(
+    private static final Function<ByteString, Boolean, NeverThrowsException> BYTESTRING_TO_BOOLEAN = compose(
             byteStringToString(), STRING_TO_BOOLEAN);
 
-    private static final Function<ByteString, DN, Schema> BYTESTRING_TO_DN = composeSecondP(
-            byteStringToString(), STRING_TO_DN);
-
-    private static final Function<ByteString, GeneralizedTime, Void> BYTESTRING_TO_GENERALIZED_TIME =
+    private static final Function<ByteString, GeneralizedTime, NeverThrowsException> BYTESTRING_TO_GENERALIZED_TIME =
             compose(byteStringToString(), STRING_TO_GENERALIZED_TIME);
 
-    private static final Function<ByteString, Integer, Void> BYTESTRING_TO_INTEGER = compose(
+    private static final Function<ByteString, Integer, NeverThrowsException> BYTESTRING_TO_INTEGER = compose(
             byteStringToString(), STRING_TO_INTEGER);
 
-    private static final Function<ByteString, Long, Void> BYTESTRING_TO_LONG = compose(
+    private static final Function<ByteString, Long, NeverThrowsException> BYTESTRING_TO_LONG = compose(
             byteStringToString(), STRING_TO_LONG);
 
     /**
@@ -193,102 +155,13 @@ public final class Functions {
      *            The second function which will produce the result.
      * @return The composition.
      */
-    public static <M, X, N> Function<M, N, Void> compose(final Function<M, X, Void> first,
-            final Function<X, N, Void> second) {
-        return new Function<M, N, Void>() {
-            public N apply(final M value, final Void p) {
-                final X tmp = first.apply(value, p);
-                return second.apply(tmp, p);
+    public static <M, X, N> Function<M, N, NeverThrowsException> compose(
+            final Function<M, X, NeverThrowsException> first, final Function<X, N, NeverThrowsException> second) {
+        return new Function<M, N, NeverThrowsException>() {
+            public N apply(final M value) {
+                return second.apply(first.apply(value));
             }
         };
-    }
-
-    /**
-     * Returns the composition of two functions. The result of the first
-     * function will be passed to the second. The first function will be passed
-     * an additional parameter.
-     *
-     * @param <M>
-     *            The type of input values transformed by this function.
-     * @param <N>
-     *            The type of output values returned by this function.
-     * @param <X>
-     *            The type of intermediate values passed between the two
-     *            functions.
-     * @param <P>
-     *            The type of the additional parameter to the first function's
-     *            {@code apply} method. Use {@link java.lang.Void} for functions
-     *            that do not need an additional parameter.
-     * @param first
-     *            The first function which will consume the input.
-     * @param second
-     *            The second function which will produce the result.
-     * @return The composition.
-     */
-    public static <M, X, N, P> Function<M, N, P> composeFirstP(final Function<M, X, P> first,
-            final Function<X, N, Void> second) {
-        return new Function<M, N, P>() {
-            public N apply(final M value, final P p) {
-                final X tmp = first.apply(value, p);
-                return second.apply(tmp, null);
-            }
-        };
-    }
-
-    /**
-     * Returns the composition of two functions. The result of the first
-     * function will be passed to the second. The second function will be passed
-     * an additional parameter.
-     *
-     * @param <M>
-     *            The type of input values transformed by this function.
-     * @param <N>
-     *            The type of output values returned by this function.
-     * @param <X>
-     *            The type of intermediate values passed between the two
-     *            functions.
-     * @param <P>
-     *            The type of the additional parameter to the second function's
-     *            {@code apply} method. Use {@link java.lang.Void} for functions
-     *            that do not need an additional parameter.
-     * @param first
-     *            The first function which will consume the input.
-     * @param second
-     *            The second function which will produce the result.
-     * @return The composition.
-     */
-    public static <M, X, N, P> Function<M, N, P> composeSecondP(final Function<M, X, Void> first,
-            final Function<X, N, P> second) {
-        return new Function<M, N, P>() {
-            public N apply(final M value, final P p) {
-                final X tmp = first.apply(value, null);
-                return second.apply(tmp, p);
-            }
-        };
-    }
-
-    /**
-     * Returns a function which which always invokes {@code function} with
-     * {@code p}.
-     *
-     * @param <M>
-     *            The type of input values transformed by this function.
-     * @param <N>
-     *            The type of output values return by this function.
-     * @param <P>
-     *            The type of the additional parameter to this function's
-     *            {@code apply} method. Use {@link java.lang.Void} for functions
-     *            that do not need an additional parameter.
-     * @param function
-     *            The function to wrap.
-     * @param p
-     *            The parameter which will always be passed to {@code function}.
-     * @return A function which which always invokes {@code function} with
-     *         {@code p}.
-     */
-    public static <M, N, P> Function<M, N, Void> fixedFunction(final Function<M, N, P> function,
-            final P p) {
-        return new FixedFunction<M, N, P>(function, p);
     }
 
     /**
@@ -301,8 +174,8 @@ public final class Functions {
      *         with.
      */
     @SuppressWarnings("unchecked")
-    public static <M> Function<M, M, Void> identityFunction() {
-        return (Function<M, M, Void>) IDENTITY;
+    public static <M> Function<M, M, NeverThrowsException> identityFunction() {
+        return (Function<M, M, NeverThrowsException>) IDENTITY;
     }
 
     /**
@@ -312,7 +185,7 @@ public final class Functions {
      * @return A function which converts a {@code String} to lower case using
      *         {@link StaticUtils#toLowerCase} and then trims it.
      */
-    public static Function<String, String, Void> normalizeString() {
+    public static Function<String, String, NeverThrowsException> normalizeString() {
         return NORMALIZE_STRING;
     }
 
@@ -323,7 +196,7 @@ public final class Functions {
      * @return A function which converts an {@code Object} to a
      *         {@code ByteString} .
      */
-    public static Function<Object, ByteString, Void> objectToByteString() {
+    public static Function<Object, ByteString, NeverThrowsException> objectToByteString() {
         return OBJECT_TO_BYTESTRING;
     }
 
@@ -334,8 +207,8 @@ public final class Functions {
      *
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<String, AttributeDescription, Void> stringToAttributeDescription() {
-        return fixedFunction(STRING_TO_ATTRIBUTE_DESCRIPTION, Schema.getDefaultSchema());
+    public static Function<String, AttributeDescription, NeverThrowsException> stringToAttributeDescription() {
+        return stringToAttributeDescription(getDefaultSchema());
     }
 
     /**
@@ -347,9 +220,13 @@ public final class Functions {
      *            The schema to use for decoding attribute descriptions.
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<String, AttributeDescription, Void> stringToAttributeDescription(
+    public static Function<String, AttributeDescription, NeverThrowsException> stringToAttributeDescription(
             final Schema schema) {
-        return fixedFunction(STRING_TO_ATTRIBUTE_DESCRIPTION, schema);
+        return new Function<String, AttributeDescription, NeverThrowsException>() {
+            public AttributeDescription apply(final String value) {
+                return AttributeDescription.valueOf(value, schema);
+            }
+        };
     }
 
     /**
@@ -360,7 +237,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Boolean} values.
      */
-    public static Function<String, Boolean, Void> stringToBoolean() {
+    public static Function<String, Boolean, NeverThrowsException> stringToBoolean() {
         return STRING_TO_BOOLEAN;
     }
 
@@ -371,8 +248,8 @@ public final class Functions {
      *
      * @return A function which parses {@code DN}s.
      */
-    public static Function<String, DN, Void> stringToDN() {
-        return fixedFunction(STRING_TO_DN, Schema.getDefaultSchema());
+    public static Function<String, DN, NeverThrowsException> stringToDN() {
+        return stringToDN(getDefaultSchema());
     }
 
     /**
@@ -384,8 +261,12 @@ public final class Functions {
      *            The schema to use for decoding DNs.
      * @return A function which parses {@code DN}s.
      */
-    public static Function<String, DN, Void> stringToDN(final Schema schema) {
-        return fixedFunction(STRING_TO_DN, schema);
+    public static Function<String, DN, NeverThrowsException> stringToDN(final Schema schema) {
+        return new Function<String, DN, NeverThrowsException>() {
+            public DN apply(final String value) {
+                return DN.valueOf(value, schema);
+            }
+        };
     }
 
     /**
@@ -394,7 +275,7 @@ public final class Functions {
      *
      * @return A function which parses generalized time strings.
      */
-    public static Function<String, GeneralizedTime, Void> stringToGeneralizedTime() {
+    public static Function<String, GeneralizedTime, NeverThrowsException> stringToGeneralizedTime() {
         return STRING_TO_GENERALIZED_TIME;
     }
 
@@ -404,7 +285,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Integer} string values.
      */
-    public static Function<String, Integer, Void> stringToInteger() {
+    public static Function<String, Integer, NeverThrowsException> stringToInteger() {
         return STRING_TO_INTEGER;
     }
 
@@ -414,7 +295,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Long} string values.
      */
-    public static Function<String, Long, Void> stringToLong() {
+    public static Function<String, Long, NeverThrowsException> stringToLong() {
         return STRING_TO_LONG;
     }
 
@@ -425,8 +306,8 @@ public final class Functions {
      *
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<ByteString, AttributeDescription, Void> byteStringToAttributeDescription() {
-        return fixedFunction(BYTESTRING_TO_ATTRIBUTE_DESCRIPTION, Schema.getDefaultSchema());
+    public static Function<ByteString, AttributeDescription, NeverThrowsException> byteStringToAttributeDescription() {
+        return byteStringToAttributeDescription(getDefaultSchema());
     }
 
     /**
@@ -438,9 +319,13 @@ public final class Functions {
      *            The schema to use for decoding attribute descriptions.
      * @return A function which parses {@code AttributeDescription}s.
      */
-    public static Function<ByteString, AttributeDescription, Void> byteStringToAttributeDescription(
+    public static Function<ByteString, AttributeDescription, NeverThrowsException> byteStringToAttributeDescription(
             final Schema schema) {
-        return fixedFunction(BYTESTRING_TO_ATTRIBUTE_DESCRIPTION, schema);
+        return compose(byteStringToString(), new Function<String, AttributeDescription, NeverThrowsException>() {
+            public AttributeDescription apply(final String value) {
+                return AttributeDescription.valueOf(value, schema);
+            }
+        });
     }
 
     /**
@@ -451,7 +336,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Boolean} values.
      */
-    public static Function<ByteString, Boolean, Void> byteStringToBoolean() {
+    public static Function<ByteString, Boolean, NeverThrowsException> byteStringToBoolean() {
         return BYTESTRING_TO_BOOLEAN;
     }
 
@@ -462,8 +347,8 @@ public final class Functions {
      *
      * @return A function which parses {@code DN}s.
      */
-    public static Function<ByteString, DN, Void> byteStringToDN() {
-        return fixedFunction(BYTESTRING_TO_DN, Schema.getDefaultSchema());
+    public static Function<ByteString, DN, NeverThrowsException> byteStringToDN() {
+        return byteStringToDN(getDefaultSchema());
     }
 
     /**
@@ -475,8 +360,12 @@ public final class Functions {
      *            The schema to use for decoding DNs.
      * @return A function which parses {@code DN}s.
      */
-    public static Function<ByteString, DN, Void> byteStringToDN(final Schema schema) {
-        return fixedFunction(BYTESTRING_TO_DN, schema);
+    public static Function<ByteString, DN, NeverThrowsException> byteStringToDN(final Schema schema) {
+        return compose(byteStringToString(), new Function<String, DN, NeverThrowsException>() {
+            public DN apply(final String value) {
+                return DN.valueOf(value, schema);
+            }
+        });
     }
 
     /**
@@ -485,7 +374,7 @@ public final class Functions {
      *
      * @return A function which parses generalized time strings.
      */
-    public static Function<ByteString, GeneralizedTime, Void> byteStringToGeneralizedTime() {
+    public static Function<ByteString, GeneralizedTime, NeverThrowsException> byteStringToGeneralizedTime() {
         return BYTESTRING_TO_GENERALIZED_TIME;
     }
 
@@ -495,7 +384,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Integer} string values.
      */
-    public static Function<ByteString, Integer, Void> byteStringToInteger() {
+    public static Function<ByteString, Integer, NeverThrowsException> byteStringToInteger() {
         return BYTESTRING_TO_INTEGER;
     }
 
@@ -505,7 +394,7 @@ public final class Functions {
      *
      * @return A function which parses {@code Long} string values.
      */
-    public static Function<ByteString, Long, Void> byteStringToLong() {
+    public static Function<ByteString, Long, NeverThrowsException> byteStringToLong() {
         return BYTESTRING_TO_LONG;
     }
 
@@ -516,7 +405,7 @@ public final class Functions {
      * @return A function which parses the string representation of a
      *         {@code ByteString} as a UTF-8 encoded {@code String}.
      */
-    public static Function<ByteString, String, Void> byteStringToString() {
+    public static Function<ByteString, String, NeverThrowsException> byteStringToString() {
         return BYTESTRING_TO_STRING;
     }
 

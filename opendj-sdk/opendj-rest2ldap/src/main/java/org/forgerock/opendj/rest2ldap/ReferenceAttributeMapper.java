@@ -36,7 +36,6 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -46,6 +45,8 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 import org.forgerock.util.promise.FailureHandler;
 import org.forgerock.util.promise.SuccessHandler;
 
@@ -298,9 +299,9 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
             try {
                 final Set<DN> dns = attribute.parse().usingSchema(c.getConfig().schema()).asSetOfDN();
                 final ResultHandler<JsonValue> handler =
-                    accumulate(dns.size(), transform(new Function<List<JsonValue>, JsonValue, Void>() {
+                    accumulate(dns.size(), transform(new Function<List<JsonValue>, JsonValue, NeverThrowsException>() {
                         @Override
-                        public JsonValue apply(final List<JsonValue> value, final Void p) {
+                        public JsonValue apply(final List<JsonValue> value) {
                             if (value.isEmpty()) {
                                 /*
                                  * No values, so omit the entire JSON object

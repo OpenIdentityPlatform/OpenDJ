@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS.
  */
-
 package com.forgerock.opendj.util;
 
 import java.util.AbstractCollection;
@@ -32,87 +32,69 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.forgerock.opendj.ldap.Function;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 /**
  * Additional {@code Collection} based utility methods.
  */
 public final class Collections2 {
-    private static class TransformedCollection<M, N, P, C extends Collection<M>> extends
+    private static class TransformedCollection<M, N, C extends Collection<M>> extends
             AbstractCollection<N> implements Collection<N> {
 
         protected final C collection;
 
-        protected final Function<? super M, ? extends N, P> funcMtoN;
+        protected final Function<? super M, ? extends N, NeverThrowsException> funcMtoN;
 
-        protected final Function<? super N, ? extends M, P> funcNtoM;
-
-        protected final P p;
+        protected final Function<? super N, ? extends M, NeverThrowsException> funcNtoM;
 
         protected TransformedCollection(final C collection,
-                final Function<? super M, ? extends N, P> funcMtoN,
-                final Function<? super N, ? extends M, P> funcNtoM, final P p) {
+                final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
+                final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
             this.collection = collection;
             this.funcMtoN = funcMtoN;
             this.funcNtoM = funcNtoM;
-            this.p = p;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean add(final N e) {
-            return collection.add(funcNtoM.apply(e, p));
+            return collection.add(funcNtoM.apply(e));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void clear() {
             collection.clear();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public boolean contains(final Object o) {
-            final N tmp = (N) o;
-            return collection.contains(funcNtoM.apply(tmp, p));
+            return collection.contains(funcNtoM.apply((N) o));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isEmpty() {
             return collection.isEmpty();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Iterator<N> iterator() {
-            return Iterators.transformedIterator(collection.iterator(), funcMtoN, p);
+            return Iterators.transformedIterator(collection.iterator(), funcMtoN);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public boolean remove(final Object o) {
-            final N tmp = (N) o;
-            return collection.remove(funcNtoM.apply(tmp, p));
+            return collection.remove(funcNtoM.apply((N) o));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public int size() {
             return collection.size();
@@ -120,26 +102,22 @@ public final class Collections2 {
 
     }
 
-    private static final class TransformedList<M, N, P> extends
-            TransformedCollection<M, N, P, List<M>> implements List<N> {
+    private static final class TransformedList<M, N> extends
+            TransformedCollection<M, N, List<M>> implements List<N> {
 
         private TransformedList(final List<M> list,
-                final Function<? super M, ? extends N, P> funcMtoN,
-                final Function<? super N, ? extends M, P> funcNtoM, final P p) {
-            super(list, funcMtoN, funcNtoM, p);
+                final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
+                final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
+            super(list, funcMtoN, funcNtoM);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void add(final int index, final N element) {
-            collection.add(index, funcNtoM.apply(element, p));
+            collection.add(index, funcNtoM.apply(element));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean addAll(final int index, final Collection<? extends N> c) {
             // We cannot transform c here due to type-safety.
@@ -150,45 +128,33 @@ public final class Collections2 {
             return result;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public N get(final int index) {
-            return funcMtoN.apply(collection.get(index), p);
+            return funcMtoN.apply(collection.get(index));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public int indexOf(final Object o) {
-            final N tmp = (N) o;
-            return collection.indexOf(funcNtoM.apply(tmp, p));
+            return collection.indexOf(funcNtoM.apply((N) o));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         @SuppressWarnings("unchecked")
         public int lastIndexOf(final Object o) {
-            final N tmp = (N) o;
-            return collection.lastIndexOf(funcNtoM.apply(tmp, p));
+            return collection.lastIndexOf(funcNtoM.apply((N) o));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public ListIterator<N> listIterator() {
             return listIterator(0);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public ListIterator<N> listIterator(final int index) {
             final ListIterator<M> iterator = collection.listIterator(index);
@@ -196,7 +162,7 @@ public final class Collections2 {
 
                 @Override
                 public void add(final N e) {
-                    iterator.add(funcNtoM.apply(e, p));
+                    iterator.add(funcNtoM.apply(e));
                 }
 
                 @Override
@@ -211,7 +177,7 @@ public final class Collections2 {
 
                 @Override
                 public N next() {
-                    return funcMtoN.apply(iterator.next(), p);
+                    return funcMtoN.apply(iterator.next());
                 }
 
                 @Override
@@ -221,7 +187,7 @@ public final class Collections2 {
 
                 @Override
                 public N previous() {
-                    return funcMtoN.apply(iterator.previous(), p);
+                    return funcMtoN.apply(iterator.previous());
                 }
 
                 @Override
@@ -236,72 +202,32 @@ public final class Collections2 {
 
                 @Override
                 public void set(final N e) {
-                    iterator.set(funcNtoM.apply(e, p));
+                    iterator.set(funcNtoM.apply(e));
                 }
 
             };
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public N remove(final int index) {
-            return funcMtoN.apply(collection.remove(index), p);
+            return funcMtoN.apply(collection.remove(index));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public N set(final int index, final N element) {
-            final M result = collection.set(index, funcNtoM.apply(element, p));
-            return funcMtoN.apply(result, p);
+            final M result = collection.set(index, funcNtoM.apply(element));
+            return funcMtoN.apply(result);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public List<N> subList(final int fromIndex, final int toIndex) {
             final List<M> subList = collection.subList(fromIndex, toIndex);
-            return new TransformedList<M, N, P>(subList, funcMtoN, funcNtoM, p);
+            return new TransformedList<M, N>(subList, funcMtoN, funcNtoM);
         }
 
-    }
-
-    /**
-     * Returns a view of {@code collection} whose values have been mapped to
-     * elements of type {@code N} using {@code funcMtoN}. The returned
-     * collection supports all operations.
-     *
-     * @param <M>
-     *            The type of elements contained in {@code collection}.
-     * @param <N>
-     *            The type of elements contained in the returned collection.
-     * @param <P>
-     *            The type of the additional parameter to the function's
-     *            {@code apply} method. Use {@link java.lang.Void} for functions
-     *            that do not need an additional parameter.
-     * @param collection
-     *            The collection to be transformed.
-     * @param funcMtoN
-     *            A function which maps values of type {@code M} to values of
-     *            type {@code N}. This function will be used when retrieving
-     *            values from {@code collection}.
-     * @param funcNtoM
-     *            A function which maps values of type {@code N} to values of
-     *            type {@code M}. This function will be used when performing
-     *            queries and adding values to {@code collection} .
-     * @param p
-     *            A predicate specified parameter.
-     * @return A view of {@code collection} whose values have been mapped to
-     *         elements of type {@code N} using {@code funcMtoN}.
-     */
-    public static <M, N, P> Collection<N> transformedCollection(final Collection<M> collection,
-            final Function<? super M, ? extends N, P> funcMtoN,
-            final Function<? super N, ? extends M, P> funcNtoM, final P p) {
-        return new TransformedCollection<M, N, P, Collection<M>>(collection, funcMtoN, funcNtoM, p);
     }
 
     /**
@@ -327,44 +253,9 @@ public final class Collections2 {
      *         elements of type {@code N} using {@code funcMtoN}.
      */
     public static <M, N> Collection<N> transformedCollection(final Collection<M> collection,
-            final Function<? super M, ? extends N, Void> funcMtoN,
-            final Function<? super N, ? extends M, Void> funcNtoM) {
-        return new TransformedCollection<M, N, Void, Collection<M>>(collection, funcMtoN, funcNtoM,
-                null);
-    }
-
-    /**
-     * Returns a view of {@code list} whose values have been mapped to elements
-     * of type {@code N} using {@code funcMtoN}. The returned list supports all
-     * operations.
-     *
-     * @param <M>
-     *            The type of elements contained in {@code list}.
-     * @param <N>
-     *            The type of elements contained in the returned list.
-     * @param <P>
-     *            The type of the additional parameter to the function's
-     *            {@code apply} method. Use {@link java.lang.Void} for functions
-     *            that do not need an additional parameter.
-     * @param list
-     *            The list to be transformed.
-     * @param funcMtoN
-     *            A function which maps values of type {@code M} to values of
-     *            type {@code N}. This function will be used when retrieving
-     *            values from {@code list}.
-     * @param funcNtoM
-     *            A function which maps values of type {@code N} to values of
-     *            type {@code M}. This function will be used when performing
-     *            queries and adding values to {@code list} .
-     * @param p
-     *            A predicate specified parameter.
-     * @return A view of {@code list} whose values have been mapped to elements
-     *         of type {@code N} using {@code funcMtoN}.
-     */
-    public static <M, N, P> List<N> transformedList(final List<M> list,
-            final Function<? super M, ? extends N, P> funcMtoN,
-            final Function<? super N, ? extends M, P> funcNtoM, final P p) {
-        return new TransformedList<M, N, P>(list, funcMtoN, funcNtoM, p);
+            final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
+            final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
+        return new TransformedCollection<M, N, Collection<M>>(collection, funcMtoN, funcNtoM);
     }
 
     /**
@@ -390,12 +281,12 @@ public final class Collections2 {
      *         of type {@code N} using {@code funcMtoN}.
      */
     public static <M, N> List<N> transformedList(final List<M> list,
-            final Function<? super M, ? extends N, Void> funcMtoN,
-            final Function<? super N, ? extends M, Void> funcNtoM) {
-        return new TransformedList<M, N, Void>(list, funcMtoN, funcNtoM, null);
+            final Function<? super M, ? extends N, NeverThrowsException> funcMtoN,
+            final Function<? super N, ? extends M, NeverThrowsException> funcNtoM) {
+        return new TransformedList<M, N>(list, funcMtoN, funcNtoM);
     }
 
-    // Prevent instantiation
+    /** Prevent instantiation. */
     private Collections2() {
         // Do nothing.
     }

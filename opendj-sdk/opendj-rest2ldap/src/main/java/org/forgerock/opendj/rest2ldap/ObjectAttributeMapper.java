@@ -11,17 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2013 ForgeRock AS.
+ * Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
-
-import static org.forgerock.json.resource.PatchOperation.operation;
-import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.accumulate;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
-import static org.forgerock.opendj.rest2ldap.Utils.toLowerCase;
-import static org.forgerock.opendj.rest2ldap.Utils.transform;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
@@ -40,8 +32,14 @@ import org.forgerock.json.resource.ResultHandler;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Modification;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
+
+import static org.forgerock.json.resource.PatchOperation.*;
+import static org.forgerock.opendj.ldap.Filter.*;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
+import static org.forgerock.opendj.rest2ldap.Utils.*;
 
 /**
  * An attribute mapper which maps JSON objects to LDAP attributes.
@@ -218,10 +216,9 @@ public final class ObjectAttributeMapper extends AttributeMapper {
          */
         final ResultHandler<Map.Entry<String, JsonValue>> handler =
                 accumulate(mappings.size(), transform(
-                        new Function<List<Map.Entry<String, JsonValue>>, JsonValue, Void>() {
+                        new Function<List<Map.Entry<String, JsonValue>>, JsonValue, NeverThrowsException>() {
                             @Override
-                            public JsonValue apply(final List<Map.Entry<String, JsonValue>> value,
-                                    final Void p) {
+                            public JsonValue apply(final List<Map.Entry<String, JsonValue>> value) {
                                 if (value.isEmpty()) {
                                     /*
                                      * No subordinate attributes, so omit the
@@ -245,10 +242,9 @@ public final class ObjectAttributeMapper extends AttributeMapper {
 
         for (final Mapping mapping : mappings.values()) {
             mapping.mapper.read(c, path.child(mapping.name), e, transform(
-                    new Function<JsonValue, Map.Entry<String, JsonValue>, Void>() {
+                    new Function<JsonValue, Map.Entry<String, JsonValue>, NeverThrowsException>() {
                         @Override
-                        public Map.Entry<String, JsonValue> apply(final JsonValue value,
-                                final Void p) {
+                        public Map.Entry<String, JsonValue> apply(final JsonValue value) {
                             return value != null ? new SimpleImmutableEntry<String, JsonValue>(
                                     mapping.name, value) : null;
                         }
@@ -292,9 +288,9 @@ public final class ObjectAttributeMapper extends AttributeMapper {
     }
 
     private <T> ResultHandler<List<T>> accumulator(final int size, final ResultHandler<List<T>> h) {
-        return accumulate(size, transform(new Function<List<List<T>>, List<T>, Void>() {
+        return accumulate(size, transform(new Function<List<List<T>>, List<T>, NeverThrowsException>() {
             @Override
-            public List<T> apply(final List<List<T>> value, final Void p) {
+            public List<T> apply(final List<List<T>> value) {
                 switch (value.size()) {
                 case 0:
                     return Collections.emptyList();

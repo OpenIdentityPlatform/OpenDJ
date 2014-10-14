@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.responses;
 
 import java.util.Collections;
@@ -32,12 +31,13 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Collections2;
 
@@ -100,15 +100,14 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements R
          * We need to make all controls unmodifiable as well, which implies
          * making defensive copies where necessary.
          */
-        final Function<Control, Control, Void> function = new Function<Control, Control, Void>() {
-
-            @Override
-            public Control apply(final Control value, final Void p) {
-                // Return defensive copy.
-                return GenericControl.newControl(value);
-            }
-
-        };
+        final Function<Control, Control, NeverThrowsException> function =
+                new Function<Control, Control, NeverThrowsException>() {
+                    @Override
+                    public Control apply(final Control value) {
+                        // Return defensive copy.
+                        return GenericControl.newControl(value);
+                    }
+                };
 
         final List<Control> unmodifiableControls =
                 Collections2.transformedList(impl.getControls(), function, Functions

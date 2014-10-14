@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
-
 package com.forgerock.opendj.util;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.forgerock.opendj.ldap.Function;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 /**
  * Utility methods for manipulating {@link Iterable}s.
@@ -97,22 +97,20 @@ public final class Iterables {
         }
     }
 
-    private static final class TransformedIterable<M, N, P> extends AbstractIterable<N> {
-        private final Function<? super M, ? extends N, P> function;
+    private static final class TransformedIterable<M, N> extends AbstractIterable<N> {
+        private final Function<? super M, ? extends N, NeverThrowsException> function;
         private final Iterable<M> iterable;
-        private final P parameter;
 
         // Constructed via factory methods.
         private TransformedIterable(final Iterable<M> iterable,
-                final Function<? super M, ? extends N, P> function, final P p) {
+                final Function<? super M, ? extends N, NeverThrowsException> function) {
             this.iterable = iterable;
             this.function = function;
-            this.parameter = p;
         }
 
         @Override
         public Iterator<N> iterator() {
-            return Iterators.transformedIterator(iterable.iterator(), function, parameter);
+            return Iterators.transformedIterator(iterable.iterator(), function);
         }
     }
 
@@ -300,34 +298,6 @@ public final class Iterables {
      *            The type of elements contained in {@code iterable}.
      * @param <N>
      *            The type of elements contained in the returned iterable.
-     * @param <P>
-     *            The type of the additional parameter to the function's
-     *            {@code apply} method. Use {@link java.lang.Void} for functions
-     *            that do not need an additional parameter.
-     * @param iterable
-     *            The iterable to be transformed.
-     * @param function
-     *            The function.
-     * @param p
-     *            A predicate specified parameter.
-     * @return A view of {@code iterable} whose values have been mapped to
-     *         elements of type {@code N} using {@code function}.
-     */
-    public static <M, N, P> Iterable<N> transformedIterable(final Iterable<M> iterable,
-            final Function<? super M, ? extends N, P> function, final P p) {
-        return new TransformedIterable<M, N, P>(iterable, function, p);
-    }
-
-    /**
-     * Returns a view of {@code iterable} whose values have been mapped to
-     * elements of type {@code N} using {@code function}. The returned
-     * iterable's iterator supports element removal via the {@code remove()}
-     * method subject to any constraints imposed by {@code iterable}.
-     *
-     * @param <M>
-     *            The type of elements contained in {@code iterable}.
-     * @param <N>
-     *            The type of elements contained in the returned iterable.
      * @param iterable
      *            The iterable to be transformed.
      * @param function
@@ -336,8 +306,8 @@ public final class Iterables {
      *         elements of type {@code N} using {@code function}.
      */
     public static <M, N> Iterable<N> transformedIterable(final Iterable<M> iterable,
-            final Function<? super M, ? extends N, Void> function) {
-        return new TransformedIterable<M, N, Void>(iterable, function, null);
+            final Function<? super M, ? extends N, NeverThrowsException> function) {
+        return new TransformedIterable<M, N>(iterable, function);
     }
 
     /**
