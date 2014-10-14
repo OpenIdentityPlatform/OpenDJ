@@ -21,12 +21,9 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS.
+ *      Copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
-
-import static com.forgerock.opendj.util.Collections2.transformedCollection;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +33,10 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
+
+import static com.forgerock.opendj.util.Collections2.*;
 
 /**
  * A fluent API for parsing attributes as different types of object. An
@@ -105,7 +106,7 @@ public final class AttributeParser {
      *            The function which should be used to decode the value.
      * @return The first value decoded as a {@code T}.
      */
-    public <T> T as(final Function<ByteString, ? extends T, Void> f) {
+    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f) {
         return as(f, null);
     }
 
@@ -122,9 +123,9 @@ public final class AttributeParser {
      *            The default value to return if the attribute is empty.
      * @return The first value decoded as a {@code T}.
      */
-    public <T> T as(final Function<ByteString, ? extends T, Void> f, final T defaultValue) {
+    public <T> T as(final Function<ByteString, ? extends T, NeverThrowsException> f, final T defaultValue) {
         if (!isEmpty(attribute)) {
-            return f.apply(attribute.firstValue(), null);
+            return f.apply(attribute.firstValue());
         } else {
             return defaultValue;
         }
@@ -329,12 +330,12 @@ public final class AttributeParser {
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, Void> f,
+    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
             final Collection<? extends T> defaultValues) {
         if (!isEmpty(attribute)) {
             final LinkedHashSet<T> result = new LinkedHashSet<T>(attribute.size());
             for (final ByteString b : attribute) {
-                result.add(f.apply(b, null));
+                result.add(f.apply(b));
             }
             return result;
         } else if (defaultValues != null) {
@@ -357,7 +358,7 @@ public final class AttributeParser {
      *            The default values to return if the attribute is empty.
      * @return The values decoded as a set of {@code T}s.
      */
-    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, Void> f,
+    public <T> Set<T> asSetOf(final Function<ByteString, ? extends T, NeverThrowsException> f,
             final T... defaultValues) {
         return asSetOf(f, Arrays.asList(defaultValues));
     }

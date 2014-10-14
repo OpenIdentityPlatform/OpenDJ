@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.requests;
 
 import java.util.Collections;
@@ -33,11 +32,12 @@ import java.util.List;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Collections2;
 
@@ -69,17 +69,14 @@ final class UnmodifiableModifyRequestImpl extends AbstractUnmodifiableRequest<Mo
     @Override
     public List<Modification> getModifications() {
         // We need to make all attributes unmodifiable as well.
-        final Function<Modification, Modification, Void> function =
-                new Function<Modification, Modification, Void>() {
-
+        final Function<Modification, Modification, NeverThrowsException> function =
+                new Function<Modification, Modification, NeverThrowsException>() {
                     @Override
-                    public Modification apply(final Modification value, final Void p) {
+                    public Modification apply(final Modification value) {
                         final ModificationType type = value.getModificationType();
-                        final Attribute attribute =
-                                Attributes.unmodifiableAttribute(value.getAttribute());
+                        final Attribute attribute = Attributes.unmodifiableAttribute(value.getAttribute());
                         return new Modification(type, attribute);
                     }
-
                 };
 
         final List<Modification> unmodifiableModifications =

@@ -11,22 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2012-2013 ForgeRock AS.
+ * Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
-import static org.forgerock.opendj.ldap.Functions.fixedFunction;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.base64ToByteString;
-import static org.forgerock.opendj.rest2ldap.Utils.byteStringToBase64;
-import static org.forgerock.opendj.rest2ldap.Utils.byteStringToJson;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
-import static org.forgerock.opendj.rest2ldap.Utils.jsonToAttribute;
-import static org.forgerock.opendj.rest2ldap.Utils.jsonToByteString;
-import static org.forgerock.opendj.rest2ldap.Utils.toFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,15 +28,22 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.Function;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
+
+import static java.util.Collections.*;
+
+import static org.forgerock.opendj.ldap.Filter.*;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
+import static org.forgerock.opendj.rest2ldap.Utils.*;
 
 /**
  * An attribute mapper which provides a simple mapping from a JSON value to a
  * single LDAP attribute.
  */
 public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<SimpleAttributeMapper> {
-    private Function<ByteString, ?, Void> decoder = null;
-    private Function<Object, ByteString, Void> encoder = null;
+    private Function<ByteString, ?, NeverThrowsException> decoder;
+    private Function<Object, ByteString, NeverThrowsException> encoder;
 
     SimpleAttributeMapper(final AttributeDescription ldapAttributeName) {
         super(ldapAttributeName);
@@ -63,7 +57,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
      *            The function to use for decoding LDAP attribute values.
      * @return This attribute mapper.
      */
-    public SimpleAttributeMapper decoder(final Function<ByteString, ?, Void> f) {
+    public SimpleAttributeMapper decoder(final Function<ByteString, ?, NeverThrowsException> f) {
         this.decoder = f;
         return this;
     }
@@ -89,7 +83,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
      *            The function to use for encoding LDAP attribute values.
      * @return This attribute mapper.
      */
-    public SimpleAttributeMapper encoder(final Function<Object, ByteString, Void> f) {
+    public SimpleAttributeMapper encoder(final Function<Object, ByteString, NeverThrowsException> f) {
         this.encoder = f;
         return this;
     }
@@ -123,7 +117,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
         if (subPath.isEmpty()) {
             try {
                 final ByteString va =
-                        valueAssertion != null ? encoder().apply(valueAssertion, null) : null;
+                        valueAssertion != null ? encoder().apply(valueAssertion) : null;
                 h.handleResult(toFilter(c, type, ldapAttributeName.toString(), va));
             } catch (final Exception e) {
                 // Invalid assertion value - bad request.
@@ -176,12 +170,12 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
         }
     }
 
-    private Function<ByteString, ? extends Object, Void> decoder() {
-        return decoder == null ? fixedFunction(byteStringToJson(), ldapAttributeName) : decoder;
+    private Function<ByteString, ? extends Object, NeverThrowsException> decoder() {
+        return decoder == null ? byteStringToJson(ldapAttributeName) : decoder;
     }
 
-    private Function<Object, ByteString, Void> encoder() {
-        return encoder == null ? fixedFunction(jsonToByteString(), ldapAttributeName) : encoder;
+    private Function<Object, ByteString, NeverThrowsException> encoder() {
+        return encoder == null ? jsonToByteString(ldapAttributeName) : encoder;
     }
 
 }

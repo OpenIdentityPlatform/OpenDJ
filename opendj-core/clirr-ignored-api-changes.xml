@@ -339,4 +339,48 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <differenceType>8001</differenceType>
     <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Functions</className>
+    <differenceType>7002</differenceType>
+    <method>*composeFirstP(*)</method>
+    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Functions</className>
+    <differenceType>7002</differenceType>
+    <method>*composeSecondP(*)</method>
+    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Functions</className>
+    <differenceType>7002</differenceType>
+    <method>*fixedFunction(*)</method>
+    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Function</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/AttributeParser</className>
+    <differenceType>7005</differenceType>
+    <method>*as*(org.forgerock.opendj.ldap.Function*)</method>
+    <to>*as*(org.forgerock.util.promise.Function*)</to>
+    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Functions</className>
+    <differenceType>7005</differenceType>
+    <method>*compose(org.forgerock.opendj.ldap.Function, org.forgerock.opendj.ldap.Function)</method>
+    <to>*compose(org.forgerock.util.promise.Function, org.forgerock.util.promise.Function)</to>
+    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Functions</className>
+    <differenceType>7006</differenceType>
+    <method>*</method>
+    <to>org.forgerock.util.promise.Function</to>
+    <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
 </differences>

@@ -24,12 +24,7 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap;
-
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static org.forgerock.opendj.ldap.LdapException.newLdapException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,8 +48,15 @@ import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 import com.forgerock.opendj.util.Iterables;
+
+import static org.forgerock.opendj.ldap.AttributeDescription.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class contains methods for creating and manipulating entries.
@@ -407,11 +409,10 @@ public final class Entries {
     private static final AttributeFilter USER_ATTRIBUTES_ONLY_FILTER = new AttributeFilter();
     private static final DiffOptions DEFAULT_DIFF_OPTIONS = new DiffOptions();
 
-    private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
-            new Function<Attribute, Attribute, Void>() {
-
+    private static final Function<Attribute, Attribute, NeverThrowsException> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
+            new Function<Attribute, Attribute, NeverThrowsException>() {
                 @Override
-                public Attribute apply(final Attribute value, final Void p) {
+                public Attribute apply(final Attribute value) {
                     return Attributes.unmodifiableAttribute(value);
                 }
 

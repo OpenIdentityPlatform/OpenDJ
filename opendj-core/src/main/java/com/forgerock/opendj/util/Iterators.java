@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -29,7 +30,8 @@ package com.forgerock.opendj.util;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.forgerock.opendj.ldap.Function;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 
 /**
  * Utility methods for manipulating {@link Iterator}s.
@@ -39,21 +41,17 @@ public final class Iterators {
         private int i = 0;
         private final M[] a;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private ArrayIterator(final M[] a) {
             this.a = a;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasNext() {
             return i < a.length;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public M next() {
             if (hasNext()) {
                 return a[i++];
@@ -62,9 +60,7 @@ public final class Iterators {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void remove() {
             throw new UnsupportedOperationException();
         }
@@ -72,23 +68,17 @@ public final class Iterators {
     }
 
     private static final class EmptyIterator<M> implements Iterator<M> {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasNext() {
             return false;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public M next() {
             throw new NoSuchElementException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void remove() {
             throw new UnsupportedOperationException();
         }
@@ -103,7 +93,7 @@ public final class Iterators {
         private final P parameter;
         private final Predicate<? super M, P> predicate;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private FilteredIterator(final Iterator<M> iterator,
                 final Predicate<? super M, P> predicate, final P p) {
             this.iterator = iterator;
@@ -111,9 +101,7 @@ public final class Iterators {
             this.parameter = p;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasNext() {
             if (hasNextMustIterate) {
                 hasNextMustIterate = false;
@@ -130,9 +118,7 @@ public final class Iterators {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public M next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
@@ -141,9 +127,7 @@ public final class Iterators {
             return next;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void remove() {
             iterator.remove();
         }
@@ -153,21 +137,17 @@ public final class Iterators {
     private static final class SingletonIterator<M> implements Iterator<M> {
         private M value;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private SingletonIterator(final M value) {
             this.value = value;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasNext() {
             return value != null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public M next() {
             if (value != null) {
                 final M tmp = value;
@@ -178,46 +158,36 @@ public final class Iterators {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void remove() {
             throw new UnsupportedOperationException();
         }
 
     }
 
-    private static final class TransformedIterator<M, N, P> implements Iterator<N> {
+    private static final class TransformedIterator<M, N> implements Iterator<N> {
 
-        private final Function<? super M, ? extends N, P> function;
+        private final Function<? super M, ? extends N, NeverThrowsException> function;
         private final Iterator<M> iterator;
-        private final P parameter;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private TransformedIterator(final Iterator<M> iterator,
-                final Function<? super M, ? extends N, P> function, final P p) {
+                final Function<? super M, ? extends N, NeverThrowsException> function) {
             this.iterator = iterator;
             this.function = function;
-            this.parameter = p;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public N next() {
-            return function.apply(iterator.next(), parameter);
+            return function.apply(iterator.next());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void remove() {
             iterator.remove();
         }
@@ -231,23 +201,17 @@ public final class Iterators {
             this.iterator = iterator;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasNext() {
             return iterator.hasNext();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public M next() {
             return iterator.next();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void remove() {
             throw new UnsupportedOperationException();
         }
@@ -353,34 +317,6 @@ public final class Iterators {
      *            The type of elements contained in {@code iterator}.
      * @param <N>
      *            The type of elements contained in the returned iterator.
-     * @param <P>
-     *            The type of the additional parameter to the function's
-     *            {@code apply} method. Use {@link java.lang.Void} for functions
-     *            that do not need an additional parameter.
-     * @param iterator
-     *            The iterator to be transformed.
-     * @param function
-     *            The function.
-     * @param p
-     *            A predicate specified parameter.
-     * @return A view of {@code iterator} whose values have been mapped to
-     *         elements of type {@code N} using {@code function}.
-     */
-    public static <M, N, P> Iterator<N> transformedIterator(final Iterator<M> iterator,
-            final Function<? super M, ? extends N, P> function, final P p) {
-        return new TransformedIterator<M, N, P>(iterator, function, p);
-    }
-
-    /**
-     * Returns a view of {@code iterator} whose values have been mapped to
-     * elements of type {@code N} using {@code function}. The returned iterator
-     * supports element removal via the {@code remove()} method subject to any
-     * constraints imposed by {@code iterator}.
-     *
-     * @param <M>
-     *            The type of elements contained in {@code iterator}.
-     * @param <N>
-     *            The type of elements contained in the returned iterator.
      * @param iterator
      *            The iterator to be transformed.
      * @param function
@@ -389,8 +325,8 @@ public final class Iterators {
      *         elements of type {@code N} using {@code function}.
      */
     public static <M, N> Iterator<N> transformedIterator(final Iterator<M> iterator,
-            final Function<? super M, ? extends N, Void> function) {
-        return new TransformedIterator<M, N, Void>(iterator, function, null);
+            final Function<? super M, ? extends N, NeverThrowsException> function) {
+        return new TransformedIterator<M, N>(iterator, function);
     }
 
     /**
@@ -410,7 +346,7 @@ public final class Iterators {
         return new UnmodifiableIterator<M>(iterator);
     }
 
-    // Prevent instantiation
+    /** Prevent instantiation. */
     private Iterators() {
         // Do nothing.
     }

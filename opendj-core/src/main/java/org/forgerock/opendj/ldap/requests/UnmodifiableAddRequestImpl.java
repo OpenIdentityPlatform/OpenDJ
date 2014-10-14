@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.requests;
 
 import java.util.Collection;
@@ -35,9 +34,10 @@ import org.forgerock.opendj.ldap.AttributeParser;
 import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.Function;
-import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
+import org.forgerock.opendj.ldif.ChangeRecordVisitor;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.NeverThrowsException;
 import com.forgerock.opendj.util.Iterables;
 
 /**
@@ -45,14 +45,12 @@ import com.forgerock.opendj.util.Iterables;
  */
 final class UnmodifiableAddRequestImpl extends AbstractUnmodifiableRequest<AddRequest> implements
         AddRequest {
-    private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
-            new Function<Attribute, Attribute, Void>() {
-
+    private static final Function<Attribute, Attribute, NeverThrowsException> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
+            new Function<Attribute, Attribute, NeverThrowsException>() {
                 @Override
-                public Attribute apply(final Attribute value, final Void p) {
+                public Attribute apply(final Attribute value) {
                     return Attributes.unmodifiableAttribute(value);
                 }
-
             };
 
     UnmodifiableAddRequestImpl(final AddRequest impl) {
