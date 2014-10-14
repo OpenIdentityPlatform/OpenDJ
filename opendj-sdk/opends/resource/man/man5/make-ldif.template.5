@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: make-ldif.template
 .\"    Author: 
-.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 05/16/2013
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 10/13/2014
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.6.0
+.\"    Source: OpenDJ 3.0.0-SNAPSHOT
 .\"  Language: English
 .\"
-.TH "MAKE\-LDIF\&.TEMPLAT" "5" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.TH "MAKE\-LDIF\&.TEMPLATE" "5" "10/13/2014" "OpenDJ 3\&.0\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -33,6 +33,10 @@ make-ldif.template \- template file for the make\-ldif command
 .sp
 .nf
 # Comment lines start with #\&.
+#
+# Notice that this synopsis includes blank lines after entries\&.
+# In the same way you would use blank lines after entries in normal LDIF,
+# leave empty lines after "entries" in template files\&.
 
 # Optionally include classes that define custom tags\&.
 # Custom tag classes extend org\&.opends\&.server\&.tools\&.makeldif\&.Tag and
@@ -171,8 +175,7 @@ OpenDJ supports the following tags\&.
 <DN>
 .RS 4
 The DN tag gets replaced by the distinguished name of the current entry\&. An optional integer argument specifies the subcomponents of the DN to generate\&. For example, if the DN of the entry is
-uid=bjensen,ou=People,dc=example,dc=com
-<DN:1>
+uid=bjensen,ou=People,dc=example,dc=com<DN:1>
 gets replaced by
 uid=bjensen, and
 <DN:\-2>
@@ -534,5 +537,5 @@ description: This is the description for {cn}\&.
 /path/to/opendj/config/MakeLDIF/example\&.template
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2012-2013 ForgeRock AS
+Copyright \(co 2012-2014 ForgeRock AS
 .br
