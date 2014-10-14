@@ -50,6 +50,10 @@
 
  <refsynopsisdiv>
   <synopsis># Comment lines start with #.
+#
+# Notice that this synopsis includes blank lines after entries.
+# In the same way you would use blank lines after entries in normal LDIF,
+# leave empty lines after "entries" in template files.
 
 # Optionally define constants used in the template.
 # To reference constants later, put brackets around the name: [constant-name]
