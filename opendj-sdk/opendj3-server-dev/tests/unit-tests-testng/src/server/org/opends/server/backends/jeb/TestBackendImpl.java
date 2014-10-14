@@ -41,7 +41,8 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -62,6 +63,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ConditionResult.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.types.Attributes.*;
 import static org.testng.Assert.*;
 
@@ -574,35 +576,27 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = "testAdd")
   public void testSearchScope() throws Exception {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
-    InternalSearchOperation search =
-        conn.processSearch(DN.valueOf("dc=test,dc=com"), SearchScope.BASE_OBJECT,
-            LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+    InternalSearchOperation search = conn.processSearch("dc=test,dc=com", SearchScope.BASE_OBJECT, "(objectClass=*)");
     List<SearchResultEntry> result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
     assertEquals(result.get(0).getName().toString(), "dc=test,dc=com");
 
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.BASE_OBJECT, LDAPFilter.decode("(ou=People)").toSearchFilter());
+    search = conn.processSearch("dc=test,dc=com", SearchScope.BASE_OBJECT, "(ou=People)");
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 0);
 
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.SINGLE_LEVEL,
-        LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+    search = conn.processSearch("dc=test,dc=com", SearchScope.SINGLE_LEVEL, "(objectClass=*)");
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
     assertEquals(result.get(0).getName().toString(),
         "ou=People,dc=test,dc=com");
 
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.SUBORDINATES,
-        LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+    search = conn.processSearch("dc=test,dc=com", SearchScope.SUBORDINATES, "(objectClass=*)");
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 13);
@@ -610,9 +604,7 @@ public class TestBackendImpl extends JebTestCase {
       assertThat(entry.getName().toString()).isNotEqualTo("dc=test,dc=com");
     }
 
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.WHOLE_SUBTREE,
-        LDAPFilter.decode("(objectClass=*)").toSearchFilter());
+    search = conn.processSearch("dc=test,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 14);
@@ -712,15 +704,9 @@ public class TestBackendImpl extends JebTestCase {
   private List<SearchResultEntry> doSubtreeSearch(InternalClientConnection conn, String filter,
       Set<String> attribs) throws Exception
   {
-    InternalSearchOperation search =
-        conn.processSearch(DN.valueOf("dc=test,dc=com"),
-            SearchScope.WHOLE_SUBTREE,
-            DereferenceAliasesPolicy.NEVER,
-            0,
-            0,
-            false,
-            LDAPFilter.decode(filter).toSearchFilter(),
-            attribs);
+    final SearchRequest request =
+        newSearchRequest("dc=test,dc=com", SearchScope.WHOLE_SUBTREE, filter).addAttribute(attribs);
+    InternalSearchOperation search = conn.processSearch(request);
     return search.getSearchEntries();
   }
 
@@ -1255,20 +1241,9 @@ public class TestBackendImpl extends JebTestCase {
     assertFalse(orfound);
     assertTrue(apfound);
 
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    Set<String> attribs = new LinkedHashSet<String>();
-    attribs.add(ATTR_DEBUG_SEARCH_INDEX);
-
-    InternalSearchOperation search =
-        conn.processSearch(DN.valueOf("dc=test,dc=com"),
-                           SearchScope.SUBORDINATES,
-                           DereferenceAliasesPolicy.NEVER,
-                           0,
-                           0,
-                           false,
-                           LDAPFilter.decode("(givenName~=Aaccf)").toSearchFilter(),
-                           attribs);
+    final SearchRequest request = newSearchRequest("dc=test,dc=com", SearchScope.SUBORDINATES, "(givenName~=Aaccf)")
+        .addAttribute(ATTR_DEBUG_SEARCH_INDEX);
+    InternalSearchOperation search = getRootConnection().processSearch(request);
 
     List<SearchResultEntry> result = search.getSearchEntries();
 
@@ -1422,8 +1397,6 @@ public class TestBackendImpl extends JebTestCase {
     assertEquals(resultCode, 0);
   }
 
-
-
   @Test(dependsOnMethods = {"testDeleteEntry", "testSearchScope",
       "testSearchIndex", "testMatchedDN"})
   public void testSearchNotIndexed() throws Exception {
@@ -1433,21 +1406,9 @@ public class TestBackendImpl extends JebTestCase {
       assertNotNull(backend.getEntry(entry.getName()));
     }
 
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    Set<String> attribs = new LinkedHashSet<String>();
-    attribs.add(ATTR_DEBUG_SEARCH_INDEX);
-
-    InternalSearchOperation search =
-        conn.processSearch(DN.valueOf("dc=test,dc=com"),
-            SearchScope.SUBORDINATES,
-            DereferenceAliasesPolicy.NEVER,
-            0,
-            0,
-            false,
-            LDAPFilter.decode("(carLicense=377*)").toSearchFilter(),
-            attribs);
-
+    final SearchRequest request = newSearchRequest("dc=test,dc=com", SearchScope.SUBORDINATES, "(carLicense=377*)")
+        .addAttribute(ATTR_DEBUG_SEARCH_INDEX);
+    InternalSearchOperation search = getRootConnection().processSearch(request);
     List<SearchResultEntry> result = search.getSearchEntries();
 
     //No indexes should be used.
@@ -1524,17 +1485,14 @@ public class TestBackendImpl extends JebTestCase {
     ResultCode expectedResultCode
     ) throws Exception
   {
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    // Filter for the search
-    SearchFilter filter = LDAPFilter.decode("(objectClass=*)").toSearchFilter();
+    InternalClientConnection conn = getRootConnection();
+    SearchFilter filter = SearchFilter.createFilterFromString("(objectClass=*)");
 
     // Test is performed with each and every scope
     for (SearchScope scope: SearchScope.values())
     {
-      InternalSearchOperation searchOperation =
-        conn.processSearch(searchBaseDN, scope, filter);
+      final SearchRequest request = newSearchRequest(searchBaseDN, scope, filter);
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
       assertEquals(searchOperation.getResultCode(), expectedResultCode);
       assertEquals(searchOperation.getMatchedDN(), expectedMatchedDN);

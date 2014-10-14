@@ -40,12 +40,15 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -298,17 +301,9 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     String uuidString = UUID.nameUUIDFromBytes(
                              getBytes(entryDN.toNormalizedString())).toString();
 
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(entryUUID=" + uuidString + ")");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entryuuid");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(entryUUID=" + uuidString + ")")
+        .addAttribute("entryuuid");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -331,17 +326,9 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testSearchEntryUUIDAttrInNonMatchingFilter(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(entryUUID=wrong)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entryuuid");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(entryUUID=wrong)")
+        .addAttribute("entryuuid");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
 

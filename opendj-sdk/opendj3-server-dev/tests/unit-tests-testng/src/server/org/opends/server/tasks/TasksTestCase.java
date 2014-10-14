@@ -38,10 +38,11 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.AttributeParser;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.SearchFilter;
 import org.testng.annotations.Test;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -72,8 +73,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
                  "Add of the task definition was not successful");
 
     // Wait until the task completes.
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectclass=*)");
+    final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
     Entry resultEntry = null;
     String completionTime = null;
     long startMillisecs = System.currentTimeMillis();
@@ -81,10 +81,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
     do
     {
       Thread.sleep(100);
-      InternalSearchOperation searchOperation =
-           connection.processSearch(taskEntry.getName(),
-                                    SearchScope.BASE_OBJECT,
-                                    filter);
+      InternalSearchOperation searchOperation = connection.processSearch(request);
       resultEntry = searchOperation.getSearchEntries().getFirst();
       completionTime = parseAttribute(resultEntry, ATTR_TASK_COMPLETION_TIME).asString();
       timedOut = System.currentTimeMillis() - startMillisecs > 1000 * timeout;

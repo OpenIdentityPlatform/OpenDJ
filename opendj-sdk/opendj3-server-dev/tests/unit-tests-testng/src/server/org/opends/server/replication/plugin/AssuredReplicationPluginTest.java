@@ -44,6 +44,8 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
@@ -1467,7 +1469,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       if (count++>0)
         Thread.sleep(100);
-      op = connection.processSearch(dn, SearchScope.WHOLE_SUBTREE, monitorFilter);
+      final SearchRequest request = newSearchRequest(dn, SearchScope.WHOLE_SUBTREE, monitorFilter);
+      op = connection.processSearch(request);
     }
     while (op.getSearchEntries().isEmpty() && count < 100);
 

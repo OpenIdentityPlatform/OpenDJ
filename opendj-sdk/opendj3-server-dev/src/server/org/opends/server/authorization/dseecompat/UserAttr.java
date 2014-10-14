@@ -26,20 +26,20 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 
 import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 
 /*
  * TODO Evaluate making this class more efficient.
@@ -207,13 +207,8 @@ public class UserAttr implements KeywordBindRule {
         AttributeType attrType;
         if((attrType = DirectoryServer.getAttributeType(attrStr)) == null)
             attrType = DirectoryServer.getDefaultAttributeType(attrStr);
-        InternalClientConnection conn =
-                InternalClientConnection.getRootConnection();
-        InternalSearchOperation op =
-                conn.processSearch(evalCtx.getClientDN(),
-                        SearchScope.BASE_OBJECT,
-                        DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                        filter, null);
+        final SearchRequest request = newSearchRequest(evalCtx.getClientDN(), SearchScope.BASE_OBJECT, filter);
+        InternalSearchOperation op = getRootConnection().processSearch(request);
         LinkedList<SearchResultEntry> result = op.getSearchEntries();
         if (!result.isEmpty()) {
             ByteString val= ByteString.valueOf(attrVal);
@@ -344,20 +339,13 @@ public class UserAttr implements KeywordBindRule {
                         stop=true;
                 }
             } else {
-                DN pDN=
-                        getDNParentLevel(levels[i], evalCtx.getResourceDN());
+                DN pDN = getDNParentLevel(levels[i], evalCtx.getResourceDN());
                 if(pDN == null)
                     continue;
-                LinkedHashSet<String> reqAttrs = new LinkedHashSet<String>(1);
-                reqAttrs.add(parentInheritance.getAttrTypeStr());
-                InternalClientConnection conn =
-                        InternalClientConnection.getRootConnection();
-                InternalSearchOperation op = conn.processSearch(pDN,
-                        SearchScope.BASE_OBJECT,
-                        DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                        filter, reqAttrs);
-                LinkedList<SearchResultEntry> result =
-                        op.getSearchEntries();
+                final SearchRequest request = newSearchRequest(pDN, SearchScope.BASE_OBJECT, filter)
+                    .addAttribute(parentInheritance.getAttrTypeStr());
+                InternalSearchOperation op = getRootConnection().processSearch(request);
+                LinkedList<SearchResultEntry> result = op.getSearchEntries();
                 if (!result.isEmpty()) {
                     Entry e = result.getFirst();
                     if(e.hasAttribute(attrType)) {

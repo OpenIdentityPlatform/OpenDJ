@@ -27,25 +27,28 @@
 package org.opends.server.extensions;
 
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
@@ -198,30 +201,10 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
   private long getTimeValueFromAttribute(String attributeName)
     throws Exception
   {
-    // Establish the internal connection as root
-
-    InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-    assertNotNull(conn);
-
-    // Define the attribute to be returned
-
-    LinkedHashSet<String> retAttr = new  LinkedHashSet<String>();
-    retAttr.add(attributeName);
-    retAttr.add("pwdpolicysubentry");
-
     // Process the search request
-
-    InternalSearchOperation search =
-      conn.processSearch(notExpired.getName().toString(),
-                         SearchScope.BASE_OBJECT,
-                         DereferenceAliasesPolicy.ALWAYS,
-                         0,
-                         0,
-                         false,
-                         "(objectclass=*)",
-                         retAttr);
+    SearchRequest request = newSearchRequest(notExpired.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)")
+        .addAttribute(attributeName, "pwdpolicysubentry");
+    InternalSearchOperation search = getRootConnection().processSearch(request);
     assertEquals(search.getResultCode(), ResultCode.SUCCESS);
 
     LinkedList<SearchResultEntry> entries = search.getSearchEntries();
@@ -243,7 +226,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
 
     ByteString val = it.next();
 
-    conn.disconnect(DisconnectReason.UNBIND, true, LocalizableMessage.EMPTY);
+    getRootConnection().disconnect(DisconnectReason.UNBIND, true, LocalizableMessage.EMPTY);
 
     return GeneralizedTimeSyntax.decodeGeneralizedTimeValue(val);
   }

@@ -37,7 +37,6 @@ import java.util.SortedSet;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -52,8 +51,9 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -140,13 +140,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   /** The port of the replicationServer. */
   private int replicationServerPort;
-
-  /**
-   * When used in a search operation, it includes all attributes (user and
-   * operational)
-   */
-  private static final Set<String> ALL_ATTRIBUTES = newSet("*", "+");
-  private static final List<Control> NO_CONTROL = null;
 
   @BeforeClass
   @Override
@@ -1093,53 +1086,48 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       throws Exception
   {
     debugInfo(testName, "Search with cookie=[" + cookie + "] filter=[" + filterString + "]");
-    return searchChangelog(filterString, ALL_ATTRIBUTES, createCookieControl(cookie),
-        expectedNbEntries, expectedResultCode, testName);
+    SearchRequest request = newSearchRequest(filterString).addControl(createCookieControl(cookie));
+    return searchChangelog(request, expectedNbEntries, expectedResultCode, testName);
   }
 
   private InternalSearchOperation searchChangelog(String filterString, int expectedNbEntries,
       ResultCode expectedResultCode, String testName) throws Exception
   {
-    return searchChangelog(filterString, ALL_ATTRIBUTES, NO_CONTROL, expectedNbEntries, expectedResultCode, testName);
+    SearchRequest request = newSearchRequest(filterString);
+    return searchChangelog(request, expectedNbEntries, expectedResultCode, testName);
   }
 
-  private InternalSearchOperation searchChangelog(String filterString, Set<String> attributes,
-      List<Control> controls, int expectedNbEntries, ResultCode expectedResultCode, String testName) throws Exception
+  private SearchRequest newSearchRequest(String filterString) throws DirectoryException
   {
-    InternalSearchOperation searchOperation = null;
-    int sizeLimitZero = 0;
-    int timeLimitZero = 0;
-    InternalSearchListener noSearchListener = null;
+    return Requests.newSearchRequest("cn=changelog", SearchScope.WHOLE_SUBTREE, filterString)
+        .addAttribute("*", "+"); // all user and operational attributes
+  }
+
+  private InternalSearchOperation searchChangelog(SearchRequest request, int expectedNbEntries,
+      ResultCode expectedResultCode, String testName) throws Exception
+  {
+    InternalSearchOperation searchOp = null;
     int count = 0;
     do
     {
       Thread.sleep(10);
-      boolean typesOnlyFalse = false;
-      searchOperation = connection.processSearch("cn=changelog", SearchScope.WHOLE_SUBTREE,
-          DereferenceAliasesPolicy.NEVER, sizeLimitZero, timeLimitZero, typesOnlyFalse, filterString,
-          attributes, controls, noSearchListener);
+      searchOp = connection.processSearch(request);
       count++;
     }
-    while (count < 300 && searchOperation.getSearchEntries().size() != expectedNbEntries);
+    while (count < 300 && searchOp.getSearchEntries().size() != expectedNbEntries);
 
-    final List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+    final List<SearchResultEntry> entries = searchOp.getSearchEntries();
     assertThat(entries).hasSize(expectedNbEntries);
     debugAndWriteEntries(getLDIFWriter(), entries, testName);
-    waitForSearchOpResult(searchOperation, expectedResultCode);
-    return searchOperation;
+    waitForSearchOpResult(searchOp, expectedResultCode);
+    return searchOp;
   }
 
   private InternalSearchOperation searchDNWithBaseScope(String dn, Set<String> attributes) throws Exception
   {
-    final InternalSearchOperation searchOp = connection.processSearch(
-        dn,
-        SearchScope.BASE_OBJECT,
-        DereferenceAliasesPolicy.NEVER,
-        0,     // Size limit
-        0,     // Time limit
-        false, // Types only
-        "(objectclass=*)",
-        attributes);
+    SearchRequest request = Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, "(objectclass=*)")
+        .addAttribute(attributes);
+    final InternalSearchOperation searchOp = connection.processSearch(request);
     waitForSearchOpResult(searchOp, ResultCode.SUCCESS);
     return searchOp;
   }

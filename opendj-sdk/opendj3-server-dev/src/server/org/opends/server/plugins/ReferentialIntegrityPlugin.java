@@ -45,8 +45,8 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -62,20 +62,22 @@ import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
-import org.opends.server.types.operation.SubordinateModifyDNOperation;
-import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
+import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.operation.SubordinateModifyDNOperation;
 
 import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -699,11 +701,9 @@ public class ReferentialIntegrityPlugin
           ByteString.valueOf(oldEntryDN.toString())));
     }
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation operation = conn.processSearch(baseDN,
-         SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.NEVER, 0, 0,
-         false, SearchFilter.createORFilter(componentFilters), null);
+    SearchFilter orFilter = SearchFilter.createORFilter(componentFilters);
+    final SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, orFilter);
+    InternalSearchOperation operation = getRootConnection().processSearch(request);
 
     switch (operation.getResultCode().asEnum())
     {

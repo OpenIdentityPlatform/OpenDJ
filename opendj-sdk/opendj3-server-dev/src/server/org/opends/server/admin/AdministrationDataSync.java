@@ -26,26 +26,23 @@
  */
 package org.opends.server.admin;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 
@@ -266,13 +263,21 @@ public final class AdministrationDataSync
    */
   private String getAttr(String baseDN, String attrName)
   {
-    // Prepare the ldap search
-    LDAPFilter filter;
+    InternalSearchOperation search;
     try
     {
-      filter = LDAPFilter.decode("objectclass=*");
+      SearchRequest request = Requests.newSearchRequest(baseDN, SearchScope.BASE_OBJECT, "objectclass=*")
+          .addAttribute(attrName);
+      search = internalConnection.processSearch(request);
+      if (search.getResultCode() != ResultCode.SUCCESS)
+      {
+        // can not happen
+        // best effort.
+        // TODO Log an Error.
+        return null;
+      }
     }
-    catch (LDAPException e)
+    catch (DirectoryException e)
     {
       // can not happen
       // best effort.
@@ -280,25 +285,8 @@ public final class AdministrationDataSync
       return null;
     }
 
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
-    attributes.add(attrName);
-    InternalSearchOperation search = internalConnection.processSearch(
-        ByteString.valueOf(baseDN), SearchScope.BASE_OBJECT,
-        DereferenceAliasesPolicy.ALWAYS, 0, 0, false, filter, attributes);
-
-    if ((search.getResultCode() != ResultCode.SUCCESS))
-    {
-      // can not happen
-      // best effort.
-      // TODO Log an Error.
-      return null;
-    }
-
+    // Read the port from the PORT attribute
     SearchResultEntry adminConnectorEntry = null;
-
-    /*
-     * Read the port from the PORT attribute
-     */
     LinkedList<SearchResultEntry> result = search.getSearchEntries();
     if (!result.isEmpty())
     {
@@ -312,7 +300,6 @@ public final class AdministrationDataSync
     }
 
     List<Attribute> attrs = adminConnectorEntry.getAttribute(attrType);
-
     if (attrs == null)
     {
       // can not happen

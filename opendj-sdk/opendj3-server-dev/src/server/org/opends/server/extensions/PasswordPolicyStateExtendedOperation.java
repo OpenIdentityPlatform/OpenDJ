@@ -33,24 +33,25 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.PasswordPolicyStateExtendedOperationHandlerCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
@@ -576,12 +577,10 @@ public class PasswordPolicyStateExtendedOperation
                               ExtendedOperation operation,
                               DN targetDN)
   {
-    Entry entry;
-
-    InternalSearchOperation internalSearch =
-         conn.processSearch(targetDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 1, 0,
-                            false, userFilter, requestAttributes, null);
+    final SearchRequest request = newSearchRequest(targetDN, SearchScope.BASE_OBJECT, userFilter)
+        .setSizeLimit(1)
+        .addAttribute(requestAttributes);
+    InternalSearchOperation internalSearch = conn.processSearch(request);
     if (internalSearch.getResultCode() != ResultCode.SUCCESS)
     {
       operation.setResultCode(internalSearch.getResultCode());
@@ -605,11 +604,8 @@ public class PasswordPolicyStateExtendedOperation
     }
     else
     {
-      entry = matchingEntries.get(0);
+      return matchingEntries.get(0);
     }
-
-    return entry;
-
   }
 
   /**

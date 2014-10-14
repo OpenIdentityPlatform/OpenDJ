@@ -55,7 +55,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -72,6 +71,8 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -94,6 +95,7 @@ import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -507,14 +509,10 @@ public class CryptoManagerImpl
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
     // Construct the attribute list.
-    final LinkedHashSet<String> requestedAttributes
-            = new LinkedHashSet<String>();
-    requestedAttributes.add(
-            attrPublicKeyCertificate.getNameOrOID() + ";binary");
+    String requestedAttribute = attrPublicKeyCertificate.getNameOrOID() + ";binary";
 
     // Retrieve the certificate from the entry.
-    final InternalClientConnection icc
-            = InternalClientConnection.getRootConnection();
+    final InternalClientConnection icc = getRootConnection();
     byte[] certificate = null;
     try {
       for (int i = 0; i < 2; ++i) {
@@ -523,15 +521,9 @@ public class CryptoManagerImpl
              backend, add it using a special object class that induces
              the backend to create the public-key certificate
              attribute, then repeat the search. */
-          InternalSearchOperation searchOp = icc.processSearch(
-                  entryDN,
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER,
-                  /* size limit */ 0, /* time limit */ 0,
-                  /* types only */ false,
-                  SearchFilter.createFilterFromString(
-                          FILTER_OC_INSTANCE_KEY),
-                  requestedAttributes);
+          final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, FILTER_OC_INSTANCE_KEY)
+              .addAttribute(requestedAttribute);
+          InternalSearchOperation searchOp = icc.processSearch(request);
           for (Entry e : searchOp.getSearchEntries()) {
             /* attribute ds-cfg-public-key-certificate is a MUST in
                the schema */
@@ -633,46 +625,31 @@ public class CryptoManagerImpl
    */
   static void publishInstanceKeyEntryInADS()
           throws CryptoManagerException {
-    final byte[] instanceKeyCertificate
-            = getInstanceKeyCertificateFromLocalTruststore();
-    final String instanceKeyID
-            = getInstanceKeyID(instanceKeyCertificate);
+    final byte[] instanceKeyCertificate = getInstanceKeyCertificateFromLocalTruststore();
+    final String instanceKeyID = getInstanceKeyID(instanceKeyCertificate);
     // Construct the key entry DN.
     final ByteString distinguishedValue = ByteString.valueOf(instanceKeyID);
     final DN entryDN = instanceKeysDN.child(
          RDN.create(attrKeyID, distinguishedValue));
-    // Construct the search filter.
-    final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
-    // Construct the attribute list.
-    final LinkedHashSet<String> requestedAttributes
-            = new LinkedHashSet<String>();
-    requestedAttributes.add("dn");
 
     // Check for the entry. If it does not exist, create it.
-    final InternalClientConnection icc
-            = InternalClientConnection.getRootConnection();
+    final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
+    final InternalClientConnection icc = getRootConnection();
     try {
-      final InternalSearchOperation searchOp
-              = icc.processSearch( entryDN, SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER,
-              /* size limit */ 0, /* time limit */ 0,
-              /* types only */ false,
-              SearchFilter.createFilterFromString(
-                      FILTER_OC_INSTANCE_KEY),
-              requestedAttributes);
+      final SearchRequest request =
+          newSearchRequest(entryDN, SearchScope.BASE_OBJECT, FILTER_OC_INSTANCE_KEY).addAttribute("dn");
+      final InternalSearchOperation searchOp = icc.processSearch(request);
       if (0 == searchOp.getSearchEntries().size()) {
         final Entry entry = new Entry(entryDN, null, null, null);
         entry.addObjectClass(DirectoryServer.getTopObjectClass());
         entry.addObjectClass(ocInstanceKey);
 
         // Add the key ID attribute.
-        final Attribute keyIDAttr = Attributes.create(attrKeyID,
-            distinguishedValue);
+        final Attribute keyIDAttr = Attributes.create(attrKeyID, distinguishedValue);
         entry.addAttribute(keyIDAttr, new ArrayList<ByteString>(0));
 
         // Add the public key certificate attribute.
-        AttributeBuilder builder = new AttributeBuilder(
-            attrPublicKeyCertificate);
+        AttributeBuilder builder = new AttributeBuilder(attrPublicKeyCertificate);
         builder.setOption("binary");
         builder.add(ByteString.wrap(instanceKeyCertificate));
         final Attribute certificateAttr = builder.toAttribute();
@@ -705,33 +682,16 @@ public class CryptoManagerImpl
    search operation.
    @see org.opends.admin.ads.ADSContext#getTrustedCertificates()
    */
-  private Map<String, byte[]> getTrustedCertificates()
-          throws CryptoManagerException {
-    final Map<String, byte[]> certificateMap
-            = new HashMap<String, byte[]>();
+  private Map<String, byte[]> getTrustedCertificates() throws CryptoManagerException {
+    final Map<String, byte[]> certificateMap = new HashMap<String, byte[]>();
     try {
       // Construct the search filter.
       final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
       final String FILTER_NOT_COMPROMISED = "(!(" + attrCompromisedTime.getNameOrOID() + "=*))";
       final String searchFilter = "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + ")";
-      // Construct the attribute list.
-      final LinkedHashSet<String> requestedAttributes
-              = new LinkedHashSet<String>();
-      requestedAttributes.add(attrKeyID.getNameOrOID());
-      requestedAttributes.add(
-              attrPublicKeyCertificate.getNameOrOID() + ";binary");
-      // Invoke the search operation.
-      final InternalClientConnection icc
-              = InternalClientConnection.getRootConnection();
-      InternalSearchOperation searchOp = icc.processSearch(
-              instanceKeysDN,
-              SearchScope.SINGLE_LEVEL,
-              DereferenceAliasesPolicy.NEVER,
-              /* size limit */ 0, /* time limit */ 0,
-              /* types only */ false,
-              SearchFilter.createFilterFromString(searchFilter),
-              requestedAttributes);
-      // Evaluate the search response.
+      final SearchRequest request = newSearchRequest(instanceKeysDN, SearchScope.SINGLE_LEVEL, searchFilter)
+          .addAttribute(attrKeyID.getNameOrOID(), attrPublicKeyCertificate.getNameOrOID() + ";binary");
+      InternalSearchOperation searchOp = getRootConnection().processSearch(request);
       for (Entry e : searchOp.getSearchEntries()) {
         /* attribute ds-cfg-key-id is the RDN and attribute
            ds-cfg-public-key-certificate is a MUST in the schema */
@@ -993,8 +953,7 @@ public class CryptoManagerImpl
    */
   private String getSymmetricKey(Set<String> symmetricKeys)
   {
-    InternalClientConnection internalConnection =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     for (String symmetricKey : symmetricKeys)
     {
       try
@@ -1004,13 +963,9 @@ public class CryptoManagerImpl
         String instanceKeyID = elements[0];
 
         // Find the server entry from the instance key ID.
-        String filter = "(" +
-             ConfigConstants.ATTR_CRYPTO_KEY_ID + "=" +
-             instanceKeyID + ")";
-        InternalSearchOperation internalSearch =
-             internalConnection.processSearch(
-                  serversDN, SearchScope.SUBORDINATES,
-                  SearchFilter.createFilterFromString(filter));
+        String filter = "(" + ATTR_CRYPTO_KEY_ID + "=" + instanceKeyID + ")";
+        final SearchRequest request = newSearchRequest(serversDN, SearchScope.SUBORDINATES, filter);
+        InternalSearchOperation internalSearch = conn.processSearch(request);
         if (internalSearch.getResultCode() != ResultCode.SUCCESS)
         {
           continue;

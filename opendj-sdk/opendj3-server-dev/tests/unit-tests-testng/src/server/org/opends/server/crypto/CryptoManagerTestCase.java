@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -44,16 +43,19 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.*;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
+import org.opends.server.types.CryptoManager;
+import org.opends.server.types.CryptoManagerException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -64,6 +66,7 @@ import org.testng.annotations.Test;
 
 import com.forgerock.opendj.cli.CliConstants;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -385,19 +388,8 @@ public class CryptoManagerTestCase extends CryptoTestCase {
             .append(FILTER_CIPHER_TRANSFORMATION_NAME)
             .append(FILTER_CIPHER_KEY_LENGTH)
             .append(")").toString();
-    final LinkedHashSet<String> requestedAttributes
-            = new LinkedHashSet<String>();
-    requestedAttributes.add("dn");
-    final InternalClientConnection icc
-            = InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOp = icc.processSearch(
-            baseDN,
-            SearchScope.SINGLE_LEVEL,
-            DereferenceAliasesPolicy.NEVER,
-            /* size limit */ 0, /* time limit */ 0,
-            /* types only */ false,
-            SearchFilter.createFilterFromString(searchFilter),
-            requestedAttributes);
+    final SearchRequest request = newSearchRequest(baseDN, SearchScope.SINGLE_LEVEL, searchFilter).addAttribute("dn");
+    InternalSearchOperation searchOp = getRootConnection().processSearch(request);
     assertTrue(0 < searchOp.getSearchEntries().size());
 
     String compromisedTime = TimeThread.getGeneralizedTime();

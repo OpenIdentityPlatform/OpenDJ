@@ -35,13 +35,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
 import org.opends.server.util.ModifyChangeRecordEntry;
@@ -2015,259 +2015,7 @@ public final class InternalClientConnection
                                       String filterString)
          throws DirectoryException
   {
-    RawFilter rawFilter;
-    try
-    {
-      rawFilter = RawFilter.create(filterString);
-    }
-    catch (LDAPException le)
-    {
-      throw new DirectoryException(
-                     ResultCode.valueOf(le.getResultCode()),
-                     le.getErrorMessage(), le);
-    }
-
-    return processSearch(ByteString.valueOf(rawBaseDN), scope, rawFilter);
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.
-   *
-   * @param  rawBaseDN     The base DN for the search.
-   * @param  scope         The scope for the search.
-   * @param  derefPolicy   The alias dereferencing policy for the
-   *                       search.
-   * @param  sizeLimit     The size limit for the search.
-   * @param  timeLimit     The time limit for the search.
-   * @param  typesOnly     The typesOnly flag for the search.
-   * @param  filterString  The string representation of the filter for
-   *                       the search.
-   * @param  attributes    The set of requested attributes for the
-   *                       search.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   *
-   * @throws  DirectoryException  If the provided filter string cannot
-   *                              be decoded as a search filter.
-   */
-  public InternalSearchOperation
-              processSearch(String rawBaseDN, SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, String filterString,
-                            Set<String> attributes)
-         throws DirectoryException
-  {
-    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
-                         timeLimit, typesOnly, filterString,
-                         attributes, null, null);
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.
-   *
-   * @param  rawBaseDN       The base DN for the search.
-   * @param  scope           The scope for the search.
-   * @param  derefPolicy     The alias dereferencing policy for the
-   *                         search.
-   * @param  sizeLimit       The size limit for the search.
-   * @param  timeLimit       The time limit for the search.
-   * @param  typesOnly       The typesOnly flag for the search.
-   * @param  filterString    The string representation of the filter
-   *                         for the search.
-   * @param  attributes      The set of requested attributes for the
-   *                         search.
-   * @param  searchListener  The internal search listener that should
-   *                         be used to handle the matching entries
-   *                         and references.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   *
-   * @throws  DirectoryException  If the provided filter string cannot
-   *                              be decoded as a search filter.
-   */
-  public InternalSearchOperation
-              processSearch(String rawBaseDN, SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, String filterString,
-                            Set<String> attributes,
-                            InternalSearchListener searchListener)
-         throws DirectoryException
-  {
-    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
-                         timeLimit, typesOnly, filterString,
-                         attributes, null, searchListener);
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.
-   *
-   * @param  rawBaseDN       The base DN for the search.
-   * @param  scope           The scope for the search.
-   * @param  derefPolicy     The alias dereferencing policy for the
-   *                         search.
-   * @param  sizeLimit       The size limit for the search.
-   * @param  timeLimit       The time limit for the search.
-   * @param  typesOnly       The typesOnly flag for the search.
-   * @param  filterString    The string representation of the filter
-   *                         for the search.
-   * @param  attributes      The set of requested attributes for the
-   *                         search.
-   * @param  controls        The set of controls to include in the
-   *                         request.
-   * @param  searchListener  The internal search listener that should
-   *                         be used to handle the matching entries
-   *                         and references.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   *
-   * @throws  DirectoryException  If the provided filter string cannot
-   *                              be decoded as a search filter.
-   */
-  public InternalSearchOperation
-              processSearch(String rawBaseDN, SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, String filterString,
-                            Set<String> attributes,
-                            List<Control> controls,
-                            InternalSearchListener searchListener)
-         throws DirectoryException
-  {
-    RawFilter rawFilter;
-    try
-    {
-      rawFilter = RawFilter.create(filterString);
-    }
-    catch (LDAPException le)
-    {
-      throw new DirectoryException(
-                     ResultCode.valueOf(le.getResultCode()),
-                     le.getErrorMessage(), le);
-    }
-
-    return processSearch(ByteString.valueOf(rawBaseDN), scope,
-                         derefPolicy, sizeLimit, timeLimit, typesOnly,
-                         rawFilter, attributes, controls,
-                         searchListener);
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.  It will not dereference any aliases, will not
-   * request a size or time limit, and will retrieve all user
-   * attributes.
-   *
-   * @param  rawBaseDN  The base DN for the search.
-   * @param  scope      The scope for the search.
-   * @param  filter     The filter for the search.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   */
-  public InternalSearchOperation processSearch(ByteString rawBaseDN,
-                                      SearchScope scope,
-                                      RawFilter filter)
-  {
-    return processSearch(rawBaseDN, scope,
-                         DereferenceAliasesPolicy.NEVER, 0, 0,
-                         false, filter, new LinkedHashSet<String>(0));
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.
-   *
-   * @param  rawBaseDN    The base DN for the search.
-   * @param  scope        The scope for the search.
-   * @param  derefPolicy  The alias dereferencing policy for the
-   *                      search.
-   * @param  sizeLimit    The size limit for the search.
-   * @param  timeLimit    The time limit for the search.
-   * @param  typesOnly    The typesOnly flag for the search.
-   * @param  filter       The filter for the search.
-   * @param  attributes   The set of requested attributes for the
-   *                      search.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   */
-  public InternalSearchOperation
-              processSearch(ByteString rawBaseDN,
-                            SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, RawFilter filter,
-                            Set<String> attributes)
-  {
-    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
-                         timeLimit, typesOnly, filter, attributes,
-                         null, null);
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.
-   *
-   * @param  rawBaseDN       The base DN for the search.
-   * @param  scope           The scope for the search.
-   * @param  derefPolicy     The alias dereferencing policy for the
-   *                         search.
-   * @param  sizeLimit       The size limit for the search.
-   * @param  timeLimit       The time limit for the search.
-   * @param  typesOnly       The typesOnly flag for the search.
-   * @param  filter          The filter for the search.
-   * @param  attributes      The set of requested attributes for the
-   *                         search.
-   * @param  searchListener  The internal search listener that should
-   *                         be used to handle the matching entries
-   *                         and references.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing.
-   */
-  public InternalSearchOperation
-              processSearch(ByteString rawBaseDN,
-                            SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, RawFilter filter,
-                            Set<String> attributes,
-                            InternalSearchListener searchListener)
-  {
-    return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
-                         timeLimit, typesOnly, filter, attributes,
-                         null, searchListener);
+    return processSearch(Requests.newSearchRequest(rawBaseDN, scope, filterString), null);
   }
 
 
@@ -2322,97 +2070,16 @@ public final class InternalClientConnection
 
   /**
    * Processes an internal search operation with the provided
-   * information.  It will not dereference any aliases, will not
-   * request a size or time limit, and will retrieve all user
-   * attributes.
-   *
-   * @param  baseDN  The base DN for the search.
-   * @param  scope   The scope for the search.
-   * @param  filter  The filter for the search.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   */
-  public InternalSearchOperation processSearch(DN baseDN,
-                                      SearchScope scope,
-                                      SearchFilter filter)
-  {
-    return processSearch(baseDN, scope,
-                         DereferenceAliasesPolicy.NEVER, 0, 0,
-                         false, filter, new LinkedHashSet<String>(0));
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
    * information.
    *
-   * @param  baseDN       The base DN for the search.
-   * @param  scope        The scope for the search.
-   * @param  derefPolicy  The alias dereferencing policy for the
-   *                      search.
-   * @param  sizeLimit    The size limit for the search.
-   * @param  timeLimit    The time limit for the search.
-   * @param  typesOnly    The typesOnly flag for the search.
-   * @param  filter       The filter for the search.
-   * @param  attributes   The set of requested attributes for the
-   *                      search.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   */
-  public InternalSearchOperation
-              processSearch(DN baseDN, SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, SearchFilter filter,
-                            Set<String> attributes)
-  {
-    return processSearch(baseDN, scope, derefPolicy, sizeLimit,
-                         timeLimit, typesOnly, filter, attributes,
-                         null, null);
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.
-   *
-   * @param  baseDN          The base DN for the search.
-   * @param  scope           The scope for the search.
-   * @param  derefPolicy     The alias dereferencing policy for the
-   *                         search.
-   * @param  sizeLimit       The size limit for the search.
-   * @param  timeLimit       The time limit for the search.
-   * @param  typesOnly       The typesOnly flag for the search.
-   * @param  filter          The filter for the search.
-   * @param  attributes      The set of requested attributes for the
-   *                         search.
-   * @param  searchListener  The internal search listener that should
-   *                         be used to handle the matching entries
-   *                         and references.
-   *
+   * @param  request         The search request.
    * @return  A reference to the internal search operation that was
    *          processed and contains information about the result of
    *          the processing.
    */
-  public InternalSearchOperation
-              processSearch(DN baseDN, SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, SearchFilter filter,
-                            Set<String> attributes,
-                            InternalSearchListener searchListener)
+  public InternalSearchOperation processSearch(final SearchRequest request)
   {
-    return processSearch(baseDN, scope, derefPolicy, sizeLimit,
-                         timeLimit, typesOnly, filter, attributes,
-                         null, searchListener);
+    return processSearch(request, null);
   }
 
 
@@ -2421,43 +2088,22 @@ public final class InternalClientConnection
    * Processes an internal search operation with the provided
    * information.
    *
-   * @param  baseDN          The base DN for the search.
-   * @param  scope           The scope for the search.
-   * @param  derefPolicy     The alias dereferencing policy for the
-   *                         search.
-   * @param  sizeLimit       The size limit for the search.
-   * @param  timeLimit       The time limit for the search.
-   * @param  typesOnly       The typesOnly flag for the search.
-   * @param  filter          The filter for the search.
-   * @param  attributes      The set of requested attributes for the
-   *                         search.
-   * @param  controls        The set of controls to include in the
-   *                         request.
+   * @param  request         The search request.
    * @param  searchListener  The internal search listener that should
    *                         be used to handle the matching entries
    *                         and references.
-   *
    * @return  A reference to the internal search operation that was
    *          processed and contains information about the result of
    *          the processing.
    */
-  public InternalSearchOperation
-              processSearch(DN baseDN, SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, SearchFilter filter,
-                            Set<String> attributes,
-                            List<Control> controls,
-                            InternalSearchListener searchListener)
+  public InternalSearchOperation processSearch(final SearchRequest request, InternalSearchListener searchListener)
   {
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(this, nextOperationID(),
-                                     nextMessageID(), controls,
-                                     baseDN, scope, derefPolicy,
-                                     sizeLimit, timeLimit,
-                                     typesOnly, filter, attributes,
-                                     searchListener);
-
+         new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
+             request.getControls(), request.getName(), request.getScope(),
+             request.getDereferenceAliasesPolicy(), request.getSizeLimit(),
+             request.getTimeLimit(), request.isTypesOnly(), request.getFilter(),
+             request.getAttributes(), searchListener);
     searchOperation.run();
     return searchOperation;
   }
@@ -2808,4 +2454,3 @@ public final class InternalClientConnection
       return 256;
   }
 }
-

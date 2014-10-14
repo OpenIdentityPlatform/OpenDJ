@@ -27,7 +27,6 @@
 package org.opends.server.extensions;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,6 +40,8 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
@@ -48,6 +49,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -261,18 +263,9 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrInMatchingFilter(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(entryDN=" + entryDN.toString() +
-                                             ")");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entrydn");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(entryDN=" + entryDN + ")")
+        .addAttribute("entrydn");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -295,17 +288,9 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrInNonMatchingFilter(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(entryDN=cn=Not A Match)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entrydn");
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                            filter, attrList);
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(entryDN=cn=Not A Match)")
+        .addAttribute("entrydn");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
 
@@ -325,30 +310,16 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entrydn");
-
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), requestControls,
-                                     entryDN, SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, attrList, null);
-    searchOperation.run();
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+        .addAttribute("entrydn")
+        .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
     assertNotNull(e);
     assertFalse(e.hasAttribute(entryDNType));
   }
-
 
 
   /**
@@ -365,23 +336,11 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entrydn");
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+        .addAttribute("entrydn")
+        .addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), requestControls,
-                                     entryDN, SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, attrList, null);
-    searchOperation.run();
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);

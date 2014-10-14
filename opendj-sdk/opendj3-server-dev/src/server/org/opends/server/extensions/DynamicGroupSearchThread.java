@@ -25,30 +25,28 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
-
-import java.util.LinkedHashSet;
-
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MembershipException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 
 /**
  * This class implements a Directory Server thread that will be used to perform
@@ -114,28 +112,25 @@ public class DynamicGroupSearchThread
    * Performs the set of searches and provides the results to the associated
    * member list.
    */
+  @Override
   public void run()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>(0);
-    //Include all the user attributes along with the ismemberof.
-    attributes.add("*");
-    attributes.add("ismemberof");
+    InternalClientConnection conn = getRootConnection();
     for (searchCounter = 0; searchCounter < baseDNs.length; searchCounter++)
     {
-      InternalSearchOperation searchOperation =
-           conn.processSearch(baseDNs[searchCounter], SearchScope.WHOLE_SUBTREE,
-                              DereferenceAliasesPolicy.NEVER, 0, 0,
-                              false, searchFilters[searchCounter], attributes,
-                              this);
+      DN baseDN = baseDNs[searchCounter];
+      SearchFilter filter = searchFilters[searchCounter];
+      // Include all the user attributes along with the ismemberof.
+      final SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
+          .addAttribute("*", "ismemberof");
+      InternalSearchOperation searchOperation = conn.processSearch(request, this);
 
       ResultCode resultCode = searchOperation.getResultCode();
       if (resultCode != ResultCode.SUCCESS)
       {
         if (resultCode == ResultCode.NO_SUCH_OBJECT)
         {
-          logger.warn(WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN, baseDNs[searchCounter],
+          logger.warn(WARN_DYNAMICGROUP_NONEXISTENT_BASE_DN, baseDN,
                   memberList.getDynamicGroupDN());
           continue;
         }
@@ -143,8 +138,8 @@ public class DynamicGroupSearchThread
         {
           LocalizableMessage message =
                ERR_DYNAMICGROUP_INTERNAL_SEARCH_FAILED.get(
-                       baseDNs[searchCounter],
-                       searchFilters[searchCounter],
+                       baseDN,
+                       filter,
                        memberList.getDynamicGroupDN(),
                        resultCode,
                        searchOperation.getErrorMessage());
@@ -166,6 +161,7 @@ public class DynamicGroupSearchThread
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleInternalSearchEntry(InternalSearchOperation searchOperation,
                                         SearchResultEntry searchEntry)
          throws DirectoryException
@@ -191,6 +187,7 @@ public class DynamicGroupSearchThread
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleInternalSearchReference(
                    InternalSearchOperation searchOperation,
                    SearchResultReference searchReference)

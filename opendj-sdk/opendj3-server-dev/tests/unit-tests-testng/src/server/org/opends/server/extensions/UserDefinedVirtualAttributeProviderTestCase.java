@@ -26,7 +26,6 @@
  */
 package org.opends.server.extensions;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -38,11 +37,14 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.testng.Assert.*;
 
 /**
@@ -110,9 +112,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "ds-cfg-conflict-behavior: real-overrides-virtual",
       "ds-cfg-value: single value");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     try
     {
       InternalSearchOperation searchOperation =
@@ -178,9 +178,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "ds-cfg-value: first value",
       "ds-cfg-value: second value");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     try
     {
       InternalSearchOperation searchOperation =
@@ -260,15 +258,11 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "cn: Test User",
       "userPassword: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     try
     {
-      InternalSearchOperation searchOperation =
-          conn.processSearch(DN.valueOf(userDN),
-              SearchScope.BASE_OBJECT, SearchFilter
-                  .createFilterFromString("(objectClass=*)"));
+      final SearchRequest request = newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
       List<Attribute> attrList =
           searchOperation.getSearchEntries().get(0).getAttribute(
@@ -332,15 +326,11 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "cn: Test User",
       "userPassword: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     try
     {
-      InternalSearchOperation searchOperation =
-          conn.processSearch(DN.valueOf(userDN),
-              SearchScope.BASE_OBJECT, SearchFilter
-                  .createFilterFromString("(objectClass=*)"));
+      final SearchRequest request = newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
       List<Attribute> attrList =
           searchOperation.getSearchEntries().get(0).getAttribute(
@@ -405,15 +395,11 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "userPassword: test",
       "description: " + realValue);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     try
     {
-      InternalSearchOperation searchOperation =
-          conn.processSearch(DN.valueOf(userDN),
-              SearchScope.BASE_OBJECT, SearchFilter
-                  .createFilterFromString("(objectClass=*)"));
+      final SearchRequest request = newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
       List<Attribute> attrList =
           searchOperation.getSearchEntries().get(0).getAttribute(
@@ -477,15 +463,11 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "userPassword: test",
       "description: " + realValue);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     try
     {
-      InternalSearchOperation searchOperation =
-          conn.processSearch(DN.valueOf(userDN),
-              SearchScope.BASE_OBJECT, SearchFilter
-                  .createFilterFromString("(objectClass=*)"));
+      final SearchRequest request = newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
       List<Attribute> attrList =
           searchOperation.getSearchEntries().get(0).getAttribute(
@@ -504,7 +486,6 @@ public class UserDefinedVirtualAttributeProviderTestCase
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
-
 
 
   /**
@@ -549,15 +530,11 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "userPassword: test",
       "description: " + realValue);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    InternalClientConnection conn = getRootConnection();
     try
     {
-      InternalSearchOperation searchOperation =
-          conn.processSearch(DN.valueOf(userDN),
-              SearchScope.BASE_OBJECT, SearchFilter
-                  .createFilterFromString("(objectClass=*)"));
+      final SearchRequest request = newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
       List<Attribute> attrList =
           searchOperation.getSearchEntries().get(0).getAttribute(
@@ -633,19 +610,11 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
     try
     {
-      LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
-      attributes.add("description");
+      final SearchRequest request =
+          newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("description");
+      InternalSearchOperation searchOperation = conn.processSearch(request);
 
-      InternalSearchOperation searchOperation =
-          conn.processSearch(DN.valueOf(userDN),
-              SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("(objectClass=*)"),
-              attributes);
-
-      List<Attribute> attrList =
-          searchOperation.getSearchEntries().get(0).getAttribute(
-              descriptionType);
+      List<Attribute> attrList = searchOperation.getSearchEntries().get(0).getAttribute(descriptionType);
       assertNotNull(attrList);
       assertEquals(attrList.size(), 1);
 
