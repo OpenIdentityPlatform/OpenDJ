@@ -42,6 +42,10 @@
  </refnamediv>
  <refsynopsisdiv>
   <synopsis># Comment lines start with #.
+#
+# Notice that this synopsis includes blank lines after entries.
+# In the same way you would use blank lines after entries in normal LDIF,
+# leave empty lines after "entries" in template files.
 
 # Optionally include classes that define custom tags.
 # Custom tag classes extend org.opends.server.tools.makeldif.Tag and
