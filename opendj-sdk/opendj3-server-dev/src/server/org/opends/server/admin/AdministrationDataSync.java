@@ -46,6 +46,8 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultEntry;
 
+import static org.opends.server.protocols.internal.Requests.*;
+
 /**
  * Check if information found in "cn=admin data" is coherent with
  * cn=config. If and inconsistency is detected, we log a warning
@@ -191,9 +193,8 @@ public final class AdministrationDataSync
     // Look for a local server with the Ldap Port.
     try
     {
-      InternalSearchOperation op = internalConnection.processSearch(
-          "cn=Servers,cn=admin data",
-          SearchScope.SINGLE_LEVEL, "objectclass=*");
+      SearchRequest request = newSearchRequest(DN.valueOf("cn=Servers,cn=admin data"), SearchScope.SINGLE_LEVEL);
+      InternalSearchOperation op = internalConnection.processSearch(request);
       if (op.getResultCode() == ResultCode.SUCCESS)
       {
         Entry entry = null;

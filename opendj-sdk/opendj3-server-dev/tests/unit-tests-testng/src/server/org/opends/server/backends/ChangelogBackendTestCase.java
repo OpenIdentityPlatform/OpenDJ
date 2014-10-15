@@ -598,9 +598,10 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   public void searchingWithoutPrivilegeShouldFail() throws Exception
   {
     AuthenticationInfo nonPrivilegedUser = new AuthenticationInfo();
-
     InternalClientConnection conn = new InternalClientConnection(nonPrivilegedUser);
-    InternalSearchOperation op = conn.processSearch("cn=changelog", SearchScope.WHOLE_SUBTREE, "(objectclass=*)");
+
+    SearchRequest request = Requests.newSearchRequest(DN.valueOf("cn=changelog"), SearchScope.WHOLE_SUBTREE);
+    InternalSearchOperation op = conn.processSearch(request);
 
     assertEquals(op.getResultCode(), ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
     assertEquals(op.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());

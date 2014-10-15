@@ -78,7 +78,7 @@ public class InternalSearchOperationTestCase
                                 nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
-                                false, LDAPFilter.decode("(objectClass=*)"),
+                                false, LDAPFilter.objectClassPresent(),
                                 new LinkedHashSet<String>(), null);
   }
 
@@ -99,7 +99,7 @@ public class InternalSearchOperationTestCase
                                 nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
-                                false, LDAPFilter.decode("(objectClass=*)"),
+                                false, LDAPFilter.objectClassPresent(),
                                 new LinkedHashSet<String>(),
                                 new TestInternalSearchListener());
   }
@@ -116,15 +116,12 @@ public class InternalSearchOperationTestCase
   public void testConstructor2WithoutListener()
          throws Exception
   {
-    SearchFilter searchFilter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-
     InternalClientConnection conn = getRootConnection();
     new InternalSearchOperation(conn, nextOperationID(),
                                 nextMessageID(), new ArrayList<Control>(),
                                 DN.rootDN(), SearchScope.BASE_OBJECT,
-                                DereferenceAliasesPolicy.NEVER, 0, 0,
-                                false, searchFilter,
+                                DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                                SearchFilter.objectClassPresent(),
                                 new LinkedHashSet<String>(), null);
   }
 
@@ -140,15 +137,12 @@ public class InternalSearchOperationTestCase
   public void testConstructor2WithListener()
          throws Exception
   {
-    SearchFilter searchFilter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-
     InternalClientConnection conn = getRootConnection();
     new InternalSearchOperation(conn, nextOperationID(),
                                 nextMessageID(), new ArrayList<Control>(),
                                 DN.rootDN(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
-                                false, searchFilter,
+                                false, SearchFilter.objectClassPresent(),
                                 new LinkedHashSet<String>(),
                                 new TestInternalSearchListener());
   }
@@ -164,7 +158,7 @@ public class InternalSearchOperationTestCase
   @Test()
   public void testGetSearchEntriesAndReferences() throws Exception
   {
-    SearchRequest request = Requests.newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchRequest request = Requests.newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -188,9 +182,8 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false,
-                                     LDAPFilter.decode("(objectClass=*)"),
+                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                                     LDAPFilter.objectClassPresent(),
                                      new LinkedHashSet<String>(), null);
 
     Entry e = TestCaseUtils.makeEntry("dn: ",
@@ -217,9 +210,8 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false,
-                                     LDAPFilter.decode("(objectClass=*)"),
+                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                                     LDAPFilter.objectClassPresent(),
                                      new LinkedHashSet<String>(),
                                      new TestInternalSearchListener());
 
@@ -247,9 +239,8 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false,
-                                     LDAPFilter.decode("(objectClass=*)"),
+                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                                     LDAPFilter.objectClassPresent(),
                                      new LinkedHashSet<String>(), null);
 
     SearchResultReference reference =
@@ -275,9 +266,8 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false,
-                                     LDAPFilter.decode("(objectClass=*)"),
+                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                                     LDAPFilter.objectClassPresent(),
                                      new LinkedHashSet<String>(),
                                      new TestInternalSearchListener());
 

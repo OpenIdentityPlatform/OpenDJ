@@ -44,7 +44,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -83,6 +82,9 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
@@ -650,19 +652,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               + "entry " + getBaseDNString());
     }
 
-    InternalSearchOperation search;
-    try
-    {
-      // Search the domain root entry that is used to save the generation id
-      SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.BASE_OBJECT, "(objectclass=*)")
-          .addAttribute(REPLICATION_GENERATION_ID, REPLICATION_FRACTIONAL_EXCLUDE, REPLICATION_FRACTIONAL_INCLUDE);
-      search = conn.processSearch(request);
-    }
-    catch (DirectoryException e)
-    {
-      // Can not happen
-      return false;
-    }
+    // Search the domain root entry that is used to save the generation id
+    SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.BASE_OBJECT)
+        .addAttribute(REPLICATION_GENERATION_ID, REPLICATION_FRACTIONAL_EXCLUDE, REPLICATION_FRACTIONAL_INCLUDE);
+    InternalSearchOperation search = conn.processSearch(request);
 
     if (search.getResultCode() != ResultCode.SUCCESS
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
@@ -2153,15 +2146,22 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        return;
      }
 
-    LDAPFilter filter = LDAPFilter.createEqualityFilter(DS_SYNC_CONFLICT,
-        ByteString.valueOf(freedDN.toString()));
+    SearchFilter filter;
+    try
+    {
+      filter = LDAPFilter.createEqualityFilter(DS_SYNC_CONFLICT,
+          ByteString.valueOf(freedDN.toString())).toSearchFilter();
+    }
+    catch (DirectoryException e)
+    {
+      // can not happen?
+      logger.traceException(e);
+      return;
+    }
 
-     InternalSearchOperation searchOp =  conn.processSearch(
-       ByteString.valueOf(getBaseDNString()),
-       SearchScope.WHOLE_SUBTREE,
-       DereferenceAliasesPolicy.NEVER,
-       0, 0, false, filter,
-       USER_AND_REPL_OPERATIONAL_ATTRS, null, null);
+    SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.WHOLE_SUBTREE, filter)
+        .addAttribute(USER_AND_REPL_OPERATIONAL_ATTRS);
+    InternalSearchOperation searchOp =  conn.processSearch(request);
 
      Entry entryToRename = null;
      CSN entryToRenameCSN = null;
@@ -2549,20 +2549,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       return null;
     }
-    try
+    final SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT)
+        .addAttribute(ENTRYUUID_ATTRIBUTE_NAME);
+    final InternalSearchOperation search = getRootConnection().processSearch(request);
+    final SearchResultEntry resultEntry = getFirstResult(search);
+    if (resultEntry != null)
     {
-      final SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT, "(objectclass=*)")
-          .addAttribute(ENTRYUUID_ATTRIBUTE_NAME);
-      final InternalSearchOperation search = getRootConnection().processSearch(request);
-      final SearchResultEntry resultEntry = getFirstResult(search);
-      if (resultEntry != null)
-      {
-        return getEntryUUID(resultEntry);
-      }
-    }
-    catch (DirectoryException e)
-    {
-      // never happens because the filter is always valid.
+      return getEntryUUID(resultEntry);
     }
     return null;
   }
@@ -2994,37 +2987,27 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
      */
     boolean conflict = false;
 
-    // Find an rename child entries.
-    try
+    // Find and rename child entries.
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.SINGLE_LEVEL)
+        .addAttribute(ENTRYUUID_ATTRIBUTE_NAME, HISTORICAL_ATTRIBUTE_NAME);
+    InternalSearchOperation op = conn.processSearch(request);
+    if (op.getResultCode() == ResultCode.SUCCESS)
     {
-      final SearchRequest request = newSearchRequest(entryDN, SearchScope.SINGLE_LEVEL, "(objectClass=*)")
-          .addAttribute(ENTRYUUID_ATTRIBUTE_NAME, HISTORICAL_ATTRIBUTE_NAME);
-      InternalSearchOperation op = conn.processSearch(request);
-      if (op.getResultCode() == ResultCode.SUCCESS)
+      for (SearchResultEntry entry : op.getSearchEntries())
       {
-        for (SearchResultEntry entry : op.getSearchEntries())
-        {
-          /*
-           * Check the ADD and ModRDN date of the child entry
-           * (All of them, not only the one that are newer than the DEL op)
-           * and keep the entry as a conflicting entry.
-           */
-          conflict = true;
-          renameConflictEntry(conflictOp, entry.getName(), getEntryUUID(entry));
-        }
-      }
-      else
-      {
-        // log error and information for the REPAIR tool.
-        logger.error(ERR_CANNOT_RENAME_CONFLICT_ENTRY,
-            entryDN, conflictOp, op.getResultCode());
+        /*
+         * Check the ADD and ModRDN date of the child entry
+         * (All of them, not only the one that are newer than the DEL op)
+         * and keep the entry as a conflicting entry.
+         */
+        conflict = true;
+        renameConflictEntry(conflictOp, entry.getName(), getEntryUUID(entry));
       }
     }
-    catch (DirectoryException e)
+    else
     {
       // log error and information for the REPAIR tool.
-      logger.error(ERR_EXCEPTION_RENAME_CONFLICT_ENTRY,
-          entryDN, conflictOp, stackTraceToSingleLineString(e));
+      logger.error(ERR_CANNOT_RENAME_CONFLICT_ENTRY, entryDN, conflictOp, op.getResultCode());
     }
 
     return conflict;
@@ -3318,7 +3301,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
      * Search the database entry that is used to periodically
      * save the generation id
      */
-    final SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.BASE_OBJECT, "(objectclass=*)")
+    final SearchRequest request = newSearchRequest(getBaseDN(), SearchScope.BASE_OBJECT)
         .addAttribute(REPLICATION_GENERATION_ID);
     InternalSearchOperation search = conn.processSearch(request);
     if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)

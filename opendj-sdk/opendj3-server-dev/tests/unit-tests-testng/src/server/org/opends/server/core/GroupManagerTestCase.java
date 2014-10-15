@@ -62,6 +62,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -1415,12 +1416,10 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn0 = new InternalClientConnection(DN.rootDN());
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn0, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
+         new InternalSearchOperation(conn0, nextOperationID(), nextMessageID(), null, 
+                  DN.rootDN(), SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
+                  SearchFilter.objectClassPresent(), null, null);
 
     assertFalse(conn0.isMemberOf(group1, null));
     assertFalse(conn0.isMemberOf(group2, null));
@@ -1441,12 +1440,11 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn1 = new InternalClientConnection(user1DN);
     searchOperation =
-         new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
+         new InternalSearchOperation(conn1, nextOperationID(),
+                  nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0,  false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
+                  SearchFilter.objectClassPresent(), null, null);
 
     assertTrue(conn1.isMemberOf(group1, null));
     assertFalse(conn1.isMemberOf(group2, null));
@@ -1471,12 +1469,11 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn2 = new InternalClientConnection(user2DN);
     searchOperation =
-         new InternalSearchOperation(conn2, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
+         new InternalSearchOperation(conn2, nextOperationID(),
+                  nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0,  false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
+                  SearchFilter.objectClassPresent(), null, null);
 
     assertTrue(conn2.isMemberOf(group1, null));
     assertTrue(conn2.isMemberOf(group2, null));
@@ -1501,12 +1498,11 @@ public class GroupManagerTestCase
     // group operations correctly.
     InternalClientConnection conn3 = new InternalClientConnection(user3DN);
     searchOperation =
-         new InternalSearchOperation(conn3, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
+         new InternalSearchOperation(conn3, nextOperationID(),
+                  nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0,  false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
+                  SearchFilter.objectClassPresent(), null, null);
 
     assertFalse(conn3.isMemberOf(group1, null));
     assertTrue(conn3.isMemberOf(group2, null));
@@ -1639,10 +1635,8 @@ public class GroupManagerTestCase
 
 
     // Perform a filtered iteration across the member DNs.
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
-                                          SearchScope.WHOLE_SUBTREE, filter);
+    memberList = groupInstance.getMembers(
+        DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, SearchFilter.objectClassPresent());
     while (memberList.hasMoreMembers())
     {
       try
@@ -1668,9 +1662,8 @@ public class GroupManagerTestCase
 
 
     // Perform a filtered iteration across the member entries.
-    filter = SearchFilter.createFilterFromString("(objectClass=*)");
-    memberList = groupInstance.getMembers(DN.valueOf("o=test"),
-                                          SearchScope.WHOLE_SUBTREE, filter);
+    memberList = groupInstance.getMembers(
+        DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, SearchFilter.objectClassPresent());
     while (memberList.hasMoreMembers())
     {
       try
@@ -2261,9 +2254,8 @@ public class GroupManagerTestCase
     memberSet.add(user1DN);
     memberSet.add(user2DN);
 
-    MemberList memberList =
-         groupInstance.getMembers(DN.rootDN(), SearchScope.WHOLE_SUBTREE,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
+    MemberList memberList = groupInstance.getMembers(
+        DN.rootDN(), SearchScope.WHOLE_SUBTREE, SearchFilter.objectClassPresent());
     assertNotNull(memberList);
     while (memberList.hasMoreMembers())
     {

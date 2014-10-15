@@ -63,6 +63,7 @@ import org.testng.annotations.Test;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedOperations.*;
 import static org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedSearchScopes.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
@@ -293,8 +294,9 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     });
 
-    InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
-    InternalSearchOperation search = conn.processSearch("dc=example,dc=com", BASE_OBJECT, searchFilter);
+    InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
+    InternalSearchOperation search =
+        conn.processSearch(newSearchRequest("dc=example,dc=com", BASE_OBJECT, searchFilter));
     assertEquals(policy.isAllowed(search, messages), success);
   }
 
@@ -319,8 +321,9 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     });
 
-    InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
-    InternalSearchOperation search = conn.processSearch("dc=example,dc=com", BASE_OBJECT, searchFilter);
+    InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
+    InternalSearchOperation search =
+        conn.processSearch(newSearchRequest("dc=example,dc=com", BASE_OBJECT, searchFilter));
     assertEquals(policy.isAllowed(search, messages), success);
   }
 
@@ -347,8 +350,8 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     });
 
-    InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
-    InternalSearchOperation search = conn.processSearch("dc=example,dc=com", searchScope, "objectclass=*");
+    InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
+    InternalSearchOperation search = conn.processSearch(newSearchRequest(DN.valueOf("dc=example,dc=com"), searchScope));
     assertEquals(policy.isAllowed(search, messages), success);
   }
 
@@ -375,8 +378,8 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     });
 
-    InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
-    InternalSearchOperation search = conn.processSearch(searchSubtree, WHOLE_SUBTREE, "objectclass=*");
+    InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
+    InternalSearchOperation search = conn.processSearch(newSearchRequest(DN.valueOf(searchSubtree), WHOLE_SUBTREE));
     assertEquals(policy.isAllowed(search, messages), success);
   }
 
@@ -403,8 +406,8 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     });
 
-    InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
-    InternalSearchOperation search = conn.processSearch(searchSubtree, WHOLE_SUBTREE, "objectclass=*");
+    InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
+    InternalSearchOperation search = conn.processSearch(newSearchRequest(DN.valueOf(searchSubtree), WHOLE_SUBTREE));
     assertEquals(policy.isAllowed(search, messages), success);
   }
 
@@ -438,8 +441,8 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
     });
 
-    InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
-    InternalSearchOperation search = conn.processSearch(searchSubtree, WHOLE_SUBTREE, "objectclass=*");
+    InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
+    InternalSearchOperation search = conn.processSearch(newSearchRequest(DN.valueOf(searchSubtree), WHOLE_SUBTREE));
     assertEquals(policy.isAllowed(search, messages), success);
   }
 
@@ -467,7 +470,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
 
      });
 
-     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
+     InternalClientConnection conn = new InternalClientConnection(DN.rootDN());
      PreParseOperation op = null;
 
      switch (type) {
@@ -511,7 +514,7 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
                  "uid=usr.1,ou=people,dc=example,dc=com", true);
          break;
        case SEARCH:
-         op = conn.processSearch("dc=example,dc=com", WHOLE_SUBTREE, "uid>=user.1");
+         op = conn.processSearch(newSearchRequest("dc=example,dc=com", WHOLE_SUBTREE, "uid>=user.1"));
          break;
        case UNBIND:
          return;

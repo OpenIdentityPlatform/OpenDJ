@@ -548,7 +548,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
 
     //Create a persistent search request.
     Set<PersistentSearchChangeType> changeTypes = EnumSet.of(ADD, DELETE, MODIFY, MODIFY_DN);
-    SearchRequest request = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)")
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.BASE_OBJECT)
         .setTypesOnly(true)
         .addAttribute("cn")
         .addControl(new PersistentSearchControl(changeTypes, true, true));

@@ -163,6 +163,20 @@ public final class Requests {
         return newSearchRequest(name, scope, SearchFilter.createFilterFromString(filter));
     }
 
+    /**
+     * Return a new search request object.
+     *
+     * @param name
+     *          the dn
+     * @param scope
+     *          the search scope
+     * @return a new search request object
+     * @see #newSearchRequest(DN, SearchScope, SearchFilter, String...)
+     */
+    public static SearchRequest newSearchRequest(final DN name, final SearchScope scope) {
+        return newSearchRequest(name, scope, SearchFilter.objectClassPresent());
+    }
+
     private Requests() {
         // Prevent instantiation.
     }

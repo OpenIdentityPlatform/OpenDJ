@@ -42,13 +42,13 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -879,8 +879,8 @@ public class VirtualStaticGroupTestCase
    */
   private void cleanUp() throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest("ou=Groups,dc=example,dc=com", SearchScope.SINGLE_LEVEL, "(objectClass=*)");
+    DN dn = DN.valueOf("ou=Groups,dc=example,dc=com");
+    final SearchRequest request = newSearchRequest(dn, SearchScope.SINGLE_LEVEL);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     for (Entry e : searchOperation.getSearchEntries())
     {

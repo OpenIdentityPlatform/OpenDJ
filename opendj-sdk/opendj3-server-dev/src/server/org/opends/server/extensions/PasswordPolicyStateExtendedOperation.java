@@ -281,17 +281,7 @@ public class PasswordPolicyStateExtendedOperation
                    PasswordPolicyStateExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // Construct the filter that will be used to retrieve user entries.
-    try
-    {
-      userFilter = SearchFilter.createFilterFromString("(objectClass=*)");
-    }
-    catch (Exception e)
-    {
-      // This should never happen.
-      logger.traceException(e);
-    }
-
+    userFilter = SearchFilter.objectClassPresent();
 
     // Construct the set of request attributes.
     requestAttributes = new LinkedHashSet<String>(2);

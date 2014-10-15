@@ -266,7 +266,7 @@ public class BackendConfigManagerTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Make sure that both entries exist.
-    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE);
     InternalSearchOperation internalSearch = conn.processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
     assertEquals(internalSearch.getSearchEntries().size(), 2);
@@ -337,7 +337,7 @@ public class BackendConfigManagerTestCase
 
 
     // Verify that we can see both entries with a subtree search.
-    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE);
     InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
     assertEquals(internalSearch.getSearchEntries().size(), 2);
@@ -429,7 +429,7 @@ public class BackendConfigManagerTestCase
 
     InternalClientConnection conn = getRootConnection();
     // Verify that a subtree search can see all three entries.
-    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    final SearchRequest request = newSearchRequest(parentBaseDN, SearchScope.WHOLE_SUBTREE);
     assertSearchResultsSize(request, 3);
 
 

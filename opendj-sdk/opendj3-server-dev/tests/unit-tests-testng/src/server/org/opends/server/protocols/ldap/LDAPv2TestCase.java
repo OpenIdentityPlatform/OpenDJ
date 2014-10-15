@@ -482,7 +482,7 @@ public class LDAPv2TestCase
            new SearchRequestProtocolOp(ByteString.empty(),
                     SearchScope.BASE_OBJECT,
                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                    LDAPFilter.decode("(objectClass=*)"), null);
+                    LDAPFilter.objectClassPresent(), null);
       ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
       message = new LDAPMessage(2, searchRequest, controls);

@@ -43,6 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tasks.TasksTestCase;
 import org.opends.server.tools.LDAPModify;
@@ -54,6 +55,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -527,8 +529,8 @@ public class LDIFBackendTestCase
   @Test
   public void testBaseSearch() throws Exception
   {
-    InternalSearchOperation searchOperation =
-        getRootConnection().processSearch("o=ldif", SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.valueOf("o=ldif"), SearchScope.BASE_OBJECT);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
   }
@@ -545,7 +547,7 @@ public class LDIFBackendTestCase
   public void testBaseSearchNonMatchingFilter() throws Exception
   {
     InternalSearchOperation searchOperation =
-        getRootConnection().processSearch("o=ldif", SearchScope.BASE_OBJECT, "(o=not ldif)");
+        getRootConnection().processSearch(newSearchRequest("o=ldif", SearchScope.BASE_OBJECT, "(o=not ldif)"));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
@@ -561,10 +563,9 @@ public class LDIFBackendTestCase
   @Test
   public void testBaseSearchNoSuchEntry() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch("o=nonexistent2,o=nonexistent1,o=ldif",
-                            SearchScope.BASE_OBJECT, "(objectClass=*)");
+    DN dn = DN.valueOf("o=nonexistent2,o=nonexistent1,o=ldif");
+    SearchRequest request = newSearchRequest(dn, SearchScope.BASE_OBJECT);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
     assertEquals(searchOperation.getMatchedDN(), DN.valueOf("o=ldif"));
   }
@@ -577,13 +578,10 @@ public class LDIFBackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testSingleLevelSearch()
-         throws Exception
+  public void testSingleLevelSearch() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch("o=ldif", SearchScope.SINGLE_LEVEL,
-                         "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.valueOf("o=ldif"), SearchScope.SINGLE_LEVEL);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
   }
@@ -598,10 +596,8 @@ public class LDIFBackendTestCase
   @Test
   public void testSubtreeSearch() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch("o=ldif", SearchScope.WHOLE_SUBTREE,
-                            "(uid=user.1)");
+    SearchRequest request = newSearchRequest("o=ldif", SearchScope.WHOLE_SUBTREE, "(uid=user.1)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
   }
@@ -617,10 +613,8 @@ public class LDIFBackendTestCase
   @Test
   public void testSubordinateSubtreeSearch() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         conn.processSearch("o=ldif", SearchScope.SUBORDINATES,
-                            "(uid=user.1)");
+    SearchRequest request = newSearchRequest("o=ldif", SearchScope.SUBORDINATES, "(uid=user.1)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
   }
@@ -633,8 +627,7 @@ public class LDIFBackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testHasSubordinates()
-         throws Exception
+  public void testHasSubordinates() throws Exception
   {
     Backend<?> b = DirectoryServer.getBackend("ldifRoot");
     assertNotNull(b);

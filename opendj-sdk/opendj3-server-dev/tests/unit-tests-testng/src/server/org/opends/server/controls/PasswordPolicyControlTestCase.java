@@ -1580,9 +1580,8 @@ public class PasswordPolicyControlTestCase
       SearchRequestProtocolOp searchRequest =
            new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                        SearchScope.BASE_OBJECT,
-                                       DereferenceAliasesPolicy.NEVER, 0,
-                                       0, false,
-                                       LDAPFilter.decode("(objectClass=*)"),
+                                       DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                                       LDAPFilter.objectClassPresent(),
                                        new LinkedHashSet<String>());
 
       List<Control> controls = new ArrayList<Control>();

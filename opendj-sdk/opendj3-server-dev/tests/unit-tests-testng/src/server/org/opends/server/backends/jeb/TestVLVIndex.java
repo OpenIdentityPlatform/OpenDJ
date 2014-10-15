@@ -27,11 +27,11 @@
 package org.opends.server.backends.jeb;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
@@ -42,15 +42,19 @@ import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -362,40 +366,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByOffsetOneOffset()
-      throws Exception
+  public void testInternalSearchByOffsetOneOffset() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, 1, 0));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, 1, 0));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertZimmermanDN); // Albert, bigger
-    expectedDNOrder.add(albertSmithDN);     // Albert, smaller sn
-
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder());
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -407,29 +386,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -442,6 +407,25 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     assertEquals(vlvResponse.getContentCount(), 10);
   }
 
+  private ArrayList<DN> getDNs(InternalSearchOperation internalSearch)
+  {
+    ArrayList<DN> results = new ArrayList<DN>();
+    for (Entry e : internalSearch.getSearchEntries())
+    {
+      results.add(e.getName());
+    }
+    return results;
+  }
+
+  private List<DN> expectedDNOrder()
+  {
+    return Arrays.asList(
+        aaccfJohnsonDN,    // Aaccf
+        aaronZimmermanDN,  // Aaron
+        albertZimmermanDN, // Albert, bigger
+        albertSmithDN);    // Albert, smaller sn
+  }
+
   /**
    * Tests performing an internal search using the VLV control to retrieve a
    * subset of the entries using an offset of zero, which should be treated like
@@ -450,40 +434,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByOffsetZeroOffset()
-      throws Exception
+  public void testInternalSearchByOffsetZeroOffset() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, 0, 0));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, 0, 0));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertZimmermanDN); // Albert, bigger
-    expectedDNOrder.add(albertSmithDN);     // Albert, smaller sn
-
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder());
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -495,29 +454,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -538,25 +483,12 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByOffsetThreeOffset()
-      throws Exception
+  public void testInternalSearchByOffsetThreeOffset() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, 3, 0));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, 3, 0));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -565,13 +497,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
     expectedDNOrder.add(margaretJonesDN);   // Maggie
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder);
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -583,29 +509,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -625,25 +537,12 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByOffsetNegativeOffset()
-      throws Exception
+  public void testInternalSearchByOffsetNegativeOffset() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, -1, 0));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, -1, 0));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
     // It will be successful because it's not a critical control.
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -656,14 +555,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
     }
 
@@ -679,25 +571,12 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByOffsetNegativeStartPosition()
-      throws Exception
+  public void testInternalSearchByOffsetNegativeStartPosition() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(3, 3, 1, 0));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(3, 3, 1, 0));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
     // It will be successful because it's not a critical control.
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -710,14 +589,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
     }
 
@@ -732,25 +604,12 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByOffsetStartPositionTooHigh()
-      throws Exception
+  public void testInternalSearchByOffsetStartPositionTooHigh() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(3, 3, 30, 0));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(3, 3, 30, 0));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
@@ -759,13 +618,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     expectedDNOrder.add(zorroDN);           // No first name
     expectedDNOrder.add(suffixDN);          // No sort attributes
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder);
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -775,14 +628,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
     }
 
@@ -800,25 +646,13 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByOffsetIncompleteAfterCount()
-      throws Exception
+  public void testInternalSearchByOffsetIncompleteAfterCount() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 4, 7, 0));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 4, 7, 0));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -827,13 +661,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     expectedDNOrder.add(zorroDN);           // No first name
     expectedDNOrder.add(suffixDN);          // No sort attributes
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder);
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -845,29 +673,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -880,6 +694,24 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     assertEquals(vlvResponse.getContentCount(), 10);
   }
 
+  private VLVResponseControl asVLVResponseControl(Control c) throws DirectoryException
+  {
+    if(c instanceof LDAPControl)
+    {
+      return VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl) c).getValue());
+    }
+    return (VLVResponseControl) c;
+  }
+
+  private ServerSideSortResponseControl asServerSideSortResponseControl(Control c) throws DirectoryException
+  {
+    if(c instanceof LDAPControl)
+    {
+      return ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl) c).getValue());
+    }
+    return (ServerSideSortResponseControl) c;
+  }
+
   /**
    * Tests performing an internal search using the VLV control to retrieve a
    * subset of the entries using an assertion value before any actual value in
@@ -888,40 +720,16 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByValueBeforeAll()
-      throws Exception
+  public void testInternalSearchByValueBeforeAll() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("a")));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, ByteString.valueOf("a")));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
-    expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
-
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder());
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -933,29 +741,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -976,41 +770,16 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByValueMatchesFirst()
-      throws Exception
+  public void testInternalSearchByValueMatchesFirst() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("aaccf")));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3,
-                                              ByteString.valueOf("aaccf")));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
-    ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
-    expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
-    expectedDNOrder.add(aaronZimmermanDN);  // Aaron
-    expectedDNOrder.add(albertZimmermanDN); // Albert, lower entry ID
-    expectedDNOrder.add(albertSmithDN);     // Albert, higher entry ID
-
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder());
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -1022,29 +791,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -1065,26 +820,13 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByValueMatchesThird()
-      throws Exception
+  public void testInternalSearchByValueMatchesThird() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("albert")));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3,
-                                              ByteString.valueOf("albert")));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -1093,13 +835,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
     expectedDNOrder.add(margaretJonesDN);   // Maggie
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder);
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -1111,29 +847,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -1154,26 +876,13 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByValueMatchesThirdWithBeforeCount()
-      throws Exception
+  public void testInternalSearchByValueMatchesThirdWithBeforeCount() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(1, 3, ByteString.valueOf("albert")));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(1, 3,
-                                              ByteString.valueOf("albert")));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -1183,13 +892,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
     expectedDNOrder.add(margaretJonesDN);   // Maggie
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder);
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -1201,29 +904,15 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_SERVER_SIDE_SORT_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          sortResponse = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          sortResponse = (ServerSideSortResponseControl)c;
-        }
+        sortResponse = asServerSideSortResponseControl(c);
       }
       else if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
       else
       {
-        fail("Response control with unexpected OID " + c.getOID());
+        Assert.fail("Response control with unexpected OID " + c.getOID());
       }
     }
 
@@ -1244,25 +933,12 @@ public class TestVLVIndex extends DirectoryServerTestCase {
    * @throws  Exception  If an unexpected problem occurred.
    */
   @Test( dependsOnMethods = { "testAdd" } )
-  public void testInternalSearchByValueAfterAll()
-      throws Exception
+  public void testInternalSearchByValueAfterAll() throws Exception
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(sortOrder));
-    requestControls.add(new VLVRequestControl(0, 3, ByteString.valueOf("zz")));
-
-    InternalSearchOperation internalSearch =
-        new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                    InternalClientConnection.nextMessageID(), requestControls,
-                                    DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                    SearchFilter.createFilterFromString("(objectClass=*)"),
-                                    null, null);
-
-    internalSearch.run();
+    final SearchRequest request = Requests.newSearchRequest(DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE)
+        .addControl(new ServerSideSortRequestControl(sortOrder))
+        .addControl(new VLVRequestControl(0, 3, ByteString.valueOf("zz")));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
 
     // It will be successful because the control isn't critical.
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
@@ -1272,13 +948,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     expectedDNOrder.add(zorroDN);           // No first name
     expectedDNOrder.add(suffixDN);          // No sort attributes
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
-
-    assertEquals(returnedDNOrder, expectedDNOrder);
+    assertThat(getDNs(internalSearch)).isEqualTo(expectedDNOrder);
 
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
@@ -1288,14 +958,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if (c.getOID().equals(OID_VLV_RESPONSE_CONTROL))
       {
-        if(c instanceof LDAPControl)
-        {
-          vlvResponse = VLVResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-        }
-        else
-        {
-          vlvResponse = (VLVResponseControl)c;
-        }
+        vlvResponse = asVLVResponseControl(c);
       }
     }
 

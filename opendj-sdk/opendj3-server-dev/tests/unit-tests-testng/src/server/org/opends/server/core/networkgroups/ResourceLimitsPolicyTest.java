@@ -38,13 +38,13 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -205,7 +205,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn);
 
-    final SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.BASE_OBJECT, "(objectclass=*)");
+    final SearchRequest request = newSearchRequest(DN.valueOf("dc=example,dc=com"), SearchScope.BASE_OBJECT);
     final InternalSearchOperation search1 = conn.processSearch(request);
     assertOperationIsAllowed(limits, conn, search1, true,
         "First operation should be allowed");

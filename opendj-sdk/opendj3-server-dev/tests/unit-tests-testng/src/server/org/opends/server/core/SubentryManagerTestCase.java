@@ -30,24 +30,21 @@ package org.opends.server.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -64,6 +61,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -362,21 +360,12 @@ public class SubentryManagerTestCase extends CoreTestCase
   @Test
   public void testCollectiveAttributeSubentries() throws Exception
   {
-    Set<String> attributes = newSet("collectiveAttributeSubentries");
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              getRootConnection(), nextOperationID(), nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(testEntry.getName().toString()),
-              SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=*)"),
-              attributes, null);
+    SearchRequest request = newSearchRequest(testEntry.getName(), SearchScope.BASE_OBJECT)
+        .setSizeLimit(Integer.MAX_VALUE)
+        .setTimeLimit(Integer.MAX_VALUE)
+        .addAttribute("collectiveAttributeSubentries");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
-    searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
     AttributeType attrType = DirectoryServer.getAttributeType("collectiveattributesubentries");

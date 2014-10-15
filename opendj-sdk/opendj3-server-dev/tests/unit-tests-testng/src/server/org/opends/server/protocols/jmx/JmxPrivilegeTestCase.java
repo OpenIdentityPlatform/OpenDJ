@@ -482,10 +482,8 @@ public class JmxPrivilegeTestCase
     assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
     ByteString dn = ByteString.valueOf("cn=config");
-    LDAPFilter filter = new LDAPFilter(SearchFilter
-        .createFilterFromString("(objectClass=*)"));
-    InternalSearchOperation searchOperation = conn.processSearch(dn,
-        SearchScope.BASE_OBJECT, filter);
+    LDAPFilter filter = LDAPFilter.objectClassPresent();
+    InternalSearchOperation searchOperation = conn.processSearch(dn, SearchScope.BASE_OBJECT, filter);
     if (hasPrivilege)
     {
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1257,7 +1255,7 @@ public class JmxPrivilegeTestCase
                   conn.nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  SearchFilter.objectClassPresent(), null,
                   null);
     searchOperation.run();
 
@@ -1464,7 +1462,7 @@ public class JmxPrivilegeTestCase
                   conn.nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  SearchFilter.objectClassPresent(), null,
                   null);
     searchOperation.run();
 

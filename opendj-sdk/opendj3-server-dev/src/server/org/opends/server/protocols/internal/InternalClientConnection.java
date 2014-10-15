@@ -34,9 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
@@ -1989,85 +1987,6 @@ public final class InternalClientConnection
                            modifyDNRecord.getNewSuperiorDN());
   }
 
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.  It will not dereference any aliases, will not
-   * request a size or time limit, and will retrieve all user
-   * attributes.
-   *
-   * @param  rawBaseDN     The base DN for the search.
-   * @param  scope         The scope for the search.
-   * @param  filterString  The string representation of the filter for
-   *                       the search.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing as well as lists of the matching entries
-   *          and search references.
-   *
-   * @throws  DirectoryException  If the provided filter string cannot
-   *                              be decoded as a search filter.
-   */
-  public InternalSearchOperation processSearch(String rawBaseDN,
-                                      SearchScope scope,
-                                      String filterString)
-         throws DirectoryException
-  {
-    return processSearch(Requests.newSearchRequest(rawBaseDN, scope, filterString), null);
-  }
-
-
-
-  /**
-   * Processes an internal search operation with the provided
-   * information.
-   *
-   * @param  rawBaseDN       The base DN for the search.
-   * @param  scope           The scope for the search.
-   * @param  derefPolicy     The alias dereferencing policy for the
-   *                         search.
-   * @param  sizeLimit       The size limit for the search.
-   * @param  timeLimit       The time limit for the search.
-   * @param  typesOnly       The typesOnly flag for the search.
-   * @param  filter          The filter for the search.
-   * @param  attributes      The set of requested attributes for the
-   *                         search.
-   * @param  controls        The set of controls to include in the
-   *                         request.
-   * @param  searchListener  The internal search listener that should
-   *                         be used to handle the matching entries
-   *                         and references.
-   *
-   * @return  A reference to the internal search operation that was
-   *          processed and contains information about the result of
-   *          the processing.
-   */
-  public InternalSearchOperation
-              processSearch(ByteString rawBaseDN,
-                            SearchScope scope,
-                            DereferenceAliasesPolicy derefPolicy,
-                            int sizeLimit, int timeLimit,
-                            boolean typesOnly, RawFilter filter,
-                            Set<String> attributes,
-                            List<Control> controls,
-                            InternalSearchListener searchListener)
-  {
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(this, nextOperationID(),
-                                     nextMessageID(), controls,
-                                     rawBaseDN, scope, derefPolicy,
-                                     sizeLimit, timeLimit,
-                                     typesOnly, filter, attributes,
-                                     searchListener);
-
-    searchOperation.run();
-    return searchOperation;
-  }
-
-
-
   /**
    * Processes an internal search operation with the provided
    * information.
@@ -2098,6 +2017,10 @@ public final class InternalClientConnection
    */
   public InternalSearchOperation processSearch(final SearchRequest request, InternalSearchListener searchListener)
   {
+    // FIXME uncomment this after we move to the SDK:
+    // if (Filter.objectClassPresent().equals(filter)) {
+    // filter = Filter.alwaysTrue();
+    // }
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
              request.getControls(), request.getName(), request.getScope(),

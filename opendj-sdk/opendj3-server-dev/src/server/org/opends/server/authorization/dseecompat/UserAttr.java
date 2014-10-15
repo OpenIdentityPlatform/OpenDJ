@@ -35,11 +35,11 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 
 /*
  * TODO Evaluate making this class more efficient.
@@ -59,43 +59,42 @@ public class UserAttr implements KeywordBindRule {
      * the "#" token.
      */
     private enum UserAttrType {
-        USERDN, GROUPDN, ROLEDN, URL, VALUE
-    }
+        USERDN, GROUPDN, ROLEDN, URL, VALUE;
 
-    /** Filter used internal search. */
-    private static SearchFilter filter;
+        private static UserAttrType getType(String expr) throws AciException {
+            if("userdn".equalsIgnoreCase(expr)) {
+                return UserAttrType.USERDN;
+            } else if("groupdn".equalsIgnoreCase(expr)) {
+                 return UserAttrType.GROUPDN;
+            } else if("roledn".equalsIgnoreCase(expr)) {
+                return UserAttrType.ROLEDN;
+            } else if("ldapurl".equalsIgnoreCase(expr)) {
+                return UserAttrType.URL;
+            }
+            return UserAttrType.VALUE;
+        }
+    }
 
     /**
      * Used to create an attribute type that can compare the value below in
      * an entry returned from an internal search.
      */
-    private  String attrStr=null;
+    private String attrStr;
 
     /**
      * Used to compare a attribute value returned from a search against this
      * value which might have been defined in the ACI userattr rule.
      */
-    private  String attrVal=null;
+    private String attrVal;
 
     /** Contains the type of the userattr, one of the above enumerations. */
-    private UserAttrType userAttrType=null;
+    private UserAttrType userAttrType;
 
     /** An enumeration representing the bind rule type. */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     /** The class used to hold the parent inheritance information. */
-    private ParentInheritance parentInheritance=null;
-
-    static {
-        /*
-         * Set up the filter used to search private and public contexts.
-         */
-        try {
-            filter=SearchFilter.createFilterFromString("(objectclass=*)");
-        } catch (DirectoryException ex) {
-            //TODO should never happen, error message?
-        }
-    }
+    private ParentInheritance parentInheritance;
 
     /**
      * Create an non-USERDN/GROUPDN instance of the userattr keyword class.
@@ -145,7 +144,7 @@ public class UserAttr implements KeywordBindRule {
                 WARN_ACI_SYNTAX_INVALID_USERATTR_EXPRESSION.get(expression);
             throw new AciException(message);
         }
-        UserAttrType userAttrType=getType(vals[1]);
+        UserAttrType userAttrType = UserAttrType.getType(vals[1]);
         switch (userAttrType) {
                 case GROUPDN:
                 case USERDN: {
@@ -156,9 +155,7 @@ public class UserAttr implements KeywordBindRule {
                 case ROLEDN: {
                   //The roledn keyword is not supported. Throw an exception with
                   //a message if it is seen in the expression.
-                  LocalizableMessage message =
-                      WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expression);
-                  throw new AciException(message);
+                  throw new AciException(WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expression));
                 }
          }
          return new UserAttr(vals[0], vals[1], userAttrType, type);
@@ -205,9 +202,10 @@ public class UserAttr implements KeywordBindRule {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         boolean undefined=false;
         AttributeType attrType;
-        if((attrType = DirectoryServer.getAttributeType(attrStr)) == null)
+        if((attrType = DirectoryServer.getAttributeType(attrStr)) == null) {
             attrType = DirectoryServer.getDefaultAttributeType(attrStr);
-        final SearchRequest request = newSearchRequest(evalCtx.getClientDN(), SearchScope.BASE_OBJECT, filter);
+        }
+        final SearchRequest request = newSearchRequest(evalCtx.getClientDN(), SearchScope.BASE_OBJECT);
         InternalSearchOperation op = getRootConnection().processSearch(request);
         LinkedList<SearchResultEntry> result = op.getSearchEntries();
         if (!result.isEmpty()) {
@@ -225,41 +223,6 @@ public class UserAttr implements KeywordBindRule {
     }
 
     /**
-     * Parses the substring after the '#' character to determine the userattr
-     * type.
-     * @param expr The string with the substring.
-     * @return An enumeration containing the type.
-     * @throws AciException If the substring contains an invalid type (roledn
-     * or groupdn).
-     */
-    private static UserAttrType getType(String expr) throws AciException {
-        UserAttrType userAttrType;
-        if(expr.equalsIgnoreCase("userdn"))
-            userAttrType=UserAttrType.USERDN;
-        else if(expr.equalsIgnoreCase("groupdn")) {
-             userAttrType=UserAttrType.GROUPDN;
-      /*
-            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
-                "The groupdn userattr" +
-                    "keyword is not supported.");
-            throw new AciException(message);
-        */
-        } else if(expr.equalsIgnoreCase("roledn")) {
-            userAttrType=UserAttrType.ROLEDN;
-            /*
-            LocalizableMessage message = WARN_ACI_SYNTAX_INVALID_USERATTR_KEYWORD.get(
-                "The roledn userattr" +
-                    "keyword is not supported.");
-            throw new AciException(message);
-            */
-        } else if(expr.equalsIgnoreCase("ldapurl"))
-            userAttrType=UserAttrType.URL;
-        else
-            userAttrType=UserAttrType.VALUE;
-        return userAttrType;
-    }
-
-    /**
      * Evaluate an URL userattr type. Look into the resource entry for the
      * specified attribute and values. Assume it is an URL. Decode it an try
      * and match it against the client entry attribute.
@@ -270,8 +233,9 @@ public class UserAttr implements KeywordBindRule {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         boolean undefined=false;
         AttributeType attrType;
-        if((attrType = DirectoryServer.getAttributeType(attrStr)) == null)
+        if((attrType = DirectoryServer.getAttributeType(attrStr)) == null) {
             attrType = DirectoryServer.getDefaultAttributeType(attrStr);
+        }
         List<Attribute> attrs=evalCtx.getResourceEntry().getAttribute(attrType);
         if(!attrs.isEmpty()) {
             for(Attribute a : attrs) {
@@ -320,11 +284,12 @@ public class UserAttr implements KeywordBindRule {
         AttributeType attrType=parentInheritance.getAttributeType();
         DN baseDN=parentInheritance.getBaseDN();
         if(baseDN != null) {
-            if (evalCtx.getResourceEntry().hasAttribute(attrType))
+            if (evalCtx.getResourceEntry().hasAttribute(attrType)) {
                 matched=GroupDN.evaluate(evalCtx.getResourceEntry(),
                         evalCtx,attrType, baseDN);
+            }
         } else {
-        for(int i=0;((i < numLevels) && !stop); i++ ) {
+        for(int i=0;(i < numLevels && !stop); i++ ) {
             //The ROLEDN keyword will always enter this statement. The others
             //might. For the add operation, the resource itself (level 0)
             //must never be allowed to give access.
@@ -335,14 +300,16 @@ public class UserAttr implements KeywordBindRule {
                     matched =
                             evalEntryAttr(evalCtx.getResourceEntry(),
                                     evalCtx,attrType);
-                    if(matched.equals(EnumEvalResult.TRUE))
+                    if(matched.equals(EnumEvalResult.TRUE)) {
                         stop=true;
+                    }
                 }
             } else {
                 DN pDN = getDNParentLevel(levels[i], evalCtx.getResourceDN());
-                if(pDN == null)
+                if(pDN == null) {
                     continue;
-                final SearchRequest request = newSearchRequest(pDN, SearchScope.BASE_OBJECT, filter)
+                }
+                final SearchRequest request = newSearchRequest(pDN, SearchScope.BASE_OBJECT)
                     .addAttribute(parentInheritance.getAttrTypeStr());
                 InternalSearchOperation op = getRootConnection().processSearch(request);
                 LinkedList<SearchResultEntry> result = op.getSearchEntries();
@@ -350,8 +317,9 @@ public class UserAttr implements KeywordBindRule {
                     Entry e = result.getFirst();
                     if(e.hasAttribute(attrType)) {
                         matched = evalEntryAttr(e, evalCtx, attrType);
-                        if(matched.equals(EnumEvalResult.TRUE))
+                        if(matched.equals(EnumEvalResult.TRUE)) {
                             stop=true;
+                        }
                     }
                 }
             }
@@ -370,8 +338,9 @@ public class UserAttr implements KeywordBindRule {
      */
     private DN getDNParentLevel(int l, DN dn) {
         int rdns=dn.size();
-        if(l > rdns)
+        if(l > rdns) {
             return null;
+        }
         DN theDN=dn;
         for(int i=0; i < l;i++) {
             theDN=theDN.parent();

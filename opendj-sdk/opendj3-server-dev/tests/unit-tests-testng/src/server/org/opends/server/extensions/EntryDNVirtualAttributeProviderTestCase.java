@@ -310,7 +310,7 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
         .addAttribute("entrydn")
         .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
@@ -336,7 +336,7 @@ public class EntryDNVirtualAttributeProviderTestCase
   public void testSearchEntryDNAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
         .addAttribute("entrydn")
         .addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 

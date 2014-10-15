@@ -602,7 +602,7 @@ public class InternalLDAPSocketTestCase
                                      SearchScope.BASE_OBJECT,
                                      DereferenceAliasesPolicy.NEVER,
                                      0, 0, false,
-                                     LDAPFilter.decode("(objectClass=*)"),
+                                     LDAPFilter.objectClassPresent(),
                                      new LinkedHashSet<String>());
     writer.writeMessage(new LDAPMessage(2, searchRequest));
 

@@ -34,8 +34,8 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.LDAPException;
 import org.testng.annotations.Test;
 
@@ -55,14 +55,9 @@ public class TestSearchProtocolOp extends LdapTestCase
   private int sizeLimit = Integer.MAX_VALUE;
   private int timeLimit = Integer.MAX_VALUE;
   private boolean typesOnly = true;
-  private LDAPFilter filter;
+  private LDAPFilter filter = LDAPFilter.objectClassPresent();
   private LinkedHashSet<String> attributes = new LinkedHashSet<String>(
       Arrays.asList("description", "cn", "cn;optionA"));
-
-  public TestSearchProtocolOp() throws Exception
-  {
-    filter = LDAPFilter.decode("(objectClass=*)");
-  }
 
   /**
    * Create a test search request protocol op.
