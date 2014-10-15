@@ -79,17 +79,15 @@ public final class AdministratorAction {
          */
         SERVER_RESTART("server-restart");
 
-        // The user-friendly name of the type.
+        /** The user-friendly name of the type. */
         private final String name;
 
-        // Private constructor.
+        /** Private constructor. */
         private Type(String name) {
             this.name = name;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String toString() {
             return name;
@@ -97,15 +95,19 @@ public final class AdministratorAction {
 
     }
 
-    // The managed object definition associated with this administrator
-    // action.
+    /**
+     * The managed object definition associated with this administrator
+     * action.
+     */
     private final AbstractManagedObjectDefinition<?, ?> definition;
 
-    // The name of the property definition associated with this
-    // administrator action.
+    /**
+     * The name of the property definition associated with this
+     * administrator action.
+     */
     private final String propertyName;
 
-    // The type of administration action.
+    /** The type of administration action. */
     private final Type type;
 
     /**

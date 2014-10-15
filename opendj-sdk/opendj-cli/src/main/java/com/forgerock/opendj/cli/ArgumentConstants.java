@@ -721,7 +721,7 @@ public final class ArgumentConstants {
      */
     public static final String OPTION_LONG_RESTART = "restart";
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private ArgumentConstants() {
 
     }

@@ -46,9 +46,7 @@ public final class MockConstraint extends Constraint {
      */
     private class MockConstraintHandler extends ServerConstraintHandler {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isDeleteAllowed(ServerManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -59,9 +57,7 @@ public final class MockConstraint extends Constraint {
             return isDeleteAllowed;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isUsable(ServerManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -72,9 +68,7 @@ public final class MockConstraint extends Constraint {
             return isUsable;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void performPostAdd(ServerManagedObject<?> managedObject) throws ConfigException {
             // Make sure that the associated config entry exists.
@@ -82,9 +76,7 @@ public final class MockConstraint extends Constraint {
             Assert.assertTrue(configRepository.hasEntry(targetDN));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void performPostDelete(ServerManagedObject<?> managedObject) throws ConfigException {
             // Make sure that the associated config entry does not exist.
@@ -92,9 +84,7 @@ public final class MockConstraint extends Constraint {
             Assert.assertTrue(configRepository.hasEntry(targetDN));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void performPostModify(ServerManagedObject<?> managedObject) throws ConfigException {
             // Make sure that the associated config entry exists.
@@ -104,10 +94,10 @@ public final class MockConstraint extends Constraint {
 
     }
 
-    // Determines if delete operations are allowed.
+    /** Determines if delete operations are allowed. */
     private final boolean isDeleteAllowed;
 
-    // Determines if configurations can be decoded.
+    /** Determines if configurations can be decoded. */
     private final boolean isUsable;
 
     private final ConfigurationRepository configRepository;
@@ -128,16 +118,12 @@ public final class MockConstraint extends Constraint {
         this.configRepository = configRepository;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
         return Collections.emptySet();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
         return Collections.<ServerConstraintHandler> singleton(new MockConstraintHandler());
     }

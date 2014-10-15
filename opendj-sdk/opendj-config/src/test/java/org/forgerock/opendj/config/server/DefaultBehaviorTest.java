@@ -119,7 +119,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         "objectclass: ds-cfg-branch",
         "cn: test parents");
 
-    // Parent 1 - uses default values for optional-multi-valued-dn-property.
+    /** Parent 1 - uses default values for optional-multi-valued-dn-property. */
     static final List<String> LDIF_TEST_PARENT_1 = Arrays.asList(
         "dn: cn=test parent 1,cn=test parents,cn=config",
         "objectclass: top",
@@ -132,7 +132,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
 
     static final Entry TEST_PARENT_1 = makeEntry(LDIF_TEST_PARENT_1);
 
-    // Parent 2 - overrides default values for optional-multi-valued-dn-property.
+    /** Parent 2 - overrides default values for optional-multi-valued-dn-property. */
     static final Entry TEST_PARENT_2 = makeEntry(
         "dn: cn=test parent 2,cn=test parents,cn=config",
         "objectclass: top",
@@ -218,7 +218,6 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
         "ds-cfg-attribute-type: description",
         "ds-cfg-conflict-behavior: virtual-overrides-real");
-
     // @Checkstyle:on
 
     @BeforeClass
@@ -404,7 +403,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), dnProperty2);
     }
 
-    /** Asserts that the actual set of DNs contains the expected values */
+    /** Asserts that the actual set of DNs contains the expected values. */
     private void assertDNSetEquals(SortedSet<DN> actualDNs, List<String> expectedDNs) {
         String[] actualStrings = new String[actualDNs.size()];
         int i = 0;
@@ -415,7 +414,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         assertThat(actualStrings).containsOnly(expectedDNs.toArray(new Object[expectedDNs.size()]));
     }
 
-    /** Make an entry by combining two lists */
+    /** Make an entry by combining two lists. */
     static Entry makeEntryFrom(List<String> base, List<String> attrs) {
         List<String> ldif = new ArrayList<String>(base);
         ldif.addAll(attrs);

@@ -915,7 +915,7 @@ public final class LDAPClientTest extends AdminTestCase {
         }
     }
 
-    // Asserts that the actual set of DNs contains the expected values.
+    /** Asserts that the actual set of DNs contains the expected values. */
     private void assertDNSetEquals(SortedSet<DN> actual, String... expected) {
         String[] actualStrings = new String[actual.size()];
         int i = 0;
@@ -926,7 +926,7 @@ public final class LDAPClientTest extends AdminTestCase {
         Assert.assertEqualsNoOrder(actualStrings, expected);
     }
 
-    // Create the named test parent managed object.
+    /** Create the named test parent managed object. */
     private TestParentCfgClient createTestParent(ManagementContext context, String name)
             throws Exception {
         ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
@@ -934,7 +934,7 @@ public final class LDAPClientTest extends AdminTestCase {
                 TestParentCfgDefn.getInstance(), name, null).getConfiguration();
     }
 
-    // Retrieve the named test parent managed object.
+    /** Retrieve the named test parent managed object. */
     private TestParentCfgClient getTestParent(ManagementContext context, String name)
             throws Exception {
         ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
@@ -942,13 +942,13 @@ public final class LDAPClientTest extends AdminTestCase {
                 .getConfiguration();
     }
 
-    // List test parent managed objects.
+    /** List test parent managed objects. */
     private String[] listTestParents(ManagementContext context) throws Exception {
         ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
         return root.listChildren(TestCfg.getTestOneToManyParentRelationDefinition());
     }
 
-    // Remove the named test parent managed object.
+    /** Remove the named test parent managed object. */
     private void removeTestParent(ManagementContext context, String name) throws Exception {
         ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
         root.removeChild(TestCfg.getTestOneToManyParentRelationDefinition(), name);

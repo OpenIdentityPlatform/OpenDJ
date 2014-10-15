@@ -60,9 +60,7 @@ public enum PasswordPolicyWarningType {
         this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return name;

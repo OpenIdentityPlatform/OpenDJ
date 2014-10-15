@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractDataProvider implements DataProvider {
     private static final Logger debugLogger = LoggerFactory.getLogger(AbstractDataProvider.class);
 
-    // The list of event listeners associated with this data provider.
+    /** The list of event listeners associated with this data provider. */
     private final List<DataProviderEventListener> eventListeners =
             new CopyOnWriteArrayList<DataProviderEventListener>();
 
@@ -65,17 +65,13 @@ public abstract class AbstractDataProvider implements DataProvider {
         return getEntry(dn) != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final void deregisterEventListener(final DataProviderEventListener listener) {
         eventListeners.remove(listener);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final void registerEventListener(final DataProviderEventListener listener) {
         eventListeners.add(listener);

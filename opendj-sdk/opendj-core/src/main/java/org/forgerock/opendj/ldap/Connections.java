@@ -724,7 +724,7 @@ public final class Connections {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Connections() {
         // Do nothing.
     }

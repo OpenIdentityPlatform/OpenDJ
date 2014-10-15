@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * Attribute type syntax tests.
  */
 public class AttributeTypeSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -82,9 +80,7 @@ public class AttributeTypeSyntaxTest extends AbstractSyntaxTestCase {
                         + " NO-USER-MODIFICATION USAGE userApplications", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_ATTRIBUTE_TYPE_OID);

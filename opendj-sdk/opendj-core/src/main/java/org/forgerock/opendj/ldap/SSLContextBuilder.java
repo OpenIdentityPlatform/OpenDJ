@@ -99,7 +99,7 @@ public final class SSLContextBuilder {
     private String protocol = PROTOCOL_TLS1;
     private SecureRandom random = null;
 
-    // These are mutually exclusive.
+    /** These are mutually exclusive. */
     private Provider provider = null;
     private String providerName = null;
 

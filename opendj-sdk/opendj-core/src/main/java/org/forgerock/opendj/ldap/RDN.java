@@ -73,8 +73,10 @@ import org.forgerock.util.Reject;
  */
 public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
-    // A constant holding a special RDN having zero AVAs and which always
-    // compares greater than any other RDN other than itself.
+    /**
+     * A constant holding a special RDN having zero AVAs and which always
+     * compares greater than any other RDN other than itself.
+     */
     private static final RDN MAX_VALUE = new RDN(new AVA[0], "");
 
     /**
@@ -172,11 +174,13 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         }
     }
 
-    // In original order.
+    /** In original order. */
     private final AVA[] avas;
 
-    // We need to store the original string value if provided in order to
-    // preserve the original whitespace.
+    /**
+     * We need to store the original string value if provided in order to
+     * preserve the original whitespace.
+     */
     private String stringValue;
 
     /**
@@ -248,9 +252,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         this.stringValue = stringValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int compareTo(final RDN rdn) {
         // Identity.
         if (this == rdn) {
@@ -297,9 +299,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         return 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -338,9 +338,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         return avas[0];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         // Avoid an algorithm that requires the AVAs to be sorted.

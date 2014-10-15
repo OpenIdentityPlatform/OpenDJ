@@ -40,9 +40,7 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public class EnumSyntaxTestCase extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -85,9 +83,7 @@ public class EnumSyntaxTestCase extends AbstractSyntaxTestCase {
         builder.toSchema();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() throws SchemaException, DecodeException {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());

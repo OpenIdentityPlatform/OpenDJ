@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /**
- * Test class for ASN1OutputStreamWriter
+ * Test class for ASN1OutputStreamWriter.
  */
 public class ASN1OutputStreamWriterTestCase extends ASN1WriterTestCase {
     private final ByteArrayOutputStream outStream = new ByteArrayOutputStream();

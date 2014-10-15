@@ -59,9 +59,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // We'll use the decodeDITContentRule method to determine if the

@@ -71,9 +71,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         this.stackDepth = -1;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         while (stackDepth >= 0) {
@@ -84,17 +82,13 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         rootStream.close();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void flush() throws IOException {
         rootStream.flush();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeBoolean(final byte type, final boolean booleanValue) throws IOException {
         out.write(type);
@@ -105,9 +99,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeEndSequence() throws IOException {
         if (stackDepth < 0) {
@@ -135,25 +127,19 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeEndSet() throws IOException {
         return writeEndSequence();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeEnumerated(final byte type, final int intValue) throws IOException {
         return writeInteger(type, intValue);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeInteger(final byte type, final int intValue) throws IOException {
         out.write(type);
@@ -186,9 +172,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeInteger(final byte type, final long longValue) throws IOException {
         out.write(type);
@@ -263,9 +247,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeNull(final byte type) throws IOException {
         out.write(type);
@@ -275,9 +257,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeOctetString(final byte type, final byte[] value, final int offset,
             final int length) throws IOException {
@@ -289,9 +269,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeOctetString(final byte type, final ByteSequence value)
             throws IOException {
@@ -303,9 +281,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeOctetString(final byte type, final String value) throws IOException {
         out.write(type);
@@ -323,9 +299,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeStartSequence(final byte type) throws IOException {
         // Write the type in current stream switch to next sub-stream
@@ -347,9 +321,7 @@ final class ASN1OutputStreamWriter extends AbstractASN1Writer {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ASN1Writer writeStartSet(final byte type) throws IOException {
         // From an implementation point of view, a set is equivalent to a

@@ -105,42 +105,32 @@ public final class AccountUsabilityRequestControl implements Control {
         return isCritical ? CRITICAL_INSTANCE : NONCRITICAL_INSTANCE;
     }
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private AccountUsabilityRequestControl(final boolean isCritical) {
         this.isCritical = isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

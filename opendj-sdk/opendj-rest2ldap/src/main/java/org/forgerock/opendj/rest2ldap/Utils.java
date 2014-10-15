@@ -58,7 +58,8 @@ final class Utils {
      *            The type of result.
      */
     private static final class AccumulatingResultHandler<V> implements ResultHandler<V> {
-        private ResourceException exception; // Guarded by latch.
+        /** Guarded by latch. */
+        private ResourceException exception;
         private final ResultHandler<List<V>> handler;
         private final AtomicInteger latch;
         private final List<V> results;
@@ -353,7 +354,7 @@ final class Utils {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Utils() {
         // No implementation required.
     }

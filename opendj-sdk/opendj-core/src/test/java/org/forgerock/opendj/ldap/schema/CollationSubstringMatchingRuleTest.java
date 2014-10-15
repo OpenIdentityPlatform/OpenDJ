@@ -51,9 +51,7 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         return new Object[][] { };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringFinalMatchData")
     public Object[][] createSubstringFinalMatchData() {
@@ -84,9 +82,7 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringInitialMatchData")
     public Object[][] createSubstringInitialMatchData() {
@@ -113,9 +109,7 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "substringMiddleMatchData")
     public Object[][] createSubstringMiddleMatchData() {
@@ -149,9 +143,7 @@ public class CollationSubstringMatchingRuleTest extends SubstringMatchingRuleTes
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         // Note that oid and names are not used by the test (ie, they could be any value, test should pass anyway)

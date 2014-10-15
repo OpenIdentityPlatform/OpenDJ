@@ -69,9 +69,7 @@ public enum PersistentSearchChangeType {
         this.intValue = intValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return name;

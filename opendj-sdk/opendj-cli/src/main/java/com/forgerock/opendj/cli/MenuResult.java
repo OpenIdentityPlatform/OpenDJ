@@ -174,13 +174,13 @@ public final class MenuResult<T> {
         return success(Collections.singleton(value));
     }
 
-    // The type of result returned from the menu.
+    /** The type of result returned from the menu. */
     private final Type type;
 
-    // The menu result value(s).
+    /** The menu result value(s). */
     private final Collection<T> values;
 
-    // Private constructor.
+    /** Private constructor. */
     private MenuResult(Type type, Collection<T> values) {
         this.type = type;
         this.values = values;

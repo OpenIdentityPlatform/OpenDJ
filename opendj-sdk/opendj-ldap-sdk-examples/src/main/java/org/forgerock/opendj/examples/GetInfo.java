@@ -39,10 +39,10 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  * Demonstrates accessing server information about capabilities and schema.
  */
 public final class GetInfo {
-    // Connection information
+    /** Connection information. */
     private static String host;
     private static int port;
-    // The kind of server information to request (all, controls, extops)
+    /** The kind of server information to request (all, controls, extops). */
     private static String infoType;
 
     /**

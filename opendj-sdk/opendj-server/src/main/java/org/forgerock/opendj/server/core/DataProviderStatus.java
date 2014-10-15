@@ -54,7 +54,7 @@ public enum DataProviderStatus {
      */
     WRITE_INTERNAL_ONLY("write-internal-only");
 
-    // The human-readable name for this status.
+    /** The human-readable name for this status. */
     private String name;
 
     /**

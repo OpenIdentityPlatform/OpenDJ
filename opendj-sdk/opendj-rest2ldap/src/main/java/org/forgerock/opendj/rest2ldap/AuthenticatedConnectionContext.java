@@ -92,9 +92,7 @@ public final class AuthenticatedConnectionContext extends Context {
         throw new InternalServerErrorException(i18n("Cached LDAP connections cannot be restored"));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void saveToJson(final JsonValue savedContext, final PersistenceConfig config)
             throws ResourceException {

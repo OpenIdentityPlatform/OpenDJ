@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * LDAP syntax tests.
  */
 public class LDAPSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -84,9 +82,7 @@ public class LDAPSyntaxTest extends AbstractSyntaxTestCase {
             { "(2.5.4.3 DESC 'syntax description' ", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_LDAP_SYNTAX_OID);

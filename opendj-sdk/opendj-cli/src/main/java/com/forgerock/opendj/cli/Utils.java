@@ -534,7 +534,7 @@ final public class Utils {
     }
 
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Utils() {
         // Do nothing.
     }

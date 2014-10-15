@@ -54,63 +54,47 @@ public final class PasswordPolicyStateExtendedResult extends
         super(resultCode);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void addOperation(final PasswordPolicyStateOperation operation) {
         operations.add(operation);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getOID() {
         // No response name defined.
         return PasswordPolicyStateExtendedRequest.OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Iterable<PasswordPolicyStateOperation> getOperations() {
         return operations;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getTargetUser() {
         return targetUser;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         return PasswordPolicyStateExtendedRequest.encode(targetUser, operations);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void setTargetUser(String targetUser) {
         this.targetUser = targetUser != null ? targetUser : "";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

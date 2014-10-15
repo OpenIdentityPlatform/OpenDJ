@@ -305,24 +305,24 @@ public final class NameForm extends SchemaElement {
         }
     }
 
-    // Indicates whether this definition is declared "obsolete".
+    /** Indicates whether this definition is declared "obsolete". */
     private final boolean isObsolete;
 
-    // The set of user defined names for this definition.
+    /** The set of user defined names for this definition. */
     private final List<String> names;
 
-    // The OID that may be used to reference this definition.
+    /** The OID that may be used to reference this definition. */
     private final String oid;
 
-    // The set of optional attribute types for this name form.
+    /** The set of optional attribute types for this name form. */
     private final Set<String> optionalAttributeOIDs;
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
 
-    // The set of required attribute types for this name form.
+    /** The set of required attribute types for this name form. */
     private final Set<String> requiredAttributeOIDs;
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
-    // The reference to the structural objectclass for this name form.
+    /** The reference to the structural objectclass for this name form. */
     private ObjectClass structuralClass;
     private final String structuralClassOID;
 

@@ -152,16 +152,16 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         return new GetPropSubCommandHandler(parser, path.child(r), r);
     }
 
-    // The sub-commands naming arguments.
+    /** The sub-commands naming arguments. */
     private final List<StringArgument> namingArgs;
 
-    // The path of the managed object.
+    /** The path of the managed object. */
     private final ManagedObjectPath<?, ?> path;
 
-    // The sub-command associated with this handler.
+    /** The sub-command associated with this handler. */
     private final SubCommand subCommand;
 
-    // Private constructor.
+    /** Private constructor. */
     private GetPropSubCommandHandler(SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
             RelationDefinition<?, ?> r) throws ArgumentException {
         this.path = path;
@@ -194,17 +194,13 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         return path.getRelationDefinition();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public SubCommand getSubCommand() {
         return subCommand;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<Integer> run(ConsoleApplication app, LDAPManagementContextFactory factory)
             throws ArgumentException, ClientException {
@@ -306,7 +302,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         return MenuResult.success(0);
     }
 
-    // Display the set of values associated with a property.
+    /** Display the set of values associated with a property. */
     private <T> void displayProperty(final ConsoleApplication app, TableBuilder builder, ManagedObject<?> mo,
             PropertyDefinition<T> pd, PropertyValuePrinter valuePrinter) {
         SortedSet<T> values = mo.getPropertyValues(pd);

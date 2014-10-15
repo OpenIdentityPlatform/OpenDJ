@@ -91,7 +91,7 @@ public enum OperatingSystem {
      */
     UNKNOWN("Unknown", false, false, false);
 
-    // The human-readable name for this operating system.
+    /** The human-readable name for this operating system. */
     private String osName;
 
     private boolean isWindows;

@@ -40,7 +40,7 @@ import org.forgerock.util.Reject;
  */
 public abstract class AbstractEntry implements Entry {
 
-    // Predicate used for findAttributes.
+    /** Predicate used for findAttributes. */
     private static final Predicate<Attribute, AttributeDescription> FIND_ATTRIBUTES_PREDICATE =
             new Predicate<Attribute, AttributeDescription>() {
 

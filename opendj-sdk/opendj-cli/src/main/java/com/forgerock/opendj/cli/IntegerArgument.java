@@ -36,17 +36,19 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * potentially only those in a given range.
  */
 public final class IntegerArgument extends Argument {
-    // Indicates whether a lower bound will be enforced for this argument.
+    /** Indicates whether a lower bound will be enforced for this argument. */
     private final boolean hasLowerBound;
 
-    // Indicates whether an upper bound will be enforced for this
-    // argument.
+    /**
+     * Indicates whether an upper bound will be enforced for this
+     * argument.
+     */
     private final boolean hasUpperBound;
 
-    // The lower bound that will be enforced for this argument.
+    /** The lower bound that will be enforced for this argument. */
     private final int lowerBound;
 
-    // The upper bound that will be enforced for this argument.
+    /** The upper bound that will be enforced for this argument. */
     private final int upperBound;
 
     /**

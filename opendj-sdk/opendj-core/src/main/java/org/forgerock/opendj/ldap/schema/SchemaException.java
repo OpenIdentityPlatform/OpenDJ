@@ -34,7 +34,7 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 @SuppressWarnings("serial")
 final class SchemaException extends Exception implements LocalizableException {
-    // The I18N message associated with this exception.
+    /** The I18N message associated with this exception. */
     private final LocalizableMessage message;
 
     /**
@@ -63,9 +63,7 @@ final class SchemaException extends Exception implements LocalizableException {
         this.message = message;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getMessageObject() {
         return this.message;
     }

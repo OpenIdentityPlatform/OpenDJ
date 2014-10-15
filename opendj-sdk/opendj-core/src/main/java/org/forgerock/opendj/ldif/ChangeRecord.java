@@ -114,19 +114,13 @@ public interface ChangeRecord extends Request {
      */
     // ChangeRecord setName(String dn);
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     Request addControl(Control control);
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     <C extends Control> C getControl(ControlDecoder<C> decoder, DecodeOptions options)
             throws DecodeException;
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     List<Control> getControls();
 }

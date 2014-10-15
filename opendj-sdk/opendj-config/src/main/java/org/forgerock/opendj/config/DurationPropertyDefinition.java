@@ -58,24 +58,26 @@ import java.util.EnumSet;
  */
 public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
 
-    // String used to represent unlimited durations.
+    /** String used to represent unlimited durations. */
     private static final String UNLIMITED = "unlimited";
 
-    // The base unit for this property definition.
+    /** The base unit for this property definition. */
     private final DurationUnit baseUnit;
 
-    // The optional maximum unit for this property definition.
+    /** The optional maximum unit for this property definition. */
     private final DurationUnit maximumUnit;
 
-    // The lower limit of the property value in milli-seconds.
+    /** The lower limit of the property value in milli-seconds. */
     private final long lowerLimit;
 
-    // The optional upper limit of the property value in milli-seconds.
+    /** The optional upper limit of the property value in milli-seconds. */
     private final Long upperLimit;
 
-    // Indicates whether this property allows the use of the "unlimited"
-    // duration value (represented using a -1L or the string
-    // "unlimited").
+    /**
+     * Indicates whether this property allows the use of the "unlimited"
+     * duration value (represented using a -1L or the string
+     * "unlimited").
+     */
     private final boolean allowUnlimited;
 
     /**
@@ -84,25 +86,26 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
      */
     public static final class Builder extends AbstractBuilder<Long, DurationPropertyDefinition> {
 
-        // The base unit for this property definition.
+        /** The base unit for this property definition. */
         private DurationUnit baseUnit = DurationUnit.SECONDS;
 
-        // The optional maximum unit for this property definition.
+        /** The optional maximum unit for this property definition. */
         private DurationUnit maximumUnit = null;
 
-        // The lower limit of the property value in milli-seconds.
+        /** The lower limit of the property value in milli-seconds. */
         private long lowerLimit = 0L;
 
-        // The optional upper limit of the property value in
-        // milli-seconds.
+        /** The optional upper limit of the property value in milli-seconds. */
         private Long upperLimit = null;
 
-        // Indicates whether this property allows the use of the
-        // "unlimited" duration value (represented using a -1L or the
-        // string "unlimited").
+        /**
+         * Indicates whether this property allows the use of the
+         * "unlimited" duration value (represented using a -1L or the
+         * string "unlimited").
+         */
         private boolean allowUnlimited = false;
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
@@ -299,9 +302,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
             this.allowUnlimited = allowUnlimited;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected DurationPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -325,7 +326,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private DurationPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<Long> defaultBehavior, DurationUnit baseUnit, DurationUnit maximumUnit,
@@ -388,9 +389,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         return allowUnlimited;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(Long value) {
         Reject.ifNull(value);
@@ -409,9 +408,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String encodeValue(Long value) {
         Reject.ifNull(value);
@@ -432,9 +429,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         return builder.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Long decodeValue(String value) {
         Reject.ifNull(value);
@@ -470,25 +465,19 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         return i;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitDuration(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Long value, P p) {
         return v.visitDuration(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         super.toString(builder);
@@ -515,9 +504,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         builder.append(allowUnlimited);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(Long o1, Long o2) {
         return o1.compareTo(o2);

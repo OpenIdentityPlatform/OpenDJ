@@ -1502,7 +1502,7 @@ final class SchemaConstants {
      */
     public static final String DATE_FORMAT_UTC_TIME = "yyMMddHHmmss'Z'";
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private SchemaConstants() {
         // Nothing to do.
     }

@@ -49,9 +49,7 @@ public class ExamplePlugin implements ConfigurationChangeListener<ExamplePluginC
         // No implementation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationChange(final ExamplePluginCfg config) {
         // The new configuration has already been validated.
@@ -60,9 +58,7 @@ public class ExamplePlugin implements ConfigurationChangeListener<ExamplePluginC
         return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(final ExamplePluginCfg config,
             final List<LocalizableMessage> messages) {

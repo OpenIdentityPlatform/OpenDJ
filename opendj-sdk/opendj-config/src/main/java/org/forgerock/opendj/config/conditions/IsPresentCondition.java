@@ -43,10 +43,10 @@ import org.forgerock.util.Reject;
  */
 public final class IsPresentCondition implements Condition {
 
-    // The property name.
+    /** The property name. */
     private final String propertyName;
 
-    // The property definition.
+    /** The property definition. */
     private PropertyDefinition<?> pd;
 
     /**
@@ -60,25 +60,19 @@ public final class IsPresentCondition implements Condition {
         this.propertyName = propertyName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         SortedSet<?> values = managedObject.getPropertyValues(pd);
         return !values.isEmpty();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
         SortedSet<?> values = managedObject.getPropertyValues(pd);
         return !values.isEmpty();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
         // Decode the property.
         this.pd = d.getPropertyDefinition(propertyName);

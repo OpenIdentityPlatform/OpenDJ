@@ -83,31 +83,31 @@ public abstract class Driver {
      */
     private final class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
 
-        // Any exception that occurred whilst retrieving inherited default
-        // values.
+        /**
+         * Any exception that occurred whilst retrieving inherited default
+         * values.
+         */
         private PropertyException exception = null;
 
-        // The path of the managed object containing the first property.
+        /** The path of the managed object containing the first property. */
         private final ManagedObjectPath<?, ?> firstPath;
 
-        // Indicates whether the managed object has been created yet.
+        /** Indicates whether the managed object has been created yet. */
         private final boolean isCreate;
 
-        // The path of the managed object containing the next property.
+        /** The path of the managed object containing the next property. */
         private ManagedObjectPath<?, ?> nextPath = null;
 
-        // The next property whose default values were required.
+        /** The next property whose default values were required. */
         private PropertyDefinition<T> nextProperty = null;
 
-        // Private constructor.
+        /** Private constructor. */
         private DefaultValueFinder(ManagedObjectPath<?, ?> p, boolean isCreate) {
             this.firstPath = p;
             this.isCreate = isCreate;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
@@ -119,17 +119,13 @@ public abstract class Driver {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
@@ -147,9 +143,7 @@ public abstract class Driver {
             return values;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Collection<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
@@ -161,15 +155,13 @@ public abstract class Driver {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
-        // Find the default values for the next path/property.
+        /** Find the default values for the next path/property. */
         private Collection<T> find(ManagedObjectPath<?, ?> p, PropertyDefinition<T> pd) {
             this.nextPath = p;
             this.nextProperty = pd;
@@ -187,7 +179,7 @@ public abstract class Driver {
             return values;
         }
 
-        // Get an inherited property value.
+        /** Get an inherited property value. */
         @SuppressWarnings("unchecked")
         private Collection<T> getInheritedProperty(ManagedObjectPath<?, ?> target,
                 AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
@@ -619,9 +611,11 @@ public abstract class Driver {
         }
     }
 
-    // Remove a managed object, first ensuring that the parent exists,
-    // then ensuring that the child exists, before ensuring that any
-    // constraints are satisfied.
+    /**
+     * Remove a managed object, first ensuring that the parent exists,
+     * then ensuring that the child exists, before ensuring that any
+     * constraints are satisfied.
+     */
     private <C extends ConfigurationClient, S extends Configuration> boolean doDeleteManagedObject(
         ManagedObjectPath<C, S> path) throws ManagedObjectNotFoundException, OperationRejectedException,
         LdapException {

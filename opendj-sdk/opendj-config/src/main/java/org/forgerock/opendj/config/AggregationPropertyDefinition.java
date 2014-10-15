@@ -117,23 +117,31 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
     public static final class Builder<C extends ConfigurationClient, S extends Configuration> extends
         AbstractBuilder<String, AggregationPropertyDefinition<C, S>> {
 
-        // The string representation of the managed object path specifying
-        // the parent of the aggregated managed objects.
+        /**
+         * The string representation of the managed object path specifying
+         * the parent of the aggregated managed objects.
+         */
         private String parentPathString = null;
 
-        // The name of a relation in the parent managed object which
-        // contains the aggregated managed objects.
+        /**
+         * The name of a relation in the parent managed object which
+         * contains the aggregated managed objects.
+         */
         private String rdName = null;
 
-        // The condition which is used to determine if a referenced
-        // managed object is enabled.
+        /**
+         * The condition which is used to determine if a referenced
+         * managed object is enabled.
+         */
         private Condition targetIsEnabledCondition = Conditions.TRUE;
 
-        // The condition which is used to determine whether or not
-        // referenced managed objects need to be enabled.
+        /**
+         * The condition which is used to determine whether or not
+         * referenced managed objects need to be enabled.
+         */
         private Condition targetNeedsEnablingCondition = Conditions.TRUE;
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
@@ -192,9 +200,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             this.targetNeedsEnablingCondition = condition;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected AggregationPropertyDefinition<C, S> buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -220,22 +226,22 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      */
     private final class ReferentialIntegrityChangeListener implements ServerManagedObjectChangeListener<S> {
 
-        // The error message which should be returned if an attempt is
-        // made to disable the referenced component.
+        /**
+         * The error message which should be returned if an attempt is
+         * made to disable the referenced component.
+         */
         private final LocalizableMessage message;
 
-        // The path of the referenced component.
+        /** The path of the referenced component. */
         private final ManagedObjectPath<C, S> path;
 
-        // Creates a new referential integrity delete listener.
+        /** Creates a new referential integrity delete listener. */
         private ReferentialIntegrityChangeListener(ManagedObjectPath<C, S> path, LocalizableMessage message) {
             this.path = path;
             this.message = message;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public ConfigChangeResult applyConfigurationChange(ServerManagedObject<? extends S> mo) {
             try {
                 if (targetIsEnabledCondition.evaluate(mo)) {
@@ -252,9 +258,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 + relationDefinition.getChildDefinition().getUserFriendlyName());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean isConfigurationChangeAcceptable(ServerManagedObject<? extends S> mo,
             List<LocalizableMessage> unacceptableReasons) {
             // Always prevent the referenced component from being
@@ -280,7 +284,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             }
         }
 
-        // Gets the path associated with this listener.
+        /** Gets the path associated with this listener. */
         private ManagedObjectPath<C, S> getManagedObjectPath() {
             return path;
         }
@@ -292,22 +296,22 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      */
     private final class ReferentialIntegrityDeleteListener implements ConfigurationDeleteListener<S> {
 
-        // The DN of the referenced configuration entry.
+        /** The DN of the referenced configuration entry. */
         private final DN dn;
 
-        // The error message which should be returned if an attempt is
-        // made to delete the referenced component.
+        /**
+         * The error message which should be returned if an attempt is
+         * made to delete the referenced component.
+         */
         private final LocalizableMessage message;
 
-        // Creates a new referential integrity delete listener.
+        /** Creates a new referential integrity delete listener. */
         private ReferentialIntegrityDeleteListener(DN dn, LocalizableMessage message) {
             this.dn = dn;
             this.message = message;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public ConfigChangeResult applyConfigurationDelete(S configuration) {
             // This should not happen - the
             // isConfigurationDeleteAcceptable() call-back should have
@@ -323,16 +327,13 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean isConfigurationDeleteAcceptable(S configuration, List<LocalizableMessage> unacceptableReasons) {
             if (configuration.dn().equals(dn)) {
                 // Always prevent deletion of the referenced component.
                 unacceptableReasons.add(message);
                 return false;
             }
-
             return true;
         }
 
@@ -343,9 +344,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      */
     private class ServerHandler extends ServerConstraintHandler {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isUsable(ServerManagedObject<?> managedObject,
             Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -382,9 +381,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             return isUsable;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void performPostAdd(ServerManagedObject<?> managedObject) throws ConfigException {
             // First make sure existing listeners associated with this
@@ -440,9 +437,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void performPostDelete(ServerManagedObject<?> managedObject) throws ConfigException {
             // Remove any registered delete and change listeners.
@@ -472,9 +467,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void performPostModify(ServerManagedObject<?> managedObject) throws ConfigException {
             // Remove all the constraints associated with this managed
@@ -491,9 +484,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      */
     private class SourceClientHandler extends ClientConstraintHandler {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
             Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -543,9 +534,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             return isAcceptable;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
             Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -562,9 +551,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      */
     private class TargetClientHandler extends ClientConstraintHandler {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
             Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -589,9 +576,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             return isAcceptable;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
             Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -627,8 +612,10 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             return isAcceptable;
         }
 
-        // Find all managed objects which reference the named managed
-        // object using this property.
+        /**
+         * Find all managed objects which reference the named managed
+         * object using this property.
+         */
         private <C1 extends ConfigurationClient> List<ManagedObject<? extends C1>> findReferences(
             ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod, String name)
                 throws LdapException {
@@ -654,7 +641,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             return instances;
         }
 
-        // Find all instances of a specific type of managed object.
+        /** Find all instances of a specific type of managed object. */
         @SuppressWarnings("unchecked")
         private <C1 extends ConfigurationClient> List<ManagedObject<? extends C1>> findInstances(
             ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod) throws LdapException {
@@ -725,44 +712,60 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
 
     private static final Logger debugLogger = LoggerFactory.getLogger(AggregationPropertyDefinition.class);
 
-    // The active server-side referential integrity change listeners
-    // associated with this property.
+    /**
+     * The active server-side referential integrity change listeners
+     * associated with this property.
+     */
     private final Map<DN, List<ReferentialIntegrityChangeListener>> changeListeners =
         new HashMap<DN, List<ReferentialIntegrityChangeListener>>();
 
-    // The active server-side referential integrity delete listeners
-    // associated with this property.
+    /**
+     * The active server-side referential integrity delete listeners
+     * associated with this property.
+     */
     private final Map<DN, List<ReferentialIntegrityDeleteListener>> deleteListeners =
         new HashMap<DN, List<ReferentialIntegrityDeleteListener>>();
 
-    // The name of the managed object which is the parent of the
-    // aggregated managed objects.
+    /**
+     * The name of the managed object which is the parent of the
+     * aggregated managed objects.
+     */
     private ManagedObjectPath<?, ?> parentPath;
 
-    // The string representation of the managed object path specifying
-    // the parent of the aggregated managed objects.
+    /**
+     * The string representation of the managed object path specifying
+     * the parent of the aggregated managed objects.
+     */
     private final String parentPathString;
 
-    // The name of a relation in the parent managed object which
-    // contains the aggregated managed objects.
+    /**
+     * The name of a relation in the parent managed object which
+     * contains the aggregated managed objects.
+     */
     private final String rdName;
 
-    // The relation in the parent managed object which contains the
-    // aggregated managed objects.
+    /**
+     * The relation in the parent managed object which contains the
+     * aggregated managed objects.
+     */
     private InstantiableRelationDefinition<C, S> relationDefinition;
 
-    // The source constraint.
+    /** The source constraint. */
     private final Constraint sourceConstraint;
 
-    // The condition which is used to determine if a referenced managed
-    // object is enabled.
+    /**
+     * The condition which is used to determine if a referenced managed
+     * object is enabled.
+     */
     private final Condition targetIsEnabledCondition;
 
-    // The condition which is used to determine whether or not
-    // referenced managed objects need to be enabled.
+    /**
+     * The condition which is used to determine whether or not
+     * referenced managed objects need to be enabled.
+     */
     private final Condition targetNeedsEnablingCondition;
 
-    // Private constructor.
+    /** Private constructor. */
     private AggregationPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<String> defaultBehavior, String parentPathString, String rdName,
@@ -775,17 +778,13 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         this.targetIsEnabledCondition = targetIsEnabledCondition;
         this.sourceConstraint = new Constraint() {
 
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
                 ClientConstraintHandler handler = new SourceClientHandler();
                 return Collections.singleton(handler);
             }
 
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
                 ServerConstraintHandler handler = new ServerHandler();
                 return Collections.singleton(handler);
@@ -793,25 +792,19 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitAggregation(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
         return v.visitAggregation(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String decodeValue(String value) {
         Reject.ifNull(value);
@@ -944,9 +937,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         return targetNeedsEnablingCondition;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String normalizeValue(String value) {
         try {
@@ -957,9 +948,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         super.toString(builder);
@@ -977,9 +966,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         builder.append(String.valueOf(targetIsEnabledCondition));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(String value) {
         try {
@@ -989,9 +976,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override
     public void initialize() throws Exception {
@@ -1012,17 +997,13 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         // for actions performed against referenced managed objects.
         Constraint constraint = new Constraint() {
 
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
                 ClientConstraintHandler handler = new TargetClientHandler();
                 return Collections.singleton(handler);
             }
 
-            /**
-             * {@inheritDoc}
-             */
+            /** {@inheritDoc} */
             public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
                 return Collections.emptyList();
             }

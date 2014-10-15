@@ -178,9 +178,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_UTC_TIME_OID);

@@ -257,7 +257,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * setExcludeAttributeDoesn't allow null.
+     * {@link LDIFEntryReader#setExcludeAttribute(AttributeDescription)}
+     * does not allow null.
      *
      * @throws Exception
      */
@@ -294,7 +295,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
 
     /**
      * Test to read an entry excluding all operational attributes
-     * setExcludeAllOperationalAttributes is forced to true
+     * setExcludeAllOperationalAttributes is forced to true.
      *
      * @throws Exception
      */
@@ -959,9 +960,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Test to read an entry containing spaces before the attribute
-     *
-     * @throws Exception
+     * Test to read an entry containing spaces before the attribute.
      */
     @Test()
     public void testReadEntryWithAttributesSpacesAtStart() throws Exception {
@@ -1063,7 +1062,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     /**
      * Test to read an entry containing duplicates values
      * ERR_LDIF_MULTI_VALUED_SINGLE_VALUED_ATTRIBUTE &&
-     * WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE
+     * WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE.
      *
      * @throws Exception
      */

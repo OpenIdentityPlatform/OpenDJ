@@ -55,9 +55,7 @@ final class EqualLengthApproximateMatchingRuleImpl extends AbstractApproximateMa
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return value.toByteString();

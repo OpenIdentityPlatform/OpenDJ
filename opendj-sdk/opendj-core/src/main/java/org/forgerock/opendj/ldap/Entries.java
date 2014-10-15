@@ -208,26 +208,20 @@ public final class Entries {
             this.entry = entry;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean addAttribute(final Attribute attribute) {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean addAttribute(final Attribute attribute,
                 final Collection<? super ByteString> duplicateValues) {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Entry addAttribute(final String attributeDescription, final Object... values) {
             throw new UnsupportedOperationException();
@@ -249,9 +243,7 @@ public final class Entries {
             return entry.containsAttribute(attributeDescription, values);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean equals(final Object object) {
             return (object == this || entry.equals(object));
@@ -269,9 +261,7 @@ public final class Entries {
                     .getAllAttributes(attributeDescription), UNMODIFIABLE_ATTRIBUTE_FUNCTION));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Iterable<Attribute> getAllAttributes(final String attributeDescription) {
             return Iterables.unmodifiableIterable(Iterables.transformedIterable(entry
@@ -288,9 +278,7 @@ public final class Entries {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Attribute getAttribute(final String attributeDescription) {
             final Attribute attribute = entry.getAttribute(attributeDescription);
@@ -306,41 +294,31 @@ public final class Entries {
             return entry.getAttributeCount();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public DN getName() {
             return entry.getName();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public int hashCode() {
             return entry.hashCode();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public AttributeParser parseAttribute(final AttributeDescription attributeDescription) {
             return entry.parseAttribute(attributeDescription);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public AttributeParser parseAttribute(final String attributeDescription) {
             return entry.parseAttribute(attributeDescription);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean removeAttribute(final Attribute attribute,
                 final Collection<? super ByteString> missingValues) {
@@ -352,25 +330,19 @@ public final class Entries {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Entry removeAttribute(final String attributeDescription, final Object... values) {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean replaceAttribute(final Attribute attribute) {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Entry replaceAttribute(final String attributeDescription, final Object... values) {
             throw new UnsupportedOperationException();
@@ -381,17 +353,13 @@ public final class Entries {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public Entry setName(final String dn) {
             throw new UnsupportedOperationException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String toString() {
             return entry.toString();
@@ -1165,7 +1133,7 @@ public final class Entries {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Entries() {
         // Nothing to do.
     }

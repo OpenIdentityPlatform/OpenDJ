@@ -174,17 +174,13 @@ public final class FailoverLoadBalancingAlgorithm extends AbstractLoadBalancingA
         this(factories, null, interval, unit, scheduler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     String getAlgorithmName() {
         return "Failover";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     int getInitialConnectionFactoryIndex() {
         // Always start with the first connection factory.

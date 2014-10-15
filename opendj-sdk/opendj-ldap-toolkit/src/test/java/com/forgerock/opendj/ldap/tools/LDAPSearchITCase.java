@@ -42,7 +42,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Simple integration tests to check the ldapsearch command
+ * Simple integration tests to check the ldapsearch command.
  */
 @SuppressWarnings("javadoc")
 public class LDAPSearchITCase extends ToolsITCase {

@@ -704,8 +704,8 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         return ldifLine;
     }
 
-    /*
-     * Determine whether the provided line is a continuation line. Note that
+    /**
+     * Determines whether the provided line is a continuation line. Note that
      * while RFC 2849 technically only allows a space in this position, both
      * OpenLDAP and the Sun Java System Directory Server allow a tab as well, so
      * we will too for compatibility reasons. See issue #852 for details.

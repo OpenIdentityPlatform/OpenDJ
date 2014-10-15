@@ -585,10 +585,10 @@ public final class AVA implements Comparable<AVA> {
 
     private final ByteString attributeValue;
 
-    // Cached normalized value using equality matching rule.
+    /** Cached normalized value using equality matching rule. */
     private ByteString equalityNormalizedAttributeValue = null;
 
-    // Cached normalized value using ordering matching rule.
+    /** Cached normalized value using ordering matching rule. */
     private ByteString orderingNormalizedAttributeValue = null;
 
     /**
@@ -637,9 +637,7 @@ public final class AVA implements Comparable<AVA> {
         this.attributeValue = ByteString.valueOf(attributeValue);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compareTo(final AVA ava) {
         final int result = attributeType.compareTo(ava.attributeType);
@@ -658,9 +656,7 @@ public final class AVA implements Comparable<AVA> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -705,9 +701,7 @@ public final class AVA implements Comparable<AVA> {
         return attributeValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return attributeType.hashCode() * 31 + getEqualityNormalizedValue().hashCode();
@@ -725,9 +719,7 @@ public final class AVA implements Comparable<AVA> {
         return new LinkedAttribute(ad, attributeValue);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

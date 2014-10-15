@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * Bit string syntax tests.
  */
 public class BitStringSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -44,9 +42,7 @@ public class BitStringSyntaxTest extends AbstractSyntaxTestCase {
             { "invalid", false }, { "1", false }, { "'010100000111111010101000'B", true }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_BIT_STRING_OID);

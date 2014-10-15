@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class LDAPProfileTest extends ConfigTestCase {
 
-    /** Makes sure the returned list contains "top" */
+    /** Makes sure the returned list contains "top". */
     @Test
     public void testGetObjectClasses() {
         LDAPProfile ldapProfile = LDAPProfile.getInstance();

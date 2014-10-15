@@ -284,10 +284,10 @@ public final class Filter {
 
     }
 
-    // RFC 4526 - FALSE filter.
+    /** RFC 4526 - FALSE filter. */
     private static final Filter FALSE = new Filter(new OrImpl(Collections.<Filter> emptyList()));
 
-    // Heavily used (objectClass=*) filter.
+    /** Heavily used (objectClass=*) filter. */
     private static final Filter OBJECT_CLASS_PRESENT = new Filter(new PresentImpl("objectClass"));
 
     private static final FilterVisitor<StringBuilder, StringBuilder> TO_STRING_VISITOR =
@@ -426,7 +426,7 @@ public final class Filter {
                 }
             };
 
-    // RFC 4526 - TRUE filter.
+    /** RFC 4526 - TRUE filter. */
     private static final Filter TRUE = new Filter(new AndImpl(Collections.<Filter> emptyList()));
 
     /**
@@ -955,7 +955,7 @@ public final class Filter {
         return valueOf(filterString);
     }
 
-    // Converts an assertion value to a substring filter.
+    /** Converts an assertion value to a substring filter. */
     private static Filter assertionValue2SubstringFilter(final String filterString,
             final String attrType, final int equalPos, final int endPos) {
         // Get a binary representation of the value.

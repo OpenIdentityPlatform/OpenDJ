@@ -101,7 +101,7 @@ final class CancelExtendedRequestImpl extends
         }
     }
 
-    // No need to expose this.
+    /** No need to expose this. */
     private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
 
     private int requestID;
@@ -111,7 +111,7 @@ final class CancelExtendedRequestImpl extends
         this.requestID = cancelExtendedRequest.getRequestID();
     }
 
-    // Instantiation via factory.
+    /** Instantiation via factory. */
     CancelExtendedRequestImpl(final int requestID) {
         this.requestID = requestID;
     }

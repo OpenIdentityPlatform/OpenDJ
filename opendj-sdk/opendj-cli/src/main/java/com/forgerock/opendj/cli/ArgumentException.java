@@ -35,7 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 @SuppressWarnings("serial")
 public final class ArgumentException extends Exception implements LocalizableException {
-    // The I18N message associated with this exception.
+    /** The I18N message associated with this exception. */
     private final LocalizableMessage message;
 
     /**

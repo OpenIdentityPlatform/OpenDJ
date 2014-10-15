@@ -114,8 +114,10 @@ public final class ConstraintTest extends AdminTestCase {
         "objectclass: ds-cfg-branch",
         "cn: test children");
 
-    // Parent 1 - uses default values for
-    // optional-multi-valued-dn-property.
+    /**
+     * Parent 1 - uses default values for
+     * optional-multi-valued-dn-property.
+     */
     private static final Entry TEST_PARENT_1 = LDIF.makeEntry(
         "dn: cn=test parent 1,cn=test parents,cn=config",
         "objectclass: top",
@@ -125,7 +127,6 @@ public final class ConstraintTest extends AdminTestCase {
         "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
         "ds-cfg-attribute-type: description",
         "ds-cfg-conflict-behavior: virtual-overrides-real");
-
     // @Checkstyle:on
 
     @BeforeClass
@@ -138,7 +139,7 @@ public final class ConstraintTest extends AdminTestCase {
         TestCfg.cleanup();
     }
 
-    /** Success just ensure there is no exception raised */
+    /** Success just ensure there is no exception raised. */
     @Test
     public void testGetManagedObjectSuccess() throws Exception {
         // arrange

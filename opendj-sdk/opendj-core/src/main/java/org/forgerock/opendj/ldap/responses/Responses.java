@@ -540,7 +540,7 @@ public final class Responses {
         return new UnmodifiableWhoAmIExtendedResultImpl(result);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private Responses() {
         // Prevent instantiation.
     }

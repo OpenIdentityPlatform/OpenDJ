@@ -60,19 +60,19 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      */
     protected abstract static class AbstractBuilder<T, D extends PropertyDefinition<T>> {
 
-        // The administrator action.
+        /** The administrator action. */
         private AdministratorAction adminAction;
 
-        // The default behavior provider.
+        /** The default behavior provider. */
         private DefaultBehaviorProvider<T> defaultBehavior;
 
-        // The abstract managed object
+        /** The abstract managed object. */
         private final AbstractManagedObjectDefinition<?, ?> definition;
 
-        // The options applicable to this definition.
+        /** The options applicable to this definition. */
         private final EnumSet<PropertyOption> options;
 
-        // The name of this property definition.
+        /** The name of this property definition. */
         private final String propertyName;
 
         /**
@@ -156,22 +156,22 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
             DefaultBehaviorProvider<T> defaultBehavior);
     }
 
-    // The administrator action.
+    /** The administrator action. */
     private final AdministratorAction adminAction;
 
-    // The default behavior provider.
+    /** The default behavior provider. */
     private final DefaultBehaviorProvider<T> defaultBehavior;
 
-    // The abstract managed object
+    /** The abstract managed object. */
     private final AbstractManagedObjectDefinition<?, ?> definition;
 
-    // Options applicable to this definition.
+    /** Options applicable to this definition. */
     private final Set<PropertyOption> options;
 
-    // The property name.
+    /** The property name. */
     private final String propertyName;
 
-    // The property value class.
+    /** The property value class. */
     private final Class<T> theClass;
 
     /**

@@ -27,8 +27,6 @@
 
 package org.forgerock.opendj.grizzly;
 
-import static org.forgerock.opendj.grizzly.GrizzlyUtils.configureConnection;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
@@ -46,10 +44,10 @@ import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
@@ -76,6 +74,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.Reject;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
@@ -86,7 +85,8 @@ import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
-import org.forgerock.util.Reject;
+
+import static org.forgerock.opendj.grizzly.GrizzlyUtils.*;
 
 /**
  * Grizzly filter implementation for decoding LDAP requests and handling server
@@ -107,6 +107,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
      */
     private static final LDAPWrite<IntermediateResponse> INTERMEDIATE =
             new LDAPWrite<IntermediateResponse>() {
+                @Override
                 public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID,
                         IntermediateResponse resp) throws IOException {
                     writer.writeIntermediateResponse(messageID, resp);
@@ -140,6 +141,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
          */
         private void defaultHandleResult(final R result) {
             writeMessage(new LDAPWrite<R>() {
+                @Override
                 public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, R res)
                         throws IOException {
                     writeResult(writer, res);
@@ -341,9 +343,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();
@@ -520,6 +520,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         @Override
         public void handleResult(final ExtendedResult result) {
             writeMessage(new LDAPWrite<ExtendedResult>() {
+                @Override
                 public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID,
                         ExtendedResult message) throws IOException {
                     writer.writeExtendedResult(messageID, message);
@@ -577,6 +578,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         @Override
         public boolean handleEntry(final SearchResultEntry entry) {
             writeMessage(new LDAPWrite<SearchResultEntry>() {
+                @Override
                 public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID,
                         SearchResultEntry sre) throws IOException {
                     writer.writeSearchResultEntry(messageID, sre);
@@ -593,6 +595,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         @Override
         public boolean handleReference(final SearchResultReference reference) {
             writeMessage(new LDAPWrite<SearchResultReference>() {
+                @Override
                 public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID,
                         SearchResultReference ref) throws IOException {
                     writer.writeSearchResultReference(messageID, ref);
@@ -607,10 +610,12 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             writer.writeSearchResult(messageID, result);
         }
     }
-
-    // Map of cipher phrases to effective key size (bits). Taken from the
-    // following RFCs: 5289, 4346, 3268,4132 and 4162.
     // @formatter:off
+
+    /**
+     * Map of cipher phrases to effective key size (bits). Taken from the
+     * following RFCs: 5289, 4346, 3268,4132 and 4162.
+     */
     private static final Object[][] CIPHER_KEY_SIZES = {
         { "_WITH_AES_256_CBC_",      256 },
         { "_WITH_CAMELLIA_256_CBC_", 256 },
@@ -631,9 +636,11 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         { "_WITH_DES40_CBC_",        40 },
         { "_WITH_NULL_",             0 },
     };
-    // @formatter:on
 
-    // Default maximum request size for incoming requests.
+    // @formatter:on
+    /**
+     * Default maximum request size for incoming requests.
+     */
     private static final int DEFAULT_MAX_REQUEST_SIZE = 5 * 1024 * 1024;
 
     private static final Attribute<ClientContextImpl> LDAP_CONNECTION_ATTR =
@@ -687,6 +694,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
          *
          * @return the reader to read incoming LDAP messages
          */
+        @Override
         public LDAPReader<ASN1BufferReader> getReader() {
             return reader;
         }

@@ -104,9 +104,7 @@ class RuntimeOptions {
         this.additionalArguments = additionalArguments;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override()
     public boolean equals(Object o) {
         if (o == this) {
@@ -129,9 +127,7 @@ class RuntimeOptions {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override()
     public int hashCode() {
         int hashCode = 44 + initialMemory + maximumMemory;
@@ -141,9 +137,7 @@ class RuntimeOptions {
         return hashCode;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override()
     public String toString() {
         final StringBuilder sb = new StringBuilder();

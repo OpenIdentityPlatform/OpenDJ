@@ -55,14 +55,12 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
      */
     public static final class Builder extends AbstractBuilder<Boolean, BooleanPropertyDefinition> {
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected BooleanPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -86,16 +84,14 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private BooleanPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<Boolean> defaultBehavior) {
         super(d, Boolean.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(Boolean value) {
         Reject.ifNull(value);
@@ -103,9 +99,7 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         // No additional validation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Boolean decodeValue(String value) {
         Reject.ifNull(value);
@@ -120,25 +114,19 @@ public final class BooleanPropertyDefinition extends PropertyDefinition<Boolean>
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitBoolean(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Boolean value, P p) {
         return v.visitBoolean(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(Boolean o1, Boolean o2) {
         return o1.compareTo(o2);

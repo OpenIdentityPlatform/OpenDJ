@@ -34,18 +34,14 @@ import org.testng.annotations.DataProvider;
  * Other mailbox syntax tests.
  */
 public class OtherMailboxSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
         return new Object[][] { { "MyMail$Mymailbox", true }, { "MyMailMymailbox", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_OTHER_MAILBOX_OID);

@@ -331,7 +331,7 @@ public final class ASN1 {
         return new ASN1OutputStreamWriter(stream, maxBufferSize);
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private ASN1() {
         // Nothing to do.
     }

@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class DNTestCase extends SdkTestCase {
     /**
-     * child DN test data provider.
+     * Child DN test data provider.
      *
      * @return The array of test data.
      */
@@ -146,7 +146,7 @@ public class DNTestCase extends SdkTestCase {
             { "cn=hello world\\ ,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=HELLO WORLD,dc=com", "cn=hello world,dc=com", 0 },
             { "cn=HELLO+sn=WORLD,dc=com", "sn=world+cn=hello,dc=com", 0 },
-            /**
+            /*
              * { "x-test-integer-type=10,dc=com",
              * "x-test-integer-type=9,dc=com", 1 }, {
              * "x-test-integer-type=999,dc=com",

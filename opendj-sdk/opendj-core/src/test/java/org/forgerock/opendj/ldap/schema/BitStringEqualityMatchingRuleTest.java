@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * Test the BitStringEqualityMatchingRule.
  */
 public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
@@ -44,9 +42,7 @@ public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
             { "\'1010\'A" }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -55,9 +51,7 @@ public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
             { "\'0\'B", "\'1\'B", ConditionResult.FALSE }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_BIT_STRING_OID);

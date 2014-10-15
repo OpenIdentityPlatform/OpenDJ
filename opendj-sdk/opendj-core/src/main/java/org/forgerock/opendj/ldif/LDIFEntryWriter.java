@@ -102,17 +102,13 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
         super(writer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         close0();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void flush() throws IOException {
         flush0();
@@ -265,18 +261,14 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFEntryWriter writeComment(final CharSequence comment) throws IOException {
         writeComment0(comment);
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFEntryWriter writeEntry(final Entry entry) throws IOException {
         Reject.ifNull(entry);

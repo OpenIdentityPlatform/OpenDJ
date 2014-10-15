@@ -142,12 +142,12 @@ public final class AssertionRequestControl implements Control {
         return new AssertionRequestControl(isCritical, filter);
     }
 
-    // The assertion filter.
+    /** The assertion filter. */
     private final Filter filter;
 
     private final boolean isCritical;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private AssertionRequestControl(final boolean isCritical, final Filter filter) {
         Reject.ifNull(filter);
         this.isCritical = isCritical;
@@ -163,16 +163,12 @@ public final class AssertionRequestControl implements Control {
         return filter;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -185,23 +181,17 @@ public final class AssertionRequestControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

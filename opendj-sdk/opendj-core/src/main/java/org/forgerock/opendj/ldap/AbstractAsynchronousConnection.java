@@ -112,7 +112,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
         }
     }
 
-    // Handle thread interruption.
+    /** Handle thread interruption. */
     private LdapException interrupted(InterruptedException e) {
         return newLdapException(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
     }

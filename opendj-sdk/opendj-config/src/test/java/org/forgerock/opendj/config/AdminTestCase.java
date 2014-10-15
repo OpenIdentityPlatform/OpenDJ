@@ -55,12 +55,12 @@ public abstract class AdminTestCase extends ConfigTestCase {
         return configRepository;
     }
 
-    /** Returns the name used for the provided entry (the value of the cn attribute) */
+    /** Returns the name used for the provided entry (the value of the cn attribute). */
     protected final String entryName(final Entry entry) {
         return entry.getName().rdn().getFirstAVA().getAttributeValue().toString();
     }
 
-    /** Gets the named parent configuration corresponding to the provided entry */
+    /** Gets the named parent configuration corresponding to the provided entry. */
     protected final TestParentCfg getParentCfg(final Entry entry, final ServerManagementContext serverContext)
             throws Exception {
         return getParentCfg(entryName(entry), serverContext);

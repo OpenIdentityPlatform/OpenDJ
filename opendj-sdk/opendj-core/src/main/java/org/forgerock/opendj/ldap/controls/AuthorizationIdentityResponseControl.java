@@ -96,7 +96,7 @@ public final class AuthorizationIdentityResponseControl implements Control {
         return new AuthorizationIdentityResponseControl(false, authorizationID);
     }
 
-    // The authorization ID for this control.
+    /** The authorization ID for this control. */
     private final String authorizationID;
 
     private final boolean isCritical;
@@ -137,7 +137,7 @@ public final class AuthorizationIdentityResponseControl implements Control {
                 }
             };
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private AuthorizationIdentityResponseControl(final boolean isCritical,
             final String authorizationID) {
         Reject.ifNull(authorizationID);
@@ -157,37 +157,27 @@ public final class AuthorizationIdentityResponseControl implements Control {
         return authorizationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         return ByteString.valueOf(authorizationID);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

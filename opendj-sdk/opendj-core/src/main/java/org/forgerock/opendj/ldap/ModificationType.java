@@ -148,16 +148,14 @@ public final class ModificationType {
 
     private final Enum modificationTypeEnum;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private ModificationType(final int intValue, final String name, final Enum modificationTypeEnum) {
         this.intValue = intValue;
         this.name = name;
         this.modificationTypeEnum = modificationTypeEnum;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -169,9 +167,7 @@ public final class ModificationType {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;

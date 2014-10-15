@@ -120,7 +120,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
 
     /**
      * ConnectionChangeRecordWriter write a change record (in this example the
-     * ChangeRecord is an AddRequest)
+     * ChangeRecord is an AddRequest).
      *
      * @throws Exception
      */
@@ -141,7 +141,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
 
     /**
      * ConnectionChangeRecordWriter write a change record (in this example the
-     * ChangeRecord is a DeleteRequest)
+     * ChangeRecord is a DeleteRequest).
      *
      * @throws Exception
      */

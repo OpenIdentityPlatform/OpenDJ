@@ -96,9 +96,7 @@ public enum PasswordPolicyErrorType {
         this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return name;

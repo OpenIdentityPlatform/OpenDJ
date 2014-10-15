@@ -225,7 +225,7 @@ public final class AttributeDescriptionTestCase extends SdkTestCase {
         assertFalse(iterator.hasNext());
     }
 
-    // FIXME: none of these pass! The valueOf method is far to lenient.
+    /** FIXME: none of these pass! The valueOf method is far to lenient. */
     @Test(dataProvider = "dataForValueOfInvalidAttributeDescriptions",
             expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfInvalidAttributeDescriptions(final String ad) {

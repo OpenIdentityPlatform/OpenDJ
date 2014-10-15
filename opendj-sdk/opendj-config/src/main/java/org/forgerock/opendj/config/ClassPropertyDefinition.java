@@ -53,10 +53,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      */
     public static final class Builder extends AbstractBuilder<String, ClassPropertyDefinition> {
 
-        // List of interfaces which property values must implement.
+        /** List of interfaces which property values must implement. */
         private List<String> instanceOfInterfaces;
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
 
@@ -84,9 +84,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
             instanceOfInterfaces.add(value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected ClassPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -97,7 +95,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
     }
 
-    // Regular expression for validating class names.
+    /** Regular expression for validating class names. */
     private static final String CLASS_RE = "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*(\\$[A-Za-z0-9_]+)*$";
 
     /**
@@ -114,15 +112,15 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         return new Builder(d, propertyName);
     }
 
-    // Load a named class.
+    /** Load a named class. */
     private static Class<?> loadClass(String className, boolean initialize) throws ClassNotFoundException {
         return Class.forName(className, initialize, ConfigurationFramework.getInstance().getClassLoader());
     }
 
-    // List of interfaces which property values must implement.
+    /** List of interfaces which property values must implement. */
     private final List<String> instanceOfInterfaces;
 
-    // Private constructor.
+    /** Private constructor. */
     private ClassPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<String> defaultBehavior, List<String> instanceOfInterfaces) {
@@ -131,25 +129,19 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         this.instanceOfInterfaces = Collections.unmodifiableList(new LinkedList<String>(instanceOfInterfaces));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitClass(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
         return v.visitClass(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String decodeValue(String value) {
         Reject.ifNull(value);
@@ -204,9 +196,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         return theClass.asSubclass(instanceOf);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String normalizeValue(String value) {
         Reject.ifNull(value);
@@ -214,9 +204,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         return value.trim();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(String value) {
         Reject.ifNull(value);
@@ -233,7 +221,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         }
     }
 
-    /*
+    /**
      * Do some basic checks to make sure the string representation is valid.
      */
     private void validateClassName(String className) {
@@ -243,7 +231,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
         }
     }
 
-    /*
+    /**
      * Make sure that named class implements the interfaces named by this
      * definition.
      */

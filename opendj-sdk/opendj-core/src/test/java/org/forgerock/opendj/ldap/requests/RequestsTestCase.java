@@ -54,7 +54,7 @@ public abstract class RequestsTestCase extends ForgeRockTestCase {
     private static final GenericControl NEW_CONTROL3 = GenericControl.newControl("6.7.8".intern());
     private static final GenericControl NEW_CONTROL4 = GenericControl.newControl("8.9.0".intern());
 
-    // Dummy decoder which does nothing.
+    /** Dummy decoder which does nothing. */
     private static class MyDecoder implements ControlDecoder<Control> {
         public Control decodeControl(final Control control, final DecodeOptions options) throws DecodeException {
             // do nothing.

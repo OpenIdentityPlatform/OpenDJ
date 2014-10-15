@@ -307,7 +307,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
         }, h));
     }
 
-    /*
+    /**
      * Fail immediately if the JSON value has the wrong type or contains unknown
      * attributes.
      */

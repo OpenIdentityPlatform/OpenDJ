@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class AddressMaskTestCase extends SdkTestCase {
 
-    /* These are all valid rules -- should all pass. */
+    /** These are all valid rules -- should all pass. */
     @DataProvider(name = "validRules")
     public Object[][] validData() {
         return new Object[][] { { "129.34.55.67" }, { "129.*.78.55" }, { ".central.sun.com" },
@@ -197,7 +197,7 @@ public class AddressMaskTestCase extends SdkTestCase {
      * IPV6 data and tests.
      */
 
-    //Invalid IPv6 expressions.
+    /** Invalid IPv6 expressions. */
     @DataProvider(name = "invalid6Rules")
     public Object[][] inValid6Data() {
         return new Object[][] { { "2001:feca:ba23:cd1f:dcb1:1010:9234:4088///124" },
@@ -208,7 +208,7 @@ public class AddressMaskTestCase extends SdkTestCase {
             { "1080::8:800:*:417A/66" }, { "2001:fecd:ba23:cd1ff:dcb1:1010:202.45.66.20" }, };
     }
 
-    //Valid IPv6 expressions.
+    /** Valid IPv6 expressions. */
     @DataProvider(name = "valid6Rules")
     public Object[][] valid6Data() {
         return new Object[][] { { "2001:fecd:ba23:cd1f:dcb1:1010:9234:4088/124" },

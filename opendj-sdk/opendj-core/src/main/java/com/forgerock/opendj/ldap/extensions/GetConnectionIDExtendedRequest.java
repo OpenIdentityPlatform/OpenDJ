@@ -70,9 +70,7 @@ public final class GetConnectionIDExtendedRequest extends
 
     private static final class ResultDecoder extends
             AbstractExtendedResultDecoder<GetConnectionIDExtendedResult> {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public GetConnectionIDExtendedResult newExtendedErrorResult(final ResultCode resultCode,
                 final String matchedDN, final String diagnosticMessage) {
             if (!resultCode.isExceptional()) {
@@ -123,7 +121,7 @@ public final class GetConnectionIDExtendedRequest extends
      */
     public static final String OID = "1.3.6.1.4.1.26027.1.6.2";
 
-    // Singleton.
+    /** Singleton. */
     private static final GetConnectionIDExtendedRequest INSTANCE =
             new GetConnectionIDExtendedRequest();
 
@@ -133,7 +131,7 @@ public final class GetConnectionIDExtendedRequest extends
      */
     public static final RequestDecoder REQUEST_DECODER = new RequestDecoder();
 
-    // No need to expose this.
+    /** No need to expose this. */
     private static final ResultDecoder RESULT_DECODER = new ResultDecoder();
 
     /**
@@ -145,46 +143,36 @@ public final class GetConnectionIDExtendedRequest extends
         return INSTANCE;
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private GetConnectionIDExtendedRequest() {
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ExtendedResultDecoder<GetConnectionIDExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

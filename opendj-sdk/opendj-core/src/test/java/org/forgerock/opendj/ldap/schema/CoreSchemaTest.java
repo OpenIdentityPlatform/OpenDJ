@@ -29,7 +29,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
- * Core schema tests
+ * Core schema tests.
  */
 @SuppressWarnings("javadoc")
 public class CoreSchemaTest extends AbstractSchemaTestCase {

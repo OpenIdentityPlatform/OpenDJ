@@ -41,18 +41,14 @@ import static org.testng.Assert.*;
 @Test
 public class CollationGreaterThanMatchingRuleTest extends MatchingRuleTest {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -87,9 +83,7 @@ public class CollationGreaterThanMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         // Note that oid and names are not used by the test (ie, they could be any value, test should pass anyway)

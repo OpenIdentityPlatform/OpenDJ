@@ -34,18 +34,14 @@ import org.testng.annotations.DataProvider;
  * Test the CaseIgnoreEqualityMatchingRule.
  */
 public class CaseIgnoreEqualityMatchingRuleTest extends MatchingRuleTest {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] {};
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -67,9 +63,7 @@ public class CaseIgnoreEqualityMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_CASE_IGNORE_OID);

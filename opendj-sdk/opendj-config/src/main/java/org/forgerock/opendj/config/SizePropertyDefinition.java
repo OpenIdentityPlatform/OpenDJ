@@ -41,17 +41,19 @@ import java.util.EnumSet;
  */
 public final class SizePropertyDefinition extends PropertyDefinition<Long> {
 
-    // String used to represent unlimited memory sizes.
+    /** String used to represent unlimited memory sizes. */
     private static final String UNLIMITED = "unlimited";
 
-    // The lower limit of the property value in bytes.
+    /** The lower limit of the property value in bytes. */
     private final long lowerLimit;
 
-    // The optional upper limit of the property value in bytes.
+    /** The optional upper limit of the property value in bytes. */
     private final Long upperLimit;
 
-    // Indicates whether this property allows the use of the "unlimited" memory
-    // size value (represented using a -1L or the string "unlimited").
+    /**
+     * Indicates whether this property allows the use of the "unlimited" memory
+     * size value (represented using a -1L or the string "unlimited").
+     */
     private final boolean allowUnlimited;
 
     /**
@@ -60,18 +62,19 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
      */
     public static final class Builder extends AbstractBuilder<Long, SizePropertyDefinition> {
 
-        // The lower limit of the property value in bytes.
+        /** The lower limit of the property value in bytes. */
         private long lowerLimit = 0L;
 
-        // The optional upper limit of the property value in bytes.
+        /** The optional upper limit of the property value in bytes. */
         private Long upperLimit = null;
 
-        // Indicates whether this property allows the use of the "unlimited"
-        // memory
-        // size value (represented using a -1L or the string "unlimited").
+        /**
+         * Indicates whether this property allows the use of the "unlimited" memory
+         * size value (represented using a -1L or the string "unlimited").
+         */
         private boolean allowUnlimited = false;
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
@@ -160,9 +163,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
             this.allowUnlimited = allowUnlimited;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected SizePropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -187,7 +188,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private SizePropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<Long> defaultBehavior, Long lowerLimit, Long upperLimit, boolean allowUnlimited) {
@@ -226,9 +227,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         return allowUnlimited;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(Long value) {
         Reject.ifNull(value);
@@ -246,9 +245,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String encodeValue(Long value) {
         Reject.ifNull(value);
@@ -272,9 +269,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         return builder.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Long decodeValue(String value) {
         Reject.ifNull(value);
@@ -302,25 +297,19 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         return i;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitSize(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Long value, P p) {
         return v.visitSize(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         super.toString(builder);
@@ -338,9 +327,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(Long o1, Long o2) {
         return o1.compareTo(o2);

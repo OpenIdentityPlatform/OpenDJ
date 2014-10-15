@@ -41,7 +41,7 @@ import org.forgerock.opendj.config.Configuration;
 final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration> implements
     ServerManagedObjectChangeListener<T> {
 
-    // The underlying change listener.
+    /** The underlying change listener. */
     private final ConfigurationChangeListener<? super T> listener;
 
     /**
@@ -54,9 +54,7 @@ final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration> im
         this.listener = listener;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationChange(ServerManagedObject<? extends T> mo) {
         return listener.applyConfigurationChange(mo.getConfiguration());
@@ -72,9 +70,7 @@ final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration> im
         return listener;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationChangeAcceptable(ServerManagedObject<? extends T> mo,
         List<LocalizableMessage> unacceptableReasons) {

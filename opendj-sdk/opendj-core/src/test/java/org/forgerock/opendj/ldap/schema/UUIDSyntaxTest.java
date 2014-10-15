@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * UUID syntax tests.
  */
 public class UUIDSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -54,9 +52,7 @@ public class UUIDSyntaxTest extends AbstractSyntaxTestCase {
             { "12345678-9abc-def0-1234-1234567890a", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_UUID_OID);

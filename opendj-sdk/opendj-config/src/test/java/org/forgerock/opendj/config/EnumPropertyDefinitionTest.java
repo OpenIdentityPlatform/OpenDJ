@@ -55,7 +55,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Tests that exception thrown when no enum class specified by builder
+     * Tests that exception thrown when no enum class specified by builder.
      */
     @Test
     public void testBuildInstance() {
@@ -64,7 +64,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Tests that exception thrown when no enum class specified by builder
+     * Tests that exception thrown when no enum class specified by builder.
      */
     @Test(expectedExceptions = { IllegalStateException.class })
     public void testBuildInstanceWithoutEnumClassSpecified() {
@@ -74,7 +74,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Creates data decodeValue test
+     * Creates data decodeValue test.
      *
      * @return data
      */
@@ -84,7 +84,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Tests decodeValue()
+     * Tests decodeValue().
      *
      * @param value
      *            to decode
@@ -98,7 +98,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Creates illegal data for decode value test
+     * Creates illegal data for decode value test.
      *
      * @return data
      */
@@ -108,7 +108,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Tests decodeValue()
+     * Tests decodeValue().
      *
      * @param value
      *            to decode
@@ -120,18 +120,14 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
         def.decodeValue(value);
     }
 
-    /**
-     * Tests normalization
-     */
+    /** Tests normalization. */
     @Test
     public void testNormalizeValue() {
         EnumPropertyDefinition<TestEnum> def = builder.getInstance();
         assertEquals(def.normalizeValue(TestEnum.ONE), "one");
     }
 
-    /**
-     * Tests validation
-     */
+    /** Tests validation. */
     @Test
     public void testValidateValue() {
         EnumPropertyDefinition<TestEnum> def = builder.getInstance();

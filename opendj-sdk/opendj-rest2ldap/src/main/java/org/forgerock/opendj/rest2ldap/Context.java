@@ -66,7 +66,7 @@ import static org.forgerock.opendj.rest2ldap.Utils.*;
  */
 final class Context implements Closeable {
 
-    /*
+    /**
      * A cached read request - see cachedReads for more information.
      */
     private static final class CachedRead implements SearchResultHandler, ResultHandler<Result> {
@@ -181,7 +181,7 @@ final class Context implements Closeable {
 
     }
 
-    /*
+    /**
      * An LRU cache of recent reads requests. This is used in order to reduce
      * the number of repeated read operations performed when resolving DN
      * references.
@@ -217,9 +217,7 @@ final class Context implements Closeable {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() {
         connection.close();
@@ -305,7 +303,7 @@ final class Context implements Closeable {
         }
     }
 
-    /*
+    /**
      * Adds read caching support to the provided connection as well
      * functionality which automatically adds the proxied authorization control
      * if needed.
@@ -406,9 +404,7 @@ final class Context implements Closeable {
                 connection.removeConnectionEventListener(listener);
             }
 
-            /*
-             * Try and re-use a cached result if possible.
-             */
+            /** Try and re-use a cached result if possible. */
             @Override
             public LdapPromise<Result> searchAsync(final SearchRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {

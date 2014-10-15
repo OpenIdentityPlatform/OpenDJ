@@ -133,7 +133,7 @@ public final class PasswordExpiringResponseControl implements Control {
         return new PasswordExpiringResponseControl(false, secondsUntilExpiration);
     }
 
-    // The length of time in seconds until the password actually expires.
+    /** The length of time in seconds until the password actually expires. */
     private final int secondsUntilExpiration;
 
     private final boolean isCritical;
@@ -144,9 +144,7 @@ public final class PasswordExpiringResponseControl implements Control {
         this.secondsUntilExpiration = secondsUntilExpiration;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
@@ -162,30 +160,22 @@ public final class PasswordExpiringResponseControl implements Control {
         return secondsUntilExpiration;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         return ByteString.valueOf(String.valueOf(secondsUntilExpiration));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

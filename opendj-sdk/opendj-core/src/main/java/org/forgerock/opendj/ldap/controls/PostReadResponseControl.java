@@ -121,7 +121,7 @@ public final class PostReadResponseControl implements Control {
                         throw DecodeException.error(message, le);
                     }
 
-                    /**
+                    /*
                      * FIXME: the RFC states that the control contains a
                      * SearchResultEntry rather than an Entry. Can we assume
                      * that the response will not contain a nested set of
@@ -147,7 +147,7 @@ public final class PostReadResponseControl implements Control {
      *             If {@code entry} was {@code null}.
      */
     public static PostReadResponseControl newControl(final Entry entry) {
-        /**
+        /*
          * FIXME: all other control implementations are fully immutable. We
          * should really do a defensive copy here in order to be consistent,
          * rather than just wrap it. Also, the RFC states that the control
@@ -178,16 +178,12 @@ public final class PostReadResponseControl implements Control {
         return entry;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         try {
             final ByteStringBuilder buffer = new ByteStringBuilder();
@@ -199,23 +195,17 @@ public final class PostReadResponseControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

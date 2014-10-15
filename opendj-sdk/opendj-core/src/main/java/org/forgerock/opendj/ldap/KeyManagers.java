@@ -66,9 +66,7 @@ public final class KeyManagers {
             this.alias = alias;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String chooseClientAlias(final String[] keyType, final Principal[] issuers,
                 final Socket socket) {
             for (final String type : keyType) {
@@ -85,9 +83,7 @@ public final class KeyManagers {
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String chooseEngineClientAlias(final String[] keyType, final Principal[] issuers,
                 final SSLEngine engine) {
@@ -105,9 +101,7 @@ public final class KeyManagers {
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String chooseEngineServerAlias(final String keyType, final Principal[] issuers,
                 final SSLEngine engine) {
@@ -123,9 +117,7 @@ public final class KeyManagers {
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String chooseServerAlias(final String keyType, final Principal[] issuers,
                 final Socket socket) {
             final String[] serverAliases = keyManager.getServerAliases(keyType, issuers);
@@ -140,30 +132,22 @@ public final class KeyManagers {
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public X509Certificate[] getCertificateChain(final String alias) {
             return keyManager.getCertificateChain(alias);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String[] getClientAliases(final String keyType, final Principal[] issuers) {
             return keyManager.getClientAliases(keyType, issuers);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public PrivateKey getPrivateKey(final String alias) {
             return keyManager.getPrivateKey(alias);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String[] getServerAliases(final String keyType, final Principal[] issuers) {
             return keyManager.getServerAliases(keyType, issuers);
         }
@@ -316,7 +300,7 @@ public final class KeyManagers {
         return new SelectCertificate(keyManager, alias);
     }
 
-    // Prevent insantiation.
+    /** Prevent insantiation. */
     private KeyManagers() {
         // Nothing to do.
     }

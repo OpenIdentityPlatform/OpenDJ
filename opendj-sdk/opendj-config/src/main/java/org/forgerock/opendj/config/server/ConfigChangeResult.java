@@ -37,17 +37,21 @@ import org.forgerock.opendj.ldap.ResultCode;
  * about the result of processing a configuration change.
  */
 public final class ConfigChangeResult {
-    // A set of messages describing the changes that were made, any
-    // action that may be required, or any problems that were
-    // encountered.
+    /**
+     * A set of messages describing the changes that were made, any
+     * action that may be required, or any problems that were encountered.
+     */
     private List<LocalizableMessage> messages;
 
-    // Indicates whether one or more of the changes requires
-    // administrative action in order to take effect.
+    /**
+     * Indicates whether one or more of the changes requires
+     * administrative action in order to take effect.
+     */
     private boolean adminActionRequired;
 
-    // The result code to return to the client from this configuration
-    // change.
+    /**
+     * The result code to return to the client from this configuration change.
+     */
     private ResultCode resultCode;
 
     /**

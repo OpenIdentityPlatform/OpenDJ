@@ -252,36 +252,42 @@ public final class AccountUsabilityResponseControl implements Control {
                 secondsBeforeExpiration);
     }
 
-    // Indicates whether the user's account is usable.
+    /** Indicates whether the user's account is usable. */
     private final boolean isUsable;
 
-    // Indicates whether the user's password is expired.
+    /** Indicates whether the user's password is expired. */
     private final boolean isExpired;
 
-    // Indicates whether the user's account is inactive.
+    /** Indicates whether the user's account is inactive. */
     private final boolean isInactive;
 
-    // Indicates whether the user's account is currently locked.
+    /** Indicates whether the user's account is currently locked. */
     private final boolean isLocked;
 
-    // Indicates whether the user's password has been reset and must be
-    // changed before anything else can be done.
+    /**
+     * Indicates whether the user's password has been reset and must be
+     * changed before anything else can be done.
+     */
     private final boolean isReset;
 
-    // The number of remaining grace logins, if available.
+    /** The number of remaining grace logins, if available. */
     private final int remainingGraceLogins;
 
-    // The length of time in seconds before the user's password expires,
-    // if available.
+    /**
+     * The length of time in seconds before the user's password expires,
+     * if available.
+     */
     private final int secondsBeforeExpiration;
 
-    // The length of time before the user's account is unlocked, if
-    // available.
+    /**
+     * The length of time before the user's account is unlocked, if
+     * available.
+     */
     private final int secondsBeforeUnlock;
 
     private final boolean isCritical;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private AccountUsabilityResponseControl(final boolean isCritical, final boolean isUsable,
             final boolean isInactive, final boolean isReset, final boolean isExpired,
             final int remainingGraceLogins, final boolean isLocked, final int secondsBeforeUnlock,
@@ -297,9 +303,7 @@ public final class AccountUsabilityResponseControl implements Control {
         this.secondsBeforeExpiration = secondsBeforeExpiration;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
@@ -340,9 +344,7 @@ public final class AccountUsabilityResponseControl implements Control {
         return secondsBeforeUnlock;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -379,16 +381,12 @@ public final class AccountUsabilityResponseControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
@@ -446,9 +444,7 @@ public final class AccountUsabilityResponseControl implements Control {
         return isUsable;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

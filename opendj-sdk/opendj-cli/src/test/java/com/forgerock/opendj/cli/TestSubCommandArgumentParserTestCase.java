@@ -47,10 +47,10 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
 
     private SubCommandArgumentParser parser;
 
-    // First sub-command.
+    /** First sub-command. */
     private SubCommand sc1;
 
-    // Second sub-command.
+    /** Second sub-command. */
     private SubCommand sc2;
 
     /**

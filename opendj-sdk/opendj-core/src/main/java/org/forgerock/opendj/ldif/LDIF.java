@@ -854,7 +854,7 @@ public final class LDIF {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private LDIF() {
         // Do nothing.
     }

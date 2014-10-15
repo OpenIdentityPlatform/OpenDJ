@@ -58,7 +58,7 @@ import org.forgerock.util.Utils;
  *      Interchange Format (LDIF) - Technical Specification </a>
  */
 public final class LDIFEntryReader extends AbstractLDIFReader implements EntryReader {
-    // Poison used to indicate end of LDIF.
+    /** Poison used to indicate end of LDIF. */
     private static final Entry EOF = new LinkedHashMapEntry();
 
     /**
@@ -161,9 +161,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
         super(Arrays.asList(ldifLines));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         close0();

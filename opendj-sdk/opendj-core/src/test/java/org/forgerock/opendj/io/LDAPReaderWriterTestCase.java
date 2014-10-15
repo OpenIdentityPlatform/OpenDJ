@@ -77,10 +77,10 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
 
-    // message ID is used in all tests
+    /** Message ID is used in all tests. */
     private static final int MESSAGE_ID = 0;
 
-    // DN used is several tests
+    /** DN used is several tests. */
     private static final String TEST_DN = "cn=test";
 
     interface LDAPWrite {

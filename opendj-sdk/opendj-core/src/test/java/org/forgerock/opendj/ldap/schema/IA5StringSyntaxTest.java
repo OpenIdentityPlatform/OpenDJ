@@ -34,18 +34,14 @@ import org.testng.annotations.DataProvider;
  * IA5 string syntax tests.
  */
 public class IA5StringSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
         return new Object[][] { { "12345678", true }, { "12345678\u2163", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_IA5_STRING_OID);

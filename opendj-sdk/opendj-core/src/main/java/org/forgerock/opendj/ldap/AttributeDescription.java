@@ -350,9 +350,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     private static final ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>> CACHE =
             new ThreadLocal<WeakHashMap<Schema, Map<String, AttributeDescription>>>() {
 
-                /**
-                 * {@inheritDoc}
-                 */
+                /** {@inheritDoc} */
                 @Override
                 protected WeakHashMap<Schema, Map<String, AttributeDescription>> initialValue() {
                     return new WeakHashMap<Schema, Map<String, AttributeDescription>>();
@@ -360,7 +358,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
             };
 
-    // Object class attribute description.
+    /** Object class attribute description. */
     private static final ZeroOptionImpl ZERO_OPTION_IMPL = new ZeroOptionImpl();
 
     private static final AttributeDescription OBJECT_CLASS;
@@ -371,9 +369,11 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
                         ZERO_OPTION_IMPL);
     }
 
-    // This is the size of the per-thread per-schema attribute description
-    // cache. We should be conservative here in case there are many
-    // threads.
+    /**
+     * This is the size of the per-thread per-schema attribute description
+     * cache. We should be conservative here in case there are many
+     * threads.
+     */
     private static final int ATTRIBUTE_DESCRIPTION_CACHE_SIZE = 512;
 
     /**
@@ -742,7 +742,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
         return i;
     }
 
-    // Uncached valueOf implementation.
+    /** Uncached valueOf implementation. */
     private static AttributeDescription valueOf0(final String attributeDescription,
             final Schema schema) {
         final boolean allowMalformedNamesAndOptions = schema.allowMalformedNamesAndOptions();
@@ -991,7 +991,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
 
     private final Impl pimpl;
 
-    // Private constructor.
+    /** Private constructor. */
     private AttributeDescription(final String attributeDescription,
             final AttributeType attributeType, final Impl pimpl) {
         this.attributeDescription = attributeDescription;

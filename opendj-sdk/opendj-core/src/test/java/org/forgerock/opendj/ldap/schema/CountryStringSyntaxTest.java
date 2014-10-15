@@ -51,9 +51,7 @@ public class CountryStringSyntaxTest extends AbstractSyntaxTestCase {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_COUNTRY_STRING_OID);

@@ -653,77 +653,59 @@ public final class LinkedAttribute extends AbstractAttribute {
         add(values);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean add(final ByteString value) {
         Reject.ifNull(value);
         return pimpl.add(this, value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void clear() {
         pimpl.clear(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean contains(final Object value) {
         Reject.ifNull(value);
         return pimpl.contains(this, ByteString.valueOf(value));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean containsAll(final Collection<?> values) {
         Reject.ifNull(values);
         return pimpl.containsAll(this, values);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString firstValue() {
         return pimpl.firstValue(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public AttributeDescription getAttributeDescription() {
         return attributeDescription;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Iterator<ByteString> iterator() {
         return pimpl.iterator(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean remove(final Object value) {
         Reject.ifNull(value);
         return pimpl.remove(this, ByteString.valueOf(value));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T> boolean retainAll(final Collection<T> values,
             final Collection<? super T> missingValues) {
@@ -731,15 +713,13 @@ public final class LinkedAttribute extends AbstractAttribute {
         return pimpl.retainAll(this, values, missingValues);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int size() {
         return pimpl.size(this);
     }
 
-    // Lazily computes the normalized single value.
+    /** Lazily computes the normalized single value. */
     private ByteString normalizedSingleValue() {
         if (normalizedSingleValue == null) {
             normalizedSingleValue = normalizeValue(this, singleValue);

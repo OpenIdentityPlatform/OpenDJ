@@ -228,8 +228,8 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
     private byte[] password;
     private final List<String> qopValues = new LinkedList<String>();
     private String realm = null;
-    /*
-     * Don't use primitives for these so that we can distinguish between default
+    /**
+     * Do not use primitives for these so that we can distinguish between default
      * settings (null) and values set by the caller.
      */
     private Boolean serverAuth = null;

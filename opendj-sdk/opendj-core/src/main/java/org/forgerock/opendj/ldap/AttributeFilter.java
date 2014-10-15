@@ -61,7 +61,8 @@ import com.forgerock.opendj.util.Iterables;
 public final class AttributeFilter {
     // TODO: exclude specific attributes, matched values, custom predicates, etc.
     private boolean includeAllOperationalAttributes = false;
-    private boolean includeAllUserAttributes; // Depends on constructor.
+    /** Depends on constructor. */
+    private boolean includeAllUserAttributes;
     private boolean typesOnly = false;
 
     /**

@@ -87,15 +87,15 @@ import static org.forgerock.opendj.ldap.TestCaseUtils.*;
  */
 @SuppressWarnings("javadoc")
 public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, Integer> {
-    // Creates an abandonable request from the ordinary requests.
+    /** Creates an abandonable request from the ordinary requests. */
     private static class AbandonableRequest implements Request {
-        // the request.
+        /** The request. */
         private final Request request;
 
-        // whether is has been cancelled.
+        /** Whether is has been cancelled. */
         private final AtomicBoolean isCanceled;
 
-        // Ctor.
+        /** Ctor. */
         AbandonableRequest(final Request request) {
             this.request = request;
             this.isCanceled = new AtomicBoolean(false);
@@ -131,7 +131,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         }
     }
 
-    // The singleton instance.
+    /** The singleton instance. */
     private static final LDAPServer INSTANCE = new LDAPServer();
 
     /**
@@ -491,17 +491,19 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         }
     }
 
-    // The mapping between entry DNs and the corresponding entries.
+    /** The mapping between entry DNs and the corresponding entries. */
     private final ConcurrentHashMap<DN, Entry> entryMap = new ConcurrentHashMap<DN, Entry>();
 
-    // The LDAP listener.
+    /** The LDAP listener. */
     private LDAPListener listener = null;
 
-    // whether the server is running.
+    /** Whether the server is running. */
     private volatile boolean isRunning;
 
-    // The mapping between the message id and the requests the server is
-    // currently handling.
+    /**
+     * The mapping between the message id and the requests the server is
+     * currently handling.
+     */
     private final ConcurrentHashMap<Integer, AbandonableRequest> requestsInProgress =
             new ConcurrentHashMap<Integer, AbandonableRequest>();
 

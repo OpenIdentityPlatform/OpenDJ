@@ -93,7 +93,7 @@ public final class DecodeException extends IOException implements LocalizableExc
 
     private final boolean isFatal;
 
-    // Construction is provided via factory methods.
+    /** Construction is provided via factory methods. */
     private DecodeException(final LocalizableMessage message, final boolean isFatal,
             final Throwable cause) {
         super(message.toString(), cause);

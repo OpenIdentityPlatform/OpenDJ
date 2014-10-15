@@ -54,8 +54,10 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * multiple lines, then only the first line will be read.
  */
 public final class FileBasedArgument extends Argument {
-    // The mapping between filenames specified and the first lines read
-    // from those files.
+    /**
+     * The mapping between filenames specified and the first lines read
+     * from those files.
+     */
     private final LinkedHashMap<String, String> namesToValues;
 
     /**

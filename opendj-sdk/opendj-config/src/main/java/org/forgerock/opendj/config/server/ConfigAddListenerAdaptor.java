@@ -59,22 +59,22 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends AbstractCo
 
     private static final Logger debugLogger = LoggerFactory.getLogger(ConfigAddListenerAdaptor.class);
 
-    // Cached managed object between accept/apply callbacks.
+    /** Cached managed object between accept/apply callbacks. */
     private ServerManagedObject<? extends S> cachedManagedObject;
 
-    // The instantiable relation.
+    /** The instantiable relation. */
     private final InstantiableRelationDefinition<?, S> instantiableRelation;
 
-    // The set relation.
+    /** The set relation. */
     private final SetRelationDefinition<?, S> setRelation;
 
-    // The underlying add listener.
+    /** The underlying add listener. */
     private final ServerManagedObjectAddListener<S> listener;
 
-    // The optional relation.
+    /** The optional relation. */
     private final OptionalRelationDefinition<?, S> optionalRelation;
 
-    // The managed object path of the parent.
+    /** The managed object path of the parent. */
     private final ManagedObjectPath<?, ?> path;
 
     private final ServerManagementContext serverContext;
@@ -149,9 +149,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends AbstractCo
         this.cachedManagedObject = null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationAdd(Entry configEntry) {
         if (optionalRelation != null) {
             // Optional managed objects are located directly beneath the
@@ -186,9 +184,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends AbstractCo
         return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         DN dn = configEntry.getName();
         String name = dn.rdn().getFirstAVA().getAttributeValue().toString().trim();

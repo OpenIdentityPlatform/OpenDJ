@@ -80,7 +80,7 @@ public final class Rest2LDAPContextFactory implements HttpServletContextFactory 
     public static final String ATTRIBUTE_AUTHN_CONNECTION =
             "org.forgerock.opendj.rest2ldap.authn-connection";
 
-    // Singleton instance.
+    /** Singleton instance. */
     private static final Rest2LDAPContextFactory INSTANCE = new Rest2LDAPContextFactory();
 
     /**

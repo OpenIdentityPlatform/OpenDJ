@@ -41,11 +41,13 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  *            The type of values returned by this argument.
  */
 public final class MultiChoiceArgument<T> extends Argument {
-    // Indicates whether argument values should be treated in a
-    // case-sensitive manner.
+    /**
+     * Indicates whether argument values should be treated in a
+     * case-sensitive manner.
+     */
     private final boolean caseSensitive;
 
-    // The set of values that will be allowed for use with this argument.
+    /** The set of values that will be allowed for use with this argument. */
     private final Collection<T> allowedValues;
 
     /**

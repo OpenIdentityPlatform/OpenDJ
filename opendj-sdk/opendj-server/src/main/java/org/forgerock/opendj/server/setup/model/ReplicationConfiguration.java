@@ -35,11 +35,11 @@ class ReplicationConfiguration {
     /** Default port number for the replication port. */
     static final int DEFAULT_REPLICATION_PORT = 389;
 
-    // First in topology
+    /** First in topology. */
     private int replicationPort;
     private boolean isSecure;
 
-    // Part of topology
+    /** Part of topology. */
     private String hostName;
     private int hostPort;
     private String administrator;

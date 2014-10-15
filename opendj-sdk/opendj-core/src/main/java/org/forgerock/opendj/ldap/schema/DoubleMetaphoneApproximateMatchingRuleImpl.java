@@ -53,9 +53,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         String valueString = value.toString();
         final int length = valueString.length();

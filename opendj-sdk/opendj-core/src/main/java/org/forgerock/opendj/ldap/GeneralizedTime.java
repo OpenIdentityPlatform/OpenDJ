@@ -55,7 +55,7 @@ import org.forgerock.util.Reject;
  */
 public final class GeneralizedTime implements Comparable<GeneralizedTime> {
 
-    // UTC TimeZone is assumed to never change over JVM lifetime
+    /** UTC TimeZone is assumed to never change over JVM lifetime. */
     private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone.getTimeZone("UTC");
 
     /**
@@ -793,7 +793,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         return TimeZone.getTimeZone("GMT" + offSetStr);
     }
 
-    // Lazily constructed internal representations.
+    /** Lazily constructed internal representations. */
     private volatile Calendar calendar;
     private volatile Date date;
     private volatile String stringValue;
@@ -807,9 +807,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         this.stringValue = stringValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compareTo(final GeneralizedTime o) {
         final Long timeMS1 = getTimeInMillis();
@@ -817,9 +815,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         return timeMS1.compareTo(timeMS2);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -851,9 +847,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         return tmpTimeMS;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return ((Long) getTimeInMillis()).hashCode();
@@ -888,9 +882,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         return (Date) tmpDate.clone();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         String tmpString = stringValue;

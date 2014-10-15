@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
  */
 final class ChangeRecordVisitorWriter implements
         ChangeRecordVisitor<IOException, ChangeRecordWriter> {
-    // Visitor used for writing generic change records.
+    /** Visitor used for writing generic change records. */
     private static final ChangeRecordVisitorWriter VISITOR = new ChangeRecordVisitorWriter();
 
     /**

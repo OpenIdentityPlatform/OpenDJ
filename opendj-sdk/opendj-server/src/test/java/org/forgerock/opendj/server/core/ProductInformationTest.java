@@ -31,14 +31,14 @@ import static org.fest.assertions.Assertions.assertThat;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
 
+/**
+ * This test class verifies that the product information has been generated
+ * and can be loaded at runtime. It does not attempt to exhaustively check
+ * all methods.
+ */
 @SuppressWarnings("javadoc")
 @Test
 public class ProductInformationTest extends ForgeRockTestCase {
-    /*
-     * This test class verifies that the product information has been generated
-     * and can be loaded at runtime. It does not attempt to exhaustively check
-     * all methods.
-     */
 
     @Test
     public void testProductName() {

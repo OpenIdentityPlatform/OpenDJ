@@ -44,14 +44,12 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      */
     public static final class Builder extends AbstractBuilder<AddressMask, IPAddressMaskPropertyDefinition> {
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected IPAddressMaskPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -75,16 +73,14 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private IPAddressMaskPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<AddressMask> defaultBehavior) {
         super(d, AddressMask.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(AddressMask value) {
         Reject.ifNull(value);
@@ -92,9 +88,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
         // No additional validation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public AddressMask decodeValue(String value) {
         Reject.ifNull(value);
@@ -107,25 +101,19 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitIPAddressMask(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, AddressMask value, P p) {
         return v.visitIPAddressMask(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(AddressMask o1, AddressMask o2) {
         return o1.toString().compareTo(o2.toString());

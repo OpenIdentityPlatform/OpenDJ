@@ -563,7 +563,7 @@ final class CachedConnectionPool implements ConnectionPool {
             return builder.toString();
         }
 
-        // Checks that this pooled connection has not been closed.
+        /** Checks that this pooled connection has not been closed. */
         private Connection checkState() {
             if (isClosed()) {
                 throw new IllegalStateException();
@@ -865,7 +865,7 @@ final class CachedConnectionPool implements ConnectionPool {
         close();
     }
 
-    // Package private for unit testing.
+    /** Package private for unit testing. */
     int currentPoolSize() {
         return maxPoolSize - availableConnections.availablePermits();
     }

@@ -45,28 +45,28 @@ import org.forgerock.util.Reject;
  * of children that entries may have.
  */
 public final class DITStructureRule extends SchemaElement {
-    // The rule ID for this DIT structure rule.
+    /** The rule ID for this DIT structure rule. */
     private final Integer ruleID;
 
-    // The set of user defined names for this definition.
+    /** The set of user defined names for this definition. */
     private final List<String> names;
 
-    // Indicates whether this definition is declared "obsolete".
+    /** Indicates whether this definition is declared "obsolete". */
     private final boolean isObsolete;
 
-    // The name form for this DIT structure rule.
+    /** The name form for this DIT structure rule. */
     private final String nameFormOID;
 
-    // The set of superior DIT structure rules.
+    /** The set of superior DIT structure rules. */
     private final Set<Integer> superiorRuleIDs;
 
     private NameForm nameForm;
     private Set<DITStructureRule> superiorRules = Collections.emptySet();
 
-    // Indicates whether or not validation has been performed.
+    /** Indicates whether or not validation has been performed. */
     private boolean needsValidating = true;
 
-    // The indicates whether or not validation failed.
+    /** The indicates whether or not validation failed. */
     private boolean isValid = false;
 
     DITStructureRule(final Integer ruleID, final List<String> names, final String description,

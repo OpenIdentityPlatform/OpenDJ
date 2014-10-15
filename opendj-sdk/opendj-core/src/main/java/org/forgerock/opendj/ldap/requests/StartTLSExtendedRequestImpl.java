@@ -83,17 +83,13 @@ final class StartTLSExtendedRequestImpl extends
         }
     }
 
-    // No need to expose this.
+    /** No need to expose this. */
     private static final ExtendedResultDecoder<ExtendedResult> RESULT_DECODER = new ResultDecoder();
 
-    /**
-     * The list of cipher suite.
-     */
+    /** The list of cipher suite. */
     private final List<String> enabledCipherSuites = new LinkedList<String>();
 
-    /**
-     * the list of protocols.
-     */
+    /** The list of protocols. */
     private final List<String> enabledProtocols = new LinkedList<String>();
 
     private SSLContext sslContext;
@@ -110,7 +106,7 @@ final class StartTLSExtendedRequestImpl extends
         this.enabledProtocols.addAll(startTLSExtendedRequest.getEnabledProtocols());
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private StartTLSExtendedRequestImpl() {
         // Nothing to do.
     }

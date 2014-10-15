@@ -40,44 +40,58 @@ import java.util.LinkedList;
  * argument parser. The subcommand has a name, a description, and a set of arguments.
  */
 public class SubCommand {
-    // Indicates whether this subCommand should be hidden in the usage
-    // information.
+    /**
+     * Indicates whether this subCommand should be hidden in the usage
+     * information.
+     */
     private boolean isHidden;
 
-    // The mapping between the short argument IDs and the arguments for this
-    // subcommand.
+    /**
+     * The mapping between the short argument IDs and the arguments for this
+     * subcommand.
+     */
     private HashMap<Character, Argument> shortIDMap;
 
-    // The mapping between the long argument IDs and the arguments for this
-    // subcommand.
+    /**
+     * The mapping between the long argument IDs and the arguments for this
+     * subcommand.
+     */
     private HashMap<String, Argument> longIDMap;
 
-    // The list of arguments associated with this subcommand.
+    /** The list of arguments associated with this subcommand. */
     private LinkedList<Argument> arguments;
 
-    // The description for this subcommand.
+    /** The description for this subcommand. */
     private LocalizableMessage description;
 
-    // The name of this subcommand.
+    /** The name of this subcommand. */
     private String name;
 
-    // The argument parser with which this subcommand is associated.
+    /** The argument parser with which this subcommand is associated. */
     private SubCommandArgumentParser parser;
 
-    // Indicates whether this parser will allow additional unnamed
-    // arguments at the end of the list.
+    /**
+     * Indicates whether this parser will allow additional unnamed
+     * arguments at the end of the list.
+     */
     private boolean allowsTrailingArguments;
 
-    // The maximum number of unnamed trailing arguments that may be
-    // provided.
+    /**
+     * The maximum number of unnamed trailing arguments that may be
+     * provided.
+     */
     private int maxTrailingArguments;
 
-    // The minimum number of unnamed trailing arguments that may be
-    // provided.
+    /**
+     * The minimum number of unnamed trailing arguments that may be
+     * provided.
+     */
     private int minTrailingArguments;
 
-    // The display name that will be used for the trailing arguments in
-    // the usage information.
+    /**
+     * The display name that will be used for the trailing arguments in
+     * the usage information.
+     */
     private String trailingArgsDisplayName;
 
     /**

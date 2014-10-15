@@ -201,9 +201,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(true);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int peekLength() throws IOException {
         peekType();
 
@@ -219,9 +217,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return peekLength;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public byte peekType() throws IOException {
         if (state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) {
             needTypeState(false);
@@ -230,9 +226,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return peekType;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean readBoolean() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -251,9 +245,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return readByte != 0x00;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readEndSequence() throws IOException {
         readLimiter = readLimiter.endSequence();
 
@@ -269,18 +261,14 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         readEndSequence();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readEndSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readEndSequence();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int readEnumerated() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -295,9 +283,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return (int) readInteger();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public long readInteger() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -337,9 +323,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readNull() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -355,9 +339,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString readOctetString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -378,9 +360,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return ByteString.wrap(value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteStringBuilder readOctetString(final ByteStringBuilder builder) throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -403,9 +383,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return builder;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String readOctetStringAsString() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -442,9 +420,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         return str;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readStartSequence() throws IOException {
         // Read the header if haven't done so already
         peekLength();
@@ -463,18 +439,14 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         readStartSequence();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readStartSet() throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
         readStartSequence();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Reader skipElement() throws IOException {
         // Read the header if haven't done so already
         peekLength();

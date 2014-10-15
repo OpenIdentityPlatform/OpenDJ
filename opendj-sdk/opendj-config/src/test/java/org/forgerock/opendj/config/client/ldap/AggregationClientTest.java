@@ -60,7 +60,7 @@ import org.testng.annotations.Test;
 @Test(singleThreaded = true)
 public class AggregationClientTest extends AdminTestCase {
 
-    // Test LDIF.
+    /** Test LDIF. */
     private static final String[] TEST_LDIF = new String[] {
         // @formatter:off
         // Base entries.
@@ -331,7 +331,7 @@ public class AggregationClientTest extends AdminTestCase {
                         "cn=JMX Connection Handler,cn=connection handlers, cn=config");
     }
 
-    // Retrieve the named test parent managed object.
+    /** Retrieve the named test parent managed object. */
     private TestParentCfgClient getTestParent(ManagementContext context, String name)
             throws Exception {
         ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
@@ -339,7 +339,7 @@ public class AggregationClientTest extends AdminTestCase {
                 .getConfiguration();
     }
 
-    // Asserts that the actual set of DNs contains the expected values.
+    /** Asserts that the actual set of DNs contains the expected values. */
     private void assertSetEquals(SortedSet<String> actual, String... expected) {
         SortedSet<String> values =
                 new TreeSet<String>(TestChildCfgDefn.getInstance()

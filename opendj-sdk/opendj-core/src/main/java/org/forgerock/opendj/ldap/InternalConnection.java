@@ -73,9 +73,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         this.serverConnection = serverConnection;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<Void> abandonAsync(final AbandonRequest request) {
         final int i = messageID.getAndIncrement();
@@ -83,9 +81,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return newSuccessfulLdapPromise((Void) null, i);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> addAsync(final AddRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -96,18 +92,14 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void addConnectionEventListener(final ConnectionEventListener listener) {
         Reject.ifNull(listener);
         listeners.add(listener);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<BindResult> bindAsync(final BindRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -118,18 +110,14 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close(final UnbindRequest request, final String reason) {
         final int i = messageID.getAndIncrement();
         serverConnection.handleConnectionClosed(i, request);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<CompareResult> compareAsync(final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -140,9 +128,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> deleteAsync(final DeleteRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -153,9 +139,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R extends ExtendedResult> LdapPromise<R> extendedRequestAsync(final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -166,27 +150,21 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isClosed() {
         // FIXME: this should be true after close has been called.
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isValid() {
         // FIXME: this should be false if this connection is disconnected.
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> modifyAsync(final ModifyRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -197,9 +175,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> modifyDNAsync(final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler) {
@@ -210,18 +186,14 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void removeConnectionEventListener(final ConnectionEventListener listener) {
         Reject.ifNull(listener);
         listeners.remove(listener);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LdapPromise<Result> searchAsync(final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
@@ -232,9 +204,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         return promise;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

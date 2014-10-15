@@ -44,23 +44,17 @@ public final class Conditions {
      */
     public static final Condition FALSE = new Condition() {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
             return false;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
             return false;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
             // No implementation required.
         }
@@ -72,23 +66,17 @@ public final class Conditions {
      */
     public static final Condition TRUE = new Condition() {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
             // No implementation required.
         }
@@ -184,7 +172,7 @@ public final class Conditions {
         return new ORCondition(conditions);
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Conditions() {
         // No implementation required.
     }

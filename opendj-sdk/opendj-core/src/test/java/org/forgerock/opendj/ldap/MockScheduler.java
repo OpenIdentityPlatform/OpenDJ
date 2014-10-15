@@ -113,7 +113,7 @@ final class MockScheduler implements ScheduledExecutorService {
 
     }
 
-    // Saved scheduled tasks.
+    /** Saved scheduled tasks. */
     private final List<Callable<?>> tasks = new CopyOnWriteArrayList<Callable<?>>();
 
     MockScheduler() {

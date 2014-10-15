@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * Guide syntax tests.
  */
 public class GuideSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -48,9 +46,7 @@ public class GuideSyntaxTest extends AbstractSyntaxTestCase {
             { "sn$EQ|(cn$APPROX&?false)", true }, { "sn$EQ|(cn$APPROX&|?false)", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_GUIDE_OID);

@@ -32,7 +32,6 @@ import static org.forgerock.opendj.config.dsconfig.DSConfig.PROPERTY_SCRIPT_NAME
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -126,6 +125,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         private MenuResult<ManagedObject<?>> result;
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
                 String name) {
@@ -196,6 +196,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             if (result.isSuccess()) {
@@ -234,6 +235,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             if (result.isSuccess()) {
@@ -318,6 +320,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             if (result.isSuccess()) {
@@ -400,6 +403,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             this.dde = null;
             this.mode = null;
             this.monfe = null;
+            this.ere = null;
 
             path.serialize(this);
 
@@ -429,7 +433,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     /**
      * A path serializer which is used to register a sub-command's naming arguments.
      */
-    protected static final class NamingArgumentBuilder implements ManagedObjectPathSerializer {
+    private static final class NamingArgumentBuilder implements ManagedObjectPathSerializer {
 
         /**
          * Creates the naming arguments for a given path.
@@ -445,8 +449,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
          * @throws ArgumentException
          *             If one or more naming arguments could not be registered.
          */
-        public static List<StringArgument> create(SubCommand subCommand, ManagedObjectPath<?, ?> path, boolean isCreate)
-                throws ArgumentException {
+        private static List<StringArgument> create(SubCommand subCommand, ManagedObjectPath<?, ?> path,
+                boolean isCreate) throws ArgumentException {
             NamingArgumentBuilder builder = new NamingArgumentBuilder(subCommand, path.size(), isCreate);
             path.serialize(builder);
 
@@ -485,6 +489,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
                 String name) {
@@ -523,12 +528,14 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             sz--;
         }
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             sz--;
@@ -553,6 +560,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         }
 
         /** {@inheritDoc} */
+        @Override
         public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
                 SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             sz--;
@@ -639,6 +647,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public final int compareTo(SubCommandHandler o) {
         String s1 = getSubCommand().getName();
         String s2 = o.getSubCommand().getName();
@@ -758,16 +767,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     }
 
     /**
-     * Adds one or more tags to this sub-command handler.
-     *
-     * @param tags
-     *            The tags to be added to this sub-command handler.
-     */
-    protected final void addTags(Tag... tags) {
-        addTags(Arrays.asList(tags));
-    }
-
-    /**
      * Creates the naming arguments for a given path and registers them.
      *
      * @param subCommand
@@ -855,9 +854,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             final String value = arg.getValue();
             if (value == null && !app.isInteractive()) {
                 throw ArgumentExceptionFactory.missingMandatoryNonInteractiveArgument(arg);
-            } else {
-                values.add(value);
             }
+            values.add(value);
         }
         return values;
     }
@@ -1209,7 +1207,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *            the type of the property to be retrieved.
      * @return the String value to be displayed in the equivalent command-line.
      */
-    protected static <T> String castAndGetArgumentValue(PropertyDefinition<T> propertyDefinition, Object o) {
+    static <T> String castAndGetArgumentValue(PropertyDefinition<T> propertyDefinition, Object o) {
         return propertyDefinition.encodeValue(propertyDefinition.castValue(o));
     }
 
@@ -1224,7 +1222,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *            the type of the property to be retrieved.
      * @return the String value to be displayed in the equivalent command-line.
      */
-    protected static <T> String getArgumentValue(PropertyDefinition<T> propertyDefinition, T o) {
+    static <T> String getArgumentValue(PropertyDefinition<T> propertyDefinition, T o) {
         return propertyDefinition.encodeValue(o);
     }
 
@@ -1240,7 +1238,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *            The managed object definition.
      * @return A mapping of managed object type argument values to their corresponding managed object definitions.
      */
-    protected static <C extends ConfigurationClient, S extends Configuration> SortedMap<String,
+    static <C extends ConfigurationClient, S extends Configuration> SortedMap<String,
         ManagedObjectDefinition<? extends C, ? extends S>> getSubTypes(
             AbstractManagedObjectDefinition<C, S> d) {
         SortedMap<String, ManagedObjectDefinition<? extends C, ? extends S>> map;
@@ -1283,7 +1281,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *            The child definition.
      * @return The type short name.
      */
-    protected static <C extends ConfigurationClient, S extends Configuration> String getShortTypeName(
+    private static <C extends ConfigurationClient, S extends Configuration> String getShortTypeName(
             AbstractManagedObjectDefinition<C, S> d, AbstractManagedObjectDefinition<?, ?> c) {
         if (c == d) {
             // This is the top-level definition, so use the value "generic" or
@@ -1322,7 +1320,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *            The managed object definition.
      * @return A usage string representing the list of possible types for the provided managed object definition.
      */
-    protected static String getSubTypesUsage(AbstractManagedObjectDefinition<?, ?> d) {
+    static String getSubTypesUsage(AbstractManagedObjectDefinition<?, ?> d) {
         // Build the -t option usage.
         SortedMap<String, ?> types = getSubTypes(d);
         StringBuilder builder = new StringBuilder();

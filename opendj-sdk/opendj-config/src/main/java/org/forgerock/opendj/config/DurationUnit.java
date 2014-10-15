@@ -65,7 +65,7 @@ public enum DurationUnit {
      */
     WEEKS((long) 7 * 24 * 60 * 60 * 1000, "w", "weeks");
 
-    // A lookup table for resolving a unit from its name.
+    /** A lookup table for resolving a unit from its name. */
     private static final Map<String, DurationUnit> NAME_TO_UNIT;
     static {
         NAME_TO_UNIT = new HashMap<String, DurationUnit>();
@@ -272,16 +272,16 @@ public enum DurationUnit {
         return builder.toString();
     }
 
-    // The long name of the unit.
+    /** The long name of the unit. */
     private final String longName;
 
-    // The abbreviation of the unit.
+    /** The abbreviation of the unit. */
     private final String shortName;
 
-    // The size of the unit in milliseconds.
+    /** The size of the unit in milliseconds. */
     private final long sz;
 
-    // Private constructor.
+    /** Private constructor. */
     private DurationUnit(long sz, String shortName, String longName) {
         this.sz = sz;
         this.shortName = shortName;

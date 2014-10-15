@@ -28,15 +28,6 @@
 
 package org.forgerock.opendj.ldif;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -64,6 +55,10 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Action;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the LDIFChangeRecordReader functionality.
@@ -2420,10 +2415,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * valueOfLDIFChangeRecord cause an exception due to the presence of
-     * multiple change record.
-     *
-     * @throws Exception
+     * {@link LDIFChangeRecordReader#valueOfLDIFChangeRecord(String...)} cause
+     * an exception due to the presence of multiple change record.
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfLDIFChangeRecordDoesntAllowMultipleChangeRecords() throws Exception {
@@ -2454,10 +2447,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * valueOfLDIFChangeRecord cause an exception due to badly formed ldif. In
-     * this case, DN is missing.
-     *
-     * @throws Exception
+     * {@link LDIFChangeRecordReader#valueOfLDIFChangeRecord(String...)} cause
+     * an exception due to badly formed ldif. In this case, DN is missing.
      */
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfLDIFChangeRecordMalformedLDIFDNIsMissing() throws Exception {

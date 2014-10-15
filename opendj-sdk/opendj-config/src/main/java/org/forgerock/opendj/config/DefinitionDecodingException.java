@@ -65,7 +65,7 @@ public class DefinitionDecodingException extends DecodingException {
      */
     private static final long serialVersionUID = 3459033551415663416L;
 
-    // Create the message.
+    /** Create the message. */
     private static LocalizableMessage createLocalizableMessage(AbstractManagedObjectDefinition<?, ?> d, Reason reason) {
         LocalizableMessage ufn = d.getUserFriendlyName();
         switch (reason) {
@@ -78,10 +78,10 @@ public class DefinitionDecodingException extends DecodingException {
         }
     }
 
-    // The expected type of managed object.
+    /** The expected type of managed object. */
     private final AbstractManagedObjectDefinition<?, ?> d;
 
-    // The reason why the definition could not be determined.
+    /** The reason why the definition could not be determined. */
     private final Reason reason;
 
     /**

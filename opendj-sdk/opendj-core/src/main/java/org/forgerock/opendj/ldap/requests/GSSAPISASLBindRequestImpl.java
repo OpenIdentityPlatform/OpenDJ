@@ -295,9 +295,9 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
 
     private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
 
-    // Ignored if subject is non-null.
+    /** Ignored if subject is non-null. */
     private String authenticationID = null;
-    // Optional authorization ID.
+    /** Optional authorization ID. */
     private String authorizationID = null;
     private String kdcAddress = null;
 
@@ -309,10 +309,12 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
     private final List<String> qopValues = new LinkedList<String>();
 
     private String realm = null;
-    // Don't use primitives for these so that we can distinguish between default
-    // settings (null) and values set by the caller.
+    /**
+     * Don't use primitives for these so that we can distinguish between default
+     * settings (null) and values set by the caller.
+     */
     private Boolean serverAuth = null;
-    // If null then authenticationID and password must be present.
+    /** If null then authenticationID and password must be present. */
     private Subject subject = null;
 
     GSSAPISASLBindRequestImpl(final GSSAPISASLBindRequest gssapiSASLBindRequest) {

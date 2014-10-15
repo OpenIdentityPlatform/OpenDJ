@@ -41,7 +41,7 @@ import org.forgerock.opendj.config.Configuration;
 final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration> implements
         ServerManagedObjectDeleteListener<T> {
 
-    // The underlying delete listener.
+    /** The underlying delete listener. */
     private final ConfigurationDeleteListener<T> listener;
 
     /**
@@ -54,9 +54,7 @@ final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration> im
         this.listener = listener;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationDelete(ServerManagedObject<? extends T> mo) {
         return listener.applyConfigurationDelete(mo.getConfiguration());
     }
@@ -71,9 +69,7 @@ final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration> im
         return listener;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isConfigurationDeleteAcceptable(ServerManagedObject<? extends T> mo,
             List<LocalizableMessage> unacceptableReasons) {
         return listener.isConfigurationDeleteAcceptable(mo.getConfiguration(), unacceptableReasons);

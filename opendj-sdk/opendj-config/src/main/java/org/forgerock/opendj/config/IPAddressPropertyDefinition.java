@@ -43,14 +43,12 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      */
     public static final class Builder extends AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected IPAddressPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -74,16 +72,14 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private IPAddressPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<InetAddress> defaultBehavior) {
         super(d, InetAddress.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(InetAddress value) {
         Reject.ifNull(value);
@@ -91,9 +87,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         // No additional validation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public InetAddress decodeValue(String value) {
         Reject.ifNull(value);
@@ -106,9 +100,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String encodeValue(InetAddress value) {
         // We should return the host name if it is available, or the IP
@@ -126,25 +118,19 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitIPAddress(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, InetAddress value, P p) {
         return v.visitIPAddress(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(InetAddress o1, InetAddress o2) {
         return o1.getHostAddress().compareTo(o2.getHostAddress());

@@ -150,9 +150,7 @@ public final class PasswordPolicyStateExtendedRequest
             return values;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String toString() {
             return property.toString() + ": " + values;
@@ -198,9 +196,7 @@ public final class PasswordPolicyStateExtendedRequest
     private static final class ResultDecoder extends
             AbstractExtendedResultDecoder<PasswordPolicyStateExtendedResult> {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public PasswordPolicyStateExtendedResult newExtendedErrorResult(
                 final ResultCode resultCode, final String matchedDN, final String diagnosticMessage) {
             if (!resultCode.isExceptional()) {
@@ -310,7 +306,7 @@ public final class PasswordPolicyStateExtendedRequest
      */
     public static final RequestDecoder REQUEST_DECODER = new RequestDecoder();
 
-    // No need to expose this.
+    /** No need to expose this. */
     private static final ResultDecoder RESULT_DECODER = new ResultDecoder();
 
     static ByteString encode(final String targetUser,
@@ -422,9 +418,7 @@ public final class PasswordPolicyStateExtendedRequest
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void addOperation(final PasswordPolicyStateOperation operation) {
         operations.add(operation);
     }
@@ -499,47 +493,35 @@ public final class PasswordPolicyStateExtendedRequest
         operations.add(PasswordPolicyStateOperationType.CLEAR_PASSWORD_RESET_STATE);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Iterable<PasswordPolicyStateOperation> getOperations() {
         return operations;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ExtendedResultDecoder<PasswordPolicyStateExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getTargetUser() {
         return targetUser;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         return encode(targetUser, operations);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
@@ -827,17 +809,13 @@ public final class PasswordPolicyStateExtendedRequest
                         .valueOf(String.valueOf(state))));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void setTargetUser(String targetUser) {
         this.targetUser = targetUser != null ? targetUser : "";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

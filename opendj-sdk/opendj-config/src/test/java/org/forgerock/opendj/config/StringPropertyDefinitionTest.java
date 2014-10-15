@@ -65,7 +65,7 @@ public class StringPropertyDefinitionTest extends ConfigTestCase {
         d.decodeValue("abc123");
     }
 
-    // Create a string property definition.
+    /** Create a string property definition. */
     private StringPropertyDefinition getDefinition(boolean isCaseInsensitive, String pattern) {
         StringPropertyDefinition.Builder builder = StringPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
                 "test-property");

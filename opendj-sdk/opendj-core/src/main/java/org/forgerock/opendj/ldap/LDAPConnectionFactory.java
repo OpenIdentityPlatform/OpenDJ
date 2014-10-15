@@ -39,13 +39,13 @@ import org.forgerock.util.promise.Promise;
  * Server.
  */
 public final class LDAPConnectionFactory implements ConnectionFactory {
-    /*
+    /**
      * We implement the factory using the pimpl idiom in order to avoid making
      * too many implementation classes public.
      */
     private final LDAPConnectionFactoryImpl impl;
 
-    /*
+    /**
      * Transport provider that provides the implementation of this factory.
      */
     private final TransportProvider provider;

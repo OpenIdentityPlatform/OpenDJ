@@ -293,7 +293,7 @@ public final class Attributes {
             return 1;
         }
 
-        // Lazily computes the normalized single value.
+        /** Lazily computes the normalized single value. */
         private ByteString normalizedSingleValue() {
             if (normalizedValue == null) {
                 normalizedValue = normalizeValue(this, value);
@@ -599,7 +599,7 @@ public final class Attributes {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Attributes() {
         // Nothing to do.
     }

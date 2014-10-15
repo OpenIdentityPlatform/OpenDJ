@@ -190,10 +190,10 @@ abstract class SchemaElement {
      */
     private String definition;
 
-    // The description for this definition.
+    /** The description for this definition. */
     private final String description;
 
-    // The set of additional name-value pairs.
+    /** The set of additional name-value pairs. */
     private final Map<String, List<String>> extraProperties;
 
     SchemaElement() {
@@ -216,9 +216,7 @@ abstract class SchemaElement {
         this.definition = definition;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract boolean equals(Object obj);
 
@@ -244,9 +242,7 @@ abstract class SchemaElement {
         return extraProperties;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract int hashCode();
 

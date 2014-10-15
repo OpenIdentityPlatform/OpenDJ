@@ -52,9 +52,7 @@ public class GeneralizedTimeSyntaxTest extends AbstractSyntaxTestCase {
             { "200612-1235959Z", false }, { "20061231#35959Z", false }, { "2006", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_GENERALIZED_TIME_OID);

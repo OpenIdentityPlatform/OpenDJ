@@ -46,14 +46,16 @@ public final class PropertyDefinitionUsageBuilder {
      */
     private static final class MyPropertyDefinitionVisitor extends
             PropertyDefinitionVisitor<LocalizableMessage, Void> {
-        // Flag indicating whether detailed syntax information will be
-        // generated.
+        /**
+         * Flag indicating whether detailed syntax information will be
+         * generated.
+         */
         private final boolean isDetailed;
 
-        // The formatter to use for numeric values.
+        /** The formatter to use for numeric values. */
         private final NumberFormat numberFormat;
 
-        // Private constructor.
+        /** Private constructor. */
         private MyPropertyDefinitionVisitor(boolean isDetailed) {
             this.isDetailed = isDetailed;
 
@@ -62,34 +64,26 @@ public final class PropertyDefinitionUsageBuilder {
             this.numberFormat.setMaximumFractionDigits(2);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> LocalizableMessage visitAggregation(
             AggregationPropertyDefinition<C, S> d, Void p) {
             return LocalizableMessage.raw("NAME");
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitAttributeType(AttributeTypePropertyDefinition d, Void p) {
             return LocalizableMessage.raw("OID");
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitACI(ACIPropertyDefinition d, Void p) {
             return LocalizableMessage.raw("ACI");
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitBoolean(BooleanPropertyDefinition d, Void p) {
             if (isDetailed) {
@@ -99,9 +93,7 @@ public final class PropertyDefinitionUsageBuilder {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitClass(ClassPropertyDefinition d, Void p) {
             if (isDetailed && !d.getInstanceOfInterface().isEmpty()) {
@@ -111,9 +103,7 @@ public final class PropertyDefinitionUsageBuilder {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitDN(DNPropertyDefinition d, Void p) {
             if (isDetailed && d.getBaseDN() != null) {
@@ -123,9 +113,7 @@ public final class PropertyDefinitionUsageBuilder {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitDuration(DurationPropertyDefinition d, Void p) {
             LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
@@ -154,9 +142,7 @@ public final class PropertyDefinitionUsageBuilder {
             return builder.toMessage();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <E extends Enum<E>> LocalizableMessage visitEnum(EnumPropertyDefinition<E> d, Void p) {
             if (!isDetailed) {
@@ -177,9 +163,7 @@ public final class PropertyDefinitionUsageBuilder {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitInteger(IntegerPropertyDefinition d, Void p) {
             LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
@@ -203,25 +187,19 @@ public final class PropertyDefinitionUsageBuilder {
             return builder.toMessage();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitIPAddress(IPAddressPropertyDefinition d, Void p) {
             return LocalizableMessage.raw("HOST_NAME");
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitIPAddressMask(IPAddressMaskPropertyDefinition d, Void p) {
             return LocalizableMessage.raw("IP_ADDRESS_MASK");
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitSize(SizePropertyDefinition d, Void p) {
             LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
@@ -273,9 +251,7 @@ public final class PropertyDefinitionUsageBuilder {
             return builder.toMessage();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public LocalizableMessage visitString(StringPropertyDefinition d, Void p) {
             if (d.getPattern() != null) {
@@ -293,16 +269,14 @@ public final class PropertyDefinitionUsageBuilder {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <T> LocalizableMessage visitUnknown(PropertyDefinition<T> d, Void p) {
             return LocalizableMessage.raw("?");
         }
     }
 
-    // Underlying implementation.
+    /** Underlying implementation. */
     private final MyPropertyDefinitionVisitor pimpl;
 
     /**

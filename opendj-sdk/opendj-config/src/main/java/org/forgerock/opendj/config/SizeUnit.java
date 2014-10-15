@@ -80,7 +80,7 @@ public enum SizeUnit {
      */
     TERA_BYTES((long) 1000 * 1000 * 1000 * 1000, "tb", "terabytes");
 
-    // A lookup table for resolving a unit from its name.
+    /** A lookup table for resolving a unit from its name. */
     private static final Map<String, SizeUnit> NAME_TO_UNIT;
     static {
         NAME_TO_UNIT = new HashMap<String, SizeUnit>();
@@ -269,16 +269,16 @@ public enum SizeUnit {
         return unit.toBytes(d);
     }
 
-    // The long name of the unit.
+    /** The long name of the unit. */
     private final String longName;
 
-    // The abbreviation of the unit.
+    /** The abbreviation of the unit. */
     private final String shortName;
 
-    // The size of the unit in bytes.
+    /** The size of the unit in bytes. */
     private final long sz;
 
-    // Private constructor.
+    /** Private constructor. */
     private SizeUnit(long sz, String shortName, String longName) {
         this.sz = sz;
         this.shortName = shortName;

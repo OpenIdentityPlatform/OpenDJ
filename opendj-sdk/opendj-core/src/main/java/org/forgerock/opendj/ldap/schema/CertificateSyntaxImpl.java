@@ -54,49 +54,37 @@ import org.forgerock.opendj.ldap.DecodeException;
  * accept only X.509 certificates.
  */
 final class CertificateSyntaxImpl extends AbstractSyntaxImpl {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getEqualityMatchingRule() {
         return EMR_CERTIFICATE_EXACT_OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getName() {
         return SYNTAX_CERTIFICATE_NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getOrderingMatchingRule() {
         return OMR_OCTET_STRING_OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isBEREncodingRequired() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isHumanReadable() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {

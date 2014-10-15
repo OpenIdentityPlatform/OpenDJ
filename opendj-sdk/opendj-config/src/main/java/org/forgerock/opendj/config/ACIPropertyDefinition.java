@@ -41,14 +41,12 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
      */
     public static final class Builder extends AbstractBuilder<String, ACIPropertyDefinition> {
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected ACIPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
                 String propertyName, EnumSet<PropertyOption> options,
@@ -80,16 +78,14 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
                     + "(\\s*(?i)version(?-i)\\s*(\\d\\.\\d)\\s*;\\s*(?i)acl(?-i)\\s*\"([^\"]*)"
                     + "\"\\s*;\\s*\\s*(\\w+)\\s*\\(([^()]+)\\)\\s*(.+?\"[)]*)\\s*;\\s*\\s*\\)\\s*$");
 
-    // Private constructor.
+    /** Private constructor. */
     private ACIPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction,
             DefaultBehaviorProvider<String> defaultBehavior) {
         super(d, String.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(String value) {
         Reject.ifNull(value);
@@ -97,9 +93,7 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
         // No additional validation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String decodeValue(String value) {
         Reject.ifNull(value);
@@ -117,25 +111,19 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
         throw PropertyException.illegalPropertyValueException(this, value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitACI(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, String value, P p) {
         return v.visitACI(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(String o1, String o2) {
         return o1.toString().compareTo(o2.toString());

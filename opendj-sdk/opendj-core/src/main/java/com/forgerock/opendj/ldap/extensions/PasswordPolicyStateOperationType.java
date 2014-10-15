@@ -262,23 +262,17 @@ public enum PasswordPolicyStateOperationType implements PasswordPolicyStateOpera
         this.propertyName = propertyName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public PasswordPolicyStateOperationType getOperationType() {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Iterable<ByteString> getValues() {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return propertyName;
