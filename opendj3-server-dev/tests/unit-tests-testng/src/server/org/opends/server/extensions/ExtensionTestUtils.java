@@ -28,13 +28,13 @@ package org.opends.server.extensions;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -47,79 +47,54 @@ class ExtensionTestUtils
   public static void testSearchEmptyAttrs(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(attributeType));
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT);
+    assertAttributeFound(request, attributeType, false);
   }
 
   public static void testSearchNoAttrs(DN entryDN, AttributeType attributeType)
       throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
-            .addAttribute(SchemaConstants.NO_ATTRIBUTES);
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(attributeType));
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
+        .addAttribute(SchemaConstants.NO_ATTRIBUTES);
+    assertAttributeFound(request, attributeType, false);
   }
 
   public static void testSearchAllUserAttrs(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("*");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(attributeType));
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT).addAttribute("*");
+    assertAttributeFound(request, attributeType, false);
   }
 
   public static void testSearchAllOperationalAttrs(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("+");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(attributeType));
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT).addAttribute("+");
+    assertAttributeFound(request, attributeType, true);
   }
 
   public static void testSearchAttr(DN entryDN, String attrName,
       AttributeType attributeType) throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute(attrName);
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(attributeType));
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT).addAttribute(attrName);
+    assertAttributeFound(request, attributeType, true);
   }
 
   public static void testSearchExcludeAttr(DN entryDN,
       AttributeType attributeType) throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("objectClass");
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT).addAttribute("objectClass");
+    assertAttributeFound(request, attributeType, false);
+  }
+
+  private static void assertAttributeFound(final SearchRequest request, AttributeType attributeType, boolean expected)
+  {
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
     assertNotNull(e);
-    assertFalse(e.hasAttribute(attributeType));
+    assertEquals(e.hasAttribute(attributeType), expected);
   }
 
 }

@@ -35,14 +35,17 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -353,12 +356,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     final SearchRequest request =
         newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(numSubordinates=" + count + ")")
             .addAttribute("numSubordinates");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(numSubordinatesType));
+    assertNumSubordinatesAttributeFound(request, true);
   }
 
   /**
@@ -395,18 +393,11 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchnumSubordinatesAttrRealAttrsOnly(DN entryDN, int count)
          throws Exception
   {
-    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
         .addAttribute("numSubordinates")
         .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertFalse(e.hasAttribute(numSubordinatesType));
+    assertNumSubordinatesAttributeFound(request, false);
   }
-
-
 
   /**
    * Performs an internal search to retrieve the specified entry, ensuring that
@@ -422,15 +413,10 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchnumSubordinatesAttrVirtualAttrsOnly(DN entryDN, int count)
          throws Exception
   {
-    final SearchRequest request =
-        newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("numSubordinates")
-            .addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(numSubordinatesType));
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
+        .addAttribute("numSubordinates")
+        .addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
+    assertNumSubordinatesAttributeFound(request, true);
   }
 
   /**
@@ -450,12 +436,7 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     final SearchRequest request =
         newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(numSubordinates>=" + count + ")")
             .addAttribute("numSubordinates");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getSearchEntries().size(), 1);
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e);
-    assertTrue(e.hasAttribute(numSubordinatesType));
+    assertNumSubordinatesAttributeFound(request, true);
   }
 
   /**
@@ -475,19 +456,21 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     final SearchRequest request =
         newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(numSubordinates<=" + count + ")")
             .addAttribute("numSubordinates");
+    assertNumSubordinatesAttributeFound(request, true);
+  }
+
+  private void assertNumSubordinatesAttributeFound(final SearchRequest request, boolean expected)
+  {
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
     assertNotNull(e);
-    assertTrue(e.hasAttribute(numSubordinatesType));
+    assertEquals(e.hasAttribute(numSubordinatesType), expected);
   }
 
-
-  /**
-   * Tests the {@code isMultiValued} method.
-   */
-  @Test()
+  /** Tests the {@code isMultiValued} method. */
+  @Test
   public void testIsMultiValued()
   {
     assertFalse(new NumSubordinatesVirtualAttributeProvider().isMultiValued());

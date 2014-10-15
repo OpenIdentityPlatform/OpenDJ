@@ -382,8 +382,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   {
     InternalClientConnection conn = getRootConnection();
     DN baseDN = DN.valueOf("o=bogus,cn=schema");
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
+    SearchFilter filter = SearchFilter.objectClassPresent();
 
     for (SearchScope scope : SearchScope.values())
     {

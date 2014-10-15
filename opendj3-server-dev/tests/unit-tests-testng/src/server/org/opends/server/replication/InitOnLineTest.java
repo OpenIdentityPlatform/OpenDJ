@@ -266,7 +266,7 @@ public class InitOnLineTest extends ReplicationTestCase
     long startMillisecs = System.currentTimeMillis();
     do
     {
-      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
+      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = connection.processSearch(request);
       Entry resultEntry = searchOperation.getSearchEntries().getFirst();
 

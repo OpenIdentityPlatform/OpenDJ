@@ -27,12 +27,13 @@
 package org.opends.server.replication;
 
 import java.net.SocketTimeoutException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -44,14 +45,18 @@ import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -195,7 +200,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
   private int searchNbMonitorEntries(String filterString) throws Exception
   {
-    InternalSearchOperation op = connection.processSearch("cn=monitor", WHOLE_SUBTREE, filterString);
+    InternalSearchOperation op = connection.processSearch(newSearchRequest("cn=monitor", WHOLE_SUBTREE, filterString));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     return op.getEntriesSent();
   }

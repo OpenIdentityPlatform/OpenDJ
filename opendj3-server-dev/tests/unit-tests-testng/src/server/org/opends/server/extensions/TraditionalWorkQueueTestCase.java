@@ -191,10 +191,8 @@ public class TraditionalWorkQueueTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    List<Control> requestControls =
-         DelayPreOpPlugin.createDelayControlList(5000);
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
+    List<Control> requestControls = DelayPreOpPlugin.createDelayControlList(5000);
+    SearchFilter filter = SearchFilter.objectClassPresent();
     LinkedHashSet<String> attrs = new LinkedHashSet<String>();
 
     InternalClientConnection conn =
@@ -228,10 +226,8 @@ public class TraditionalWorkQueueTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    List<Control> requestControls =
-         DelayPreOpPlugin.createDelayControlList(5000);
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
+    List<Control> requestControls = DelayPreOpPlugin.createDelayControlList(5000);
+    SearchFilter filter = SearchFilter.objectClassPresent();
     LinkedHashSet<String> attrs = new LinkedHashSet<String>();
 
     InternalClientConnection conn =

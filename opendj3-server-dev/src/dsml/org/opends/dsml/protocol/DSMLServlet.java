@@ -272,10 +272,9 @@ public class DSMLServlet extends HttpServlet {
     try
     {
       SearchRequestProtocolOp protocolOp = new SearchRequestProtocolOp(
-          ByteString.wrap(new byte[]{}), SearchScope.BASE_OBJECT,
-          DereferenceAliasesPolicy.NEVER,
-          0, 0,
-          true, LDAPFilter.decode("(objectClass=*)"), attributes);
+          ByteString.empty(), SearchScope.BASE_OBJECT,
+          DereferenceAliasesPolicy.NEVER, 0, 0, true,
+          LDAPFilter.objectClassPresent(), attributes);
       byte opType;
       LDAPMessage msg =
         new LDAPMessage(DSMLServlet.nextMessageID(), protocolOp, controls);

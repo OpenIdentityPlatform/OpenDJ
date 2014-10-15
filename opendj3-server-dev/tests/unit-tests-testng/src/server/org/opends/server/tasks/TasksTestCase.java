@@ -39,7 +39,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.AttributeParser;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -47,6 +46,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -73,7 +73,7 @@ public class TasksTestCase extends DirectoryServerTestCase {
                  "Add of the task definition was not successful");
 
     // Wait until the task completes.
-    final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
+    final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
     Entry resultEntry = null;
     String completionTime = null;
     long startMillisecs = System.currentTimeMillis();

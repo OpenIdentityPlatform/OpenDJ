@@ -198,13 +198,13 @@ public final class LDAPURL
       this.scope = scope;
     }
 
-    if (rawFilter == null)
+    if (rawFilter != null)
     {
-      this.rawFilter = "(objectClass=*)";
+      this.rawFilter = rawFilter;
     }
     else
     {
-      this.rawFilter = rawFilter;
+      setFilter(SearchFilter.objectClassPresent());
     }
 
     if (extensions == null)

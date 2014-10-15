@@ -35,7 +35,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
+import org.opends.server.types.DN;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -44,6 +44,7 @@ import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -78,8 +79,8 @@ public class InternalSearchMonitorTestCase
   @Test
   public void testWithSubtreeMonitorSearch() throws Exception
   {
-    InternalSearchOperation op = getRootConnection().processSearch(
-        "cn=monitor", WHOLE_SUBTREE, "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.valueOf("cn=monitor"), WHOLE_SUBTREE);
+    InternalSearchOperation op = getRootConnection().processSearch(request);
     assertEquals(op.getResultCode(), ResultCode.SUCCESS,
         "Failed to search cn=monitor subtree. Got error message: " + op.getErrorMessage());
   }
@@ -116,9 +117,8 @@ public class InternalSearchMonitorTestCase
   public void testWithBaseObjectMonitorSearch(String monitorName) throws Exception
   {
     // could be more than one level
-    final String monitorDN = "cn="+monitorName+",cn=monitor";
-    InternalSearchOperation op = getRootConnection().processSearch(
-        monitorDN, BASE_OBJECT, "(objectClass=*)");
+    final DN monitorDN = DN.valueOf("cn=" + monitorName + ",cn=monitor");
+    InternalSearchOperation op = getRootConnection().processSearch(newSearchRequest(monitorDN, BASE_OBJECT));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS,
         "Failed to read " + monitorDN + " entry. Got error message: " + op.getErrorMessage());
   }
@@ -132,17 +132,17 @@ public class InternalSearchMonitorTestCase
   public void testWithSubtreeAndBaseMonitorSearch() throws Exception
   {
     final InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation op = conn.processSearch(
-        "cn=monitor", WHOLE_SUBTREE, "(objectClass=*)");
+    final SearchRequest request = newSearchRequest(DN.valueOf("cn=monitor"), WHOLE_SUBTREE);
+    InternalSearchOperation op = getRootConnection().processSearch(request);
     assertEquals(op.getResultCode(), ResultCode.SUCCESS,
         "Failed to search cn=monitor subtree. Got error message: " + op.getErrorMessage());
 
     for (SearchResultEntry sre : op.getSearchEntries())
     {
-      final SearchRequest request = newSearchRequest(sre.getName(), BASE_OBJECT, "(objectClass=*)");
-      final InternalSearchOperation readOp = conn.processSearch(request);
-      assertEquals(readOp.getResultCode(), ResultCode.SUCCESS,
-          "Failed to read " + sre.getName() + " entry. Got error message: " + readOp.getErrorMessage());
+      final SearchRequest request2 = newSearchRequest(sre.getName(), BASE_OBJECT);
+      final InternalSearchOperation op2 = conn.processSearch(request2);
+      assertEquals(op2.getResultCode(), ResultCode.SUCCESS,
+          "Failed to read " + sre.getName() + " entry. Got error message: " + op2.getErrorMessage());
     }
   }
 

@@ -28,13 +28,13 @@
 package org.opends.server.types;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.Collection;
-import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -63,6 +63,8 @@ import static org.opends.server.util.StaticUtils.*;
 public final class SearchFilter
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static SearchFilter objectClassPresent;
 
   // The attribute type for this filter.
   private final AttributeType attributeType;
@@ -4092,5 +4094,25 @@ outerComponentLoop:
       }
     }
   }
-}
 
+  /**
+   * Returns the {@code objectClass} presence filter {@code (objectClass=*)}.
+   *
+   * @return The {@code objectClass} presence filter {@code (objectClass=*)}.
+   */
+  public static SearchFilter objectClassPresent()
+  {
+    if (objectClassPresent == null)
+    {
+      try
+      {
+        objectClassPresent = SearchFilter.createFilterFromString("(objectclass=*)");
+      }
+      catch (DirectoryException canNeverHappen)
+      {
+        logger.traceException(canNeverHappen);
+      }
+    }
+    return objectClassPresent;
+  }
+}

@@ -42,7 +42,6 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -64,6 +63,7 @@ import static org.forgerock.opendj.ldap.ConditionResult.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.types.Attributes.*;
 import static org.testng.Assert.*;
 
@@ -578,33 +578,34 @@ public class TestBackendImpl extends JebTestCase {
   public void testSearchScope() throws Exception {
     InternalClientConnection conn = getRootConnection();
 
-    InternalSearchOperation search = conn.processSearch("dc=test,dc=com", SearchScope.BASE_OBJECT, "(objectClass=*)");
+    DN dn = DN.valueOf("dc=test,dc=com");
+    InternalSearchOperation search = conn.processSearch(newSearchRequest(dn, SearchScope.BASE_OBJECT));
     List<SearchResultEntry> result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
-    assertEquals(result.get(0).getName().toString(), "dc=test,dc=com");
+    assertEquals(result.get(0).getName(), dn);
 
-    search = conn.processSearch("dc=test,dc=com", SearchScope.BASE_OBJECT, "(ou=People)");
+    search = conn.processSearch(newSearchRequest(dn, SearchScope.BASE_OBJECT, "(ou=People)"));
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 0);
 
-    search = conn.processSearch("dc=test,dc=com", SearchScope.SINGLE_LEVEL, "(objectClass=*)");
+    search = conn.processSearch(newSearchRequest(dn, SearchScope.SINGLE_LEVEL));
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
     assertEquals(result.get(0).getName().toString(),
         "ou=People,dc=test,dc=com");
 
-    search = conn.processSearch("dc=test,dc=com", SearchScope.SUBORDINATES, "(objectClass=*)");
+    search = conn.processSearch(newSearchRequest(dn, SearchScope.SUBORDINATES));
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 13);
     for (Entry entry : result) {
-      assertThat(entry.getName().toString()).isNotEqualTo("dc=test,dc=com");
+      assertThat(entry.getName()).isNotEqualTo(dn);
     }
 
-    search = conn.processSearch("dc=test,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    search = conn.processSearch(newSearchRequest(dn, SearchScope.WHOLE_SUBTREE));
     result = search.getSearchEntries();
 
     assertEquals(result.size(), 14);
@@ -1486,7 +1487,7 @@ public class TestBackendImpl extends JebTestCase {
     ) throws Exception
   {
     InternalClientConnection conn = getRootConnection();
-    SearchFilter filter = SearchFilter.createFilterFromString("(objectClass=*)");
+    SearchFilter filter = SearchFilter.objectClassPresent();
 
     // Test is performed with each and every scope
     for (SearchScope scope: SearchScope.values())

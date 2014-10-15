@@ -27,11 +27,11 @@
 package org.opends.server.protocols.ldap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -56,6 +56,8 @@ public class LDAPFilter
        extends RawFilter
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static LDAPFilter objectClassPresent;
 
   // The set of subAny elements for substring filters.
   private ArrayList<ByteString> subAnyElements;
@@ -2076,5 +2078,25 @@ public class LDAPFilter
         break;
     }
   }
-}
 
+  /**
+   * Returns the {@code objectClass} presence filter {@code (objectClass=*)}.
+   *
+   * @return The {@code objectClass} presence filter {@code (objectClass=*)}.
+   */
+  public static LDAPFilter objectClassPresent()
+  {
+    if (objectClassPresent == null)
+    {
+      try
+      {
+        objectClassPresent = LDAPFilter.decode("(objectclass=*)");
+      }
+      catch (LDAPException canNeverHappen)
+      {
+        logger.traceException(canNeverHappen);
+      }
+    }
+    return objectClassPresent;
+  }
+}

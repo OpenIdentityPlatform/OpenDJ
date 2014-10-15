@@ -2768,8 +2768,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     try
     {
       connection = factory.getConnection();
-      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE,
-          SearchFilter.createFilterFromString("(objectClass=*)"));
+      connection.search(searchBindDN, SearchScope.WHOLE_SUBTREE, SearchFilter.objectClassPresent());
       fail("Search attempt should have timed out");
     }
     catch (final DirectoryException e)

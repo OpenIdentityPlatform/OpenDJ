@@ -397,7 +397,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttrRealAttrsOnly(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+    SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
         .addAttribute("hasSubordinates")
         .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
@@ -424,8 +424,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   public void testSearchhasSubordinatesAttrVirtualAttrsOnly(DN entryDN, boolean hasSubs)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
+    SearchFilter filter = SearchFilter.objectClassPresent();
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
     attrList.add("hasSubordinates");
 

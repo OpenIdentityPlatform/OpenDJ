@@ -202,7 +202,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     throws Exception
   {
     // Process the search request
-    SearchRequest request = newSearchRequest(notExpired.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)")
+    SearchRequest request = newSearchRequest(notExpired.getName(), SearchScope.BASE_OBJECT)
         .addAttribute(attributeName, "pwdpolicysubentry");
     InternalSearchOperation search = getRootConnection().processSearch(request);
     assertEquals(search.getResultCode(), ResultCode.SUCCESS);

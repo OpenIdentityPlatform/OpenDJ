@@ -27,21 +27,16 @@
 package org.opends.server.extensions;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
@@ -49,6 +44,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -344,26 +340,12 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testEntryDNs")
-  public void testSearchEntryUUIDAttrRealAttrsOnly(DN entryDN)
-         throws Exception
+  public void testSearchEntryUUIDAttrRealAttrsOnly(DN entryDN) throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entryuuid");
-
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), requestControls,
-                                     entryDN, SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, attrList, null);
-    searchOperation.run();
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
+        .addAttribute("entryuuid")
+        .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -384,26 +366,13 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testEntryDNs")
-  public void testSearchEntryUUIDAttrVirtualAttrsOnly(DN entryDN)
-         throws Exception
+  public void testSearchEntryUUIDAttrVirtualAttrsOnly(DN entryDN) throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("entryuuid");
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
+        .addAttribute("entryuuid")
+        .addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), requestControls,
-                                     entryDN, SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, attrList, null);
-    searchOperation.run();
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -416,7 +385,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   /**
    * Tests the {@code isMultiValued} method.
    */
-  @Test()
+  @Test
   public void testIsMultiValued()
   {
     EntryUUIDVirtualAttributeProvider provider =
@@ -431,29 +400,16 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetValues()
-         throws Exception
+  @Test
+  public void testGetValues() throws Exception
   {
     String uuidString = UUID.nameUUIDFromBytes(getBytes("o=test")).toString();
 
     EntryUUIDVirtualAttributeProvider provider =
          new EntryUUIDVirtualAttributeProvider();
 
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    Entry entry = makeEntry();
+    VirtualAttributeRule rule = getRule(provider);
 
     Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
@@ -469,32 +425,16 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testHasAnyValue()
-         throws Exception
+  @Test
+  public void testHasAnyValue() throws Exception
   {
     EntryUUIDVirtualAttributeProvider provider =
          new EntryUUIDVirtualAttributeProvider();
 
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
+    Entry entry = makeEntry();
+    VirtualAttributeRule rule = getRule(provider);
     assertTrue(provider.hasValue(entry, rule));
   }
-
-
 
   /**
    * Tests the {@code hasValue} method variant that takes a specific value when
@@ -502,34 +442,18 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testHasMatchingValue()
-         throws Exception
+  @Test
+  public void testHasMatchingValue() throws Exception
   {
     String uuidString = UUID.nameUUIDFromBytes(getBytes("o=test")).toString();
 
     EntryUUIDVirtualAttributeProvider provider =
          new EntryUUIDVirtualAttributeProvider();
 
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
+    Entry entry = makeEntry();
+    VirtualAttributeRule rule = getRule(provider);
     assertTrue(provider.hasValue(entry, rule, ByteString.valueOf(uuidString)));
   }
-
-
 
   /**
    * Tests the {@code hasValue} method variant that takes a specific value when
@@ -537,28 +461,34 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testHasNonMatchingValue()
-         throws Exception
+  @Test
+  public void testHasNonMatchingValue() throws Exception
   {
     EntryUUIDVirtualAttributeProvider provider =
          new EntryUUIDVirtualAttributeProvider();
 
+    Entry entry = makeEntry();
+    VirtualAttributeRule rule = getRule(provider);
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("wrong")));
+  }
+
+  private Entry makeEntry() throws Exception
+  {
     Entry entry = TestCaseUtils.makeEntry(
       "dn: o=test",
       "objectClass: top",
       "objectClass: organization",
       "o: test");
     entry.processVirtualAttributes();
+    return entry;
+  }
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("wrong")));
+  private VirtualAttributeRule getRule(EntryUUIDVirtualAttributeProvider provider)
+  {
+    return new VirtualAttributeRule(entryUUIDType, provider,
+              Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+              Collections.<DN>emptySet(),
+              Collections.<SearchFilter>emptySet(),
+              VirtualAttributeCfgDefn.ConflictBehavior.VIRTUAL_OVERRIDES_REAL);
   }
 }

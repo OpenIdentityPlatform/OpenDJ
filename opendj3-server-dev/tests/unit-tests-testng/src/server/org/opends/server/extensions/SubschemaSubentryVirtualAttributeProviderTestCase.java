@@ -36,7 +36,6 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -49,6 +48,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -310,7 +310,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
         .addAttribute("subschemaSubentry")
         .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
@@ -337,7 +337,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   public void testSearchSubschemaSubentryAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(objectClass=*)")
+    final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
         .addAttribute("subschemaSubentry")
         .addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
@@ -353,7 +353,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   /**
    * Tests the {@code isMultiValued} method.
    */
-  @Test()
+  @Test
   public void testIsMultiValued()
   {
     assertFalse(new SubschemaSubentryVirtualAttributeProvider().isMultiValued());
@@ -366,7 +366,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValues()
          throws Exception
   {
@@ -402,7 +402,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasAnyValue()
          throws Exception
   {
@@ -435,7 +435,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasMatchingValue()
          throws Exception
   {
@@ -468,9 +468,8 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testHasNonMatchingValue()
-         throws Exception
+  @Test
+  public void testHasNonMatchingValue() throws Exception
   {
     SubschemaSubentryVirtualAttributeProvider provider =
          new SubschemaSubentryVirtualAttributeProvider();

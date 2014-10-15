@@ -111,7 +111,7 @@ public class VirtualAttributeRuleTestCase
 
 
     LinkedHashSet<SearchFilter> filterSet1 = new LinkedHashSet<SearchFilter>(1);
-    filterSet1.add(SearchFilter.createFilterFromString("(objectClass=*)"));
+    filterSet1.add(SearchFilter.objectClassPresent());
 
     LinkedHashSet<SearchFilter> filterSet2 = new LinkedHashSet<SearchFilter>(1);
     filterSet2.add(SearchFilter.createFilterFromString("(o=test)"));

@@ -29,8 +29,8 @@ package org.opends.server.core;
 import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -39,17 +39,21 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.RawModification;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -61,6 +65,7 @@ import static org.testng.Assert.*;
  * With the manual configuration mode, all the network groups, workflows
  * and workflow elements must be defined in the configuration file.
  */
+@SuppressWarnings("javadoc")
 public class WorkflowConfigurationTest extends UtilTestCase
 {
   // The base DN of the config backend
@@ -93,8 +98,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
    * @throws Exception if the environment could not be set up.
    */
   @BeforeClass
-  public void setUp()
-    throws Exception
+  public void setUp() throws Exception
   {
     // Start the server so that we can update the configuration and execute
     // some LDAP operations
@@ -221,23 +225,11 @@ public class WorkflowConfigurationTest extends UtilTestCase
       ResultCode  expectedResultCode
       ) throws Exception
   {
-    InternalSearchOperation searchOperation = new InternalSearchOperation(
-       InternalClientConnection.getRootConnection(),
-       InternalClientConnection.nextOperationID(),
-       InternalClientConnection.nextMessageID(),
-       new ArrayList<Control>(),
-       ByteString.valueOf(baseDN),
-       scope,
-       DereferenceAliasesPolicy.NEVER,
-       Integer.MAX_VALUE,
-       Integer.MAX_VALUE,
-       false,
-       LDAPFilter.decode("(objectClass=*)"),
-       null, null);
-
-    searchOperation.run();
+    SearchRequest request = newSearchRequest(DN.valueOf(baseDN), scope)
+        .setSizeLimit(Integer.MAX_VALUE)
+        .setTimeLimit(Integer.MAX_VALUE);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), expectedResultCode);
-
     return searchOperation;
   }
 
@@ -289,7 +281,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
       throws Exception
   {
     // Get the backend
-    Backend backend = DirectoryServer.getBackend(backendID);
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
     assertNotNull(backend);
 
     // Create the workflow element that wraps the local backend
@@ -361,10 +353,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
    * Create a base entry for a new suffix.
    *
    * @param baseDN     the DN of the new base entry
-   * @param backendID  the identifier of the backend
    */
-  private void createBaseEntry(String baseDN, String backendID)
-      throws Exception
+  private void createBaseEntry(String baseDN) throws Exception
   {
     Entry entry = StaticUtils.createEntry(DN.valueOf(baseDN));
 
@@ -440,7 +430,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
    * @return the newly created backend
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private static Backend dsconfigCreateMemoryBackend(
+  private static Backend<?> dsconfigCreateMemoryBackend(
       String  backendID,
       String  baseDN,
       boolean createBaseEntry
@@ -454,7 +444,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
         "--set", "writability-mode:enabled",
         "--set", "enabled:true");
 
-    Backend backend = DirectoryServer.getBackend(backendID);
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
     if (createBaseEntry)
     {
       Entry e = createEntry(DN.valueOf(baseDN));
@@ -576,7 +566,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // Add a new suffix to the test backend and check that the new
     // suffix is accessible (we are in auto mode).
     addSuffix(testBaseDN2, testBackendID2);
-    createBaseEntry(testBaseDN2, testBackendID2);
+    createBaseEntry(testBaseDN2);
     checkBackendIsAccessible(testBaseDN2);
 
     // Remove the suffix and check that the removed suffix is no
@@ -595,7 +585,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // the workflow is automatically created when a new suffix is added.
     addSuffix(testBaseDN3, testBackendID2);
     createWorkflow(testBaseDN3, testBackendID2);
-    createBaseEntry(testBaseDN3, testBackendID2);
+    createBaseEntry(testBaseDN3);
     checkBackendIsAccessible(testBaseDN3);
 
     // Finally remove the new workflow and suffix and check that the suffix

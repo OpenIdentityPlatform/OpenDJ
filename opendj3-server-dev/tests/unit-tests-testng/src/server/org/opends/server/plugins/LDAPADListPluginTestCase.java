@@ -40,6 +40,7 @@ import org.opends.server.admin.std.server.LDAPAttributeDescriptionListPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -131,8 +132,7 @@ public class LDAPADListPluginTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @DataProvider(name = "invalidConfigs")
-  public Object[][] getInvalidConfigs()
-         throws Exception
+  public Object[][] getInvalidConfigs() throws Exception
   {
     ArrayList<Entry> entries = new ArrayList<Entry>();
     Entry e = TestCaseUtils.makeEntry(
@@ -212,13 +212,8 @@ public class LDAPADListPluginTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final SearchRequest request = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    assertFalse(searchOperation.getSearchEntries().isEmpty());
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e.getAttribute("o"));
+    final SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.BASE_OBJECT);
+    assertAttributeOExists(request);
   }
 
 
@@ -235,14 +230,9 @@ public class LDAPADListPluginTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    SearchRequest request = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)")
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.BASE_OBJECT)
         .addAttribute("o");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    assertFalse(searchOperation.getSearchEntries().isEmpty());
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e.getAttribute("o"));
+    assertAttributeOExists(request);
   }
 
 
@@ -259,14 +249,9 @@ public class LDAPADListPluginTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final SearchRequest request = newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)")
+    final SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.BASE_OBJECT)
         .addAttribute("@organization");
-    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-    assertFalse(searchOperation.getSearchEntries().isEmpty());
-
-    Entry e = searchOperation.getSearchEntries().get(0);
-    assertNotNull(e.getAttribute("o"));
+    assertAttributeOExists(request);
   }
 
 
@@ -284,7 +269,12 @@ public class LDAPADListPluginTestCase
     TestCaseUtils.initializeTestBackend(true);
 
     final SearchRequest request =
-        newSearchRequest("o=test", SearchScope.BASE_OBJECT, "(objectClass=*)").addAttribute("@undefined");
+        newSearchRequest(DN.valueOf("o=test"), SearchScope.BASE_OBJECT).addAttribute("@undefined");
+    assertAttributeOExists(request);
+  }
+
+  private void assertAttributeOExists(final SearchRequest request)
+  {
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());

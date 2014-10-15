@@ -337,8 +337,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
+    SearchFilter filter = SearchFilter.objectClassPresent();
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
     attrList.add("structuralObjectClass");
 
@@ -378,8 +377,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectClass=*)");
+    SearchFilter filter = SearchFilter.objectClassPresent();
     LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
     attrList.add("structuralObjectClass");
 

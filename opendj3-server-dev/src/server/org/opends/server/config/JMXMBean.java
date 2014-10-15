@@ -69,7 +69,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InvokableMethod;
-import org.opends.server.types.LDAPException;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.protocols.internal.Requests.*;
@@ -486,10 +485,10 @@ public final class JMXMBean
       if (clientConnection instanceof JmxClientConnection) {
         op = ((JmxClientConnection)clientConnection).processSearch(
             ByteString.valueOf(configEntryDN.toString()),
-                SearchScope.BASE_OBJECT, getTrueFilter());
+                SearchScope.BASE_OBJECT, LDAPFilter.objectClassPresent());
       }
       else if (clientConnection instanceof InternalClientConnection) {
-        SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT, "(objectclass=*)");
+        SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
         op = ((InternalClientConnection) clientConnection).processSearch(request);
       }
       // BUG : op may be null
@@ -513,20 +512,6 @@ public final class JMXMBean
       LocalizableMessage message = ERR_CONFIG_JMX_ATTR_NO_ATTR.get(configEntryDN, attributeName);
       logger.error(message);
       throw new AttributeNotFoundException(message.toString());
-    }
-  }
-
-  private LDAPFilter getTrueFilter()
-  {
-    try
-    {
-      return LDAPFilter.decode("(objectclass=*)");
-    }
-    catch (LDAPException e)
-    {
-      // can never happen
-      logger.traceException(e);
-      return null;
     }
   }
 
@@ -578,18 +563,11 @@ public final class JMXMBean
     if (clientConnection instanceof JmxClientConnection) {
       op = ((JmxClientConnection)clientConnection).processSearch(
           ByteString.valueOf(configEntryDN.toString()),
-              SearchScope.BASE_OBJECT, getTrueFilter());
+              SearchScope.BASE_OBJECT, LDAPFilter.objectClassPresent());
     }
     else if (clientConnection instanceof InternalClientConnection) {
-      try
-      {
-        SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT, "(objectclass=*)");
-        op = ((InternalClientConnection) clientConnection).processSearch(request);
-      }
-      catch (DirectoryException e)
-      {
-        logger.traceException(e);
-      }
+      SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
+      op = ((InternalClientConnection) clientConnection).processSearch(request);
     }
 
     if (op == null)

@@ -458,7 +458,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       throws Exception
   {
     // Search for matching entries in config backend
-    InternalSearchOperation op = connection.processSearch("cn=config", WHOLE_SUBTREE, filter);
+    InternalSearchOperation op = connection.processSearch(newSearchRequest("cn=config", WHOLE_SUBTREE, filter));
     assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage() .toString());
 
     // Check that no entries have been found
@@ -517,7 +517,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       if (count++>0)
         Thread.sleep(100);
-      op = connection.processSearch("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter);
+      op = connection.processSearch(newSearchRequest("cn=replication,cn=monitor", WHOLE_SUBTREE, monitorFilter));
     }
     while (op.getSearchEntries().isEmpty() && (count<100));
     assertFalse(op.getSearchEntries().isEmpty(), "Could not read monitoring information");
@@ -652,7 +652,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     long startMillisecs = System.currentTimeMillis();
     do
     {
-      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
+      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = connection.processSearch(request);
       if (searchOperation.getSearchEntries().isEmpty())
       {
@@ -748,7 +748,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     TaskState taskState = null;
     do
     {
-      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT, "(objectclass=*)");
+      final SearchRequest request = newSearchRequest(taskEntry.getName(), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation = connection.processSearch(request);
       resultEntry = searchOperation.getSearchEntries().getFirst();
 

@@ -715,7 +715,7 @@ public class InternalClientConnectionTestCase
   @Test
   public void testProcessSearch1() throws Exception
   {
-    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -733,7 +733,7 @@ public class InternalClientConnectionTestCase
   @Test
   public void testProcessSearch2() throws Exception
   {
-    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -754,7 +754,7 @@ public class InternalClientConnectionTestCase
   {
     TestInternalSearchListener searchListener = new TestInternalSearchListener();
 
-    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request, searchListener);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchListener.getSearchEntries().isEmpty());
@@ -772,7 +772,7 @@ public class InternalClientConnectionTestCase
   @Test
   public void testProcessSearch4() throws Exception
   {
-    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -790,7 +790,7 @@ public class InternalClientConnectionTestCase
   @Test
   public void testProcessSearch5() throws Exception
   {
-    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -812,7 +812,7 @@ public class InternalClientConnectionTestCase
     TestInternalSearchListener searchListener =
          new TestInternalSearchListener();
 
-    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT, "(objectClass=*)");
+    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request, searchListener);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchListener.getSearchEntries().isEmpty());
@@ -831,7 +831,8 @@ public class InternalClientConnectionTestCase
          throws Exception
   {
     InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation = conn.processSearch("", SearchScope.BASE_OBJECT, "(objectClass=*)");
+    InternalSearchOperation searchOperation =
+        conn.processSearch(newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT));
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
     assertTrue(searchOperation.getSearchReferences().isEmpty());

@@ -38,6 +38,7 @@ import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.WorkflowElement;
@@ -48,6 +49,7 @@ import org.testng.annotations.Test;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -1041,7 +1043,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       int expectedNamingContexts
       ) throws Exception
   {
-    SearchOperation search = connection.processSearch("", SearchScope.SINGLE_LEVEL, "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.SINGLE_LEVEL);
+    SearchOperation search = connection.processSearch(request);
 
     // Check the number of found naming context
     assertEquals(search.getResultCode(), shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
@@ -1060,7 +1063,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    */
   private void searchEntry(String baseDN, boolean shouldExist) throws Exception
   {
-    SearchOperation search = getRootConnection().processSearch(baseDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchRequest request = newSearchRequest(DN.valueOf(baseDN), SearchScope.BASE_OBJECT);
+    SearchOperation search = getRootConnection().processSearch(request);
 
     // Compare the result code with the expected one
     assertEquals(search.getResultCode(), shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);

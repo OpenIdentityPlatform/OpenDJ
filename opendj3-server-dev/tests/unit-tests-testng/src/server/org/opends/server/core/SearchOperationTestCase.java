@@ -40,7 +40,6 @@ import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.MatchedValuesFilter;
 import org.opends.server.controls.SubentriesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
@@ -175,14 +174,10 @@ public class SearchOperationTestCase extends OperationTestCase
   @Override
   protected Operation[] createTestOperations() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     return new Operation[]
     {
-         new SearchOperationBasis(conn,
-                             InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(),
+         new SearchOperationBasis(
+                             getRootConnection(), nextOperationID(), nextMessageID(),
                              new ArrayList<Control>(),
                              ByteString.valueOf(BASE),
                              SearchScope.WHOLE_SUBTREE,
@@ -190,7 +185,7 @@ public class SearchOperationTestCase extends OperationTestCase
                              -1,
                              -1,
                              false,
-                             LDAPFilter.decode("(objectclass=*)"),
+                             LDAPFilter.objectClassPresent(),
                              null)
     };
   }
@@ -331,24 +326,7 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=*)"),
-              null, null);
-
+    InternalSearchOperation searchOperation = newInternalSearchOperation(LDAPFilter.objectClassPresent());
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 4);
@@ -361,24 +339,8 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchInternalUnspecifiedAttributes() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=inetorgperson)"),
-              null, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(objectclass=inetorgperson)"));
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
@@ -394,14 +356,9 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchInternalUnspecifiedAttributesOmitValues()
        throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
@@ -424,26 +381,8 @@ public class SearchOperationTestCase extends OperationTestCase
   @Test
   public void testSearchInternalAllOperationalAttributes() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-    attributes.add("+");
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(objectclass=inetorgperson)"), "+");
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses().size(), 0);
@@ -455,27 +394,8 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchInternalAllUserAndOperationalAttributes()
        throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-    attributes.add("*");
-    attributes.add("+");
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(objectclass=inetorgperson)"), "*", "+");
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
@@ -490,27 +410,8 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchInternalAllUserAttributesPlusSelectedOperational()
        throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-    attributes.add("*");
-    attributes.add("createtimestamp");
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(objectclass=inetorgperson)"), "*", "createtimestamp");
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses(), testEntry.getObjectClasses());
@@ -526,32 +427,24 @@ public class SearchOperationTestCase extends OperationTestCase
   public void testSearchInternalSelectedAttributes()
        throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-    attributes.add("uid");
-    attributes.add("createtimestamp");
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=inetorgperson)"),
-              attributes, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(objectclass=inetorgperson)"), "uid", "createtimestamp");
     Entry resultEntry = searchInternalForSingleEntry(searchOperation);
 
     assertEquals(resultEntry.getObjectClasses().size(), 0);
     assertEquals(resultEntry.getUserAttributes().size(), 1);
     assertEquals(resultEntry.getOperationalAttributes().size(), 1);
+  }
+
+  private InternalSearchOperation newInternalSearchOperation(LDAPFilter filter, String... attributes)
+  {
+    return new InternalSearchOperation(
+        getRootConnection(), nextOperationID(), nextMessageID(),
+        new ArrayList<Control>(),
+        ByteString.valueOf(BASE),
+        SearchScope.WHOLE_SUBTREE,
+        DereferenceAliasesPolicy.NEVER, Integer.MAX_VALUE, Integer.MAX_VALUE, false,
+        filter, new LinkedHashSet<String>(Arrays.asList(attributes)), null);
   }
 
   @Test
@@ -828,24 +721,8 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=inetorgperson)"),
-              null, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(objectclass=inetorgperson)"));
     searchOperation.run();
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -876,14 +753,8 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.SINGLE_LEVEL,
@@ -914,24 +785,8 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(objectclass=ldapsubentry)"),
-              null, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(objectclass=ldapsubentry)"));
     searchOperation.run();
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -944,14 +799,9 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               Collections.singletonList((Control)new SubentriesControl(true, true)),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
@@ -959,7 +809,7 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
-              LDAPFilter.decode("(objectclass=*)"),
+              LDAPFilter.objectClassPresent(),
               null, null);
 
     searchOperation.run();
@@ -974,17 +824,13 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    InternalSearchOperation searchOperation = new InternalSearchOperation(conn,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        getRootConnection(), nextOperationID(), nextMessageID(),
         Collections.singletonList((Control) new LDAPControl(
             OID_LDUP_SUBENTRIES, true)), ByteString.valueOf(BASE),
         SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.NEVER,
         Integer.MAX_VALUE, Integer.MAX_VALUE, false,
-        LDAPFilter.decode("(objectclass=*)"), null, null);
+        LDAPFilter.objectClassPresent(), null, null);
 
     searchOperation.run();
 
@@ -998,45 +844,15 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(&(cn=*)(objectclass=ldapsubentry))"),
-              null, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(&(cn=*)(objectclass=ldapsubentry))"));
     searchOperation.run();
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
 
-    searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(&(&(cn=*)(objectclass=ldapsubentry)))"),
-              null, null);
-
+    searchOperation = newInternalSearchOperation(LDAPFilter.decode("(&(&(cn=*)(objectclass=ldapsubentry)))"));
     searchOperation.run();
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1049,24 +865,8 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(BASE),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(|(objectclass=ldapsubentry)(objectclass=top))"),
-              null, null);
-
+        newInternalSearchOperation(LDAPFilter.decode("(|(objectclass=ldapsubentry)(objectclass=top))"));
     searchOperation.run();
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -1080,14 +880,10 @@ public class SearchOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     TestCaseUtils.initializeTestBackend(true);
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf("ou=nonexistent,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -1095,7 +891,7 @@ public class SearchOperationTestCase extends OperationTestCase
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
-              LDAPFilter.decode("(objectclass=*)"),
+              LDAPFilter.objectClassPresent(),
               null, null);
 
     searchOperation.run();
@@ -1202,7 +998,7 @@ public class SearchOperationTestCase extends OperationTestCase
         "cn: Test User",
         "userPassword: password");
 
-    final SearchRequest request = Requests.newSearchRequest(userDN, SearchScope.BASE_OBJECT, "(objectClass=*)");
+    final SearchRequest request = Requests.newSearchRequest(userDN, SearchScope.BASE_OBJECT);
     request.setTypesOnly(typesOnly);
     switch (filterType)
     {
@@ -1403,7 +1199,7 @@ public class SearchOperationTestCase extends OperationTestCase
         "cn;lang-fr: Test Usager",
         "userPassword: password");
 
-    SearchRequest request = Requests.newSearchRequest(userDNString, SearchScope.BASE_OBJECT, "(objectClass=*)")
+    SearchRequest request = Requests.newSearchRequest(userDN, SearchScope.BASE_OBJECT)
         .addAttribute(requestedAttributes);
     InternalSearchOperation search = getRootConnection().processSearch(request);
     assertEquals(search.getResultCode(), ResultCode.SUCCESS);
@@ -1472,7 +1268,7 @@ public class SearchOperationTestCase extends OperationTestCase
           Integer.MAX_VALUE,
           Integer.MAX_VALUE,
           false,
-          LDAPFilter.decode("(objectclass=*)"),
+          LDAPFilter.objectClassPresent(),
           attributes);
 
     SearchResultEntryProtocolOp entry =
@@ -1531,15 +1327,9 @@ public class SearchOperationTestCase extends OperationTestCase
 
     assertEquals(err,0);
 
-    //Search for the entries.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf("dc=example,dc=com"),
               SearchScope.SINGLE_LEVEL,

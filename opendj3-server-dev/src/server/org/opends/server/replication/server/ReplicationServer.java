@@ -549,8 +549,7 @@ public final class ReplicationServer
     {
       Set<DN> baseDNs = Collections.singleton(DN.valueOf(""));
       Set<DN> groupDNs = Collections.emptySet();
-      Set<SearchFilter> filters = Collections.singleton(
-          SearchFilter.createFilterFromString("(objectclass=*)"));
+      Set<SearchFilter> filters = Collections.singleton(SearchFilter.objectClassPresent());
 
       // To avoid the configuration in cn=config just
       // create a rule and register it into the DirectoryServer

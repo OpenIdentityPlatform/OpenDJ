@@ -67,6 +67,8 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -82,6 +84,7 @@ import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -372,8 +375,8 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_READ, null), hasPrivilege);
 
-    InternalSearchOperation searchOperation = conn.processSearch(
-        "cn=config", SearchScope.BASE_OBJECT, "(objectClass=*)");
+    SearchRequest request = Requests.newSearchRequest(DN.valueOf("cn=config"), SearchScope.BASE_OBJECT);
+    InternalSearchOperation searchOperation = conn.processSearch(request);
     assertPrivilege(searchOperation.getResultCode(), hasPrivilege);
   }
 
@@ -395,8 +398,8 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.UNINDEXED_SEARCH, null), hasPrivilege);
 
-    InternalSearchOperation searchOperation = conn.processSearch(
-        "dc=unindexed,dc=jeb", SearchScope.WHOLE_SUBTREE, "(carLicense=test*)");
+    SearchRequest request = newSearchRequest("dc=unindexed,dc=jeb", SearchScope.WHOLE_SUBTREE, "(carLicense=test*)");
+    InternalSearchOperation searchOperation = conn.processSearch(request);
     assertPrivilege(searchOperation.getResultCode(), hasPrivilege);
   }
 
@@ -1287,7 +1290,7 @@ public class PrivilegeTestCase extends TypesTestCase
                   nextOperationID(), nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  SearchFilter.objectClassPresent(), null,
                   null);
     searchOperation.run();
     assertProxyPrivilege(searchOperation.getResultCode(), hasProxyPrivilege);
@@ -1438,7 +1441,7 @@ public class PrivilegeTestCase extends TypesTestCase
                   nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
+                  SearchFilter.objectClassPresent(), null,
                   null);
     searchOperation.run();
     assertProxyPrivilege(searchOperation.getResultCode(), hasProxyPrivilege);
