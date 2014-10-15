@@ -122,7 +122,7 @@
     <stableServerVersion>2.6.0</stableServerVersion>
     <sdkDocTargetVersion>2.6.9</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.1.4</frDocPluginVersion>
+    <frDocPluginVersion>2.1.5</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
