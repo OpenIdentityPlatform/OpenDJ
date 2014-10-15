@@ -60,8 +60,10 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
+import org.opends.server.types.SearchFilter;
 
 import static org.forgerock.opendj.ldap.LdapException.*;
 
@@ -70,7 +72,7 @@ import static org.forgerock.opendj.ldap.LdapException.*;
  */
 public final class Converters {
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Converters() {
         throw new AssertionError();
     }
@@ -207,6 +209,24 @@ public final class Converters {
             ldapFilter = LDAPFilter.decode(filter.toString());
         } catch (LDAPException e) {
             throw new IllegalStateException(e);
+        }
+        return ldapFilter;
+    }
+
+    /**
+     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.Filter} to
+     * OpenDJ server {@link org.opends.server.types.RawFilter}.
+     *
+     * @param filter
+     *          value to convert
+     * @return the converted value
+     */
+    public static SearchFilter toSearchFilter(final org.forgerock.opendj.ldap.Filter filter) {
+        SearchFilter ldapFilter = null;
+        try {
+            ldapFilter = SearchFilter.createFilterFromString(filter.toString());
+        } catch (DirectoryException e) {
+            throw new IllegalStateException(e.getMessage(), e);
         }
         return ldapFilter;
     }
