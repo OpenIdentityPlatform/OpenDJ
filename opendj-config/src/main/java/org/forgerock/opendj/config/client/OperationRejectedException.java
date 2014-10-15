@@ -73,7 +73,7 @@ public class OperationRejectedException extends AdminClientException {
      */
     private static final long serialVersionUID = 8547688890613079044L;
 
-    // Gets the default message.
+    /** Gets the default message. */
     private static LocalizableMessage getDefaultMessage(Collection<LocalizableMessage> messages) {
         Reject.ifNull(messages);
         Reject.ifFalse(!messages.isEmpty(), "Messages should not be empty");
@@ -85,7 +85,7 @@ public class OperationRejectedException extends AdminClientException {
         }
     }
 
-    // Merge the messages into a single message.
+    /** Merge the messages into a single message. */
     private static LocalizableMessage getSingleMessage(Collection<LocalizableMessage> messages) {
         if (messages.size() == 1) {
             return messages.iterator().next();
@@ -105,14 +105,16 @@ public class OperationRejectedException extends AdminClientException {
         }
     }
 
-    // The messages describing the constraint violations that occurred.
+    /** The messages describing the constraint violations that occurred. */
     private final Collection<LocalizableMessage> messages;
 
-    // The type of operation that caused this exception.
+    /** The type of operation that caused this exception. */
     private final OperationType type;
 
-    // The user friendly name of the component that caused this
-    // exception.
+    /**
+     * The user friendly name of the component that caused this
+     * exception.
+     */
     private final LocalizableMessage ufn;
 
     /**

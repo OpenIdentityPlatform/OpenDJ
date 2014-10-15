@@ -42,7 +42,7 @@ package org.forgerock.opendj.config;
  */
 public final class TopCfgDefn extends AbstractManagedObjectDefinition<ConfigurationClient, Configuration> {
 
-    // The singleton configuration definition instance.
+    /** The singleton configuration definition instance. */
     private static final TopCfgDefn INSTANCE = new TopCfgDefn();
 
     /**

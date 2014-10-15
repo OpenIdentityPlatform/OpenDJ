@@ -33,7 +33,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Test class for ByteSequenceReader
+ * Test class for ByteSequenceReader.
  */
 @SuppressWarnings("javadoc")
 public class ByteSequenceReaderTest extends SdkTestCase {
@@ -189,7 +189,7 @@ public class ByteSequenceReaderTest extends SdkTestCase {
 
     @Test(expectedExceptions = IndexOutOfBoundsException.class)
     public void testUndersizedGetBERLength() {
-        ByteSequenceReader reader = ByteString.wrap(new byte[0]).asReader();
+        ByteSequenceReader reader = ByteString.empty().asReader();
 
         // Shouldn't be able to reader over a 4 byte length.
         reader.getBERLength();

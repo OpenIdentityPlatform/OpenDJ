@@ -56,11 +56,13 @@ public enum AttributeUsage {
      */
     DSA_OPERATION("dSAOperation", true);
 
-    // The string representation of this attribute usage.
+    /** The string representation of this attribute usage. */
     private final String usageString;
 
-    // Flag indicating whether or not the usage should be categorized as
-    // operational.
+    /**
+     * Flag indicating whether or not the usage should be categorized as
+     * operational.
+     */
     private final boolean isOperational;
 
     /**

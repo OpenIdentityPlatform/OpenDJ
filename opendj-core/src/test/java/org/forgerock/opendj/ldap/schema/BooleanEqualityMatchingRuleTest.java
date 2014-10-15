@@ -35,18 +35,14 @@ import org.testng.annotations.DataProvider;
  */
 public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { { "garbage" }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -57,9 +53,7 @@ public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest {
             { "0", "false", ConditionResult.TRUE }, { "TRUE", "false", ConditionResult.FALSE }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_BOOLEAN_OID);

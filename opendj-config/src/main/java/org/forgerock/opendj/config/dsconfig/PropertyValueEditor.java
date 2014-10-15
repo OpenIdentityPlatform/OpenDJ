@@ -444,9 +444,7 @@ final class PropertyValueEditor {
             }
         }
 
-        /**
-         * /** {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public MenuResult<Void> visitBoolean(BooleanPropertyDefinition d, Void p) {
             MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);

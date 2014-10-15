@@ -627,9 +627,7 @@ public final class LDAPUrl {
         return request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override()
     public boolean equals(final Object o) {
         if (o == this) {
@@ -706,9 +704,7 @@ public final class LDAPUrl {
         return scope;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         final String s = toNormalizedString();
@@ -726,9 +722,7 @@ public final class LDAPUrl {
         return isSecured;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return urlString;

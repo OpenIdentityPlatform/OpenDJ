@@ -44,7 +44,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Creates data for testing string-based limit values
+     * Creates data for testing string-based limit values.
      *
      * @return data
      */
@@ -56,7 +56,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
     }
 
     /**
-     * Creates data for testing limit values
+     * Creates data for testing limit values.
      *
      * @return data
      */
@@ -213,7 +213,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         assertEquals(def.encodeValue(valueToEncode), expectedValue);
     }
 
-    /** Test that accept doesn't throw and exception */
+    /** Test that accept doesn't throw and exception. */
     @Test
     public void testAccept() {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
@@ -232,7 +232,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         assertEquals((boolean) def.accept(v, null), true);
     }
 
-    /** Make sure toString doesn't barf */
+    /** Make sure toString doesn't barf. */
     @Test
     public void testToString() {
         DurationPropertyDefinition.Builder builder = createTestBuilder();
@@ -241,7 +241,7 @@ public class DurationPropertyDefinitionTest extends ConfigTestCase {
         def.toString();
     }
 
-    /** Make sure toString doesn't barf */
+    /** Make sure toString doesn't barf. */
     @Test
     public void testToString2() {
         DurationPropertyDefinition.Builder builder = createTestBuilder();

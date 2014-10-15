@@ -39,7 +39,7 @@ import java.util.Collection;
  */
 public final class DefinedDefaultBehaviorProvider<T> extends DefaultBehaviorProvider<T> {
 
-    // The collection of default values.
+    /** The collection of default values. */
     private final Collection<String> values;
 
     /**
@@ -59,9 +59,7 @@ public final class DefinedDefaultBehaviorProvider<T> extends DefaultBehaviorProv
         this.values = Arrays.asList(values);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
         return v.visitDefined(this, p);
     }

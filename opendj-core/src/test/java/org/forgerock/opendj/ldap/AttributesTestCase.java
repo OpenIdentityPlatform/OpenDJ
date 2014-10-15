@@ -48,11 +48,7 @@ public class AttributesTestCase extends SdkTestCase {
             { "cn;bar" }, { "cn;BAR" }, { "cn;foo;bar" }, { "cn;FOO;bar" }, };
     }
 
-    /**
-     * Data provider for old and new attributes
-     *
-     * @return
-     */
+    /** Data provider for old and new attributes. */
     @DataProvider(name = "dataForAttributeRename")
     public Object[][] dataForAttributeRename() {
         return new Object[][] { { "cn", "cn", true }, { "CN", "cn", true },

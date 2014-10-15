@@ -55,10 +55,10 @@ public final class DefaultManagedObject<C extends ConfigurationClient, S extends
      */
     public static final class Builder<C extends ConfigurationClient, S extends Configuration> {
 
-        // The default managed object's definition.
+        /** The default managed object's definition. */
         private final ManagedObjectDefinition<C, S> definition;
 
-        // The string encoded default managed object's properties.
+        /** The string encoded default managed object's properties. */
         private final Map<String, List<String>> propertyStringValues = new HashMap<String, List<String>>();
 
         /**
@@ -98,13 +98,13 @@ public final class DefaultManagedObject<C extends ConfigurationClient, S extends
         }
     }
 
-    // The default managed object's definition.
+    /** The default managed object's definition. */
     private final ManagedObjectDefinition<C, S> definition;
 
-    // The string encoded default managed object's properties.
+    /** The string encoded default managed object's properties. */
     private final Map<String, List<String>> propertyStringValues;
 
-    // Private constructor.
+    /** Private constructor. */
     private DefaultManagedObject(ManagedObjectDefinition<C, S> definition,
         Map<String, List<String>> propertyStringValues) {
         this.definition = definition;

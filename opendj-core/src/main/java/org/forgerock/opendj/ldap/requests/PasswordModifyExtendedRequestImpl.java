@@ -176,7 +176,7 @@ final class PasswordModifyExtendedRequestImpl extends
 
     private ByteString userIdentity = null;
 
-    // Instantiation via factory.
+    /** Instantiation via factory. */
     PasswordModifyExtendedRequestImpl() {
 
     }

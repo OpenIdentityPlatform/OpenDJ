@@ -63,7 +63,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  *            The type of ASN.1 writer used for encoding elements.
  */
 public final class LDAPWriter<W extends ASN1Writer> {
-    // @Checkstyle:ignore AvoidNestedBlocks
+    /** @Checkstyle:ignore AvoidNestedBlocks */
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final W writer;

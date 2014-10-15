@@ -35,18 +35,14 @@ import org.testng.annotations.DataProvider;
  */
 public class CaseIgnoreIA5EqualityMatchingRuleTest extends MatchingRuleTest {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { { "12345678\uFFFD" }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -55,9 +51,7 @@ public class CaseIgnoreIA5EqualityMatchingRuleTest extends MatchingRuleTest {
             { "ABC45678", "abc45678", ConditionResult.TRUE }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_CASE_IGNORE_IA5_OID);

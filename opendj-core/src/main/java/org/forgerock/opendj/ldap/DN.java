@@ -67,17 +67,17 @@ import com.forgerock.opendj.util.SubstringReader;
 public final class DN implements Iterable<RDN>, Comparable<DN> {
     private static final DN ROOT_DN = new DN(null, null, "");
 
-    // This is the size of the per-thread per-schema DN cache. We should
-    // be conservative here in case there are many threads. We will only
-    // cache parent DNs, so there's no need for it to be big.
+    /**
+     * This is the size of the per-thread per-schema DN cache. We should
+     * be conservative here in case there are many threads. We will only
+     * cache parent DNs, so there's no need for it to be big.
+     */
     private static final int DN_CACHE_SIZE = 32;
 
     private static final ThreadLocal<WeakHashMap<Schema, Map<String, DN>>> CACHE =
             new ThreadLocal<WeakHashMap<Schema, Map<String, DN>>>() {
 
-                /**
-                 * {@inheritDoc}
-                 */
+                /** {@inheritDoc} */
                 @Override
                 protected WeakHashMap<Schema, Map<String, DN>> initialValue() {
                     return new WeakHashMap<Schema, Map<String, DN>>();
@@ -307,7 +307,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         return 0;
     }
 
-    // Decodes a DN using the provided reader and schema.
+    /** Decodes a DN using the provided reader and schema. */
     private static DN decode(final String dnString, final SubstringReader reader,
             final Schema schema, final Map<String, DN> cache) {
         reader.skipWhitespaces();
@@ -368,16 +368,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
 
     private final int size;
 
-    // We need to store the original string value if provided in order to
-    // preserve the original whitespace.
+    /**
+     * We need to store the original string value if provided in order to
+     * preserve the original whitespace.
+     */
     private String stringValue;
 
-    // Private constructor.
+    /** Private constructor. */
     private DN(final DN parent, final RDN rdn, final String stringValue) {
         this(parent, rdn, stringValue, parent != null ? parent.size + 1 : 0);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private DN(final DN parent, final RDN rdn, final String stringValue, final int size) {
         this.parent = parent;
         this.rdn = rdn;
@@ -479,16 +481,12 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         return child(new RDN(attributeType, attributeValue));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int compareTo(final DN dn) {
         return compareTo(this, dn);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -509,9 +507,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         if (size == 0) {

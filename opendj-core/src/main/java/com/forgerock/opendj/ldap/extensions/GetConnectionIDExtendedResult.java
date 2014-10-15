@@ -75,17 +75,13 @@ public final class GetConnectionIDExtendedResult extends
         return connectionID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return GetConnectionIDExtendedRequest.OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder(6);
@@ -101,9 +97,7 @@ public final class GetConnectionIDExtendedResult extends
         return buffer.toByteString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
@@ -121,9 +115,7 @@ public final class GetConnectionIDExtendedResult extends
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

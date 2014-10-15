@@ -409,7 +409,7 @@ public final class Functions {
         return BYTESTRING_TO_STRING;
     }
 
-    // Prevent instantiation
+    /** Prevent instantiation. */
     private Functions() {
         // Do nothing.
     }

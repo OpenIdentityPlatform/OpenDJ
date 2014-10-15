@@ -40,7 +40,7 @@ public abstract class ReferenceCountedObject<T> {
      * released during garbage collection.
      */
     public final class Reference {
-        /*
+        /**
          * The value will be accessed by the finalizer thread so it needs to be
          * volatile in order to ensure that updates are published.
          */

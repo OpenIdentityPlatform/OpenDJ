@@ -253,15 +253,19 @@ public final class PersistentSearchRequestControl implements Control {
         return newControl(isCritical, changesOnly, returnECs, Arrays.asList(changeTypes));
     }
 
-    // Indicates whether to only return entries that have been updated
-    // since the beginning of the search.
+    /**
+     * Indicates whether to only return entries that have been updated
+     * since the beginning of the search.
+     */
     private final boolean changesOnly;
 
-    // Indicates whether entries returned as a result of changes to
-    // directory data should include the entry change notification control.
+    /**
+     * Indicates whether entries returned as a result of changes to
+     * directory data should include the entry change notification control.
+     */
     private final boolean returnECs;
 
-    // The logical OR of change types associated with this control.
+    /** The logical OR of change types associated with this control. */
     private final Set<PersistentSearchChangeType> changeTypes;
 
     private final boolean isCritical;
@@ -285,16 +289,12 @@ public final class PersistentSearchRequestControl implements Control {
         return changeTypes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -317,9 +317,7 @@ public final class PersistentSearchRequestControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
@@ -339,9 +337,7 @@ public final class PersistentSearchRequestControl implements Control {
         return changesOnly;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
@@ -358,9 +354,7 @@ public final class PersistentSearchRequestControl implements Control {
         return returnECs;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

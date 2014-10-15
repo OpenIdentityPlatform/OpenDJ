@@ -950,8 +950,7 @@ abstract class TemplateTag {
         /** The decimal format used to format numeric values. */
         private DecimalFormat decimalFormat;
 
-        /** The number of characters between the minimum and maximum length */
-        /** (inclusive). */
+        /** The number of characters between the minimum and maximum length (inclusive). */
         private int lengthRange = 1;
 
         /** The maximum number of characters to include in the value. */

@@ -37,9 +37,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class RegexSyntaxTestCase extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -64,9 +62,7 @@ public class RegexSyntaxTestCase extends AbstractSyntaxTestCase {
         Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());

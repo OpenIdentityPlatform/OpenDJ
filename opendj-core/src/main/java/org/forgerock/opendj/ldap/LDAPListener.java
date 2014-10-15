@@ -94,11 +94,13 @@ import org.forgerock.util.Reject;
  */
 public final class LDAPListener implements Closeable {
 
-    // We implement the factory using the pimpl idiom in order have
-    // cleaner Javadoc which does not expose implementation methods.
+    /**
+     * We implement the factory using the pimpl idiom in order have
+     * cleaner Javadoc which does not expose implementation methods.
+     */
     private final LDAPListenerImpl impl;
 
-    /*
+    /**
      * Transport provider that provides the implementation of this listener.
      */
     private TransportProvider provider;

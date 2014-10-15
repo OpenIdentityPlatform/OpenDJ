@@ -966,9 +966,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         registerDeleteListener(baseDN, adaptor);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -1031,7 +1029,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         this.configDN = configDN;
     }
 
-    // Deregister an add listener.
+    /** Deregister an add listener. */
     private <M extends Configuration> void deregisterAddListener(DN baseDN, ConfigurationAddListener<M> listener) {
         try {
             if (configRepository.hasEntry(baseDN)) {
@@ -1059,7 +1057,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Deregister an add listener.
+    /** Deregister an add listener. */
     private <M extends Configuration> void deregisterAddListener(DN baseDN,
         ServerManagedObjectAddListener<M> listener) {
         try {
@@ -1131,7 +1129,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         return Pair.empty();
     }
 
-    // Deregister a delete listener.
+    /** Deregister a delete listener. */
     private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
         ConfigurationDeleteListener<M> listener) {
         try {
@@ -1160,7 +1158,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Deregister a delete listener.
+    /** Deregister a delete listener. */
     private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
             ServerManagedObjectDeleteListener<M> listener) {
         try {
@@ -1184,7 +1182,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Register an instantiable or optional relation add listener.
+    /** Register an instantiable or optional relation add listener. */
     private void registerAddListener(DN baseDN, ConfigAddListener adaptor) throws
         ConfigException {
         if (configRepository.hasEntry(baseDN)) {
@@ -1197,8 +1195,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Register a delayed listener with the nearest existing parent
-    // entry to the provided base DN.
+    /**
+     * Register a delayed listener with the nearest existing parent
+     * entry to the provided base DN.
+     */
     private void registerDelayedListener(DN baseDN, ConfigAddListener delayedListener) throws ConfigException {
         DN currentDN = baseDN.parent();
         DN previousDN = currentDN;
@@ -1218,8 +1218,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         throw new ConfigException(message);
     }
 
-    // Deregister a delayed listener with the nearest existing parent
-    // entry to the provided base DN.
+    /**
+     * Deregister a delayed listener with the nearest existing parent
+     * entry to the provided base DN.
+     */
     private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
         ConfigurationAddListener<M> listener) throws ConfigException {
         DN parentDN = baseDN.parent();
@@ -1270,8 +1272,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Deregister a delayed listener with the nearest existing parent
-    // entry to the provided base DN.
+    /**
+     * Deregister a delayed listener with the nearest existing parent
+     * entry to the provided base DN.
+     */
     private <M extends Configuration> void deregisterDelayedDeleteListener(DN baseDN,
             ConfigurationDeleteListener<M> listener) throws ConfigException {
         DN parentDN = baseDN.parent();
@@ -1322,8 +1326,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Deregister a delayed listener with the nearest existing parent
-    // entry to the provided base DN.
+    /**
+     * Deregister a delayed listener with the nearest existing parent
+     * entry to the provided base DN.
+     */
     private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
             ServerManagedObjectAddListener<M> listener) throws ConfigException {
         DN parentDN = baseDN.parent();
@@ -1369,8 +1375,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Deregister a delayed listener with the nearest existing parent
-    // entry to the provided base DN.
+    /**
+     * Deregister a delayed listener with the nearest existing parent
+     * entry to the provided base DN.
+     */
     private <M extends Configuration> void deregisterDelayedDeleteListener(DN baseDN,
             ServerManagedObjectDeleteListener<M> listener) throws ConfigException {
         DN parentDN = baseDN.parent();
@@ -1416,7 +1424,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Register an instantiable or optional relation delete listener.
+    /** Register an instantiable or optional relation delete listener. */
     private void registerDeleteListener(DN baseDN, ConfigDeleteListener adaptor) throws ConfigException {
         if (configRepository.hasEntry(baseDN)) {
             configRepository.registerDeleteListener(baseDN, adaptor);
@@ -1428,8 +1436,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Validate that a relation definition belongs to this managed
-    // object.
+    /** Validate that a relation definition belongs to this managed object. */
     private void validateRelationDefinition(RelationDefinition<?, ?> rd) {
         RelationDefinition<?, ?> tmp = definition.getRelationDefinition(rd.getName());
         if (tmp != rd) {

@@ -70,9 +70,7 @@ public class DITContentRuleSyntaxTest extends AbstractSyntaxTestCase {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_DIT_CONTENT_RULE_OID);

@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * Matching rule use syntax tests.
  */
 public class MatchingRuleUseSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -51,9 +49,7 @@ public class MatchingRuleUseSyntaxTest extends AbstractSyntaxTestCase {
                         + " X-name ( 'this is an extension' ) ", false }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_MATCHING_RULE_USE_OID);

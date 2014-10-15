@@ -48,7 +48,7 @@ public final class TestCfg {
         RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT;
     // @Checkstyle:on
 
-    // Create a one-to-many relation for test-parent components.
+    /** Create a one-to-many relation for test-parent components. */
     static {
         InstantiableRelationDefinition.Builder<TestParentCfgClient, TestParentCfg> builder =
             new InstantiableRelationDefinition.Builder<TestParentCfgClient, TestParentCfg>(
@@ -57,7 +57,7 @@ public final class TestCfg {
         RD_TEST_ONE_TO_MANY_PARENT = builder.getInstance();
     }
 
-    // Create a one-to-many relation for test-parent components.
+    /** Create a one-to-many relation for test-parent components. */
     static {
         OptionalRelationDefinition.Builder<TestParentCfgClient, TestParentCfg> builder =
             new OptionalRelationDefinition.Builder<TestParentCfgClient, TestParentCfg>(
@@ -187,7 +187,7 @@ public final class TestCfg {
         TestChildCfgDefn.getInstance().deregisterConstraint(constraint);
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private TestCfg() {
         // No implementation required.
     }

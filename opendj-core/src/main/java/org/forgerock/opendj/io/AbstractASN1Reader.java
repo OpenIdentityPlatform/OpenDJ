@@ -49,9 +49,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         // No implementation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean readBoolean(byte type) throws IOException {
         if (type == 0x00) {
             type = ASN1.UNIVERSAL_BOOLEAN_TYPE;
@@ -60,9 +58,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         return readBoolean();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int readEnumerated(byte type) throws IOException {
         if (type == 0x00) {
             type = ASN1.UNIVERSAL_ENUMERATED_TYPE;
@@ -71,9 +67,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         return readEnumerated();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public long readInteger(byte type) throws IOException {
         if (type == 0x00) {
             type = ASN1.UNIVERSAL_INTEGER_TYPE;
@@ -82,9 +76,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         return readInteger();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readNull(byte type) throws IOException {
         if (type == 0x00) {
             type = ASN1.UNIVERSAL_NULL_TYPE;
@@ -93,9 +85,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         readNull();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString readOctetString(byte type) throws IOException {
         if (type == 0x00) {
             type = ASN1.UNIVERSAL_OCTET_STRING_TYPE;
@@ -104,9 +94,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         return readOctetString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteStringBuilder readOctetString(byte type, final ByteStringBuilder builder)
             throws IOException {
         if (type == 0x00) {
@@ -117,9 +105,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         return builder;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String readOctetStringAsString(byte type) throws IOException {
         // We could cache the UTF-8 CharSet if performance proves to be an
         // issue.
@@ -130,9 +116,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         return readOctetStringAsString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readStartExplicitTag(byte type) throws IOException {
         if (type == 0x00) {
             type = (ASN1.TYPE_MASK_CONTEXT | ASN1.TYPE_MASK_CONSTRUCTED);
@@ -141,9 +125,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         readStartExplicitTag();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readStartSequence(byte type) throws IOException {
         if (type == 0x00) {
             type = ASN1.UNIVERSAL_SEQUENCE_TYPE;
@@ -152,9 +134,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         readStartSequence();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void readStartSet(byte type) throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.
@@ -165,9 +145,7 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         readStartSet();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Reader skipElement(final byte expectedType) throws IOException {
         if (peekType() != expectedType) {
             final LocalizableMessage message =

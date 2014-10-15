@@ -56,7 +56,7 @@ final class PasswordModifyExtendedResultImpl extends
         this.password = passwordModifyExtendedResult.getGeneratedPassword();
     }
 
-    // Instantiation via factory.
+    /** Instantiation via factory. */
     PasswordModifyExtendedResultImpl(final ResultCode resultCode) {
         super(resultCode);
     }

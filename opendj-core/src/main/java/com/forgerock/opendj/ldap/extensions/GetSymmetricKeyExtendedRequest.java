@@ -138,7 +138,7 @@ public final class GetSymmetricKeyExtendedRequest extends
      */
     public static final RequestDecoder REQUEST_DECODER = new RequestDecoder();
 
-    // No need to expose this.
+    /** No need to expose this. */
     private static final ResultDecoder RESULT_DECODER = new ResultDecoder();
 
     /**
@@ -154,7 +154,7 @@ public final class GetSymmetricKeyExtendedRequest extends
 
     private String instanceKeyID = null;
 
-    // Instantiation via factory.
+    /** Instantiation via factory. */
     private GetSymmetricKeyExtendedRequest() {
 
     }
@@ -168,9 +168,7 @@ public final class GetSymmetricKeyExtendedRequest extends
         return instanceKeyID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getOID() {
         return OID;
@@ -185,17 +183,13 @@ public final class GetSymmetricKeyExtendedRequest extends
         return requestSymmetricKey;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ExtendedResultDecoder<ExtendedResult> getResultDecoder() {
         return RESULT_DECODER;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
@@ -218,9 +212,7 @@ public final class GetSymmetricKeyExtendedRequest extends
         return buffer.toByteString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasValue() {
         return true;
@@ -250,9 +242,7 @@ public final class GetSymmetricKeyExtendedRequest extends
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

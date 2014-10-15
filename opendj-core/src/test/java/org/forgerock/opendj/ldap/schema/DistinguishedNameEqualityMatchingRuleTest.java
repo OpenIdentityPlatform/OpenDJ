@@ -36,7 +36,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Test the DistinguishedNameEqualityMatchingRule
+ * Test the DistinguishedNameEqualityMatchingRule.
  */
 @SuppressWarnings("javadoc")
 public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest {
@@ -192,7 +192,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
     }
 
     /**
-     * Test the normalized values
+     * Test the normalized values.
      */
     @Test(dataProvider = "testDNs")
     public void testNormalization(final String value1, final String value2) throws Exception {

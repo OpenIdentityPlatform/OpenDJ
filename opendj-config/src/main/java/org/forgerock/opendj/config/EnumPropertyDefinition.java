@@ -54,10 +54,10 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      */
     public final static class Builder<E extends Enum<E>> extends AbstractBuilder<E, EnumPropertyDefinition<E>> {
 
-        // The enumeration class.
+        /** The enumeration class. */
         private Class<E> enumClass;
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
             this.enumClass = null;
@@ -75,9 +75,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
             this.enumClass = enumClass;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected EnumPropertyDefinition<E> buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -109,13 +107,13 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         return new Builder<E>(d, propertyName);
     }
 
-    // The enumeration class.
+    /** The enumeration class. */
     private final Class<E> enumClass;
 
-    // Map used for decoding values.
+    /** Map used for decoding values. */
     private final Map<String, E> decodeMap;
 
-    // Private constructor.
+    /** Private constructor. */
     private EnumPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction, DefaultBehaviorProvider<E> defaultBehavior,
         Class<E> enumClass) {
@@ -130,25 +128,19 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitEnum(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, E value, P p) {
         return v.visitEnum(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public E decodeValue(String value) {
         Reject.ifNull(value);
@@ -205,9 +197,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String normalizeValue(E value) {
         Reject.ifNull(value);
@@ -215,9 +205,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
         return value.toString().trim().toLowerCase();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(E value) {
         Reject.ifNull(value);

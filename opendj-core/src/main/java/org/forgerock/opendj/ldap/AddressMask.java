@@ -52,11 +52,11 @@ public final class AddressMask {
         ALLWILDCARD, HOST, HOSTPATTERN, IPv4, IPv6
     }
 
-    // IPv4 values for number of bytes and max CIDR prefix
+    /** IPv4 values for number of bytes and max CIDR prefix. */
     private static final int IN4ADDRSZ = 4;
     private static final int IPV4MAXPREFIX = 32;
 
-    // IPv6 values for number of bytes and max CIDR prefix
+    /** IPv6 values for number of bytes and max CIDR prefix. */
     private static final int IN6ADDRSZ = 16;
     private static final int IPV6MAXPREFIX = 128;
 
@@ -95,22 +95,22 @@ public final class AddressMask {
         return new AddressMask(mask);
     }
 
-    // Array that holds each component of a hostname.
+    /** Array that holds each component of a hostname. */
     private String[] hostName;
 
-    // Holds a hostname pattern (ie, rule that begins with '.');'
+    /** Holds a hostname pattern (ie, rule that begins with '.');'. */
     private String hostPattern;
 
-    // Holds binary representations of rule and mask respectively.
+    /** Holds binary representations of rule and mask respectively. */
     private byte[] ruleMask, prefixMask;
 
-    // Holds string passed into the constructor.
+    /** Holds string passed into the constructor. */
     private final String ruleString;
 
-    // Type of rule determined
+    /** Type of rule determined. */
     private RuleType ruleType;
 
-    // Bit array that holds wildcard info for above binary arrays.
+    /** Bit array that holds wildcard info for above binary arrays. */
     private final BitSet wildCard = new BitSet();
 
     private AddressMask(final String rule) {

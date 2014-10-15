@@ -99,11 +99,11 @@ final class WhoAmIExtendedRequestImpl extends
         }
     }
 
-    // No need to expose this.
+    /** No need to expose this. */
     private static final ExtendedResultDecoder<WhoAmIExtendedResult> RESULT_DECODER =
             new ResultDecoder();
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     WhoAmIExtendedRequestImpl() {
         // Nothing to do.
     }

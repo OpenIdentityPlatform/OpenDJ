@@ -40,10 +40,10 @@ import org.forgerock.opendj.ldap.ResultCode;
 final class WhoAmIExtendedResultImpl extends AbstractExtendedResult<WhoAmIExtendedResult> implements
         WhoAmIExtendedResult {
 
-    // The authorization ID.
+    /** The authorization ID. */
     private String authorizationID = null;
 
-    // Instantiation via factory.
+    /** Instantiation via factory. */
     WhoAmIExtendedResultImpl(final ResultCode resultCode) {
         super(resultCode);
     }

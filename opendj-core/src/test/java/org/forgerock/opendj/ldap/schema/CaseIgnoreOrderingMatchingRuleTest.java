@@ -34,18 +34,14 @@ import org.testng.annotations.DataProvider;
  */
 public class CaseIgnoreOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "OrderingMatchingRuleInvalidValues")
     public Object[][] createOrderingMatchingRuleInvalidValues() {
         return new Object[][] {};
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "Orderingmatchingrules")
     public Object[][] createOrderingMatchingRuleTestData() {
@@ -60,9 +56,7 @@ public class CaseIgnoreOrderingMatchingRuleTest extends OrderingMatchingRuleTest
             { "a", "\u00f8", -1 }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(OMR_CASE_IGNORE_OID);

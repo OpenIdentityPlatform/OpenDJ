@@ -47,7 +47,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 public final class ByteString implements ByteSequence {
 
-    // Singleton empty byte string.
+    /** Singleton empty byte string. */
     private static final ByteString EMPTY = wrap(new byte[0]);
 
     /**
@@ -536,14 +536,16 @@ public final class ByteString implements ByteSequence {
     // These are package private so that compression and crypto
     // functionality may directly access the fields.
 
-    // The buffer where data is stored.
+    /** The buffer where data is stored. */
     final byte[] buffer;
 
-    // The number of bytes to expose from the buffer.
+    /** The number of bytes to expose from the buffer. */
     final int length;
 
-    // The start index of the range of bytes to expose through this byte
-    // string.
+    /**
+     * The start index of the range of bytes to expose through this byte
+     * string.
+     */
     final int offset;
 
     /**
@@ -580,9 +582,7 @@ public final class ByteString implements ByteSequence {
         return new ByteSequenceReader(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public byte byteAt(final int index) {
         if (index >= length || index < 0) {
             throw new IndexOutOfBoundsException();
@@ -590,17 +590,13 @@ public final class ByteString implements ByteSequence {
         return buffer[offset + index];
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int compareTo(final byte[] bytes, final int offset, final int length) {
         checkArrayBounds(bytes, offset, length);
         return compareTo(this.buffer, this.offset, this.length, bytes, offset, length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int compareTo(final ByteSequence o) {
         if (this == o) {
             return 0;
@@ -608,17 +604,13 @@ public final class ByteString implements ByteSequence {
         return -o.compareTo(buffer, offset, length);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public byte[] copyTo(final byte[] bytes) {
         copyTo(bytes, 0);
         return bytes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public byte[] copyTo(final byte[] bytes, final int offset) {
         if (offset < 0) {
             throw new IndexOutOfBoundsException();
@@ -627,25 +619,19 @@ public final class ByteString implements ByteSequence {
         return bytes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
         builder.append(buffer, offset, length);
         return builder;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public OutputStream copyTo(final OutputStream stream) throws IOException {
         stream.write(buffer, offset, length);
         return stream;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean equals(final byte[] bytes, final int offset, final int length) {
         checkArrayBounds(bytes, offset, length);
         return equals(this.buffer, this.offset, this.length, bytes, offset, length);
@@ -690,16 +676,12 @@ public final class ByteString implements ByteSequence {
         return length == 0;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int length() {
         return length;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString subSequence(final int start, final int end) {
         if (start < 0 || start > end || end > length) {
             throw new IndexOutOfBoundsException();
@@ -707,9 +689,7 @@ public final class ByteString implements ByteSequence {
         return new ByteString(buffer, offset + start, end - start);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String toBase64String() {
         return Base64.encode(this);
     }
@@ -812,16 +792,12 @@ public final class ByteString implements ByteSequence {
         return builder.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public byte[] toByteArray() {
         return copyTo(new byte[length]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString toByteString() {
         return this;
     }
@@ -885,9 +861,7 @@ public final class ByteString implements ByteSequence {
         return v;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return toString(buffer, offset, length);

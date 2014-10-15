@@ -41,7 +41,7 @@ import org.forgerock.util.Reject;
  */
 public final class NOTCondition implements Condition {
 
-    // The single sub-condition.
+    /** The single sub-condition. */
     private final Condition condition;
 
     /**
@@ -55,23 +55,17 @@ public final class NOTCondition implements Condition {
         this.condition = condition;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         return !condition.evaluate(context, managedObject);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
         return !condition.evaluate(managedObject);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
         condition.initialize(d);
     }

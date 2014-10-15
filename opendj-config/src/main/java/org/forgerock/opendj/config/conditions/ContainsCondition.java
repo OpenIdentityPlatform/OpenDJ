@@ -51,55 +51,49 @@ public final class ContainsCondition implements Condition {
      */
     private static final class Impl<T> implements Condition {
 
-        // The property.
+        /** The property. */
         final PropertyDefinition<T> pd;
 
-        // The required property value.
+        /** The required property value. */
         final T value;
 
-        // Private constructor.
+        /** Private constructor. */
         private Impl(PropertyDefinition<T> pd, T value) {
             this.pd = pd;
             this.value = value;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
             SortedSet<T> values = managedObject.getPropertyValues(pd);
             return values.contains(value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
             SortedSet<T> values = managedObject.getPropertyValues(pd);
             return values.contains(value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
             // Not used.
         }
 
-        // Private implementation of fix() method.
+        /** Private implementation of fix() method. */
         private void setPropertyValue(ManagedObject<?> managedObject) {
             managedObject.setPropertyValue(pd, value);
         }
 
     }
 
-    // The strongly typed private implementation.
+    /** The strongly typed private implementation. */
     private Impl<?> impl = null;
 
-    // The property name.
+    /** The property name. */
     private final String propertyName;
 
-    // The string representation of the required property value.
+    /** The string representation of the required property value. */
     private final String propertyStringValue;
 
     /**
@@ -116,16 +110,12 @@ public final class ContainsCondition implements Condition {
         this.propertyStringValue = stringValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         return impl.evaluate(context, managedObject);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
         return impl.evaluate(managedObject);
     }
@@ -141,15 +131,13 @@ public final class ContainsCondition implements Condition {
         impl.setPropertyValue(managedObject);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
         // Decode the property.
         buildImpl(d.getPropertyDefinition(propertyName));
     }
 
-    // Creates the new private implementation.
+    /** Creates the new private implementation. */
     private <T> void buildImpl(PropertyDefinition<T> pd) {
         T value = pd.decodeValue(propertyStringValue);
         this.impl = new Impl<T>(pd, value);

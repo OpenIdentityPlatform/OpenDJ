@@ -88,7 +88,7 @@ public final class PreReadRequestControl implements Control {
      */
     public static final String OID = "1.3.6.1.1.13.1";
 
-    // The list of raw attributes to return in the entry.
+    /** The list of raw attributes to return in the entry. */
     private final List<String> attributes;
 
     private final boolean isCritical;
@@ -245,16 +245,12 @@ public final class PreReadRequestControl implements Control {
         return attributes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -273,23 +269,17 @@ public final class PreReadRequestControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

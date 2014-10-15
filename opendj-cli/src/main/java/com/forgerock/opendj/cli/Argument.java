@@ -41,51 +41,61 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * order to provide specific functionality.
  */
 public abstract class Argument {
-    // Indicates whether this argument should be hidden in the usage
-    // information.
+    /**
+     * Indicates whether this argument should be hidden in the usage
+     * information.
+     */
     private boolean isHidden;
 
-    // Indicates whether this argument may be specified more than once for
-    // multiple values.
+    /**
+     * Indicates whether this argument may be specified more than once for
+     * multiple values.
+     */
     private boolean isMultiValued;
 
-    // Indicates whether this argument was provided in the set of
-    // command-line arguments.
+    /**
+     * Indicates whether this argument was provided in the set of
+     * command-line arguments.
+     */
     private boolean isPresent;
 
-    // Indicates whether this argument is required to have a value.
+    /** Indicates whether this argument is required to have a value. */
     private boolean isRequired;
 
-    // Indicates whether this argument requires a value.
+    /** Indicates whether this argument requires a value. */
     private boolean needsValue;
 
-    // The single-character identifier for this argument.
+    /** The single-character identifier for this argument. */
     private final Character shortIdentifier;
 
-    // The unique ID of the description for this argument.
+    /** The unique ID of the description for this argument. */
     private final LocalizableMessage description;
 
-    // The set of values for this argument.
+    /** The set of values for this argument. */
     private final LinkedList<String> values;
 
-    // The default value for the argument if none other is provided.
+    /** The default value for the argument if none other is provided. */
     private String defaultValue;
 
-    // The long identifier for this argument.
+    /** The long identifier for this argument. */
     private final String longIdentifier;
 
-    // The generic name that will be used to refer to this argument.
+    /** The generic name that will be used to refer to this argument. */
     private final String name;
 
-    // The name of the property that can be used to set the default value.
+    /** The name of the property that can be used to set the default value. */
     private String propertyName;
 
-    // The value placeholder for this argument, which will be used in
-    // usage information.
+    /**
+     * The value placeholder for this argument, which will be used in
+     * usage information.
+     */
     private LocalizableMessage valuePlaceholder;
 
-    // Indicates whether this argument was provided in the set of
-    // properties found is a properties file.
+    /**
+     * Indicates whether this argument was provided in the set of
+     * properties found is a properties file.
+     */
     private boolean isValueSetByProperty;
 
     /**

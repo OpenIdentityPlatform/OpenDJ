@@ -102,17 +102,15 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
             db.accept(v, path);
         }
 
-        // The names of entries that this change listener depends on.
+        /** The names of entries that this change listener depends on. */
         private final Collection<DN> dependencies;
 
-        // Prevent instantiation.
+        /** Prevent instantiation. */
         private Visitor(Collection<DN> dependencies) {
             this.dependencies = dependencies;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Void visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             ManagedObjectPath<?, ?> next = d.getManagedObjectPath();
             dependencies.add(DNBuilder.create(next));
@@ -127,23 +125,17 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Void visitAlias(AliasDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Void visitDefined(DefinedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Void visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             ManagedObjectPath<?, ?> next = d.getManagedObjectPath(p);
             dependencies.add(DNBuilder.create(next));
@@ -158,9 +150,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
             return null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Void visitUndefined(UndefinedDefaultBehaviorProvider<T> d, ManagedObjectPath<?, ?> p) {
             return null;
         }
@@ -294,9 +284,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationChange(Entry configEntry) {
         // Looking at the ConfigFileHandler implementation reveals
         // that this ConfigEntry will actually be a different object to
@@ -324,9 +312,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean configChangeIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         return configChangeIsAcceptable(configEntry, unacceptableReason, configEntry);
     }
@@ -408,8 +394,10 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         return listener;
     }
 
-    // Returns the named configuration entry or null if it could not be
-    // retrieved.
+    /**
+     * Returns the named configuration entry or null if it could not be
+     * retrieved.
+     */
     private Entry getConfigEntry(DN dn) {
         try {
             if (configRepository.hasEntry(dn)) {

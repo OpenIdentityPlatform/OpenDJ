@@ -51,25 +51,25 @@ import org.forgerock.util.Reject;
  * accessed via their getters or via the {@link #toString()} methods.
  */
 public final class ObjectClass extends SchemaElement {
-    // The OID that may be used to reference this definition.
+    /** The OID that may be used to reference this definition. */
     private final String oid;
 
-    // The set of user defined names for this definition.
+    /** The set of user defined names for this definition. */
     private final List<String> names;
 
-    // Indicates whether this definition is declared "obsolete".
+    /** Indicates whether this definition is declared "obsolete". */
     private final boolean isObsolete;
 
-    // The reference to the superior objectclasses.
+    /** The reference to the superior objectclasses. */
     private final Set<String> superiorClassOIDs;
 
-    // The objectclass type for this objectclass.
+    /** The objectclass type for this objectclass. */
     private final ObjectClassType objectClassType;
 
-    // The set of required attribute types for this objectclass.
+    /** The set of required attribute types for this objectclass. */
     private final Set<String> requiredAttributeOIDs;
 
-    // The set of optional attribute types for this objectclass.
+    /** The set of optional attribute types for this objectclass. */
     private final Set<String> optionalAttributeOIDs;
 
     private Set<ObjectClass> superiorClasses = Collections.emptySet();
@@ -78,10 +78,10 @@ public final class ObjectClass extends SchemaElement {
     private Set<AttributeType> declaredOptionalAttributes = Collections.emptySet();
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
 
-    // Indicates whether or not validation has been performed.
+    /** Indicates whether or not validation has been performed. */
     private boolean needsValidating = true;
 
-    // The indicates whether or not validation failed.
+    /** The indicates whether or not validation failed. */
     private boolean isValid = false;
 
     ObjectClass(final String oid, final List<String> names, final String description,

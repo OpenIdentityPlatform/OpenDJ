@@ -200,7 +200,7 @@ public final class AggregationServerTest extends AdminTestCase {
         "objectclass: ds-cfg-branch",
         "cn: test children");
 
-    /** this handler is disabled - see ds-cfg-enabled property */
+    /** This handler is disabled - see ds-cfg-enabled property. */
     protected static final Entry TEST_CONNECTION_HANDLER_ENTRY_DISABLED = LDIF.makeEntry(
         "dn: cn=" + "Test Connection Handler" + ",cn=Connection Handlers,cn=config",
         "objectClass: top",
@@ -211,7 +211,7 @@ public final class AggregationServerTest extends AdminTestCase {
         "ds-cfg-enabled: false",
         "ds-cfg-listen-address: 0.0.0.0", "ds-cfg-listen-port: 389");
 
-    /** this handler is enabled - see ds-cfg-enabled property */
+    /** This handler is enabled - see ds-cfg-enabled property. */
     protected static final Entry TEST_CONNECTION_HANDLER_ENTRY_ENABLED = LDIF.makeEntry(
         "dn: cn=" + "Test Connection Handler" + ",cn=Connection Handlers,cn=config",
         "objectClass: top",

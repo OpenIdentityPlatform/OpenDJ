@@ -39,29 +39,31 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public final class TableBuilder {
 
-    // The current column number in the current row where 0 represents
-    // the left-most column in the table.
+    /**
+     * The current column number in the current row where 0 represents
+     * the left-most column in the table.
+     */
     private int column = 0;
 
-    // The current with of each column.
+    /** The current with of each column. */
     private List<Integer> columnWidths = new ArrayList<Integer>();
 
-    // The list of column headings.
+    /** The list of column headings. */
     private List<LocalizableMessage> header = new ArrayList<LocalizableMessage>();
 
-    // The current number of rows in the table.
+    /** The current number of rows in the table. */
     private int height = 0;
 
-    // The list of table rows.
+    /** The list of table rows. */
     private List<List<String>> rows = new ArrayList<List<String>>();
 
-    // The linked list of sort keys comparators.
+    /** The linked list of sort keys comparators. */
     private List<Comparator<String>> sortComparators = new ArrayList<Comparator<String>>();
 
-    // The linked list of sort keys.
+    /** The linked list of sort keys. */
     private List<Integer> sortKeys = new ArrayList<Integer>();
 
-    // The current number of columns in the table.
+    /** The current number of columns in the table. */
     private int width = 0;
 
     /**

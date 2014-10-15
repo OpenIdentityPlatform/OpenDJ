@@ -49,7 +49,7 @@ public enum ObjectClassType {
      */
     AUXILIARY("AUXILIARY");
 
-    // The string representation of this objectclass type.
+    /** The string representation of this objectclass type. */
     private final String typeString;
 
     /**

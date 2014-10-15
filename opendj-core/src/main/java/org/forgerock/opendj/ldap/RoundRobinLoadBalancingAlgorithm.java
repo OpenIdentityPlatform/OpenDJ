@@ -176,17 +176,13 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
         this(factories, null, interval, unit, scheduler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     String getAlgorithmName() {
         return "RoundRobin";
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     int getInitialConnectionFactoryIndex() {
         // A round robin pool of one connection factories is unlikely in

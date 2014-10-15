@@ -152,7 +152,7 @@ public final class Rest2LDAPConnectionFactoryProvider {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Rest2LDAPConnectionFactoryProvider() {
         // Nothing to do.
     }

@@ -307,8 +307,10 @@ public final class AttributeParserTestCase extends SdkTestCase {
         e.parseAttribute("type").requireValue().asByteString();
     }
 
-    // Smoke test for set of methods: use one type only since the code is common
-    // and we've already tested the parsing.
+    /**
+     * Smoke test for set of methods: use one type only since the code is common
+     * and we've already tested the parsing.
+     */
     @Test
     public void testAsSetOfDN() {
         Entry e =

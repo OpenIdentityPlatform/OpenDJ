@@ -46,8 +46,10 @@ import com.forgerock.opendj.util.StaticUtils;
 @SuppressWarnings("javadoc")
 public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
 
-    // Create an array with a selection of the valid single-byte types. We don't
-    // support multi-byte types, so this should be a comprehensive data set.
+    /**
+     * Create an array with a selection of the valid single-byte types. We don't
+     * support multi-byte types, so this should be a comprehensive data set.
+     */
     private final byte[] testTypes = { 0x00, 0x7f, (byte) 0x80, (byte) 0xff };
 
     /**

@@ -142,7 +142,7 @@ public final class PropertyException extends RuntimeException implements Localiz
                 pd.getName(), pd.getClass().getName()));
     }
 
-    // Create the message.
+    /** Create the message. */
     private static LocalizableMessage createMessage(final PropertyDefinition<?> pd,
             final Object value) {
         final PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(true);
@@ -150,11 +150,13 @@ public final class PropertyException extends RuntimeException implements Localiz
                 builder.getUsage(pd));
     }
 
-    // LocalizableMessage that explains the problem.
+    /** LocalizableMessage that explains the problem. */
     private final LocalizableMessage message;
 
-    // The property definition associated with the property that caused
-    // the exception.
+    /**
+     * The property definition associated with the property that caused
+     * the exception.
+     */
     private final PropertyDefinition<?> pd;
 
     private PropertyException(final PropertyDefinition<?> pd, final LocalizableMessage message) {
@@ -170,9 +172,7 @@ public final class PropertyException extends RuntimeException implements Localiz
         this.pd = pd;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getMessageObject() {
         return message;
     }

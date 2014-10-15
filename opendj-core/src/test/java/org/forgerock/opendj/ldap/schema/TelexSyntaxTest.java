@@ -34,9 +34,7 @@ import org.testng.annotations.DataProvider;
  * Telex syntax tests.
  */
 public class TelexSyntaxTest extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -44,9 +42,7 @@ public class TelexSyntaxTest extends AbstractSyntaxTestCase {
             { "abcdefghijk$lmnopqr$stuvwxyz", true }, { "12345$67890$()+,-./:? ", true }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         return Schema.getCoreSchema().getSyntax(SYNTAX_TELEX_OID);

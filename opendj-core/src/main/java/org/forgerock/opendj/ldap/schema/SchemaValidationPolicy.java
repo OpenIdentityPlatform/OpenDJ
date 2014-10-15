@@ -165,7 +165,7 @@ public final class SchemaValidationPolicy {
     private Action checkAttributeValues = Action.REJECT;
     private EntryResolver checkDITStructureRulesEntryResolver = null;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private SchemaValidationPolicy() {
         // Nothing to do.
     }
@@ -420,7 +420,7 @@ public final class SchemaValidationPolicy {
                 .asNonStrictSchema();
     }
 
-    // Assigns the provided options to this set of options.
+    /** Assigns the provided options to this set of options. */
     SchemaValidationPolicy assign(final SchemaValidationPolicy policy) {
         this.checkAttributeValues = policy.checkAttributeValues;
         this.checkNameForms = policy.checkNameForms;

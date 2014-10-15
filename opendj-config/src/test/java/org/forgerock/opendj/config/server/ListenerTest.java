@@ -85,7 +85,7 @@ public class ListenerTest extends AdminTestCase {
 
     /**
      * Register a listener for test parent entry and return the actual
-     * registered listener
+     * registered listener.
      */
     private ConfigAddListener registerAddListenerForTestParent(ConfigurationRepository configRepository,
         ServerManagedObject<RootCfg> root, ConfigurationAddListener<TestParentCfg> parentListener) throws Exception {
@@ -98,7 +98,7 @@ public class ListenerTest extends AdminTestCase {
 
     /**
      * Register a listener for test parent entry in delayed scenario and return
-     * the actual registered listener
+     * the actual registered listener.
      */
     private DelayedConfigAddListener registerAddListenerForTestParentDelayed(
         ConfigurationRepository configRepository, ServerManagedObject<RootCfg> root,

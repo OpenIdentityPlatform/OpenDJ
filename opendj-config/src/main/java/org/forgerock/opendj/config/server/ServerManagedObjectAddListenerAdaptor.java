@@ -41,7 +41,7 @@ import org.forgerock.opendj.config.Configuration;
 final class ServerManagedObjectAddListenerAdaptor<T extends Configuration> implements
     ServerManagedObjectAddListener<T> {
 
-    // The underlying add listener.
+    /** The underlying add listener. */
     private final ConfigurationAddListener<T> listener;
 
     /**
@@ -54,9 +54,7 @@ final class ServerManagedObjectAddListenerAdaptor<T extends Configuration> imple
         this.listener = listener;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ConfigChangeResult applyConfigurationAdd(ServerManagedObject<? extends T> mo) {
         return listener.applyConfigurationAdd(mo.getConfiguration());
     }
@@ -71,9 +69,7 @@ final class ServerManagedObjectAddListenerAdaptor<T extends Configuration> imple
         return listener;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isConfigurationAddAcceptable(ServerManagedObject<? extends T> mo,
         List<LocalizableMessage> unacceptableReasons) {
         return listener.isConfigurationAddAcceptable(mo.getConfiguration(), unacceptableReasons);

@@ -224,9 +224,7 @@ public class ConnectionEntryReader implements EntryReader {
         promise.cancel(true);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasNext() throws LdapException {
         // Poll for the next response if needed.

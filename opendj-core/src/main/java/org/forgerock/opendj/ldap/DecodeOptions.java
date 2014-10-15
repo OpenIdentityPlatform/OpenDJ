@@ -52,9 +52,7 @@ public final class DecodeOptions {
             this.schema = schema;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Schema resolveSchema(final String dn) {
             return schema;
         }

@@ -830,7 +830,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
     }
 
     /**
-     * Remove functions uses on names / required attribute /
+     * Remove functions uses on names / required attribute.
      *
      * @throws SchemaException
      */

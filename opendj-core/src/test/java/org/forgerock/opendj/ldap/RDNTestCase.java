@@ -47,13 +47,13 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public final class RDNTestCase extends SdkTestCase {
 
-    // Domain component attribute type.
+    /** Domain component attribute type. */
     private static final AttributeType ATTR_TYPE_DC;
 
-    // Common name attribute type.
+    /** Common name attribute type. */
     private static final AttributeType ATTR_TYPE_CN;
 
-    // Test attribute value.
+    /** Test attribute value. */
     private static final AVA ATTR_VALUE_DC_ORG;
 
     static {
@@ -63,7 +63,7 @@ public final class RDNTestCase extends SdkTestCase {
         ATTR_VALUE_DC_ORG = new AVA(ATTR_TYPE_DC, ByteString.valueOf("org"));
     }
 
-    // org bytestring.
+    /** "org" bytestring. */
     private static final ByteString ORG = ByteString.valueOf("org");
 
     /**

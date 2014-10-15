@@ -1756,7 +1756,7 @@ public final class StaticUtils {
         return ' ';
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private StaticUtils() {
         // No implementation required.
     }

@@ -55,7 +55,7 @@ public final class MenuBuilder<T> {
      */
     private static final class CompositeCallback<T> implements MenuCallback<T> {
 
-        // The list of underlying call-backs.
+        /** The list of underlying call-backs. */
         private final Collection<MenuCallback<T>> callbacks;
 
         /**
@@ -94,42 +94,46 @@ public final class MenuBuilder<T> {
      */
     private static final class MenuImpl<T> implements Menu<T> {
 
-        // Indicates whether the menu will allow selection of multiple
-        // numeric options.
+        /**
+         * Indicates whether the menu will allow selection of multiple
+         * numeric options.
+         */
         private final boolean allowMultiSelect;
 
-        // The application console.
+        /** The application console. */
         private final ConsoleApplication app;
 
-        // The call-back lookup table.
+        /** The call-back lookup table. */
         private final Map<String, MenuCallback<T>> callbacks;
 
-        // The char options table builder.
+        /** The char options table builder. */
         private final TableBuilder cbuilder;
 
-        // The call-back for the optional default action.
+        /** The call-back for the optional default action. */
         private final MenuCallback<T> defaultCallback;
 
-        // The description of the optional default action.
+        /** The description of the optional default action. */
         private final LocalizableMessage defaultDescription;
 
-        // The numeric options table builder.
+        /** The numeric options table builder. */
         private final TableBuilder nbuilder;
 
-        // The table printer.
+        /** The table printer. */
         private final TablePrinter printer;
 
-        // The menu prompt.
+        /** The menu prompt. */
         private final LocalizableMessage prompt;
 
-        // The menu title.
+        /** The menu title. */
         private final LocalizableMessage title;
 
-        // The maximum number of times we display the menu if the user provides
-        // bad input (-1 for unlimited).
+        /**
+         * The maximum number of times we display the menu if the user provides
+         * bad input (-1 for unlimited).
+         */
         private int nMaxTries;
 
-        // Private constructor.
+        /** Private constructor. */
         private MenuImpl(ConsoleApplication app, LocalizableMessage title, LocalizableMessage prompt,
                 TableBuilder ntable, TableBuilder ctable, TablePrinter printer, Map<String, MenuCallback<T>> callbacks,
                 boolean allowMultiSelect, MenuCallback<T> defaultCallback, LocalizableMessage defaultDescription,
@@ -284,10 +288,10 @@ public final class MenuBuilder<T> {
      */
     private static final class ResultCallback<T> implements MenuCallback<T> {
 
-        // The result to be returned by this call-back.
+        /** The result to be returned by this call-back. */
         private final MenuResult<T> result;
 
-        // Private constructor.
+        /** Private constructor. */
         private ResultCallback(MenuResult<T> result) {
             this.result = result;
         }
@@ -299,51 +303,55 @@ public final class MenuBuilder<T> {
 
     }
 
-    // The multiple column display threshold.
+    /** The multiple column display threshold. */
     private int threshold = -1;
 
-    // Indicates whether the menu will allow selection of multiple
-    // numeric options.
+    /**
+     * Indicates whether the menu will allow selection of multiple
+     * numeric options.
+     */
     private boolean allowMultiSelect = false;
 
-    // The application console.
+    /** The application console. */
     private final ConsoleApplication app;
 
-    // The char option call-backs.
+    /** The char option call-backs. */
     private final List<MenuCallback<T>> charCallbacks = new ArrayList<MenuCallback<T>>();
 
-    // The char option keys (must be single-character messages).
+    /** The char option keys (must be single-character messages). */
     private final List<LocalizableMessage> charKeys = new ArrayList<LocalizableMessage>();
 
-    // The synopsis of char options.
+    /** The synopsis of char options. */
     private final List<LocalizableMessage> charSynopsis = new ArrayList<LocalizableMessage>();
 
-    // Optional column headings.
+    /** Optional column headings. */
     private final List<LocalizableMessage> columnHeadings = new ArrayList<LocalizableMessage>();
 
-    // Optional column widths.
+    /** Optional column widths. */
     private final List<Integer> columnWidths = new ArrayList<Integer>();
 
-    // The call-back for the optional default action.
+    /** The call-back for the optional default action. */
     private MenuCallback<T> defaultCallback = null;
 
-    // The description of the optional default action.
+    /** The description of the optional default action. */
     private LocalizableMessage defaultDescription = null;
 
-    // The numeric option call-backs.
+    /** The numeric option call-backs. */
     private final List<MenuCallback<T>> numericCallbacks = new ArrayList<MenuCallback<T>>();
 
-    // The numeric option fields.
+    /** The numeric option fields. */
     private final List<List<LocalizableMessage>> numericFields = new ArrayList<List<LocalizableMessage>>();
 
-    // The menu title.
+    /** The menu title. */
     private LocalizableMessage title = null;
 
-    // The menu prompt.
+    /** The menu prompt. */
     private LocalizableMessage prompt = null;
 
-    // The maximum number of times that we allow the user to provide an invalid
-    // answer (-1 if unlimited).
+    /**
+     * The maximum number of times that we allow the user to provide an invalid
+     * answer (-1 if unlimited).
+     */
     private int nMaxTries = -1;
 
     /**

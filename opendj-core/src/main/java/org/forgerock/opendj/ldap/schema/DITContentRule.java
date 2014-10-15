@@ -46,27 +46,30 @@ import org.forgerock.util.Reject;
  * the entry.
  */
 public final class DITContentRule extends SchemaElement {
-    // The structural objectclass for this DIT content rule.
+
+    /** The structural objectclass for this DIT content rule. */
     private final String structuralClassOID;
 
-    // The set of user defined names for this definition.
+    /** The set of user defined names for this definition. */
     private final List<String> names;
 
-    // Indicates whether this definition is declared "obsolete".
+    /** Indicates whether this definition is declared "obsolete". */
     private final boolean isObsolete;
 
-    // The set of auxiliary objectclasses that entries with this content
-    // rule may contain, in a mapping between the objectclass and the
-    // user-defined name for that class.
+    /**
+     * The set of auxiliary objectclasses that entries with this content
+     * rule may contain, in a mapping between the objectclass and the
+     * user-defined name for that class.
+     */
     private final Set<String> auxiliaryClassOIDs;
 
-    // The set of optional attribute types for this DIT content rule.
+    /** The set of optional attribute types for this DIT content rule. */
     private final Set<String> optionalAttributeOIDs;
 
-    // The set of prohibited attribute types for this DIT content rule.
+    /** The set of prohibited attribute types for this DIT content rule. */
     private final Set<String> prohibitedAttributeOIDs;
 
-    // The set of required attribute types for this DIT content rule.
+    /** The set of required attribute types for this DIT content rule. */
     private final Set<String> requiredAttributeOIDs;
 
     private ObjectClass structuralClass;

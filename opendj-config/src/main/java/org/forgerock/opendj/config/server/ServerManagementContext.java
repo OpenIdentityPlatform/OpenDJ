@@ -94,28 +94,30 @@ public final class ServerManagementContext {
      */
     private final class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
 
-        // Any exception that occurred whilst retrieving inherited default
-        // values.
+        /**
+         * Any exception that occurred whilst retrieving inherited default
+         * values.
+         */
         private PropertyException exception = null;
 
-        // Optional new configuration entry which does not yet exist in
-        // the configuration back-end.
+        /**
+         * Optional new configuration entry which does not yet exist in
+         * the configuration back-end.
+         */
         private final Entry newConfigEntry;
 
-        // The path of the managed object containing the next property.
+        /** The path of the managed object containing the next property. */
         private ManagedObjectPath<?, ?> nextPath = null;
 
-        // The next property whose default values were required.
+        /** The next property whose default values were required. */
         private PropertyDefinition<T> nextProperty = null;
 
-        // Private constructor.
+        /** Private constructor. */
         private DefaultValueFinder(Entry newConfigEntry) {
             this.newConfigEntry = newConfigEntry;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Collection<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(), d.getManagedObjectDefinition(),
@@ -126,16 +128,12 @@ public final class ServerManagementContext {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
             List<T> values = new ArrayList<T>(stringValues.size());
@@ -152,9 +150,7 @@ public final class ServerManagementContext {
             return values;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Collection<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(nextPath), d.getManagedObjectDefinition(),
@@ -165,14 +161,12 @@ public final class ServerManagementContext {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
-        // Find the default values for the next path/property.
+        /** Find the default values for the next path/property. */
         private Collection<T> find(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef) {
             nextPath = path;
             nextProperty = propertyDef;
@@ -190,7 +184,7 @@ public final class ServerManagementContext {
             return values;
         }
 
-        // Get an inherited property value.
+        /** Get an inherited property value. */
         @SuppressWarnings("unchecked")
         private Collection<T> getInheritedProperty(ManagedObjectPath<?, ?> target,
             AbstractManagedObjectDefinition<?, ?> definition, String propertyName) {
@@ -258,17 +252,15 @@ public final class ServerManagementContext {
      */
     private static final class MyDefinitionResolver implements DefinitionResolver {
 
-        // The config entry.
+        /** The config entry. */
         private final Entry entry;
 
-        // Private constructor.
+        /** Private constructor. */
         private MyDefinitionResolver(Entry entry) {
             this.entry = entry;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
             String oc = LDAPProfile.getInstance().getObjectClass(d);
          // TODO : use the schema to get object class and check it in the entry
@@ -306,14 +298,12 @@ public final class ServerManagementContext {
             return propertyDef.castValue(propertyDef.accept(new ValueDecoder(), value));
         }
 
-        // Prevent instantiation.
+        /** Prevent instantiation. */
         private ValueDecoder() {
             // Do nothing.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Object visitAggregation(
                 AggregationPropertyDefinition<C, S> d, String p) {
@@ -327,9 +317,7 @@ public final class ServerManagementContext {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
@@ -681,7 +669,7 @@ public final class ServerManagementContext {
         }
     }
 
-    // Decode helper method required to avoid generics warning.
+    /** Decode helper method required to avoid generics warning. */
     private <C extends ConfigurationClient, S extends Configuration> ServerManagedObject<S> decodeAux(
             ManagedObjectPath<? super C, ? super S> path, ManagedObjectDefinition<C, S> d,
             Map<PropertyDefinition<?>, SortedSet<?>> properties, DN configDN) {
@@ -753,7 +741,7 @@ public final class ServerManagementContext {
         return values;
     }
 
-    // Get the default values for the specified property.
+    /** Get the default values for the specified property. */
     private <T> Collection<T> getDefaultValues(ManagedObjectPath<?, ?> p, PropertyDefinition<T> pd,
             Entry newConfigEntry) {
         DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
@@ -782,8 +770,10 @@ public final class ServerManagementContext {
         return configRepository;
     }
 
-    // Gets a config entry required for a managed object and throws a
-    // config exception on failure.
+    /**
+     * Gets a config entry required for a managed object and throws a
+     * config exception on failure.
+     */
     private Entry getManagedObjectConfigEntry(DN dn) throws ConfigException {
         Entry configEntry;
         try {
@@ -806,7 +796,7 @@ public final class ServerManagementContext {
         return configEntry;
     }
 
-    // Validate that a relation definition belongs to the path.
+    /** Validate that a relation definition belongs to the path. */
     private void validateRelationDefinition(ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> rd) {
         AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
         RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());

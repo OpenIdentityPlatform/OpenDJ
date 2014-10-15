@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.SearchScope;
  */
 public final class CommonArguments {
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private CommonArguments() {
         // Nothing to do.
     }

@@ -55,7 +55,7 @@ import org.forgerock.util.Reject;
  * </pre>
  */
 public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
-    // Default values for options taken from Java properties.
+    /** Default values for options taken from Java properties. */
     private static final long DEFAULT_TIMEOUT;
     private static final long DEFAULT_CONNECT_TIMEOUT;
     static {

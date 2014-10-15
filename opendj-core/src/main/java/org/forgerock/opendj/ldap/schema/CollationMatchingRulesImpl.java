@@ -265,9 +265,7 @@ public final class CollationMatchingRulesImpl {
             return substringMatchingRule.getSubstringAssertion(schema, subInitial, subAnyElements, subFinal);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public final Collection<? extends Indexer> getIndexers() {
             return Arrays.asList(subIndexer, indexer);

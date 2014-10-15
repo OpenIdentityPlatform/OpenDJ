@@ -363,7 +363,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
             }
         }
 
-        // Needed in order to expose type information.
+        /** Needed in order to expose type information. */
         private <R extends ExtendedResult> void handleExtendedResult0(
                 final GrizzlyLDAPConnection conn, final ExtendedResultLdapPromiseImpl<R> promise,
                 final ExtendedResult result) throws DecodeException {

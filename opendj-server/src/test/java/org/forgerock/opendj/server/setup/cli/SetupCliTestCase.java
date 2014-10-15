@@ -160,7 +160,7 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                 assertThat(resultCode).isEqualTo(ReturnCode.SUCCESS.get());
             } else {
                 assertThat(resultCode).isNotEqualTo(ReturnCode.SUCCESS.get());
-                /**
+                /*
                  * If an application is interactive, all messages should be redirect to the stdout. (info, warnings,
                  * errors). Otherwise, standard messages should be displayed in the stdout(info) and errors to the
                  * stderr (warnings, errors).
@@ -176,7 +176,7 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
         }
     }
 
-    /** Arguments passed to the command */
+    /** Arguments passed to the command. */
     private String[] args(String... arguments) {
         return arguments;
     }

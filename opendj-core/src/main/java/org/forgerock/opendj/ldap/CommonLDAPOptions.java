@@ -31,7 +31,7 @@ import org.forgerock.util.Reject;
  * Common options for LDAP clients and listeners.
  */
 abstract class CommonLDAPOptions<T extends CommonLDAPOptions<T>> {
-    // Default values for options taken from Java properties.
+    /** Default values for options taken from Java properties. */
     private static final boolean DEFAULT_TCP_NO_DELAY;
     private static final boolean DEFAULT_REUSE_ADDRESS;
     private static final boolean DEFAULT_KEEPALIVE;

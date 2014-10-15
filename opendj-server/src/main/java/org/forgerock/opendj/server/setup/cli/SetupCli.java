@@ -116,11 +116,11 @@ public final class SetupCli extends ConsoleApplication {
     private IntegerArgument connectTimeout;
     private BooleanArgument acceptLicense;
 
-    // Sub-commands
+    /** Sub-commands. */
     private SubCommand createDirectoryServer;
     private SubCommand createProxy;
 
-    // Register the global arguments.
+    /** Register the global arguments. */
     private BooleanArgument noPrompt;
     private BooleanArgument quietMode;
     private BooleanArgument verbose;
@@ -132,7 +132,7 @@ public final class SetupCli extends ConsoleApplication {
         // Nothing to do.
     }
 
-    // To allow tests
+    /** To allow tests. */
     SetupCli(PrintStream out, PrintStream err) {
         super(out, err);
     }
@@ -343,7 +343,7 @@ public final class SetupCli extends ConsoleApplication {
      *            execution of the checking.
      */
     private void checkProvidedPorts(final Collection<LocalizableMessage> errorMessages) {
-        /**
+        /*
          * Check that the provided ports do not match.
          */
         try {

@@ -43,7 +43,7 @@ import org.forgerock.util.Reject;
  */
 public final class ANDCondition implements Condition {
 
-    // The list of sub-conditions.
+    /** The list of sub-conditions. */
     private final List<Condition> conditions;
 
     /**
@@ -57,9 +57,7 @@ public final class ANDCondition implements Condition {
         this.conditions = Arrays.asList(conditions);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         for (Condition condition : conditions) {
             if (!condition.evaluate(context, managedObject)) {
@@ -69,9 +67,7 @@ public final class ANDCondition implements Condition {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
         for (Condition condition : conditions) {
             if (!condition.evaluate(managedObject)) {
@@ -81,9 +77,7 @@ public final class ANDCondition implements Condition {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
         for (Condition condition : conditions) {
             condition.initialize(d);

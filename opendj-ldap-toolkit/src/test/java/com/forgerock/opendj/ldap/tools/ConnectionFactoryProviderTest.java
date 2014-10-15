@@ -57,8 +57,8 @@ public class ConnectionFactoryProviderTest extends ToolsTestCase {
         connectionFactoryProvider = new ConnectionFactoryProvider(argParser, app);
     }
 
+    /** Issue OPENDJ-734. */
     @Test
-    /** Issue OPENDJ-734 */
     public void getConnectionFactoryShouldAllowNullTrustStorePassword() throws Exception {
         // provide a trustStorePath but no password
         String trustStorePath = new File(getClass().getClassLoader().getResource("dummy-truststore").toURI())

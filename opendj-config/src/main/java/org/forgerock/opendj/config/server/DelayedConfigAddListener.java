@@ -44,20 +44,25 @@ final class DelayedConfigAddListener implements ConfigAddListener {
 
     private static final Logger debugLogger = LoggerFactory.getLogger(DelayedConfigAddListener.class);
 
-    // The name of the parent entry.
+    /** The name of the parent entry. */
     private final DN parent;
 
-    // The name of the subordinate entry which should have an add or
-    // delete listener registered with it when it is created.
+    /**
+     * The name of the subordinate entry which should have an add or
+     * delete listener registered with it when it is created.
+     */
     private final DN child;
 
-    // The add listener to be registered with the subordinate entry when
-    // it is added (or null if a delete listener should be registered).
+    /**
+     * The add listener to be registered with the subordinate entry when
+     * it is added (or null if a delete listener should be registered).
+     */
     private final ConfigAddListener delayedAddListener;
 
-    // The delete listener to be registered with the subordinate entry
-    // when it is added (or null if an add listener should be
-    // registered).
+    /**
+     * The delete listener to be registered with the subordinate entry
+     * when it is added (or null if an add listener should be registered).
+     */
     private final ConfigDeleteListener delayedDeleteListener;
 
     private final ConfigurationRepository configRepository;
@@ -105,9 +110,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
         this.delayedDeleteListener = deleteListener;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(Entry configEntry) {
         if (configEntry.getName().equals(child)) {
@@ -136,9 +139,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
         return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         // Always acceptable.

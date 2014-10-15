@@ -53,9 +53,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
         this.attributes = attributes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final boolean addAttribute(final Attribute attribute,
             final Collection<? super ByteString> duplicateValues) {
@@ -69,26 +67,20 @@ abstract class AbstractMapEntry extends AbstractEntry {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final Entry clearAttributes() {
         attributes.clear();
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final Iterable<Attribute> getAllAttributes() {
         return attributes.values();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final Attribute getAttribute(final AttributeDescription attributeDescription) {
         final Attribute attribute = attributes.get(attributeDescription);
@@ -100,25 +92,19 @@ abstract class AbstractMapEntry extends AbstractEntry {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final int getAttributeCount() {
         return attributes.size();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final DN getName() {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final boolean removeAttribute(final Attribute attribute,
             final Collection<? super ByteString> missingValues) {
@@ -152,9 +138,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final Entry setName(final DN dn) {
         Reject.ifNull(dn);

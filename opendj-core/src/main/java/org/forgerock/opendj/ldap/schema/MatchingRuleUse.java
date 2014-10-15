@@ -45,18 +45,22 @@ import org.forgerock.util.Reject;
  * attribute types that may be used for a given matching rule.
  */
 public final class MatchingRuleUse extends SchemaElement {
-    // The OID of the matching rule associated with this matching rule
-    // use definition.
+    /**
+     * The OID of the matching rule associated with this matching rule
+     * use definition.
+     */
     private final String oid;
 
-    // The set of user defined names for this definition.
+    /** The set of user defined names for this definition. */
     private final List<String> names;
 
-    // Indicates whether this definition is declared "obsolete".
+    /** Indicates whether this definition is declared "obsolete". */
     private final boolean isObsolete;
 
-    // The set of attribute types with which this matching rule use is
-    // associated.
+    /**
+     * The set of attribute types with which this matching rule use is
+     * associated.
+     */
     private final Set<String> attributeOIDs;
 
     private MatchingRule matchingRule;

@@ -44,14 +44,12 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      */
     public static final class Builder extends AbstractBuilder<AttributeType, AttributeTypePropertyDefinition> {
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected AttributeTypePropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -74,40 +72,32 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private AttributeTypePropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<AttributeType> defaultBehavior) {
         super(d, AttributeType.class, propertyName, options, adminAction, defaultBehavior);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitAttributeType(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, AttributeType value, P p) {
         return v.visitAttributeType(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(AttributeType o1, AttributeType o2) {
         return o1.getNameOrOID().compareToIgnoreCase(o2.getNameOrOID());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public AttributeType decodeValue(String value) {
         Reject.ifNull(value);
@@ -128,17 +118,13 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String encodeValue(AttributeType value) {
         return value.getNameOrOID();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(AttributeType value) {
         Reject.ifNull(value);

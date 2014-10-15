@@ -33,13 +33,13 @@ import org.forgerock.util.Reject;
  * A sub-string reader.
  */
 public class SubstringReader {
-    // The source string.
+    /** The source string. */
     private final String source;
-    // The current position.
+    /** The current position. */
     private int pos;
-    // The marked position.
+    /** The marked position. */
     private int mark;
-    // The length of the source.
+    /** The length of the source. */
     private final int length;
 
     /**

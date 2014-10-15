@@ -467,7 +467,7 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
         assertThat(resource.getContent().get("_rev").asString()).isNull();
     }
 
-    // Disabled - see CREST-86 (Should JSON resource fields be case insensitive?)
+    /** Disabled - see CREST-86 (Should JSON resource fields be case insensitive?) */
     @Test(enabled = false)
     public void testReadSelectPartialInsensitive() throws Exception {
         final Resource resource =

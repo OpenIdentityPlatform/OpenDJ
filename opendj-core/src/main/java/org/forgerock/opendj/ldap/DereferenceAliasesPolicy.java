@@ -126,15 +126,13 @@ public final class DereferenceAliasesPolicy {
 
     private final String name;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private DereferenceAliasesPolicy(final int intValue, final String name) {
         this.intValue = intValue;
         this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -146,9 +144,7 @@ public final class DereferenceAliasesPolicy {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;

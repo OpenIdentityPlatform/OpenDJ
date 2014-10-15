@@ -163,9 +163,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
         }
     }
 
-    /*
-     * Regular expression used for splitting comments on line-breaks.
-     */
+    /** Regular expression used for splitting comments on line-breaks. */
     private static final Pattern SPLIT_NEWLINE = Pattern.compile("\\r?\\n");
     boolean addUserFriendlyComments = false;
     final LDIFWriterImpl impl;

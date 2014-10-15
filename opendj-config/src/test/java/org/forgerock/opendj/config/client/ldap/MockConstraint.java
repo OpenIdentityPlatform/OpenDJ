@@ -49,9 +49,7 @@ public final class MockConstraint extends Constraint {
      */
     private class Handler extends ClientConstraintHandler {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -62,9 +60,7 @@ public final class MockConstraint extends Constraint {
             return allowAdds;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
                 Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -75,9 +71,7 @@ public final class MockConstraint extends Constraint {
             return allowDeletes;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
                 Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -90,13 +84,13 @@ public final class MockConstraint extends Constraint {
 
     }
 
-    // Determines if add operations are allowed.
+    /** Determines if add operations are allowed. */
     private final boolean allowAdds;
 
-    // Determines if modify operations are allowed.
+    /** Determines if modify operations are allowed. */
     private final boolean allowModifies;
 
-    // Determines if delete operations are allowed.
+    /** Determines if delete operations are allowed. */
     private final boolean allowDeletes;
 
     /**
@@ -115,16 +109,12 @@ public final class MockConstraint extends Constraint {
         this.allowDeletes = allowDeletes;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
         return Collections.<ClientConstraintHandler> singleton(new Handler());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
         return Collections.emptySet();
     }

@@ -48,10 +48,10 @@ public class ConstraintViolationException extends DecodingException {
      */
     private static final long serialVersionUID = -4902443848460011875L;
 
-    // The server managed object.
+    /** The server managed object. */
     private final ServerManagedObject<?> managedObject;
 
-    // Gets the default message.
+    /** Gets the default message. */
     private static LocalizableMessage getDefaultMessage(Collection<LocalizableMessage> messages) {
         Reject.ifNull(messages);
         Reject.ifFalse(!messages.isEmpty(), "messages should not be empty");
@@ -63,7 +63,7 @@ public class ConstraintViolationException extends DecodingException {
         }
     }
 
-    // Merge the messages into a single message.
+    /** Merge the messages into a single message. */
     private static LocalizableMessage getSingleMessage(Collection<LocalizableMessage> messages) {
         if (messages.size() == 1) {
             return messages.iterator().next();
@@ -83,7 +83,7 @@ public class ConstraintViolationException extends DecodingException {
         }
     }
 
-    // The messages describing the constraint violations that occurred.
+    /** The messages describing the constraint violations that occurred. */
     private final Collection<LocalizableMessage> messages;
 
     /**

@@ -1691,7 +1691,7 @@ final class TemplateFile {
             return false;
         }
 
-        /** parent DN of entries to generate for this template. */
+        /** Parent DN of entries to generate for this template. */
         private DN parentDN;
 
         /**

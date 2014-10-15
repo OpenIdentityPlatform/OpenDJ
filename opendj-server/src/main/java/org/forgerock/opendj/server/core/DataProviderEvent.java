@@ -68,10 +68,10 @@ public final class DataProviderEvent {
         SUPPORTED_FEATURES;
     }
 
-    // A message describing this event.
+    /** A message describing this event. */
     private final LocalizableMessage reason;
 
-    // the types of event that have occurred in the data provider.
+    /** The types of event that have occurred in the data provider. */
     private final Set<Type> types;
 
     /**

@@ -180,9 +180,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
         return c;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int compareTo(final ASCIICharProp o) {
         return c - o.c;
     }
@@ -198,17 +196,13 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
         return decimalValue;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         return this == obj;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return c;
@@ -315,9 +309,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
         return lowerCaseChar;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return stringValue;

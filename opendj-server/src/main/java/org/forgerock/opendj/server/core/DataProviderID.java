@@ -63,26 +63,26 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         return new DataProviderID(name, false /* user */);
     }
 
-    // Flag indicating whether or not this ID represents an internal
-    // data provider.
+    /**
+     * Flag indicating whether or not this ID represents an internal
+     * data provider.
+     */
     private final boolean isInternal;
 
-    // The data provider name.
+    /** The data provider name. */
     private final String name;
 
-    // The normalized name.
+    /** The normalized name. */
     private final String normalizedName;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private DataProviderID(final String name, final boolean isInternal) {
         this.name = name;
         this.normalizedName = name.trim().toLowerCase(Locale.ENGLISH);
         this.isInternal = isInternal;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compareTo(final DataProviderID o) {
         if (isInternal != o.isInternal) {
@@ -93,9 +93,7 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -121,9 +119,7 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return normalizedName.hashCode();
@@ -139,9 +135,7 @@ public final class DataProviderID implements Comparable<DataProviderID> {
         return isInternal;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         if (isInternal) {

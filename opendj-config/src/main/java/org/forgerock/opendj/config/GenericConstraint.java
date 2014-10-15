@@ -52,14 +52,12 @@ public class GenericConstraint extends Constraint {
      */
     private final class ClientHandler extends ClientConstraintHandler {
 
-        // Private constructor.
+        /** Private constructor. */
         private ClientHandler() {
             // No implementation required.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
             Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -71,9 +69,7 @@ public class GenericConstraint extends Constraint {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
             Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
@@ -92,14 +88,12 @@ public class GenericConstraint extends Constraint {
      */
     private final class ServerHandler extends ServerConstraintHandler {
 
-        // Private constructor.
+        /** Private constructor. */
         private ServerHandler() {
             // No implementation required.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean isUsable(ServerManagedObject<?> managedObject,
             Collection<LocalizableMessage> unacceptableReasons) throws ConfigException {
@@ -113,19 +107,19 @@ public class GenericConstraint extends Constraint {
 
     };
 
-    // The client-side constraint handler.
+    /** The client-side constraint handler. */
     private final ClientConstraintHandler clientHandler = new ClientHandler();
 
-    // The condition associated with this constraint.
+    /** The condition associated with this constraint. */
     private final Condition condition;
 
-    // The managed object definition associated with this constraint.
+    /** The managed object definition associated with this constraint. */
     private final AbstractManagedObjectDefinition<?, ?> definition;
 
-    // The constraint ID.
+    /** The constraint ID. */
     private final int id;
 
-    // The server-side constraint handler.
+    /** The server-side constraint handler. */
     private final ServerConstraintHandler serverHandler = new ServerHandler();
 
     /**
@@ -144,16 +138,12 @@ public class GenericConstraint extends Constraint {
         this.condition = condition;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Collection<ClientConstraintHandler> getClientConstraintHandlers() {
         return Collections.singleton(clientHandler);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
         return Collections.singleton(serverHandler);
     }
@@ -180,9 +170,7 @@ public class GenericConstraint extends Constraint {
         return resource.getMessage(definition, property, locale);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void initialize() throws Exception {
         condition.initialize(definition);

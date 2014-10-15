@@ -123,9 +123,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         this.profile = profile;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             InstantiableRelationDefinition<? super C, ? super S> r,
             AbstractManagedObjectDefinition<C, S> d, String name) {
@@ -168,9 +166,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         return rdnsOfDn;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             OptionalRelationDefinition<? super C, ? super S> r,
             AbstractManagedObjectDefinition<C, S> d) {
@@ -178,9 +174,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         appendManagedObjectPathElement(r);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             SingletonRelationDefinition<? super C, ? super S> r,
             AbstractManagedObjectDefinition<C, S> d) {
@@ -188,9 +182,7 @@ final class DNBuilder implements ManagedObjectPathSerializer {
         appendManagedObjectPathElement(r);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
             SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
         // Add the RDN sequence representing the relation.

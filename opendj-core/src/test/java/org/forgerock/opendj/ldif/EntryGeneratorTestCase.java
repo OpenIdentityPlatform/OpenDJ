@@ -424,9 +424,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
         };
     }
 
-    /**
-     * Test for parsing escaped character in templates
-     */
+    /** Test for parsing escaped character in templates. */
     @Test(dataProvider = "validTemplates")
     public void testParsingEscapeCharInTemplate(String testName, String[] lines) throws Exception {
         TemplateFile templateFile = new TemplateFile(schema, null, resourcePath);
@@ -573,7 +571,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
     }
 
     /**
-     * Test for escaped characters in templates
+     * Test for escaped characters in templates.
      */
     @Test(dataProvider = "templatesToTestEscapeChars", dependsOnMethods = { "testParsingEscapeCharInTemplate" })
     public void testEscapeCharsFromTemplate(String testName, String[] lines, String attrName, String expectedValue)
@@ -593,7 +591,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
     }
 
     /**
-     * Test template that combines escaped characters and variables
+     * Test template that combines escaped characters and variables.
      */
     @Test(dependsOnMethods = { "testParsingEscapeCharInTemplate" })
     public void testCombineEscapeCharInTemplate() throws Exception {

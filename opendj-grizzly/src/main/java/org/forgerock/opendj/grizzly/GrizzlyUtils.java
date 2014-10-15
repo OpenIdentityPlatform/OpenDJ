@@ -225,7 +225,7 @@ final class GrizzlyUtils {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private GrizzlyUtils() {
         // No implementation required.
     }

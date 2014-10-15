@@ -68,7 +68,7 @@ public final class CliConstants {
     public static final String GLOBAL_ADMIN_UID = "admin";
 
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private CliConstants() {
 
     }

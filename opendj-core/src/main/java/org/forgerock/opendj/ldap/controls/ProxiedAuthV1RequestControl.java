@@ -188,16 +188,12 @@ public final class ProxiedAuthV1RequestControl implements Control {
         return authorizationName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -212,23 +208,17 @@ public final class ProxiedAuthV1RequestControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder buffer = new StringBuilder();

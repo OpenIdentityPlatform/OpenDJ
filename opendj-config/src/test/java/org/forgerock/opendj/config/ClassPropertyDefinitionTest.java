@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class ClassPropertyDefinitionTest extends ConfigTestCase {
 
-    // Dummy class used in tests.
+    /** Dummy class used in tests. */
     public static final class Dummy {
         public class X {
             // no implementation

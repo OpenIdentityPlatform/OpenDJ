@@ -48,20 +48,20 @@ public final class TextTablePrinter extends TablePrinter {
      */
     private final class Serializer extends TableSerializer {
 
-        /*The real column widths taking into account size constraints but
+        /**The real column widths taking into account size constraints but
          not including padding or separators.*/
         private final List<Integer> columnWidths = new ArrayList<Integer>();
 
-        // The cells in the current row.
+        /** The cells in the current row. */
         private final List<String> currentRow = new ArrayList<String>();
 
-        // Width of the table in columns.
+        /** Width of the table in columns. */
         private int totalColumns = 0;
 
-        // The padding to use for indenting the table.
+        /** The padding to use for indenting the table. */
         private final String indentPadding;
 
-        // Private constructor.
+        /** Private constructor. */
         private Serializer() {
             // Compute the indentation padding.
             final StringBuilder builder = new StringBuilder();
@@ -227,7 +227,7 @@ public final class TextTablePrinter extends TablePrinter {
             currentRow.clear();
         }
 
-        // We need to calculate the effective width of each column.
+        /** We need to calculate the effective width of each column. */
         private void determineColumnWidths() {
             // First calculate the minimum width so that we know how much
             // expandable columns can expand.
@@ -297,35 +297,43 @@ public final class TextTablePrinter extends TablePrinter {
      */
     private static final int DEFAULT_PADDING = 1;
 
-    // The string which should be used to separate one column
-    // from the next (not including padding).
+    /**
+     * The string which should be used to separate one column
+     * from the next (not including padding).
+     */
     private String columnSeparator = DEFAULT_COLUMN_SEPARATOR;
 
-    // Indicates whether or not the headings should be output.
+    /** Indicates whether or not the headings should be output. */
     private boolean displayHeadings = true;
 
-    // Table indicating whether or not a column is fixed width.
+    /** Table indicating whether or not a column is fixed width. */
     private final Map<Integer, Integer> fixedColumns = new HashMap<Integer, Integer>();
 
-    // The number of characters the table should be indented.
+    /** The number of characters the table should be indented. */
     private int indentWidth = 0;
 
-    // The character which should be used to separate the table
-    // heading row from the rows beneath.
+    /**
+     * The character which should be used to separate the table
+     * heading row from the rows beneath.
+     */
     private char headingSeparator = DEFAULT_HEADING_SEPARATOR;
 
-    // The column where the heading separator should begin.
+    /** The column where the heading separator should begin. */
     private int headingSeparatorStartColumn = 0;
 
-    // The padding which will be used to separate a cell's
-    // contents from its adjacent column separators.
+    /**
+     * The padding which will be used to separate a cell's
+     * contents from its adjacent column separators.
+     */
     private int padding = DEFAULT_PADDING;
 
-    // Total permitted width for the table which expandable columns
-    // can use up.
+    /**
+     * Total permitted width for the table which expandable columns
+     * can use up.
+     */
     private int totalWidth = MAX_LINE_WIDTH;
 
-    // The output destination.
+    /** The output destination. */
     private PrintWriter writer = null;
 
     /**

@@ -49,7 +49,7 @@ public class ManagedObjectDecodingException extends DecodingException {
      */
     private static final long serialVersionUID = -4268510652395945357L;
 
-    // Create the message.
+    /** Create the message. */
     private static LocalizableMessage createMessage(ManagedObject<?> partialManagedObject,
         Collection<PropertyException> causes) {
         Reject.ifNull(causes);
@@ -75,10 +75,10 @@ public class ManagedObjectDecodingException extends DecodingException {
         }
     }
 
-    // The exception(s) that caused this decoding exception.
+    /** The exception(s) that caused this decoding exception. */
     private final Collection<PropertyException> causes;
 
-    // The partially created managed object.
+    /** The partially created managed object. */
     private final ManagedObject<?> partialManagedObject;
 
     /**

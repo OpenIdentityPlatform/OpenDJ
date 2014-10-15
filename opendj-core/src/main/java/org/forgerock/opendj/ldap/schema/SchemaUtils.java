@@ -672,7 +672,7 @@ final class SchemaUtils {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private SchemaUtils() {
         // Nothing to do.
     }

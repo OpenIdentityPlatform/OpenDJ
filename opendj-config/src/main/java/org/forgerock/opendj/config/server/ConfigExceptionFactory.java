@@ -38,10 +38,10 @@ import com.forgerock.opendj.ldap.AdminMessages;
  */
 final class ConfigExceptionFactory {
 
-    // The singleton instance.
+    /** The singleton instance. */
     private static final ConfigExceptionFactory INSTANCE = new ConfigExceptionFactory();
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private ConfigExceptionFactory() {
         // Do nothing.
     }

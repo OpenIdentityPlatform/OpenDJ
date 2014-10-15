@@ -52,7 +52,7 @@ import org.forgerock.util.Reject;
  */
 final class EnumSyntaxImpl extends AbstractSyntaxImpl {
     private final String oid;
-    // Set of read-only enum entries.
+    /** Set of read-only enum entries. */
     private final List<String> entries;
 
     EnumSyntaxImpl(final String oid, final List<String> entries) {

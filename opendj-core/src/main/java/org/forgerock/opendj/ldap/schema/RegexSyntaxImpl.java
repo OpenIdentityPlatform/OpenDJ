@@ -46,7 +46,7 @@ import org.forgerock.util.Reject;
  * LDAPSyntaxDescriptionSyntax with X-PATTERN extension.
  */
 final class RegexSyntaxImpl extends AbstractSyntaxImpl {
-    // The Pattern associated with the regex.
+    /** The Pattern associated with the regex. */
     private final Pattern pattern;
 
     RegexSyntaxImpl(final Pattern pattern) {

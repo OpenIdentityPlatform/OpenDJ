@@ -44,7 +44,7 @@ import org.forgerock.util.Reject;
  *            The type of response.
  */
 abstract class AbstractResponseImpl<S extends Response> implements Response {
-    // Used by unmodifiable implementations as well.
+    /** Used by unmodifiable implementations as well. */
     static Control getControl(final List<Control> controls, final String oid) {
         // Avoid creating an iterator if possible.
         if (!controls.isEmpty()) {

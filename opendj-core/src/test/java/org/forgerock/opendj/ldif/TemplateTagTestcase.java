@@ -240,12 +240,12 @@ public class TemplateTagTestcase extends SdkTestCase {
         tagWithArguments(new AttributeValueTag(), templateWithNoAttribute(), "dc");
     }
 
-    /** Helper method to initialize tags with template having any attribute and some arguments*/
+    /** Helper method to initialize tags with template having any attribute and some arguments. */
     private void tagWithArguments(TemplateTag tag, String... arguments) throws DecodeException {
         tagWithArguments(tag, templateWithAnyAttribute(), arguments);
     }
 
-    /** Helper method to initialize tags with template and some arguments*/
+    /** Helper method to initialize tags with template and some arguments. */
     private void tagWithArguments(TemplateTag tag, Template template, String... arguments)
             throws DecodeException {
         tag.initializeForTemplate(Schema.getDefaultSchema(), NULL_TEMPLATE_FILE, template,
@@ -277,14 +277,14 @@ public class TemplateTagTestcase extends SdkTestCase {
         return templateVal;
     }
 
-    /** Helper method to build a template that always return true on attribute type check */
+    /** Helper method to build a template that always return true on attribute type check. */
     private Template templateWithAnyAttribute() {
         Template template = mock(Template.class);
         when(template.hasAttribute(any(AttributeType.class))).thenReturn(true);
         return template;
     }
 
-    /** Helper method to build a template that always return false on attribute type check */
+    /** Helper method to build a template that always return false on attribute type check. */
     private Template templateWithNoAttribute() {
         Template template = mock(Template.class);
         when(template.hasAttribute(any(AttributeType.class))).thenReturn(false);

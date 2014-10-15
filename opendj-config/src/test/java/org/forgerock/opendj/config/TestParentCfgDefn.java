@@ -53,28 +53,28 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  */
 public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentCfgClient, TestParentCfg> {
 
-    // The singleton configuration definition instance.
+    /** The singleton configuration definition instance. */
     private static final TestParentCfgDefn INSTANCE = new TestParentCfgDefn();
 
-    // The "mandatory-boolean-property" property definition.
+    /** The "mandatory-boolean-property" property definition. */
     private static final BooleanPropertyDefinition PD_MANDATORY_BOOLEAN_PROPERTY;
 
-    // The "mandatory-class-property" property definition.
+    /** The "mandatory-class-property" property definition. */
     private static final ClassPropertyDefinition PD_MANDATORY_CLASS_PROPERTY;
 
-    // The "mandatory-read-only-attribute-type-property" property definition.
+    /** The "mandatory-read-only-attribute-type-property" property definition. */
     private static final AttributeTypePropertyDefinition PD_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY;
 
-    // The "optional-multi-valued-dn-property" property definition.
+    /** The "optional-multi-valued-dn-property" property definition. */
     private static final DNPropertyDefinition PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY;
 
-    // The "test-children" relation definition.
+    /** The "test-children" relation definition. */
     private static final InstantiableRelationDefinition<TestChildCfgClient, TestChildCfg> RD_TEST_CHILDREN;
 
-    // The "optional-test-child" relation definition.
+    /** The "optional-test-child" relation definition. */
     private static final OptionalRelationDefinition<TestChildCfgClient, TestChildCfg> RD_OPTIONAL_TEST_CHILD;
 
-    // Build the "mandatory-boolean-property" property definition.
+    /** Build the "mandatory-boolean-property" property definition. */
     static {
         BooleanPropertyDefinition.Builder builder = BooleanPropertyDefinition.createBuilder(INSTANCE,
                 "mandatory-boolean-property");
@@ -86,7 +86,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         INSTANCE.registerPropertyDefinition(PD_MANDATORY_BOOLEAN_PROPERTY);
     }
 
-    // Build the "mandatory-class-property" property definition.
+    /** Build the "mandatory-class-property" property definition. */
     static {
         ClassPropertyDefinition.Builder builder = ClassPropertyDefinition.createBuilder(INSTANCE,
                 "mandatory-class-property");
@@ -101,8 +101,10 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         INSTANCE.registerPropertyDefinition(PD_MANDATORY_CLASS_PROPERTY);
     }
 
-    // Build the "mandatory-read-only-attribute-type-property" property
-    // definition.
+    /**
+     * Build the "mandatory-read-only-attribute-type-property" property
+     * definition.
+     */
     static {
         AttributeTypePropertyDefinition.Builder builder = AttributeTypePropertyDefinition.createBuilder(INSTANCE,
                 "mandatory-read-only-attribute-type-property");
@@ -115,7 +117,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         INSTANCE.registerPropertyDefinition(PD_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY);
     }
 
-    // Build the "optional-multi-valued-dn-property" property definition.
+    /** Build the "optional-multi-valued-dn-property" property definition. */
     static {
         DNPropertyDefinition.Builder builder = DNPropertyDefinition.createBuilder(INSTANCE,
                 "optional-multi-valued-dn-property");
@@ -129,7 +131,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         INSTANCE.registerPropertyDefinition(PD_OPTIONAL_MULTI_VALUED_DN_PROPERTY);
     }
 
-    // Build the "test-children" relation definition.
+    /** Build the "test-children" relation definition. */
     static {
         InstantiableRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> builder =
             new InstantiableRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
@@ -138,7 +140,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         INSTANCE.registerRelationDefinition(RD_TEST_CHILDREN);
     }
 
-    // Build the "optional-test-child" relation definition.
+    /** Build the "optional-test-child" relation definition. */
     static {
         OptionalRelationDefinition.Builder<TestChildCfgClient, TestChildCfg> builder =
             new OptionalRelationDefinition.Builder<TestChildCfgClient, TestChildCfg>(
@@ -163,23 +165,17 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         super("test-parent", null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public TestParentCfgClient createClientConfiguration(ManagedObject<? extends TestParentCfgClient> impl) {
         return new TestParentCfgClientImpl(impl);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public TestParentCfg createServerConfiguration(ServerManagedObject<? extends TestParentCfg> impl) {
         return new TestParentCfgServerImpl(impl);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Class<TestParentCfg> getServerConfigurationClass() {
         return TestParentCfg.class;
     }
@@ -254,153 +250,115 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
      */
     private static class TestParentCfgClientImpl implements TestParentCfgClient {
 
-        // Private implementation.
+        /** Private implementation. */
         private ManagedObject<? extends TestParentCfgClient> impl;
 
-        // Private constructor.
+        /** Private constructor. */
         private TestParentCfgClientImpl(ManagedObject<? extends TestParentCfgClient> impl) {
             this.impl = impl;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Boolean isMandatoryBooleanProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setMandatoryBooleanProperty(boolean value) {
             impl.setPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition(), value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String getMandatoryClassProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setMandatoryClassProperty(String value) {
             impl.setPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition(), value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException {
             impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<DN> getOptionalMultiValuedDNProperty() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setOptionalMultiValuedDNProperty(Collection<DN> values) {
             impl.setPropertyValues(INSTANCE.getOptionalMultiValuedDNPropertyPropertyDefinition(), values);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String[] listTestChildren() throws ConcurrentModificationException, LdapException {
             return impl.listChildren(INSTANCE.getTestChildrenRelationDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public TestChildCfgClient getTestChild(String name) throws DefinitionDecodingException,
                 ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
                 LdapException {
             return impl.getChild(INSTANCE.getTestChildrenRelationDefinition(), name).getConfiguration();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public <M extends TestChildCfgClient> M createTestChild(ManagedObjectDefinition<M, ? extends TestChildCfg> d,
                 String name, Collection<PropertyException> exceptions) throws IllegalManagedObjectNameException {
             return impl.createChild(INSTANCE.getTestChildrenRelationDefinition(), d, name, exceptions)
                     .getConfiguration();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeTestChild(String name) throws ManagedObjectNotFoundException,
                 ConcurrentModificationException, OperationRejectedException, LdapException {
             impl.removeChild(INSTANCE.getTestChildrenRelationDefinition(), name);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasOptionalTestChild() throws ConcurrentModificationException, LdapException {
             return impl.hasChild(INSTANCE.getOptionalTestChildRelationDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public TestChildCfgClient getOptionalChild() throws DefinitionDecodingException,
                 ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
                 LdapException {
             return impl.getChild(INSTANCE.getOptionalTestChildRelationDefinition()).getConfiguration();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public <M extends TestChildCfgClient> M createOptionalTestChild(
                 ManagedObjectDefinition<M, ? extends TestChildCfg> d, Collection<PropertyException> exceptions) {
             return impl.createChild(INSTANCE.getOptionalTestChildRelationDefinition(), d, exceptions)
                     .getConfiguration();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeOptionalTestChild() throws ManagedObjectNotFoundException, ConcurrentModificationException,
                 OperationRejectedException, LdapException {
             impl.removeChild(INSTANCE.getOptionalTestChildRelationDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public ManagedObjectDefinition<? extends TestParentCfgClient, ? extends TestParentCfg> definition() {
             return INSTANCE;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public PropertyProvider properties() {
             return impl;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
                 ConcurrentModificationException, OperationRejectedException, LdapException {
             impl.commit();
@@ -413,153 +371,113 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
      */
     private static class TestParentCfgServerImpl implements TestParentCfg {
 
-        // Private implementation.
+        /** Private implementation. */
         private ServerManagedObject<? extends TestParentCfg> impl;
 
-        // Private constructor.
+        /** Private constructor. */
         private TestParentCfgServerImpl(ServerManagedObject<? extends TestParentCfg> impl) {
             this.impl = impl;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void addChangeListener(ConfigurationChangeListener<TestParentCfg> listener) {
             impl.registerChangeListener(listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeChangeListener(ConfigurationChangeListener<TestParentCfg> listener) {
             impl.deregisterChangeListener(listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean isMandatoryBooleanProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String getMandatoryClassProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<DN> getOptionalMultiValuedDNProperty() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String[] listTestChildren() {
             return impl.listChildren(INSTANCE.getTestChildrenRelationDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public TestChildCfg getTestChild(String name) throws ConfigException {
             return impl.getChild(INSTANCE.getTestChildrenRelationDefinition(), name).getConfiguration();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void addTestChildAddListener(ConfigurationAddListener<TestChildCfg> listener) throws ConfigException {
             impl.registerAddListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeTestChildAddListener(ConfigurationAddListener<TestChildCfg> listener) {
             impl.deregisterAddListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void addTestChildDeleteListener(ConfigurationDeleteListener<TestChildCfg> listener)
                 throws ConfigException {
             impl.registerDeleteListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeTestChildDeleteListener(ConfigurationDeleteListener<TestChildCfg> listener) {
             impl.deregisterDeleteListener(INSTANCE.getTestChildrenRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean hasOptionalTestChild() {
             return impl.hasChild(INSTANCE.getOptionalTestChildRelationDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public TestChildCfg getOptionalTestChild() throws ConfigException {
             return impl.getChild(INSTANCE.getOptionalTestChildRelationDefinition()).getConfiguration();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void addOptionalTestChildAddListener(ConfigurationAddListener<TestChildCfg> listener)
                 throws ConfigException {
             impl.registerAddListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeOptionalTestChildAddListener(ConfigurationAddListener<TestChildCfg> listener) {
             impl.deregisterAddListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void addOptionalChildTestDeleteListener(ConfigurationDeleteListener<TestChildCfg> listener)
                 throws ConfigException {
             impl.registerDeleteListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeOptionalTestChildDeleteListener(ConfigurationDeleteListener<TestChildCfg> listener) {
             impl.deregisterDeleteListener(INSTANCE.getOptionalTestChildRelationDefinition(), listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Class<? extends TestParentCfg> configurationClass() {
             return TestParentCfg.class;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public DN dn() {
             return impl.getDN();
         }

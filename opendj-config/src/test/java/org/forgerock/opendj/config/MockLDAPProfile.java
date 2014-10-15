@@ -38,9 +38,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         // No implementation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getAttributeName(AbstractManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd) {
 
@@ -82,22 +80,17 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getRelationChildRDNType(InstantiableRelationDefinition<?, ?> r) {
         if (r == TestCfg.getTestOneToManyParentRelationDefinition()
                 || r == TestParentCfgDefn.getInstance().getTestChildrenRelationDefinition()) {
             return "cn";
-        } else {
-            return null;
         }
+        return null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getObjectClass(AbstractManagedObjectDefinition<?, ?> d) {
         if (d == TestParentCfgDefn.getInstance()) {
@@ -110,9 +103,7 @@ public final class MockLDAPProfile extends LDAPProfile.Wrapper {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
         if (r == TestCfg.getTestOneToManyParentRelationDefinition()) {

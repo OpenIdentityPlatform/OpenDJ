@@ -167,16 +167,14 @@ public final class SearchScope {
 
     private final Enum searchScopeEnum;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private SearchScope(final int intValue, final String name, Enum searchScopeEnum) {
         this.intValue = intValue;
         this.name = name;
         this.searchScopeEnum = searchScopeEnum;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -188,9 +186,7 @@ public final class SearchScope {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;

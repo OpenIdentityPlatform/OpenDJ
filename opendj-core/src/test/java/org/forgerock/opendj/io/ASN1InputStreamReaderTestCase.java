@@ -29,7 +29,7 @@ package org.forgerock.opendj.io;
 import java.io.ByteArrayInputStream;
 
 /**
- * Test class for ASN1InputStreamReader
+ * Test class for ASN1InputStreamReader.
  */
 public class ASN1InputStreamReaderTestCase extends ASN1ReaderTestCase {
     @Override

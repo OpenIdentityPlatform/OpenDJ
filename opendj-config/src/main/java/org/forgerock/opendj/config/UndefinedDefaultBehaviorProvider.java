@@ -43,9 +43,7 @@ public final class UndefinedDefaultBehaviorProvider<T> extends DefaultBehaviorPr
         // No implementation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
         return v.visitUndefined(this, p);
     }

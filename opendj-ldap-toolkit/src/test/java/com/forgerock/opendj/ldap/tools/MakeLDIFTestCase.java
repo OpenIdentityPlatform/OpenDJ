@@ -115,7 +115,7 @@ public class MakeLDIFTestCase extends ToolsTestCase {
         }
     }
 
-    /** Arguments passed to the command */
+    /** Arguments passed to the command. */
     private String[] args(String...arguments) {
         return arguments;
     }

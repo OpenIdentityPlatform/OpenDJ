@@ -105,14 +105,12 @@ final class LDAPDriver extends Driver {
             return pd.castValue(pd.accept(new ValueDecoder(), s));
         }
 
-        // Prevent instantiation.
+        /** Prevent instantiation. */
         private ValueDecoder() {
             // Do nothing.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Object visitAggregation(
             AggregationPropertyDefinition<C, S> d, String p) {
@@ -126,9 +124,7 @@ final class LDAPDriver extends Driver {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <T> Object visitUnknown(PropertyDefinition<T> d, String p) {
             // By default the property definition's decoder will do.
@@ -140,8 +136,10 @@ final class LDAPDriver extends Driver {
 
     private final Connection connection;
 
-    // The LDAP profile which should be used to construct LDAP
-    // requests and decode LDAP responses.
+    /**
+     * The LDAP profile which should be used to construct LDAP
+     * requests and decode LDAP responses.
+     */
     private final LDAPProfile profile;
 
     /**
@@ -162,17 +160,13 @@ final class LDAPDriver extends Driver {
         this.context = context;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() {
         connection.close();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
         ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
@@ -224,9 +218,7 @@ final class LDAPDriver extends Driver {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override
     public <C extends ConfigurationClient, S extends Configuration, P> SortedSet<P> getPropertyValues(
@@ -291,18 +283,14 @@ final class LDAPDriver extends Driver {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ManagedObject<RootCfgClient> getRootConfigurationManagedObject() {
         return new LDAPManagedObject<RootCfgClient>(this, RootCfgDefn.getInstance(), ManagedObjectPath.emptyPath(),
             new PropertySet(), true, null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
@@ -337,9 +325,7 @@ final class LDAPDriver extends Driver {
         return children.toArray(new String[children.size()]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
@@ -375,9 +361,7 @@ final class LDAPDriver extends Driver {
         return children.toArray(new String[children.size()]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
         LdapException {
@@ -395,9 +379,7 @@ final class LDAPDriver extends Driver {
         return entryExists(dn);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected <C extends ConfigurationClient, S extends Configuration> void deleteManagedObject(
         ManagedObjectPath<C, S> path) throws OperationRejectedException, LdapException {
@@ -415,9 +397,7 @@ final class LDAPDriver extends Driver {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected LDAPManagementContext getManagementContext() {
         return context;
@@ -461,7 +441,7 @@ final class LDAPDriver extends Driver {
         return profile;
     }
 
-    // Create a managed object which already exists on the server.
+    /** Create a managed object which already exists on the server. */
     private <M extends ConfigurationClient, N extends Configuration> ManagedObject<M> createExistingManagedObject(
         ManagedObjectDefinition<M, N> d, ManagedObjectPath<? super M, ? super N> p, PropertySet properties) {
         RelationDefinition<?, ?> rd = p.getRelationDefinition();
@@ -473,7 +453,7 @@ final class LDAPDriver extends Driver {
         return new LDAPManagedObject<M>(this, d, p.asSubType(d), properties, true, pd);
     }
 
-    // Create a property using the provided string values.
+    /** Create a property using the provided string values. */
     private <P> void decodeProperty(PropertySet newProperties, ManagedObjectPath<?, ?> path,
         PropertyDefinition<P> propertyDef, Attribute attribute) {
         PropertyException exception = null;
@@ -556,7 +536,7 @@ final class LDAPDriver extends Driver {
         return d.resolveManagedObjectDefinition(resolver);
     }
 
-    /*
+    /**
      * Delete a subtree of entries. We cannot use the subtree delete control because it is not supported by the config
      * backend.
      */

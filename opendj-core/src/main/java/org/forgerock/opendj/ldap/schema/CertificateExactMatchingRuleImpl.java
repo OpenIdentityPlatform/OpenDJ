@@ -114,9 +114,7 @@ final class CertificateExactMatchingRuleImpl
         return createEncodedValue(serialNumber, certificateIssuer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {

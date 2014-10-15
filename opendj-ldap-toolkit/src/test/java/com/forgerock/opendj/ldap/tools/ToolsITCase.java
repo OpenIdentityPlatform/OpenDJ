@@ -29,8 +29,6 @@ import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.cli.Utils.wrapText;
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.io.UnsupportedEncodingException;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.TestCaseUtils;
@@ -39,8 +37,9 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 
 /**
- * Class used for the toolkit integration tests
+ * Class used for the toolkit integration tests.
  */
+@SuppressWarnings("javadoc")
 public abstract class ToolsITCase extends ForgeRockTestCase {
 
     @BeforeClass
@@ -54,7 +53,7 @@ public abstract class ToolsITCase extends ForgeRockTestCase {
     }
 
     /**
-     * Check both out and err outputs streams
+     * Check both out and err outputs streams.
      *
      * @param out
      *            output stream from the toolkit application
@@ -64,7 +63,7 @@ public abstract class ToolsITCase extends ForgeRockTestCase {
      *            String or LocalizedMessage expected on output
      * @param expectedError
      *            String or LocalizedMessage expected on error output
-     * @throws UnsupportedEncodingException
+     * @throws Exception
      */
     protected void checkOuputStreams(ByteStringBuilder out, ByteStringBuilder err, Object expectedOutput,
         Object expectedError) throws Exception {
@@ -91,7 +90,7 @@ public abstract class ToolsITCase extends ForgeRockTestCase {
 
     }
 
-    /** Arguments passed to the command */
+    /** Arguments passed to the command. */
     protected String[] args(String... arguments) {
         return arguments;
     }

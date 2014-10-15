@@ -365,7 +365,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     }
 
     /**
-     * Removes all the extra properties
+     * Removes all the extra properties.
      */
     @Test()
     public final void testBuilderRemoveExtraProperties() {

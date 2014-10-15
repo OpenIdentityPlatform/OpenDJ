@@ -119,7 +119,7 @@ public final class GenericControl implements Control {
 
     private final ByteString value;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private GenericControl(final String oid, final boolean isCritical, final ByteString value) {
         Reject.ifNull(oid);
         this.oid = oid;
@@ -127,37 +127,27 @@ public final class GenericControl implements Control {
         this.value = value;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return oid;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         return value;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return value != null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

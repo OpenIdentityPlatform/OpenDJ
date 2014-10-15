@@ -46,7 +46,7 @@ public final class Iterables {
     private static final class ArrayIterable<M> extends AbstractIterable<M> {
         private final M[] a;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private ArrayIterable(final M[] a) {
             this.a = a;
         }
@@ -69,7 +69,7 @@ public final class Iterables {
         private final P parameter;
         private final Predicate<? super M, P> predicate;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private FilteredIterable(final Iterable<M> iterable,
                 final Predicate<? super M, P> predicate, final P p) {
             this.iterable = iterable;
@@ -86,7 +86,7 @@ public final class Iterables {
     private static final class SingletonIterable<M> extends AbstractIterable<M> {
         private final M value;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private SingletonIterable(final M value) {
             this.value = value;
         }
@@ -101,7 +101,7 @@ public final class Iterables {
         private final Function<? super M, ? extends N, NeverThrowsException> function;
         private final Iterable<M> iterable;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private TransformedIterable(final Iterable<M> iterable,
                 final Function<? super M, ? extends N, NeverThrowsException> function) {
             this.iterable = iterable;
@@ -117,7 +117,7 @@ public final class Iterables {
     private static final class UnmodifiableIterable<M> extends AbstractIterable<M> {
         private final Iterable<M> iterable;
 
-        // Constructed via factory methods.
+        /** Constructed via factory methods. */
         private UnmodifiableIterable(final Iterable<M> iterable) {
             this.iterable = iterable;
         }
@@ -327,7 +327,7 @@ public final class Iterables {
         return new UnmodifiableIterable<M>(iterable);
     }
 
-    // Prevent instantiation
+    /** Prevent instantiation. */
     private Iterables() {
         // Do nothing.
     }

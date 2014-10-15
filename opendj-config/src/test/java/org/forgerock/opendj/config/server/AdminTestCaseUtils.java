@@ -42,14 +42,16 @@ import org.forgerock.opendj.server.config.meta.RootCfgDefn;
  */
 public final class AdminTestCaseUtils {
 
-    // The relation name which will be used for dummy configurations. A
-    // deliberately obfuscated name is chosen to avoid clashes.
+    /**
+     * The relation name which will be used for dummy configurations. A
+     * deliberately obfuscated name is chosen to avoid clashes.
+     */
     private static final String DUMMY_TEST_RELATION = "*dummy*test*relation*";
 
-    // Indicates if the dummy relation profile has been registered.
+    /** Indicates if the dummy relation profile has been registered. */
     private static boolean isProfileRegistered = false;
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private AdminTestCaseUtils() {
         // No implementation required.
     }

@@ -65,7 +65,7 @@ final class DNBuilder {
         return dn.child(localName);
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private DNBuilder() {
         // No implementation required.
     }

@@ -45,7 +45,7 @@ import org.forgerock.util.Reject;
  */
 abstract class AbstractRequestImpl<R extends Request> implements Request {
 
-    // Used by unmodifiable implementations as well.
+    /** Used by unmodifiable implementations as well. */
     static Control getControl(final List<Control> controls, final String oid) {
         // Avoid creating an iterator if possible.
         if (!controls.isEmpty()) {

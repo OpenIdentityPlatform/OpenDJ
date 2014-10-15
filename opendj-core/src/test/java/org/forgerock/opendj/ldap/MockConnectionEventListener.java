@@ -47,18 +47,14 @@ public final class MockConnectionEventListener implements ConnectionEventListene
     private ExtendedResult notification = null;
     private final AtomicInteger invocationCount = new AtomicInteger();
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleConnectionClosed() {
         invocationCount.incrementAndGet();
         closedLatch.countDown();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleConnectionError(boolean isDisconnectNotification, LdapException error) {
         this.isDisconnectNotification = isDisconnectNotification;
@@ -67,9 +63,7 @@ public final class MockConnectionEventListener implements ConnectionEventListene
         errorLatch.countDown();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleUnsolicitedNotification(ExtendedResult notification) {
         this.notification = notification;

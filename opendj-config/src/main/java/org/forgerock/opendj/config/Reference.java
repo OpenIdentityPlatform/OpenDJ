@@ -132,17 +132,19 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
         return new Reference<C, S>(p, rd, s);
     }
 
-    // The name of the referenced managed object.
+    /** The name of the referenced managed object. */
     private final String name;
 
-    // The path of the referenced managed object.
+    /** The path of the referenced managed object. */
     private final ManagedObjectPath<C, S> path;
 
-    // The instantiable relation in the parent which contains the
-    // referenced managed object.
+    /**
+     * The instantiable relation in the parent which contains the
+     * referenced managed object.
+     */
     private final InstantiableRelationDefinition<C, S> relation;
 
-    // Private constructor.
+    /** Private constructor. */
     private Reference(ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> relation, String name) {
         this.relation = relation;
         this.name = name;
@@ -177,15 +179,15 @@ public final class Reference<C extends ConfigurationClient, S extends Configurat
         return path.toDN();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String toString() {
         return name;
     }
 
-    // Normalize a value using the specified naming property definition
-    // if defined.
+    /**
+     * Normalize a value using the specified naming property definition
+     * if defined.
+     */
     private <T> String normalizeName(PropertyDefinition<T> pd) {
         if (pd != null) {
             try {

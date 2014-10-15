@@ -836,7 +836,7 @@ public final class LDAP {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private LDAP() {
         // Nothing to do.
     }

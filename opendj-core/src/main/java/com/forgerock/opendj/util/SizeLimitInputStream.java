@@ -50,9 +50,7 @@ public class SizeLimitInputStream extends InputStream {
         this.readLimit = readLimit;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int available() throws IOException {
         final int streamAvail = parentStream.available();
@@ -60,9 +58,7 @@ public class SizeLimitInputStream extends InputStream {
         return limitedAvail < streamAvail ? limitedAvail : streamAvail;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         parentStream.close();
@@ -86,26 +82,20 @@ public class SizeLimitInputStream extends InputStream {
         return readLimit;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public synchronized void mark(final int readlimit) {
         parentStream.mark(readlimit);
         markBytesRead = bytesRead;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean markSupported() {
         return parentStream.markSupported();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int read() throws IOException {
         if (bytesRead >= readLimit) {
@@ -119,9 +109,7 @@ public class SizeLimitInputStream extends InputStream {
         return b;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int read(final byte[] b, final int off, int len) throws IOException {
         if (off < 0 || len < 0 || off + len > b.length) {
@@ -147,18 +135,14 @@ public class SizeLimitInputStream extends InputStream {
         return readLen;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public synchronized void reset() throws IOException {
         parentStream.reset();
         bytesRead = markBytesRead;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long skip(long n) throws IOException {
         if (bytesRead + n > readLimit) {

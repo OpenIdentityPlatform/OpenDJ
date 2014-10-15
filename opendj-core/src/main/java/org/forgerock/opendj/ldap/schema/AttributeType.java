@@ -52,79 +52,78 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 public final class AttributeType extends SchemaElement implements Comparable<AttributeType> {
 
-    // The approximate matching rule for this attribute type.
+    /** The approximate matching rule for this attribute type. */
     private final String approximateMatchingRuleOID;
 
-    // The attribute usage for this attribute type.
+    /** The attribute usage for this attribute type. */
     private final AttributeUsage attributeUsage;
 
-    // The equality matching rule for this attribute type.
+    /** The equality matching rule for this attribute type. */
     private final String equalityMatchingRuleOID;
 
-    // Indicates whether this attribute type is declared "collective".
+    /** Indicates whether this attribute type is declared "collective". */
     private final boolean isCollective;
 
-    // Indicates whether this attribute type is declared
-    // "no-user-modification".
+    /**
+     * Indicates whether this attribute type is declared "no-user-modification".
+     */
     private final boolean isNoUserModification;
 
-    // Indicates whether this definition is declared "obsolete".
+    /** Indicates whether this definition is declared "obsolete". */
     private final boolean isObsolete;
 
-    // Indicates whether this definition is a temporary place-holder.
+    /** Indicates whether this definition is a temporary place-holder. */
     private final boolean isPlaceHolder;
 
-    // Indicates whether this attribute type is declared "single-value".
+    /** Indicates whether this attribute type is declared "single-value". */
     private final boolean isSingleValue;
 
-    // The set of user defined names for this definition.
+    /** The set of user defined names for this definition. */
     private final List<String> names;
 
-    // The OID that may be used to reference this definition.
+    /** The OID that may be used to reference this definition. */
     private final String oid;
 
-    // The ordering matching rule for this attribute type.
+    /** The ordering matching rule for this attribute type. */
     private final String orderingMatchingRuleOID;
 
-    // The substring matching rule for this attribute type.
+    /** The substring matching rule for this attribute type. */
     private final String substringMatchingRuleOID;
 
-    // The superior attribute type from which this attribute type
-    // inherits.
+    /** The superior attribute type from which this attribute type inherits. */
     private final String superiorTypeOID;
 
-    // The syntax for this attribute type.
+    /** The syntax for this attribute type. */
     private final String syntaxOID;
 
-    // True if this type has OID 2.5.4.0.
+    /** True if this type has OID 2.5.4.0. */
     private final boolean isObjectClassType;
 
-    // The normalized name of this attribute type.
+    /** The normalized name of this attribute type. */
     private final String normalizedName;
 
-    // The superior attribute type from which this attribute type
-    // inherits.
+    /** The superior attribute type from which this attribute type inherits. */
     private AttributeType superiorType;
 
-    // The equality matching rule for this attribute type.
+    /** The equality matching rule for this attribute type. */
     private MatchingRule equalityMatchingRule;
 
-    // The ordering matching rule for this attribute type.
+    /** The ordering matching rule for this attribute type. */
     private MatchingRule orderingMatchingRule;
 
-    // The substring matching rule for this attribute type.
+    /** The substring matching rule for this attribute type. */
     private MatchingRule substringMatchingRule;
 
-    // The approximate matching rule for this attribute type.
+    /** The approximate matching rule for this attribute type. */
     private MatchingRule approximateMatchingRule;
 
-    // The syntax for this attribute type.
+    /** The syntax for this attribute type. */
     private Syntax syntax;
 
-    // Indicates whether or not validation has been performed.
+    /** Indicates whether or not validation has been performed. */
     private boolean needsValidating = true;
 
-    // The indicates whether or not validation failed.
+    /** The indicates whether or not validation failed. */
     private boolean isValid = false;
 
     AttributeType(final String oid, final List<String> names, final String description,

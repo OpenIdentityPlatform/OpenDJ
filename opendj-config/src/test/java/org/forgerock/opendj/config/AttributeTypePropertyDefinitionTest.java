@@ -83,7 +83,7 @@ public class AttributeTypePropertyDefinitionTest extends ConfigTestCase {
         assertEquals(type.getNameOrOID(), value);
     }
 
-    // Create a new definition.
+    /** Create a new definition. */
     private AttributeTypePropertyDefinition createPropertyDefinition() {
         AttributeTypePropertyDefinition.Builder builder = AttributeTypePropertyDefinition.createBuilder(
                 RootCfgDefn.getInstance(), "test-property");

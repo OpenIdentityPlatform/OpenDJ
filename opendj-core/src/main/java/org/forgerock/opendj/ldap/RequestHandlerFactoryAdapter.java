@@ -78,7 +78,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
     private static class RequestContextImpl<S extends Result, H extends ResultHandler<S>>
             implements RequestContext, ResultHandler<S> {
 
-        /*
+        /**
          * Adapter class which invokes cancel result handlers with correct
          * result type.
          */
@@ -108,30 +108,30 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         }
 
         private static enum RequestState {
-            // Request active, cancel requested
+            /** Request active, cancel requested. */
             CANCEL_REQUESTED,
 
-            // Result sent, was cancelled
+            /** Result sent, was cancelled. */
             CANCELLED,
 
-            // Request active
+            /** Request active. */
             PENDING,
 
-            // Result sent, not cancelled
+            /** Result sent, not cancelled. */
             RESULT_SENT,
 
-            // Request active, too late to cancel
+            /** Request active, too late to cancel. */
             TOO_LATE;
         }
 
         protected final H resultHandler;
 
-        // These should be notified when a cancel request arrives, at most once.
+        /** These should be notified when a cancel request arrives, at most once. */
         private List<CancelRequestListener> cancelRequestListeners = null;
 
         private LocalizableMessage cancelRequestReason = null;
 
-        // These should be notified when the result is set.
+        /** These should be notified when the result is set. */
         private List<ExtendedResultHandlerHolder<?>> cancelResultHandlers = null;
 
         private final ServerConnectionImpl clientConnection;
@@ -144,7 +144,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
 
         private RequestState state = RequestState.PENDING;
 
-        // Cancellation state guarded by lock.
+        /** Cancellation state guarded by lock. */
         private final Object stateLock = new Object();
 
         protected RequestContextImpl(final ServerConnectionImpl clientConnection,
@@ -155,9 +155,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             this.isCancelSupported = isCancelSupported;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void addCancelRequestListener(final CancelRequestListener listener) {
             Reject.ifNull(listener);
@@ -191,9 +189,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void checkIfCancelled(final boolean signalTooLate) throws CancelledResultException {
             synchronized (stateLock) {
@@ -226,17 +222,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public int getMessageID() {
             return messageID;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleError(final LdapException error) {
             if (clientConnection.removePendingRequest(this)) {
@@ -252,9 +244,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleResult(final S result) {
             if (clientConnection.removePendingRequest(this)) {
@@ -270,9 +260,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void removeCancelRequestListener(final CancelRequestListener listener) {
             Reject.ifNull(listener);
@@ -456,17 +444,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             this.entryHandler = entryHandler;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean handleEntry(final SearchResultEntry entry) {
             return entryHandler.handleEntry(entry);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public boolean handleReference(final SearchResultReference reference) {
             return entryHandler.handleReference(reference);
@@ -483,9 +467,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             this.requestHandler = requestHandler;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleAbandon(final Integer messageID, final AbandonRequest request) {
             final RequestContextImpl<?, ?> abandonedRequest =
@@ -497,9 +479,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleAdd(final Integer messageID, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -513,9 +493,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleBind(final Integer messageID, final int version,
                 final BindRequest request,
@@ -530,9 +508,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleCompare(final Integer messageID, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -546,36 +522,28 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleConnectionClosed(final Integer messageID, final UnbindRequest request) {
             final LocalizableMessage cancelReason = INFO_CANCELED_BY_CLIENT_DISCONNECT.get();
             doClose(cancelReason);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleConnectionDisconnected(final ResultCode resultCode, final String message) {
             final LocalizableMessage cancelReason = INFO_CANCELED_BY_SERVER_DISCONNECT.get();
             doClose(cancelReason);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleConnectionError(final Throwable error) {
             final LocalizableMessage cancelReason = INFO_CANCELED_BY_CLIENT_ERROR.get();
             doClose(cancelReason);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleDelete(final Integer messageID, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -589,9 +557,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer messageID,
                 final ExtendedRequest<R> request,
@@ -655,9 +621,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleModify(final Integer messageID, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -671,9 +635,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleModifyDN(final Integer messageID, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -687,9 +649,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void handleSearch(final Integer messageID, final SearchRequest request,
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
@@ -802,9 +762,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         this.factory = factory;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ServerConnection<Integer> handleAccept(final C clientContext) throws LdapException {
         return adaptRequestHandler(factory.handleAccept(clientContext));

@@ -249,13 +249,13 @@ public final class EntryChangeNotificationResponseControl implements Control {
                 changeNumber);
     }
 
-    // The previous DN for this change notification control.
+    /** The previous DN for this change notification control. */
     private final DN previousName;
 
-    // The change number for this change notification control.
+    /** The change number for this change notification control. */
     private final long changeNumber;
 
-    // The change type for this change notification control.
+    /** The change type for this change notification control. */
     private final PersistentSearchChangeType changeType;
 
     private final boolean isCritical;
@@ -289,9 +289,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
         return changeType;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
@@ -307,9 +305,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
         return previousName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -332,23 +328,17 @@ public final class EntryChangeNotificationResponseControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

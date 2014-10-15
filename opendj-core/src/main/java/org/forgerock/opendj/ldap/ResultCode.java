@@ -924,7 +924,7 @@ public final class ResultCode {
 
     private final Enum resultCodeEnum;
 
-    // Prevent direct instantiation.
+    /** Prevent direct instantiation. */
     private ResultCode(final int intValue, final LocalizableMessage name, final boolean exceptional,
             final Enum resultCodeEnum) {
         this.intValue = intValue;
@@ -933,9 +933,7 @@ public final class ResultCode {
         this.resultCodeEnum = resultCodeEnum;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -956,9 +954,7 @@ public final class ResultCode {
         return name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return intValue;

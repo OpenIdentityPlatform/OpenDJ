@@ -50,31 +50,30 @@ import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
  */
 public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfgClient, TestChildCfg> {
 
-    // The singleton configuration definition instance.
+    /** The singleton configuration definition instance. */
     private static final TestChildCfgDefn INSTANCE = new TestChildCfgDefn();
 
-    // The "aggregation-property" property definition.
     // @Checkstyle:off
+    /** The "aggregation-property" property definition. */
     private static final AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
         PROPDEF_AGGREGATION_PROPERTY;
     // @Checkstyle:on
-
-    // The "mandatory-boolean-property" property definition.
+    /** The "mandatory-boolean-property" property definition. */
     private static final BooleanPropertyDefinition PROPDEF_MANDATORY_BOOLEAN_PROPERTY;
 
-    // The "mandatory-class-property" property definition.
+    /** The "mandatory-class-property" property definition. */
     private static final ClassPropertyDefinition PROPDEF_MANDATORY_CLASS_PROPERTY;
 
-    // The "mandatory-read-only-attribute-type-property" property definition.
+    /** The "mandatory-read-only-attribute-type-property" property definition. */
     private static final AttributeTypePropertyDefinition PROPDEF_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY;
 
-    // The "optional-multi-valued-dn-property1" property definition.
+    /** The "optional-multi-valued-dn-property1" property definition. */
     private static final DNPropertyDefinition PROPDEF_OPTIONAL_MULTI_VALUED_DN_PROPERTY1;
 
-    // The "optional-multi-valued-dn-property2" property definition.
+    /** The "optional-multi-valued-dn-property2" property definition. */
     private static final DNPropertyDefinition PROPDEF_OPTIONAL_MULTI_VALUED_DN_PROPERTY2;
 
-    // Build the "aggregation-property" property definition.
+    /** Build the "aggregation-property" property definition. */
     static {
         AggregationPropertyDefinition.Builder<ConnectionHandlerCfgClient, ConnectionHandlerCfg> builder =
                 AggregationPropertyDefinition.createBuilder(INSTANCE, "aggregation-property");
@@ -89,7 +88,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         INSTANCE.registerConstraint(PROPDEF_AGGREGATION_PROPERTY.getSourceConstraint());
     }
 
-    // Build the "mandatory-boolean-property" property definition.
+    /** Build the "mandatory-boolean-property" property definition. */
     static {
         BooleanPropertyDefinition.Builder builder = BooleanPropertyDefinition.createBuilder(INSTANCE,
                 "mandatory-boolean-property");
@@ -101,7 +100,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         INSTANCE.registerPropertyDefinition(PROPDEF_MANDATORY_BOOLEAN_PROPERTY);
     }
 
-    // Build the "mandatory-class-property" property definition.
+    /** Build the "mandatory-class-property" property definition. */
     static {
         ClassPropertyDefinition.Builder builder = ClassPropertyDefinition.createBuilder(INSTANCE,
                 "mandatory-class-property");
@@ -116,8 +115,10 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         INSTANCE.registerPropertyDefinition(PROPDEF_MANDATORY_CLASS_PROPERTY);
     }
 
-    // Build the "mandatory-read-only-attribute-type-property" property
-    // definition.
+    /**
+     * Build the "mandatory-read-only-attribute-type-property" property
+     * definition.
+     */
     static {
         AttributeTypePropertyDefinition.Builder builder = AttributeTypePropertyDefinition.createBuilder(INSTANCE,
                 "mandatory-read-only-attribute-type-property");
@@ -130,7 +131,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         INSTANCE.registerPropertyDefinition(PROPDEF_MANDATORY_READ_ONLY_ATTRIBUTE_TYPE_PROPERTY);
     }
 
-    // Build the "optional-multi-valued-dn-property1" property definition.
+    /** Build the "optional-multi-valued-dn-property1" property definition. */
     static {
         DNPropertyDefinition.Builder builder = DNPropertyDefinition.createBuilder(INSTANCE,
                 "optional-multi-valued-dn-property1");
@@ -144,7 +145,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         INSTANCE.registerPropertyDefinition(PROPDEF_OPTIONAL_MULTI_VALUED_DN_PROPERTY1);
     }
 
-    // Build the "optional-multi-valued-dn-property2" property definition.
+    /** Build the "optional-multi-valued-dn-property2" property definition. */
     static {
         DNPropertyDefinition.Builder builder = DNPropertyDefinition.createBuilder(INSTANCE,
                 "optional-multi-valued-dn-property2");
@@ -174,23 +175,17 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
         super("test-child", null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public TestChildCfgClient createClientConfiguration(ManagedObject<? extends TestChildCfgClient> impl) {
         return new TestChildCfgClientImpl(impl);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public TestChildCfg createServerConfiguration(ServerManagedObject<? extends TestChildCfg> impl) {
         return new TestChildCfgServerImpl(impl);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public Class<TestChildCfg> getServerConfigurationClass() {
         return TestChildCfg.class;
     }
@@ -275,115 +270,85 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
      */
     private static class TestChildCfgClientImpl implements TestChildCfgClient {
 
-        // Private implementation.
+        /** Private implementation. */
         private ManagedObject<? extends TestChildCfgClient> impl;
 
-        // Private constructor.
+        /** Private constructor. */
         private TestChildCfgClientImpl(ManagedObject<? extends TestChildCfgClient> impl) {
             this.impl = impl;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<String> getAggregationProperty() {
             return impl.getPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setAggregationProperty(Collection<String> values) {
             impl.setPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition(), values);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Boolean isMandatoryBooleanProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setMandatoryBooleanProperty(boolean value) {
             impl.setPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition(), value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String getMandatoryClassProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setMandatoryClassProperty(String value) {
             impl.setPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition(), value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setMandatoryReadOnlyAttributeTypeProperty(AttributeType value) throws PropertyException {
             impl.setPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition(), value);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<DN> getOptionalMultiValuedDNProperty1() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty1PropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setOptionalMultiValuedDNProperty1(Collection<DN> values) {
             impl.setPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty1PropertyDefinition(), values);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<DN> getOptionalMultiValuedDNProperty2() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty2PropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void setOptionalMultiValuedDNProperty2(Collection<DN> values) {
             impl.setPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty2PropertyDefinition(), values);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public ManagedObjectDefinition<? extends TestChildCfgClient, ? extends TestChildCfg> definition() {
             return INSTANCE;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public PropertyProvider properties() {
             return impl;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
                 ConcurrentModificationException, OperationRejectedException, LdapException {
             impl.commit();
@@ -396,80 +361,60 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
      */
     private static class TestChildCfgServerImpl implements TestChildCfg {
 
-        // Private implementation.
+        /** Private implementation. */
         private ServerManagedObject<? extends TestChildCfg> impl;
 
-        // Private constructor.
+        /** Private constructor. */
         private TestChildCfgServerImpl(ServerManagedObject<? extends TestChildCfg> impl) {
             this.impl = impl;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void addChangeListener(ConfigurationChangeListener<TestChildCfg> listener) {
             impl.registerChangeListener(listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void removeChangeListener(ConfigurationChangeListener<TestChildCfg> listener) {
             impl.deregisterChangeListener(listener);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<String> getAggregationProperty() {
             return impl.getPropertyValues(INSTANCE.getAggregationPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean isMandatoryBooleanProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryBooleanPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public String getMandatoryClassProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryClassPropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public AttributeType getMandatoryReadOnlyAttributeTypeProperty() {
             return impl.getPropertyValue(INSTANCE.getMandatoryReadOnlyAttributeTypePropertyPropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<DN> getOptionalMultiValuedDNProperty1() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty1PropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public SortedSet<DN> getOptionalMultiValuedDNProperty2() {
             return impl.getPropertyValues(INSTANCE.getOptionalMultiValuedDNProperty2PropertyDefinition());
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public Class<? extends TestChildCfg> configurationClass() {
             return TestChildCfg.class;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public DN dn() {
             return impl.getDN();
         }

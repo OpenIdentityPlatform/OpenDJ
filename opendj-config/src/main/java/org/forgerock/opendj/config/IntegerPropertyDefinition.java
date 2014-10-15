@@ -43,17 +43,19 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public final class IntegerPropertyDefinition extends PropertyDefinition<Integer> {
 
-    // String used to represent unlimited.
+    /** String used to represent unlimited. */
     private static final String UNLIMITED = "unlimited";
 
-    // The lower limit of the property value.
+    /** The lower limit of the property value. */
     private final int lowerLimit;
 
-    // The optional upper limit of the property value.
+    /** The optional upper limit of the property value. */
     private final Integer upperLimit;
 
-    // Indicates whether this property allows the use of the "unlimited" value
-    // (represented using a -1 or the string "unlimited").
+    /**
+     * Indicates whether this property allows the use of the "unlimited" value
+     * (represented using a -1 or the string "unlimited").
+     */
     private final boolean allowUnlimited;
 
     /**
@@ -61,18 +63,19 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      */
     public static final class Builder extends AbstractBuilder<Integer, IntegerPropertyDefinition> {
 
-        // The lower limit of the property value.
+        /** The lower limit of the property value. */
         private int lowerLimit = 0;
 
-        // The optional upper limit of the property value.
+        /** The optional upper limit of the property value. */
         private Integer upperLimit = null;
 
-        // Indicates whether this property allows the use of the "unlimited"
-        // value
-        // (represented using a -1 or the string "unlimited").
+        /**
+         * Indicates whether this property allows the use of the "unlimited" value
+         * (represented using a -1 or the string "unlimited").
+         */
         private boolean allowUnlimited = false;
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
@@ -127,9 +130,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
             this.allowUnlimited = allowUnlimited;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected IntegerPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
             String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -154,7 +155,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private IntegerPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<Integer> defaultBehavior, int lowerLimit, Integer upperLimit, boolean allowUnlimited) {
@@ -225,9 +226,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         return allowUnlimited;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(Integer value) {
         Reject.ifNull(value);
@@ -245,9 +244,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String encodeValue(Integer value) {
         Reject.ifNull(value);
@@ -262,9 +259,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         return value.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Integer decodeValue(String value) {
         Reject.ifNull(value);
@@ -291,25 +286,19 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         return i;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitInteger(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, Integer value, P p) {
         return v.visitInteger(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         super.toString(builder);
@@ -326,9 +315,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
         builder.append(allowUnlimited);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(Integer o1, Integer o2) {
         return o1.compareTo(o2);

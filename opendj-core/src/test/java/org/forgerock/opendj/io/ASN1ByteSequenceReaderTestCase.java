@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 
 /**
- * Test class for ASN1ByteSequenceReaderTestCase
+ * Test class for ASN1ByteSequenceReaderTestCase.
  */
 public class ASN1ByteSequenceReaderTestCase extends ASN1ReaderTestCase {
     @Override

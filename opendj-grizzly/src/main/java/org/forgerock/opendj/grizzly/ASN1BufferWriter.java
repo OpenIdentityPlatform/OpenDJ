@@ -217,9 +217,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         outBuffer.clear();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeBoolean(final byte type, final boolean booleanValue) throws IOException {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, 1);
@@ -229,32 +227,24 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeEndSequence() throws IOException {
         sequenceBuffer = sequenceBuffer.endSequence();
 
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeEndSet() throws IOException {
         return writeEndSequence();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeEnumerated(final byte type, final int intValue) throws IOException {
         return writeInteger(type, intValue);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeInteger(final byte type, final int intValue) throws IOException {
         sequenceBuffer.writeByte(type);
         if (((intValue < 0) && ((intValue & 0xFFFFFF80) == 0xFFFFFF80))
@@ -286,9 +276,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeInteger(final byte type, final long longValue) throws IOException {
         sequenceBuffer.writeByte(type);
         if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFFFF80L) == 0xFFFFFFFFFFFFFF80L))
@@ -362,9 +350,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeNull(final byte type) throws IOException {
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, 0);
@@ -373,9 +359,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeOctetString(final byte type, final byte[] value, final int offset,
             final int length) throws IOException {
         sequenceBuffer.writeByte(type);
@@ -386,9 +370,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeOctetString(final byte type, final ByteSequence value)
             throws IOException {
         sequenceBuffer.writeByte(type);
@@ -402,9 +384,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeOctetString(final byte type, final String value) throws IOException {
         sequenceBuffer.writeByte(type);
 
@@ -421,9 +401,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeStartSequence(final byte type) throws IOException {
         // Get a child sequence buffer
         sequenceBuffer = sequenceBuffer.startSequence(type);
@@ -432,9 +410,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ASN1Writer writeStartSet(final byte type) throws IOException {
         // From an implementation point of view, a set is equivalent to a
         // sequence.

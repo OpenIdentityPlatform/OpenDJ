@@ -95,7 +95,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
     private static final Pattern CONTROL_REGEX = Pattern
             .compile("^\\s*(\\d+(.\\d+)*)(\\s+((true)|(false)))?\\s*(:(:)?\\s*?\\S+)?\\s*$");
 
-    // Poison used to indicate end of LDIF.
+    /** Poison used to indicate end of LDIF. */
     private static final ChangeRecord EOF = Requests.newAddRequest(DN.rootDN());
 
     /**
@@ -200,9 +200,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
         super(Arrays.asList(ldifLines));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         close0();

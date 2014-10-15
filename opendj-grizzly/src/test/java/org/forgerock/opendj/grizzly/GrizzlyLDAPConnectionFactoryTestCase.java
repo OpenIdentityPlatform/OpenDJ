@@ -81,14 +81,14 @@ import static org.mockito.Mockito.*;
  */
 @SuppressWarnings({ "javadoc", "unchecked" })
 public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
-    /*
+    /**
      * The number of test iterations for unit tests which attempt to expose
      * potential race conditions. Manual testing has gone up to 10000
      * iterations.
      */
     private static final int ITERATIONS = 100;
 
-    // Test timeout for tests which need to wait for network events.
+    /** Test timeout for tests which need to wait for network events. */
     private static final long TEST_TIMEOUT = 30L;
 
     /*

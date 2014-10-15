@@ -45,10 +45,10 @@ import java.util.Properties;
  */
 public final class ManagedObjectDefinitionResource {
 
-    // Mapping from definition to property tables.
+    /** Mapping from definition to property tables. */
     private final Map<AbstractManagedObjectDefinition<?, ?>, Properties> properties;
 
-    // The resource name prefix.
+    /** The resource name prefix. */
     private final String prefix;
 
     /**
@@ -62,7 +62,7 @@ public final class ManagedObjectDefinitionResource {
         return new ManagedObjectDefinitionResource("config.profiles." + profile);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private ManagedObjectDefinitionResource(String prefix) {
         this.properties = new HashMap<AbstractManagedObjectDefinition<?, ?>, Properties>();
         this.prefix = prefix;
@@ -101,8 +101,10 @@ public final class ManagedObjectDefinitionResource {
         return result;
     }
 
-    // Retrieve the properties table associated with a managed object,
-    // lazily loading it if necessary.
+    /**
+     * Retrieve the properties table associated with a managed object,
+     * lazily loading it if necessary.
+     */
     private synchronized Properties getProperties(AbstractManagedObjectDefinition<?, ?> d) {
         Properties p = properties.get(d);
 

@@ -68,27 +68,21 @@ public final class TrustManagers {
             this.hostNamePattern = hostNamePattern;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyHostName(chain);
             trustManager.checkClientTrusted(chain, authType);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyHostName(chain);
             trustManager.checkServerTrusted(chain, authType);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public X509Certificate[] getAcceptedIssuers() {
             return trustManager.getAcceptedIssuers();
         }
@@ -152,27 +146,21 @@ public final class TrustManagers {
             this.trustManager = trustManager;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyExpiration(chain);
             trustManager.checkClientTrusted(chain, authType);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             verifyExpiration(chain);
             trustManager.checkServerTrusted(chain, authType);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public X509Certificate[] getAcceptedIssuers() {
             return trustManager.getAcceptedIssuers();
         }
@@ -203,33 +191,27 @@ public final class TrustManagers {
      * An X509TrustManager which does not trust any certificates.
      */
     private static final class DistrustAll implements X509TrustManager {
-        // Single instance.
+        /** Single instance. */
         private static final DistrustAll INSTANCE = new DistrustAll();
 
-        // Prevent instantiation.
+        /** Prevent instantiation. */
         private DistrustAll() {
             // Nothing to do.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             throw new CertificateException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
             throw new CertificateException();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[0];
         }
@@ -240,31 +222,25 @@ public final class TrustManagers {
      */
     private static final class TrustAll implements X509TrustManager {
 
-        // Single instance.
+        /** Single instance. */
         private static final TrustAll INSTANCE = new TrustAll();
 
-        // Prevent instantiation.
+        /** Prevent instantiation. */
         private TrustAll() {
             // Nothing to do.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkClientTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void checkServerTrusted(final X509Certificate[] chain, final String authType)
                 throws CertificateException {
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public X509Certificate[] getAcceptedIssuers() {
             return new X509Certificate[0];
         }
@@ -420,7 +396,7 @@ public final class TrustManagers {
         return TrustAll.INSTANCE;
     }
 
-    // Prevent insantiation.
+    /** Prevent insantiation. */
     private TrustManagers() {
         // Nothing to do.
     }

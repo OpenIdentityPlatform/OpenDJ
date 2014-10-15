@@ -189,7 +189,7 @@ public final class ProxiedAuthV2RequestControl implements Control {
         return new ProxiedAuthV2RequestControl(authorizationID);
     }
 
-    // The authorization ID from the control value.
+    /** The authorization ID from the control value. */
     private final String authorizationID;
 
     private ProxiedAuthV2RequestControl(final String authorizationID) {
@@ -209,37 +209,27 @@ public final class ProxiedAuthV2RequestControl implements Control {
         return authorizationID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         return ByteString.valueOf(authorizationID);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

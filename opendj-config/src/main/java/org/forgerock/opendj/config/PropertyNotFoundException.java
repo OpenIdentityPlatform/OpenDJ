@@ -41,7 +41,7 @@ public class PropertyNotFoundException extends OperationsException {
      */
     private static final long serialVersionUID = -895548482881819610L;
 
-    // The name of the property that could not be found.
+    /** The name of the property that could not be found. */
     private final String propertyName;
 
     /**

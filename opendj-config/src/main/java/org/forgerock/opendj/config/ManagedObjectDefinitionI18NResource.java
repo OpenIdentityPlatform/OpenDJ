@@ -41,7 +41,7 @@ import org.forgerock.i18n.LocalizableMessage;
  */
 public final class ManagedObjectDefinitionI18NResource {
 
-    // Application-wide set of instances.
+    /** Application-wide set of instances. */
     private static final Map<String, ManagedObjectDefinitionI18NResource> INSTANCES =
         new HashMap<String, ManagedObjectDefinitionI18NResource>();
 
@@ -67,7 +67,7 @@ public final class ManagedObjectDefinitionI18NResource {
         return getInstance("config.profiles." + profile);
     }
 
-    // Get a resource instance creating it if necessary.
+    /** Get a resource instance creating it if necessary. */
     private synchronized static ManagedObjectDefinitionI18NResource getInstance(String prefix) {
         ManagedObjectDefinitionI18NResource instance = INSTANCES.get(prefix);
 
@@ -79,13 +79,13 @@ public final class ManagedObjectDefinitionI18NResource {
         return instance;
     }
 
-    // Mapping from definition to locale-based resource bundle.
+    /** Mapping from definition to locale-based resource bundle. */
     private final Map<AbstractManagedObjectDefinition<?, ?>, Map<Locale, ResourceBundle>> resources;
 
-    // The resource name prefix.
+    /** The resource name prefix. */
     private final String prefix;
 
-    // Private constructor.
+    /** Private constructor. */
     private ManagedObjectDefinitionI18NResource(String prefix) {
         this.resources = new HashMap<AbstractManagedObjectDefinition<?, ?>, Map<Locale, ResourceBundle>>();
         this.prefix = prefix;
@@ -260,8 +260,10 @@ public final class ManagedObjectDefinitionI18NResource {
         map.put(locale, resoureBundle);
     }
 
-    // Retrieve the resource bundle associated with a managed object and
-    // locale, lazily loading it if necessary.
+    /**
+     * Retrieve the resource bundle associated with a managed object and
+     * locale, lazily loading it if necessary.
+     */
     private synchronized ResourceBundle getResourceBundle(AbstractManagedObjectDefinition<?, ?> d, Locale locale) {
         if (d.isTop()) {
             throw new UnsupportedOperationException("I18n resources are not available for the "

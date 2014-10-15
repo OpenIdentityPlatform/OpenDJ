@@ -37,9 +37,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class SubstitutionSyntaxTestCase extends AbstractSyntaxTestCase {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "acceptableValues")
     public Object[][] createAcceptableValues() {
@@ -107,9 +105,7 @@ public class SubstitutionSyntaxTestCase extends AbstractSyntaxTestCase {
         Assert.assertFalse(builder.toSchema().getWarnings().isEmpty());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Syntax getRule() {
         // Use IA5String syntax as our substitute.

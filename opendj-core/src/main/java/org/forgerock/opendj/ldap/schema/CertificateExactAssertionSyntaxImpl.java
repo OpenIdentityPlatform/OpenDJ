@@ -37,31 +37,23 @@ import org.forgerock.opendj.ldap.ByteSequence;
  */
 final class CertificateExactAssertionSyntaxImpl extends AbstractSyntaxImpl {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getName() {
         return SYNTAX_CERTIFICATE_EXACT_ASSERTION_NAME;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isBEREncodingRequired() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isHumanReadable() {
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // This method will never be called because this syntax is only used

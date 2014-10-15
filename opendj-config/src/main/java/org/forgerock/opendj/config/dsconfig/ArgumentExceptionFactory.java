@@ -556,7 +556,7 @@ public final class ArgumentExceptionFactory {
         return new ClientException(ReturnCode.ERROR_USER_DATA, msg);
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private ArgumentExceptionFactory() {
         // No implementation required.
     }

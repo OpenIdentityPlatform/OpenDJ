@@ -48,7 +48,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
      */
     private static final long serialVersionUID = 6342522125252055588L;
 
-    // Create the message.
+    /** Create the message. */
     private static LocalizableMessage createMessage(Collection<PropertyException> causes) {
         Reject.ifNull(causes);
         Reject.ifFalse(!causes.isEmpty(), "causes should not be empty");
@@ -72,15 +72,19 @@ public class MissingMandatoryPropertiesException extends OperationsException {
         }
     }
 
-    // The causes of this exception.
+    /** The causes of this exception. */
     private final Collection<PropertyException> causes;
 
-    // Indicates whether the exception occurred during managed object
-    // creation.
+    /**
+     * Indicates whether the exception occurred during managed object
+     * creation.
+     */
     private final boolean isCreate;
 
-    // The user friendly name of the component that caused this
-    // exception.
+    /**
+     * The user friendly name of the component that caused this
+     * exception.
+     */
     private final LocalizableMessage ufn;
 
     /**

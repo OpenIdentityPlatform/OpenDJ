@@ -345,7 +345,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
      */
     abstract int getInitialConnectionFactoryIndex();
 
-    // Return the first factory after index which is operational.
+    /** Return the first factory after index which is operational. */
     private MonitoredConnectionFactory getMonitoredConnectionFactory(final int initialIndex) throws LdapException {
         int index = initialIndex;
         final int maxIndex = monitoredFactories.size();

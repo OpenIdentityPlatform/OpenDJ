@@ -125,17 +125,13 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         super(writer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void close() throws IOException {
         close0();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void flush() throws IOException {
         flush0();
@@ -261,9 +257,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final AddRequest change) throws IOException {
         Reject.ifNull(change);
@@ -294,9 +288,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ChangeRecord change) throws IOException {
         Reject.ifNull(change);
@@ -309,14 +301,11 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         final IOException e = change.accept(ChangeRecordVisitorWriter.getInstance(), this);
         if (e != null) {
             throw e;
-        } else {
-            return this;
         }
+        return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final DeleteRequest change) throws IOException {
         Reject.ifNull(change);
@@ -336,9 +325,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
             throws IOException {
@@ -375,9 +362,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyRequest change) throws IOException {
         Reject.ifNull(change);
@@ -419,9 +404,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
         return this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LDIFChangeRecordWriter writeComment(final CharSequence comment) throws IOException {
         writeComment0(comment);

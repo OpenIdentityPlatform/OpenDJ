@@ -68,7 +68,7 @@ import static org.forgerock.opendj.ldap.LdapException.*;
  */
 public final class Converters {
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Converters() {
         throw new AssertionError();
     }

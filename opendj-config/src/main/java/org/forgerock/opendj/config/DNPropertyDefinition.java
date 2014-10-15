@@ -37,8 +37,10 @@ import org.forgerock.opendj.ldap.DN;
  */
 public final class DNPropertyDefinition extends PropertyDefinition<DN> {
 
-    // Optional base DN which all valid values must be immediately
-    // subordinate to.
+    /**
+     * Optional base DN which all valid values must be immediately
+     * subordinate to.
+     */
     private final DN baseDN;
 
     /**
@@ -46,11 +48,13 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      */
     public static final class Builder extends AbstractBuilder<DN, DNPropertyDefinition> {
 
-        // Optional base DN which all valid values must be immediately
-        // subordinate to.
+        /**
+         * Optional base DN which all valid values must be immediately
+         * subordinate to.
+         */
         private DN baseDN = null;
 
-        // Private constructor
+        /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
             super(d, propertyName);
         }
@@ -86,9 +90,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
             this.baseDN = baseDN;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected DNPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction,
@@ -111,7 +113,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         return new Builder(d, propertyName);
     }
 
-    // Private constructor.
+    /** Private constructor. */
     private DNPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
         EnumSet<PropertyOption> options, AdministratorAction adminAction,
         DefaultBehaviorProvider<DN> defaultBehavior, DN baseDN) {
@@ -130,9 +132,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         return baseDN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void validateValue(DN value) {
         Reject.ifNull(value);
@@ -150,9 +150,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public DN decodeValue(String value) {
         Reject.ifNull(value);
@@ -166,25 +164,19 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
         return v.visitDN(this, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(PropertyValueVisitor<R, P> v, DN value, P p) {
         return v.visitDN(this, value, p);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compare(DN o1, DN o2) {
         return o1.compareTo(o2);

@@ -285,11 +285,10 @@ public final class GetEffectiveRightsRequestControl implements Control {
         return new GetEffectiveRightsRequestControl(isCritical, dn, copyOfAttributes);
     }
 
-    // The DN representing the authzId (may be null meaning use the client's
-    // DN).
+    /** The DN representing the authzId (may be null meaning use the client's DN). */
     private final DN authorizationName;
 
-    // The unmodifiable list of attributes to be queried (may be empty).
+    /** The unmodifiable list of attributes to be queried (may be empty). */
     private final Collection<AttributeType> attributes;
 
     private final boolean isCritical;
@@ -325,16 +324,12 @@ public final class GetEffectiveRightsRequestControl implements Control {
         return authorizationName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getOID() {
         return OID;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString getValue() {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
@@ -359,23 +354,17 @@ public final class GetEffectiveRightsRequestControl implements Control {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean hasValue() {
         return authorizationName != null || !attributes.isEmpty();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isCritical() {
         return isCritical;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

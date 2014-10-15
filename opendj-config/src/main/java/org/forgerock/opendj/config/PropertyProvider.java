@@ -41,9 +41,7 @@ public interface PropertyProvider {
      */
     public static final PropertyProvider DEFAULT_PROVIDER = new PropertyProvider() {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) {
             return Collections.<T> emptySet();
         }

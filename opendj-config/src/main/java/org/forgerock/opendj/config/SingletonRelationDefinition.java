@@ -55,8 +55,10 @@ public final class SingletonRelationDefinition<C extends ConfigurationClient, S 
     public static final class Builder<C extends ConfigurationClient, S extends Configuration> extends
         AbstractBuilder<C, S, SingletonRelationDefinition<C, S>> {
 
-        // The optional default managed object associated with this
-        // singleton relation.
+        /**
+         * The optional default managed object associated with this
+         * singleton relation.
+         */
         private DefaultManagedObject<? extends C, ? extends S> defaultManagedObject = null;
 
         /**
@@ -88,9 +90,7 @@ public final class SingletonRelationDefinition<C extends ConfigurationClient, S 
             this.defaultManagedObject = defaultManagedObject;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected SingletonRelationDefinition<C, S> buildInstance(Common<C, S> common) {
             return new SingletonRelationDefinition<C, S>(common, defaultManagedObject);
@@ -98,20 +98,20 @@ public final class SingletonRelationDefinition<C extends ConfigurationClient, S 
 
     }
 
-    // The optional default managed object associated with this
-    // singleton relation.
+    /**
+     * The optional default managed object associated with this
+     * singleton relation.
+     */
     private final DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
-    // Private constructor.
+    /** Private constructor. */
     private SingletonRelationDefinition(Common<C, S> common,
         DefaultManagedObject<? extends C, ? extends S> defaultManagedObject) {
         super(common);
         this.defaultManagedObject = defaultManagedObject;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R, P> R accept(RelationDefinitionVisitor<R, P> v, P p) {
         return v.visitSingleton(this, p);
@@ -129,9 +129,7 @@ public final class SingletonRelationDefinition<C extends ConfigurationClient, S 
         return defaultManagedObject;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void toString(StringBuilder builder) {
         builder.append("name=");
@@ -142,9 +140,7 @@ public final class SingletonRelationDefinition<C extends ConfigurationClient, S 
         builder.append(getChildDefinition().getName());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void initialize() throws Exception {
         if (defaultManagedObject != null) {

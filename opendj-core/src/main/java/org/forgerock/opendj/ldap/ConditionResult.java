@@ -50,17 +50,17 @@ public enum ConditionResult {
      */
     TRUE("true");
 
-    // Boolean -> ConditionResult map.
+    /** Boolean -> ConditionResult map. */
     private static final boolean[] BOOLEAN_MAP = { false, false, true };
 
-    // AND truth table.
+    /** AND truth table. */
     private static final ConditionResult[][] LOGICAL_AND = { { FALSE, FALSE, FALSE },
         { FALSE, UNDEFINED, UNDEFINED }, { FALSE, UNDEFINED, TRUE }, };
 
-    // NOT truth table.
+    /** NOT truth table. */
     private static final ConditionResult[] LOGICAL_NOT = { TRUE, UNDEFINED, FALSE };
 
-    // OR truth table.
+    /** OR truth table. */
     private static final ConditionResult[][] LOGICAL_OR = { { FALSE, UNDEFINED, TRUE },
         { UNDEFINED, UNDEFINED, TRUE }, { TRUE, TRUE, TRUE }, };
 
@@ -214,10 +214,10 @@ public enum ConditionResult {
         return b ? TRUE : FALSE;
     }
 
-    // The human-readable name for this result.
+    /** The human-readable name for this result. */
     private final String resultName;
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private ConditionResult(final String resultName) {
         this.resultName = resultName;
     }

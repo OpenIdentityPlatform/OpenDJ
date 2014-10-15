@@ -386,7 +386,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
         }
     }
 
-    /*
+    /**
      * Get a bind connection and then perform the bind operation, setting the
      * cached connection and authorization credentials on completion.
      */

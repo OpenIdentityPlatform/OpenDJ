@@ -35,18 +35,14 @@ import org.testng.annotations.DataProvider;
  */
 public class CaseExactIA5EqualityMatchingRuleTest extends MatchingRuleTest {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] { { "12345678\uFFFD" }, };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
@@ -61,9 +57,7 @@ public class CaseExactIA5EqualityMatchingRuleTest extends MatchingRuleTest {
         };
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
         return Schema.getCoreSchema().getMatchingRule(EMR_CASE_EXACT_IA5_OID);

@@ -35,14 +35,16 @@ package org.forgerock.opendj.config;
  */
 public final class RelativeInheritedDefaultBehaviorProvider<T> extends DefaultBehaviorProvider<T> {
 
-    // The type of managed object expected at the relative offset.
+    /** The type of managed object expected at the relative offset. */
     private final AbstractManagedObjectDefinition<?, ?> d;
 
-    // The relative offset (where 1 = parent, 2 = grandparent) of the
-    // managed object containing the property.
+    /**
+     * The relative offset (where 1 = parent, 2 = grandparent) of the
+     * managed object containing the property.
+     */
     private final int offset;
 
-    // The name of the property containing the inherited default values.
+    /** The name of the property containing the inherited default values. */
     private final String propertyName;
 
     /**
@@ -75,9 +77,7 @@ public final class RelativeInheritedDefaultBehaviorProvider<T> extends DefaultBe
         this.offset = offset;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
         return v.visitRelativeInherited(this, p);
     }

@@ -155,15 +155,11 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         // No implementation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract boolean add(ByteString value);
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean add(final Object... values) {
         Reject.ifNull(values);
         boolean modified = false;
@@ -173,17 +169,13 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean addAll(final Collection<? extends ByteString> values) {
         return addAll(values, null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <T> boolean addAll(final Collection<T> values,
             final Collection<? super T> duplicateValues) {
         boolean modified = false;
@@ -197,15 +189,11 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract boolean contains(Object value);
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean containsAll(final Collection<?> values) {
         for (final Object value : values) {
@@ -216,78 +204,56 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object object) {
         return equals(this, object);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public ByteString firstValue() {
         return iterator().next();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String firstValueAsString() {
         return firstValue().toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public abstract AttributeDescription getAttributeDescription();
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public String getAttributeDescriptionAsString() {
         return getAttributeDescription().toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return hashCode(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public AttributeParser parse() {
         return AttributeParser.parseAttribute(this);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract Iterator<ByteString> iterator();
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract boolean remove(Object value);
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean removeAll(final Collection<?> values) {
         return removeAll(values, null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <T> boolean removeAll(final Collection<T> values,
             final Collection<? super T> missingValues) {
         boolean modified = false;
@@ -301,17 +267,13 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean retainAll(final Collection<?> values) {
         return retainAll(values, null);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <T> boolean retainAll(final Collection<T> values,
             final Collection<? super T> missingValues) {
         if (values.isEmpty()) {
@@ -355,23 +317,17 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         return modified;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public abstract int size();
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString[] toArray() {
         return toArray(new ByteString[size()]);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return toString(this);

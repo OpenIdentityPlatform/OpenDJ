@@ -78,14 +78,12 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
      */
     private static final class ValueEncoder extends PropertyValueVisitor<Object, Void> {
 
-        // Prevent instantiation.
+        /** Prevent instantiation. */
         private ValueEncoder() {
             // No implementation required.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <C extends ConfigurationClient, S extends Configuration> Object visitAggregation(
                 AggregationPropertyDefinition<C, S> pd, String v, Void p) {
@@ -95,16 +93,14 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
             return reference.toDN().toString();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public <P> Object visitUnknown(PropertyDefinition<P> propertyDef, P value, Void p) {
             return propertyDef.encodeValue(value);
         }
     }
 
-    // The LDAP management driver associated with this managed object.
+    /** The LDAP management driver associated with this managed object. */
     private final LDAPDriver driver;
 
     /**
@@ -131,9 +127,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         this.driver = driver;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void addNewManagedObject() throws LdapException, OperationRejectedException,
             ConcurrentModificationException, ManagedObjectAlreadyExistsException {
@@ -239,17 +233,13 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected Driver getDriver() {
         return driver;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected void modifyExistingManagedObject() throws ConcurrentModificationException, OperationRejectedException,
             LdapException {
@@ -285,9 +275,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected <M extends ConfigurationClient> ManagedObject<M> newInstance(ManagedObjectDefinition<M, ?> d,
             ManagedObjectPath<M, ?> path, PropertySet properties, boolean existsOnServer,
@@ -295,7 +283,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         return new LDAPManagedObject<M>(driver, d, path, properties, existsOnServer, namingPropertyDefinition);
     }
 
-    // Encode a property into LDAP string values.
+    /** Encode a property into LDAP string values. */
     private <P> void encodeProperty(Attribute attribute, PropertyDefinition<P> propertyDef) {
         PropertyValueVisitor<Object, Void> visitor = new ValueEncoder();
         Property<P> property = getProperty(propertyDef);
@@ -313,9 +301,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean isModified() {
         ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
         for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
