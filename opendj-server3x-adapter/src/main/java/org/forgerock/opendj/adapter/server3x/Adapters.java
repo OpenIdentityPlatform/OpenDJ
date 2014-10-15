@@ -220,7 +220,7 @@ public final class Adapters {
 
                 final SearchFilter filter = toSearchFilter(request.getFilter());
                 final org.opends.server.protocols.internal.SearchRequest sr =
-                    Requests.newSearchRequest(toDN(request.getName()), request.getScope(), filter)
+                    Requests.newSearchRequest(to(request.getName()), request.getScope(), filter)
                         .setDereferenceAliasesPolicy(request.getDereferenceAliasesPolicy())
                         .setSizeLimit(request.getSizeLimit())
                         .setTimeLimit(request.getTimeLimit())
@@ -228,14 +228,6 @@ public final class Adapters {
                         .addAttribute(request.getAttributes())
                         .addControl(to(request.getControls()));
                 return getResponseResult(icc.processSearch(sr, internalSearchListener));
-            }
-
-            private org.opends.server.types.DN toDN(DN dn) {
-                try {
-                    return org.opends.server.types.DN.valueOf(dn.toString());
-                } catch (DirectoryException e) {
-                    throw new IllegalStateException(e.getMessage(), e);
-                }
             }
 
             @Override
@@ -296,10 +288,10 @@ public final class Adapters {
                     return extendedResult;
 
                 } catch (DecodeException e) {
+                    org.opends.server.types.DN matchedDN = extendedOperation.getMatchedDN();
                     return request.getResultDecoder().newExtendedErrorResult(
                             extendedOperation.getResultCode(),
-                            (extendedOperation.getMatchedDN() != null ? extendedOperation
-                                    .getMatchedDN().toString() : null),
+                            matchedDN != null ? matchedDN.toString() : null,
                             extendedOperation.getErrorMessage().toString());
                 }
             }
@@ -319,8 +311,7 @@ public final class Adapters {
                                 request.getAssertionValue(), to(request.getControls()));
 
                 CompareResult result = Responses.newCompareResult(compareOperation.getResultCode());
-                result = getResponseResult(compareOperation, result);
-                return result;
+                return getResponseResult(compareOperation, result);
             }
 
             @Override

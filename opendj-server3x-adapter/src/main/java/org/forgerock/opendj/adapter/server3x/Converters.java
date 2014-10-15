@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
@@ -135,7 +136,7 @@ public final class Converters {
         try {
             return org.opends.server.types.DN.valueOf(dn.toString());
         } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage());
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -155,7 +156,7 @@ public final class Converters {
             }
             return newSet;
         } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage());
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -175,7 +176,7 @@ public final class Converters {
             }
             return newDns;
         } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage());
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -191,7 +192,7 @@ public final class Converters {
         try {
             return org.opends.server.types.RDN.decode(rdn.toString());
         } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage());
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -464,11 +465,11 @@ public final class Converters {
             sdkReaderASN1.readStartSequence();
             oid = sdkReaderASN1.readOctetStringAsString();
             if (sdkReaderASN1.hasNextElement()
-                    && (sdkReaderASN1.peekType() == org.forgerock.opendj.io.ASN1.UNIVERSAL_BOOLEAN_TYPE)) {
+                    && sdkReaderASN1.peekType() == ASN1.UNIVERSAL_BOOLEAN_TYPE) {
                 isCritical = sdkReaderASN1.readBoolean();
             }
             if (sdkReaderASN1.hasNextElement()
-                    && (sdkReaderASN1.peekType() == org.forgerock.opendj.io.ASN1.UNIVERSAL_OCTET_STRING_TYPE)) {
+                    && sdkReaderASN1.peekType() == ASN1.UNIVERSAL_OCTET_STRING_TYPE) {
                 value = sdkReaderASN1.readOctetString();
             }
             sdkReaderASN1.readEndSequence();
@@ -641,7 +642,7 @@ public final class Converters {
         try {
             return DN.valueOf(dn.toString());
         } catch (Exception e) {
-            throw new IllegalStateException(e.getMessage());
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -673,10 +674,10 @@ public final class Converters {
                 result.addControl(from(c));
             }
         }
-        result.setDiagnosticMessage((operation.getErrorMessage() != null ? operation
-                .getErrorMessage().toString() : null));
-        result.setMatchedDN((operation.getMatchedDN() != null) ? operation.getMatchedDN()
-                .toString() : null);
+        final LocalizableMessageBuilder errorMsg = operation.getErrorMessage();
+        final org.opends.server.types.DN matchedDN = operation.getMatchedDN();
+        result.setDiagnosticMessage(errorMsg != null ? errorMsg.toString() : null);
+        result.setMatchedDN(matchedDN != null ? matchedDN.toString() : null);
         if (result.isSuccess()) {
             return result;
         } else {
