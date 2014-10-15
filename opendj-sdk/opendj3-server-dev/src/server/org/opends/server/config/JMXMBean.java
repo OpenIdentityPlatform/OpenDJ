@@ -64,7 +64,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.jmx.Credential;
 import org.opends.server.protocols.jmx.JmxClientConnection;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -481,14 +480,12 @@ public final class JMXMBean
       // Perform the Ldap operation for
       //  - ACI Check
       //  - Loggin purpose
-      InternalSearchOperation op=null;
+      SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
+      InternalSearchOperation op = null;
       if (clientConnection instanceof JmxClientConnection) {
-        op = ((JmxClientConnection)clientConnection).processSearch(
-            ByteString.valueOf(configEntryDN.toString()),
-                SearchScope.BASE_OBJECT, LDAPFilter.objectClassPresent());
+        op = ((JmxClientConnection) clientConnection).processSearch(request);
       }
       else if (clientConnection instanceof InternalClientConnection) {
-        SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
         op = ((InternalClientConnection) clientConnection).processSearch(request);
       }
       // BUG : op may be null
@@ -545,8 +542,7 @@ public final class JMXMBean
    */
   @Override
   public AttributeList getAttributes(String[] attributes)
-    {
-
+  {
     //
     // Get the jmx Client connection
     ClientConnection clientConnection = getClientConnection();
@@ -559,14 +555,12 @@ public final class JMXMBean
     // Perform the Ldap operation for
     //  - ACI Check
     //  - Loggin purpose
+    SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
     InternalSearchOperation op = null;
     if (clientConnection instanceof JmxClientConnection) {
-      op = ((JmxClientConnection)clientConnection).processSearch(
-          ByteString.valueOf(configEntryDN.toString()),
-              SearchScope.BASE_OBJECT, LDAPFilter.objectClassPresent());
+      op = ((JmxClientConnection) clientConnection).processSearch(request);
     }
     else if (clientConnection instanceof InternalClientConnection) {
-      SearchRequest request = newSearchRequest(configEntryDN, SearchScope.BASE_OBJECT);
       op = ((InternalClientConnection) clientConnection).processSearch(request);
     }
 
