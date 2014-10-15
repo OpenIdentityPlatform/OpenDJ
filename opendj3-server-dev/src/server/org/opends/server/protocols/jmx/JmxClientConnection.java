@@ -39,16 +39,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ProtocolMessages.*;
@@ -765,55 +762,21 @@ public class JmxClientConnection
 
   /**
    * Processes an Jmx search operation with the provided information.
-   * It will not dereference any aliases, will not request a size or time limit,
-   * and will retrieve all user attributes.
    *
-   * @param  rawBaseDN  The base DN for the search.
-   * @param  scope      The scope for the search.
-   * @param  filter     The filter for the search.
-   *
+   * @param  request      The search request.
    * @return  A reference to the internal search operation that was processed
    *          and contains information about the result of the processing as
    *          well as lists of the matching entries and search references.
    */
-  public InternalSearchOperation processSearch(ByteString rawBaseDN,
-                                      SearchScope scope, LDAPFilter filter)
+  public InternalSearchOperation processSearch(SearchRequest request)
   {
-    return processSearch(rawBaseDN, scope,
-                         DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                         filter, new LinkedHashSet<String>(0));
-  }
-
-
-
-  /**
-   * Processes an Jmx search operation with the provided information.
-   *
-   * @param  rawBaseDN    The base DN for the search.
-   * @param  scope        The scope for the search.
-   * @param  derefPolicy  The alias dereferencing policy for the search.
-   * @param  sizeLimit    The size limit for the search.
-   * @param  timeLimit    The time limit for the search.
-   * @param  typesOnly    The typesOnly flag for the search.
-   * @param  filter       The filter for the search.
-   * @param  attributes   The set of requested attributes for the search.
-   *
-   * @return  A reference to the internal search operation that was processed
-   *          and contains information about the result of the processing as
-   *          well as lists of the matching entries and search references.
-   */
-  public InternalSearchOperation processSearch(ByteString rawBaseDN,
-                                      SearchScope scope,
-                                      DereferenceAliasesPolicy derefPolicy,
-                                      int sizeLimit, int timeLimit,
-                                      boolean typesOnly, LDAPFilter filter,
-                                      LinkedHashSet<String> attributes)
-  {
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
-                                     new ArrayList<Control>(0), rawBaseDN,
-                                     scope, derefPolicy, sizeLimit, timeLimit,
-                                     typesOnly, filter, attributes, null);
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        this, nextOperationID(), nextMessageID(),
+        request.getControls(),
+        request.getName(), request.getScope(),
+        request.getDereferenceAliasesPolicy(),
+        request.getSizeLimit(), request.getTimeLimit(), request.isTypesOnly(),
+        request.getFilter(), request.getAttributes(), null);
 
     if (! hasPrivilege(Privilege.JMX_READ, null))
     {
@@ -827,46 +790,6 @@ public class JmxClientConnection
     }
     return searchOperation;
   }
-
-
-
-  /**
-   * Processes an Jmx search operation with the provided information.
-   *
-   * @param  rawBaseDN       The base DN for the search.
-   * @param  scope           The scope for the search.
-   * @param  derefPolicy     The alias dereferencing policy for the search.
-   * @param  sizeLimit       The size limit for the search.
-   * @param  timeLimit       The time limit for the search.
-   * @param  typesOnly       The typesOnly flag for the search.
-   * @param  filter          The filter for the search.
-   * @param  attributes      The set of requested attributes for the search.
-   * @param  searchListener  The internal search listener that should be used to
-   *                         handle the matching entries and references.
-   *
-   * @return  A reference to the internal search operation that was processed
-   *          and contains information about the result of the processing.
-   */
-  public InternalSearchOperation processSearch(ByteString rawBaseDN,
-                                      SearchScope scope,
-                                      DereferenceAliasesPolicy derefPolicy,
-                                      int sizeLimit, int timeLimit,
-                                      boolean typesOnly, LDAPFilter filter,
-                                      LinkedHashSet<String> attributes,
-                                      InternalSearchListener searchListener)
-  {
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
-                                     new ArrayList<Control>(0), rawBaseDN,
-                                     scope, derefPolicy, sizeLimit, timeLimit,
-                                     typesOnly, filter, attributes,
-                                     searchListener);
-
-    searchOperation.run();
-    return searchOperation;
-  }
-
-
 
   /**
    * Sends the provided search result entry to the client.

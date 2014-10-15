@@ -59,7 +59,7 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -68,6 +68,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -481,9 +482,8 @@ public class JmxPrivilegeTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.JMX_READ, null), hasPrivilege);
 
-    ByteString dn = ByteString.valueOf("cn=config");
-    LDAPFilter filter = LDAPFilter.objectClassPresent();
-    InternalSearchOperation searchOperation = conn.processSearch(dn, SearchScope.BASE_OBJECT, filter);
+    SearchRequest request = newSearchRequest(DN.valueOf("cn=config"), SearchScope.BASE_OBJECT);
+    InternalSearchOperation searchOperation = conn.processSearch(request);
     if (hasPrivilege)
     {
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
