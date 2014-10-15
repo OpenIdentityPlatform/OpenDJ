@@ -146,6 +146,11 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         /** {@inheritDoc} */
         @Override
         public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+            if (normInitial == null && (normAnys == null || normAnys.length == 0) && normFinal == null) {
+                // Can happen with a filter like "cn:en.6:=*", just return an empty record
+                return factory.createMatchAllQuery();
+            }
+
             final Collection<T> subqueries = new LinkedList<T>();
             if (normInitial != null) {
                 // relies on the fact that equality indexes are also ordered
@@ -163,11 +168,6 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 // Add this one last to minimize the risk to run the same search twice
                 // (possible overlapping with the use of equality index at the start of this method)
                 substringMatch(factory, normInitial, subqueries);
-            }
-
-            if (normInitial == null && (normAnys == null || normAnys.length == 0) && normFinal == null) {
-                // Can happen with a filter like "cn:en.6:=*", just return an empty record
-                return factory.createMatchAllQuery();
             }
             return factory.createIntersectionQuery(subqueries);
         }
