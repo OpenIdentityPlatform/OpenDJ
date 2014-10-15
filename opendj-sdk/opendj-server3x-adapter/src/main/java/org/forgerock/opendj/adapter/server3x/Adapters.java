@@ -27,7 +27,6 @@ package org.forgerock.opendj.adapter.server3x;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.LinkedHashSet;
 
 import org.forgerock.opendj.ldap.AbstractSynchronousConnection;
 import org.forgerock.opendj.ldap.ByteString;
@@ -37,8 +36,8 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -72,8 +71,10 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
@@ -127,7 +128,7 @@ public final class Adapters {
         try {
             icc = new InternalClientConnection(to(userDN));
         } catch (DirectoryException e) {
-            throw new IllegalStateException(e.getMessage());
+            throw new IllegalStateException(e.getMessage(), e);
         }
         return newConnectionFactory(icc);
     }
@@ -217,14 +218,24 @@ public final class Adapters {
                     }
                 };
 
-                final InternalSearchOperation internalSO =
-                        icc.processSearch(valueOf(request.getName()), request.getScope(),
-                                request.getDereferenceAliasesPolicy(), request.getSizeLimit(),
-                                request.getTimeLimit(), request.isTypesOnly(), to(request.getFilter()),
-                                new LinkedHashSet<String>(request.getAttributes()), to(request.getControls()),
-                                internalSearchListener);
+                final SearchFilter filter = toSearchFilter(request.getFilter());
+                final org.opends.server.protocols.internal.SearchRequest sr =
+                    Requests.newSearchRequest(toDN(request.getName()), request.getScope(), filter)
+                        .setDereferenceAliasesPolicy(request.getDereferenceAliasesPolicy())
+                        .setSizeLimit(request.getSizeLimit())
+                        .setTimeLimit(request.getTimeLimit())
+                        .setTypesOnly(request.isTypesOnly())
+                        .addAttribute(request.getAttributes())
+                        .addControl(to(request.getControls()));
+                return getResponseResult(icc.processSearch(sr, internalSearchListener));
+            }
 
-                return getResponseResult(internalSO);
+            private org.opends.server.types.DN toDN(DN dn) {
+                try {
+                    return org.opends.server.types.DN.valueOf(dn.toString());
+                } catch (DirectoryException e) {
+                    throw new IllegalStateException(e.getMessage(), e);
+                }
             }
 
             @Override
