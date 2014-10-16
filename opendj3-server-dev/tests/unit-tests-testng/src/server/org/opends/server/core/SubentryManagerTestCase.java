@@ -361,8 +361,6 @@ public class SubentryManagerTestCase extends CoreTestCase
   public void testCollectiveAttributeSubentries() throws Exception
   {
     SearchRequest request = newSearchRequest(testEntry.getName(), SearchScope.BASE_OBJECT)
-        .setSizeLimit(Integer.MAX_VALUE)
-        .setTimeLimit(Integer.MAX_VALUE)
         .addAttribute("collectiveAttributeSubentries");
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
