@@ -429,10 +429,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
             final MultiOptionImpl mimpl = (MultiOptionImpl) impl;
 
             final int sz1 = mimpl.options.length;
-            final String[] newOptions = new String[sz1 + 1];
-            for (int i = 0; i < sz1; i++) {
-                newOptions[i] = mimpl.options[i];
-            }
+            final String[] newOptions = Arrays.copyOf(mimpl.options, sz1 + 1);
             newOptions[sz1] = option;
 
             final int sz2 = mimpl.normalizedOptions.length;
