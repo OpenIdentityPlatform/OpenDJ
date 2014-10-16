@@ -219,8 +219,6 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   public void invalidBinaryAttributeSearchV3() throws Exception
   {
     SearchRequest request = newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE, "(uid=user.1)")
-        .setSizeLimit(Integer.MAX_VALUE)
-        .setTimeLimit(Integer.MAX_VALUE)
         .addAttribute("cn;binary");
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);

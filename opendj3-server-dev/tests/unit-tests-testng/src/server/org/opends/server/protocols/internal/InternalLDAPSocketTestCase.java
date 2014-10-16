@@ -42,6 +42,7 @@ import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchControls;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -50,7 +51,6 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.testng.annotations.BeforeClass;
@@ -63,17 +63,15 @@ import static org.testng.Assert.*;
  * This class provides a number of tests to cover the internal LDAP socket
  * implementation.
  */
-public class InternalLDAPSocketTestCase
-       extends InternalTestCase
+public class InternalLDAPSocketTestCase extends InternalTestCase
 {
   /**
    * Ensures that the Directory Server is running.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
@@ -86,9 +84,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddOperation()
-         throws Exception
+  @Test
+  public void testAddOperation() throws Exception
   {
     TestCaseUtils.initializeTestBackend(false);
     assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -135,9 +132,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddOperationThroughJNDI()
-         throws Exception
+  @Test
+  public void testAddOperationThroughJNDI() throws Exception
   {
     TestCaseUtils.initializeTestBackend(false);
     assertFalse(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -181,9 +177,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testCompareOperation()
-         throws Exception
+  @Test
+  public void testCompareOperation() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -226,9 +221,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testCompareOperationThroughJNDI()
-         throws Exception
+  @Test
+  public void testCompareOperationThroughJNDI() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -267,9 +261,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteOperation()
-         throws Exception
+  @Test
+  public void testDeleteOperation() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -312,9 +305,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteOperationThroughJNDI()
-         throws Exception
+  @Test
+  public void testDeleteOperationThroughJNDI() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -346,9 +338,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testExtendedOperation()
-         throws Exception
+  @Test
+  public void testExtendedOperation() throws Exception
   {
     InternalLDAPSocket socket = new InternalLDAPSocket();
     LDAPReader reader = new LDAPReader(socket);
@@ -391,9 +382,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testModifyOperation()
-         throws Exception
+  @Test
+  public void testModifyOperation() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -439,9 +429,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testModifyOperationThroughJNDI()
-         throws Exception
+  @Test
+  public void testModifyOperationThroughJNDI() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -477,9 +466,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testModifyDNOperation()
-         throws Exception
+  @Test
+  public void testModifyDNOperation() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntry(
@@ -532,9 +520,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testModifyDNOperationThroughJNDI()
-         throws Exception
+  @Test
+  public void testModifyDNOperationThroughJNDI() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntry(
@@ -575,9 +562,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSearchOperation()
-         throws Exception
+  @Test
+  public void testSearchOperation() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
@@ -629,9 +615,8 @@ public class InternalLDAPSocketTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSearchOperationThroughJNDI()
-         throws Exception
+  @Test
+  public void testSearchOperationThroughJNDI() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     assertTrue(DirectoryServer.entryExists(DN.valueOf("o=test")));
