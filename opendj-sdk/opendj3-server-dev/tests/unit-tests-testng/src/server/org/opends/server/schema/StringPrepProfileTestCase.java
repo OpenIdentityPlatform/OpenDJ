@@ -31,27 +31,27 @@ import java.util.List;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
  * This Test Class tests various matching rules for their compatibility
  * against RFC 4517,4518 and 3454.
  */
-public final class StringPrepProfileTestCase
-        extends SchemaTestCase
+@SuppressWarnings("javadoc")
+public final class StringPrepProfileTestCase extends SchemaTestCase
 {
   /**
    * Ensures that the Directory Server is running before executing the
@@ -59,15 +59,14 @@ public final class StringPrepProfileTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
 
 
-  //Adds an entry for test.
+  /** Adds an entry for test. */
   private void addEntry() throws Exception
   {
     TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
@@ -86,33 +85,17 @@ public final class StringPrepProfileTestCase
    * DN and searching for it using the filter containing a combining sequence
    * and acute accent.
    */
-  @Test()
+  @Test
   public void testUnicodeSearch() throws Exception
   {
     try
     {
       addEntry();
 
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
+      SearchRequest request =
+          newSearchRequest("dc=  example,dc=com", SearchScope.WHOLE_SUBTREE, "&(cn=Jos\u0065\u0301)(sn=This is a test)");
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
-      InternalSearchOperation searchOperation =
-        new InternalSearchOperation(
-        conn,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
-        null,
-        ByteString.valueOf("dc=  example,dc=com"),
-        SearchScope.WHOLE_SUBTREE,
-        DereferenceAliasesPolicy.NEVER,
-        Integer.MAX_VALUE,
-        Integer.MAX_VALUE,
-        false,
-        //The filter uses a combining sequence e and acute accent.
-        LDAPFilter.decode("&(cn=Jos\u0065\u0301)(sn=This is a test)"),
-        null, null);
-
-      searchOperation.run();
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       //No results expected for jdk 5.
@@ -146,7 +129,7 @@ public final class StringPrepProfileTestCase
   }
 
 
-  //Generates data for case exact matching rules.
+  /** Generates data for case exact matching rules. */
   @DataProvider(name="exactRuleData")
   private Object[][] createExactRuleData()
   {
@@ -180,7 +163,7 @@ public final class StringPrepProfileTestCase
   }
 
 
-  //Generates data for case ignore matching rules.
+  /** Generates data for case ignore matching rules. */
   @DataProvider(name="caseFoldRuleData")
   private Object[][] createIgnoreRuleData()
   {

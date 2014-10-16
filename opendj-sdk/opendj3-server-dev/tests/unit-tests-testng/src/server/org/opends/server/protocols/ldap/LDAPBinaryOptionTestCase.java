@@ -36,21 +36,23 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -58,16 +60,16 @@ import static org.testng.Assert.*;
  * functionality across different protocol versions of LDAP.
  */
 public class LDAPBinaryOptionTestCase extends LdapTestCase {
-  // Exported LDIF file.
-  private File ldif = null;
-  //LDIFExportConfig used for exporting entries.
-  private LDIFExportConfig exportConfig = null;
-  //LDIFImportConfig used for importing entries.
-  private LDIFImportConfig importConfig = null;
-  //Test Backend.
-  private Backend backend = null;
+  /** Exported LDIF file. */
+  private File ldif;
+  /** LDIFExportConfig used for exporting entries. */
+  private LDIFExportConfig exportConfig;
+  /** LDIFImportConfig used for importing entries. */
+  private LDIFImportConfig importConfig;
+  /** Test Backend. */
+  private Backend<?> backend;
 
-  //Constant value of userCertificate attribute.
+  /** Constant value of userCertificate attribute. */
   private static final String CERT=
       "MIIB5TCCAU6gAwIBAgIERloIajANBgkqhkiG9" +
       "w0BAQUFADA3MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRXhhbXBs" +
@@ -195,25 +197,8 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   "LDAPBinaryOptionTestCase.binaryAttributeAddV3"})
   public void binaryAttributeSearchV3() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf("o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(uid=user.1)"),
-              null, null);
-
-    searchOperation.run();
+    SearchRequest request = newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE, "(uid=user.1)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
@@ -222,10 +207,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     Attribute a = attrs.get(0);
     assertNotNull(a);
     assertTrue(a.getOptions().contains("binary"));
-
-   }
-
-
+  }
 
   /**
    * Test to verify a SEARCH using the ;binary transfer option using a V3
@@ -236,33 +218,18 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   "LDAPBinaryOptionTestCase.binaryAttributeAddV3"})
   public void invalidBinaryAttributeSearchV3() throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    LinkedHashSet<String> attrs = new LinkedHashSet<String>();
-    attrs.add("cn;binary");
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf("o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(uid=user.1)"),
-              attrs, null);
-
-    searchOperation.run();
+    SearchRequest request = newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE, "(uid=user.1)")
+        .setSizeLimit(Integer.MAX_VALUE)
+        .setTimeLimit(Integer.MAX_VALUE)
+        .addAttribute("cn;binary");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
     assertNotNull(e);
     List<Attribute> list = e.getAttributes();
     assertEquals(list.size(), 0);
-    }
+  }
 
 
 
@@ -349,12 +316,13 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       for(LDAPAttribute a:searchResultEntry.getAttributes())
       {
         //Shouldn't be userCertificate;binary.
-        if(a.getAttributeType().equalsIgnoreCase("userCertificate"))
-          certWithNoOption=true;
-        else if(a.getAttributeType().equalsIgnoreCase("sn"))
+        if ("userCertificate".equalsIgnoreCase(a.getAttributeType()))
         {
-          List<ByteString> lVal = a.getValues();
-          for(ByteString v:lVal)
+          certWithNoOption=true;
+        }
+        else if ("sn".equalsIgnoreCase(a.getAttributeType()))
+        {
+          for (ByteString v : a.getValues())
           {
             String val = v.toString();
             if(val.equals("sn#1") || val.equals("sn#2")
@@ -365,7 +333,6 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
             else //All the values should match.
               snWithMultiVal =  false;
           }
-
         }
       }
       assertTrue(snWithMultiVal && certWithNoOption);
@@ -420,7 +387,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     //modifies the binary option from the ldif and re-imports it.A re-export of
     //the last import should have the binary option even though it wasn't
     //there in the imported ldif.
-    assert(ldif.exists());
+    assertTrue(ldif.exists());
     importLDIF();
     assertTrue(containsBinary());
     //Remove the binary option and re-import it.
@@ -434,10 +401,12 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       if(line.startsWith(userCert))
       {
         builder.append("userCertificate:");
-        builder.append(line.substring(userCert.length()+1, line.length()));
+        builder.append(line, userCert.length()+1, line.length());
       }
       else
+      {
         builder.append(line);
+      }
       builder.append("\n");
     }
     buf.close();
@@ -514,7 +483,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
     while((line=buf.readLine())!=null)
     {
       if(line.startsWith("userCertificate;binary"))
+      {
         found = true;
+      }
     }
     buf.close();
     return found;
@@ -530,7 +501,9 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
   {
      //Initialize necessary instance variables.
     if(ldif==null)
+    {
       ldif = File.createTempFile("LDAPBinaryOptionTestCase", ".ldif");
+    }
     exportConfig = new LDIFExportConfig(ldif.getAbsolutePath(),
                               ExistingFileBehavior.OVERWRITE);
     backend = DirectoryServer.getBackend("test");

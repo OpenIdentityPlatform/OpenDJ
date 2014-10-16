@@ -398,10 +398,10 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   {
     final int messageID = nextMessageID.getAndIncrement();
     return enqueueOperation(new SearchOperationBasis(clientConnection, messageID, messageID,
-        to(request.getControls()), valueOf(request.getName()),
+        to(request.getControls()), to(request.getName()),
         request.getScope(), request.getDereferenceAliasesPolicy(),
         request.getSizeLimit(), request.getTimeLimit(),
-        request.isTypesOnly(), to(request.getFilter()),
+        request.isTypesOnly(), toSearchFilter(request.getFilter()),
         new LinkedHashSet<String>(request.getAttributes())), entryHandler);
   }
 

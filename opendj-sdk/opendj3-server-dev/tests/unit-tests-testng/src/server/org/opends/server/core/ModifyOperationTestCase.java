@@ -34,7 +34,6 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -45,11 +44,11 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
@@ -81,6 +80,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -1343,8 +1343,7 @@ public class ModifyOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "baseDNs")
-  public void testSuccessReplaceExistingWithNew(String baseDN)
-         throws Exception
+  public void testSuccessReplaceExistingWithNew(String baseDN) throws Exception
   {
     TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
@@ -1392,24 +1391,14 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo");
 
+    String dn = "uid=test.user," + baseDN;
     LDAPAttribute attr = newLDAPAttribute("uid", "test.user");
-    ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
+    ModifyOperation modifyOperation = processModify(dn, replace(attr));
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              getRootConnection(), nextOperationID(), nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf("uid=test.user," + baseDN),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(uid=test.user)"),
-              null, null);
-    searchOperation.run();
+    SearchRequest request = newSearchRequest(dn, SearchScope.WHOLE_SUBTREE, "(uid=test.user)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
@@ -1447,26 +1436,13 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              getRootConnection(), nextOperationID(), nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(baseDN),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(cn=Test User)"),
-              null, null);
-    searchOperation.run();
+    SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, "(cn=Test User)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
     assertEquals(searchOperation.getErrorMessage().length(), 0);
   }
-
-
 
   /**
    * Tests the ability to perform a modification that deletes one value of an
@@ -1476,8 +1452,7 @@ public class ModifyOperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "baseDNs")
-  public void testSuccessDeleteAttributeWithOption(String baseDN)
-         throws Exception
+  public void testSuccessDeleteAttributeWithOption(String baseDN) throws Exception
   {
     TestCaseUtils.addEntry(
          "dn: uid=test.user," + baseDN,
@@ -1500,19 +1475,8 @@ public class ModifyOperationTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              getRootConnection(), nextOperationID(), nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf(baseDN),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(givenName;lang-de=X)"),
-              null, null);
-    searchOperation.run();
+    SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, "(givenName;lang-de=X)");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);

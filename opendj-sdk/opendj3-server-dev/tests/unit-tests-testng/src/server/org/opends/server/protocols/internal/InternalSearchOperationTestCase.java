@@ -26,16 +26,9 @@
  */
 package org.opends.server.protocols.internal;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -44,6 +37,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -73,17 +67,11 @@ public class InternalSearchOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testConstructor1WithoutListener()
-         throws Exception
+  @Test
+  public void testConstructor1WithoutListener() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    new InternalSearchOperation(conn, nextOperationID(),
-                                nextMessageID(), new ArrayList<Control>(),
-                                ByteString.empty(), SearchScope.BASE_OBJECT,
-                                DereferenceAliasesPolicy.NEVER, 0, 0,
-                                false, LDAPFilter.objectClassPresent(),
-                                new LinkedHashSet<String>(), null);
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
+    new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
   }
 
 
@@ -94,18 +82,11 @@ public class InternalSearchOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testConstructor1WithListener()
-         throws Exception
+  @Test
+  public void testConstructor1WithListener() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    new InternalSearchOperation(conn, nextOperationID(),
-                                nextMessageID(), new ArrayList<Control>(),
-                                ByteString.empty(), SearchScope.BASE_OBJECT,
-                                DereferenceAliasesPolicy.NEVER, 0, 0,
-                                false, LDAPFilter.objectClassPresent(),
-                                new LinkedHashSet<String>(),
-                                new TestInternalSearchListener());
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
+    new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request, new TestInternalSearchListener());
   }
 
 
@@ -116,7 +97,7 @@ public class InternalSearchOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetSearchEntriesAndReferences() throws Exception
   {
     SearchRequest request = Requests.newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
@@ -136,16 +117,9 @@ public class InternalSearchOperationTestCase
   @Test()
   public void testAddSearchEntryWithoutListener() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(),
-                                     ByteString.empty(),
-                                     SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                     LDAPFilter.objectClassPresent(),
-                                     new LinkedHashSet<String>(), null);
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
 
     Entry e = TestCaseUtils.makeEntry("dn: ",
                                       "objectClass: top",
@@ -160,21 +134,12 @@ public class InternalSearchOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddSearchEntryWithListener()
-         throws Exception
+  @Test
+  public void testAddSearchEntryWithListener() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(),
-                                     ByteString.empty(),
-                                     SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                     LDAPFilter.objectClassPresent(),
-                                     new LinkedHashSet<String>(),
-                                     new TestInternalSearchListener());
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        getRootConnection(), nextOperationID(), nextMessageID(), request, new TestInternalSearchListener());
 
     Entry e = TestCaseUtils.makeEntry("dn: ",
                                       "objectClass: top",
@@ -183,26 +148,17 @@ public class InternalSearchOperationTestCase
   }
 
 
-
   /**
    * Tests the <CODE>addSearchReference</CODE> method without a search listener.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddSearchReferenceWithoutListener()
-         throws Exception
+  @Test
+  public void testAddSearchReferenceWithoutListener() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(),
-                                     ByteString.empty(),
-                                     SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                     LDAPFilter.objectClassPresent(),
-                                     new LinkedHashSet<String>(), null);
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
 
     SearchResultReference reference =
          new SearchResultReference("ldap://server.example.com:389/");
@@ -216,21 +172,12 @@ public class InternalSearchOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAddSearchReferenceWithListener()
-         throws Exception
+  @Test
+  public void testAddSearchReferenceWithListener() throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, nextOperationID(),
-                                     nextMessageID(),
-                                     new ArrayList<Control>(),
-                                     ByteString.empty(),
-                                     SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                     LDAPFilter.objectClassPresent(),
-                                     new LinkedHashSet<String>(),
-                                     new TestInternalSearchListener());
+    SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        getRootConnection(), nextOperationID(), nextMessageID(), request, new TestInternalSearchListener());
 
     SearchResultReference reference =
          new SearchResultReference("ldap://server.example.com:389/");

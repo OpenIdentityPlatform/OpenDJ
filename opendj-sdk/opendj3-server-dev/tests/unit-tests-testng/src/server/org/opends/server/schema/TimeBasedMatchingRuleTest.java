@@ -36,9 +36,8 @@ import org.forgerock.opendj.ldap.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.TimeThread;
@@ -46,6 +45,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.testng.Assert.*;
@@ -122,25 +123,10 @@ public final class TimeBasedMatchingRuleTest
     try
     {
       populateEntries();
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
 
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("dc=example,dc=com"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode(TIME_ATTR+":"+EXT_OMR_RELATIVE_TIME_LT_OID+":=-60m"), //
-                null, null);
-
-      searchOperation.run();
+      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_LT_OID + ":=-60m";
+      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       assertTrue(dnFoundInEntryList(entries,user1,user2));
@@ -162,25 +148,10 @@ public final class TimeBasedMatchingRuleTest
     try
     {
       populateEntries();
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
 
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("dc=example,dc=com"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode(TIME_ATTR+":"+EXT_OMR_RELATIVE_TIME_LT_OID+":=1d"),
-                null, null);
-
-      searchOperation.run();
+      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_LT_OID + ":=1d";
+      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       assertTrue(entries.size() == 4 && dnFoundInEntryList(entries,user1,user2,user3,user5));
@@ -193,7 +164,7 @@ public final class TimeBasedMatchingRuleTest
 
 
 
-    /**
+  /**
    * Test to search using the greater-than relative time matching rule for expired events.
    */
   @Test()
@@ -202,25 +173,10 @@ public final class TimeBasedMatchingRuleTest
     try
     {
       populateEntries();
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
 
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("dc=example,dc=com"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode(TIME_ATTR+":"+EXT_OMR_RELATIVE_TIME_GT_OID+":=-1h"),
-                null, null);
-
-      searchOperation.run();
+      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_GT_OID + ":=-1h";
+      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       Assertions.assertThat(entries).hasSize(3);
@@ -243,25 +199,10 @@ public final class TimeBasedMatchingRuleTest
     try
     {
       populateEntries();
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
 
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("dc=example,dc=com"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode(TIME_ATTR+":"+EXT_OMR_RELATIVE_TIME_GT_OID+":=0s"),
-                null, null);
-
-      searchOperation.run();
+      String filter = TIME_ATTR + ":" + EXT_OMR_RELATIVE_TIME_GT_OID + ":=0s";
+      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       assertTrue(entries.size()==2 && dnFoundInEntryList(entries,user3,user4));
@@ -286,25 +227,11 @@ public final class TimeBasedMatchingRuleTest
     try
     {
       populateEntries();
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      String assertion = "01D11M";
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("dc=example,dc=com"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode(DATE_ATTR+":"+EXT_PARTIAL_DATE_TIME_OID+":="+assertion),
-                null,null);
 
-      searchOperation.run();
+      String assertion = "01D11M";
+      String filter = DATE_ATTR + ":" + EXT_PARTIAL_DATE_TIME_OID + ":=" + assertion;
+      SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       assertTrue(entries.size()==1 && dnFoundInEntryList(entries,user6));

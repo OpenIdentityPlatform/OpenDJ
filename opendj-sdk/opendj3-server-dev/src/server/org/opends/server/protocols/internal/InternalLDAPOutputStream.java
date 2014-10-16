@@ -26,29 +26,27 @@
  */
 package org.opends.server.protocols.internal;
 
-
-
-import java.io.OutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.core.*;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.opends.server.core.*;
+import org.opends.server.protocols.ldap.*;
+import org.opends.server.types.*;
 
+import static org.forgerock.opendj.ldap.DecodeException.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class provides an implementation of a
@@ -737,17 +735,30 @@ public final class InternalLDAPOutputStream
           throws IOException
   {
     int messageID = message.getMessageID();
-    SearchRequestProtocolOp request =
-         message.getSearchRequestProtocolOp();
+    SearchRequestProtocolOp request = message.getSearchRequestProtocolOp();
 
     InternalClientConnection conn = socket.getConnection();
-    InternalSearchOperation op =
-         new InternalSearchOperation(conn, nextOperationID(),
-                messageID, message.getControls(), request.getBaseDN(),
-                request.getScope(), request.getDereferencePolicy(),
-                request.getSizeLimit(), request.getTimeLimit(),
-                request.getTypesOnly(), request.getFilter(),
-                request.getAttributes(), this);
+    DN baseDN = null;
+    SearchFilter filter;
+    try
+    {
+      baseDN = DN.valueOf(request.getBaseDN().toString());
+      filter = request.getFilter().toSearchFilter();
+    }
+    catch (DirectoryException e)
+    {
+      final String cause = (baseDN == null ? "baseDN" : "filter");
+      throw error(LocalizableMessage.raw("Could not decode " + cause), e);
+    }
+    SearchRequest sr = newSearchRequest(baseDN, request.getScope(), filter)
+        .setDereferenceAliasesPolicy(request.getDereferencePolicy())
+        .setSizeLimit(request.getSizeLimit())
+        .setTimeLimit(request.getTimeLimit())
+        .setTypesOnly(request.getTypesOnly())
+        .addAttribute(request.getAttributes())
+        .addControl(message.getControls());
+    InternalSearchOperation op = new InternalSearchOperation(
+        conn, nextOperationID(), messageID, sr, this);
     op.run();
 
     SearchResultDoneProtocolOp searchDone =
@@ -773,6 +784,7 @@ public final class InternalLDAPOutputStream
    * @param  searchEntry      The matching search result entry to be
    *                          processed.
    */
+  @Override
   @org.opends.server.types.PublicAPI(
        stability=org.opends.server.types.StabilityLevel.PRIVATE,
        mayInstantiate=false,
@@ -803,6 +815,7 @@ public final class InternalLDAPOutputStream
    * @param  searchReference  The search result reference to be
    *                          processed.
    */
+  @Override
   @org.opends.server.types.PublicAPI(
        stability=org.opends.server.types.StabilityLevel.PRIVATE,
        mayInstantiate=false,

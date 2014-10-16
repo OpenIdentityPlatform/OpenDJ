@@ -26,24 +26,21 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.types.AttributeType;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import java.util.ArrayList;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -145,9 +142,8 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testXAPPROXExtension()
-         throws Exception
+  @Test
+  public void testXAPPROXExtension() throws Exception
   {
     // Create and register the approximate matching rule for testing purposes.
     EqualLengthApproximateMatchingRule testApproxRule =
@@ -194,7 +190,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
    *
    * @throws Exception In case of an error.
    */
-  @Test()
+  @Test
   public void testMixedEqualityAndSubstringMatchingRules() throws Exception
   {
     //Add an attribute with directory string syntax.
@@ -210,38 +206,21 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
       "add: objectclasses",
       "objectClasses: ( gvRightsTest-oid NAME 'gvRightsTest' DESC 'Test' SUP top AUXILIARY " +
       "MUST ( objectClass $ gvRights ) )");
-    assertTrue(resultCode == 0);
+    assertEquals(resultCode, 0);
     TestCaseUtils.initializeTestBackend(true);
     //add the test entry.
     TestCaseUtils.addEntry(
-    "dn: cn=gvrightstest,o=test",
-    "objectclass: person",
-    "objectclass: gvRightsTest",
-    "cn: gvrightstest",
-    "sn: test",
-    "gvRights: gvApplId=test2,ou=Applications,dc=bla$test2-T");
+      "dn: cn=gvrightstest,o=test",
+      "objectclass: person",
+      "objectclass: gvRightsTest",
+      "cn: gvrightstest",
+      "sn: test",
+      "gvRights: gvApplId=test2,ou=Applications,dc=bla$test2-T");
 
     //Search for the entry using substring matching rule filter.
-    InternalClientConnection conn =
-       InternalClientConnection.getRootConnection();
-
-    InternalSearchOperation searchOperation =
-       new InternalSearchOperation(
-            conn,
-            InternalClientConnection.nextOperationID(),
-            InternalClientConnection.nextMessageID(),
-            new ArrayList<Control>(),
-            ByteString.valueOf("cn=gvrightstest,o=test"),
-            SearchScope.WHOLE_SUBTREE,
-            DereferenceAliasesPolicy.NEVER,
-            Integer.MAX_VALUE,
-            Integer.MAX_VALUE,
-            false,
-            LDAPFilter.decode("(&(gvrights=*ApplId=test2,ou=*)" +
-            "(gvrights=*test2,ou=A*))"),
-            null, null);
-
-    searchOperation.run();
+    String filter = "(&(gvrights=*ApplId=test2,ou=*)" + "(gvrights=*test2,ou=A*))";
+    SearchRequest request = newSearchRequest("cn=gvrightstest,o=test", SearchScope.WHOLE_SUBTREE, filter);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
   }
