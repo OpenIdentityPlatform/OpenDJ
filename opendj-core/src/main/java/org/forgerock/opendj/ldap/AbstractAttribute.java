@@ -287,9 +287,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
 
         if (isEmpty()) {
             if (missingValues != null) {
-                for (final T value : values) {
-                    missingValues.add(value);
-                }
+                missingValues.addAll(values);
             }
             return false;
         }

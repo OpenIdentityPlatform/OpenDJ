@@ -89,9 +89,7 @@ public final class DataProviderEvent {
         this.reason = reason;
 
         final EnumSet<Type> tmp = EnumSet.noneOf(Type.class);
-        for (final Type type : types) {
-            tmp.add(type);
-        }
+        tmp.addAll(types);
         this.types = Collections.unmodifiableSet(tmp);
     }
 
