@@ -31,11 +31,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.DITCacheMap;
 import org.opends.server.api.SubentryChangeListener;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
@@ -46,8 +46,8 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.controls.SubentriesControl;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
@@ -64,6 +64,8 @@ import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperatio
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -304,10 +306,8 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
-    InternalClientConnection conn = InternalClientConnection.getRootConnection();
-
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new SubentriesControl(true, true));
+    InternalClientConnection conn = getRootConnection();
+    SubentriesControl control = new SubentriesControl(true, true);
 
     SearchFilter filter = null;
     try
@@ -343,14 +343,12 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         continue;
       }
 
-      InternalSearchOperation internalSearch = new InternalSearchOperation(
-              conn, InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              requestControls, baseDN, SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              filter, requestAttrs, null);
-      LocalBackendSearchOperation localSearch =
-              new LocalBackendSearchOperation(internalSearch);
+      SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
+          .addAttribute(requestAttrs)
+          .addControl(control);
+      InternalSearchOperation internalSearch =
+          new InternalSearchOperation(conn, nextOperationID(), nextMessageID(), request);
+      LocalBackendSearchOperation localSearch = new LocalBackendSearchOperation(internalSearch);
 
       try
       {

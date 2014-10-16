@@ -27,32 +27,35 @@
 package org.opends.server.schema;
 
 import java.util.ArrayList;
-import static org.testng.Assert.*;
-
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.LDAPModify;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
 
 /**
  * This Test Class tests various collation matching rules.
  */
+@SuppressWarnings("javadoc")
 public final class CollationMatchingRuleTest
         extends SchemaTestCase
 {
@@ -117,14 +120,11 @@ public final class CollationMatchingRuleTest
   public void searchCollationEqualityUsingOID() throws Exception
   {
     //Search the collation rule with OID of en and no suffix in the filter.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              conn, nextOperationID(), nextMessageID(),
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -154,14 +154,11 @@ public final class CollationMatchingRuleTest
   {
     //Search the collation rule with language tag of en and no suffix
     //in the filter.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              conn, nextOperationID(), nextMessageID(),
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -190,14 +187,11 @@ public final class CollationMatchingRuleTest
   public void searchCollationLTUsingOIDSuffix() throws Exception
   {
     //Search the collation rule with OID of es and suffix in the filter.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              conn, nextOperationID(), nextMessageID(),
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -227,14 +221,11 @@ public final class CollationMatchingRuleTest
   public void searchCollationLTEUsingLanguageSuffix() throws Exception
   {
     //Search the collation rule with tag of fr and suffix in the filter.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              conn, nextOperationID(), nextMessageID(),
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -264,14 +255,11 @@ public final class CollationMatchingRuleTest
   public void searchCollationGTUsingLanguage() throws Exception
   {
     //Search the collation rule with tag of fr in the filter.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              conn, nextOperationID(), nextMessageID(),
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -301,14 +289,11 @@ public final class CollationMatchingRuleTest
   public void searchCollationGTEUsingLanguage() throws Exception
   {
     //Search the collation rule with tag of es and suffix in the filter.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              conn, nextOperationID(), nextMessageID(),
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -341,14 +326,11 @@ public final class CollationMatchingRuleTest
      *It searches for string quebec against the value of sn which is
      * Qu\u00e9bec.
      */
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              conn, nextOperationID(), nextMessageID(),
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
@@ -387,9 +369,7 @@ public final class CollationMatchingRuleTest
     expectedDNOrder.add(user1);
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl("displayname:fr"));
-    ValidateSortControl(expectedDNOrder,
-            requestControls,
-            "displayname:fr-FR.6:=A*");
+    ValidateSortControl("displayname:fr-FR.6:=A*", expectedDNOrder, requestControls);
   }
 
 
@@ -407,9 +387,7 @@ public final class CollationMatchingRuleTest
     expectedDNOrder.add(user1);
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl("displayname:es"));
-    ValidateSortControl(expectedDNOrder,
-            requestControls,
-            "displayname:es.6:=A*");
+    ValidateSortControl("displayname:es.6:=A*", expectedDNOrder, requestControls);
   }
 
 
@@ -427,9 +405,7 @@ public final class CollationMatchingRuleTest
     expectedDNOrder.add(user4);
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl("-displayname:en"));
-    ValidateSortControl(expectedDNOrder,
-            requestControls,
-            "displayname:en-US.6:=A*");
+    ValidateSortControl("displayname:en-US.6:=A*", expectedDNOrder, requestControls);
   }
 
 
@@ -449,44 +425,39 @@ public final class CollationMatchingRuleTest
     ArrayList<Control> requestControls = new ArrayList<Control>();
     requestControls.add(new ServerSideSortRequestControl("displayname:fr"));
     requestControls.add(new VLVRequestControl(0, 4, 1, 0));
-    ValidateSortControl(expectedDNOrder,
-            requestControls,
-            "objectclass=inetOrgPerson");
+    ValidateSortControl("objectclass=inetOrgPerson", expectedDNOrder, requestControls);
   }
 
 
 
-  private void ValidateSortControl(ArrayList<DN> expectedDNOrder,
-          ArrayList<Control> requestControls,
-          String searchFilter) throws Exception
+  private void ValidateSortControl(String searchFilter,
+          ArrayList<DN> expectedDNOrder,
+          ArrayList<Control> requestControls) throws Exception
   {
     try
     {
       populateEntriesForControl();
-      InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
 
-      InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString(searchFilter),
-                  null, null);
-
-      internalSearch.run();
+      SearchRequest request = newSearchRequest(DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE, searchFilter)
+          .addControl(requestControls);
+      InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
       assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-      ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-      for (Entry e : internalSearch.getSearchEntries())
-      {
-        returnedDNOrder.add(e.getName());
-      }
-     assertEquals(returnedDNOrder, expectedDNOrder);
+      assertEquals(getDNs(internalSearch), expectedDNOrder);
     }
     finally
     {
       TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
     }
+  }
+
+  private ArrayList<DN> getDNs(InternalSearchOperation internalSearch)
+  {
+    ArrayList<DN> results = new ArrayList<DN>();
+    for (Entry e : internalSearch.getSearchEntries())
+    {
+      results.add(e.getName());
+    }
+    return results;
   }
 
 

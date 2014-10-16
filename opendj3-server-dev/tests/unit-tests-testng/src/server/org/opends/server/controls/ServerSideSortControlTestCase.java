@@ -26,35 +26,32 @@
  */
 package org.opends.server.controls;
 
-
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
 
 /**
  * This class contains a number of test cases for the server side sort request
@@ -103,9 +100,8 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
 
@@ -133,8 +129,7 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private void populateDB()
-          throws Exception
+  private void populateDB() throws Exception
   {
     TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
 
@@ -241,9 +236,8 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testRequestConstructor1()
-              throws Exception
+  @Test
+  public void testRequestConstructor1() throws Exception
   {
     SortKey sortKey = new SortKey(givenNameType, true);
     SortOrder sortOrder = new SortOrder(sortKey);
@@ -257,12 +251,9 @@ public class ServerSideSortControlTestCase
     sortKey.toString();
     sortOrder.toString();
 
-    SortKey[] sortKeys =
-    {
+    sortOrder = new SortOrder(
       new SortKey(snType, true),
-      new SortKey(givenNameType, true)
-    };
-    sortOrder = new SortOrder(sortKeys);
+      new SortKey(givenNameType, true));
     new ServerSideSortRequestControl(sortOrder).toString();
     sortOrder.toString();
   }
@@ -275,13 +266,11 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testRequestConstructor2()
-              throws Exception
+  @Test
+  public void testRequestConstructor2() throws Exception
   {
     new ServerSideSortRequestControl("givenName").toString();
-    new ServerSideSortRequestControl("givenName:caseIgnoreOrderingMatch").
-             toString();
+    new ServerSideSortRequestControl("givenName:caseIgnoreOrderingMatch").toString();
     new ServerSideSortRequestControl("+givenName").toString();
     new ServerSideSortRequestControl("-givenName").toString();
     new ServerSideSortRequestControl("givenName,sn").toString();
@@ -293,8 +282,7 @@ public class ServerSideSortControlTestCase
     new ServerSideSortRequestControl("-givenName").toString();
     new ServerSideSortRequestControl("-givenName,+sn").toString();
     new ServerSideSortRequestControl("-givenName,-sn").toString();
-    new ServerSideSortRequestControl("-givenName,-sn:caseExactOrderingMatch").
-             toString();
+    new ServerSideSortRequestControl("-givenName,-sn:caseExactOrderingMatch").toString();
   }
 
 
@@ -305,27 +293,17 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
+  @Test
   public void testInternalSearchGivenNameAscending()
          throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl("givenName"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl("givenName"));
+    InternalSearchOperation internalSearch = conn.processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -339,34 +317,10 @@ public class ServerSideSortControlTestCase
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(zorroDN);           // No first name
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
+    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
 
-    assertEquals(returnedDNOrder, expectedDNOrder);
-
-    List<Control> responseControls = internalSearch.getResponseControls();
-    assertNotNull(responseControls);
-    assertEquals(responseControls.size(), 1);
-
-    ServerSideSortResponseControl responseControl;
-    Control c = responseControls.get(0);
-    if(c instanceof ServerSideSortResponseControl)
-    {
-      responseControl = (ServerSideSortResponseControl)c;
-    }
-    else
-    {
-      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-    }
-    assertEquals(responseControl.getResultCode(), 0);
-    assertNull(responseControl.getAttributeType());
-    responseControl.toString();
+    assertNoAttributeTypeForSort(internalSearch);
   }
-
-
 
   /**
    * Tests performing an internal search using the server-side sort control to
@@ -375,28 +329,14 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
-  public void testInternalSearchGivenNameAscendingCaseExact()
-         throws Exception
+  @Test
+  public void testInternalSearchGivenNameAscendingCaseExact() throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(
-                                 "givenName:caseExactOrderingMatch"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl("givenName:caseExactOrderingMatch"));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -410,34 +350,10 @@ public class ServerSideSortControlTestCase
     expectedDNOrder.add(lowercaseMcGeeDN);  // lowercase
     expectedDNOrder.add(zorroDN);           // No first name
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
+    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
 
-    assertEquals(returnedDNOrder, expectedDNOrder);
-
-    List<Control> responseControls = internalSearch.getResponseControls();
-    assertNotNull(responseControls);
-    assertEquals(responseControls.size(), 1);
-
-    ServerSideSortResponseControl responseControl;
-    Control c = responseControls.get(0);
-    if(c instanceof ServerSideSortResponseControl)
-    {
-      responseControl = (ServerSideSortResponseControl)c;
-    }
-    else
-    {
-      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-    }
-    assertEquals(responseControl.getResultCode(), 0);
-    assertNull(responseControl.getAttributeType());
-    responseControl.toString();
+    assertNoAttributeTypeForSort(internalSearch);
   }
-
-
 
   /**
    * Tests performing an internal search using the server-side sort control to
@@ -445,27 +361,14 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
-  public void testInternalSearchGivenNameDescending()
-         throws Exception
+  @Test
+  public void testInternalSearchGivenNameDescending() throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl("-givenName"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl("-givenName"));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -479,31 +382,9 @@ public class ServerSideSortControlTestCase
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(zorroDN);           // No first name
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
+    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
 
-    assertEquals(returnedDNOrder, expectedDNOrder);
-
-    List<Control> responseControls = internalSearch.getResponseControls();
-    assertNotNull(responseControls);
-    assertEquals(responseControls.size(), 1);
-
-    ServerSideSortResponseControl responseControl;
-    Control c = responseControls.get(0);
-    if(c instanceof ServerSideSortResponseControl)
-    {
-      responseControl = (ServerSideSortResponseControl)c;
-    }
-    else
-    {
-      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-    }
-    assertEquals(responseControl.getResultCode(), 0);
-    assertNull(responseControl.getAttributeType());
-    responseControl.toString();
+    assertNoAttributeTypeForSort(internalSearch);
   }
 
 
@@ -515,28 +396,15 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
-  public void testInternalSearchGivenNameDescendingCaseExact()
-         throws Exception
+  @Test
+  public void testInternalSearchGivenNameDescendingCaseExact() throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl("-givenName:caseExactOrderingMatch"));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(
-                                 "-givenName:caseExactOrderingMatch"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -550,31 +418,9 @@ public class ServerSideSortControlTestCase
     expectedDNOrder.add(aaccfJohnsonDN);    // Aaccf
     expectedDNOrder.add(zorroDN);           // No first name
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
+    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
 
-    assertEquals(returnedDNOrder, expectedDNOrder);
-
-    List<Control> responseControls = internalSearch.getResponseControls();
-    assertNotNull(responseControls);
-    assertEquals(responseControls.size(), 1);
-
-    ServerSideSortResponseControl responseControl;
-    Control c = responseControls.get(0);
-    if(c instanceof ServerSideSortResponseControl)
-    {
-      responseControl = (ServerSideSortResponseControl)c;
-    }
-    else
-    {
-      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-    }
-    assertEquals(responseControl.getResultCode(), 0);
-    assertNull(responseControl.getAttributeType());
-    responseControl.toString();
+    assertNoAttributeTypeForSort(internalSearch);
   }
 
 
@@ -585,27 +431,14 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
-  public void testInternalSearchGivenNameAscendingSnAscending()
-         throws Exception
+  @Test
+  public void testInternalSearchGivenNameAscendingSnAscending() throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl("givenName,sn"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl("givenName,sn"));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -619,34 +452,10 @@ public class ServerSideSortControlTestCase
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(zorroDN);           // No first name
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
+    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
 
-    assertEquals(returnedDNOrder, expectedDNOrder);
-
-    List<Control> responseControls = internalSearch.getResponseControls();
-    assertNotNull(responseControls);
-    assertEquals(responseControls.size(), 1);
-
-    ServerSideSortResponseControl responseControl;
-    Control c = responseControls.get(0);
-    if(c instanceof ServerSideSortResponseControl)
-    {
-      responseControl = (ServerSideSortResponseControl)c;
-    }
-    else
-    {
-      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-    }
-    assertEquals(responseControl.getResultCode(), 0);
-    assertNull(responseControl.getAttributeType());
-    responseControl.toString();
+    assertNoAttributeTypeForSort(internalSearch);
   }
-
-
 
   /**
    * Tests performing an internal search using the server-side sort control to
@@ -654,27 +463,15 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
+  @Test
   public void testInternalSearchGivenNameAscendingSnDescending()
          throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl("givenName,-sn"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl("givenName,-sn"));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
 
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -688,34 +485,10 @@ public class ServerSideSortControlTestCase
     expectedDNOrder.add(samZweckDN);        // Sam
     expectedDNOrder.add(zorroDN);           // No first name
 
-    ArrayList<DN> returnedDNOrder = new ArrayList<DN>();
-    for (Entry e : internalSearch.getSearchEntries())
-    {
-      returnedDNOrder.add(e.getName());
-    }
+    assertEquals(getDNs(internalSearch.getSearchEntries()), expectedDNOrder);
 
-    assertEquals(returnedDNOrder, expectedDNOrder);
-
-    List<Control> responseControls = internalSearch.getResponseControls();
-    assertNotNull(responseControls);
-    assertEquals(responseControls.size(), 1);
-
-    ServerSideSortResponseControl responseControl;
-    Control c = responseControls.get(0);
-    if(c instanceof ServerSideSortResponseControl)
-    {
-      responseControl = (ServerSideSortResponseControl)c;
-    }
-    else
-    {
-      responseControl = ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl)c).getValue());
-    }
-    assertEquals(responseControl.getResultCode(), 0);
-    assertNull(responseControl.getAttributeType());
-    responseControl.toString();
+    assertNoAttributeTypeForSort(internalSearch);
   }
-
-
 
   /**
    * Tests performing an internal search using the CRITICAL server-side sort control with
@@ -723,27 +496,14 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
-  public void testCriticalSortWithUndefinedAttribute()
-         throws Exception
+  @Test
+  public void testCriticalSortWithUndefinedAttribute() throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(true, "undefined"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl(true, "undefined"));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertEquals(internalSearch.getResultCode(), ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
   }
 
@@ -755,28 +515,14 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
-  public void testInternalSearchUndefinedOrderingRule()
-         throws Exception
+  @Test
+  public void testInternalSearchUndefinedOrderingRule() throws Exception
   {
     populateDB();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(true,
-                                 "givenName:undefinedOrderingMatch"));
-
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
-
-    internalSearch.run();
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl(true, "givenName:undefinedOrderingMatch"));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
     assertFalse(internalSearch.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -787,45 +533,56 @@ public class ServerSideSortControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurred.
    */
-  @Test()
-  public void testNonCriticalSortWithUndefinedAttribute()
-         throws Exception
+  @Test
+  public void testNonCriticalSortWithUndefinedAttribute() throws Exception
   {
     populateDB();
-    InternalClientConnection conn =
-    InternalClientConnection.getRootConnection();
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
-    requestControls.add(new ServerSideSortRequestControl(false,
-                                 "bad_sort:caseExactOrderingMatch"));
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=person)")
+        .addControl(new ServerSideSortRequestControl(false, "bad_sort:caseExactOrderingMatch"));
+    InternalSearchOperation internalSearch = getRootConnection().processSearch(request);
+    assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
+    ServerSideSortResponseControl responseControl = getServerSideSortResponseControl(internalSearch);
+    assertEquals(responseControl.getResultCode(), 16);
+  }
 
-    InternalSearchOperation internalSearch =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), requestControls,
-                  DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=person)"),
-                  null, null);
+  private void assertNoAttributeTypeForSort(InternalSearchOperation internalSearch) throws Exception
+  {
+    ServerSideSortResponseControl responseControl = getServerSideSortResponseControl(internalSearch);
+    assertEquals(responseControl.getResultCode(), ResultCode.SUCCESS.intValue());
+    assertNull(responseControl.getAttributeType());
+    responseControl.toString();
+  }
 
-    internalSearch.run();
-    assertEquals(internalSearch.getResultCode(),
-            ResultCode.SUCCESS);
+  private ServerSideSortResponseControl getServerSideSortResponseControl(InternalSearchOperation internalSearch)
+      throws Exception
+  {
     List<Control> responseControls = internalSearch.getResponseControls();
     assertNotNull(responseControls);
     assertEquals(responseControls.size(), 1);
 
-    ServerSideSortResponseControl responseControl;
+    return getServerSideSortResponseControl(responseControls);
+  }
+
+  private ServerSideSortResponseControl getServerSideSortResponseControl(List<Control> responseControls)
+      throws DirectoryException
+  {
     Control c = responseControls.get(0);
-    if(c instanceof ServerSideSortResponseControl)
+    if (c instanceof ServerSideSortResponseControl)
     {
-      responseControl = (ServerSideSortResponseControl)c;
+      return (ServerSideSortResponseControl) c;
     }
-    else
+    return ServerSideSortResponseControl.DECODER.decode(c.isCritical(), ((LDAPControl) c).getValue());
+  }
+
+  private ArrayList<DN> getDNs(LinkedList<SearchResultEntry> searchEntries)
+  {
+    ArrayList<DN> results = new ArrayList<DN>();
+    for (Entry e : searchEntries)
     {
-      responseControl = ServerSideSortResponseControl.DECODER.decode(
-              c.isCritical(), ((LDAPControl)c).getValue());
+      results.add(e.getName());
     }
-    assertEquals(responseControl.getResultCode(), 16);
+    return results;
   }
 }
 

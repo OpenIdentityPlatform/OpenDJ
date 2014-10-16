@@ -26,16 +26,13 @@
  */
 package org.opends.server.crypto;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
@@ -51,6 +48,7 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -72,6 +70,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.api.plugin.PluginType.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -197,23 +196,8 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
 
   private void searchAdminSuffix()
   {
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>(0);
-
-    ArrayList<Control> controls = new ArrayList<Control>(0);
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(getRootConnection(),
-                                     nextOperationID(),
-                                     nextMessageID(),
-                                     controls,
-                                     adminSuffixDN, SearchScope.WHOLE_SUBTREE,
-                                     DereferenceAliasesPolicy.NEVER,
-                                     0, 0,
-                                     false, keySearchFilter, attributes,
-                                     null);
-
-    searchOperation.run();
-
+    SearchRequest request = newSearchRequest(adminSuffixDN, SearchScope.WHOLE_SUBTREE, keySearchFilter);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     ResultCode resultCode = searchOperation.getResultCode();
     if (resultCode != ResultCode.SUCCESS)
     {
@@ -234,7 +218,6 @@ public class CryptoManagerSync extends InternalDirectoryServerPlugin
         logger.error(ERR_TRUSTSTORESYNC_EXCEPTION, stackTraceToSingleLineString(e));
       }
     }
-
   }
 
 

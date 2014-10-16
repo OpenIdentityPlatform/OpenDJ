@@ -32,16 +32,13 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
@@ -50,6 +47,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -641,17 +639,9 @@ public class EntryDNVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule = getRule(provider);
 
-    SearchFilter filter = SearchFilter.createFilterFromString(filterString);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filterString);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), null,
-                                     DN.valueOf("o=test"),
-                                     SearchScope.WHOLE_SUBTREE,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, null, null);
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
     // This attribute is searchable for either pre-indexed or not
     assertEquals(provider.isSearchable(rule, searchOperation, false),
                  isSearchable);
@@ -688,30 +678,13 @@ public class EntryDNVirtualAttributeProviderTestCase
 
     VirtualAttributeRule rule = getRule(provider);
 
-    SearchFilter filter = SearchFilter.createFilterFromString(filterString);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filterString);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), null,
-                                     DN.valueOf("o=test"),
-                                     SearchScope.WHOLE_SUBTREE,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, null, null);
-    LocalBackendSearchOperation localSearch =
-      new LocalBackendSearchOperation(searchOperation);
-
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
+    LocalBackendSearchOperation localSearch = new LocalBackendSearchOperation(searchOperation);
     provider.processSearch(rule, localSearch);
 
-    if (shouldMatch)
-    {
-      assertEquals(searchOperation.getSearchEntries().size(), 1);
-    }
-    else
-    {
-      assertEquals(searchOperation.getSearchEntries().size(), 0);
-    }
+    assertEquals(searchOperation.getSearchEntries().size(), shouldMatch ? 1 : 0);
   }
 }
 

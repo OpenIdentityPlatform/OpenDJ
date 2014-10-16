@@ -27,13 +27,15 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.SortedSet;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -42,11 +44,11 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.backends.jeb.EntryContainer;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
@@ -55,6 +57,8 @@ import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.authorization.dseecompat.EnumEvalReason.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -1166,13 +1170,10 @@ public final class AciHandler extends
    */
   private void processConfigAcis() throws InitializationException
   {
-    Set<String> requestAttrs = new LinkedHashSet<String>(1);
-    requestAttrs.add("aci");
     LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
-    ConfigHandler configBackend = DirectoryServer.getConfigHandler();
+    ConfigHandler<?> configBackend = DirectoryServer.getConfigHandler();
     for (DN baseDN : configBackend.getBaseDNs())
     {
       try
@@ -1191,14 +1192,10 @@ public final class AciHandler extends
       }
 
       try {
-        InternalSearchOperation internalSearch = new InternalSearchOperation(
-              conn, InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              null, baseDN, SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.createFilterFromString("aci=*"), requestAttrs, null);
-        LocalBackendSearchOperation localSearch =
-              new LocalBackendSearchOperation(internalSearch);
+        SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, "aci=*").addAttribute("aci");
+        InternalSearchOperation internalSearch =
+            new InternalSearchOperation(conn, nextOperationID(), nextMessageID(), request);
+        LocalBackendSearchOperation localSearch = new LocalBackendSearchOperation(internalSearch);
 
         configBackend.search(localSearch);
 

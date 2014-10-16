@@ -770,13 +770,8 @@ public class JmxClientConnection
    */
   public InternalSearchOperation processSearch(SearchRequest request)
   {
-    InternalSearchOperation searchOperation = new InternalSearchOperation(
-        this, nextOperationID(), nextMessageID(),
-        request.getControls(),
-        request.getName(), request.getScope(),
-        request.getDereferenceAliasesPolicy(),
-        request.getSizeLimit(), request.getTimeLimit(), request.isTypesOnly(),
-        request.getFilter(), request.getAttributes(), null);
+    InternalSearchOperation searchOperation =
+        new InternalSearchOperation(this, nextOperationID(), nextMessageID(), request);
 
     if (! hasPrivilege(Privilege.JMX_READ, null))
     {

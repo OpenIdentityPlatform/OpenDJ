@@ -31,7 +31,6 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -287,7 +286,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCreateValidGroup()
          throws Exception
   {
@@ -379,7 +378,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGroupAPI()
          throws Exception
   {
@@ -453,7 +452,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGroupAPINonexistent()
          throws Exception
   {
@@ -534,7 +533,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualGroupDynamicGroupWithMember()
          throws Exception
   {
@@ -560,7 +559,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualGroupStaticGroupWithMember()
          throws Exception
   {
@@ -586,7 +585,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualGroupStaticGroupWithUniqueMember()
          throws Exception
   {
@@ -612,7 +611,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualAttributeAPI()
          throws Exception
   {
@@ -655,15 +654,10 @@ public class VirtualStaticGroupTestCase
     assertEquals(provider.approximatelyEqualTo(entry, rule, null),
                  ConditionResult.UNDEFINED);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    SearchFilter filter = SearchFilter.createFilterFromString("(member=" + u1 + ")");
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filter);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.valueOf("o=test"),
-                  SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(member=" + u1 + ")"),
-                  null, null);
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
     assertFalse(provider.isSearchable(rule, searchOperation, false));
     assertFalse(provider.isSearchable(rule, searchOperation, true));
 
@@ -681,7 +675,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualAttributeAPINonexistent()
          throws Exception
   {
@@ -724,15 +718,10 @@ public class VirtualStaticGroupTestCase
     assertEquals(provider.approximatelyEqualTo(entry, rule, null),
                  ConditionResult.UNDEFINED);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    SearchFilter filter = SearchFilter.createFilterFromString("(member=" + u1 + ")");
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filter);
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.valueOf("o=test"),
-                  SearchScope.WHOLE_SUBTREE,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.createFilterFromString("(member=" + u1 + ")"),
-                  null, null);
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
     assertFalse(provider.isSearchable(rule, searchOperation, false));
     assertFalse(provider.isSearchable(rule, searchOperation, false));
 
@@ -749,7 +738,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualAttrDynamicGroupWithMember()
          throws Exception
   {
@@ -777,7 +766,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualAttrDynamicGroupWithUpdatedMemberURLs()
          throws Exception
   {
@@ -794,14 +783,11 @@ public class VirtualStaticGroupTestCase
     ByteString v = ByteString.valueOf(u4.toString());
     assertTrue(a.contains(v));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     LinkedList<Modification> mods = new LinkedList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("memberurl",
                        "ldap:///o=test??sub?(objectClass=person)")));
-    ModifyOperation modifyOperation = conn.processModify(d1, mods);
+    ModifyOperation modifyOperation = getRootConnection().processModify(d1, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     a = e.getAttribute(memberType).get(0);
@@ -819,9 +805,8 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testAllowRetrievingMembership()
-         throws Exception
+  @Test
+  public void testAllowRetrievingMembership() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
     TestCaseUtils.addEntries(LDIF_LINES);
@@ -837,8 +822,7 @@ public class VirtualStaticGroupTestCase
     assertTrue(a.contains(v));
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     LinkedList<Modification> mods = new LinkedList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,

@@ -33,10 +33,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
-
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.api.Group;
@@ -45,27 +44,27 @@ import org.opends.server.extensions.StaticGroup;
 import org.opends.server.extensions.VirtualStaticGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RDN;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
-
 
 /**
  * A set of test cases that involve the use of groups and the Directory Server
@@ -241,8 +240,7 @@ public class GroupManagerTestCase
     Entry user4Entry = DirectoryServer.getEntry(user4DN);
     Entry user5Entry = DirectoryServer.getEntry(user5DN);
     Group<? extends GroupImplementationCfg> group1Instance =
-            (Group<? extends GroupImplementationCfg>)
-                    groupManager.getGroupInstance(group1DN);
+            groupManager.getGroupInstance(group1DN);
     assertNotNull(group1Instance);
     //Add even numbered groups.
     group1Instance.addNestedGroup(group2DN);
@@ -321,16 +319,11 @@ public class GroupManagerTestCase
     addNestedGroupTestEntries();
     DN group1DN = DN.valueOf("cn=group 1,ou=Groups,o=test");
     DN group2DN = DN.valueOf("cn=group 2,ou=Groups,o=test");
-    DN group3DN = DN.valueOf("cn=group 3,ou=Groups,o=test");
-    DN group4DN = DN.valueOf("cn=group 4,ou=Groups,o=test");
     DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
     Entry user1Entry = DirectoryServer.getEntry(user1DN);
     Group<? extends GroupImplementationCfg> group1Instance =
-            (Group<? extends GroupImplementationCfg>)
-                    groupManager.getGroupInstance(group1DN);
-    Group<? extends GroupImplementationCfg> group2Instance =
-            (Group<? extends GroupImplementationCfg>)
-                    groupManager.getGroupInstance(group2DN);
+            groupManager.getGroupInstance(group1DN);
+    groupManager.getGroupInstance(group2DN);
     assertNotNull(group1Instance);
     //Add some nested groups and members.
     group1Instance.addNestedGroup(group2DN);
@@ -353,9 +346,8 @@ public class GroupManagerTestCase
     assertTrue(nestedGroups.isEmpty());
     try
     {
-      MemberList memberList=group1Instance.getMembers();
-      throw new AssertionError("Expected getMembers to fail but " +
-              "it didn't");
+      group1Instance.getMembers();
+      fail("getMembers)() should have thrown a DirectoryException");
     } catch (DirectoryException ex) {}
   }
 
@@ -390,11 +382,9 @@ public class GroupManagerTestCase
     //compile warning in the getNestedGroupDNs calls below.  Some IDEs
     //will give a unchecked cast warning.
     Group<? extends GroupImplementationCfg> group1Instance =
-            (Group<? extends GroupImplementationCfg>)
-                    groupManager.getGroupInstance(group1DN);
+            groupManager.getGroupInstance(group1DN);
     Group<? extends GroupImplementationCfg> group2Instance =
-            (Group<? extends GroupImplementationCfg>)
-                    groupManager.getGroupInstance(group2DN);
+            groupManager.getGroupInstance(group2DN);
     Group group3Instance = groupManager.getGroupInstance(group3DN);
     assertNotNull(group1Instance);
     assertNotNull(group2Instance);
@@ -1415,11 +1405,7 @@ public class GroupManagerTestCase
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
     InternalClientConnection conn0 = new InternalClientConnection(DN.rootDN());
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn0, nextOperationID(), nextMessageID(), null, 
-                  DN.rootDN(), SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.objectClassPresent(), null, null);
+    InternalSearchOperation searchOperation = createSearchOperation(conn0);
 
     assertFalse(conn0.isMemberOf(group1, null));
     assertFalse(conn0.isMemberOf(group2, null));
@@ -1439,12 +1425,7 @@ public class GroupManagerTestCase
     // Get a client connection authenticated as user1 and make sure it handles
     // group operations correctly.
     InternalClientConnection conn1 = new InternalClientConnection(user1DN);
-    searchOperation =
-         new InternalSearchOperation(conn1, nextOperationID(),
-                  nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0,  false,
-                  SearchFilter.objectClassPresent(), null, null);
+    searchOperation = createSearchOperation(conn1);
 
     assertTrue(conn1.isMemberOf(group1, null));
     assertFalse(conn1.isMemberOf(group2, null));
@@ -1468,12 +1449,7 @@ public class GroupManagerTestCase
     // Get a client connection authenticated as user2 and make sure it handles
     // group operations correctly.
     InternalClientConnection conn2 = new InternalClientConnection(user2DN);
-    searchOperation =
-         new InternalSearchOperation(conn2, nextOperationID(),
-                  nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0,  false,
-                  SearchFilter.objectClassPresent(), null, null);
+    searchOperation = createSearchOperation(conn2);
 
     assertTrue(conn2.isMemberOf(group1, null));
     assertTrue(conn2.isMemberOf(group2, null));
@@ -1497,12 +1473,7 @@ public class GroupManagerTestCase
     // Get a client connection authenticated as user3 and make sure it handles
     // group operations correctly.
     InternalClientConnection conn3 = new InternalClientConnection(user3DN);
-    searchOperation =
-         new InternalSearchOperation(conn3, nextOperationID(),
-                  nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0,  false,
-                  SearchFilter.objectClassPresent(), null, null);
+    searchOperation = createSearchOperation(conn3);
 
     assertFalse(conn3.isMemberOf(group1, null));
     assertTrue(conn3.isMemberOf(group2, null));
@@ -1544,7 +1515,11 @@ public class GroupManagerTestCase
     assertNull(groupManager.getGroupInstance(group3DN));
   }
 
-
+  private InternalSearchOperation createSearchOperation(InternalClientConnection conn)
+  {
+    final SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.BASE_OBJECT);
+    return new InternalSearchOperation(conn, nextOperationID(), nextMessageID(), request);
+  }
 
   /**
    * Tests operations involving static group member lists.
@@ -2037,7 +2012,6 @@ public class GroupManagerTestCase
 
     DN groupDN = DN.valueOf("cn=Test Group of URLs,ou=Groups,o=test");
     DN user1DN = DN.valueOf("uid=user.1,ou=People,o=test");
-    DN user2DN = DN.valueOf("uid=user.2,ou=People,o=test");
 
     Group groupInstance = groupManager.getGroupInstance(groupDN);
     assertNotNull(groupInstance);

@@ -129,10 +129,27 @@ public final class InternalSearchOperation
   }
 
 
+  /**
+   * Creates a new internal search operation with the provided information.
+   *
+   * @param internalConnection
+   *          The internal client connection with which this internal search
+   *          operation is associated.
+   * @param operationID
+   *          The operation ID for this internal search.
+   * @param messageID
+   *          The message ID for this internal search.
+   * @param request
+   *          The search request
+   */
+  public InternalSearchOperation(ClientConnection internalConnection, long operationID, int messageID,
+      SearchRequest request)
+  {
+    this(internalConnection, operationID, messageID, request, null);
+  }
 
   /**
-   * Creates a new internal search operation with the provided
-   * information.
+   * Creates a new internal search operation with the provided information.
    *
    * @param  internalConnection  The internal client connection with
    *                             which this internal search operation
@@ -141,27 +158,26 @@ public final class InternalSearchOperation
    *                             search.
    * @param  messageID           The message ID for this internal
    *                             search.
-   * @param  requestControls     The set of request controls for this
-   *                             internal search.
-   * @param  baseDN              The base DN for this internal search.
-   * @param  scope               The scope for this internal search.
-   * @param  derefPolicy         The alias dereferencing policy for
-   *                             this internal search.
-   * @param  sizeLimit           The size limit for this internal
-   *                             search.
-   * @param  timeLimit           The time limit for this internal
-   *                             search.
-   * @param  typesOnly           The typesOnly flag for this internal
-   *                             search.
-   * @param  filter              The filter for this internal search.
-   * @param  attributes          The names of the requested attributes
-   *                             for this internal search.
+   * @param  request             The search request
    * @param  searchListener      The internal search listener that
    *                             should be used to process the
    *                             results, or <CODE>null</CODE> if
    *                             they should be collected internally.
    */
-  public InternalSearchOperation(
+  public InternalSearchOperation(ClientConnection internalConnection, long operationID, int messageID,
+      SearchRequest request, InternalSearchListener searchListener)
+  {
+    this(internalConnection, operationID, messageID,
+        request.getControls(),
+        request.getName(), request.getScope(),
+        request.getDereferenceAliasesPolicy(),
+        request.getSizeLimit(), request.getTimeLimit(), request.isTypesOnly(),
+        request.getFilter(), request.getAttributes(),
+        searchListener);
+  }
+
+  // TODO JNR remove??
+  private InternalSearchOperation(
               ClientConnection internalConnection,
               long operationID, int messageID,
               List<Control> requestControls, DN baseDN,
@@ -192,8 +208,6 @@ public final class InternalSearchOperation
 
     setInternalOperation(true);
   }
-
-
 
   /**
    * Retrieves the set of search result entries returned for this

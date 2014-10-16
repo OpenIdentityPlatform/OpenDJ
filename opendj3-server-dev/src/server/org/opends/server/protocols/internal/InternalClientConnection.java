@@ -2022,11 +2022,7 @@ public final class InternalClientConnection
     // filter = Filter.alwaysTrue();
     // }
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(this, nextOperationID(), nextMessageID(),
-             request.getControls(), request.getName(), request.getScope(),
-             request.getDereferenceAliasesPolicy(), request.getSizeLimit(),
-             request.getTimeLimit(), request.isTypesOnly(), request.getFilter(),
-             request.getAttributes(), searchListener);
+        new InternalSearchOperation(this, nextOperationID(), nextMessageID(), request, searchListener);
     searchOperation.run();
     return searchOperation;
   }
