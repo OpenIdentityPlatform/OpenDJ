@@ -259,7 +259,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         writer.close();
 
         // objectclass is 'person' in the example, result must be > 0
-        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
+        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName());
         assertThat(actual.size()).isGreaterThan(getStandardEntry().getAttributeCount());
     }
 
@@ -317,7 +317,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         writer.writeEntry(getStandardEntry());
         writer.close();
 
-        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
+        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName());
         assertThat(actual.get(1)).contains("cn: ");
         assertThat(actual.get(2)).contains("sn: ");
     }
@@ -339,7 +339,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         writer.close();
 
         // 1st line is containing DN
-        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
+        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName());
         // empty second
         assertThat(actual.get(1)).isEmpty();
         // verifying no more than 2 lines written
@@ -365,7 +365,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         writer.writeEntry(getStandardEntry());
         writer.close();
 
-        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
+        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName());
         assertThat(actual.get(1)).contains("cn: ");
         assertThat(actual.get(2)).contains("sn: ");
         // 3 lines of result + 1 empty line
@@ -395,7 +395,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
                 opAttributes++;
             }
         }
-        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
+        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName());
         assertThat(actual.size()).isGreaterThan(getStandardEntry().getAttributeCount());
 
         assertThat(opAttributes).isEqualTo(2);
@@ -425,7 +425,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
             assertThat(line).doesNotContain("entryDN");
         }
 
-        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
+        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName());
         assertThat(actual.size()).isGreaterThan(getStandardEntry().getAttributeCount());
     }
 
@@ -447,7 +447,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
         writer.flush();
         writer.close();
 
-        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName().toString());
+        assertThat(actual.get(0)).isEqualTo("dn: " + getStandardEntry().getName());
         assertThat(actual.size()).isGreaterThan(getStandardEntry().getAttributeCount());
     }
 

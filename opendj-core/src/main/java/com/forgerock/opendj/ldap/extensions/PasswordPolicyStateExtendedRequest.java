@@ -153,7 +153,7 @@ public final class PasswordPolicyStateExtendedRequest
         /** {@inheritDoc} */
         @Override
         public String toString() {
-            return property.toString() + ": " + values;
+            return property + ": " + values;
         }
     }
 

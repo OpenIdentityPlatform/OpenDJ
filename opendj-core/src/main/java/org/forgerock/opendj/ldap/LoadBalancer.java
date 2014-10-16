@@ -72,7 +72,7 @@ final class LoadBalancer implements ConnectionFactory {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LoadBalancer(");
-        builder.append(String.valueOf(algorithm));
+        builder.append(algorithm);
         builder.append(')');
         return builder.toString();
     }

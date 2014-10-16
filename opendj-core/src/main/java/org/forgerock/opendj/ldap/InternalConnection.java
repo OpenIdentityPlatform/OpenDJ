@@ -209,7 +209,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("InternalConnection(");
-        builder.append(String.valueOf(serverConnection));
+        builder.append(serverConnection);
         builder.append(')');
         return builder.toString();
     }

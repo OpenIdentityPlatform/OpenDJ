@@ -89,9 +89,9 @@ final class InternalConnectionFactory<C> implements ConnectionFactory {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("InternalConnectionFactory(");
-        builder.append(String.valueOf(clientContext));
+        builder.append(clientContext);
         builder.append(',');
-        builder.append(String.valueOf(factory));
+        builder.append(factory);
         builder.append(')');
         return builder.toString();
     }

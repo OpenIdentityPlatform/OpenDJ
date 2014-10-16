@@ -48,7 +48,7 @@ final class JSONConstantAttributeMapper extends AttributeMapper {
 
     @Override
     public String toString() {
-        return "constant(" + value.toString() + ")";
+        return "constant(" + value + ")";
     }
 
     @Override

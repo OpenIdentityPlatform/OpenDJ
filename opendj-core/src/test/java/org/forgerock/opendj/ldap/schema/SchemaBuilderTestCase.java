@@ -834,7 +834,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
 
         assertThat(schema.getDITContentRules()).isEmpty();
         assertThat(schema.getWarnings()).isEmpty();
-        assertThat(schema.getObjectClass("myNewClass").getOID().toString()).isEqualTo(
+        assertThat(schema.getObjectClass("myNewClass").getOID()).isEqualTo(
                 "1.3.6.1.4.1.36733.2.1.1.15.1");
     }
 
@@ -928,7 +928,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 "( 1.3.6.1.4.1.1466.115.121.1.15 DESC 'Directory String' X-ORIGIN 'RFC 4512' )");
         assertThat(schema.getAttributeType("myCustomAttribute").getUsage().toString()).isEqualTo(
                 "userApplications");
-        assertThat(schema.getAttributeType("myCustomAttribute").getDescription().toString())
+        assertThat(schema.getAttributeType("myCustomAttribute").getDescription())
                 .isEqualTo("A short description");
 
         assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
@@ -965,7 +965,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 "( 1.3.6.1.4.1.1466.115.121.1.15 DESC 'Directory String' X-ORIGIN 'RFC 4512' )");
         assertThat(schema.getAttributeType("myCustomAttribute").getUsage().toString()).isEqualTo(
                 "userApplications");
-        assertThat(schema.getAttributeType("myCustomAttribute").getDescription().toString())
+        assertThat(schema.getAttributeType("myCustomAttribute").getDescription())
                 .isEqualTo("A short description");
         assertThat(schema.getObjectClassesWithName("myCustomObjClass")).isNotEmpty();
     }
@@ -1320,7 +1320,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(schema.getDITStructureRulesWithName("testAllowATRequiredByDCR")).isNotNull();
         assertThat(schema.getDITStructureRule(999014).getDescription()).isEqualTo(
                 "A short description");
-        assertThat(schema.getDITStructureRule(999014).getNameOrRuleID().toString()).isEqualTo(
+        assertThat(schema.getDITStructureRule(999014).getNameOrRuleID()).isEqualTo(
                 "testDITStructureRuleConstraintsSup");
     }
 
@@ -1346,7 +1346,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
 
         assertThat(schema.getWarnings()).isEmpty();
         assertThat(schema.getDITContentRule("inetOPerson")).isNotNull();
-        assertThat(schema.getDITContentRule("inetOPerson").getNameOrOID().toString()).isEqualTo(
+        assertThat(schema.getDITContentRule("inetOPerson").getNameOrOID()).isEqualTo(
                 "inetOPerson");
         assertThat(schema.getDITContentRule("inetOPerson").getDescription()).isEqualTo(
                 "inetOrgPerson is defined in RFC2798");
@@ -1416,8 +1416,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
                 schema.getDITContentRule("testDontAllowAttributeProhibitedByDCR").getDescription())
                 .isEqualTo("Ensure attributes prohibited");
         assertThat(
-                schema.getDITContentRule("testDontAllowAttributeProhibitedByDCR").getNameOrOID()
-                        .toString()).isEqualTo("testDontAllowAttributeProhibitedByDCR");
+                schema.getDITContentRule("testDontAllowAttributeProhibitedByDCR").getNameOrOID())
+                .isEqualTo("testDontAllowAttributeProhibitedByDCR");
     }
 
     /**
@@ -1578,7 +1578,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         for (NameForm o : schema.getNameForms()) {
             assertThat(o.getNameOrOID()).isEqualTo("testViolatesSingleValuedNameForm");
             assertThat(o.getOID()).isEqualTo("testviolatessinglevaluednameform-oid");
-            assertThat(o.getStructuralClass().getOID().toString()).isEqualTo(
+            assertThat(o.getStructuralClass().getOID()).isEqualTo(
                     "testviolatessinglevaluednameformoc-oid");
         }
     }

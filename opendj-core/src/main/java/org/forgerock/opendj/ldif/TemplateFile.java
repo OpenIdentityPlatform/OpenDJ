@@ -2081,7 +2081,7 @@ final class TemplateFile {
          * template value.
          */
         void append(final Object o) {
-            templateValue.append(String.valueOf(o));
+            templateValue.append(o);
         }
     }
 }

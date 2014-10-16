@@ -107,7 +107,7 @@ public final class SimpleAttributeMapper extends AbstractLDAPAttributeMapper<Sim
 
     @Override
     public String toString() {
-        return "simple(" + ldapAttributeName.toString() + ")";
+        return "simple(" + ldapAttributeName + ")";
     }
 
     @Override

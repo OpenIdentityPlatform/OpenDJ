@@ -140,7 +140,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             @Override
             public void addResult(int messageID, Result result) throws DecodeException, IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
-                assertThat(result.getMatchedDN().toString()).isEqualTo(TEST_DN);
+                assertThat(result.getMatchedDN()).isEqualTo(TEST_DN);
             }
         } };
     }
@@ -265,7 +265,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
                 CancelExtendedRequest cancelRequest =
                         CancelExtendedRequest.DECODER.decodeExtendedRequest(request,
                                 new LDAPOptions().getDecodeOptions());
-                assertThat(cancelRequest.getOID().toString()).isEqualTo(oidCancel);
+                assertThat(cancelRequest.getOID()).isEqualTo(oidCancel);
                 assertThat(cancelRequest.getRequestID()).isEqualTo(requestID);
             }
         } };

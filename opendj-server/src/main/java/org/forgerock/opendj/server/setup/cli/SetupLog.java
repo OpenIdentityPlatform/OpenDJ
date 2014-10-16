@@ -63,8 +63,7 @@ final class SetupLog {
         final String space = " ";
 
         if (logFile == null) {
-            logFile = new File(new StringBuilder(SetupCli.getInstallationPath()).append(File.separator).append(LOGNAME)
-                    .toString());
+            logFile = new File(SetupCli.getInstallationPath() + File.separator + LOGNAME);
         }
         try {
             fileHandler = new FileHandler(logFile.getCanonicalPath(), true);

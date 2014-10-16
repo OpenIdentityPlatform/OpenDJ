@@ -171,7 +171,7 @@ public class CommandBuilder {
         final StringBuilder builder = new StringBuilder();
         builder.append(commandName);
         if (subcommandName != null) {
-            builder.append(" " + subcommandName);
+            builder.append(" ").append(subcommandName);
         }
         for (final Argument arg : args) {
             // This CLI is always using SSL, and the argument has been removed from
@@ -187,15 +187,15 @@ public class CommandBuilder {
             }
 
             if (arg instanceof BooleanArgument) {
-                builder.append(lineSeparator + argName);
+                builder.append(lineSeparator).append(argName);
             } else if (arg instanceof FileBasedArgument) {
                 for (String value : ((FileBasedArgument) arg).getNameToValueMap().keySet()) {
-                    builder.append(lineSeparator + argName + " ");
+                    builder.append(lineSeparator).append(argName).append(" ");
                     builder.append(getOutputValue(value, arg, showObfuscated));
                 }
             } else {
                 for (String value : arg.getValues()) {
-                    builder.append(lineSeparator + argName + " ");
+                    builder.append(lineSeparator).append(argName).append(" ");
                     builder.append(getOutputValue(value, arg, showObfuscated));
                 }
             }

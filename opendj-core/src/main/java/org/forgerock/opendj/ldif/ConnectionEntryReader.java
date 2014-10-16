@@ -273,7 +273,7 @@ public class ConnectionEntryReader implements EntryReader {
         } else if (r instanceof SearchResultReference) {
             return false;
         } else {
-            throw new RuntimeException("Unexpected response type: " + r.getClass().toString());
+            throw new RuntimeException("Unexpected response type: " + r.getClass());
         }
     }
 

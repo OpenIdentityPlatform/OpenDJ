@@ -280,7 +280,7 @@ public final class Iterables {
                 if (!firstValue) {
                     builder.append(", ");
                 }
-                builder.append(String.valueOf(value));
+                builder.append(value);
                 firstValue = false;
             }
             builder.append(']');

@@ -68,7 +68,7 @@ final class AuthzIdTemplate {
         @Override
         public String formatAsAuthzId(final AuthzIdTemplate t, final Object[] templateVariables,
                 final Schema schema) throws ResourceException {
-            return "dn:" + DN.format(t.dnFormatString, schema, templateVariables).toString();
+            return "dn:" + DN.format(t.dnFormatString, schema, templateVariables);
         }
 
     };

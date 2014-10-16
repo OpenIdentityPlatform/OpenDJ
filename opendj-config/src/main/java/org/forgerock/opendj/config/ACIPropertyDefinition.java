@@ -126,6 +126,6 @@ public final class ACIPropertyDefinition extends PropertyDefinition<String> {
     /** {@inheritDoc} */
     @Override
     public int compare(String o1, String o2) {
-        return o1.toString().compareTo(o2.toString());
+        return o1.compareTo(o2);
     }
 }

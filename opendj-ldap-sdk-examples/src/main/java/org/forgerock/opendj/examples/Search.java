@@ -113,15 +113,13 @@ public final class Search {
             while (reader.hasNext()) {
                 if (!reader.isReference()) {
                     final SearchResultEntry entry = reader.readEntry();
-                    writer.writeComment("Search result entry: "
-                            + entry.getName().toString());
+                    writer.writeComment("Search result entry: " + entry.getName());
                     writer.writeEntry(entry);
                 } else {
                     final SearchResultReference ref = reader.readReference();
 
                     // Got a continuation reference.
-                    writer.writeComment("Search result reference: "
-                            + ref.getURIs().toString());
+                    writer.writeComment("Search result reference: " + ref.getURIs());
                 }
             }
             writer.flush();

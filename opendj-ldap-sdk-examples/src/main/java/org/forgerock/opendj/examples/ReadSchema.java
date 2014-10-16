@@ -106,7 +106,7 @@ public final class ReadSchema {
 
             System.out.println("WARNINGS");
             for (LocalizableMessage m : schema.getWarnings()) {
-                System.out.println("  " + m.toString());
+                System.out.println("  " + m);
             }
             System.out.println();
         } catch (final LdapException e) {

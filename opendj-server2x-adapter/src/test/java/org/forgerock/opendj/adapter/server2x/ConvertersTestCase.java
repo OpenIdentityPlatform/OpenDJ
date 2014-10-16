@@ -295,7 +295,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         org.forgerock.opendj.ldap.Attribute attribute = new LinkedAttribute("test", "value1");
 
         org.opends.server.types.Attribute srvAttribute = toAttribute(attribute);
-        assertThat(srvAttribute.getAttributeType().getNameOrOID().toString()).isEqualTo("test");
+        assertThat(srvAttribute.getAttributeType().getNameOrOID()).isEqualTo("test");
         assertThat(srvAttribute.size()).isEqualTo(1);
         assertThat(srvAttribute.iterator().next().toString()).isEqualTo("value1");
 
@@ -303,7 +303,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
                 new LinkedAttribute("Another", ByteString.valueOf("myValue"));
 
         org.opends.server.types.Attribute srvAttribute2 = toAttribute(attribute2);
-        assertThat(srvAttribute2.getAttributeType().getNameOrOID().toString()).isEqualTo("Another");
+        assertThat(srvAttribute2.getAttributeType().getNameOrOID()).isEqualTo("Another");
         assertThat(srvAttribute2.size()).isEqualTo(1);
         assertThat(srvAttribute2.iterator().next().toString()).isEqualTo("myValue");
     }
@@ -317,7 +317,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
                 new LinkedAttribute("testMultiValuedAttribute", "value1", "value2");
 
         org.opends.server.types.RawAttribute srvAttribute = to(attribute);
-        assertThat(srvAttribute.getAttributeType().toString())
+        assertThat(srvAttribute.getAttributeType())
                 .isEqualTo("testMultiValuedAttribute");
         assertThat(srvAttribute.getValues().size()).isEqualTo(2);
         assertThat(srvAttribute.getValues().get(0).toString()).isEqualTo("value1");
@@ -328,7 +328,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
                         "value4");
 
         org.opends.server.types.RawAttribute srvAttribute2 = to(attribute2);
-        assertThat(srvAttribute2.getAttributeType().toString()).isEqualTo(
+        assertThat(srvAttribute2.getAttributeType()).isEqualTo(
                 "AnotherMultiValuedAttribute");
         assertThat(srvAttribute2.getValues().size()).isEqualTo(4);
         assertThat(srvAttribute2.getValues().get(0).toString()).isEqualTo("value1");
@@ -343,7 +343,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
                 new LinkedAttribute("testMultiValuedAttribute", "value1", "value2");
 
         org.opends.server.types.Attribute srvAttribute = toAttribute(attribute);
-        assertThat(srvAttribute.getAttributeType().getNameOrOID().toString())
+        assertThat(srvAttribute.getAttributeType().getNameOrOID())
             .isEqualTo("testMultiValuedAttribute");
         assertThat(srvAttribute.size()).isEqualTo(2);
         Iterator<AttributeValue> iter = srvAttribute.iterator();
@@ -355,7 +355,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
                         "value4");
 
         org.opends.server.types.Attribute srvAttribute2 = toAttribute(attribute2);
-        assertThat(srvAttribute2.getAttributeType().getNameOrOID().toString())
+        assertThat(srvAttribute2.getAttributeType().getNameOrOID())
             .isEqualTo("AnotherMultiValuedAttribute");
         assertThat(srvAttribute2.size()).isEqualTo(4);
         iter = srvAttribute2.iterator();

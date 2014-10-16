@@ -954,7 +954,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("HeartBeatConnectionFactory(");
-        builder.append(String.valueOf(factory));
+        builder.append(factory);
         builder.append(')');
         return builder.toString();
     }
