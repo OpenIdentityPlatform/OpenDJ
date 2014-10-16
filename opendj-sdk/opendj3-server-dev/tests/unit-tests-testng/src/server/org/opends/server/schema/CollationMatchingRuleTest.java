@@ -240,11 +240,8 @@ public final class CollationMatchingRuleTest
      *It searches for string quebec against the value of sn which is
      * Qu\u00e9bec.
      */
-    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "sn:en.6:=*u*bec")
-        .setSizeLimit(Integer.MAX_VALUE)
-        .setTimeLimit(Integer.MAX_VALUE);
+    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "sn:en.6:=*u*bec");
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
-
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();

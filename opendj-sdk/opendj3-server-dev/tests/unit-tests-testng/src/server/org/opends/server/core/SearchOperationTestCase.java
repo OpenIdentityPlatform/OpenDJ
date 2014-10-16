@@ -339,8 +339,6 @@ public class SearchOperationTestCase extends OperationTestCase
   {
     InvocationCounterPlugin.resetAllCounters();
     SearchRequest request = Requests.newSearchRequest(BASE, SearchScope.WHOLE_SUBTREE, "(objectclass=inetorgperson)")
-        .setTimeLimit(Integer.MAX_VALUE)
-        .setSizeLimit(Integer.MAX_VALUE)
         .setTypesOnly(true);
     Entry resultEntry = getSingleEntry(getRootConnection().processSearch(request));
 
@@ -751,8 +749,6 @@ public class SearchOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     SearchRequest request = Requests.newSearchRequest(DN.valueOf(BASE), SearchScope.WHOLE_SUBTREE)
-        .setSizeLimit(Integer.MAX_VALUE)
-        .setTimeLimit(Integer.MAX_VALUE)
         .addControl(new SubentriesControl(true, true));
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -766,8 +762,6 @@ public class SearchOperationTestCase extends OperationTestCase
     InvocationCounterPlugin.resetAllCounters();
 
     SearchRequest request = Requests.newSearchRequest(DN.valueOf(BASE), SearchScope.WHOLE_SUBTREE)
-        .setSizeLimit(Integer.MAX_VALUE)
-        .setTimeLimit(Integer.MAX_VALUE)
         .addControl(new LDAPControl(OID_LDUP_SUBENTRIES, true));
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);

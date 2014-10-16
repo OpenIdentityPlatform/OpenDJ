@@ -931,10 +931,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
 
     String filter = "(&(objectclass=Person)"
         + "(isMemberOf=cn=MyDGrp,ou=groups,dc=example,dc=com))";
-    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter)
-        .setTimeLimit(Integer.MAX_VALUE)
-        .setSizeLimit(Integer.MAX_VALUE);
-
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();

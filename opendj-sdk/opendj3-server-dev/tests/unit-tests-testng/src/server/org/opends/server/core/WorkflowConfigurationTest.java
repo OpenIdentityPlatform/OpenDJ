@@ -225,9 +225,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
       ResultCode  expectedResultCode
       ) throws Exception
   {
-    SearchRequest request = newSearchRequest(DN.valueOf(baseDN), scope)
-        .setSizeLimit(Integer.MAX_VALUE)
-        .setTimeLimit(Integer.MAX_VALUE);
+    SearchRequest request = newSearchRequest(DN.valueOf(baseDN), scope);
     InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), expectedResultCode);
     return searchOperation;
