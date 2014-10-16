@@ -37,7 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
@@ -48,6 +47,7 @@ import org.opends.server.types.DN;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 
 /**
  * This class implements a ServerState that is stored in the backend
@@ -158,30 +158,17 @@ class PersistentServerState
    */
   private SearchResultEntry searchBaseEntry()
   {
-    try
+    // Search the database entry that is used to periodically save the ServerState
+    final SearchRequest request = newSearchRequest(baseDN, SearchScope.BASE_OBJECT).addAttribute(REPLICATION_STATE);
+    final InternalSearchOperation search = getRootConnection().processSearch(request);
+    final ResultCode resultCode = search.getResultCode();
+    if (resultCode != ResultCode.SUCCESS
+        && resultCode != ResultCode.NO_SUCH_OBJECT)
     {
-      final SearchRequest request =
-          newSearchRequest(baseDN, SearchScope.BASE_OBJECT, "objectclass=*").addAttribute(REPLICATION_STATE);
-      /*
-       * Search the database entry that is used to periodically
-       * save the ServerState
-       */
-      final InternalSearchOperation search = getRootConnection().processSearch(request);
-      final ResultCode resultCode = search.getResultCode();
-      if (resultCode != ResultCode.SUCCESS
-          && resultCode != ResultCode.NO_SUCH_OBJECT)
-      {
-        logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getName(), search,
-                search.getErrorMessage(), baseDN);
-        return null;
-      }
-      return getFirstResult(search);
-    }
-    catch (DirectoryException e)
-    {
-      // cannot happen
+      logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getName(), search, search.getErrorMessage(), baseDN);
       return null;
     }
+    return getFirstResult(search);
   }
 
   /**

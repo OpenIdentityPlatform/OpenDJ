@@ -26,10 +26,13 @@
  */
 package org.opends.server.extensions;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -37,14 +40,11 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.VirtualAttributeRule;
@@ -53,15 +53,18 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the isMemberOf virtual attribute provider.
  */
+@SuppressWarnings("javadoc")
 public class IsMemberOfVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  // The attribute type for the isMemberOf attribute.
+  /** The attribute type for the isMemberOf attribute. */
   private AttributeType isMemberOfType;
 
 
@@ -71,9 +74,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.restartServer();
 
@@ -89,7 +91,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStaticGroupMembershipMember()
          throws Exception
   {
@@ -137,10 +139,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
+         getRootConnection().processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -153,9 +153,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testStaticGroupMembershipUniqueMember()
-         throws Exception
+  @Test
+  public void testStaticGroupMembershipUniqueMember() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -201,10 +200,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
+         getRootConnection().processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -216,9 +213,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDynamicGroupMembership()
-         throws Exception
+  @Test
+  public void testDynamicGroupMembership() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -264,11 +260,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     DeleteOperation deleteOperation =
-         conn.processDelete(
-              DN.valueOf("cn=test dynamic group,ou=groups,o=test"));
+         getRootConnection().processDelete(DN.valueOf("cn=test dynamic group,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -280,9 +273,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testMultipleStaticGroups()
-         throws Exception
+  @Test
+  public void testMultipleStaticGroups() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -354,8 +346,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     DeleteOperation deleteOperation =
          conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -377,9 +368,8 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testMultipleGroups()
-         throws Exception
+  @Test
+  public void testMultipleGroups() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -472,8 +462,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     DeleteOperation deleteOperation =
          conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
@@ -504,7 +493,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
   /**
    * Tests the {@code isMultiValued} method.
    */
-  @Test()
+  @Test
   public void testIsMultiValued()
   {
     IsMemberOfVirtualAttributeProvider provider =
@@ -520,7 +509,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMatchesSubstring()
          throws Exception
   {
@@ -557,7 +546,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGreaterThanOrEqualTo()
          throws Exception
   {
@@ -592,7 +581,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLessThanOrEqualTo()
          throws Exception
   {
@@ -627,7 +616,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testApproximatelyEqualTo()
          throws Exception
   {
@@ -676,42 +665,28 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       new Object[] { "(isMemberOf=*)", false, false },
       new Object[] { "(isMemberOf=cn*)", false, false },
       new Object[] { "(isMemberOf=invalid)", true, false },
-      new Object[] { "(&(isMemberOf=invalid1)(isMemberOf=invalid2))",
-                     true, false },
-      new Object[] { "(isMemberOf>=cn=Test Group 1,ou=Groups,o=test)",
-                     false, false },
-      new Object[] { "(isMemberOf<=cn=Test Group 1,ou=Groups,o=test)",
-                     false, false },
-      new Object[] { "(isMemberOf~=cn=Test Group 1,ou=Groups,o=test)",
-                     false, false },
-      new Object[] { "(isMemberOf=cn=Test Group 1,ou=Groups,o=test)",
-                     true, true },
-      new Object[] { "(isMemberOf=cn=Test Group 2,ou=Groups,o=test)",
-                     true, false },
+      new Object[] { "(&(isMemberOf=invalid1)(isMemberOf=invalid2))", true, false },
+      new Object[] { "(isMemberOf>=cn=Test Group 1,ou=Groups,o=test)", false, false },
+      new Object[] { "(isMemberOf<=cn=Test Group 1,ou=Groups,o=test)", false, false },
+      new Object[] { "(isMemberOf~=cn=Test Group 1,ou=Groups,o=test)", false, false },
+      new Object[] { "(isMemberOf=cn=Test Group 1,ou=Groups,o=test)", true, true },
+      new Object[] { "(isMemberOf=cn=Test Group 2,ou=Groups,o=test)", true, false },
       new Object[] { "(&(isMemberOf=cn=Test Group 1,ou=Groups,o=test)" +
-                       "(givenName=test))",
-                     true, true },
+                       "(givenName=test))", true, true },
       new Object[] { "(&(isMemberOf=cn=Test Group 1,ou=Groups,o=test)" +
-                       "(isMemberOf=invalid))",
-                     true, false },
+                       "(isMemberOf=invalid))", true, false },
       new Object[] { "(&(isMemberOf=invalid)" +
-                       "(isMemberOf=cn=Test Group 1,ou=Groups,o=test))",
-                     true, false },
+                       "(isMemberOf=cn=Test Group 1,ou=Groups,o=test))", true, false },
       new Object[] { "(&(isMemberOf=cn=Test Group 1,ou=Groups,o=test)" +
-                       "(givenName=not test))",
-                     true, false },
+                       "(givenName=not test))", true, false },
       new Object[] { "(&(isMemberOf=cn=Test Group 1,ou=Groups,o=test)" +
-                       "(isMemberOf=cn=Test Group 2,ou=Groups,o=test))",
-                     true, false },
+                       "(isMemberOf=cn=Test Group 2,ou=Groups,o=test))", true, false },
       new Object[] { "(&(isMemberOf=cn=Test Group 1,ou=Groups,o=test)" +
-                       "(isMemberOf=cn=Test Group 3,ou=Groups,o=test))",
-                     true, true },
+                       "(isMemberOf=cn=Test Group 3,ou=Groups,o=test))", true, true },
       new Object[] { "(&(isMemberOf=cn=Test Group 2,ou=Groups,o=test)" +
-                       "(isMemberOf=cn=Test Group 4,ou=Groups,o=test))",
-                     true, false },
+                       "(isMemberOf=cn=Test Group 4,ou=Groups,o=test))", true, false },
       new Object[] { "(|(isMemberOf=cn=Test Group 1,ou=Groups,o=test)" +
-                       "(isMemberOf=cn=Test Group 3,ou=Groups,o=test))",
-                     false, false },
+                       "(isMemberOf=cn=Test Group 3,ou=Groups,o=test))", false, false },
     };
   }
 
@@ -745,20 +720,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    SearchFilter filter = SearchFilter.createFilterFromString(filterString);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn,
-                                     InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),
-                                     null,
-                                     DN.valueOf("o=test"),
-                                     SearchScope.WHOLE_SUBTREE,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, null, null);
-
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filterString);
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        getRootConnection(), nextOperationID(), nextMessageID(), request, null);
     assertEquals(provider.isSearchable(rule,
         new LocalBackendSearchOperation(searchOperation), false), isSearchable);
     // isMemberOf is not searchable with preIndexed set to true
@@ -877,19 +841,10 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    SearchFilter filter = SearchFilter.createFilterFromString(filterString);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn,
-                                     InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),
-                                     null,
-                                     DN.valueOf("o=test"),
-                                     SearchScope.WHOLE_SUBTREE,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, null, null);
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filterString);
+    InternalClientConnection conn = getRootConnection();
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        conn, nextOperationID(), nextMessageID(), request, null);
     provider.processSearch(rule, new LocalBackendSearchOperation(searchOperation));
 
     boolean matchFound = false;
@@ -933,7 +888,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * Tests if a search using ismemberof works for a dynamic group with large
    * number of entries to simulate unindexed searches.
    */
-  @Test()
+  @Test
   public void testLargeDynamicGroupMembership() throws Exception
   {
     String SUFFIX=",dc=example,dc=com";
@@ -972,26 +927,15 @@ public class IsMemberOfVirtualAttributeProviderTestCase
          DirectoryServer.getEntry(DN.valueOf("cn=user.0,ou=People"+SUFFIX));
     assertNotNull(e);
     //Do an ldapsearch.
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
 
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn,
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
-              new ArrayList<Control>(),
-              ByteString.valueOf("dc=example,dc=com"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(&(objectclass=Person)" +
-              "(isMemberOf=cn=MyDGrp,ou=groups,dc=example,dc=com))"),
-              null, null);
 
-    searchOperation.run();
+    String filter = "(&(objectclass=Person)"
+        + "(isMemberOf=cn=MyDGrp,ou=groups,dc=example,dc=com))";
+    SearchRequest request = newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, filter)
+        .setTimeLimit(Integer.MAX_VALUE)
+        .setSizeLimit(Integer.MAX_VALUE);
+
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     assertTrue(entries.size()>4000);

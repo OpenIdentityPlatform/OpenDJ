@@ -117,7 +117,9 @@ public final class Requests {
             final String filter, final String... attributeDescriptions)
             throws NullPointerException, LocalizedIllegalArgumentException, DirectoryException {
         Reject.ifNull(name, scope, filter);
-        SearchFilter f = SearchFilter.createFilterFromString(filter);
+        SearchFilter f = "(objectclass=*)".equals(filter.toLowerCase())
+            ? SearchFilter.objectClassPresent()
+            : SearchFilter.createFilterFromString(filter);
         final SearchRequest request = new SearchRequest(DN.valueOf(name), scope, f);
         for (final String attributeDescription : attributeDescriptions) {
             request.addAttribute(attributeDescription);

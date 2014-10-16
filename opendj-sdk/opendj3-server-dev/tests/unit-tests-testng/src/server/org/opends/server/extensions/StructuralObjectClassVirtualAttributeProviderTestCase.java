@@ -27,24 +27,18 @@
 package org.opends.server.extensions;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
@@ -54,6 +48,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -337,23 +332,10 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrRealAttrsOnly(DN entryDN)
          throws Exception
   {
-    SearchFilter filter = SearchFilter.objectClassPresent();
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("structuralObjectClass");
-
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        new InternalSearchOperation(conn, InternalClientConnection
-            .nextOperationID(), InternalClientConnection
-            .nextMessageID(), requestControls, entryDN,
-            SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
-            attrList, null);
-    searchOperation.run();
+    SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
+        .addAttribute("structuralObjectClass")
+        .addControl(new LDAPControl(OID_REAL_ATTRS_ONLY, true));
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -377,23 +359,11 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   public void testSearchStructuralOCAttrVirtualAttrsOnly(DN entryDN)
          throws Exception
   {
-    SearchFilter filter = SearchFilter.objectClassPresent();
-    LinkedHashSet<String> attrList = new LinkedHashSet<String>(1);
-    attrList.add("structuralObjectClass");
+    SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT)
+        .addAttribute("structuralObjectClass")
+        .addControl(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
 
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_VIRTUAL_ATTRS_ONLY, true));
-
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    InternalSearchOperation searchOperation =
-        new InternalSearchOperation(conn, InternalClientConnection
-            .nextOperationID(), InternalClientConnection
-            .nextMessageID(), requestControls, entryDN,
-            SearchScope.BASE_OBJECT,
-            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
-            attrList, null);
-    searchOperation.run();
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
     Entry e = searchOperation.getSearchEntries().get(0);
@@ -406,7 +376,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
   /**
    * Tests the {@code isMultiValued} method.
    */
-  @Test()
+  @Test
   public void testIsMultiValued()
   {
     StructuralObjectClassVirtualAttributeProvider provider =
@@ -421,7 +391,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValues() throws Exception
   {
     StructuralObjectClassVirtualAttributeProvider provider =
@@ -456,9 +426,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testHasAnyValue()
-         throws Exception
+  @Test
+  public void testHasAnyValue() throws Exception
   {
     StructuralObjectClassVirtualAttributeProvider provider =
          new StructuralObjectClassVirtualAttributeProvider();
@@ -489,9 +458,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testHasMatchingValue()
-         throws Exception
+  @Test
+  public void testHasMatchingValue() throws Exception
   {
     StructuralObjectClassVirtualAttributeProvider provider =
          new StructuralObjectClassVirtualAttributeProvider();
@@ -523,9 +491,8 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testHasNonMatchingValue()
-         throws Exception
+  @Test
+  public void testHasNonMatchingValue() throws Exception
   {
     StructuralObjectClassVirtualAttributeProvider provider =
          new StructuralObjectClassVirtualAttributeProvider();

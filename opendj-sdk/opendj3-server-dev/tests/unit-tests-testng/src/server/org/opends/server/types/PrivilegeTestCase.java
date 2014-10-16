@@ -40,7 +40,6 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -1286,13 +1285,8 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Test a search operation against the PWReset Target user.
-    InternalSearchOperation searchOperation = new InternalSearchOperation(conn,
-                  nextOperationID(), nextMessageID(), controls, targetDN,
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.objectClassPresent(), null,
-                  null);
-    searchOperation.run();
+    SearchRequest request = newSearchRequest(targetDN, SearchScope.BASE_OBJECT).addControl(controls);
+    InternalSearchOperation searchOperation = conn.processSearch(request);
     assertProxyPrivilege(searchOperation.getResultCode(), hasProxyPrivilege);
   }
 
@@ -1437,12 +1431,8 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Test a search operation against the PWReset Target user.
-    InternalSearchOperation searchOperation = new InternalSearchOperation(conn, nextOperationID(),
-                  nextMessageID(), controls, targetDN,
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.objectClassPresent(), null,
-                  null);
+    SearchRequest request = newSearchRequest(targetDN, SearchScope.BASE_OBJECT).addControl(controls);
+    InternalSearchOperation searchOperation = conn.processSearch(request);
     searchOperation.run();
     assertProxyPrivilege(searchOperation.getResultCode(), hasProxyPrivilege);
   }

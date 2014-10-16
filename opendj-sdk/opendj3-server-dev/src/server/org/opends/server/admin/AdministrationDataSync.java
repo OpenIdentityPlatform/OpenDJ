@@ -267,7 +267,7 @@ public final class AdministrationDataSync
     InternalSearchOperation search;
     try
     {
-      SearchRequest request = Requests.newSearchRequest(baseDN, SearchScope.BASE_OBJECT, "objectclass=*")
+      SearchRequest request = Requests.newSearchRequest(DN.valueOf(baseDN), SearchScope.BASE_OBJECT)
           .addAttribute(attrName);
       search = internalConnection.processSearch(request);
       if (search.getResultCode() != ResultCode.SUCCESS)

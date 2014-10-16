@@ -35,7 +35,6 @@ import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -75,19 +74,20 @@ import static org.testng.Assert.*;
  * This class provides a set of test cases for the Directory Server JMX
  * privilege subsystem.
  */
-public class JmxPrivilegeTestCase
-       extends JmxTestCase
+public class JmxPrivilegeTestCase extends JmxTestCase
 {
-  // An array of boolean values that indicates whether config read operations
-  // should be successful for users in the corresponding slots of the
-  // connections array.
+  /**
+   * An array of boolean values that indicates whether config read operations
+   * should be successful for users in the corresponding slots of the
+   * connections array.
+   */
   private boolean[] successful;
 
-  // The set of client connections that should be used when performing
-  // operations.
+  /**
+   * The set of client connections that should be used when performing
+   * operations.
+   */
   private JmxClientConnection[] connections;
-
-
 
   /**
    * Make sure that the server is running and that an appropriate set of
@@ -95,10 +95,9 @@ public class JmxPrivilegeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Override
   @BeforeClass(alwaysRun = true)
-  public void setUp()
-         throws Exception
+  @Override
+  public void setUp() throws Exception
   {
     super.setUp();
 
@@ -339,11 +338,10 @@ public class JmxPrivilegeTestCase
         .valueOf("cn=test2 user,dc=unindexed,dc=jeb"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation = conn.processDelete(DN
-        .valueOf("dc=unindexed,dc=jeb"));
+    deleteOperation = conn.processDelete(DN.valueOf("dc=unindexed,dc=jeb"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    for (int i = 0; (connections != null) && (i < connections.length); i++)
+    for (int i = 0; connections != null && i < connections.length; i++)
     {
       connections[i].finalize();
       connections[i] = null;
@@ -412,8 +410,7 @@ public class JmxPrivilegeTestCase
     }
 
     // Add JMX_READ privilege
-    InternalClientConnection rootConnection =
-      InternalClientConnection.getRootConnection();
+    InternalClientConnection rootConnection = getRootConnection();
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD, Attributes.create(
         "ds-privilege-name", "jmx-read")));
@@ -1090,9 +1087,7 @@ public class JmxPrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV1Write(JmxClientConnection conn,
-                                   boolean hasPrivilege)
-         throws Exception
+  public void testProxyAuthV1Write(JmxClientConnection conn, boolean hasPrivilege) throws Exception
   {
     // We can't trust the value of hasPrivilege because root users don't get
     // proxy privileges by default.  So make the determination based on the
@@ -1216,9 +1211,7 @@ public class JmxPrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV1Read(JmxClientConnection conn,
-                                  boolean hasPrivilege)
-         throws Exception
+  public void testProxyAuthV1Read(JmxClientConnection conn, boolean hasPrivilege) throws Exception
   {
     // We can't trust the value of hasPrivilege because root users don't get
     // proxy privileges by default.  So make the determination based on the
@@ -1250,13 +1243,9 @@ public class JmxPrivilegeTestCase
 
 
     // Test a search operation against the PWReset Target user.
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), controls, targetDN,
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.objectClassPresent(), null,
-                  null);
+    SearchRequest request = newSearchRequest(targetDN, SearchScope.BASE_OBJECT).addControl(controls);
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        conn, conn.nextOperationID(), conn.nextMessageID(), request, null);
     searchOperation.run();
 
     if (hasProxyPrivilege)
@@ -1269,8 +1258,6 @@ public class JmxPrivilegeTestCase
                    ResultCode.AUTHORIZATION_DENIED);
     }
   }
-
-
 
   /**
    * Tests to ensure that the use of the Directory Server will properly respect
@@ -1286,9 +1273,7 @@ public class JmxPrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV2Write(JmxClientConnection conn,
-                                   boolean hasPrivilege)
-         throws Exception
+  public void testProxyAuthV2Write(JmxClientConnection conn, boolean hasPrivilege) throws Exception
   {
     // We can't trust the value of hasPrivilege because root users don't get
     // proxy privileges by default.  So make the determination based on the
@@ -1422,9 +1407,7 @@ public class JmxPrivilegeTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testdata")
-  public void testProxyAuthV2Read(JmxClientConnection conn,
-                                  boolean hasPrivilege)
-         throws Exception
+  public void testProxyAuthV2Read(JmxClientConnection conn, boolean hasPrivilege) throws Exception
   {
     // We can't trust the value of hasPrivilege because root users don't get
     // proxy privileges by default.  So make the determination based on the
@@ -1433,8 +1416,7 @@ public class JmxPrivilegeTestCase
 
     DN targetDN = DN.valueOf("cn=PWReset Target,o=test");
     ArrayList<Control> controls = new ArrayList<Control>(1);
-    controls.add(new ProxiedAuthV2Control(
-                          ByteString.valueOf("dn:" + targetDN.toString())));
+    controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
 
 
     // Test a compare operation against the PWReset Target user.
@@ -1457,13 +1439,9 @@ public class JmxPrivilegeTestCase
 
 
     // Test a search operation against the PWReset Target user.
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, conn.nextOperationID(),
-                  conn.nextMessageID(), controls, targetDN,
-                  SearchScope.BASE_OBJECT,
-                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                  SearchFilter.objectClassPresent(), null,
-                  null);
+    SearchRequest request = newSearchRequest(targetDN, SearchScope.BASE_OBJECT).addControl(controls);
+    InternalSearchOperation searchOperation = new InternalSearchOperation(
+        conn, conn.nextOperationID(), conn.nextMessageID(), request, null);
     searchOperation.run();
 
     if (hasProxyPrivilege)
@@ -1562,16 +1540,14 @@ public class JmxPrivilegeTestCase
 
 
     // Update the set of root privileges to include proxied auth.
-    InternalClientConnection internalRootConn =
-      InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
     ModifyOperation modifyOperation =
-         internalRootConn.processModify(DN.valueOf("cn=Root DNs,cn=config"),
-                                        mods);
+         conn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1588,8 +1564,7 @@ public class JmxPrivilegeTestCase
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
     modifyOperation =
-         internalRootConn.processModify(DN.valueOf("cn=Root DNs,cn=config"),
-                                        mods);
+         conn.processModify(DN.valueOf("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -1612,8 +1587,7 @@ public class JmxPrivilegeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private Task getCompletedTask(DN taskEntryDN)
-          throws Exception
+  private Task getCompletedTask(DN taskEntryDN) throws Exception
   {
     TaskBackend taskBackend =
          (TaskBackend) DirectoryServer.getBackend(DN.valueOf("cn=tasks"));
@@ -1621,28 +1595,26 @@ public class JmxPrivilegeTestCase
     if (task == null)
     {
       long stopWaitingTime = System.currentTimeMillis() + 10000L;
-      while ((task == null) && (System.currentTimeMillis() < stopWaitingTime))
+      while (task == null && System.currentTimeMillis() < stopWaitingTime)
       {
         Thread.sleep(10);
         task = taskBackend.getScheduledTask(taskEntryDN);
       }
     }
 
-    assertNotNull(task, "There is no such task " + taskEntryDN.toString());
+    assertNotNull(task, "There is no such task " + taskEntryDN);
     if (! TaskState.isDone(task.getTaskState()))
     {
       long stopWaitingTime = System.currentTimeMillis() + 20000L;
-      while ((! TaskState.isDone(task.getTaskState())) &&
-             (System.currentTimeMillis() < stopWaitingTime))
+      while (!TaskState.isDone(task.getTaskState())
+          && System.currentTimeMillis() < stopWaitingTime)
       {
         Thread.sleep(10);
       }
     }
 
     assertTrue(TaskState.isDone(task.getTaskState()),
-        "Task " + taskEntryDN.toString()
-            + " did not complete in a timely manner.");
-
+        "Task " + taskEntryDN + " did not complete in a timely manner.");
     return task;
   }
 }

@@ -28,12 +28,11 @@ package org.opends.server.extensions;
 
 
 
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
 
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.core.DirectoryServer;
@@ -41,21 +40,18 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.plugins.DelayPreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the traditional work queue.
@@ -68,9 +64,8 @@ public class TraditionalWorkQueueTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
@@ -81,10 +76,10 @@ public class TraditionalWorkQueueTestCase
    * Tests to ensure that the work queue is configured and enabled within the
    * Directory Server.
    */
-  @Test()
+  @Test
   public void testWorkQueueEnabled()
   {
-    WorkQueue workQueue = DirectoryServer.getWorkQueue();
+    WorkQueue<?> workQueue = DirectoryServer.getWorkQueue();
     assertNotNull(workQueue);
     assertTrue(workQueue instanceof TraditionalWorkQueue);
   }
@@ -106,8 +101,7 @@ public class TraditionalWorkQueueTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create(attr, "30")));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     ModifyOperation modifyOperation = conn.processModify(dn, mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -191,19 +185,10 @@ public class TraditionalWorkQueueTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    List<Control> requestControls = DelayPreOpPlugin.createDelayControlList(5000);
-    SearchFilter filter = SearchFilter.objectClassPresent();
-    LinkedHashSet<String> attrs = new LinkedHashSet<String>();
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.BASE_OBJECT)
+        .addControl(DelayPreOpPlugin.createDelayControlList(5000));
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),requestControls,
-                                     DN.valueOf("o=test"),
-                                     SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, attrs, null);
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
     DirectoryServer.getWorkQueue().submitOperation(searchOperation);
 
     long startTime = System.currentTimeMillis();
@@ -211,8 +196,6 @@ public class TraditionalWorkQueueTestCase
     long stopTime = System.currentTimeMillis();
     assertTrue((stopTime - startTime) >= 4000);
   }
-
-
 
   /**
    * Tests the {@code WorkQueue.waitUntilIdle()} method for a case in which the
@@ -226,19 +209,10 @@ public class TraditionalWorkQueueTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    List<Control> requestControls = DelayPreOpPlugin.createDelayControlList(5000);
-    SearchFilter filter = SearchFilter.objectClassPresent();
-    LinkedHashSet<String> attrs = new LinkedHashSet<String>();
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.BASE_OBJECT)
+        .addControl(DelayPreOpPlugin.createDelayControlList(5000));
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(), requestControls,
-                                     DN.valueOf("o=test"),
-                                     SearchScope.BASE_OBJECT,
-                                     DereferenceAliasesPolicy.NEVER, 0,
-                                     0, false, filter, attrs, null);
+        new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
     DirectoryServer.getWorkQueue().submitOperation(searchOperation);
 
     long startTime = System.currentTimeMillis();

@@ -35,7 +35,11 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.*;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -100,49 +104,6 @@ public class InternalSearchOperationTestCase
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
                                 DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, LDAPFilter.objectClassPresent(),
-                                new LinkedHashSet<String>(),
-                                new TestInternalSearchListener());
-  }
-
-
-
-  /**
-   * Tests the second constructor, which takes processed arguments, without
-   * providing an internal search listener.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testConstructor2WithoutListener()
-         throws Exception
-  {
-    InternalClientConnection conn = getRootConnection();
-    new InternalSearchOperation(conn, nextOperationID(),
-                                nextMessageID(), new ArrayList<Control>(),
-                                DN.rootDN(), SearchScope.BASE_OBJECT,
-                                DereferenceAliasesPolicy.NEVER, 0, 0, false,
-                                SearchFilter.objectClassPresent(),
-                                new LinkedHashSet<String>(), null);
-  }
-
-
-
-  /**
-   * Tests the second constructor, which takes processed arguments, with an
-   * internal search listener.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testConstructor2WithListener()
-         throws Exception
-  {
-    InternalClientConnection conn = getRootConnection();
-    new InternalSearchOperation(conn, nextOperationID(),
-                                nextMessageID(), new ArrayList<Control>(),
-                                DN.rootDN(), SearchScope.BASE_OBJECT,
-                                DereferenceAliasesPolicy.NEVER, 0, 0,
-                                false, SearchFilter.objectClassPresent(),
                                 new LinkedHashSet<String>(),
                                 new TestInternalSearchListener());
   }

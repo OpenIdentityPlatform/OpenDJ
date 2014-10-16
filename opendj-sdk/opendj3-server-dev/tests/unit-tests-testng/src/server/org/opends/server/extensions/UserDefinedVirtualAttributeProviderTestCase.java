@@ -29,7 +29,6 @@ package org.opends.server.extensions;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -37,9 +36,13 @@ import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.Requests;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -53,15 +56,14 @@ import static org.testng.Assert.*;
 public class UserDefinedVirtualAttributeProviderTestCase
        extends ExtensionsTestCase
 {
-  // The attribute type for the description attribute.
+  /** The attribute type for the description attribute. */
   private AttributeType descriptionType;
 
-  // The attribute type for the ds-privilege-name attribute.
+  /** The attribute type for the ds-privilege-name attribute. */
   private AttributeType privNameType;
 
-  // The attribute type for the ds-pwp-password-policy-dn attribute.
+  /** The attribute type for the ds-pwp-password-policy-dn attribute. */
   private AttributeType pwPolicyDNType;
-
 
 
   /**
@@ -94,7 +96,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRuleAPISingleValued()
          throws Exception
   {
@@ -112,20 +114,13 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "ds-cfg-conflict-behavior: real-overrides-virtual",
       "ds-cfg-value: single value");
 
-    InternalClientConnection conn = getRootConnection();
     try
     {
+      SearchRequest request = Requests.newSearchRequest(DN.valueOf(ruleDN), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation =
-          new InternalSearchOperation(conn, InternalClientConnection
-              .nextOperationID(), InternalClientConnection
-              .nextMessageID(), null, DN.valueOf(ruleDN),
-              SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.objectClassPresent(),
-              null, null);
+          new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
 
-      for (VirtualAttributeRule rule : DirectoryServer
-          .getVirtualAttributes())
+      for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
       {
         if (rule.getAttributeType().equals(descriptionType))
         {
@@ -141,12 +136,10 @@ public class UserDefinedVirtualAttributeProviderTestCase
               ResultCode.UNWILLING_TO_PERFORM);
         }
       }
-
     }
     finally
     {
-      DeleteOperation deleteOperation =
-          conn.processDelete(DN.valueOf(ruleDN));
+      DeleteOperation deleteOperation = getRootConnection().processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -159,7 +152,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRuleAPIMultiValued()
          throws Exception
   {
@@ -178,20 +171,13 @@ public class UserDefinedVirtualAttributeProviderTestCase
       "ds-cfg-value: first value",
       "ds-cfg-value: second value");
 
-    InternalClientConnection conn = getRootConnection();
     try
     {
+      SearchRequest request = Requests.newSearchRequest(DN.valueOf(ruleDN), SearchScope.BASE_OBJECT);
       InternalSearchOperation searchOperation =
-          new InternalSearchOperation(conn, InternalClientConnection
-              .nextOperationID(), InternalClientConnection
-              .nextMessageID(), null, DN.valueOf(ruleDN),
-              SearchScope.BASE_OBJECT,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              SearchFilter.objectClassPresent(),
-              null, null);
+          new InternalSearchOperation(getRootConnection(), nextOperationID(), nextMessageID(), request);
 
-      for (VirtualAttributeRule rule : DirectoryServer
-          .getVirtualAttributes())
+      for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
       {
         if (rule.getAttributeType().equals(descriptionType))
         {
@@ -210,13 +196,10 @@ public class UserDefinedVirtualAttributeProviderTestCase
     }
     finally
     {
-      DeleteOperation deleteOperation =
-          conn.processDelete(DN.valueOf(ruleDN));
+      DeleteOperation deleteOperation = getRootConnection().processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }
-
-
 
   /**
    * Tests the creation of a description virtual attribute when there is only a
@@ -224,7 +207,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSingleDescriptionOnlyVirtual()
          throws Exception
   {
@@ -290,7 +273,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleDescriptionsOnlyVirtual()
          throws Exception
   {
@@ -359,7 +342,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSingleDescriptionRealOverridesVirtual()
          throws Exception
   {
@@ -427,7 +410,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSingleDescriptionVirtualOverridesReal()
          throws Exception
   {
@@ -494,7 +477,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSingleDescriptionMergeRealAndVirtual()
          throws Exception
   {
@@ -569,7 +552,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSingleDescriptionMergeRealAndVirtualWithAttrList()
          throws Exception
   {
@@ -638,7 +621,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualPrivilege()
          throws Exception
   {
@@ -733,11 +716,9 @@ public class UserDefinedVirtualAttributeProviderTestCase
     }
     finally
     {
-      InternalClientConnection conn =
-          InternalClientConnection.getRootConnection();
+      InternalClientConnection conn = getRootConnection();
 
-      DeleteOperation deleteOperation =
-          conn.processDelete(DN.valueOf(ruleDN));
+      DeleteOperation deleteOperation = conn.processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
       deleteOperation = conn.processDelete(DN.valueOf(policyDN));
@@ -755,7 +736,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVirtualPasswordPolicyDN()
          throws Exception
   {
@@ -820,11 +801,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
     }
     finally
     {
-      InternalClientConnection conn =
-          InternalClientConnection.getRootConnection();
-
-      DeleteOperation deleteOperation =
-          conn.processDelete(DN.valueOf(ruleDN));
+      DeleteOperation deleteOperation = getRootConnection().processDelete(DN.valueOf(ruleDN));
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
   }

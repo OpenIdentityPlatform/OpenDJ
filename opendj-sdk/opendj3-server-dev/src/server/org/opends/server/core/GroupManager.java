@@ -32,7 +32,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -51,18 +52,18 @@ import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -96,13 +97,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * A mapping between the DNs of the config entries and the associated group
    * implementations.
    */
-  private ConcurrentHashMap<DN, Group> groupImplementations;
+  private ConcurrentHashMap<DN, Group<?>> groupImplementations;
 
   /**
    * A mapping between the DNs of all group entries and the corresponding group
    * instances.
    */
-  private DITCacheMap<Group> groupInstances;
+  private DITCacheMap<Group<?>> groupInstances;
 
   /** Lock to protect internal data structures. */
   private final ReentrantReadWriteLock lock;
@@ -132,8 +133,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
         PluginType.POST_SYNCHRONIZATION_MODIFY_DN), true);
     this.serverContext = serverContext;
 
-    groupImplementations = new ConcurrentHashMap<DN, Group>();
-    groupInstances = new DITCacheMap<Group>();
+    groupImplementations = new ConcurrentHashMap<DN, Group<?>>();
+    groupInstances = new DITCacheMap<Group<?>>();
 
     lock = new ReentrantReadWriteLock();
 
@@ -182,8 +183,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       {
         try
         {
-          Group group = loadGroup(groupConfiguration.getJavaClass(),
-              groupConfiguration, true);
+          Group<?> group = loadGroup(groupConfiguration.getJavaClass(), groupConfiguration, true);
           groupImplementations.put(groupConfiguration.dn(), group);
         }
         catch (InitializationException ie)
@@ -235,7 +235,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       return new ConfigChangeResult(resultCode, false, messages);
     }
 
-    Group group = null;
+    Group<?> group = null;
     try
     {
       group = loadGroup(configuration.getJavaClass(), configuration, true);
@@ -279,16 +279,16 @@ public class GroupManager extends InternalDirectoryServerPlugin
     ResultCode resultCode = ResultCode.SUCCESS;
     List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
-    Group group = groupImplementations.remove(configuration.dn());
+    Group<?> group = groupImplementations.remove(configuration.dn());
     if (group != null)
     {
       lock.writeLock().lock();
       try
       {
-        Iterator<Group> iterator = groupInstances.values().iterator();
+        Iterator<Group<?>> iterator = groupInstances.values().iterator();
         while (iterator.hasNext())
         {
-          Group g = iterator.next();
+          Group<?> g = iterator.next();
           if (g.getClass().getName().equals(group.getClass().getName()))
           {
             iterator.remove();
@@ -340,7 +340,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     boolean adminActionRequired = false;
     List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     // Get the existing group implementation if it's already enabled.
-    Group existingGroup = groupImplementations.get(configuration.dn());
+    Group<?> existingGroup = groupImplementations.get(configuration.dn());
 
     // If the new configuration has the group implementation disabled, then
     // disable it if it is enabled, or do nothing if it's already disabled.
@@ -348,16 +348,16 @@ public class GroupManager extends InternalDirectoryServerPlugin
     {
       if (existingGroup != null)
       {
-        Group group = groupImplementations.remove(configuration.dn());
+        Group<?> group = groupImplementations.remove(configuration.dn());
         if (group != null)
         {
           lock.writeLock().lock();
           try
           {
-            Iterator<Group> iterator = groupInstances.values().iterator();
+            Iterator<Group<?>> iterator = groupInstances.values().iterator();
             while (iterator.hasNext())
             {
-              Group g = iterator.next();
+              Group<?> g = iterator.next();
               if (g.getClass().getName().equals(group.getClass().getName()))
               {
                 iterator.remove();
@@ -393,7 +393,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
-    Group group = null;
+    Group<?> group = null;
     try
     {
       group = loadGroup(className, configuration, true);
@@ -433,7 +433,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the group implementation.
    */
-  private Group loadGroup(String className,
+  private Group<?> loadGroup(String className,
                           GroupImplementationCfg configuration,
                           boolean initialize)
           throws InitializationException
@@ -486,7 +486,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
     deregisterAllGroups();
 
-    for (Group groupImplementation : groupImplementations.values())
+    for (Group<?> groupImplementation : groupImplementations.values())
     {
       groupImplementation.finalizeGroupImplementation();
     }
@@ -503,7 +503,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * @return  An {@code Iterable} object that may be used to cursor across the
    *          group implementations defined in the server.
    */
-  public Iterable<Group> getGroupImplementations()
+  public Iterable<Group<?>> getGroupImplementations()
   {
     return groupImplementations.values();
   }
@@ -517,15 +517,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * @return  An {@code Iterable} object that may be used to cursor across the
    *          group instances defined in the server.
    */
-  public Iterable<Group> getGroupInstances()
+  public Iterable<Group<?>> getGroupInstances()
   {
     lock.readLock().lock();
     try
     {
       // Return a copy to protect from structural changes.
-      ArrayList<Group> values = new ArrayList<Group>();
-      values.addAll(groupInstances.values());
-      return values;
+      return new ArrayList<Group<?>>(groupInstances.values());
     }
     finally
     {
@@ -544,7 +542,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * @return  The group instance defined in the entry with the specified DN, or
    *          {@code null} if no such group is currently defined.
    */
-  public Group getGroupInstance(DN entryDN)
+  public Group<?> getGroupInstance(DN entryDN)
   {
     lock.readLock().lock();
     try
@@ -567,16 +565,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
   @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
-    LinkedList<Control> requestControls = new LinkedList<Control>();
-    requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
-                                    false));
+    LDAPControl control = new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false);
     for (DN configEntryDN : groupImplementations.keySet())
     {
       SearchFilter filter;
-      Group groupImplementation = groupImplementations.get(configEntryDN);
+      Group<?> groupImplementation = groupImplementations.get(configEntryDN);
       try
       {
         filter = groupImplementation.getGroupDefinitionFilter();
@@ -608,13 +603,10 @@ public class GroupManager extends InternalDirectoryServerPlugin
         }
 
 
+        SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, filter)
+            .addControl(control);
         InternalSearchOperation internalSearch =
-             new InternalSearchOperation(conn, nextOperationID(),
-                                         nextMessageID(), requestControls,
-                                         baseDN,
-                                         SearchScope.WHOLE_SUBTREE,
-                                         DereferenceAliasesPolicy.NEVER,
-                                         0, 0, false, filter, null, null);
+            new InternalSearchOperation(conn, nextOperationID(), nextMessageID(), request);
         LocalBackendSearchOperation localSearch =
           new LocalBackendSearchOperation(internalSearch);
         try
@@ -636,7 +628,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
           {
             try
             {
-              Group groupInstance = groupImplementation.newInstance(entry);
+              Group<?> groupInstance = groupImplementation.newInstance(entry);
               groupInstances.put(entry.getName(), groupInstance);
               refreshToken++;
             }
@@ -667,11 +659,10 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      Iterator<Map.Entry<DN,Group>> iterator =
-           groupInstances.entrySet().iterator();
+      Iterator<Map.Entry<DN, Group<?>>> iterator = groupInstances.entrySet().iterator();
       while (iterator.hasNext())
       {
-        Map.Entry<DN,Group> mapEntry = iterator.next();
+        Map.Entry<DN, Group<?>> mapEntry = iterator.next();
         DN groupEntryDN = mapEntry.getKey();
         if (backend.handlesEntry(groupEntryDN))
         {
@@ -817,11 +808,11 @@ public class GroupManager extends InternalDirectoryServerPlugin
     lock.writeLock().lock();
     try
     {
-      Set<Group> groupSet = new HashSet<Group>();
+      Set<Group<?>> groupSet = new HashSet<Group<?>>();
       groupInstances.removeSubtree(oldEntry.getName(), groupSet);
       String oldDNString = oldEntry.getName().toNormalizedString();
       String newDNString = newEntry.getName().toNormalizedString();
-      for (Group group : groupSet)
+      for (Group<?> group : groupSet)
       {
         StringBuilder builder = new StringBuilder(
                 group.getGroupDN().toNormalizedString());
@@ -985,13 +976,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
    */
   private void createAndRegisterGroup(Entry entry)
   {
-    for (Group groupImplementation : groupImplementations.values())
+    for (Group<?> groupImplementation : groupImplementations.values())
     {
       try
       {
         if (groupImplementation.isGroupDefinition(entry))
         {
-          Group groupInstance = groupImplementation.newInstance(entry);
+          Group<?> groupInstance = groupImplementation.newInstance(entry);
 
           lock.writeLock().lock();
           try

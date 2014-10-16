@@ -30,7 +30,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
@@ -42,13 +42,15 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -432,17 +434,16 @@ public class AciListenerManager implements
       logger.warn(WARN_ACI_ATTRIBUTE_NOT_INDEXED, backend.getBackendID(), "aci");
     }
 
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
     LinkedList<LocalizableMessage> failedACIMsgs = new LinkedList<LocalizableMessage>();
+
+    InternalClientConnection conn = getRootConnection();
     // Add manageDsaIT control so any ACIs in referral entries will be
     // picked up.
-    ArrayList<Control> controls = new ArrayList<Control>(1);
-    controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));
+    LDAPControl c1 = new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true);
     // Add group membership control to let a backend look for it and
     // decide if it would abort searches.
-    controls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
-        false));
+    LDAPControl c2 = new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false);
+
     for (DN baseDN : backend.getBaseDNs())
     {
       try
@@ -457,13 +458,12 @@ public class AciListenerManager implements
         logger.traceException(e);
         continue;
       }
+      SearchRequest request = newSearchRequest(baseDN, SearchScope.WHOLE_SUBTREE, aciFilter)
+          .addControl(c1)
+          .addControl(c2)
+          .addAttribute(attrs);
       InternalSearchOperation internalSearch =
-          new InternalSearchOperation(conn, InternalClientConnection
-              .nextOperationID(), InternalClientConnection
-              .nextMessageID(), controls, baseDN,
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER, 0, 0, false,
-              aciFilter, attrs, null);
+          new InternalSearchOperation(conn, nextOperationID(), nextMessageID(), request);
       LocalBackendSearchOperation localInternalSearch =
           new LocalBackendSearchOperation(internalSearch);
       try
