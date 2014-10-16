@@ -201,8 +201,7 @@ public final class Controls {
                     ).asBoolean();
                     if (isDeleted != null && isDeleted) {
                         // Handle entry deletion
-                        writer.writeComment("Deleted entry: "
-                                + entry.getName().toString());
+                        writer.writeComment("Deleted entry: " + entry.getName());
                         writer.writeEntry(entry);
                         writer.flush();
                     }
@@ -215,14 +214,12 @@ public final class Controls {
                     if (whenCreated != null && whenChanged != null) {
                         if (whenCreated.equals(whenChanged)) {
                             // Handle entry addition
-                            writer.writeComment("Added entry: "
-                                    + entry.getName().toString());
+                            writer.writeComment("Added entry: " + entry.getName());
                             writer.writeEntry(entry);
                             writer.flush();
                         } else {
                             // Handle entry modification
-                            writer.writeComment("Modified entry: "
-                                    + entry.getName().toString());
+                            writer.writeComment("Modified entry: " + entry.getName());
                             writer.writeEntry(entry);
                             writer.flush();
                         }
@@ -235,8 +232,7 @@ public final class Controls {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
         } catch (final SearchResultReferenceIOException e) {
-            System.err.println("Got search reference(s): " + e.getReference()
-                    .getURIs().toString());
+            System.err.println("Got search reference(s): " + e.getReference().getURIs());
         } catch (final IOException e) {
             System.err.println(e.getMessage());
             System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -358,8 +354,7 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference()
-                        .getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference().getURIs());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -395,7 +390,7 @@ public final class Controls {
                 while (reader.hasNext()) {
                     if (reader.isReference()) {
                         final SearchResultReference ref = reader.readReference();
-                        System.out.println("Reference: " + ref.getURIs().toString());
+                        System.out.println("Reference: " + ref.getURIs());
                     }
                 }
 
@@ -408,8 +403,7 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference()
-                        .getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference().getURIs());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -561,7 +555,7 @@ public final class Controls {
                                 new DecodeOptions());
                 if (!(control == null) && !(control.getWarningType() == null)) {
                     System.out.println("Password policy warning "
-                            + control.getWarningType().toString() + ", value "
+                            + control.getWarningType() + ", value "
                             + control.getWarningValue() + " for " + dn);
                 }
             } catch (final LdapException e) {
@@ -572,7 +566,7 @@ public final class Controls {
                                     new DecodeOptions());
                     if (!(control == null)) {
                         System.out.println("Password policy error "
-                                + control.getErrorType().toString() + " for " + dn);
+                                + control.getErrorType() + " for " + dn);
                     }
                 } catch (final DecodeException de) {
                     System.err.println(de.getMessage());
@@ -653,7 +647,7 @@ public final class Controls {
                 while (reader.hasNext()) {
                     if (!reader.isReference()) {
                         final SearchResultEntry entry = reader.readEntry();
-                        System.out.println("Entry changed: " + entry.getName().toString());
+                        System.out.println("Entry changed: " + entry.getName());
 
                         final EntryChangeNotificationResponseControl control =
                                 entry.getControl(
@@ -661,10 +655,9 @@ public final class Controls {
                                         new DecodeOptions());
 
                         final PersistentSearchChangeType type = control.getChangeType();
-                        System.out.println("Change type: " + type.toString());
+                        System.out.println("Change type: " + type);
                         if (type.equals(PersistentSearchChangeType.MODIFY_DN)) {
-                            System.out.println("Previous DN: "
-                                    + control.getPreviousName().toString());
+                            System.out.println("Previous DN: " + control.getPreviousName());
                         }
                         System.out.println("Change number: " + control.getChangeNumber());
                         System.out.println(); // Add a blank line.
@@ -677,8 +670,7 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference()
-                        .getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference().getURIs());
             }
         } else {
             System.err.println("PersistentSearchRequestControl not supported.");
@@ -873,7 +865,7 @@ public final class Controls {
 
         @Override
         public boolean handleReference(SearchResultReference reference) {
-            System.out.println("Got a reference: " + reference.toString());
+            System.out.println("Got a reference: " + reference);
             return false;
         }
     }
@@ -960,8 +952,7 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference()
-                        .getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference().getURIs());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());

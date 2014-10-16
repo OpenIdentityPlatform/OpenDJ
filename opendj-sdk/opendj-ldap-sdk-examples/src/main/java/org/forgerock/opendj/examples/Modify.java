@@ -102,8 +102,7 @@ public final class Modify {
             while (reader.hasNext()) {
                 ChangeRecord changeRecord = reader.readChangeRecord();
                 writer.writeChangeRecord(changeRecord);
-                System.err.println("Successfully modified entry "
-                        + changeRecord.getName().toString());
+                System.err.println("Successfully modified entry " + changeRecord.getName());
             }
         } catch (final LdapException e) {
             System.err.println(e.getMessage());

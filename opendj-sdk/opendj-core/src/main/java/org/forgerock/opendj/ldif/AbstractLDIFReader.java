@@ -568,9 +568,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         String ldifLine = record.iterator.next();
         int colonPos = ldifLine.indexOf(":");
         if (colonPos <= 0) {
-            final LocalizableMessage message =
-                    ERR_LDIF_NO_ATTR_NAME.get(record.lineNumber, ldifLine.toString());
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_LDIF_NO_ATTR_NAME.get(record.lineNumber, ldifLine));
         }
 
         String attrName = toLowerCase(ldifLine.substring(0, colonPos));
@@ -583,18 +581,14 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
             ldifLine = record.iterator.next();
             colonPos = ldifLine.indexOf(":");
             if (colonPos <= 0) {
-                final LocalizableMessage message =
-                        ERR_LDIF_NO_ATTR_NAME.get(record.lineNumber, ldifLine.toString());
-                throw DecodeException.error(message);
+                throw DecodeException.error(ERR_LDIF_NO_ATTR_NAME.get(record.lineNumber, ldifLine));
             }
 
             attrName = toLowerCase(ldifLine.substring(0, colonPos));
         }
 
         if (!attrName.equals("dn")) {
-            final LocalizableMessage message =
-                    ERR_LDIF_NO_DN.get(record.lineNumber, ldifLine.toString());
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_LDIF_NO_DN.get(record.lineNumber, ldifLine));
         }
 
         /*

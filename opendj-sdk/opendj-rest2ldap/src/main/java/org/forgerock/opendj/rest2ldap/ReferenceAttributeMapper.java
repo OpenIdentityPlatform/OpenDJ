@@ -122,7 +122,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
 
     @Override
     public String toString() {
-        return "reference(" + ldapAttributeName.toString() + ")";
+        return "reference(" + ldapAttributeName + ")";
     }
 
     @Override

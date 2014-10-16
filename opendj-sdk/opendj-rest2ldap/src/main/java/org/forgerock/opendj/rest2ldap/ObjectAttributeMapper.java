@@ -84,7 +84,7 @@ public final class ObjectAttributeMapper extends AttributeMapper {
 
     @Override
     public String toString() {
-        return "object(" + mappings.values().toString() + ")";
+        return "object(" + mappings.values() + ")";
     }
 
     @Override

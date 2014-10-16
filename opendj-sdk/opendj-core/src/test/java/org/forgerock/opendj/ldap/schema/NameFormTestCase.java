@@ -568,8 +568,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
         for (final NameForm o : schema.getNameForms()) {
             assertThat(o.getNameOrOID()).isEqualTo("myCustomNameForm");
             assertThat(o.getOID()).isEqualTo("mycustomnameform-oid");
-            assertThat(o.getStructuralClass().getOID().toString()).isEqualTo(
-                    "mycustomobjectclass-oid");
+            assertThat(o.getStructuralClass().getOID()).isEqualTo("mycustomobjectclass-oid");
         }
     }
 

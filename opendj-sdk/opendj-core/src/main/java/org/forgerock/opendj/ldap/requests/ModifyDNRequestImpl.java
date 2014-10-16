@@ -137,7 +137,7 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest> imp
         builder.append(", deleteOldRDN=");
         builder.append(isDeleteOldRDN());
         builder.append(", newSuperior=");
-        builder.append(String.valueOf(getNewSuperior()));
+        builder.append(getNewSuperior());
         builder.append(", controls=");
         builder.append(getControls());
         builder.append(")");

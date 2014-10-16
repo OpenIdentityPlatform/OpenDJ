@@ -65,7 +65,7 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl {
     }
 
     public String getName() {
-        return "Regex(" + pattern.toString() + ")";
+        return "Regex(" + pattern + ")";
     }
 
     @Override

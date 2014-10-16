@@ -960,10 +960,10 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         builder.append(relationDefinition.getName());
 
         builder.append(" targetNeedsEnablingCondition=");
-        builder.append(String.valueOf(targetNeedsEnablingCondition));
+        builder.append(targetNeedsEnablingCondition);
 
         builder.append(" targetIsEnabledCondition=");
-        builder.append(String.valueOf(targetIsEnabledCondition));
+        builder.append(targetIsEnabledCondition);
     }
 
     /** {@inheritDoc} */

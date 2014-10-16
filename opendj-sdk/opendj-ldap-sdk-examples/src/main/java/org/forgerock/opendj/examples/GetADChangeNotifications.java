@@ -114,16 +114,14 @@ public final class GetADChangeNotifications {
             while (reader.hasNext()) {
                 if (!reader.isReference()) {
                     final SearchResultEntry entry = reader.readEntry();
-                    writer.writeComment("Search result entry: "
-                            + entry.getName().toString());
+                    writer.writeComment("Search result entry: " + entry.getName());
                     writer.writeEntry(entry);
                     writer.flush();
                 } else {
                     final SearchResultReference ref = reader.readReference();
 
                     // Got a continuation reference.
-                    writer.writeComment("Search result reference: "
-                            + ref.getURIs().toString());
+                    writer.writeComment("Search result reference: " + ref.getURIs());
                 }
             }
         } catch (final LdapException e) {

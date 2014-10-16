@@ -366,8 +366,7 @@ public final class ConfigurationFramework {
      */
     public String printExtensionInformation() {
         final File extensionsPath =
-                new File(new StringBuilder(installPath).append(File.separator).append(LIB_DIR)
-                        .append(File.separator).append(EXTENSIONS_DIR).toString());
+                new File(installPath + File.separator + LIB_DIR + File.separator + EXTENSIONS_DIR);
 
         if (!extensionsPath.exists() || !extensionsPath.isDirectory()) {
             // no extensions' directory

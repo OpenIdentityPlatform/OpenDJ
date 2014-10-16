@@ -1112,8 +1112,7 @@ public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
 
             public Entry getEntry(final DN dn) throws LdapException {
                 if (e == null) {
-                    throw newLdapException(ResultCode.NO_SUCH_OBJECT,
-                            "no such entry " + dn.toString());
+                    throw newLdapException(ResultCode.NO_SUCH_OBJECT, "no such entry " + dn);
                 }
 
                 assertThat((Object) dn).isEqualTo(e.getName());

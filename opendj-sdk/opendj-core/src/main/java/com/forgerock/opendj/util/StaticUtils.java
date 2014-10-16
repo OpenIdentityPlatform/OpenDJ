@@ -1725,7 +1725,7 @@ public final class StaticUtils {
                 builder.append(EOL);
                 for (StackTraceElement e : stackTrace) {
                     builder.append("\tat ");
-                    builder.append(String.valueOf(e));
+                    builder.append(e);
                     builder.append(EOL);
                 }
             }

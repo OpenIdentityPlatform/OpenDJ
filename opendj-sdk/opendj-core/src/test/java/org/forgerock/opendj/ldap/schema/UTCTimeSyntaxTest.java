@@ -103,7 +103,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
 
         // values from 50 through 99 inclusive shall have 1900 added to it
         for (int yy = 50; yy <= 99; yy++) {
-            String utcString = String.format("%02d0819120000Z", new Integer(yy));
+            String utcString = String.format("%02d0819120000Z", yy);
             Date decodedDate = UTCTimeSyntaxImpl.decodeUTCTimeValue(utcString);
             cal.clear();
             cal.setTime(decodedDate);
@@ -125,7 +125,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
 
         // values from 00 through 49 inclusive shall have 2000 added to it
         for (int yy = 0; yy <= 49; yy++) {
-            String utcString = String.format("%02d0819120000Z", new Integer(yy));
+            String utcString = String.format("%02d0819120000Z", yy);
             Date decodedDate = UTCTimeSyntaxImpl.decodeUTCTimeValue(utcString);
             cal.clear();
             cal.setTime(decodedDate);
@@ -151,7 +151,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
             cal.set(1900 + yy, 7, 19, 12, 0, 0); // months are 0..11
             Date date = cal.getTime();
             String createdString = UTCTimeSyntaxImpl.createUTCTimeValue(date);
-            String expectedString = String.format("%02d0819120000Z", new Integer(yy));
+            String expectedString = String.format("%02d0819120000Z", yy);
             assertEquals(expectedString, createdString);
         }
     }
@@ -173,7 +173,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
             cal.set(2000 + yy, 7, 19, 12, 0, 0); // months are 0..11
             Date date = cal.getTime();
             String createdString = UTCTimeSyntaxImpl.createUTCTimeValue(date);
-            String expectedString = String.format("%02d0819120000Z", new Integer(yy));
+            String expectedString = String.format("%02d0819120000Z", yy);
             assertEquals(expectedString, createdString);
         }
     }
