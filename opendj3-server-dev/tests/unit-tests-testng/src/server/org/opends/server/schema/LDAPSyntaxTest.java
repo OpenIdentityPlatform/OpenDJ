@@ -28,19 +28,16 @@ package org.opends.server.schema;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.AddOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -49,6 +46,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -158,7 +156,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
   /**
    * Tests whether an implemented syntax can't be substituted by another.
    */
-  @Test()
+  @Test
   public void testSubstitutionSyntaxForInvalidSubstitution() throws Exception
   {
     try
@@ -217,33 +215,17 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     *
     * @throws java.lang.Exception
     */
-  @Test()
+  @Test
   public void testSubstitutionSyntaxSearch() throws Exception
   {
     try
     {
       addSubtitutionSyntax();
-      InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-      LinkedHashSet<String> attrList = new LinkedHashSet<String>();
-      attrList.add("ldapsyntaxes");
 
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("cn=schema"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode("objectclass=ldapsubentry"),
-                attrList, null);
+      SearchRequest request = newSearchRequest("cn=schema", SearchScope.WHOLE_SUBTREE, "objectclass=ldapsubentry")
+          .addAttribute("ldapsyntaxes");
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
-      searchOperation.run();
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       SearchResultEntry e = entries.get(0);
@@ -283,7 +265,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     *
     * @throws java.lang.Exception
     */
-   @Test()
+  @Test
    public void testSubsitutionSyntaxAddValues() throws Exception
    {
      try
@@ -324,7 +306,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     *
     * @throws java.lang.Exception
     */
-  @Test()
+  @Test
   public void testRegexSyntaxAddValues() throws Exception
   {
     try
@@ -366,7 +348,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
    *
    * @throws java.lang.Exception
    */
-  @Test()
+  @Test
   public void testRegexSyntaxSearch() throws Exception
   {
     try
@@ -382,25 +364,9 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         "sn: xyz",
         "test-attr-regex: host:0.0.0");
 
-      InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("cn=test,o=test"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode("test-attr-regex=host:0.0.0"),
-                null, null);
-
-      searchOperation.run();
+      SearchRequest request =
+          newSearchRequest("cn=test,o=test", SearchScope.WHOLE_SUBTREE, "test-attr-regex=host:0.0.0");
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       SearchResultEntry e = entries.get(0);
@@ -413,15 +379,13 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
     }
   }
 
-
-
-    /**
+  /**
     * Tests whether it is possible to add values after an enum syntax
     * has been added.
     *
     * @throws java.lang.Exception
     */
-  @Test()
+  @Test
   public void testEnumSyntaxAddValues() throws Exception
   {
     try
@@ -460,10 +424,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
   /**
    * Tests the equality-based search using enum syntax.
-   *
-   * @throws java.lang.Exception
    */
-  @Test()
+  @Test
   public void testEnumSyntaxEqualitySearch() throws Exception
   {
     try
@@ -479,25 +441,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         "sn: xyz",
         "test-attr-enum: wednesday");
 
-      InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("cn=test,o=test"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode("test-attr-enum=wednesday"),
-                null, null);
-
-      searchOperation.run();
+      SearchRequest request = newSearchRequest("cn=test,o=test", SearchScope.WHOLE_SUBTREE, "test-attr-enum=wednesday");
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       SearchResultEntry e = entries.get(0);
@@ -514,10 +459,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
 
   /**
    * Tests the ordering-based search using enum syntax.
-   *
-   * @throws java.lang.Exception
    */
-  @Test()
+  @Test
   public void testEnumSyntaxOrderingSearch() throws Exception
   {
     try
@@ -547,25 +490,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         "sn: xyz",
         "test-attr-enum: tuesday");
 
-      InternalClientConnection conn =
-      InternalClientConnection.getRootConnection();
-
-      InternalSearchOperation searchOperation =
-           new InternalSearchOperation(
-                conn,
-                InternalClientConnection.nextOperationID(),
-                InternalClientConnection.nextMessageID(),
-                null,
-                ByteString.valueOf("o=test"),
-                SearchScope.WHOLE_SUBTREE,
-                DereferenceAliasesPolicy.NEVER,
-                Integer.MAX_VALUE,
-                Integer.MAX_VALUE,
-                false,
-                LDAPFilter.decode("test-attr-enum>=tuesday"),
-                null, null);
-
-      searchOperation.run();
+      SearchRequest request = newSearchRequest("o=test", SearchScope.WHOLE_SUBTREE, "test-attr-enum>=tuesday");
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
       SearchResultEntry e = entries.get(0);

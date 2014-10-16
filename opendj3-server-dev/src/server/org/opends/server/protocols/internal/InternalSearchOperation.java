@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
@@ -60,74 +59,6 @@ public final class InternalSearchOperation
 
   /** The set of search references returned for this search. */
   private List<SearchResultReference> referenceList;
-
-
-
-  /**
-   * Creates a new internal search operation with the provided
-   * information.
-   *
-   * @param  internalConnection  The internal client connection with
-   *                             which this internal search operation
-   *                             is associated.
-   * @param  operationID         The operation ID for this internal
-   *                             search.
-   * @param  messageID           The message ID for this internal
-   *                             search.
-   * @param  requestControls     The set of request controls for this
-   *                             internal search.
-   * @param  rawBaseDN           The raw base DN for this internal
-   *                             search.
-   * @param  scope               The scope for this internal search.
-   * @param  derefPolicy         The alias dereferencing policy for
-   *                             this internal search.
-   * @param  sizeLimit           The size limit for this internal
-   *                             search.
-   * @param  timeLimit           The time limit for this internal
-   *                             search.
-   * @param  typesOnly           The typesOnly flag for this internal
-   *                             search.
-   * @param  rawFilter           The raw filter for this internal
-   *                             search.
-   * @param  attributes          The names of the requested attributes
-   *                             for this internal search.
-   * @param  searchListener      The internal search listener that
-   *                             should be used to process the
-   *                             results, or <CODE>null</CODE> if
-   *                             they should be collected internally.
-   */
-  public InternalSearchOperation(
-              ClientConnection internalConnection,
-              long operationID, int messageID,
-              List<Control> requestControls, ByteString rawBaseDN,
-              SearchScope scope, DereferenceAliasesPolicy derefPolicy,
-              int sizeLimit, int timeLimit, boolean typesOnly,
-              RawFilter rawFilter, Set<String> attributes,
-              InternalSearchListener searchListener)
-  {
-    super(internalConnection, operationID, messageID, requestControls,
-          rawBaseDN, scope, derefPolicy, sizeLimit, timeLimit,
-          typesOnly, rawFilter, attributes);
-
-
-
-
-    if (searchListener == null)
-    {
-      this.searchListener = null;
-      this.entryList      = new LinkedList<SearchResultEntry>();
-      this.referenceList  = new LinkedList<SearchResultReference>();
-    }
-    else
-    {
-      this.searchListener = searchListener;
-      this.entryList      = null;
-      this.referenceList  = null;
-    }
-
-    setInternalOperation(true);
-  }
-
 
   /**
    * Creates a new internal search operation with the provided information.
@@ -176,7 +107,6 @@ public final class InternalSearchOperation
         searchListener);
   }
 
-  // TODO JNR remove??
   private InternalSearchOperation(
               ClientConnection internalConnection,
               long operationID, int messageID,

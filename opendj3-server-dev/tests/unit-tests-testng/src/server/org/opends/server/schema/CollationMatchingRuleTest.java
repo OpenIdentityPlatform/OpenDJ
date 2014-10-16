@@ -29,17 +29,13 @@ package org.opends.server.schema;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
@@ -120,22 +116,9 @@ public final class CollationMatchingRuleTest
   public void searchCollationEqualityUsingOID() throws Exception
   {
     //Search the collation rule with OID of en and no suffix in the filter.
-    InternalClientConnection conn = getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn, nextOperationID(), nextMessageID(),
-              null,
-              ByteString.valueOf("uid=user,o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("cn:1.3.6.1.4.1.42.2.27.9.4.34.1:=sanchez"),
-              null, null);
-
-    searchOperation.run();
+    SearchRequest request =
+        newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "cn:1.3.6.1.4.1.42.2.27.9.4.34.1:=sanchez");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
@@ -154,29 +137,14 @@ public final class CollationMatchingRuleTest
   {
     //Search the collation rule with language tag of en and no suffix
     //in the filter.
-    InternalClientConnection conn = getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn, nextOperationID(), nextMessageID(),
-              null,
-              ByteString.valueOf("uid=user,o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("cn:en:=sanchez"),
-              null, null);
-
-    searchOperation.run();
+    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "cn:en:=sanchez");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
     //An entry must be returned.
     assertNotNull(e);
   }
-
 
 
   /**
@@ -187,22 +155,9 @@ public final class CollationMatchingRuleTest
   public void searchCollationLTUsingOIDSuffix() throws Exception
   {
     //Search the collation rule with OID of es and suffix in the filter.
-    InternalClientConnection conn = getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn, nextOperationID(), nextMessageID(),
-              null,
-              ByteString.valueOf("uid=user,o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("departmentnumber:1.3.6.1.4.1.42.2.27.9.4.49.1.1:=abc120"),
-              null, null);
-
-    searchOperation.run();
+    String filter = "departmentnumber:1.3.6.1.4.1.42.2.27.9.4.49.1.1:=abc120";
+    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, filter);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
@@ -221,22 +176,8 @@ public final class CollationMatchingRuleTest
   public void searchCollationLTEUsingLanguageSuffix() throws Exception
   {
     //Search the collation rule with tag of fr and suffix in the filter.
-    InternalClientConnection conn = getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn, nextOperationID(), nextMessageID(),
-              null,
-              ByteString.valueOf("uid=user,o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("carLicense:fr.2:=ebe2"),
-              null, null);
-
-    searchOperation.run();
+    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "carLicense:fr.2:=ebe2");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
@@ -255,22 +196,8 @@ public final class CollationMatchingRuleTest
   public void searchCollationGTUsingLanguage() throws Exception
   {
     //Search the collation rule with tag of fr in the filter.
-    InternalClientConnection conn = getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn, nextOperationID(), nextMessageID(),
-              null,
-              ByteString.valueOf("uid=user,o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("carLicense:fr.5:=ebe1"),
-              null, null);
-
-    searchOperation.run();
+    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "carLicense:fr.5:=ebe1");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
@@ -289,22 +216,9 @@ public final class CollationMatchingRuleTest
   public void searchCollationGTEUsingLanguage() throws Exception
   {
     //Search the collation rule with tag of es and suffix in the filter.
-    InternalClientConnection conn = getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn, nextOperationID(), nextMessageID(),
-              null,
-              ByteString.valueOf("uid=user,o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("departmentnumber:es.4:=abc111"),
-              null, null);
-
-    searchOperation.run();
+    SearchRequest request =
+        newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "departmentnumber:es.4:=abc111");
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     SearchResultEntry e = entries.get(0);
@@ -326,20 +240,10 @@ public final class CollationMatchingRuleTest
      *It searches for string quebec against the value of sn which is
      * Qu\u00e9bec.
      */
-    InternalClientConnection conn = getRootConnection();
-
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(
-              conn, nextOperationID(), nextMessageID(),
-              null,
-              ByteString.valueOf("uid=user,o=test"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferenceAliasesPolicy.NEVER,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("sn:en.6:=*u*bec"),
-              null, null);
+    SearchRequest request = newSearchRequest("uid=user,o=test", SearchScope.WHOLE_SUBTREE, "sn:en.6:=*u*bec")
+        .setSizeLimit(Integer.MAX_VALUE)
+        .setTimeLimit(Integer.MAX_VALUE);
+    InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
