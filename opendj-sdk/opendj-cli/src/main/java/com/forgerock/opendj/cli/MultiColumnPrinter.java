@@ -26,6 +26,7 @@
  */
 package com.forgerock.opendj.cli;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -285,13 +286,7 @@ public final class MultiColumnPrinter {
     public void addTitle(final String[] row, final int[] span) {
         // Need to create a new instance of it, otherwise the new values
         // will always overwrite the old values.
-
-        final String[] rowInstance = new String[row.length];
-        for (int i = 0; i < row.length; i++) {
-            rowInstance[i] = row[i];
-        }
-        titleTable.add(rowInstance);
-
+        titleTable.add(Arrays.copyOf(row, row.length));
         titleSpanTable.add(span);
     }
 
