@@ -2073,20 +2073,17 @@ final class PropertyValueEditor {
                 registerSetModification(pd, newValues, previousValues);
             } else {
                 // Split into two operations: remove and add
-                SortedSet<T> removedValues = new TreeSet<T>();
-                removedValues.addAll(previousValues);
+                SortedSet<T> removedValues = new TreeSet<T>(previousValues);
                 removedValues.removeAll(newValues);
 
                 PropertyEditorModification<T> removeMod = PropertyEditorModification.createRemoveModification(pd,
                         removedValues, previousValues);
                 addModification(removeMod);
 
-                SortedSet<T> retainedValues = new TreeSet<T>();
-                retainedValues.addAll(previousValues);
+                SortedSet<T> retainedValues = new TreeSet<T>(previousValues);
                 retainedValues.retainAll(newValues);
 
-                SortedSet<T> addedValues = new TreeSet<T>();
-                addedValues.addAll(newValues);
+                SortedSet<T> addedValues = new TreeSet<T>(newValues);
                 addedValues.removeAll(retainedValues);
 
                 PropertyEditorModification<T> addMod = PropertyEditorModification.createAddModification(pd,
