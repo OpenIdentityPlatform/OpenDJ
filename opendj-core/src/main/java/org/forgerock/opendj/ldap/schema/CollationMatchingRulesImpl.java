@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  * For a given locale, two indexes are used: a shared one (for equality and
  * ordering rules) and a substring one (for substring rule).
  */
-public final class CollationMatchingRulesImpl {
+final class CollationMatchingRulesImpl {
 
     private static final String INDEX_ID_SHARED = "shared";
     private static final String INDEX_ID_SUBSTRING = "substring";
@@ -66,7 +66,7 @@ public final class CollationMatchingRulesImpl {
      *            the locale to use for this rule
      * @return the matching rule implementation
      */
-    public static CollationEqualityMatchingRuleImpl equalityMatchingRule(Locale locale) {
+    static MatchingRuleImpl collationEqualityMatchingRule(Locale locale) {
         return new CollationEqualityMatchingRuleImpl(locale);
     }
 
@@ -77,7 +77,7 @@ public final class CollationMatchingRulesImpl {
      *            the locale to use for this rule
      * @return the matching rule implementation
      */
-    public static CollationSubstringMatchingRuleImpl substringMatchingRule(Locale locale) {
+    static MatchingRuleImpl collationSubstringMatchingRule(Locale locale) {
         return new CollationSubstringMatchingRuleImpl(locale);
     }
 
@@ -88,7 +88,7 @@ public final class CollationMatchingRulesImpl {
      *            the locale to use for this rule
      * @return the matching rule implementation
      */
-    public static CollationLessThanMatchingRuleImpl lessThanMatchingRule(Locale locale) {
+    static MatchingRuleImpl collationLessThanMatchingRule(Locale locale) {
         return new CollationLessThanMatchingRuleImpl(locale);
     }
 
@@ -99,7 +99,7 @@ public final class CollationMatchingRulesImpl {
      *            the locale to use for this rule
      * @return the matching rule implementation
      */
-    public static CollationLessThanOrEqualToMatchingRuleImpl lessThanOrEqualMatchingRule(Locale locale) {
+    static MatchingRuleImpl collationLessThanOrEqualMatchingRule(Locale locale) {
         return new CollationLessThanOrEqualToMatchingRuleImpl(locale);
     }
 
@@ -110,7 +110,7 @@ public final class CollationMatchingRulesImpl {
      *            the locale to use for this rule
      * @return the matching rule implementation
      */
-    public static CollationGreaterThanMatchingRuleImpl greaterThanMatchingRule(Locale locale) {
+    static MatchingRuleImpl collationGreaterThanMatchingRule(Locale locale) {
         return new CollationGreaterThanMatchingRuleImpl(locale);
     }
 
@@ -121,14 +121,14 @@ public final class CollationMatchingRulesImpl {
      *            the locale to use for this rule
      * @return the matching rule implementation
      */
-    public static CollationGreaterThanOrEqualToMatchingRuleImpl greaterThanOrEqualToMatchingRule(Locale locale) {
+    static MatchingRuleImpl collationGreaterThanOrEqualToMatchingRule(Locale locale) {
         return new CollationGreaterThanOrEqualToMatchingRuleImpl(locale);
     }
 
     /**
      * Defines the base for collation matching rules.
      */
-    static abstract class AbstractCollationMatchingRuleImpl extends AbstractMatchingRuleImpl {
+    private static abstract class AbstractCollationMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
         private final Locale locale;
         final Collator collator;
@@ -140,7 +140,7 @@ public final class CollationMatchingRulesImpl {
          * @param locale
          *            Locale associated with this rule.
          */
-        public AbstractCollationMatchingRuleImpl(Locale locale) {
+        AbstractCollationMatchingRuleImpl(Locale locale) {
             this.locale = locale;
             this.collator = createCollator(locale);
             this.indexer = new DefaultIndexer(getSharedIndexName());
@@ -205,7 +205,7 @@ public final class CollationMatchingRulesImpl {
     /**
      * Defines the collation equality matching rule.
      */
-    static final class CollationEqualityMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
+    private static final class CollationEqualityMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
 
         /**
          * Creates the matching rule with the provided locale.
@@ -228,7 +228,7 @@ public final class CollationMatchingRulesImpl {
     /**
      * Defines the collation substring matching rule.
      */
-    static final class CollationSubstringMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
+    private static final class CollationSubstringMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
 
         private final AbstractSubstringMatchingRuleImpl substringMatchingRule;
         private final Indexer subIndexer;
@@ -275,7 +275,7 @@ public final class CollationMatchingRulesImpl {
     /**
      * Defines the collation ordering matching rule.
      */
-    static abstract class CollationOrderingMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
+    private static abstract class CollationOrderingMatchingRuleImpl extends AbstractCollationMatchingRuleImpl {
 
         final AbstractOrderingMatchingRuleImpl orderingMatchingRule;
 
@@ -300,7 +300,7 @@ public final class CollationMatchingRulesImpl {
     /**
      * Defines the collation less than matching rule.
      */
-    static final class CollationLessThanMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
+    private static final class CollationLessThanMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
 
         CollationLessThanMatchingRuleImpl(Locale locale) {
             super(locale);
@@ -316,7 +316,7 @@ public final class CollationMatchingRulesImpl {
     /**
      * Defines the collation less than or equal matching rule.
      */
-    static final class CollationLessThanOrEqualToMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
+    private static final class CollationLessThanOrEqualToMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
 
         CollationLessThanOrEqualToMatchingRuleImpl(Locale locale) {
             super(locale);
@@ -332,7 +332,7 @@ public final class CollationMatchingRulesImpl {
     /**
      * Defines the collation greater than matching rule.
      */
-    static final class CollationGreaterThanMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
+    private static final class CollationGreaterThanMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
 
         CollationGreaterThanMatchingRuleImpl(Locale locale) {
             super(locale);
@@ -348,7 +348,8 @@ public final class CollationMatchingRulesImpl {
     /**
      * Defines the collation greater than or equal matching rule.
      */
-    static final class CollationGreaterThanOrEqualToMatchingRuleImpl extends CollationOrderingMatchingRuleImpl {
+    private static final class CollationGreaterThanOrEqualToMatchingRuleImpl
+        extends CollationOrderingMatchingRuleImpl {
 
         CollationGreaterThanOrEqualToMatchingRuleImpl(Locale locale) {
             super(locale);

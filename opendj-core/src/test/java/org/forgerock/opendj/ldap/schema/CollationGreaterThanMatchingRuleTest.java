@@ -25,8 +25,6 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import java.util.Locale;
-
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -86,17 +84,7 @@ public class CollationGreaterThanMatchingRuleTest extends MatchingRuleTest {
     /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
-        // Note that oid and names are not used by the test (ie, they could be any value, test should pass anyway)
-        // Only the implementation class and the provided locale are really tested here.
-        String oid = "1.3.6.1.4.1.42.2.27.9.4.76.1.5";
-        Schema schema = new SchemaBuilder(Schema.getCoreSchema()).
-            buildMatchingRule(oid).
-                syntaxOID(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID).
-                names("fr.gt").
-                implementation(CollationMatchingRulesImpl.greaterThanMatchingRule(new Locale("fr"))).
-                addToSchema().
-            toSchema();
-        return schema.getMatchingRule(oid);
+        return Schema.getCoreSchema().getMatchingRule("fr.gt");
     }
 
     @Test
