@@ -141,9 +141,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         // HeartBeatConnectionFactory
         // Use custom search request.
-        SearchRequest request =
-            Requests.newSearchRequest("uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT,
-                        "objectclass=*", "cn");
+        SearchRequest request = Requests.newSearchRequest(
+            "uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT, "(objectclass=*)", "cn");
 
         InetSocketAddress serverAddress = getServerSocketAddress();
         factories[0][0] =

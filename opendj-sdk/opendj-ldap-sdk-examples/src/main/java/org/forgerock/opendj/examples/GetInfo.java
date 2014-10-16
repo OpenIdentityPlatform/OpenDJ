@@ -81,7 +81,7 @@ public final class GetInfo {
             final SearchResultEntry entry = connection.searchSingleEntry(
                     "", // DN is "" for root DSE.
                     SearchScope.BASE_OBJECT, // Read only the root DSE.
-                    "objectclass=*", // Every object matches this filter.
+                    "(objectclass=*)", // Every object matches this filter.
                     attributeList); // Return these requested attributes.
 
             final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
