@@ -25,8 +25,6 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import java.util.Locale;
-
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -34,6 +32,7 @@ import org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.Fa
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.*;
 import static org.testng.Assert.*;
 
@@ -86,17 +85,21 @@ public class CollationEqualityMatchingRuleTest extends MatchingRuleTest {
     /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
-        // Note that oid and names are not used by the test (ie, they could be any value, test should pass anyway)
-        // Only the implementation class and the provided locale are really tested here.
-        String oid = "1.3.6.1.4.1.42.2.27.9.4.76.1.3";
-        Schema schema = new SchemaBuilder(Schema.getCoreSchema()).
-            buildMatchingRule(oid).
-                syntaxOID(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID).
-                names("fr.eq").
-                implementation(CollationMatchingRulesImpl.equalityMatchingRule(new Locale("fr"))).
-                addToSchema().
-            toSchema();
-        return schema.getMatchingRule(oid);
+        return Schema.getCoreSchema().getMatchingRule("fr.eq");
+    }
+
+    @Test
+    public void testMatchingRuleNames() throws Exception {
+        // 'fr' and 'fr-FR' share the same oid (they are aliases)
+        MatchingRule rule = Schema.getCoreSchema().getMatchingRule("fr.eq");
+        assertThat(rule.getNames()).containsOnly("fr.eq", "fr.3", "fr-FR.eq", "fr-FR.3");
+
+        MatchingRule rule2 = Schema.getCoreSchema().getMatchingRule("fr-FR.eq");
+        assertThat(rule2.getNames()).containsOnly("fr.eq", "fr.3", "fr-FR.eq", "fr-FR.3");
+
+        // 'ar' does not share oid with another locale
+        MatchingRule rule3 = Schema.getCoreSchema().getMatchingRule("ar.3");
+        assertThat(rule3.getNames()).containsOnly("ar.eq", "ar.3");
     }
 
     @Test
