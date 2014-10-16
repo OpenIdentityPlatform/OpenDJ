@@ -179,7 +179,7 @@ public class PartialDateAndTimeMatchingRuleTestCase extends MatchingRuleTest {
     /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
-        return CoreSchema.getPartialDateAndTimeMatchingRule();
+        return CoreSchema.getInstance().getMatchingRule(SchemaConstants.MR_PARTIAL_DATE_AND_TIME_OID);
     }
 
     @Test

@@ -35,7 +35,6 @@ import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.schema.AbstractSubstringMatchingRuleImplTest.FakeIndexQueryFactory;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
 import org.forgerock.util.time.TimeService;
 
 import static org.fest.assertions.Assertions.*;
@@ -113,7 +112,7 @@ public class RelativeTimeGreaterThanMatchingRuleTest extends MatchingRuleTest {
     /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
-        return CoreSchema.getRelativeTimeGreaterThanMatchingRule();
+        return CoreSchema.getInstance().getMatchingRule(SchemaConstants.OMR_RELATIVE_TIME_GREATER_THAN_OID);
     }
 
     @Test
