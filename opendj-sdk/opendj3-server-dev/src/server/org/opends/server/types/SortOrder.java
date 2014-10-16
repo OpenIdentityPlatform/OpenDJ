@@ -22,9 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
-
 
 /**
  * This class defines a data structure that defines a set of sort
@@ -49,10 +49,8 @@ package org.opends.server.types;
      mayInvoke=true)
 public final class SortOrder
 {
-  // The set of sort keys in this sort order.
+  /** The set of sort keys in this sort order. */
   private SortKey[] sortKeys;
-
-
 
   /**
    * Creates a new sort order with a single key.
@@ -72,7 +70,7 @@ public final class SortOrder
    * @param  sortKeys  The set of sort keys to use for this sort
    *                   order.
    */
-  public SortOrder(SortKey[] sortKeys)
+  public SortOrder(SortKey... sortKeys)
   {
     this.sortKeys = new SortKey[sortKeys.length];
     System.arraycopy(sortKeys, 0, this.sortKeys, 0, sortKeys.length);
@@ -97,6 +95,7 @@ public final class SortOrder
    *
    * @return  A string representation of this sort order.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -136,6 +135,7 @@ public final class SortOrder
    *
    * @return  The hash code for this sort order.
    */
+  @Override
   public int hashCode()
   {
     int hashCode = 0;
@@ -143,7 +143,6 @@ public final class SortOrder
     {
       hashCode += sortKey.hashCode();
     }
-
     return hashCode;
   }
 
@@ -156,25 +155,23 @@ public final class SortOrder
    * @return  <CODE>true</CODE> if the provide object is equal to this
    *          sort order, or <CODE>false</CODE> if it is not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if(o == null)
     {
       return false;
     }
-
     if (o == this)
     {
       return true;
     }
-
     if (! (o instanceof SortOrder))
     {
       return false;
     }
 
     SortOrder s = (SortOrder) o;
-
     if(sortKeys.length != s.sortKeys.length)
     {
       return false;
@@ -187,7 +184,6 @@ public final class SortOrder
         return false;
       }
     }
-
     return true;
   }
 }
