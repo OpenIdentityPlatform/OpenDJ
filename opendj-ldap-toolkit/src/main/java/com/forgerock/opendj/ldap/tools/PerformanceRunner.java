@@ -71,7 +71,7 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
  * Benchmark application framework.
  */
 abstract class PerformanceRunner implements ConnectionEventListener {
-    private static final class ResponseTimeBuckets {
+    static final class ResponseTimeBuckets {
         private static final long NS_1_US = NANOSECONDS.convert(1, MICROSECONDS);
         private static final long NS_100_US = NANOSECONDS.convert(100, MICROSECONDS);
         private static final long NS_1_MS = NANOSECONDS.convert(1, MILLISECONDS);
@@ -158,7 +158,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
          * @return array of response times in microseconds corresponding to
          *         percentiles.
          */
-        private List<Long> getPercentile(double[] percentiles, long nbData) {
+        List<Long> getPercentile(double[] percentiles, long nbData) {
             List<Long> responseTimes = new ArrayList<Long>();
             Queue<Long> nbDataThresholds = new LinkedList<Long>();
             long nbDataSum = nbData;
@@ -187,13 +187,13 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
         private void computePercentiles(Queue<Long> currentDataThreshold, List<Long> responseTimes, long currentSum,
                 long currentETime) {
-            while (currentDataThreshold.peek() != null && currentDataThreshold.peek() > currentSum) {
+            while (currentDataThreshold.peek() != null && currentDataThreshold.peek() >= currentSum) {
                 responseTimes.add(currentETime);
                 currentDataThreshold.poll();
             }
         }
 
-        private void addTimeToInterval(long responseTimeNanoSecs) {
+        void addTimeToInterval(long responseTimeNanoSecs) {
             if (responseTimeNanoSecs >= NS_5_S) {
                 long matchingKey = responseTimeNanoSecs / NS_100_MS;
                 matchingKey -= matchingKey % 5;
@@ -224,6 +224,11 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             final int intervalIndex = ((int) (responseTimeNanoSecs / rangeWidthNanoSecs)) + startRangeIndex;
             index2Frequency[intervalIndex].getAndIncrement();
         }
+    }
+
+    //To allow tests
+    static ResponseTimeBuckets getResponseTimeBuckets() {
+        return new ResponseTimeBuckets();
     }
 
 
