@@ -28,6 +28,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -68,7 +69,7 @@ final class GenerateCoreSchema {
 
         final SortedMap<String, MatchingRule> matchingRules = new TreeMap<String, MatchingRule>();
         for (final MatchingRule matchingRule : schema.getMatchingRules()) {
-            if (isOpenDSOID(matchingRule.getOID())) {
+            if (isOpenDSOID(matchingRule.getOID()) || isCollationMatchingRule(matchingRule.getOID())) {
                 continue;
             }
 
@@ -99,12 +100,38 @@ final class GenerateCoreSchema {
             objectClasses.put(fieldName, objectClass);
         }
 
-        System.out.println();
-        System.out.println();
-        System.out.println();
+        System.out.println("/*");
+        System.out.println(" * CDDL HEADER START");
+        System.out.println(" *");
+        System.out.println(" * The contents of this file are subject to the terms of the");
+        System.out.println(" * Common Development and Distribution License, Version 1.0 only");
+        System.out.println(" * (the \"License\").  You may not use this file except in compliance");
+        System.out.println(" * with the License.");
+        System.out.println(" *");
+        System.out.println(" * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt");
+        System.out.println(" * or http://forgerock.org/license/CDDLv1.0.html.");
+        System.out.println(" * See the License for the specific language governing permissions");
+        System.out.println(" * and limitations under the License.");
+        System.out.println(" *");
+        System.out.println(" * When distributing Covered Code, include this CDDL HEADER in each");
+        System.out.println(" * file and include the License file at legal-notices/CDDLv1_0.txt.");
+        System.out.println(" * If applicable, add the following below this CDDL HEADER, with the");
+        System.out.println(" * fields enclosed by brackets \"[]\" replaced with your own identifying");
+        System.out.println(" * information:");
+        System.out.println(" *      Portions Copyright [yyyy] [name of copyright owner]");
+        System.out.println(" *");
+        System.out.println(" * CDDL HEADER END");
+        System.out.println(" *");
+        System.out.println(" *");
+        System.out.println(" *      Copyright 2009 Sun Microsystems, Inc.");
+        final int year = Calendar.getInstance().get(Calendar.YEAR);
+        System.out.println(" *      Portions copyright 2014" + (year > 2014 ? "-" + year : "") + " ForgeRock AS");
+        System.out.println(" */");
         System.out.println("package org.forgerock.opendj.ldap.schema;");
         System.out.println();
         System.out.println();
+        System.out.println("// DON'T EDIT THIS FILE!");
+        System.out.println("// It is automatically generated using GenerateCoreSchema class.");
         System.out.println();
         System.out.println("/**");
         System.out.println(" * The OpenDJ SDK core schema contains standard LDAP "
@@ -136,150 +163,127 @@ final class GenerateCoreSchema {
         System.out.println(" * non-existent Attribute Types will return a temporary");
         System.out.println(" * Attribute Type having the Octet String syntax.");
         System.out.println(" */");
-        System.out.println("public final class CoreSchema");
-        System.out.println("{");
+        System.out.println("public final class CoreSchema {");
 
-        System.out.println("  // Core Syntaxes");
+        System.out.println("    // Core Syntaxes");
         for (final Map.Entry<String, Syntax> syntax : syntaxes.entrySet()) {
-            System.out.println("  private static final Syntax " + syntax.getKey() + " =");
-            System.out.println("    CoreSchemaImpl.getInstance().getSyntax(\""
+            System.out.println("    private static final Syntax " + syntax.getKey() + " =");
+            System.out.println("        CoreSchemaImpl.getInstance().getSyntax(\""
                     + syntax.getValue().getOID() + "\");");
         }
 
         System.out.println();
-        System.out.println("  // Core Matching Rules");
+        System.out.println("    // Core Matching Rules");
         for (final Map.Entry<String, MatchingRule> matchingRule : matchingRules.entrySet()) {
-            System.out.println("  private static final MatchingRule " + matchingRule.getKey()
+            System.out.println("    private static final MatchingRule " + matchingRule.getKey()
                     + " =");
-            System.out.println("    CoreSchemaImpl.getInstance().getMatchingRule(\""
+            System.out.println("        CoreSchemaImpl.getInstance().getMatchingRule(\""
                     + matchingRule.getValue().getOID() + "\");");
         }
 
         System.out.println();
-        System.out.println("  // Core Attribute Types");
+        System.out.println("    // Core Attribute Types");
         for (final Map.Entry<String, AttributeType> attributeType : attributeTypes.entrySet()) {
-            System.out.println("  private static final AttributeType " + attributeType.getKey()
+            System.out.println("    private static final AttributeType " + attributeType.getKey()
                     + " =");
-            System.out.println("    CoreSchemaImpl.getInstance().getAttributeType(\""
+            System.out.println("        CoreSchemaImpl.getInstance().getAttributeType(\""
                     + attributeType.getValue().getOID() + "\");");
         }
 
         System.out.println();
-        System.out.println("  // Core Object Classes");
+        System.out.println("    // Core Object Classes");
         for (final Map.Entry<String, ObjectClass> objectClass : objectClasses.entrySet()) {
-            System.out.println("  private static final ObjectClass " + objectClass.getKey() + " =");
-            System.out.println("    CoreSchemaImpl.getInstance().getObjectClass(\""
+            System.out.println("    private static final ObjectClass " + objectClass.getKey() + " =");
+            System.out.println("        CoreSchemaImpl.getInstance().getObjectClass(\""
                     + objectClass.getValue().getOID() + "\");");
         }
 
         System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("  // Prevent instantiation");
-        System.out.println("  private CoreSchema()");
-        System.out.println("  {");
-        System.out.println("    // Nothing to do.");
-        System.out.println("  }");
+        System.out.println("    // Prevent instantiation");
+        System.out.println("    private CoreSchema() {");
+        System.out.println("      // Nothing to do.");
+        System.out.println("    }");
 
         System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println("  /**");
-        System.out.println("   * Returns a reference to the singleton core schema.");
-        System.out.println("   *");
-        System.out.println("   * @return The core schema.");
-        System.out.println("   */");
-        System.out.println("  public static Schema getInstance()");
-        System.out.println("  {");
-        System.out.println("    return CoreSchemaImpl.getInstance();");
-        System.out.println("  }");
+        System.out.println("    /**");
+        System.out.println("     * Returns a reference to the singleton core schema.");
+        System.out.println("     *");
+        System.out.println("     * @return The core schema.");
+        System.out.println("     */");
+        System.out.println("    public static Schema getInstance() {");
+        System.out.println("        return CoreSchemaImpl.getInstance();");
+        System.out.println("    }");
 
         for (final Map.Entry<String, Syntax> syntax : syntaxes.entrySet()) {
-            System.out.println();
-            System.out.println();
             System.out.println();
 
             final String description =
                     toCodeJavaDoc(syntax.getValue().getDescription().replaceAll(" Syntax$", "")
                             + " Syntax");
-            System.out.println("  /**");
-            System.out.println("   * Returns a reference to the " + description);
-            System.out.println("   * which has the OID "
+            System.out.println("    /**");
+            System.out.println("     * Returns a reference to the " + description);
+            System.out.println("     * which has the OID "
                     + toCodeJavaDoc(syntax.getValue().getOID()) + ".");
-            System.out.println("   *");
-            System.out.println("   * @return A reference to the " + description + ".");
+            System.out.println("     *");
+            System.out.println("     * @return A reference to the " + description + ".");
 
-            System.out.println("   */");
-            System.out.println("  public static Syntax get" + toJavaName(syntax.getKey()) + "()");
-            System.out.println("  {");
-            System.out.println("    return " + syntax.getKey() + ";");
-            System.out.println("  }");
+            System.out.println("     */");
+            System.out.println("    public static Syntax get" + toJavaName(syntax.getKey()) + "() {");
+            System.out.println("        return " + syntax.getKey() + ";");
+            System.out.println("    }");
         }
 
         for (final Map.Entry<String, MatchingRule> matchingRule : matchingRules.entrySet()) {
             System.out.println();
-            System.out.println();
-            System.out.println();
 
             final String description = toCodeJavaDoc(matchingRule.getValue().getNameOrOID());
-            System.out.println("  /**");
-            System.out.println("   * Returns a reference to the " + description + " Matching Rule");
-            System.out.println("   * which has the OID "
+            System.out.println("    /**");
+            System.out.println("     * Returns a reference to the " + description + " Matching Rule");
+            System.out.println("     * which has the OID "
                     + toCodeJavaDoc(matchingRule.getValue().getOID()) + ".");
-            System.out.println("   *");
-            System.out
-                    .println("   * @return A reference to the " + description + " Matching Rule.");
+            System.out.println("     *");
+            System.out.println("     * @return A reference to the " + description + " Matching Rule.");
 
-            System.out.println("   */");
-            System.out.println("  public static MatchingRule get"
-                    + toJavaName(matchingRule.getKey()) + "()");
-            System.out.println("  {");
-            System.out.println("    return " + matchingRule.getKey() + ";");
-            System.out.println("  }");
+            System.out.println("     */");
+            System.out.println("    public static MatchingRule get" + toJavaName(matchingRule.getKey()) + "() {");
+            System.out.println("        return " + matchingRule.getKey() + ";");
+            System.out.println("    }");
         }
 
         for (final Map.Entry<String, AttributeType> attributeType : attributeTypes.entrySet()) {
             System.out.println();
-            System.out.println();
-            System.out.println();
 
             final String description = toCodeJavaDoc(attributeType.getValue().getNameOrOID());
-            System.out.println("  /**");
-            System.out
-                    .println("   * Returns a reference to the " + description + " Attribute Type");
-            System.out.println("   * which has the OID "
+            System.out.println("    /**");
+            System.out.println("     * Returns a reference to the " + description + " Attribute Type");
+            System.out.println("     * which has the OID "
                     + toCodeJavaDoc(attributeType.getValue().getOID()) + ".");
-            System.out.println("   *");
-            System.out.println("   * @return A reference to the " + description
-                    + " Attribute Type.");
+            System.out.println("     *");
+            System.out.println("     * @return A reference to the " + description + " Attribute Type.");
 
-            System.out.println("   */");
-            System.out.println("  public static AttributeType get"
-                    + toJavaName(attributeType.getKey()) + "()");
-            System.out.println("  {");
-            System.out.println("    return " + attributeType.getKey() + ";");
-            System.out.println("  }");
+            System.out.println("     */");
+            System.out.println("    public static AttributeType get"
+                    + toJavaName(attributeType.getKey()) + "() {");
+            System.out.println("        return " + attributeType.getKey() + ";");
+            System.out.println("    }");
         }
 
         for (final Map.Entry<String, ObjectClass> objectClass : objectClasses.entrySet()) {
             System.out.println();
-            System.out.println();
-            System.out.println();
 
             final String description = toCodeJavaDoc(objectClass.getValue().getNameOrOID());
-            System.out.println("  /**");
-            System.out.println("   * Returns a reference to the " + description + " Object Class");
-            System.out.println("   * which has the OID "
+            System.out.println("    /**");
+            System.out.println("     * Returns a reference to the " + description + " Object Class");
+            System.out.println("     * which has the OID "
                     + toCodeJavaDoc(objectClass.getValue().getOID()) + ".");
-            System.out.println("   *");
-            System.out.println("   * @return A reference to the " + description + " Object Class.");
+            System.out.println("     *");
+            System.out.println("     * @return A reference to the " + description + " Object Class.");
 
-            System.out.println("   */");
-            System.out.println("  public static ObjectClass get" + toJavaName(objectClass.getKey())
-                    + "()");
-            System.out.println("  {");
-            System.out.println("    return " + objectClass.getKey() + ";");
-            System.out.println("  }");
+            System.out.println("     */");
+            System.out.println("    public static ObjectClass get" + toJavaName(objectClass.getKey())
+                    + "() {");
+            System.out.println("        return " + objectClass.getKey() + ";");
+            System.out.println("    }");
         }
 
         System.out.println("}");
@@ -289,9 +293,14 @@ final class GenerateCoreSchema {
         return oid.startsWith(SchemaConstants.OID_OPENDS_SERVER_BASE + ".");
     }
 
+    private static boolean isCollationMatchingRule(final String oid) {
+        return oid.startsWith("1.3.6.1.4.1.42.2.27.9.4.");
+    }
+
     private static String splitNameIntoWords(final String name) {
         String splitName = name.replaceAll("([A-Z][a-z])", "_$1");
         splitName = splitName.replaceAll("([a-z])([A-Z])", "$1_$2");
+        splitName = splitName.replaceAll("[-.]", "");
 
         return splitName.toUpperCase(Locale.ENGLISH);
     }
