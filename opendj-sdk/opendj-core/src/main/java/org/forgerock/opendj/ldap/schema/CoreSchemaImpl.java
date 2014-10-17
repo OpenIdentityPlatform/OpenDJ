@@ -849,6 +849,10 @@ final class CoreSchemaImpl {
     }
 
     private static void addSunProprietary(final SchemaBuilder builder) {
+        builder.addAttributeType("1.3.6.1.4.1.36733.2.1.1.141", Collections.singletonList("fullVendorVersion"),
+                EMPTY_STRING, false, null, EMR_CASE_EXACT_IA5_OID, null, null, null,
+                SYNTAX_DIRECTORY_STRING_OID, true, false, true, AttributeUsage.DSA_OPERATION,
+                OPENDJ_ORIGIN , false);
         builder.buildSyntax(SYNTAX_USER_PASSWORD_OID).description(SYNTAX_USER_PASSWORD_DESCRIPTION)
                 .extraProperties(OPENDJ_ORIGIN).implementation(new UserPasswordSyntaxImpl()).addToSchema();
         builder.buildMatchingRule(EMR_USER_PASSWORD_EXACT_OID)
