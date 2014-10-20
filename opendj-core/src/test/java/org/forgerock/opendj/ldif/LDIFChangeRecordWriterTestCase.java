@@ -69,9 +69,8 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      * @return a string containing a standard LDIF Change Record.
      */
     public final String[] getAddLDIFChangeRecord() {
-
         // @formatter:off
-        final String[] cr = {
+        return new String[] {
             "version: 1",
             "dn: uid=scarter,ou=People,dc=example,dc=com",
             "changetype: add",
@@ -88,7 +87,6 @@ public class LDIFChangeRecordWriterTestCase extends AbstractLDIFTestCase {
             "description::V2hhdCBhIGNhcmVmdWwgcmVhZGVyIHlvdSBhcmUgIQ=="
         };
         // @formatter:on
-        return cr;
     }
 
     /**

@@ -310,8 +310,7 @@ public final class Adapters {
 
                 CompareResult result =
                         Responses.newCompareResult(getResultCode(compareOperation));
-                result = getResponseResult(compareOperation, result);
-                return result;
+                return getResponseResult(compareOperation, result);
             }
 
             @Override

@@ -44,7 +44,7 @@ public class MakeLDIFTestCase extends ToolsTestCase {
 
     @DataProvider(name = "validArguments")
     Object[][] createValidArguments() throws Exception {
-        Object[][] data = new Object[][] {
+        return new Object[][] {
             { args("-c", "numusers=1", "example.template"),
               // 2 base entries + users
               expectedErrOutput(INFO_MAKELDIF_PROCESSING_COMPLETE.get(3)) },
@@ -53,12 +53,11 @@ public class MakeLDIFTestCase extends ToolsTestCase {
               // 2 base entries + users
               expectedErrOutput(INFO_MAKELDIF_PROCESSING_COMPLETE.get(7)) },
         };
-        return data;
     }
 
     @DataProvider(name = "invalidArguments")
     Object[][] createInValidArguments() throws Exception {
-        Object[][] data = new Object[][] {
+        return new Object[][] {
             { // check that usage is written to output when arguments are invalid
               args(),
               expectedErrOutput(INFO_MAKELDIF_TOOL_DESCRIPTION.get()) },
@@ -76,7 +75,6 @@ public class MakeLDIFTestCase extends ToolsTestCase {
             { args("-s", "non-numeric" , "example.template"),
               expectedErrOutput(ERR_ERROR_PARSING_ARGS.get("")) },
         };
-        return data;
     }
 
     @Test(dataProvider = "validArguments")
