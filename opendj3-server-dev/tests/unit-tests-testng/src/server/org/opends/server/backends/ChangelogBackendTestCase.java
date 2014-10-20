@@ -40,7 +40,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
@@ -176,7 +175,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   /** Configure a replicationServer for test. */
   private void configureReplicationServer() throws Exception
   {
-    replicationServerPort = TestCaseUtils.findFreePort();
+    replicationServerPort = findFreePort();
 
     ReplServerFakeConfiguration config = new ReplServerFakeConfiguration(
           replicationServerPort,
@@ -212,10 +211,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   /** Start a new replication domain on the directory server side. */
   private LDAPReplicationDomain startNewReplicationDomain(
-      DomainFakeCfg domainConf,
-      SortedSet<String> eclInclude,
-      SortedSet<String> eclIncludeForDeletes)
-          throws Exception
+      DomainFakeCfg domainConf, SortedSet<String> eclInclude, SortedSet<String> eclIncludeForDeletes) throws Exception
   {
     domainConf.setExternalChangelogDomain(new ExternalChangelogDomainFakeCfg(true, eclInclude, eclIncludeForDeletes));
     // Set a Changetime heartbeat interval low enough
@@ -335,7 +331,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     // search with an old cookie
     searchOp = searchChangelogUsingCookie("(targetDN=*)", firstCookie, 0, UNWILLING_TO_PERFORM, test);
     assertThat(searchOp.getErrorMessage().toString()).
-      contains("unknown replicated domain", TEST_ROOT_DN_STRING.toString());
+      contains("unknown replicated domain", TEST_ROOT_DN_STRING);
 
     debugInfo(test, "Ending test successfully");
   }
@@ -349,9 +345,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     "searchInCookieModeOnOneSuffixUsingEmptyCookie",
     "searchInCookieModeOnOneSuffix",
     "searchInCookieModeAfterDomainIsRemoved",
-    "searchInDraftModeOnOneSuffixMultipleTimes",
-    "searchInDraftModeOnOneSuffix",
-    "searchInDraftModeWithInvalidChangeNumber" })
+    "searchInChangeNumberModeOnOneSuffixMultipleTimes",
+    "searchInChangeNumberModeOnOneSuffix",
+    "searchInChangeNumberModeWithInvalidChangeNumber" })
   public void searchInCookieModeOnTwoSuffixes() throws Exception
   {
     String test = "CookieTwoSuffixes";
@@ -471,7 +467,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       assertTrue(cursor.next(),
           "Expected to be to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
       assertEquals(cursor.getRecord().getCSN(), csn);
-    }finally{
+    }
+    finally
+    {
       close(cursor);
     }
   }
@@ -499,7 +497,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         backend3 = initializeMemoryBackend(false, TEST_BACKEND_ID3);
         backend3.setPrivateBackend(true);
         DomainFakeCfg domainConf2 = new DomainFakeCfg(DN_OTEST3, 1602,
-            newSortedSet("localhost:" + replicationServerPort));
+            newTreeSet("localhost:" + replicationServerPort));
         domain2 = startNewReplicationDomain(domainConf2, null, null);
 
         // add a root entry to the backend
@@ -521,7 +519,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         // (does only refer to non private backend)
         String expectedLastCookie = "o=test:" + csn1 + ";";
         String lastCookie = readLastCookieFromRootDSE();
-        assertThat(expectedLastCookie.toString()).isEqualTo(lastCookie);
+        assertThat(expectedLastCookie).isEqualTo(lastCookie);
       }
       finally
       {
@@ -533,7 +531,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   @Test
-  public void searchInDraftModeWithInvalidChangeNumber() throws Exception
+  public void searchInChangeNumberModeWithInvalidChangeNumber() throws Exception
   {
     String testName = "UnknownChangeNumber";
     debugInfo(testName, "Starting test\n\n");
@@ -544,15 +542,14 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   @Test
-  public void searchInDraftModeOnOneSuffix() throws Exception
+  public void searchInChangeNumberModeOnOneSuffix() throws Exception
   {
     long firstChangeNumber = 1;
     String testName = "FourChanges/" + firstChangeNumber;
     debugInfo(testName, "Starting test\n\n");
 
     CSN[] csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
-
-    searchChangesForEachOperationTypeUsingDraftMode(firstChangeNumber, csns, testName);
+    searchChangesForEachOperationTypeUsingChangeNumberMode(firstChangeNumber, csns, testName);
 
     assertChangelogAttributesInRootDSE(true, 1, 4);
 
@@ -560,19 +557,19 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   @Test
-  public void searchInDraftModeOnOneSuffixMultipleTimes() throws Exception
+  public void searchInChangeNumberModeOnOneSuffixMultipleTimes() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
 
     // write 4 changes starting from changenumber 1, and search them
     String testName = "Multiple/1";
     CSN[] csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
-    searchChangesForEachOperationTypeUsingDraftMode(1, csns, testName);
+    searchChangesForEachOperationTypeUsingChangeNumberMode(1, csns, testName);
 
     // write 4 more changes starting from changenumber 5, and search them
     testName = "Multiple/5";
     csns = generateAndPublishUpdateMsgForEachOperationType(testName, false);
-    searchChangesForEachOperationTypeUsingDraftMode(5, csns, testName);
+    searchChangesForEachOperationTypeUsingChangeNumberMode(5, csns, testName);
 
     // search from the provided change number: 6 (should be the add msg)
     CSN csnOfLastAddMsg = csns[1];
@@ -592,7 +589,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   /**
-   * Verifies that is not possible to read the changelog without the changelog-read privilege
+   * Verifies that is not possible to read the changelog without the changelog-read privilege.
    */
   @Test
   public void searchingWithoutPrivilegeShouldFail() throws Exception
@@ -625,24 +622,24 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     LDAPReplicationDomain domain41 = null;
     try
     {
-      SortedSet<String> replServers = newSortedSet("localhost:" + replicationServerPort);
+      SortedSet<String> replServers = newTreeSet("localhost:" + replicationServerPort);
 
       // backend4 and domain4
       backend4 = initializeMemoryBackend(false, backendId4);
       DomainFakeCfg domainConf = new DomainFakeCfg(baseDN4, 1702, replServers);
-      SortedSet<String> eclInclude = newSortedSet("sn", "roomnumber");
+      SortedSet<String> eclInclude = newTreeSet("sn", "roomnumber");
       domain4 = startNewReplicationDomain(domainConf, eclInclude, eclInclude);
 
       // backend5 and domain5
       backend5 = initializeMemoryBackend(false, backendId5);
       domainConf = new DomainFakeCfg(baseDN5, 1703, replServers);
-      eclInclude = newSortedSet("objectclass");
-      SortedSet<String> eclIncludeForDeletes = newSortedSet("*");
+      eclInclude = newTreeSet("objectclass");
+      SortedSet<String> eclIncludeForDeletes = newTreeSet("*");
       domain5 = startNewReplicationDomain(domainConf, eclInclude, eclIncludeForDeletes);
 
       // domain41
       domainConf = new DomainFakeCfg(baseDN4, 1704, replServers);
-      eclInclude = newSortedSet("cn");
+      eclInclude = newTreeSet("cn");
       domain41 = startNewReplicationDomain(domainConf, eclInclude, eclInclude);
 
       Thread.sleep(1000);
@@ -650,7 +647,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       addEntry(createEntry(baseDN4));
       addEntry(createEntry(baseDN5));
 
-      Entry uentry1 = entryFromLdifString(makeLdif(
+      Entry uentry1 = addEntry(
           "dn: cn=Fiona Jensen,o=" + backendId4,
           "objectclass: top",
           "objectclass: person",
@@ -659,10 +656,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           "cn: Fiona Jensen",
           "sn: Jensen",
           "uid: fiona",
-          "telephonenumber: 12121212"));
-      addEntry(uentry1);
+          "telephonenumber: 12121212");
 
-      Entry uentry2 = entryFromLdifString(makeLdif(
+      Entry uentry2 = addEntry(
           "dn: cn=Robert Hue,o=" + backendId5,
           "objectclass: top",
           "objectclass: person",
@@ -671,8 +667,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           "cn: Robert Hue",
           "sn: Robby",
           "uid: robert",
-          "telephonenumber: 131313"));
-      addEntry(uentry2);
+          "telephonenumber: 131313");
 
       // mod 'sn' of fiona with 'sn' configured as ecl-incl-att
       final ModifyOperation modOp1 = connection.processModify(uentry1.getName(), createAttributeModif("sn", "newsn"));
@@ -963,7 +958,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return csns;
   }
 
-  // shortcut method for default base DN and server id used in tests
+  /** Shortcut method for default base DN and server id used in tests. */
   private void publishUpdateMessagesInOTest(String testName, boolean checkLastCookie, UpdateMsg...messages)
       throws Exception
   {
@@ -994,7 +989,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       {
         if (msg instanceof UpdateMsg)
         {
-          debugInfo(testName, " publishes " + ((UpdateMsg)msg).getCSN());
+          debugInfo(testName, " publishes " + ((UpdateMsg) msg).getCSN());
         }
 
         broker.publish(msg);
@@ -1025,8 +1020,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return cookies;
   }
 
-  private void searchChangesForEachOperationTypeUsingDraftMode(long firstChangeNumber, CSN[] csns, String testName)
-      throws Exception
+  private void searchChangesForEachOperationTypeUsingChangeNumberMode(long firstChangeNumber, CSN[] csns,
+      String testName) throws Exception
   {
     // Search the changelog and check 4 entries are returned
     String filter = "(targetdn=*" + testName + "*,o=test)";
@@ -1172,13 +1167,15 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       throws Exception
   {
     String baseUUID = "22222222-2222-2222-2222-222222222222";
-    String entryLdif = "dn: uid="+ testName + "2," + baseDn + "\n"
-        + "objectClass: top\n" + "objectClass: domain\n"
-        + "entryUUID: "+ user1entryUUID +"\n";
-    Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
+    String dn = "uid=" + testName + "2," + baseDn;
+    Entry entry = makeEntry(
+        "dn: " + dn,
+        "objectClass: top",
+        "objectClass: domain",
+        "entryUUID: "+ user1entryUUID);
     return new AddMsg(
         csn,
-        DN.valueOf("uid="+testName+"2," + baseDn),
+        DN.valueOf(dn),
         user1entryUUID,
         baseUUID,
         entry.getObjectClassAttribute(),
@@ -1232,8 +1229,9 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   {
     for (SearchResultEntry entry : searchOp.getSearchEntries())
     {
-      assertTrue(entry.getControls().isEmpty(), "result entry " + entry.toString() +
-          " should contain no control(s)");
+      assertThat(entry.getControls())
+          .as("result entry " + entry + " should contain no control(s)")
+          .isEmpty();
     }
   }
 
@@ -1245,7 +1243,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       boolean cookieControlFound = false;
       for (Control control : entry.getControls())
       {
-        if (control.getOID().equals(OID_ECL_COOKIE_EXCHANGE_CONTROL))
+        if (OID_ECL_COOKIE_EXCHANGE_CONTROL.equals(control.getOID()))
         {
           String cookieString =
               searchOp.getRequestControl(ExternalChangelogRequestControl.DECODER).getCookie().toString();
@@ -1253,7 +1251,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           cookieControlFound = true;
         }
       }
-      assertTrue(cookieControlFound, "result entry " + entry.toString() + " should contain the cookie control");
+      assertTrue(cookieControlFound, "result entry " + entry + " should contain the cookie control");
     }
   }
 
@@ -1456,7 +1454,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     String[] ldif = new String[ldifAttributeLines.length + 1];
     System.arraycopy(ldifAttributeLines, 0, ldif, 1, ldifAttributeLines.length);
     ldif[0] = "dn: " + targetdn;
-    return TestCaseUtils.makeEntry(ldif);
+    return makeEntry(ldif);
   }
 
   private void debugAndWriteEntries(LDIFWriter ldifWriter,List<SearchResultEntry> entries, String tn) throws Exception
