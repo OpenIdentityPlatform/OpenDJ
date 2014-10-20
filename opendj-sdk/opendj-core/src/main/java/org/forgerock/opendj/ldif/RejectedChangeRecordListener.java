@@ -50,37 +50,36 @@ public interface RejectedChangeRecordListener {
      */
     RejectedChangeRecordListener FAIL_FAST = new RejectedChangeRecordListener() {
 
-                public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry)
-                        throws DecodeException {
-                    throw DecodeException.error(REJECTED_CHANGE_FAIL_ADD_DUPE.get(change.getName()));
-                }
+        public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry) throws DecodeException {
+            throw DecodeException.error(REJECTED_CHANGE_FAIL_ADD_DUPE.get(change.getName()));
+        }
 
-                public Entry handleDuplicateEntry(final ModifyDNRequest change,
-                        final Entry existingEntry, final Entry renamedEntry) throws DecodeException {
-                    throw DecodeException.error(REJECTED_CHANGE_FAIL_MODIFYDN_DUPE.get(renamedEntry.getName()));
-                }
+        public Entry handleDuplicateEntry(final ModifyDNRequest change, final Entry existingEntry,
+                final Entry renamedEntry) throws DecodeException {
+            throw DecodeException.error(REJECTED_CHANGE_FAIL_MODIFYDN_DUPE.get(renamedEntry.getName()));
+        }
 
-                public void handleRejectedChangeRecord(final AddRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
-                    throw DecodeException.error(reason);
-                }
+        public void handleRejectedChangeRecord(final AddRequest change, final LocalizableMessage reason)
+                throws DecodeException {
+            throw DecodeException.error(reason);
+        }
 
-                public void handleRejectedChangeRecord(final DeleteRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
-                    throw DecodeException.error(reason);
-                }
+        public void handleRejectedChangeRecord(final DeleteRequest change, final LocalizableMessage reason)
+                throws DecodeException {
+            throw DecodeException.error(reason);
+        }
 
-                public void handleRejectedChangeRecord(final ModifyRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
-                    throw DecodeException.error(reason);
-                }
+        public void handleRejectedChangeRecord(final ModifyRequest change, final LocalizableMessage reason)
+                throws DecodeException {
+            throw DecodeException.error(reason);
+        }
 
-                public void handleRejectedChangeRecord(final ModifyDNRequest change,
-                        final LocalizableMessage reason) throws DecodeException {
-                    throw DecodeException.error(reason);
-                }
+        public void handleRejectedChangeRecord(final ModifyDNRequest change, final LocalizableMessage reason)
+                throws DecodeException {
+            throw DecodeException.error(reason);
+        }
 
-            };
+    };
 
     /**
      * The default handler which ignores changes applied to missing entries and
@@ -89,39 +88,37 @@ public interface RejectedChangeRecordListener {
      */
     RejectedChangeRecordListener OVERWRITE = new RejectedChangeRecordListener() {
 
-                public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry)
-                        throws DecodeException {
-                    // Overwrite existing entries.
-                    return change;
-                }
+        public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry) throws DecodeException {
+            // Overwrite existing entries.
+            return change;
+        }
 
-                public Entry handleDuplicateEntry(final ModifyDNRequest change,
-                        final Entry existingEntry, final Entry renamedEntry) throws DecodeException {
-                    // Overwrite existing entries.
-                    return renamedEntry;
-                }
+        public Entry handleDuplicateEntry(final ModifyDNRequest change, final Entry existingEntry,
+                final Entry renamedEntry) throws DecodeException {
+            // Overwrite existing entries.
+            return renamedEntry;
+        }
 
-                public void handleRejectedChangeRecord(AddRequest change, LocalizableMessage reason)
-                        throws DecodeException {
-                    // Ignore.
-                }
+        public void handleRejectedChangeRecord(AddRequest change, LocalizableMessage reason) throws DecodeException {
+            // Ignore.
+        }
 
-                public void handleRejectedChangeRecord(DeleteRequest change,
-                        LocalizableMessage reason) throws DecodeException {
-                    // Ignore.
-                }
+        public void handleRejectedChangeRecord(DeleteRequest change, LocalizableMessage reason)
+                throws DecodeException {
+            // Ignore.
+        }
 
-                public void handleRejectedChangeRecord(ModifyRequest change,
-                        LocalizableMessage reason) throws DecodeException {
-                    // Ignore.
-                }
+        public void handleRejectedChangeRecord(ModifyRequest change, LocalizableMessage reason)
+                throws DecodeException {
+            // Ignore.
+        }
 
-                public void handleRejectedChangeRecord(ModifyDNRequest change,
-                        LocalizableMessage reason) throws DecodeException {
-                    // Ignore.
-                }
+        public void handleRejectedChangeRecord(ModifyDNRequest change, LocalizableMessage reason)
+                throws DecodeException {
+            // Ignore.
+        }
 
-            };
+    };
 
     /**
      * Invoked when an attempt was made to add an entry which already exists.
