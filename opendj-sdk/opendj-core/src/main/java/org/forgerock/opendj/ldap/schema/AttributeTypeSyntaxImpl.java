@@ -83,10 +83,9 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader
-                                .pos() - 1), String.valueOf(c));
-                final DecodeException e = DecodeException.error(message);
+                final DecodeException e = DecodeException.error(
+                    ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
+                        definition, reader.pos() - 1, String.valueOf(c)));
                 logger.debug(LocalizableMessage.raw("%s", e));
                 throw e;
             }

@@ -331,7 +331,7 @@ public final class SetupCli extends ConsoleApplication {
      * @return <CODE>true</CODE> if the command was launched to setup a proxy and <CODE>false</CODE> otherwise.
      */
     public boolean isCreateProxy() {
-        return (argParser.getSubCommand("create-proxy") != null);
+        return argParser.getSubCommand("create-proxy") != null;
     }
 
     /**
@@ -454,7 +454,7 @@ public final class SetupCli extends ConsoleApplication {
             errorMessages.add(ERR_SEVERAL_CERTIFICATE_TYPE_SPECIFIED.get());
         }
 
-        if (certificateRequired && noPrompt.isPresent() && (certificateType == 0)) {
+        if (certificateRequired && noPrompt.isPresent() && certificateType == 0) {
             errorMessages.add(ERR_CERTIFICATE_REQUIRED_FOR_SSL_OR_STARTTLS.get());
         }
 

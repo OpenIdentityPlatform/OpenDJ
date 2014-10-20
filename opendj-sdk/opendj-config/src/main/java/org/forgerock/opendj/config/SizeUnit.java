@@ -293,7 +293,7 @@ public enum SizeUnit {
      * @return Returns size in this unit.
      */
     public double fromBytes(long amount) {
-        return ((double) amount / sz);
+        return (double) amount / sz;
     }
 
     /**
@@ -337,7 +337,7 @@ public enum SizeUnit {
         if (value > Long.MAX_VALUE) {
             throw new NumberFormatException("number too big (exceeded long.MAX_VALUE");
         }
-        return (long) (value);
+        return (long) value;
     }
 
     /**

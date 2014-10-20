@@ -165,7 +165,7 @@ public final class PasswordPolicyStateExtendedRequest
                 final ExtendedRequest<?> request, final DecodeOptions options)
                 throws DecodeException {
             final ByteString requestValue = request.getValue();
-            if ((requestValue == null) || (requestValue.length() <= 0)) {
+            if (requestValue == null || requestValue.length() <= 0) {
                 throw DecodeException.error(ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE.get());
             }
             try {

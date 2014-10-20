@@ -99,7 +99,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl {
                                         invalidReason);
                             } else {
                                 invalidReason.append(ERR_ATTR_SYNTAX_GUIDE_ILLEGAL_CHAR.get(
-                                        valueStr, criteria, c, (i + 1)));
+                                        valueStr, criteria, c, i + 1));
                                 return false;
                             }
                         }

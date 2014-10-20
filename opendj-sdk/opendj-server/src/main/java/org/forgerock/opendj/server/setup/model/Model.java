@@ -143,14 +143,14 @@ public abstract class Model {
      * Sets the type of this server as : replication activated and this is the first server in topology.
      */
     void setFirstInTopology() {
-        this.setType(Type.FIRST_IN_TOPOLOGY);
+        setType(Type.FIRST_IN_TOPOLOGY);
     }
 
     /**
      * Sets the type of this server as : replication activated and this is a server in an existing topology.
      */
     void setInExistingTopology() {
-        this.setType(Type.IN_EXISTING_TOPOLOGY);
+        setType(Type.IN_EXISTING_TOPOLOGY);
     }
 
     /**
@@ -368,16 +368,16 @@ public abstract class Model {
      */
     void validate() throws ConfigException {
         if (isFirstInTopology() || isPartOfReplicationTopology()) {
-            if (this.getReplicationConfiguration() == null) {
+            if (getReplicationConfiguration() == null) {
                 throw new ConfigException(LocalizableMessage.raw("No replication configuration found"));
             }
             if (isPartOfReplicationTopology()) {
-                Reject.ifNull(this.getReplicationConfiguration().getAdministrator(),
+                Reject.ifNull(getReplicationConfiguration().getAdministrator(),
                         "Administrator name should not be null");
-                Reject.ifNull(this.getReplicationConfiguration().getPassword(), "Admin password should not be null");
-                Reject.ifNull(this.getReplicationConfiguration().getGlobalAdministrator(),
+                Reject.ifNull(getReplicationConfiguration().getPassword(), "Admin password should not be null");
+                Reject.ifNull(getReplicationConfiguration().getGlobalAdministrator(),
                         "Global administrator should not be null");
-                Reject.ifNull(this.getReplicationConfiguration().getGlobalAdministratorPassword(),
+                Reject.ifNull(getReplicationConfiguration().getGlobalAdministratorPassword(),
                         "Global administrator should not be null");
                 if (getReplicationConfiguration().getSuffixes() == null
                         || getReplicationConfiguration().getSuffixes().size() == 0) {

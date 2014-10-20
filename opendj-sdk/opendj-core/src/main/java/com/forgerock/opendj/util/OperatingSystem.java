@@ -135,16 +135,17 @@ public enum OperatingSystem {
         }
 
         final String lowerName = osName.toLowerCase();
-        if ((lowerName.indexOf("solaris") >= 0) || (lowerName.indexOf("sunos") >= 0)) {
+        if (lowerName.contains("solaris") || lowerName.contains("sunos")) {
             return SOLARIS;
-        } else if (lowerName.indexOf("linux") >= 0) {
+        } else if (lowerName.contains("linux")) {
             return LINUX;
-        } else if ((lowerName.indexOf("hp-ux") >= 0) || (lowerName.indexOf("hp ux") >= 0)
-                || (lowerName.indexOf("hpux") >= 0)) {
+        } else if (lowerName.contains("hp-ux")
+                || lowerName.contains("hp ux")
+                || lowerName.contains("hpux")) {
             return HPUX;
-        } else if (lowerName.indexOf("aix") >= 0) {
+        } else if (lowerName.contains("aix")) {
             return AIX;
-        } else if (lowerName.indexOf("windows") >= 0) {
+        } else if (lowerName.contains("windows")) {
             if (lowerName.indexOf("windows 7") != -1) {
                 return WINDOWS7;
             } else if (lowerName.indexOf("vista") != -1) {
@@ -153,11 +154,11 @@ public enum OperatingSystem {
                 return WINDOWS_SERVER_2008;
             }
             return WINDOWS;
-        } else if ((lowerName.indexOf("freebsd") >= 0) || (lowerName.indexOf("free bsd") >= 0)) {
+        } else if (lowerName.contains("freebsd") || lowerName.contains("free bsd")) {
             return FREEBSD;
-        } else if ((lowerName.indexOf("macos x") >= 0) || (lowerName.indexOf("mac os x") >= 0)) {
+        } else if (lowerName.contains("macos x") || lowerName.contains("mac os x")) {
             return MACOSX;
-        } else if (lowerName.indexOf("z/os") >= 0) {
+        } else if (lowerName.contains("z/os")) {
             return ZOS;
         }
         return UNKNOWN;

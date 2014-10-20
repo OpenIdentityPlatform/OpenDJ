@@ -56,7 +56,7 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
         }
 
         public String getName() {
-            return this.getClass().getName();
+            return getClass().getName();
         }
 
         public boolean hasInputRemaining(final AttributeStorage storage, final Buffer input) {
@@ -95,7 +95,7 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
         }
 
         public String getName() {
-            return this.getClass().getName();
+            return getClass().getName();
         }
 
         public boolean hasInputRemaining(final AttributeStorage storage, final Buffer input) {

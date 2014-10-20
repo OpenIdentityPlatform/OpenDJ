@@ -238,9 +238,10 @@ public final class Adapters {
             @Override
             public Result modifyDN(final ModifyDNRequest request) throws LdapException {
                 final ModifyDNOperation modifyDNOperation =
-                        icc.processModifyDN(valueOf(request.getName()), valueOf(request.getNewRDN()),
+                        icc.processModifyDN(valueOf(request.getName()),
+                                valueOf(request.getNewRDN()),
                                 request.isDeleteOldRDN(),
-                                (request.getNewSuperior() != null ? valueOf(request.getNewSuperior()) : null),
+                                request.getNewSuperior() != null ? valueOf(request.getNewSuperior()) : null,
                                 to(request.getControls()));
                 return getResponseResult(modifyDNOperation);
             }

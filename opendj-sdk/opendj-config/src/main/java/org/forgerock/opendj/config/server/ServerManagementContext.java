@@ -575,7 +575,7 @@ public final class ServerManagementContext {
         // Get the configuration entry.
         DN targetDN = DNBuilder.create(path);
         try {
-            return (configRepository.getEntry(targetDN) != null);
+            return configRepository.getEntry(targetDN) != null;
         } catch (ConfigException e) {
             // Assume it doesn't exist.
             return false;

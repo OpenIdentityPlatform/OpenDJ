@@ -103,14 +103,14 @@ public abstract class AbstractEntry implements Entry {
             return true;
         } else if (object instanceof Entry) {
             final Entry other = (Entry) object;
-            if (!this.getName().equals(other.getName())) {
+            if (!getName().equals(other.getName())) {
                 return false;
             }
             // Distinguished name is the same, compare attributes.
-            if (this.getAttributeCount() != other.getAttributeCount()) {
+            if (getAttributeCount() != other.getAttributeCount()) {
                 return false;
             }
-            for (final Attribute attribute : this.getAllAttributes()) {
+            for (final Attribute attribute : getAllAttributes()) {
                 final Attribute otherAttribute =
                         other.getAttribute(attribute.getAttributeDescription());
                 if (!attribute.equals(otherAttribute)) {
@@ -154,8 +154,8 @@ public abstract class AbstractEntry implements Entry {
 
     @Override
     public int hashCode() {
-        int hashCode = this.getName().hashCode();
-        for (final Attribute attribute : this.getAllAttributes()) {
+        int hashCode = getName().hashCode();
+        for (final Attribute attribute : getAllAttributes()) {
             hashCode += attribute.hashCode();
         }
         return hashCode;
@@ -245,10 +245,10 @@ public abstract class AbstractEntry implements Entry {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append('"');
-        builder.append(this.getName());
+        builder.append(getName());
         builder.append("\":{");
         boolean firstValue = true;
-        for (final Attribute attribute : this.getAllAttributes()) {
+        for (final Attribute attribute : getAllAttributes()) {
             if (!firstValue) {
                 builder.append(',');
             }

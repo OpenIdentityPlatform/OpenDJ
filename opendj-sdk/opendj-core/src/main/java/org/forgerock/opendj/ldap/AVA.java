@@ -152,7 +152,7 @@ public final class AVA implements Comparable<AVA> {
         if (str.length() > 0) {
             char c = str.charAt(0);
             int startPos = 0;
-            if ((c == ' ') || (c == '#')) {
+            if (c == ' ' || c == '#') {
                 builder.append('\\');
                 builder.append(c);
                 startPos = 1;
@@ -190,7 +190,7 @@ public final class AVA implements Comparable<AVA> {
         }
 
         int pos = 0;
-        final int arrayLength = (length / 2);
+        final int arrayLength = length / 2;
         final byte[] hexArray = new byte[arrayLength];
         for (int i = 0; i < arrayLength; i++) {
             switch (hexBuffer.charAt(pos++)) {
@@ -516,7 +516,7 @@ public final class AVA implements Comparable<AVA> {
                                 ERR_ATTR_SYNTAX_DN_HEX_VALUE_TOO_SHORT.get(reader.getString());
                         throw new LocalizedIllegalArgumentException(message);
                     }
-                } else if ((c == ' ') || (c == ',') || (c == ';')) {
+                } else if (c == ' ' || c == ',' || c == ';') {
                     // This denotes the end of the value.
                     break;
                 } else {

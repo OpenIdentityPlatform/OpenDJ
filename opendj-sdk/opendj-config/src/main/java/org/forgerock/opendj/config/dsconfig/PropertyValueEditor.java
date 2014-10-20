@@ -1759,7 +1759,7 @@ final class PropertyValueEditor {
             builder.appendCell("*)");
             builder.appendCell(valuePrinter.print(pd, vl.get(i)));
 
-            if (useMultipleColumns && (j < sz)) {
+            if (useMultipleColumns && j < sz) {
                 builder.appendCell();
                 builder.appendCell("*)");
                 builder.appendCell(valuePrinter.print(pd, vl.get(j)));

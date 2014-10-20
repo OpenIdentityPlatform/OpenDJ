@@ -85,10 +85,8 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
         // If it is not, then that is an error.
         final char c = reader.read();
         if (c != '(') {
-            final LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader.pos() - 1),
-                            String.valueOf(c));
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, c));
         }
 
         // Skip over any spaces immediately following the opening parenthesis.

@@ -352,7 +352,7 @@ public final class Attributes {
 
         @Override
         public boolean equals(final Object object) {
-            return (object == this || attribute.equals(object));
+            return object == this || attribute.equals(object);
         }
 
         @Override

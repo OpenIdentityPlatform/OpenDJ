@@ -659,7 +659,7 @@ public final class MenuBuilder<T> {
             callbacks.put(String.valueOf(i + 1), numericCallbacks.get(i));
 
             // Second column.
-            if (useMultipleColumns && (j < sz)) {
+            if (useMultipleColumns && j < sz) {
                 nbuilder.appendCell(INFO_MENU_NUMERIC_OPTION.get(j + 1));
 
                 for (LocalizableMessage field : numericFields.get(j)) {

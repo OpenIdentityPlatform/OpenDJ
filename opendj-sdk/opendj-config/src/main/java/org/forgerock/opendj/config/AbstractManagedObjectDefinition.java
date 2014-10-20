@@ -330,7 +330,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             definition was not found.
      */
     public final AbstractManagedObjectDefinition<? extends C, ? extends S> getChild(String name) {
-        if ((name == null) || (name.length() == 0)) {
+        if (name == null || name.length() == 0) {
             throw new IllegalArgumentException("null or empty managed object name");
         }
 
@@ -444,7 +444,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             requested property definition was not found.
      */
     public final PropertyDefinition<?> getPropertyDefinition(String name) {
-        if ((name == null) || (name.length() == 0)) {
+        if (name == null || name.length() == 0) {
             throw new IllegalArgumentException("null or empty property name");
         }
 
@@ -481,7 +481,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             requested relation definition was not found.
      */
     public final RelationDefinition<?, ?> getRelationDefinition(String name) {
-        if ((name == null) || (name.length() == 0)) {
+        if (name == null || name.length() == 0) {
             throw new IllegalArgumentException("null or empty relation name");
         }
 
@@ -533,7 +533,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *             found.
      */
     public final AggregationPropertyDefinition<?, ?> getAggregationPropertyDefinition(String name) {
-        if ((name == null) || (name.length() == 0)) {
+        if (name == null || name.length() == 0) {
             throw new IllegalArgumentException("null or empty aggregation property name");
         }
 
@@ -740,7 +740,7 @@ public abstract class AbstractManagedObjectDefinition<C extends ConfigurationCli
      *         the {@link TopCfgDefn}.
      */
     public final boolean isTop() {
-        return (this instanceof TopCfgDefn);
+        return this instanceof TopCfgDefn;
     }
 
     /**

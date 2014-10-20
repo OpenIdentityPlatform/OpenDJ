@@ -246,7 +246,7 @@ public final class Entries {
         /** {@inheritDoc} */
         @Override
         public boolean equals(final Object object) {
-            return (object == this || entry.equals(object));
+            return object == this || entry.equals(object);
         }
 
         @Override

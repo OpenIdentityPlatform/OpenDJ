@@ -71,7 +71,7 @@ final class WhoAmIExtendedResultImpl extends AbstractExtendedResult<WhoAmIExtend
 
     @Override
     public boolean hasValue() {
-        return (authorizationID != null);
+        return authorizationID != null;
     }
 
     @Override

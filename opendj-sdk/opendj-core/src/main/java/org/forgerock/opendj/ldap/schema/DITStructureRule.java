@@ -293,7 +293,7 @@ public final class DITStructureRule extends SchemaElement {
         }
         superiorRules = Collections.unmodifiableSet(superiorRules);
 
-        return (isValid = true);
+        return isValid = true;
     }
 
     private void failValidation(final List<DITStructureRule> invalidSchemaElements,

@@ -74,7 +74,7 @@ public final class NameForm extends SchemaElement {
 
         Builder(final String oid, final SchemaBuilder builder) {
             super(builder);
-            this.oid(oid);
+            oid(oid);
         }
 
         /**
@@ -84,7 +84,7 @@ public final class NameForm extends SchemaElement {
          * @return The parent schema builder.
          */
         public SchemaBuilder addToSchemaOverwrite() {
-            return this.getSchemaBuilder().addNameForm(new NameForm(this), true);
+            return getSchemaBuilder().addNameForm(new NameForm(this), true);
         }
 
         /**
@@ -98,7 +98,7 @@ public final class NameForm extends SchemaElement {
          *             OID.
          */
         public SchemaBuilder addToSchema() {
-            return this.getSchemaBuilder().addNameForm(new NameForm(this), false);
+            return getSchemaBuilder().addNameForm(new NameForm(this), false);
         }
 
         @Override

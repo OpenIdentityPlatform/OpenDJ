@@ -168,7 +168,7 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
                 final String paramStr = valueString.substring(paramStartPos, pos);
                 if (!ALLOWED_FAX_PARAMETERS.contains(paramStr)) {
                     invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
-                            valueString, paramStr, paramStartPos, (pos - 1)));
+                            valueString, paramStr, paramStartPos, pos - 1));
                     return false;
                 }
 
@@ -180,8 +180,8 @@ final class FacsimileNumberSyntaxImpl extends AbstractSyntaxImpl {
         // make sure it is valid.
         final String paramStr = valueString.substring(paramStartPos);
         if (!ALLOWED_FAX_PARAMETERS.contains(paramStr)) {
-            invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(valueString,
-                    paramStr, paramStartPos, (pos - 1)));
+            invalidReason.append(ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER.get(
+                    valueString, paramStr, paramStartPos, pos - 1));
             return false;
         }
 

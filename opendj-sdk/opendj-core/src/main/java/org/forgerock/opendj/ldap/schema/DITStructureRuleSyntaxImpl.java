@@ -84,9 +84,8 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader.pos() - 1), c);
-                final DecodeException e = DecodeException.error(message);
+                final DecodeException e = DecodeException.error(
+                        ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c));
                 logger.debug(LocalizableMessage.raw("%s", e));
                 throw e;
             }
