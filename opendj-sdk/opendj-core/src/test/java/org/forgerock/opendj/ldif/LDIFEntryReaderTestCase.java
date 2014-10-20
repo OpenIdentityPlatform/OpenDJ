@@ -71,7 +71,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      */
     public final String[] getStandardEntry() {
         // @formatter:off
-        final String[] entry = {
+        return new String[] {
             "dn: uid=user.0,ou=People,dc=example,dc=com",
             "objectClass: person",
             "objectClass: inetorgperson",
@@ -101,7 +101,6 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
             "modifiersName: cn=Internal Client,cn=Root DNs,cn=config"
         };
         // @formatter:on
-        return entry;
     }
 
     /**

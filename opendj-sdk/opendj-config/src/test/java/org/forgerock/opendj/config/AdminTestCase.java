@@ -70,9 +70,7 @@ public abstract class AdminTestCase extends ConfigTestCase {
     protected final TestParentCfg getParentCfg(final String name, final ServerManagementContext serverContext)
             throws Exception {
         ServerManagedObject<RootCfg> root = serverContext.getRootConfigurationManagedObject();
-        TestParentCfg parent = root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name)
-                .getConfiguration();
-        return parent;
+        return root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name).getConfiguration();
     }
 
     protected static final Entry CONFIG_ENTRY = LDIF.makeEntry(

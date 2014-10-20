@@ -61,9 +61,8 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      * @return a string containing a standard LDIF Change Record.
      */
     public final String[] getStandardLDIFChangeRecord() {
-
         // @formatter:off
-        final String[] cr = {
+        return new String[] {
             "version: 1",
             "dn: uid=scarter,ou=People,dc=example,dc=com",
             "changetype: add",
@@ -79,7 +78,6 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
             "modifiersName: cn=Internal Client,cn=Root DNs,cn=config"
         };
         // @formatter:on
-        return cr;
     }
 
     /**
