@@ -83,7 +83,7 @@ public interface ConfigurationRepository {
      * @param listener
      *            The add listener that should be registered.
      */
-    public void registerAddListener(DN dn, ConfigAddListener listener);
+    void registerAddListener(DN dn, ConfigAddListener listener);
 
     /**
      * Registers the provided delete listener so that it will be notified if any
@@ -95,7 +95,7 @@ public interface ConfigurationRepository {
      * @param listener
      *            The delete listener that should be registered.
      */
-    public void registerDeleteListener(DN dn, ConfigDeleteListener listener);
+    void registerDeleteListener(DN dn, ConfigDeleteListener listener);
 
     /**
      * Registers the provided change listener so that it will be notified of any
@@ -107,7 +107,7 @@ public interface ConfigurationRepository {
      * @param listener
      *            The change listener that should be registered.
      */
-    public void registerChangeListener(DN dn, ConfigChangeListener listener);
+    void registerChangeListener(DN dn, ConfigChangeListener listener);
 
     /**
      * Deregisters the provided add listener so that it will no longer be
@@ -119,7 +119,7 @@ public interface ConfigurationRepository {
      * @param listener
      *            The add listener that should be deregistered.
      */
-    public void deregisterAddListener(DN dn, ConfigAddListener listener);
+    void deregisterAddListener(DN dn, ConfigAddListener listener);
 
     /**
      * Deregisters the provided delete listener so that it will no longer be
@@ -131,7 +131,7 @@ public interface ConfigurationRepository {
      * @param listener
      *            The delete listener that should be deregistered.
      */
-    public void deregisterDeleteListener(DN dn, ConfigDeleteListener listener);
+    void deregisterDeleteListener(DN dn, ConfigDeleteListener listener);
 
     /**
      * Attempts to deregister the provided change listener with the provided DN.
@@ -143,7 +143,7 @@ public interface ConfigurationRepository {
      * @return <CODE>true</CODE> if the specified listener was deregistered, or
      *         <CODE>false</CODE> if it was not.
      */
-    public boolean deregisterChangeListener(DN dn, ConfigChangeListener listener);
+    boolean deregisterChangeListener(DN dn, ConfigChangeListener listener);
 
     /**
      * Retrieves the add listeners that have been registered with the provided
@@ -153,7 +153,7 @@ public interface ConfigurationRepository {
      *            The DN of the configuration entry.
      * @return The list of add listeners.
      */
-    public List<ConfigAddListener> getAddListeners(DN dn);
+    List<ConfigAddListener> getAddListeners(DN dn);
 
     /**
      * Retrieves the delete listeners that have been registered with the
@@ -163,7 +163,7 @@ public interface ConfigurationRepository {
      *            The DN of the configuration entry.
      * @return The list of delete listeners.
      */
-    public List<ConfigDeleteListener> getDeleteListeners(DN dn);
+    List<ConfigDeleteListener> getDeleteListeners(DN dn);
 
     /**
      * Retrieves the change listeners that have been registered with the
@@ -173,6 +173,6 @@ public interface ConfigurationRepository {
      *            The DN of the configuration entry.
      * @return The list of change listeners.
      */
-    public List<ConfigChangeListener> getChangeListeners(DN dn);
+    List<ConfigChangeListener> getChangeListeners(DN dn);
 
 }

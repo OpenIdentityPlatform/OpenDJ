@@ -50,7 +50,7 @@ public interface GenericExtendedRequest extends ExtendedRequest<GenericExtendedR
      * A decoder which can be used to decode generic extended operation
      * requests.
      */
-    public static final ExtendedRequestDecoder<GenericExtendedRequest, GenericExtendedResult> DECODER =
+    ExtendedRequestDecoder<GenericExtendedRequest, GenericExtendedResult> DECODER =
             new GenericExtendedRequestImpl.RequestDecoder();
 
     @Override

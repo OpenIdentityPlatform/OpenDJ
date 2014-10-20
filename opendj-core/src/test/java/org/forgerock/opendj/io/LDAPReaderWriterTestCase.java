@@ -84,7 +84,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
     private static final String TEST_DN = "cn=test";
 
     interface LDAPWrite {
-        public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException;
+        void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException;
     }
 
     @DataProvider
@@ -504,16 +504,16 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
     /**
      * Returns a writer specific to the transport module.
      */
-    abstract protected LDAPWriter<? extends ASN1Writer> getLDAPWriter();
+    protected abstract LDAPWriter<? extends ASN1Writer> getLDAPWriter();
 
     /**
      * Returns a reader specific to the transport module.
      */
-    abstract protected LDAPReader<? extends ASN1Reader> getLDAPReader();
+    protected abstract LDAPReader<? extends ASN1Reader> getLDAPReader();
 
     /**
      * Transfer raw data from writer to the reader.
      */
-    abstract protected void transferFromWriterToReader(LDAPWriter<? extends ASN1Writer> writer,
+    protected abstract void transferFromWriterToReader(LDAPWriter<? extends ASN1Writer> writer,
             LDAPReader<? extends ASN1Reader> reader);
 }

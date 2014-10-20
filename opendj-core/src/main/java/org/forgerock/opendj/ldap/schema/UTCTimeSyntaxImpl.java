@@ -56,13 +56,13 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
      * The lock that will be used to provide threadsafe access to the date
      * formatter.
      */
-    private final static Object DATE_FORMAT_LOCK;
+    private static final Object DATE_FORMAT_LOCK;
 
     /**
      * The date formatter that will be used to convert dates into UTC time
      * values. Note that all interaction with it must be synchronized.
      */
-    private final static SimpleDateFormat DATE_FORMAT;
+    private static final SimpleDateFormat DATE_FORMAT;
 
     /**
      * The date formatter needs help converting 2-digit years.

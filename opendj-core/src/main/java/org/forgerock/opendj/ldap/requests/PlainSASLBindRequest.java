@@ -68,7 +68,7 @@ public interface PlainSASLBindRequest extends SASLBindRequest {
     /**
      * The name of the SASL mechanism based on PLAIN authentication.
      */
-    public static final String SASL_MECHANISM_NAME = "PLAIN";
+    String SASL_MECHANISM_NAME = "PLAIN";
 
     @Override
     PlainSASLBindRequest addControl(Control control);

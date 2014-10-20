@@ -52,7 +52,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SASLBindRequest>
         implements CRAMMD5SASLBindRequest {
-    private final static class Client extends SASLBindClientImpl {
+    private static final class Client extends SASLBindClientImpl {
         private final String authenticationID;
         private final ByteString password;
         private final SaslClient saslClient;

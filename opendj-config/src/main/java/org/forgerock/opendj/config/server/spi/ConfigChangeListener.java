@@ -48,7 +48,7 @@ public interface ConfigChangeListener {
      * @return {@code true} if the proposed entry contains an acceptable
      *         configuration, or {@code false} if it does not.
      */
-    public boolean configChangeIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
+    boolean configChangeIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
 
     /**
      * Attempts to apply a new configuration to this Directory Server component
@@ -60,5 +60,5 @@ public interface ConfigChangeListener {
      * @return Information about the result of processing the configuration
      *         change.
      */
-    public ConfigChangeResult applyConfigurationChange(Entry configEntry);
+    ConfigChangeResult applyConfigurationChange(Entry configEntry);
 }

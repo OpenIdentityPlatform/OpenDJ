@@ -42,7 +42,7 @@ public interface SyntaxImpl {
      *         attributes with this syntax, or {@code null} if approximate
      *         matches will not be allowed for this type by default.
      */
-    public String getApproximateMatchingRule();
+    String getApproximateMatchingRule();
 
     /**
      * Retrieves the default equality matching rule that will be used for
@@ -52,14 +52,14 @@ public interface SyntaxImpl {
      *         attributes with this syntax, or {@code null} if equality matches
      *         will not be allowed for this type by default.
      */
-    public String getEqualityMatchingRule();
+    String getEqualityMatchingRule();
 
     /**
      * Retrieves the common name for this attribute syntax.
      *
      * @return The common name for this attribute syntax.
      */
-    public String getName();
+    String getName();
 
     /**
      * Retrieves the default ordering matching rule that will be used for
@@ -69,7 +69,7 @@ public interface SyntaxImpl {
      *         attributes with this syntax, or {@code null} if ordering matches
      *         will not be allowed for this type by default.
      */
-    public String getOrderingMatchingRule();
+    String getOrderingMatchingRule();
 
     /**
      * Retrieves the default substring matching rule that will be used for
@@ -79,7 +79,7 @@ public interface SyntaxImpl {
      *         attributes with this syntax, or {@code null} if substring matches
      *         will not be allowed for this type by default.
      */
-    public String getSubstringMatchingRule();
+    String getSubstringMatchingRule();
 
     /**
      * Indicates whether this attribute syntax requires that values must be
@@ -92,7 +92,7 @@ public interface SyntaxImpl {
      * @see <a href="http://tools.ietf.org/html/rfc4522">RFC 4522 - Lightweight
      *      Directory Access Protocol (LDAP): The Binary Encoding Option </a>
      */
-    public boolean isBEREncodingRequired();
+    boolean isBEREncodingRequired();
 
     /**
      * Indicates whether this attribute syntax would likely be a human readable

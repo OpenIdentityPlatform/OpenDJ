@@ -42,7 +42,7 @@ public interface LoadBalancingAlgorithm extends Closeable {
      * associated connection factories.
      */
     @Override
-    public void close();
+    void close();
 
     /**
      * Returns a connection factory which should be used in order to satisfy the

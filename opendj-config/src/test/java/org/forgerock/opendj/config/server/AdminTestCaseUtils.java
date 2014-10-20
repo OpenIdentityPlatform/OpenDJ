@@ -91,7 +91,7 @@ public final class AdminTestCaseUtils {
 
     /** Construct a dummy path. */
     // @Checkstyle:off
-    private synchronized static <C extends ConfigurationClient, S extends Configuration> ManagedObjectPath<C, S>
+    private static synchronized <C extends ConfigurationClient, S extends Configuration> ManagedObjectPath<C, S>
         getPath(AbstractManagedObjectDefinition<C, S> d) {
     // @Checkstyle:on
         if (!isProfileRegistered) {

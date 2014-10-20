@@ -159,7 +159,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
          * @throws IOException
          *             if an error occurs during writing
          */
-        abstract protected void writeResult(final LDAPWriter<ASN1BufferWriter> ldapWriter,
+        protected abstract void writeResult(final LDAPWriter<ASN1BufferWriter> ldapWriter,
                 final R result) throws IOException;
 
         /**

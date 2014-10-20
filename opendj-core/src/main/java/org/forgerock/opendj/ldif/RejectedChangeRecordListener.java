@@ -48,19 +48,16 @@ public interface RejectedChangeRecordListener {
      * A handler which terminates processing by throwing a
      * {@code DecodeException} as soon as a change is rejected.
      */
-    public final static RejectedChangeRecordListener FAIL_FAST =
-            new RejectedChangeRecordListener() {
+    RejectedChangeRecordListener FAIL_FAST = new RejectedChangeRecordListener() {
 
                 public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry)
                         throws DecodeException {
-                    throw DecodeException.error(REJECTED_CHANGE_FAIL_ADD_DUPE.get(change.getName()
-                            .toString()));
+                    throw DecodeException.error(REJECTED_CHANGE_FAIL_ADD_DUPE.get(change.getName()));
                 }
 
                 public Entry handleDuplicateEntry(final ModifyDNRequest change,
                         final Entry existingEntry, final Entry renamedEntry) throws DecodeException {
-                    throw DecodeException.error(REJECTED_CHANGE_FAIL_MODIFYDN_DUPE.get(renamedEntry
-                            .getName().toString()));
+                    throw DecodeException.error(REJECTED_CHANGE_FAIL_MODIFYDN_DUPE.get(renamedEntry.getName()));
                 }
 
                 public void handleRejectedChangeRecord(final AddRequest change,
@@ -90,8 +87,7 @@ public interface RejectedChangeRecordListener {
      * tolerates duplicate entries by overwriting the existing entry with the
      * new entry.
      */
-    public final static RejectedChangeRecordListener OVERWRITE =
-            new RejectedChangeRecordListener() {
+    RejectedChangeRecordListener OVERWRITE = new RejectedChangeRecordListener() {
 
                 public Entry handleDuplicateEntry(final AddRequest change, final Entry existingEntry)
                         throws DecodeException {

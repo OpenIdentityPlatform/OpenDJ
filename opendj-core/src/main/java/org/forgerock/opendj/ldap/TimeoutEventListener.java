@@ -44,7 +44,7 @@ public interface TimeoutEventListener {
      * @return The delay to wait before next timeout callback in milliseconds,
      *         or zero if this listener should no longer be notified.
      */
-    long handleTimeout(final long currentTime);
+    long handleTimeout(long currentTime);
 
     /**
      * Returns the timeout for this listener.

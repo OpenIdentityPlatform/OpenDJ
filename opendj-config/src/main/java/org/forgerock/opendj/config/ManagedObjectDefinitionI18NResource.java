@@ -68,7 +68,7 @@ public final class ManagedObjectDefinitionI18NResource {
     }
 
     /** Get a resource instance creating it if necessary. */
-    private synchronized static ManagedObjectDefinitionI18NResource getInstance(String prefix) {
+    private static synchronized ManagedObjectDefinitionI18NResource getInstance(String prefix) {
         ManagedObjectDefinitionI18NResource instance = INSTANCES.get(prefix);
 
         if (instance == null) {

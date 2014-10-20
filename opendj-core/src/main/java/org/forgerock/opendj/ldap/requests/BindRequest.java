@@ -45,12 +45,12 @@ public interface BindRequest extends Request {
     /**
      * The authentication type value (0x80) reserved for simple authentication.
      */
-    public static final byte AUTHENTICATION_TYPE_SIMPLE = (byte) 0x80;
+    byte AUTHENTICATION_TYPE_SIMPLE = (byte) 0x80;
 
     /**
      * The authentication type value (0xA3) reserved for SASL authentication.
      */
-    public static final byte AUTHENTICATION_TYPE_SASL = (byte) 0xA3;
+    byte AUTHENTICATION_TYPE_SASL = (byte) 0xA3;
 
 
     @Override

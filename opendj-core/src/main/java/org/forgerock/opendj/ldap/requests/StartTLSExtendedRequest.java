@@ -72,13 +72,13 @@ public interface StartTLSExtendedRequest extends ExtendedRequest<ExtendedResult>
      * A decoder which can be used to decode start TLS extended operation
      * requests.
      */
-    public static final ExtendedRequestDecoder<StartTLSExtendedRequest, ExtendedResult> DECODER =
+    ExtendedRequestDecoder<StartTLSExtendedRequest, ExtendedResult> DECODER =
             new StartTLSExtendedRequestImpl.RequestDecoder();
 
     /**
      * The OID for the start TLS extended operation request.
      */
-    public static final String OID = "1.3.6.1.4.1.1466.20037";
+    String OID = "1.3.6.1.4.1.1466.20037";
 
     @Override
     StartTLSExtendedRequest addControl(Control control);

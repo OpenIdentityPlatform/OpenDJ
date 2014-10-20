@@ -432,7 +432,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
     /**
      * Search request context implementation.
      */
-    private final static class SearchRequestContextImpl extends RequestContextImpl<Result, ResultHandler<Result>>
+    private static final class SearchRequestContextImpl extends RequestContextImpl<Result, ResultHandler<Result>>
         implements SearchResultHandler {
 
         private final SearchResultHandler entryHandler;

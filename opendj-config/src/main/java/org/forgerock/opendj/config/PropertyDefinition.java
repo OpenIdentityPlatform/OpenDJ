@@ -58,7 +58,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      * @param <D>
      *            The type of property definition constructed by this builder.
      */
-    protected abstract static class AbstractBuilder<T, D extends PropertyDefinition<T>> {
+    protected static abstract class AbstractBuilder<T, D extends PropertyDefinition<T>> {
 
         /** The administrator action. */
         private AdministratorAction adminAction;

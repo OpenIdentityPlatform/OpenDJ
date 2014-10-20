@@ -60,7 +60,7 @@ public interface CRAMMD5SASLBindRequest extends SASLBindRequest {
     /**
      * The name of the SASL mechanism based on CRAM-MD5 authentication.
      */
-    public static final String SASL_MECHANISM_NAME = "CRAM-MD5";
+    String SASL_MECHANISM_NAME = "CRAM-MD5";
 
     @Override
     CRAMMD5SASLBindRequest addControl(Control control);

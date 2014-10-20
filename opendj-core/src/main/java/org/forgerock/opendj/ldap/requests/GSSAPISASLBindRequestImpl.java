@@ -68,7 +68,7 @@ import com.sun.security.auth.module.Krb5LoginModule;
 @SuppressWarnings("restriction")
 final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASLBindRequest>
         implements GSSAPISASLBindRequest {
-    private final static class Client extends SASLBindClientImpl {
+    private static final class Client extends SASLBindClientImpl {
         private static Subject kerberos5Login(final String authenticationID,
                 final ByteString password, final String realm, final String kdc) throws LdapException {
             if (authenticationID == null) {

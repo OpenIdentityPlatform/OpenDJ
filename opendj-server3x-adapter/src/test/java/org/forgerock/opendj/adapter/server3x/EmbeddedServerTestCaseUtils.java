@@ -55,17 +55,17 @@ class EmbeddedServerTestCaseUtils extends ForgeRockTestCase {
     /**
      * The configuration properties for the tests.
      */
-    final static Properties CONFIG_PROPERTIES = new Properties();
+    static final Properties CONFIG_PROPERTIES = new Properties();
 
     /**
      * The path to the test classes.
      */
-    final static String TEST_CLASSES_PATH = "./target/test-classes/";
+    static final String TEST_CLASSES_PATH = "./target/test-classes/";
 
     /**
      * The path to the configuration folder.
      */
-    final static String TEST_CLASSES_PATH_CONFIG = "./target/test-classes/config/";
+    static final String TEST_CLASSES_PATH_CONFIG = "./target/test-classes/config/";
 
     /**
      * Starts the embedded server.

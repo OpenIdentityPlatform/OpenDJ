@@ -53,13 +53,13 @@ public interface CancelExtendedRequest extends ExtendedRequest<ExtendedResult> {
     /**
      * A decoder which can be used to decode cancel extended operation requests.
      */
-    public static final ExtendedRequestDecoder<CancelExtendedRequest, ExtendedResult> DECODER =
+    ExtendedRequestDecoder<CancelExtendedRequest, ExtendedResult> DECODER =
             new CancelExtendedRequestImpl.RequestDecoder();
 
     /**
      * The OID for the cancel extended operation request.
      */
-    public static final String OID = "1.3.6.1.1.8";
+    String OID = "1.3.6.1.1.8";
 
     @Override
     CancelExtendedRequest addControl(Control control);

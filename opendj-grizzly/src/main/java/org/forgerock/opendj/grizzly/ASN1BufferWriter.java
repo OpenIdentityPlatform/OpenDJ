@@ -144,13 +144,13 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     }
 
     private interface SequenceBuffer {
-        public SequenceBuffer endSequence() throws IOException;
+        SequenceBuffer endSequence() throws IOException;
 
-        public SequenceBuffer startSequence(byte type) throws IOException;
+        SequenceBuffer startSequence(byte type) throws IOException;
 
-        public void writeByte(byte b) throws IOException;
+        void writeByte(byte b) throws IOException;
 
-        public void writeByteArray(byte[] bs, int offset, int length) throws IOException;
+        void writeByteArray(byte[] bs, int offset, int length) throws IOException;
     }
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

@@ -92,7 +92,7 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
      * @param <D>
      *            The type of relation definition constructed by this builder.
      */
-    protected abstract static class AbstractBuilder<C extends ConfigurationClient, S extends Configuration,
+    protected static abstract class AbstractBuilder<C extends ConfigurationClient, S extends Configuration,
         D extends RelationDefinition<C, S>> {
 
         /** Common fields. */

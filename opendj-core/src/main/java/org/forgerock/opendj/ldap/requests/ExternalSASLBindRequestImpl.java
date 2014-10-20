@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
  */
 final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<ExternalSASLBindRequest>
         implements ExternalSASLBindRequest {
-    private final static class Client extends SASLBindClientImpl {
+    private static final class Client extends SASLBindClientImpl {
         private final SaslClient saslClient;
 
         private Client(final ExternalSASLBindRequestImpl initialBindRequest, final String serverName)

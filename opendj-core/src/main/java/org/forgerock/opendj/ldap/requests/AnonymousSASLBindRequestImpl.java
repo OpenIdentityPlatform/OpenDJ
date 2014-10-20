@@ -36,7 +36,7 @@ import org.forgerock.util.Reject;
  */
 final class AnonymousSASLBindRequestImpl extends AbstractSASLBindRequest<AnonymousSASLBindRequest>
         implements AnonymousSASLBindRequest {
-    private final static class Client extends SASLBindClientImpl {
+    private static final class Client extends SASLBindClientImpl {
         private Client(final AnonymousSASLBindRequestImpl initialBindRequest,
                 final String serverName) {
             super(initialBindRequest);
