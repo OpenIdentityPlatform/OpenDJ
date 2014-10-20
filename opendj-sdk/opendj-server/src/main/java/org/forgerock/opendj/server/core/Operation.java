@@ -68,21 +68,21 @@ public interface Operation extends RequestContext, AttachmentHolder {
      *         authorization identity for this operation, or {@code null} if the
      *         authorization identity should be the unauthenticated user.
      */
-    public Entry getAuthorizationEntry();
+    Entry getAuthorizationEntry();
 
     /**
      * Returns a connection for performing internal operations.
      *
      * @return A connection for performing internal operations.
      */
-    public Connection getConnection();
+    Connection getConnection();
 
     /**
      * Retrieves the operation ID for this operation.
      *
      * @return The operation ID for this operation.
      */
-    public long getOperationID();
+    long getOperationID();
 
     /**
      * Indicates whether the authenticate client has all of the specified
@@ -93,7 +93,7 @@ public interface Operation extends RequestContext, AttachmentHolder {
      * @return {@code true} if the authenticated client has all of the specified
      *         privileges, or {@code false} if not.
      */
-    public boolean hasAllPrivileges(Collection<Privilege> privileges);
+    boolean hasAllPrivileges(Collection<Privilege> privileges);
 
     /**
      * Indicates whether the authenticated client has the specified privilege.
@@ -103,7 +103,7 @@ public interface Operation extends RequestContext, AttachmentHolder {
      * @return {@code true} if the authenticated client has the specified
      *         privilege, or {@code false} if not.
      */
-    public boolean hasPrivilege(Privilege privilege);
+    boolean hasPrivilege(Privilege privilege);
 
     /**
      * Sets the entry for the user that should be considered the authorization
@@ -114,7 +114,7 @@ public interface Operation extends RequestContext, AttachmentHolder {
      *            authorization identity for this operation, or {@code null} if
      *            it should be the unauthenticated user.
      */
-    public void setAuthorizationEntry(Entry authorizationEntry);
+    void setAuthorizationEntry(Entry authorizationEntry);
 
     /**
      * Retrieves the entry for the user as whom the client is authenticated.

@@ -62,7 +62,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestMD5SASLBindRequest>
         implements DigestMD5SASLBindRequest {
-    private final static class Client extends SASLBindClientImpl {
+    private static final class Client extends SASLBindClientImpl {
         private final String authenticationID;
         private final ByteString password;
         private final String realm;

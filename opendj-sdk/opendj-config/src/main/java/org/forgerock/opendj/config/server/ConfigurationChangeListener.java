@@ -53,7 +53,7 @@ public interface ConfigurationChangeListener<T extends Configuration> {
      * @return Returns <code>true</code> if the proposed change is acceptable,
      *         or <code>false</code> if it is not.
      */
-    public boolean isConfigurationChangeAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
+    boolean isConfigurationChangeAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
 
     /**
      * Applies the configuration changes to this change listener.
@@ -63,5 +63,5 @@ public interface ConfigurationChangeListener<T extends Configuration> {
      * @return Returns information about the result of changing the
      *         configuration.
      */
-    public ConfigChangeResult applyConfigurationChange(T configuration);
+    ConfigChangeResult applyConfigurationChange(T configuration);
 }

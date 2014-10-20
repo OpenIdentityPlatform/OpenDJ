@@ -53,7 +53,7 @@ public interface ConfigurationDeleteListener<T extends Configuration> {
      * @return Returns <code>true</code> if the proposed deletion is acceptable,
      *         or <code>false</code> if it is not.
      */
-    public boolean isConfigurationDeleteAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
+    boolean isConfigurationDeleteAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
 
     /**
      * Deletes an existing configuration from this delete listener.
@@ -63,5 +63,5 @@ public interface ConfigurationDeleteListener<T extends Configuration> {
      * @return Returns information about the result of deleting the
      *         configuration.
      */
-    public ConfigChangeResult applyConfigurationDelete(T configuration);
+    ConfigChangeResult applyConfigurationDelete(T configuration);
 }

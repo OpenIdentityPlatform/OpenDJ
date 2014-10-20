@@ -48,7 +48,7 @@ public interface ConfigAddListener {
      * @return {@code true} if the proposed entry contains an acceptable
      *         configuration, or {@code false} if it does not.
      */
-    public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
+    boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
 
     /**
      * Attempts to apply a new configuration based on the provided added entry.
@@ -59,5 +59,5 @@ public interface ConfigAddListener {
      * @return Information about the result of processing the configuration
      *         change.
      */
-    public ConfigChangeResult applyConfigurationAdd(Entry configEntry);
+    ConfigChangeResult applyConfigurationAdd(Entry configEntry);
 }

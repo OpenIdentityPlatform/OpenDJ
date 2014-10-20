@@ -120,7 +120,7 @@ public final class PasswordExpiredResponseControl implements Control {
                 }
             };
 
-    private final static ByteString CONTROL_VALUE = ByteString.valueOf("0");
+    private static final ByteString CONTROL_VALUE = ByteString.valueOf("0");
 
     /**
      * Creates a new Netscape password expired response control.

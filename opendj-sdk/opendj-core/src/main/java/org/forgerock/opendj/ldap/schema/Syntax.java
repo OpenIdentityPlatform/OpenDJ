@@ -58,7 +58,7 @@ public final class Syntax extends SchemaElement {
     /**
      * A fluent API for incrementally constructing syntaxes.
      */
-    public final static class Builder extends SchemaElementBuilder<Builder> {
+    public static final class Builder extends SchemaElementBuilder<Builder> {
 
         private String oid;
         private SyntaxImpl impl;

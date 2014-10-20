@@ -62,7 +62,7 @@ public final class MatchingRule extends SchemaElement {
     /**
      * A fluent API for incrementally constructing matching rules.
      */
-    public final static class Builder extends SchemaElementBuilder<Builder> {
+    public static final class Builder extends SchemaElementBuilder<Builder> {
         private String oid;
         private final List<String> names = new LinkedList<String>();
         private boolean isObsolete = false;

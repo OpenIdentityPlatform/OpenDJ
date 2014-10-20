@@ -62,52 +62,52 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest {
      * Indicates that the client will accept connection encryption using the
      * high strength triple-DES cipher.
      */
-    public static final String CIPHER_3DES = "3des";
+    String CIPHER_3DES = "3des";
 
     /**
      * Indicates that the client will accept connection encryption using the
      * medium strength DES cipher.
      */
-    public static final String CIPHER_DES = "des";
+    String CIPHER_DES = "des";
 
     /**
      * Indicates that the client will accept connection encryption using the
      * strongest supported cipher, as long as the cipher is considered to be
      * high strength.
      */
-    public static final String CIPHER_HIGH = "high";
+    String CIPHER_HIGH = "high";
 
     /**
      * Indicates that the client will accept connection encryption using the
      * strongest supported cipher, even if the strongest cipher is considered to
      * be medium or low strength.
      */
-    public static final String CIPHER_LOW = "low";
+    String CIPHER_LOW = "low";
 
     /**
      * Indicates that the client will accept connection encryption using the
      * strongest supported cipher, as long as the cipher is considered to be
      * high or medium strength.
      */
-    public static final String CIPHER_MEDIUM = "medium";
+    String CIPHER_MEDIUM = "medium";
 
     /**
      * Indicates that the client will accept connection encryption using the
      * high strength 128-bit RC4 cipher.
      */
-    public static final String CIPHER_RC4_128 = "rc4";
+    String CIPHER_RC4_128 = "rc4";
 
     /**
      * Indicates that the client will accept connection encryption using the low
      * strength 40-bit RC4 cipher.
      */
-    public static final String CIPHER_RC4_40 = "rc4-40";
+    String CIPHER_RC4_40 = "rc4-40";
 
     /**
      * Indicates that the client will accept connection encryption using the
      * medium strength 56-bit RC4 cipher.
      */
-    public static final String CIPHER_RC4_56 = "rc4-56";
+    String CIPHER_RC4_56 = "rc4-56";
 
     /**
      * Indicates that the client will accept authentication only. More
@@ -116,25 +116,25 @@ public interface DigestMD5SASLBindRequest extends SASLBindRequest {
      * SSL/TLS. This is the default if no QOP option is present in the bind
      * request.
      */
-    public static final String QOP_AUTH = "auth";
+    String QOP_AUTH = "auth";
 
     /**
      * Indicates that the client will accept authentication with connection
      * integrity protection and encryption.
      */
-    public static final String QOP_AUTH_CONF = "auth-conf";
+    String QOP_AUTH_CONF = "auth-conf";
 
     /**
      * Indicates that the client will accept authentication with connection
      * integrity protection. More specifically, the underlying connection will
      * not be encrypted, unless previously established using SSL/TLS.
      */
-    public static final String QOP_AUTH_INT = "auth-int";
+    String QOP_AUTH_INT = "auth-int";
 
     /**
      * The name of the SASL mechanism based on DIGEST-MD5 authentication.
      */
-    public static final String SASL_MECHANISM_NAME = "DIGEST-MD5";
+    String SASL_MECHANISM_NAME = "DIGEST-MD5";
 
     /**
      * Adds the provided additional authentication parameter to the list of

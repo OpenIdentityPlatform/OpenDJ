@@ -46,7 +46,7 @@ public interface SchemaResolver {
      * A schema resolver which always returns the current default schema as
      * returned by {@link Schema#getDefaultSchema()}.
      */
-    public static final SchemaResolver DEFAULT = new SchemaResolver() {
+    SchemaResolver DEFAULT = new SchemaResolver() {
 
         public Schema resolveSchema(String dn) {
             return Schema.getDefaultSchema();
@@ -66,5 +66,5 @@ public interface SchemaResolver {
      * @return The appropriate schema for use with the provided distinguished
      *         name.
      */
-    public abstract Schema resolveSchema(String dn);
+    Schema resolveSchema(String dn);
 }

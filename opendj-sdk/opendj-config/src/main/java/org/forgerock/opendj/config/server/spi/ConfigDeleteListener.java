@@ -48,7 +48,7 @@ public interface ConfigDeleteListener {
      * @return {@code true} if the proposed entry may be removed from the
      *         configuration, or {@code false} if not.
      */
-    public boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
+    boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
 
     /**
      * Attempts to apply a new configuration based on the provided deleted
@@ -59,5 +59,5 @@ public interface ConfigDeleteListener {
      * @return Information about the result of processing the configuration
      *         change.
      */
-    public ConfigChangeResult applyConfigurationDelete(Entry configEntry);
+    ConfigChangeResult applyConfigurationDelete(Entry configEntry);
 }

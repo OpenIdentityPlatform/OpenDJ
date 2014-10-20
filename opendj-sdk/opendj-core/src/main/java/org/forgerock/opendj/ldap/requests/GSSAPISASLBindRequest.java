@@ -64,25 +64,25 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest {
      * SSL/TLS. This is the default if no QOP option is present in the bind
      * request.
      */
-    public static final String QOP_AUTH = "auth";
+    String QOP_AUTH = "auth";
 
     /**
      * Indicates that the client will accept authentication with connection
      * integrity protection and encryption.
      */
-    public static final String QOP_AUTH_CONF = "auth-conf";
+    String QOP_AUTH_CONF = "auth-conf";
 
     /**
      * Indicates that the client will accept authentication with connection
      * integrity protection. More specifically, the underlying connection will
      * not be encrypted, unless previously established using SSL/TLS.
      */
-    public static final String QOP_AUTH_INT = "auth-int";
+    String QOP_AUTH_INT = "auth-int";
 
     /**
      * The name of the SASL mechanism based on GSS-API authentication.
      */
-    public static final String SASL_MECHANISM_NAME = "GSSAPI";
+    String SASL_MECHANISM_NAME = "GSSAPI";
 
     /**
      * Adds the provided additional authentication parameter to the list of

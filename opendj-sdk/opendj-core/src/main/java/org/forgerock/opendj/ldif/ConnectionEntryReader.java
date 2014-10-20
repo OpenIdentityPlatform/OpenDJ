@@ -113,7 +113,7 @@ public class ConnectionEntryReader implements EntryReader {
     /**
      * Result handler that places all responses in a queue.
      */
-    private final static class BufferHandler implements SearchResultHandler, ResultHandler<Result> {
+    private static final class BufferHandler implements SearchResultHandler, ResultHandler<Result> {
         private final BlockingQueue<Response> responses;
         private volatile boolean isInterrupted = false;
 

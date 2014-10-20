@@ -52,7 +52,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      *            The enumeration that should be used for values of this
      *            property definition.
      */
-    public final static class Builder<E extends Enum<E>> extends AbstractBuilder<E, EnumPropertyDefinition<E>> {
+    public static final class Builder<E extends Enum<E>> extends AbstractBuilder<E, EnumPropertyDefinition<E>> {
 
         /** The enumeration class. */
         private Class<E> enumClass;

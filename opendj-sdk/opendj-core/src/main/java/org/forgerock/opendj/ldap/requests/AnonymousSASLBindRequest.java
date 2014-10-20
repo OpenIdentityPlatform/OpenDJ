@@ -59,7 +59,7 @@ public interface AnonymousSASLBindRequest extends SASLBindRequest {
      * The name of the SASL mechanism that does not provide any authentication
      * but rather uses anonymous access.
      */
-    public static final String SASL_MECHANISM_NAME = "ANONYMOUS";
+    String SASL_MECHANISM_NAME = "ANONYMOUS";
 
     @Override
     AnonymousSASLBindRequest addControl(Control control);

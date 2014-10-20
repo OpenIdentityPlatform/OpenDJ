@@ -120,13 +120,13 @@ final class ASN1BufferReader extends AbstractASN1Reader {
     }
 
     private interface SequenceLimiter {
-        public void checkLimit(int readSize) throws IOException;
+        void checkLimit(int readSize) throws IOException;
 
-        public SequenceLimiter endSequence() throws IOException;
+        SequenceLimiter endSequence() throws IOException;
 
-        public int remaining();
+        int remaining();
 
-        public SequenceLimiter startSequence(int readLimit);
+        SequenceLimiter startSequence(int readLimit);
     }
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

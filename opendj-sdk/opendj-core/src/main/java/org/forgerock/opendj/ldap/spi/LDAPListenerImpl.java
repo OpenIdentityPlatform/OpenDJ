@@ -45,7 +45,7 @@ public interface LDAPListenerImpl extends Closeable {
      *
      * @return The address that this LDAP listener is listening on.
      */
-    public InetSocketAddress getSocketAddress();
+    InetSocketAddress getSocketAddress();
 
     /**
      * Closes this stream and releases any system resources associated
@@ -53,6 +53,6 @@ public interface LDAPListenerImpl extends Closeable {
      * method has no effect.
      */
     @Override
-    public void close();
+    void close();
 
 }

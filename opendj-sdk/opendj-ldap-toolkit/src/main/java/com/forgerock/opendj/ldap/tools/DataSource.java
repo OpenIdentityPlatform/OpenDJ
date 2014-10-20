@@ -48,9 +48,9 @@ import org.forgerock.util.Reject;
  */
 final class DataSource {
     private static interface IDataSource {
-        public IDataSource duplicate();
+        IDataSource duplicate();
 
-        public Object getData();
+        Object getData();
     }
 
     private static class IncrementLineFileDataSource implements IDataSource {

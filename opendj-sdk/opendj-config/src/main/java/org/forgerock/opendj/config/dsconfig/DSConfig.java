@@ -95,12 +95,12 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
 public final class DSConfig extends ConsoleApplication {
 
     /** The name of this tool. */
-    final static String DSCONFIGTOOLNAME = "dsconfig";
+    static final String DSCONFIGTOOLNAME = "dsconfig";
 
     /**
      * The name of a command-line script used to launch an administrative tool.
      */
-    final static String PROPERTY_SCRIPT_NAME = "org.opends.server.scriptName";
+    static final String PROPERTY_SCRIPT_NAME = "org.opends.server.scriptName";
 
     /**
      * A menu call-back which runs a sub-command interactively.

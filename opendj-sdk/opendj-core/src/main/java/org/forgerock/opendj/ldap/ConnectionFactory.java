@@ -73,7 +73,7 @@ public interface ConnectionFactory extends Closeable {
      * @see Connections#uncloseable(ConnectionFactory)
      */
     @Override
-    public void close();
+    void close();
 
     /**
      * Asynchronously obtains a connection to the Directory Server associated

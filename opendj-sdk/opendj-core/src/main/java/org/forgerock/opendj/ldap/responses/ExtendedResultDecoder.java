@@ -77,8 +77,7 @@ public interface ExtendedResultDecoder<S extends ExtendedResult> {
      *         decoder.
      */
     <R extends ExtendedResult> ResultHandler<S> adaptExtendedResultHandler(
-            final ExtendedRequest<R> request, final ResultHandler<? super R> resultHandler,
-            DecodeOptions options);
+            ExtendedRequest<R> request, ResultHandler<? super R> resultHandler, DecodeOptions options);
 
     /**
      * Decodes the provided extended operation result as a {@code Result} of

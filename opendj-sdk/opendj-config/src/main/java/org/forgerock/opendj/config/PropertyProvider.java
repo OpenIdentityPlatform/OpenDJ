@@ -39,7 +39,7 @@ public interface PropertyProvider {
      * A property provider which always returns empty property values,
      * indicating default behavior.
      */
-    public static final PropertyProvider DEFAULT_PROVIDER = new PropertyProvider() {
+    PropertyProvider DEFAULT_PROVIDER = new PropertyProvider() {
 
         /** {@inheritDoc} */
         public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) {

@@ -53,7 +53,7 @@ public interface ServerManagedObjectDeleteListener<T extends Configuration> {
      * @return Returns <code>true</code> if the proposed deletion is acceptable,
      *         or <code>false</code> if it is not.
      */
-    public boolean isConfigurationDeleteAcceptable(ServerManagedObject<? extends T> mo,
+    boolean isConfigurationDeleteAcceptable(ServerManagedObject<? extends T> mo,
             List<LocalizableMessage> unacceptableReasons);
 
     /**
@@ -64,5 +64,5 @@ public interface ServerManagedObjectDeleteListener<T extends Configuration> {
      * @return Returns information about the result of deleting the server
      *         managed object.
      */
-    public ConfigChangeResult applyConfigurationDelete(ServerManagedObject<? extends T> mo);
+    ConfigChangeResult applyConfigurationDelete(ServerManagedObject<? extends T> mo);
 }

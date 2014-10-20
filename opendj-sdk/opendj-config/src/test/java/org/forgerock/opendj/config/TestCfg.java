@@ -74,7 +74,7 @@ public final class TestCfg {
      * @throws Exception
      *             If an unexpected error occurred.
      */
-    public synchronized static void setUp() throws Exception {
+    public static synchronized void setUp() throws Exception {
         initializeAndRegisterBundle(TestParentCfgDefn.getInstance());
         initializeAndRegisterBundle(TestChildCfgDefn.getInstance());
 
@@ -95,7 +95,7 @@ public final class TestCfg {
     /**
      * Deregisters the test configurations from the administration framework.
      */
-    public synchronized static void cleanup() {
+    public static synchronized void cleanup() {
         LDAPProfile.getInstance().popWrapper();
 
         AbstractManagedObjectDefinition<?, ?> root = RootCfgDefn.getInstance();

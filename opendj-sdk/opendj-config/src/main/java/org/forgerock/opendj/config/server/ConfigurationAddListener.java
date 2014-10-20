@@ -53,7 +53,7 @@ public interface ConfigurationAddListener<T extends Configuration> {
      * @return Returns <code>true</code> if the proposed addition is acceptable,
      *         or <code>false</code> if it is not.
      */
-    public boolean isConfigurationAddAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
+    boolean isConfigurationAddAcceptable(T configuration, List<LocalizableMessage> unacceptableReasons);
 
     /**
      * Adds a new configuration to this add listener.
@@ -62,5 +62,5 @@ public interface ConfigurationAddListener<T extends Configuration> {
      *            The configuration that will be added.
      * @return Returns information about the result of adding the configuration.
      */
-    public ConfigChangeResult applyConfigurationAdd(T configuration);
+    ConfigChangeResult applyConfigurationAdd(T configuration);
 }

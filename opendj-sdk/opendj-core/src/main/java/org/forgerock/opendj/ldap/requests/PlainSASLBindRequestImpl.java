@@ -49,7 +49,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBindRequest>
         implements PlainSASLBindRequest {
-    private final static class Client extends SASLBindClientImpl {
+    private static final class Client extends SASLBindClientImpl {
         private final String authenticationID;
         private final ByteString password;
         private final SaslClient saslClient;

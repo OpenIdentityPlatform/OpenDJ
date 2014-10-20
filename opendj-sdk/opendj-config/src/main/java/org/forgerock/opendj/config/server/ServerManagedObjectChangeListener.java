@@ -53,7 +53,7 @@ public interface ServerManagedObjectChangeListener<T extends Configuration> {
      * @return Returns <code>true</code> if the proposed change is acceptable,
      *         or <code>false</code> if it is not.
      */
-    public boolean isConfigurationChangeAcceptable(ServerManagedObject<? extends T> mo,
+    boolean isConfigurationChangeAcceptable(ServerManagedObject<? extends T> mo,
         List<LocalizableMessage> unacceptableReasons);
 
     /**
@@ -64,5 +64,5 @@ public interface ServerManagedObjectChangeListener<T extends Configuration> {
      * @return Returns information about the result of changing the server
      *         managed object.
      */
-    public ConfigChangeResult applyConfigurationChange(ServerManagedObject<? extends T> mo);
+    ConfigChangeResult applyConfigurationChange(ServerManagedObject<? extends T> mo);
 }

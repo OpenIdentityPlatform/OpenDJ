@@ -47,9 +47,9 @@ import com.forgerock.opendj.cli.ReturnCode;
  */
 final class SetupLog {
 
-    static private File logFile = null;
-    static private FileHandler fileHandler = null;
-    final static String LOGNAME = "setup.log";
+    private static File logFile = null;
+    private static FileHandler fileHandler = null;
+    static final String LOGNAME = "setup.log";
 
     private SetupLog() {
         //  Nothing to do.
@@ -117,7 +117,7 @@ final class SetupLog {
      *
      * @return File representing the log file
      */
-    static public File getLogFile() {
+    public static File getLogFile() {
         return logFile;
     }
 }

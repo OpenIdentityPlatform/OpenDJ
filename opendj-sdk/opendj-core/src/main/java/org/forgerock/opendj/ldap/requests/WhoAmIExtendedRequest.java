@@ -83,13 +83,13 @@ public interface WhoAmIExtendedRequest extends ExtendedRequest<WhoAmIExtendedRes
      * A decoder which can be used to decode who am I extended operation
      * requests.
      */
-    public static final ExtendedRequestDecoder<WhoAmIExtendedRequest, WhoAmIExtendedResult> DECODER =
+    ExtendedRequestDecoder<WhoAmIExtendedRequest, WhoAmIExtendedResult> DECODER =
             new WhoAmIExtendedRequestImpl.RequestDecoder();
 
     /**
      * The OID for the who am I extended operation request.
      */
-    public static final String OID = "1.3.6.1.4.1.4203.1.11.3";
+    String OID = "1.3.6.1.4.1.4203.1.11.3";
 
     @Override
     WhoAmIExtendedRequest addControl(Control control);

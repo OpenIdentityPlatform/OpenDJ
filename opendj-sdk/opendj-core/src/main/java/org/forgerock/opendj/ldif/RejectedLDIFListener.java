@@ -42,7 +42,7 @@ public interface RejectedLDIFListener {
      * processing by throwing a {@code DecodeException} as soon as a record is
      * found to be malformed or rejected due to a schema validation failure.
      */
-    public static final RejectedLDIFListener FAIL_FAST = new RejectedLDIFListener() {
+    RejectedLDIFListener FAIL_FAST = new RejectedLDIFListener() {
 
         @Override
         public void handleMalformedRecord(final long lineNumber, final List<String> lines,
@@ -74,7 +74,7 @@ public interface RejectedLDIFListener {
     /**
      * A handler which ignores all rejected record notifications.
      */
-    public static final RejectedLDIFListener IGNORE_ALL = new RejectedLDIFListener() {
+    RejectedLDIFListener IGNORE_ALL = new RejectedLDIFListener() {
 
         @Override
         public void handleMalformedRecord(final long lineNumber, final List<String> lines,

@@ -76,13 +76,13 @@ public interface PasswordModifyExtendedRequest extends
      * A decoder which can be used to decode password modify extended operation
      * requests.
      */
-    public static final ExtendedRequestDecoder<PasswordModifyExtendedRequest, PasswordModifyExtendedResult> DECODER =
+    ExtendedRequestDecoder<PasswordModifyExtendedRequest, PasswordModifyExtendedResult> DECODER =
             new PasswordModifyExtendedRequestImpl.RequestDecoder();
 
     /**
      * The OID for the password modify extended operation request.
      */
-    public static final String OID = "1.3.6.1.4.1.4203.1.11.1";
+    String OID = "1.3.6.1.4.1.4203.1.11.1";
 
     @Override
     PasswordModifyExtendedRequest addControl(Control control);

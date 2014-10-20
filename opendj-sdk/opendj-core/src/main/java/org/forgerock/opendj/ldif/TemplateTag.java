@@ -514,7 +514,7 @@ abstract class TemplateTag {
      * Base tag to use to base presence of one attribute on the absence/presence
      * of another attribute and/or attribute value.
      */
-    abstract static class IfTag extends TemplateTag {
+    static abstract class IfTag extends TemplateTag {
         /** The attribute type for which to make the determination. */
         AttributeType attributeType;
 

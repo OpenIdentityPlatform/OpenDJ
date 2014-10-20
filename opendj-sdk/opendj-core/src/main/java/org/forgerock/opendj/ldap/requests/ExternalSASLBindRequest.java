@@ -59,7 +59,7 @@ public interface ExternalSASLBindRequest extends SASLBindRequest {
     /**
      * The name of the SASL mechanism based on external authentication.
      */
-    public static final String SASL_MECHANISM_NAME = "EXTERNAL";
+    String SASL_MECHANISM_NAME = "EXTERNAL";
 
     @Override
     ExternalSASLBindRequest addControl(Control control);
