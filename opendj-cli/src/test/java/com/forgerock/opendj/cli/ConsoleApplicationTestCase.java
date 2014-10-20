@@ -60,7 +60,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
             super(out, err);
         }
 
-        final static MockConsoleApplication getDefault() {
+        static final MockConsoleApplication getDefault() {
             out = new ByteArrayOutputStream();
             final PrintStream psOut = new PrintStream(out);
             err = new ByteArrayOutputStream();
