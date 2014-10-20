@@ -49,7 +49,7 @@ public class CommandBuilder {
     /**
      * The separator used to link the lines of the resulting command-lines.
      */
-    public final static String LINE_SEPARATOR;
+    public static final String LINE_SEPARATOR;
     static {
         if (OperatingSystem.isWindows()) {
             LINE_SEPARATOR = " ";
@@ -61,7 +61,7 @@ public class CommandBuilder {
     /**
      * The separator used to link the lines of the resulting command-lines in HTML format.
      */
-    public final static String HTML_LINE_SEPARATOR;
+    public static final String HTML_LINE_SEPARATOR;
     static {
         if (OperatingSystem.isWindows()) {
             HTML_LINE_SEPARATOR = "&nbsp;";
@@ -239,7 +239,7 @@ public class CommandBuilder {
     }
 
     /** Chars that require special treatment when passing them to command-line. */
-    private final static Set<Character> CHARSTOESCAPE = new TreeSet<Character>(Arrays.asList(
+    private static final Set<Character> CHARSTOESCAPE = new TreeSet<Character>(Arrays.asList(
         ' ', '\t', '\n', '|', ';', '<', '>', '(', ')', '$', '`', '\\', '"', '\''));
 
     /**

@@ -59,7 +59,7 @@ import org.forgerock.opendj.ldap.RDN;
 /**
  * This class provides utility functions for all the client side tools.
  */
-final public class Utils {
+public final class Utils {
 
     /** Platform appropriate line separator. */
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -68,12 +68,12 @@ final public class Utils {
      * The value used to display arguments that must be obfuscated (such as passwords). This does not require
      * localization (since the output of command builder by its nature is not localized).
      */
-    public final static String OBFUSCATED_VALUE = "******";
+    public static final String OBFUSCATED_VALUE = "******";
 
     /**
      * The maximum number of times we try to confirm.
      */
-    public final static int CONFIRMATION_MAX_TRIES = 5;
+    public static final int CONFIRMATION_MAX_TRIES = 5;
 
     /**
      * The date format string that will be used to construct and parse dates represented using generalized time. It is
