@@ -244,7 +244,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
 
         Connection connection = factory.getConnection();
         PlainSASLBindRequest request =
-                Requests.newPlainSASLBindRequest("u:user.0", ("password").toCharArray());
+                Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
         try {
             connection.bind(request);
         } finally {
@@ -266,7 +266,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
         final Connection connection = Adapters.newRootConnection();
 
         PlainSASLBindRequest request =
-                Requests.newPlainSASLBindRequest("u:user.0", ("password").toCharArray());
+                Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
         try {
             connection.bind(request);
         } finally {

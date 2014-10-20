@@ -450,8 +450,8 @@ final public class Utils {
     public static boolean isCertificateException(Throwable t) {
         boolean returnValue = false;
 
-        while (!returnValue && (t != null)) {
-            returnValue = (t instanceof SSLHandshakeException) || (t instanceof GeneralSecurityException);
+        while (!returnValue && t != null) {
+            returnValue = t instanceof SSLHandshakeException || t instanceof GeneralSecurityException;
             t = t.getCause();
         }
 
@@ -530,7 +530,7 @@ final public class Utils {
             return file.canWrite();
         }
         final File parentFile = file.getParentFile();
-        return (parentFile != null && parentFile.canWrite());
+        return parentFile != null && parentFile.canWrite();
     }
 
 
@@ -575,7 +575,7 @@ final public class Utils {
      */
     private static boolean isOutOfMemory(Throwable t) {
         boolean isOutOfMemory = false;
-        while (!isOutOfMemory && (t != null)) {
+        while (!isOutOfMemory && t != null) {
             if (t instanceof OutOfMemoryError) {
                 isOutOfMemory = true;
             } else if (t instanceof IOException) {

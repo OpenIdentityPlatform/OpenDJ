@@ -272,7 +272,7 @@ public final class TextTablePrinter extends TablePrinter {
                             if (requestedSize == 0) {
                                 // Calculate size based on requested actual size as a
                                 // proportion of the total.
-                                requestedSize = ((actualSize * available) / expandableColumnSize);
+                                requestedSize = (actualSize * available) / expandableColumnSize;
                                 columnWidths.set(i, requestedSize);
                             }
                         }

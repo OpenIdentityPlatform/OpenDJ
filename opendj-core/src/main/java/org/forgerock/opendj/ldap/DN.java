@@ -916,12 +916,12 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @return The normalized string representation of the provided DN.
      */
     public String toNormalizedString() {
-        final StringBuilder builder = new StringBuilder(this.size());
+        final StringBuilder builder = new StringBuilder(size());
         if (rdn() == null) {
             return builder.toString();
         }
 
-        int i = this.size() - 1;
+        int i = size() - 1;
         normalizeRDN(builder, parent(i).rdn());
         for (i--; i >= 0; i--) {
             final RDN rdn = parent(i).rdn();
@@ -1013,7 +1013,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
                 }
                 char c = str.charAt(0);
                 int startPos = 0;
-                if ((c == ' ') || (c == '#')) {
+                if (c == ' ' || c == '#') {
                     builder.append('\\');
                     builder.append(c);
                     startPos = 1;

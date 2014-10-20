@@ -71,7 +71,7 @@ public final class Syntax extends SchemaElement {
 
         Builder(final String oid, final SchemaBuilder builder) {
             super(builder);
-            this.oid(oid);
+            oid(oid);
         }
 
         /**
@@ -80,7 +80,7 @@ public final class Syntax extends SchemaElement {
          * @return The parent schema builder.
          */
         public SchemaBuilder addToSchemaOverwrite() {
-            return this.getSchemaBuilder().addSyntax(new Syntax(this), true);
+            return getSchemaBuilder().addSyntax(new Syntax(this), true);
         }
 
         /**
@@ -92,7 +92,7 @@ public final class Syntax extends SchemaElement {
          *             If there is an existing syntax with the same numeric OID.
          */
         public SchemaBuilder addToSchema() {
-            return this.getSchemaBuilder().addSyntax(new Syntax(this), false);
+            return getSchemaBuilder().addSyntax(new Syntax(this), false);
         }
 
         /**
@@ -105,9 +105,9 @@ public final class Syntax extends SchemaElement {
          */
         SchemaBuilder addToSchema(final boolean overwrite) {
             if (overwrite) {
-                return this.addToSchemaOverwrite();
+                return addToSchemaOverwrite();
             }
-            return this.addToSchema();
+            return addToSchema();
         }
 
         @Override

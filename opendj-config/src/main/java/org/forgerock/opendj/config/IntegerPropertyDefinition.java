@@ -239,7 +239,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
             throw PropertyException.illegalPropertyValueException(this, value);
         }
 
-        if ((upperLimit != null) && (value > upperLimit)) {
+        if (upperLimit != null && value > upperLimit) {
             throw PropertyException.illegalPropertyValueException(this, value);
         }
     }

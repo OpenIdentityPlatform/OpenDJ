@@ -296,7 +296,7 @@ public enum DurationUnit {
      * @return Returns milliseconds in this unit.
      */
     public double fromMilliSeconds(long duration) {
-        return ((double) duration / sz);
+        return (double) duration / sz;
     }
 
     /**

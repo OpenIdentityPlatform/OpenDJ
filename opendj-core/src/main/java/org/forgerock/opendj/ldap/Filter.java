@@ -490,7 +490,7 @@ public final class Filter {
      * @return The newly created {@code and} filter.
      */
     public static Filter and(final Filter... subFilters) {
-        if ((subFilters == null) || (subFilters.length == 0)) {
+        if (subFilters == null || subFilters.length == 0) {
             // RFC 4526 - TRUE filter.
             return alwaysTrue();
         } else if (subFilters.length == 1) {
@@ -771,7 +771,7 @@ public final class Filter {
      * @return The newly created {@code or} filter.
      */
     public static Filter or(final Filter... subFilters) {
-        if ((subFilters == null) || (subFilters.length == 0)) {
+        if (subFilters == null || subFilters.length == 0) {
             // RFC 4526 - FALSE filter.
             return alwaysFalse();
         } else if (subFilters.length == 1) {
@@ -829,12 +829,13 @@ public final class Filter {
             final Object initialSubstring, final Collection<?> anySubstrings,
             final Object finalSubstring) {
         Reject.ifNull(attributeDescription);
-        Reject.ifFalse((initialSubstring != null) || (finalSubstring != null)
-                || ((anySubstrings != null) && (anySubstrings.size() > 0)),
-                "at least one substring (initial, any or final)" + " must be specified");
+        Reject.ifFalse(initialSubstring != null
+                || finalSubstring != null
+                || (anySubstrings != null && anySubstrings.size() > 0),
+                "at least one substring (initial, any or final) must be specified");
 
         List<ByteString> anySubstringList;
-        if ((anySubstrings == null) || (anySubstrings.size() == 0)) {
+        if (anySubstrings == null || anySubstrings.size() == 0) {
             anySubstringList = Collections.emptyList();
         } else if (anySubstrings.size() == 1) {
             final Object anySubstring = anySubstrings.iterator().next();
@@ -889,7 +890,7 @@ public final class Filter {
 
         // If the filter is enclosed in a pair of single quotes it
         // is invalid (issue #1024).
-        if ((string.length() > 1) && string.startsWith("'") && string.endsWith("'")) {
+        if (string.length() > 1 && string.startsWith("'") && string.endsWith("'")) {
             final LocalizableMessage message = ERR_LDAP_FILTER_ENCLOSED_IN_APOSTROPHES.get(string);
             throw new LocalizedIllegalArgumentException(message);
         }
@@ -1040,7 +1041,7 @@ public final class Filter {
             if (valueBytes[i] == 0x5C /* The backslash character */) {
                 // The next two bytes must be the hex characters that comprise
                 // the binary value.
-                if ((i + 2) >= valueBytes.length) {
+                if (i + 2 >= valueBytes.length) {
                     final LocalizableMessage message =
                             ERR_LDAP_FILTER_INVALID_ESCAPED_BYTE.get(string, errorIndex + i + 1);
                     throw new LocalizedIllegalArgumentException(message);
@@ -1436,7 +1437,7 @@ public final class Filter {
 
         // Make sure that the filter has at least one of an attribute
         // description and/or a matching rule ID.
-        if ((attributeDescription == null) && (matchingRule == null)) {
+        if (attributeDescription == null && matchingRule == null) {
             final LocalizableMessage message =
                     ERR_LDAP_FILTER_EXTENSIBLE_MATCH_NO_AD_OR_MR.get(string, startIndex);
             throw new LocalizedIllegalArgumentException(message);
@@ -1563,13 +1564,13 @@ public final class Filter {
             // TODO: this is a bit overkill - it will escape all non-ascii
             // chars!
             final byte b = value.byteAt(i);
-            if (((b & 0x7F) != b) || // Not 7-bit clean
-                    (b <= 0x1F) || // Below the printable character range
-                    (b == 0x28) || // Open parenthesis
-                    (b == 0x29) || // Close parenthesis
-                    (b == 0x2A) || // Asterisk
-                    (b == 0x5C) || // Backslash
-                    (b == 0x7F) /* Delete character */) {
+            if (((b & 0x7F) != b) // Not 7-bit clean
+                    || b <= 0x1F  // Below the printable character range
+                    || b == 0x28  // Open parenthesis
+                    || b == 0x29  // Close parenthesis
+                    || b == 0x2A  // Asterisk
+                    || b == 0x5C  // Backslash
+                    || b == 0x7F  /* Delete character */) {
                 builder.append('\\');
                 builder.append(byteToHex(b));
             } else {

@@ -456,7 +456,7 @@ final class TemplateFile {
             final String line = replaceConstants(lines[lineNumber], lineNumber, constants, warnings);
 
             final String lowerLine = line.toLowerCase();
-            if ((line.length() == 0) || line.startsWith("#")) {
+            if (line.length() == 0 || line.startsWith("#")) {
                 // This is a comment or a blank line, so we'll ignore it.
                 continue;
             } else if (lowerLine.startsWith(INCLUDE_LABEL)) {
@@ -933,7 +933,7 @@ final class TemplateFile {
             }
         }
         // Then, find the position of the first non-blank character in the line.
-        while ((pos < length) && (lowerLine.charAt(pos) == ' ')) {
+        while (pos < length && lowerLine.charAt(pos) == ' ') {
             pos++;
         }
 
@@ -1759,7 +1759,7 @@ final class TemplateFile {
             if (nextEntry != null) {
                 return true;
             }
-            while ((entriesCount < numberOfEntries) || generateForever()) {
+            while (entriesCount < numberOfEntries || generateForever()) {
                 // get the template entry
                 if (!currentEntryIsInitialized) {
                     nextEntry = buildTemplateEntry();
@@ -1904,7 +1904,7 @@ final class TemplateFile {
          */
         TemplateValue getValue(final AttributeType attributeType) {
             final List<TemplateValue> values = attributes.get(attributeType);
-            if ((values != null)) {
+            if (values != null) {
                 return values.get(0);
             }
             return null;

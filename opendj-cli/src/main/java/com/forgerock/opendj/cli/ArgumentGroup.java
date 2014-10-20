@@ -87,8 +87,8 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
             // new argument should replace
             for (final Iterator<Argument> it = this.args.iterator(); it.hasNext();) {
                 final Argument a = it.next();
-                if (newShort != null && newShort.equals(a.getShortIdentifier()) || newLong != null
-                        && newLong.equals(a.getLongIdentifier())) {
+                if ((newShort != null && newShort.equals(a.getShortIdentifier()))
+                        || (newLong != null && newLong.equals(a.getLongIdentifier()))) {
                     it.remove();
                     break;
                 }

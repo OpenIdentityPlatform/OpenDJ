@@ -25,8 +25,6 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -36,6 +34,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.util.Reject;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * An LDAP generalized time as defined in RFC 4517. This class facilitates
@@ -357,7 +357,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         case '-':
             // These are fine only if there are exactly two or four more
             // digits that specify a valid offset.
-            if ((length == 13) || (length == 15)) {
+            if (length == 13 || length == 15) {
                 final TimeZone tz = getTimeZoneForOffset(valueString, 10);
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
@@ -427,7 +427,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         case '-':
             // These are fine only if there are exactly two or four more
             // digits that specify a valid offset.
-            if ((length == 15) || (length == 17)) {
+            if (length == 15 || length == 17) {
                 final TimeZone tz = getTimeZoneForOffset(valueString, 12);
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
@@ -466,7 +466,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         case '-':
             // These are fine only if there are exactly two or four more
             // digits that specify a valid offset.
-            if ((length == 17) || (length == 19)) {
+            if (length == 17 || length == 19) {
                 final TimeZone tz = getTimeZoneForOffset(valueString, 14);
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
@@ -684,7 +684,8 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      */
     private static TimeZone getTimeZoneForOffset(final String value, final int startPos) {
         final String offSetStr = value.substring(startPos);
-        if ((offSetStr.length() != 3) && (offSetStr.length() != 5)) {
+        final int len = offSetStr.length();
+        if (len != 3 && len != 5) {
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET.get(value, offSetStr);
             throw new LocalizedIllegalArgumentException(message);

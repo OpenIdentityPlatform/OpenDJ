@@ -89,7 +89,7 @@ public final class LinkedAttribute extends AbstractAttribute {
         @Override
         boolean add(final LinkedAttribute attribute, final ByteString value) {
             final ByteString normalizedValue = normalizeValue(attribute, value);
-            return (attribute.multipleValues.put(normalizedValue, value) == null);
+            return attribute.multipleValues.put(normalizedValue, value) == null;
         }
 
         @Override

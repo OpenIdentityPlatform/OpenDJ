@@ -187,7 +187,7 @@ public final class LDIF {
 
             @Override
             public boolean hasNext() {
-                return (sourceEntry != null || targetEntry != null);
+                return sourceEntry != null || targetEntry != null;
             }
 
             @Override
@@ -535,7 +535,7 @@ public final class LDIF {
                                 // @formatter:off
                                 final Iterator<Map.Entry<byte[], byte[]>> i =
                                     entries.subMap(changeNormDN,
-                                        getBytes((changeDN.child(RDN.maxValue())).
+                                        getBytes(changeDN.child(RDN.maxValue()).
                                                 toNormalizedString())).entrySet().iterator();
                                 // @formatter:on
 

@@ -89,8 +89,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl {
             final char c = reader.read();
             if (c != '(') {
                 final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader
-                                .pos() - 1), c);
+                        ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c);
                 final DecodeException e = DecodeException.error(message);
                 logger.debug(LocalizableMessage.raw("%s", e));
                 throw e;

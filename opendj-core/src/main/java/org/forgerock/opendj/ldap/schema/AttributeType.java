@@ -804,7 +804,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
             warnings.add(message);
         }
 
-        return (isValid = true);
+        return isValid = true;
     }
 
     private void failValidation(final List<AttributeType> invalidSchemaElements,

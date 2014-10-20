@@ -235,10 +235,11 @@ public final class Adapters {
             @Override
             public Result modifyDN(final ModifyDNRequest request) throws LdapException {
                 final ModifyDNOperation modifyDNOperation =
-                        icc.processModifyDN(to(valueOf(request.getName())), to(valueOf(request
-                                .getNewRDN())), request.isDeleteOldRDN(),
-                                (request.getNewSuperior() != null ? to(valueOf(request
-                                        .getNewSuperior())) : null), to(request.getControls()));
+                        icc.processModifyDN(to(valueOf(request.getName())),
+                                to(valueOf(request.getNewRDN())),
+                                request.isDeleteOldRDN(),
+                                (request.getNewSuperior() != null ? to(valueOf(request.getNewSuperior())) : null),
+                                to(request.getControls()));
                 return getResponseResult(modifyDNOperation);
             }
 
@@ -285,10 +286,10 @@ public final class Adapters {
                     return extendedResult;
 
                 } catch (DecodeException e) {
+                    org.opends.server.types.DN matchedDN = extendedOperation.getMatchedDN();
                     return request.getResultDecoder().newExtendedErrorResult(
                             ResultCode.valueOf(extendedOperation.getResultCode().getIntValue()),
-                            (extendedOperation.getMatchedDN() != null ? extendedOperation
-                                    .getMatchedDN().toString() : null),
+                            matchedDN != null ? matchedDN.toString() : null,
                             extendedOperation.getErrorMessage().toString());
                 }
             }

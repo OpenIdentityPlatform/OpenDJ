@@ -1510,7 +1510,7 @@ public final class StaticUtils {
                 }
             }
         } else {
-            if ((throwable instanceof InvocationTargetException) && (throwable.getCause() != null)) {
+            if (throwable instanceof InvocationTargetException && throwable.getCause() != null) {
                 throwable = throwable.getCause();
             }
             // add class name and message of the exception

@@ -161,7 +161,7 @@ public final class GSERParser {
      * <code>false</code> otherwise.
      */
     public boolean hasNext() {
-        return (pos < length);
+        return pos < length;
     }
 
     /**

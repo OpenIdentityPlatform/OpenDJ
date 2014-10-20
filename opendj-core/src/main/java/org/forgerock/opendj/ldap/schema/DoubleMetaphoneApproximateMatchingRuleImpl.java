@@ -228,7 +228,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                 if (posPlusOne == 'C' && !(pos == 1 && valueString.charAt(0) == 'M')) {
                     if (((posPlusTwo = valueString.charAt(pos + 2)) == 'I' || posPlusTwo == 'E' || posPlusTwo == 'H')
                             && !(posPlusTwo == 'H' && valueString.charAt(pos + 3) == 'U')) {
-                        if (pos == 1 && valueString.charAt(pos - 1) == 'A'
+                        if ((pos == 1 && valueString.charAt(pos - 1) == 'A')
                                 || hasSubstring(valueString, pos - 1, "UCCEE")
                                 || hasSubstring(valueString, pos - 1, "UCCES")) {
                             // Values like "accident", "accede", and "succeed".

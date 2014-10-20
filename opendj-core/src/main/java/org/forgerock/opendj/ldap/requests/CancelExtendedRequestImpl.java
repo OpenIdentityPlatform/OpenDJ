@@ -60,7 +60,7 @@ final class CancelExtendedRequestImpl extends
         public CancelExtendedRequest decodeExtendedRequest(final ExtendedRequest<?> request,
                 final DecodeOptions options) throws DecodeException {
             final ByteString requestValue = request.getValue();
-            if ((requestValue == null) || (requestValue.length() <= 0)) {
+            if (requestValue == null || requestValue.length() <= 0) {
                 throw DecodeException.error(ERR_EXTOP_CANCEL_NO_REQUEST_VALUE.get());
             }
 

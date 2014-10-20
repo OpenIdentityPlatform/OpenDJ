@@ -1123,7 +1123,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         extractIntermediateListener(ConfigAddListener configListener) {
         // @Checkstyle:on
         if (configListener instanceof ConfigAddListenerAdaptor) {
-            ConfigAddListenerAdaptor<T> adaptor = ((ConfigAddListenerAdaptor<T>) configListener);
+            ConfigAddListenerAdaptor<T> adaptor = (ConfigAddListenerAdaptor<T>) configListener;
             return Pair.of(adaptor, adaptor.getServerManagedObjectAddListener());
         }
         return Pair.empty();
@@ -1239,7 +1239,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         int i = delayWrappers;
                         for (; i > 0; i--) {
                             wrappedListener = delayListener.getDelayedAddListener();
-                            if (wrappedListener != null && wrappedListener instanceof DelayedConfigAddListener) {
+                            if (wrappedListener instanceof DelayedConfigAddListener) {
                                 delayListener = (DelayedConfigAddListener) configListener;
                             } else {
                                 break;
@@ -1254,7 +1254,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
 
                         ConfigAddListener delayedListener = delayListener.getDelayedAddListener();
 
-                        if (delayedListener != null && delayedListener instanceof ConfigAddListenerAdaptor) {
+                        if (delayedListener instanceof ConfigAddListenerAdaptor) {
                             ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) delayedListener;
                             ServerManagedObjectAddListener<?> l2 = adaptor.getServerManagedObjectAddListener();
                             if (l2 instanceof ServerManagedObjectAddListenerAdaptor<?>) {
@@ -1293,7 +1293,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         int i = delayWrappers;
                         for (; i > 0; i--) {
                             wrappedListener = delayListener.getDelayedAddListener();
-                            if (wrappedListener != null && wrappedListener instanceof DelayedConfigAddListener) {
+                            if (wrappedListener instanceof DelayedConfigAddListener) {
                                 delayListener = (DelayedConfigAddListener) l;
                             } else {
                                 break;
@@ -1308,7 +1308,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
 
                         ConfigDeleteListener delayedListener = delayListener.getDelayedDeleteListener();
 
-                        if (delayedListener != null && delayedListener instanceof ConfigDeleteListenerAdaptor) {
+                        if (delayedListener instanceof ConfigDeleteListenerAdaptor) {
                             ConfigDeleteListenerAdaptor<?> adaptor = (ConfigDeleteListenerAdaptor<?>) delayedListener;
                             ServerManagedObjectDeleteListener<?> l2 = adaptor.getServerManagedObjectDeleteListener();
                             if (l2 instanceof ServerManagedObjectDeleteListenerAdaptor<?>) {
@@ -1347,7 +1347,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         int i = delayWrappers;
                         for (; i > 0; i--) {
                             wrappedListener = delayListener.getDelayedAddListener();
-                            if (wrappedListener != null && wrappedListener instanceof DelayedConfigAddListener) {
+                            if (wrappedListener instanceof DelayedConfigAddListener) {
                                 delayListener = (DelayedConfigAddListener) configListener;
                             } else {
                                 break;
@@ -1362,7 +1362,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
 
                         ConfigAddListener delayedListener = delayListener.getDelayedAddListener();
 
-                        if (delayedListener != null && delayedListener instanceof ConfigAddListenerAdaptor) {
+                        if (delayedListener instanceof ConfigAddListenerAdaptor) {
                             ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) delayedListener;
                             if (adaptor.getServerManagedObjectAddListener() == listener) {
                                 configRepository.deregisterAddListener(parentDN, configListener);
@@ -1396,7 +1396,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         int i = delayWrappers;
                         for (; i > 0; i--) {
                             wrappedListener = delayListener.getDelayedAddListener();
-                            if (wrappedListener != null && wrappedListener instanceof DelayedConfigAddListener) {
+                            if (wrappedListener instanceof DelayedConfigAddListener) {
                                 delayListener = (DelayedConfigAddListener) configListener;
                             } else {
                                 break;
@@ -1411,7 +1411,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
 
                         ConfigDeleteListener delayedListener = delayListener.getDelayedDeleteListener();
 
-                        if (delayedListener != null && delayedListener instanceof ConfigDeleteListenerAdaptor) {
+                        if (delayedListener instanceof ConfigDeleteListenerAdaptor) {
                             ConfigDeleteListenerAdaptor<?> adaptor = (ConfigDeleteListenerAdaptor<?>) delayedListener;
                             if (adaptor.getServerManagedObjectDeleteListener() == listener) {
                                 configRepository.deregisterAddListener(parentDN, configListener);

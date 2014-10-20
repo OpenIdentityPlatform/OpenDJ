@@ -202,7 +202,7 @@ abstract class TemplateTag {
 
         private void initialize(Schema schema, Branch branch, Template template, String[] arguments, int lineNumber)
                 throws DecodeException {
-            if ((arguments.length < 1) || (arguments.length > 2)) {
+            if (arguments.length < 1 || arguments.length > 2) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                         lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
@@ -312,7 +312,7 @@ abstract class TemplateTag {
         final TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue,
                 String separator) {
             DN dn = templateEntry.getDN();
-            if ((dn == null) || dn.isRootDN()) {
+            if (dn == null || dn.isRootDN()) {
                 return TagResult.SUCCESS;
             }
 
@@ -387,7 +387,7 @@ abstract class TemplateTag {
             random = templateFile.getRandom();
 
             // There must be at least one argument, and possibly two.
-            if ((arguments.length < 1) || (arguments.length > 2)) {
+            if (arguments.length < 1 || arguments.length > 2) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                         lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
@@ -540,7 +540,7 @@ abstract class TemplateTag {
 
         private void initialize(Schema schema, Branch branch, Template template, String[] arguments, int lineNumber)
                 throws DecodeException {
-            if ((arguments.length < 1) || (arguments.length > 2)) {
+            if (arguments.length < 1 || arguments.length > 2) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                         lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
@@ -601,7 +601,7 @@ abstract class TemplateTag {
         @Override
         TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             List<TemplateValue> values = templateEntry.getValues(attributeType);
-            if ((values == null) || values.isEmpty()) {
+            if (values == null || values.isEmpty()) {
                 return TagResult.FAILURE;
             }
 
@@ -779,7 +779,7 @@ abstract class TemplateTag {
         @Override
         TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             DN parentDN = templateEntry.getParentDN();
-            if ((parentDN == null) || parentDN.isRootDN()) {
+            if (parentDN == null || parentDN.isRootDN()) {
                 return TagResult.SUCCESS;
             }
             templateValue.append(parentDN);
@@ -1005,7 +1005,7 @@ abstract class TemplateTag {
 
             // There must be at least one argument, to specify the type of
             // random value to generate.
-            if ((arguments == null) || (arguments.length == 0)) {
+            if (arguments == null || arguments.length == 0) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_NO_RANDOM_TYPE_ARGUMENT.get(lineNumber);
                 throw DecodeException.fatalError(message);
             }
@@ -1037,7 +1037,7 @@ abstract class TemplateTag {
                                 getName(), lineNumber);
                         throw DecodeException.fatalError(message, nfe);
                     }
-                } else if ((numArgs == 3) || (numArgs == 4)) {
+                } else if (numArgs == 3 || numArgs == 4) {
                     randomType = RandomType.NUMERIC;
 
                     if (numArgs == 4) {
@@ -1083,7 +1083,7 @@ abstract class TemplateTag {
                 characterSet = ALPHANUMERIC_CHARS;
                 decodeLength(arguments, 1, lineNumber, warnings);
             } else if (randomTypeString.equals("chars")) {
-                if ((numArgs < 3) || (numArgs > 4)) {
+                if (numArgs < 3 || numArgs > 4) {
                     LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 3, 4, numArgs);
                     throw DecodeException.fatalError(message);
@@ -1304,7 +1304,7 @@ abstract class TemplateTag {
         @Override
         TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             DN dn = templateEntry.getDN();
-            if ((dn == null) || dn.isRootDN()) {
+            if (dn == null || dn.isRootDN()) {
                 return TagResult.SUCCESS;
             } else {
                 templateValue.append(dn.rdn());
@@ -1475,7 +1475,7 @@ abstract class TemplateTag {
         @Override
         TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             DN parentDN = templateEntry.getParentDN();
-            if ((parentDN == null) || parentDN.isRootDN()) {
+            if (parentDN == null || parentDN.isRootDN()) {
                 return TagResult.SUCCESS;
             }
             templateValue.append(parentDN.rdn());

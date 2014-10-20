@@ -657,7 +657,7 @@ public final class ObjectClass extends SchemaElement {
         requiredAttributes = Collections.unmodifiableSet(requiredAttributes);
         superiorClasses = Collections.unmodifiableSet(superiorClasses);
 
-        return (isValid = true);
+        return isValid = true;
     }
 
     private void failValidation(final List<ObjectClass> invalidSchemaElements,

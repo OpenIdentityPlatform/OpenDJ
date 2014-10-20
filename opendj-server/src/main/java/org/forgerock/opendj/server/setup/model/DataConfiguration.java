@@ -85,19 +85,19 @@ class DataConfiguration {
     }
 
     public boolean isOnlyBaseEntry() {
-        return (type == Type.BASE_ENTRY_ONLY);
+        return type == Type.BASE_ENTRY_ONLY;
     }
 
     public boolean isEmptyDatabase() {
-        return (type == Type.EMPTY_DATABASE);
+        return type == Type.EMPTY_DATABASE;
     }
 
     public boolean isImportLDIF() {
-        return (type == Type.IMPORT_LDIF);
+        return type == Type.IMPORT_LDIF;
     }
 
     public boolean isAutomaticallyImportGenerated() {
-        return (type == Type.AUTOMATICALLY_GENERATED);
+        return type == Type.AUTOMATICALLY_GENERATED;
     }
 
     public File getLdifImportDataPath() {

@@ -125,8 +125,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         // The next character must be a printable string character.
         c = valueString.charAt(pos++);
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-            invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, String
-                    .valueOf(c), (pos - 1)));
+            invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, c, pos - 1));
             return false;
         }
 
@@ -155,7 +154,7 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
         c = valueString.charAt(pos++);
         if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
             invalidReason.append(ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE.get(valueString, String
-                    .valueOf(c), (pos - 1)));
+                    .valueOf(c), pos - 1));
             return false;
         }
 

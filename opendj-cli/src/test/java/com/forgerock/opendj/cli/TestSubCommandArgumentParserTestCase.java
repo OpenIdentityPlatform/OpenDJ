@@ -61,8 +61,7 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
      */
     @BeforeClass
     public void setup() throws Exception {
-        parser = new SubCommandArgumentParser(this.getClass().getName(), LocalizableMessage.raw("test description"),
-                true);
+        parser = new SubCommandArgumentParser(getClass().getName(), LocalizableMessage.raw("test description"), true);
 
         sc1 = new SubCommand(parser, "sub-command1", INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
         sc2 = new SubCommand(parser, "sub-command2", true, 2, 4, "args1 arg2 [arg3 arg4]",

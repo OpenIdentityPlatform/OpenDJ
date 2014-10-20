@@ -521,7 +521,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     @Test(groups = { "needRunningServer" })
     public static void testgetCredentials() throws Exception {
         final PlainSASLBindRequest request =
-                Requests.newPlainSASLBindRequest("u:user.0", ("password").toCharArray());
+                Requests.newPlainSASLBindRequest("u:user.0", "password".toCharArray());
 
         String serverName = InetAddress.getByName(null).getCanonicalHostName();
         final BindClient bindClient = request.createBindClient(serverName);
@@ -539,7 +539,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     @Test(groups = { "needRunningServer" })
     public static void testgetCredentialsEmptyByteString() throws Exception {
         final CRAMMD5SASLBindRequest request =
-                Requests.newCRAMMD5SASLBindRequest("u:user.2", ("password").toCharArray());
+                Requests.newCRAMMD5SASLBindRequest("u:user.2", "password".toCharArray());
 
         String serverName = InetAddress.getByName(null).getCanonicalHostName();
         final BindClient bindClient = request.createBindClient(serverName);

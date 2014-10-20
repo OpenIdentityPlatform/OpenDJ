@@ -163,11 +163,11 @@ public final class UpdateGroup {
      * @param operation Operation specified as an argument (add or del).
      */
     private static ModificationType getModificationType(String operation) {
-        if (!(operation.equalsIgnoreCase("add") || operation.equalsIgnoreCase("del"))) {
+        final boolean isAdd = operation.equalsIgnoreCase("add");
+        if (!(isAdd || operation.equalsIgnoreCase("del"))) {
             printUsage();
         }
-        return (operation.equalsIgnoreCase("add"))
-                ? ModificationType.ADD : ModificationType.DELETE;
+        return isAdd ? ModificationType.ADD : ModificationType.DELETE;
     }
 
     /**

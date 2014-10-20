@@ -153,12 +153,12 @@ public abstract class Argument {
         this.description = description;
         this.isValueSetByProperty = false;
 
-        if ((shortIdentifier == null) && (longIdentifier == null)) {
+        if (shortIdentifier == null && longIdentifier == null) {
             final LocalizableMessage message = ERR_ARG_NO_IDENTIFIER.get(name);
             throw new ArgumentException(message);
         }
 
-        if (needsValue && (valuePlaceholder == null)) {
+        if (needsValue && valuePlaceholder == null) {
             final LocalizableMessage message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
             throw new ArgumentException(message);
         }
@@ -457,7 +457,7 @@ public abstract class Argument {
      *         <CODE>false</CODE> if it does not have any values.
      */
     public boolean hasValue() {
-        return (!values.isEmpty());
+        return !values.isEmpty();
     }
 
     /**

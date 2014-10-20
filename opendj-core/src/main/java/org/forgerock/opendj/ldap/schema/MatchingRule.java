@@ -80,7 +80,7 @@ public final class MatchingRule extends SchemaElement {
 
         Builder(final String oid, final SchemaBuilder builder) {
             super(builder);
-            this.oid(oid);
+            oid(oid);
         }
 
         /**
@@ -89,7 +89,7 @@ public final class MatchingRule extends SchemaElement {
          * @return The parent schema builder.
          */
         public SchemaBuilder addToSchemaOverwrite() {
-            return this.getSchemaBuilder().addMatchingRule(new MatchingRule(this), true);
+            return getSchemaBuilder().addMatchingRule(new MatchingRule(this), true);
         }
 
         /**
@@ -101,7 +101,7 @@ public final class MatchingRule extends SchemaElement {
          *             If there is an existing matching rule with the same numeric OID.
          */
         public SchemaBuilder addToSchema() {
-            return this.getSchemaBuilder().addMatchingRule(new MatchingRule(this), false);
+            return getSchemaBuilder().addMatchingRule(new MatchingRule(this), false);
         }
 
         @Override

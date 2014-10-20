@@ -44,6 +44,7 @@ import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.ExtendedOperation;
@@ -630,10 +631,10 @@ public final class Converters {
                 result.addControl(from(c));
             }
         }
-        result.setDiagnosticMessage((operation.getErrorMessage() != null ? operation
-                .getErrorMessage().toString() : null));
-        result.setMatchedDN((operation.getMatchedDN() != null) ? operation.getMatchedDN()
-                .toString() : null);
+        final MessageBuilder errorMsg = operation.getErrorMessage();
+        org.opends.server.types.DN matchedDN = operation.getMatchedDN();
+        result.setDiagnosticMessage(errorMsg != null ? errorMsg.toString() : null);
+        result.setMatchedDN(matchedDN != null ? matchedDN.toString() : null);
         if (result.isSuccess()) {
             return result;
         } else {

@@ -180,7 +180,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         // Read the header if haven't done so already
         peekLength();
 
-        if ((peekLength < 1) || (peekLength > 4)) {
+        if (peekLength < 1 || peekLength > 4) {
             final LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
             throw DecodeException.fatalError(message);
         }
@@ -195,7 +195,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
         // Read the header if haven't done so already
         peekLength();
 
-        if ((peekLength < 1) || (peekLength > 8)) {
+        if (peekLength < 1 || peekLength > 8) {
             final LocalizableMessage message = ERR_ASN1_INTEGER_INVALID_LENGTH.get(peekLength);
             throw DecodeException.fatalError(message);
         }
@@ -208,7 +208,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
             long longValue = 0;
             for (int i = 0; i < peekLength; i++) {
                 final int readByte = reader.get();
-                if ((i == 0) && (readByte < 0)) {
+                if (i == 0 && readByte < 0) {
                     longValue = 0xFFFFFFFFFFFFFFFFL;
                 }
                 longValue = (longValue << 8) | (readByte & 0xFF);
@@ -220,7 +220,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
             int intValue = 0;
             for (int i = 0; i < peekLength; i++) {
                 final int readByte = reader.get();
-                if ((i == 0) && (readByte < 0)) {
+                if (i == 0 && readByte < 0) {
                     intValue = 0xFFFFFFFF;
                 }
                 intValue = (intValue << 8) | (readByte & 0xFF);
@@ -387,7 +387,7 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
 
         // Make sure that the element is not larger than the maximum allowed
         // message size.
-        if ((maxElementSize > 0) && (peekLength > maxElementSize)) {
+        if (maxElementSize > 0 && peekLength > maxElementSize) {
             final LocalizableMessage message =
                     ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED
                             .get(peekLength, maxElementSize);

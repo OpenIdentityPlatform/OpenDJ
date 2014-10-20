@@ -497,7 +497,7 @@ public final class LDAPUrl {
         final StringBuilder builder = new StringBuilder();
         if (hostPortIdx < 0) {
             // We got anything here like the host and port?
-            if (urlLength > (schemeIdx + 3)) {
+            if (urlLength > schemeIdx + 3) {
                 final String hostAndPort = urlString.substring(schemeIdx + 3, urlLength);
                 port = parseHostPort(urlString, hostAndPort, builder);
                 host = builder.toString();

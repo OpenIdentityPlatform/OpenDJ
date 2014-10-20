@@ -46,7 +46,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testAllowsTrailingArgumentsFalse1() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command1", LocalizableMessage.raw("XXX"));
         Assert.assertFalse(sc.allowsTrailingArguments());
@@ -60,7 +60,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testAllowsTrailingArgumentsFalse2() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null, LocalizableMessage.raw("XXX"));
         Assert.assertFalse(sc.allowsTrailingArguments());
@@ -74,7 +74,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testAllowsTrailingArgumentsTrue() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4, "args1 arg2 [arg3 arg4]",
                 LocalizableMessage.raw("XXX"));
@@ -89,7 +89,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetMaxTrailingArguments1() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command1", LocalizableMessage.raw("XXX"));
         Assert.assertEquals(sc.getMaxTrailingArguments(), 0);
@@ -103,7 +103,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetMaxTrailingArguments2() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null, LocalizableMessage.raw("XXX"));
         Assert.assertEquals(sc.getMaxTrailingArguments(), 0);
@@ -117,7 +117,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetMaxTrailingArguments3() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4, "args1 arg2 [arg3 arg4]",
                 LocalizableMessage.raw("XXX"));
@@ -132,7 +132,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetMinTrailingArguments1() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command1", LocalizableMessage.raw("XXX"));
         Assert.assertEquals(sc.getMinTrailingArguments(), 0);
@@ -146,7 +146,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetMinTrailingArguments2() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null, LocalizableMessage.raw("XXX"));
         Assert.assertEquals(sc.getMinTrailingArguments(), 0);
@@ -160,7 +160,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetMinTrailingArguments3() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4, "args1 arg2 [arg3 arg4]",
                 LocalizableMessage.raw("XXX"));
@@ -175,7 +175,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetTrailingArgumentsDisplayName1() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command1", LocalizableMessage.raw("XXX"));
         Assert.assertNull(sc.getTrailingArgumentsDisplayName());
@@ -189,7 +189,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetTrailingArgumentsDisplayName2() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null, LocalizableMessage.raw("XXX"));
         Assert.assertNull(sc.getTrailingArgumentsDisplayName());
@@ -203,7 +203,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetTrailingArgumentsDisplayName3() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4, "args1 arg2 [arg3 arg4]",
                 LocalizableMessage.raw("XXX"));
@@ -218,7 +218,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetTrailingArguments1() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command1", LocalizableMessage.raw("XXX"));
         parser.parseArguments(new String[] { "sub-command1" });
@@ -233,7 +233,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetTrailingArguments2() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", false, 0, 0, null, LocalizableMessage.raw("XXX"));
         parser.parseArguments(new String[] { "sub-command2" });
@@ -248,7 +248,7 @@ public final class TestSubCommandTestCase extends CliTestCase {
      */
     @Test
     public void testGetTrailingArguments3() throws Exception {
-        SubCommandArgumentParser parser = new SubCommandArgumentParser(this.getClass().getName(),
+        SubCommandArgumentParser parser = new SubCommandArgumentParser(getClass().getName(),
                 LocalizableMessage.raw("test description"), true);
         SubCommand sc = new SubCommand(parser, "sub-command2", true, 2, 4, "args1 arg2 [arg3 arg4]",
                 LocalizableMessage.raw("XXX"));
