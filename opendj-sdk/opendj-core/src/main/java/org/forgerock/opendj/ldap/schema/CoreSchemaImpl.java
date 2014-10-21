@@ -48,32 +48,26 @@ final class CoreSchemaImpl {
 
     private static final Map<String, List<String>> RFC2252_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 2252"));
-
     private static final Map<String, List<String>> RFC3045_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 3045"));
-
     private static final Map<String, List<String>> RFC3112_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 3112"));
-
     private static final Map<String, List<String>> RFC4512_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4512"));
-
     private static final Map<String, List<String>> RFC4517_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4517"));
-
     private static final Map<String, List<String>> RFC4519_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4519"));
-
     private static final Map<String, List<String>> RFC4523_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4523"));
-
     private static final Map<String, List<String>> RFC4530_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4530"));
-
     private static final Map<String, List<String>> RFC5020_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 5020"));
 
-    static final Map<String, List<String>> OPENDJ_ORIGIN = Collections.singletonMap(
+    static final Map<String, List<String>> OPENDS_ORIGIN = Collections.singletonMap(
+            SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("OpenDS Directory Server"));
+    private static final Map<String, List<String>> OPENDJ_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("OpenDJ Directory Server"));
 
     private static final String EMPTY_STRING = "".intern();
@@ -266,6 +260,7 @@ final class CoreSchemaImpl {
         addRFC3112(builder);
         addRFC5020(builder);
         addSunProprietary(builder);
+        addForgeRockProprietary(builder);
 
         SINGLETON = builder.toSchema().asNonStrictSchema();
     }
@@ -849,37 +844,40 @@ final class CoreSchemaImpl {
     }
 
     private static void addSunProprietary(final SchemaBuilder builder) {
-        builder.addAttributeType("1.3.6.1.4.1.36733.2.1.1.141", Collections.singletonList("fullVendorVersion"),
-                EMPTY_STRING, false, null, EMR_CASE_EXACT_IA5_OID, null, null, null,
-                SYNTAX_DIRECTORY_STRING_OID, true, false, true, AttributeUsage.DSA_OPERATION,
-                OPENDJ_ORIGIN , false);
         builder.buildSyntax(SYNTAX_USER_PASSWORD_OID).description(SYNTAX_USER_PASSWORD_DESCRIPTION)
-                .extraProperties(OPENDJ_ORIGIN).implementation(new UserPasswordSyntaxImpl()).addToSchema();
+                .extraProperties(OPENDS_ORIGIN).implementation(new UserPasswordSyntaxImpl()).addToSchema();
         builder.buildMatchingRule(EMR_USER_PASSWORD_EXACT_OID)
                 .names(Collections.singletonList(EMR_USER_PASSWORD_EXACT_NAME))
                 .description(EMR_USER_PASSWORD_EXACT_DESCRIPTION).syntaxOID(SYNTAX_USER_PASSWORD_OID)
-                .extraProperties(OPENDJ_ORIGIN).implementation(new UserPasswordExactEqualityMatchingRuleImpl())
+                .extraProperties(OPENDS_ORIGIN).implementation(new UserPasswordExactEqualityMatchingRuleImpl())
                 .addToSchema();
         builder.buildMatchingRule(AMR_DOUBLE_METAPHONE_OID).names(Collections.singletonList(AMR_DOUBLE_METAPHONE_NAME))
                 .description(AMR_DOUBLE_METAPHONE_DESCRIPTION).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-                .extraProperties(OPENDJ_ORIGIN).implementation(new DoubleMetaphoneApproximateMatchingRuleImpl())
+                .extraProperties(OPENDS_ORIGIN).implementation(new DoubleMetaphoneApproximateMatchingRuleImpl())
                 .addToSchema();
         builder.buildMatchingRule(OMR_RELATIVE_TIME_GREATER_THAN_OID)
                 .names(OMR_RELATIVE_TIME_GREATER_THAN_NAME, OMR_RELATIVE_TIME_GREATER_THAN_ALT_NAME)
                 .description(OMR_RELATIVE_TIME_GREATER_THAN_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
-                .extraProperties(OPENDJ_ORIGIN).implementation(relativeTimeGTOMatchingRule())
+                .extraProperties(OPENDS_ORIGIN).implementation(relativeTimeGTOMatchingRule())
                 .addToSchema();
         builder.buildMatchingRule(OMR_RELATIVE_TIME_LESS_THAN_OID)
                 .names(OMR_RELATIVE_TIME_LESS_THAN_NAME, OMR_RELATIVE_TIME_LESS_THAN_ALT_NAME)
                 .description(OMR_RELATIVE_TIME_LESS_THAN_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
-                .extraProperties(OPENDJ_ORIGIN).implementation(relativeTimeLTOMatchingRule())
+                .extraProperties(OPENDS_ORIGIN).implementation(relativeTimeLTOMatchingRule())
                 .addToSchema();
         builder.buildMatchingRule(MR_PARTIAL_DATE_AND_TIME_OID)
                 .names(Collections.singletonList(MR_PARTIAL_DATE_AND_TIME_NAME))
                 .description(MR_PARTIAL_DATE_AND_TIME_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
-                .extraProperties(OPENDJ_ORIGIN).implementation(partialDateAndTimeMatchingRule())
+                .extraProperties(OPENDS_ORIGIN).implementation(partialDateAndTimeMatchingRule())
                 .addToSchema();
         addCollationMatchingRules(builder);
+    }
+
+    private static void addForgeRockProprietary(SchemaBuilder builder) {
+        builder.addAttributeType("1.3.6.1.4.1.36733.2.1.1.141", Collections.singletonList("fullVendorVersion"),
+                EMPTY_STRING, false, null, EMR_CASE_EXACT_IA5_OID, null, null, null,
+                SYNTAX_DIRECTORY_STRING_OID, true, false, true, AttributeUsage.DSA_OPERATION,
+                OPENDJ_ORIGIN , false);
     }
 
     /**
@@ -934,7 +932,7 @@ final class CoreSchemaImpl {
         builder.buildMatchingRule(baseOid + "." + numericSuffix)
             .names(collationMatchingRuleNames(names, numericSuffix, symbolicSuffix))
             .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-            .extraProperties(OPENDJ_ORIGIN)
+            .extraProperties(OPENDS_ORIGIN)
             .implementation(matchingRuleImplementation)
             .addToSchema();
     }

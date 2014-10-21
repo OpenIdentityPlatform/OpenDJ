@@ -905,7 +905,7 @@ public final class SchemaBuilder {
             buildMatchingRule(enumImpl.getOrderingMatchingRule())
                     .names(OMR_GENERIC_ENUM_NAME + oid)
                     .syntaxOID(oid)
-                    .extraProperties(CoreSchemaImpl.OPENDJ_ORIGIN)
+                    .extraProperties(CoreSchemaImpl.OPENDS_ORIGIN)
                     .implementation(new EnumOrderingMatchingRule(enumImpl))
                     .addToSchemaOverwrite();
         } catch (final ConflictingSchemaElementException e) {
@@ -2190,7 +2190,7 @@ public final class SchemaBuilder {
                     buildMatchingRule(enumImpl.getOrderingMatchingRule())
                         .names(OMR_GENERIC_ENUM_NAME + oid)
                         .syntaxOID(oid)
-                        .extraProperties(CoreSchemaImpl.OPENDJ_ORIGIN)
+                        .extraProperties(CoreSchemaImpl.OPENDS_ORIGIN)
                         .implementation(new EnumOrderingMatchingRule(enumImpl))
                         .addToSchemaOverwrite();
                     return this;
