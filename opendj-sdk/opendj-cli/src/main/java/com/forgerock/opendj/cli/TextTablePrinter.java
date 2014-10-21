@@ -56,7 +56,7 @@ public final class TextTablePrinter extends TablePrinter {
         private final List<String> currentRow = new ArrayList<String>();
 
         /** Width of the table in columns. */
-        private int totalColumns = 0;
+        private int totalColumns;
 
         /** The padding to use for indenting the table. */
         private final String indentPadding;
@@ -310,7 +310,7 @@ public final class TextTablePrinter extends TablePrinter {
     private final Map<Integer, Integer> fixedColumns = new HashMap<Integer, Integer>();
 
     /** The number of characters the table should be indented. */
-    private int indentWidth = 0;
+    private int indentWidth;
 
     /**
      * The character which should be used to separate the table
@@ -319,7 +319,7 @@ public final class TextTablePrinter extends TablePrinter {
     private char headingSeparator = DEFAULT_HEADING_SEPARATOR;
 
     /** The column where the heading separator should begin. */
-    private int headingSeparatorStartColumn = 0;
+    private int headingSeparatorStartColumn;
 
     /**
      * The padding which will be used to separate a cell's
@@ -334,7 +334,7 @@ public final class TextTablePrinter extends TablePrinter {
     private int totalWidth = MAX_LINE_WIDTH;
 
     /** The output destination. */
-    private PrintWriter writer = null;
+    private PrintWriter writer;
 
     /**
      * Creates a new text table printer for the specified output stream. The text table printer will have the following

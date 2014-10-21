@@ -493,10 +493,8 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
     /** The mapping between entry DNs and the corresponding entries. */
     private final ConcurrentHashMap<DN, Entry> entryMap = new ConcurrentHashMap<DN, Entry>();
-
     /** The LDAP listener. */
-    private LDAPListener listener = null;
-
+    private LDAPListener listener;
     /** Whether the server is running. */
     private volatile boolean isRunning;
 

@@ -49,7 +49,7 @@ public final class AdminTestCaseUtils {
     private static final String DUMMY_TEST_RELATION = "*dummy*test*relation*";
 
     /** Indicates if the dummy relation profile has been registered. */
-    private static boolean isProfileRegistered = false;
+    private static boolean isProfileRegistered;
 
     /** Prevent instantiation. */
     private AdminTestCaseUtils() {

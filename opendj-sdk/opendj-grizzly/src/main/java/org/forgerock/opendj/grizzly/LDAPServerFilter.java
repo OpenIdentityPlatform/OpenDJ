@@ -247,7 +247,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
     private static final class ClientContextImpl implements LDAPClientContext {
         private final Connection<?> connection;
         private final AtomicBoolean isClosed = new AtomicBoolean();
-        private ServerConnection<Integer> serverConnection = null;
+        private ServerConnection<Integer> serverConnection;
 
         private ClientContextImpl(final Connection<?> connection) {
             this.connection = connection;

@@ -163,7 +163,7 @@ public final class SchemaValidationPolicy {
     private Action requireSingleStructuralObjectClass = Action.REJECT;
     private Action checkAttributesAndObjectClasses = Action.REJECT;
     private Action checkAttributeValues = Action.REJECT;
-    private EntryResolver checkDITStructureRulesEntryResolver = null;
+    private EntryResolver checkDITStructureRulesEntryResolver;
 
     /** Prevent direct instantiation. */
     private SchemaValidationPolicy() {

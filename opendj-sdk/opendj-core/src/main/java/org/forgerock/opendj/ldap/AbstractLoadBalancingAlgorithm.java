@@ -264,7 +264,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     /**
      * Guarded by stateLock.
      */
-    private int offlineFactoriesCount = 0;
+    private int offlineFactoriesCount;
     private final long monitoringInterval;
     private final TimeUnit monitoringIntervalTimeUnit;
     /**

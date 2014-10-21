@@ -586,10 +586,10 @@ public final class AVA implements Comparable<AVA> {
     private final ByteString attributeValue;
 
     /** Cached normalized value using equality matching rule. */
-    private ByteString equalityNormalizedAttributeValue = null;
+    private ByteString equalityNormalizedAttributeValue;
 
     /** Cached normalized value using ordering matching rule. */
-    private ByteString orderingNormalizedAttributeValue = null;
+    private ByteString orderingNormalizedAttributeValue;
 
     /**
      * Creates a new attribute value assertion (AVA) using the provided

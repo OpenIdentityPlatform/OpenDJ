@@ -447,20 +447,14 @@ public final class LinkedAttribute extends AbstractAttribute {
     };
 
     private static final MultiValueImpl MULTI_VALUE_IMPL = new MultiValueImpl();
-
     private static final SingleValueImpl SINGLE_VALUE_IMPL = new SingleValueImpl();
-
     private static final ZeroValueImpl ZERO_VALUE_IMPL = new ZeroValueImpl();
 
     private final AttributeDescription attributeDescription;
-
-    private Map<ByteString, ByteString> multipleValues = null;
-
-    private ByteString normalizedSingleValue = null;
-
+    private Map<ByteString, ByteString> multipleValues;
+    private ByteString normalizedSingleValue;
     private Impl pimpl = ZERO_VALUE_IMPL;
-
-    private ByteString singleValue = null;
+    private ByteString singleValue;
 
     /**
      * Creates a new attribute having the same attribute description and

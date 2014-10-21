@@ -66,7 +66,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
     private static final int SEARCH_MAX_CANDIDATES = 1000;
 
     private final DN baseDN;
-    private Filter filter = null;
+    private Filter filter;
     private final AttributeMapper mapper;
     private final AttributeDescription primaryKey;
     private SearchScope scope = SearchScope.WHOLE_SUBTREE;

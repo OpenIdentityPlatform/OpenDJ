@@ -51,7 +51,7 @@ final class MockScheduler implements ScheduledExecutorService {
         private final Callable<T> callable;
         private final CountDownLatch isDone = new CountDownLatch(1);
         private final boolean removeAfterCall;
-        private T result = null;
+        private T result;
 
         private ScheduledCallableFuture(final Callable<T> callable, final boolean removeAfterCall) {
             this.callable = callable;

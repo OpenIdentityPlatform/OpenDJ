@@ -63,7 +63,7 @@ final class ApplicationKeyManager implements X509KeyManager {
     /**
      * The default keyManager.
      */
-    private X509KeyManager keyManager = null;
+    private X509KeyManager keyManager;
 
     /**
      * The default constructor.

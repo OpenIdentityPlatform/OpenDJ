@@ -36,8 +36,8 @@ import org.forgerock.opendj.ldap.ResultCode;
 final class GenericExtendedResultImpl extends AbstractExtendedResult<GenericExtendedResult>
         implements ExtendedResult, GenericExtendedResult {
 
-    private String responseName = null;
-    private ByteString responseValue = null;
+    private String responseName;
+    private ByteString responseValue;
 
     GenericExtendedResultImpl(final GenericExtendedResult genericExtendedResult) {
         super(genericExtendedResult);

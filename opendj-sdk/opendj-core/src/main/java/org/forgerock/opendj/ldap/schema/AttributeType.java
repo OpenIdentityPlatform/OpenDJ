@@ -124,7 +124,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     private boolean needsValidating = true;
 
     /** The indicates whether or not validation failed. */
-    private boolean isValid = false;
+    private boolean isValid;
 
     AttributeType(final String oid, final List<String> names, final String description,
             final boolean obsolete, final String superiorType, final String equalityMatchingRule,

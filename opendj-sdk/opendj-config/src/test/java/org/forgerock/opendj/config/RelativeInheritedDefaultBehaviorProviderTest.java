@@ -38,7 +38,7 @@ public class RelativeInheritedDefaultBehaviorProviderTest extends ConfigTestCase
 
     private TestParentCfgDefn parentDefinition;
 
-    private RelativeInheritedDefaultBehaviorProvider<Boolean> defaultBehaviorProvider = null;
+    private RelativeInheritedDefaultBehaviorProvider<Boolean> defaultBehaviorProvider;
 
     @BeforeClass
     public void setUp() {

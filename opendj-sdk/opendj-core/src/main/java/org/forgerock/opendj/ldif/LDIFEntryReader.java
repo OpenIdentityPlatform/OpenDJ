@@ -107,7 +107,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
         }
     }
 
-    private Entry nextEntry = null;
+    private Entry nextEntry;
 
     /**
      * Creates a new LDIF entry reader whose source is the provided input

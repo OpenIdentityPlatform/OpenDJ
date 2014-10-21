@@ -67,7 +67,7 @@ public final class DITStructureRule extends SchemaElement {
     private boolean needsValidating = true;
 
     /** The indicates whether or not validation failed. */
-    private boolean isValid = false;
+    private boolean isValid;
 
     DITStructureRule(final Integer ruleID, final List<String> names, final String description,
             final boolean obsolete, final String nameFormOID, final Set<Integer> superiorRuleIDs,

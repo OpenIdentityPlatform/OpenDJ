@@ -73,58 +73,58 @@ public final class ConnectionFactoryProvider {
     static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** The 'hostName' global argument. */
-    private StringArgument hostNameArg = null;
+    private StringArgument hostNameArg;
 
     /** The 'port' global argument. */
-    private IntegerArgument portArg = null;
+    private IntegerArgument portArg;
 
     /** The 'bindDN' global argument. */
-    private StringArgument bindNameArg = null;
+    private StringArgument bindNameArg;
 
     /** The 'bindPasswordFile' global argument. */
-    private FileBasedArgument bindPasswordFileArg = null;
+    private FileBasedArgument bindPasswordFileArg;
 
     /** The 'password' value. */
-    private char[] password = null;
+    private char[] password;
 
     /** The 'bindPassword' global argument. */
-    private StringArgument bindPasswordArg = null;
+    private StringArgument bindPasswordArg;
 
     /** The 'connectTimeOut' global argument. */
-    private IntegerArgument connectTimeOut = null;
+    private IntegerArgument connectTimeOut;
 
     /** The 'trustAllArg' global argument. */
-    private BooleanArgument trustAllArg = null;
+    private BooleanArgument trustAllArg;
 
     /** The 'trustStore' global argument. */
-    private StringArgument trustStorePathArg = null;
+    private StringArgument trustStorePathArg;
 
     /** The 'trustStorePassword' global argument. */
-    private StringArgument trustStorePasswordArg = null;
+    private StringArgument trustStorePasswordArg;
 
     /** The 'trustStorePasswordFile' global argument. */
-    private FileBasedArgument trustStorePasswordFileArg = null;
+    private FileBasedArgument trustStorePasswordFileArg;
 
     /** The 'keyStore' global argument. */
-    private StringArgument keyStorePathArg = null;
+    private StringArgument keyStorePathArg;
 
     /** The 'keyStorePassword' global argument. */
-    private StringArgument keyStorePasswordArg = null;
+    private StringArgument keyStorePasswordArg;
 
     /** The 'keyStorePasswordFile' global argument. */
-    private FileBasedArgument keyStorePasswordFileArg = null;
+    private FileBasedArgument keyStorePasswordFileArg;
 
     /** The 'certNicknameArg' global argument. */
-    private StringArgument certNicknameArg = null;
+    private StringArgument certNicknameArg;
 
     /** The 'useSSLArg' global argument. */
-    private BooleanArgument useSSLArg = null;
+    private BooleanArgument useSSLArg;
 
     /** The 'useStartTLSArg' global argument. */
-    private BooleanArgument useStartTLSArg = null;
+    private BooleanArgument useStartTLSArg;
 
     /** Argument indicating a SASL option. */
-    private StringArgument saslOptionArg = null;
+    private StringArgument saslOptionArg;
 
     /**
      * Whether to request that the server return the authorization ID in the
@@ -150,13 +150,13 @@ public final class ConnectionFactoryProvider {
     protected ConnectionFactory authenticatedConnFactory;
 
     /** The bind request to connect with. */
-    private BindRequest bindRequest = null;
+    private BindRequest bindRequest;
 
     /** The console application linked to this connection in interactive mode. */
     private final ConsoleApplication app;
 
     /** If this connection should be an admin connection. */
-    private boolean isAdminConnection = false;
+    private boolean isAdminConnection;
 
     /**
      * Default constructor to create a connection factory designed for use with command line tools,

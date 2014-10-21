@@ -83,7 +83,7 @@ public final class Entries {
          * When true, attribute values are compared byte for byte, otherwise
          * they are compared using their matching rules.
          */
-        private boolean useExactMatching = false;
+        private boolean useExactMatching;
 
         /**
          * When greater than 0, modifications with REPLACE type will be
@@ -91,7 +91,7 @@ public final class Entries {
          * "useReplaceMaxValues" attribute values. Otherwise, modifications with
          * DELETE + ADD types will be generated.
          */
-        private int useReplaceMaxValues = 0;
+        private int useReplaceMaxValues;
 
         private DiffOptions() {
             // Nothing to do.

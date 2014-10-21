@@ -310,7 +310,7 @@ public final class MenuBuilder<T> {
      * Indicates whether the menu will allow selection of multiple
      * numeric options.
      */
-    private boolean allowMultiSelect = false;
+    private boolean allowMultiSelect;
 
     /** The application console. */
     private final ConsoleApplication app;
@@ -331,10 +331,10 @@ public final class MenuBuilder<T> {
     private final List<Integer> columnWidths = new ArrayList<Integer>();
 
     /** The call-back for the optional default action. */
-    private MenuCallback<T> defaultCallback = null;
+    private MenuCallback<T> defaultCallback;
 
     /** The description of the optional default action. */
-    private LocalizableMessage defaultDescription = null;
+    private LocalizableMessage defaultDescription;
 
     /** The numeric option call-backs. */
     private final List<MenuCallback<T>> numericCallbacks = new ArrayList<MenuCallback<T>>();
@@ -343,10 +343,10 @@ public final class MenuBuilder<T> {
     private final List<List<LocalizableMessage>> numericFields = new ArrayList<List<LocalizableMessage>>();
 
     /** The menu title. */
-    private LocalizableMessage title = null;
+    private LocalizableMessage title;
 
     /** The menu prompt. */
-    private LocalizableMessage prompt = null;
+    private LocalizableMessage prompt;
 
     /**
      * The maximum number of times that we allow the user to provide an invalid

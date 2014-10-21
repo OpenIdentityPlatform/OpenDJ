@@ -258,8 +258,8 @@ public final class DSConfig extends ConsoleApplication {
     public static final String GENERIC_TYPE = "generic";
 
     private long sessionStartTime;
-    private boolean sessionStartTimePrinted = false;
-    private int sessionEquivalentOperationNumber = 0;
+    private boolean sessionStartTimePrinted;
+    private int sessionEquivalentOperationNumber;
 
     /**
      * Provides the command-line arguments to the main application for processing.
@@ -309,15 +309,15 @@ public final class DSConfig extends ConsoleApplication {
     /**
      * The factory which the application should use to retrieve its management context.
      */
-    private LDAPManagementContextFactory factory = null;
+    private LDAPManagementContextFactory factory;
 
     /**
      * Flag indicating whether or not the global arguments have already been initialized.
      */
-    private boolean globalArgumentsInitialized = false;
+    private boolean globalArgumentsInitialized;
 
     /** The sub-command handler factory. */
-    private SubCommandHandlerFactory handlerFactory = null;
+    private SubCommandHandlerFactory handlerFactory;
 
     /** Mapping of sub-commands to their implementations. */
     private final Map<SubCommand, SubCommandHandler> handlers = new HashMap<SubCommand, SubCommandHandler>();

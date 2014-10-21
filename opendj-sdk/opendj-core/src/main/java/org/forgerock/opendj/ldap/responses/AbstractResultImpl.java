@@ -43,7 +43,7 @@ import org.forgerock.util.Reject;
 abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl<S> implements
         Result {
     /** For local errors caused by internal exceptions. */
-    private Throwable cause = null;
+    private Throwable cause;
     private String diagnosticMessage = "";
     private String matchedDN = "";
     private final List<String> referralURIs = new LinkedList<String>();

@@ -101,7 +101,7 @@ final class GenericExtendedRequestImpl extends
             new GenericExtendedResultDecoder();
 
     private String requestName;
-    private ByteString requestValue = null;
+    private ByteString requestValue;
 
     GenericExtendedRequestImpl(final GenericExtendedRequest genericExtendedRequest) {
         super(genericExtendedRequest);

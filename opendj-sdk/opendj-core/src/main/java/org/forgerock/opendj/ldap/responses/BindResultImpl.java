@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ResultCode;
  * Bind result implementation.
  */
 final class BindResultImpl extends AbstractResultImpl<BindResult> implements BindResult {
-    private ByteString credentials = null;
+    private ByteString credentials;
 
     BindResultImpl(final BindResult bindResult) {
         super(bindResult);

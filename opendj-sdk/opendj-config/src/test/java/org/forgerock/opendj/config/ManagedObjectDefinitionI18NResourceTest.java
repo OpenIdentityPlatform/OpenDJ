@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class ManagedObjectDefinitionI18NResourceTest extends ConfigTestCase {
 
-    ManagedObjectDefinitionI18NResource definitionI18NResource = null;
+    private ManagedObjectDefinitionI18NResource definitionI18NResource;
 
     @BeforeClass
     public void setUp() {

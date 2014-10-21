@@ -41,7 +41,7 @@ public class EnumPropertyDefinitionTest extends ConfigTestCase {
         ONE, TWO, THREE
     }
 
-    private EnumPropertyDefinition.Builder<TestEnum> builder = null;
+    private EnumPropertyDefinition.Builder<TestEnum> builder;
 
     @BeforeClass
     public void setUp() {

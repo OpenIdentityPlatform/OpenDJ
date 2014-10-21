@@ -36,8 +36,8 @@ final class GenericIntermediateResponseImpl extends
         AbstractIntermediateResponse<GenericIntermediateResponse> implements
         GenericIntermediateResponse {
 
-    private String responseName = null;
-    private ByteString responseValue = null;
+    private String responseName;
+    private ByteString responseValue;
 
     GenericIntermediateResponseImpl() {
         // Nothing to do.

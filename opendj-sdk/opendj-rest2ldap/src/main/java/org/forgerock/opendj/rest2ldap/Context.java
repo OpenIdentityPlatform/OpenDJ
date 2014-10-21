@@ -188,7 +188,7 @@ final class Context implements Closeable {
     private final Config config;
     private final ServerContext context;
     private Connection connection;
-    private Control proxiedAuthzControl = null;
+    private Control proxiedAuthzControl;
 
     Context(final Config config, final ServerContext context) {
         this.config = config;

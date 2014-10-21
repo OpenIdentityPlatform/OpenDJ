@@ -77,7 +77,7 @@ public final class TimeoutChecker {
     /**
      * Used to signal thread shutdown.
      */
-    private volatile boolean shutdownRequested = false;
+    private volatile boolean shutdownRequested;
 
     /**
      * Contains the minimum delay for listeners which were added while the

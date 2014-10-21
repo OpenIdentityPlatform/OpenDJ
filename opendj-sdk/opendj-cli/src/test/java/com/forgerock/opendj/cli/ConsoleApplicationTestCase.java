@@ -52,9 +52,9 @@ public class ConsoleApplicationTestCase extends CliTestCase {
     private static class MockConsoleApplication extends ConsoleApplication {
         private static ByteArrayOutputStream out;
         private static ByteArrayOutputStream err;
-        private boolean verbose = false;
-        private boolean interactive = false;
-        private boolean quiet = false;
+        private boolean verbose;
+        private boolean interactive;
+        private boolean quiet;
 
         private MockConsoleApplication(PrintStream out, PrintStream err) {
             super(out, err);

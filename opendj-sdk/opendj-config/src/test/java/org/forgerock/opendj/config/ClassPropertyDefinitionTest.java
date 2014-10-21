@@ -27,15 +27,15 @@
 
 package org.forgerock.opendj.config;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
 import java.util.Comparator;
 import java.util.List;
 
 import org.forgerock.opendj.server.config.meta.RootCfgDefn;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.forgerock.opendj.config.ClassPropertyDefinition.*;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class ClassPropertyDefinitionTest extends ConfigTestCase {
@@ -48,6 +48,7 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
 
         public Comparator<Dummy> comparator() {
             return new Comparator<ClassPropertyDefinitionTest.Dummy>() {
+                @Override
                 public int compare(Dummy o1, Dummy o2) {
                     // No implementation required.
                     return 0;
@@ -55,8 +56,6 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
             };
         }
     }
-
-    ClassPropertyDefinition.Builder builder = null;
 
     @DataProvider(name = "validClassNames")
     public Object[][] createBuilderAddInstanceOfData() {
@@ -69,8 +68,7 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
 
     @Test(dataProvider = "validClassNames")
     public void testBuilderAddInstanceOf(String classNameToAdd) {
-        ClassPropertyDefinition.Builder localBuilder = ClassPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
-                "test-property");
+        ClassPropertyDefinition.Builder localBuilder = createBuilder(RootCfgDefn.getInstance(), "test-property");
         localBuilder.addInstanceOf(classNameToAdd);
         ClassPropertyDefinition propertyDef = localBuilder.getInstance();
         List<String> instances = propertyDef.getInstanceOfInterface();
@@ -92,8 +90,7 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
 
     @Test(dataProvider = "invalidClassNames", expectedExceptions = { IllegalArgumentException.class })
     public void testBuilderAddInstanceInvalid(String className) {
-        ClassPropertyDefinition.Builder localBuilder = ClassPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
-                "test-property");
+        ClassPropertyDefinition.Builder localBuilder = createBuilder(RootCfgDefn.getInstance(), "test-property");
         localBuilder.addInstanceOf(className);
         ClassPropertyDefinition propertyDef = localBuilder.getInstance();
         List<String> instances = propertyDef.getInstanceOfInterface();
@@ -115,8 +112,7 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
     @Test(dataProvider = "loadClasses")
     public <T> void testLoadClass(String interfaceName, String loadClassName, Class<T> instanceOfClass,
             Class<?> expectedClass) {
-        ClassPropertyDefinition.Builder localBuilder = ClassPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
-                "test-property");
+        ClassPropertyDefinition.Builder localBuilder = createBuilder(RootCfgDefn.getInstance(), "test-property");
         localBuilder.addInstanceOf(interfaceName);
         ClassPropertyDefinition propertyDef = localBuilder.getInstance();
         Class<?> clazz = propertyDef.loadClass(loadClassName, instanceOfClass);
@@ -134,8 +130,7 @@ public class ClassPropertyDefinitionTest extends ConfigTestCase {
     @Test(dataProvider = "loadClassesIllegal", expectedExceptions = { PropertyException.class })
     public <T> void testLoadClassIllegal(String interfaceName, String loadClassName, Class<T> instanceOfClass,
             Class<?> expectedClass) {
-        ClassPropertyDefinition.Builder localBuilder = ClassPropertyDefinition.createBuilder(RootCfgDefn.getInstance(),
-                "test-property");
+        ClassPropertyDefinition.Builder localBuilder = createBuilder(RootCfgDefn.getInstance(), "test-property");
         localBuilder.addInstanceOf(interfaceName);
         ClassPropertyDefinition propertyDef = localBuilder.getInstance();
         Class<?> clazz = propertyDef.loadClass(loadClassName, instanceOfClass);

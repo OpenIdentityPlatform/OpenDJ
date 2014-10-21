@@ -171,10 +171,10 @@ final class PasswordModifyExtendedRequestImpl extends
      * component in a password modify extended request.
      */
     private static final byte TYPE_PASSWORD_MODIFY_USER_ID = (byte) 0x80;
-    private byte[] newPassword = null;
-    private byte[] oldPassword = null;
+    private byte[] newPassword;
+    private byte[] oldPassword;
 
-    private ByteString userIdentity = null;
+    private ByteString userIdentity;
 
     /** Instantiation via factory. */
     PasswordModifyExtendedRequestImpl() {

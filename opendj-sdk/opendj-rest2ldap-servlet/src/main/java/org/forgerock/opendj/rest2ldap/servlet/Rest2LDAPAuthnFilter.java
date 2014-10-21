@@ -91,7 +91,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
     private AuthenticationMethod authenticationMethod = AuthenticationMethod.SEARCH_SIMPLE;
     private ConnectionFactory bindLDAPConnectionFactory;
     /** Indicates whether or not authentication should be performed. */
-    private boolean isEnabled = false;
+    private boolean isEnabled;
     private boolean reuseAuthenticatedConnection = true;
     private String saslAuthzIdTemplate;
     private final Schema schema = Schema.getDefaultSchema();

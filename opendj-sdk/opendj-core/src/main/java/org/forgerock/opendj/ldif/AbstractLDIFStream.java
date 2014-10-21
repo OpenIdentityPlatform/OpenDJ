@@ -45,8 +45,8 @@ abstract class AbstractLDIFStream {
     final Set<AttributeDescription> excludeAttributes = new HashSet<AttributeDescription>();
     final Set<DN> excludeBranches = new HashSet<DN>();
     final List<Matcher> excludeFilters = new LinkedList<Matcher>();
-    boolean excludeOperationalAttributes = false;
-    boolean excludeUserAttributes = false;
+    boolean excludeOperationalAttributes;
+    boolean excludeUserAttributes;
     final Set<AttributeDescription> includeAttributes = new HashSet<AttributeDescription>();
     final Set<DN> includeBranches = new HashSet<DN>();
     final List<Matcher> includeFilters = new LinkedList<Matcher>();

@@ -65,7 +65,7 @@ public final class MatchingRule extends SchemaElement {
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private String oid;
         private final List<String> names = new LinkedList<String>();
-        private boolean isObsolete = false;
+        private boolean isObsolete;
         private String syntaxOID;
         private MatchingRuleImpl impl;
 

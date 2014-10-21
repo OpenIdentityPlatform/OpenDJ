@@ -64,7 +64,7 @@ public abstract class Model {
     private RuntimeOptions importLdifRuntimeSettings;
     private DataConfiguration dataConfiguration;
 
-    private ReplicationConfiguration replicationConfiguration = null;
+    private ReplicationConfiguration replicationConfiguration;
 
     /**
      * Returns the listener settings.

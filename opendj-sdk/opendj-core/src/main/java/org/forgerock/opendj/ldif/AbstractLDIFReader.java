@@ -179,7 +179,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
     Schema schema = Schema.getDefaultSchema().asNonStrictSchema();
     SchemaValidationPolicy schemaValidationPolicy = SchemaValidationPolicy.ignoreAll();
     private final LDIFReaderImpl impl;
-    private long lineNumber = 0;
+    private long lineNumber;
 
     AbstractLDIFReader(final InputStream in) {
         this(new InputStreamReader(in));

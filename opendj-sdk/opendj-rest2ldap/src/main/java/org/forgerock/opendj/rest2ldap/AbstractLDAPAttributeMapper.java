@@ -52,8 +52,8 @@ abstract class AbstractLDAPAttributeMapper<T extends AbstractLDAPAttributeMapper
         AttributeMapper {
     List<Object> defaultJSONValues = emptyList();
     final AttributeDescription ldapAttributeName;
-    private boolean isRequired = false;
-    private boolean isSingleValued = false;
+    private boolean isRequired;
+    private boolean isSingleValued;
     private WritabilityPolicy writabilityPolicy = READ_WRITE;
 
     AbstractLDAPAttributeMapper(final AttributeDescription ldapAttributeName) {
