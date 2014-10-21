@@ -238,8 +238,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 final DN dn = request.getName();
                 final DN parent = dn.parent();
                 if (entries.containsKey(dn)) {
-                    throw newLdapException(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '"
-                            + dn.toString() + "' already exists");
+                    throw newLdapException(ResultCode.ENTRY_ALREADY_EXISTS, "The entry '" + dn + "' already exists");
                 } else if (!entries.containsKey(parent)) {
                     noSuchObject(parent);
                 } else {
@@ -269,8 +268,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     password = ((GenericBindRequest) request).getAuthenticationValue();
                 } else {
                     throw newLdapException(ResultCode.PROTOCOL_ERROR,
-                            "non-SIMPLE authentication not supported: "
-                                    + request.getAuthenticationType());
+                            "non-SIMPLE authentication not supported: " + request.getAuthenticationType());
                 }
                 entry = getRequiredEntry(null, username);
                 if (!entry.containsAttribute("userPassword", password)) {
@@ -286,8 +284,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
              * one here because the memory back-end is not intended for
              * production use.
              */
-            resultHandler.handleError(newLdapException(ResultCode.INVALID_CREDENTIALS,
-                    "Unknown user"));
+            resultHandler.handleError(newLdapException(ResultCode.INVALID_CREDENTIALS, "Unknown user"));
         } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
@@ -606,9 +603,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 final Filter filter = control.getFilter();
                 final Matcher matcher = filter.matcher(schema);
                 if (!matcher.matches(entry).toBoolean()) {
-                    throw newLdapException(ResultCode.ASSERTION_FAILED, "The filter '"
-                            + filter.toString() + "' did not match the entry '"
-                            + entry.getName().toString() + "'");
+                    throw newLdapException(ResultCode.ASSERTION_FAILED,
+                            "The filter '" + filter + "' did not match the entry '" + entry.getName() + "'");
                 }
             }
         }
@@ -620,8 +616,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     }
 
     private void noSuchObject(final DN dn) throws LdapException {
-        throw newLdapException(ResultCode.NO_SUCH_OBJECT, "The entry '" + dn.toString()
-                + "' does not exist");
+        throw newLdapException(ResultCode.NO_SUCH_OBJECT, "The entry '" + dn + "' does not exist");
     }
 
     private boolean sendEntry(final AttributeFilter filter,

@@ -147,11 +147,10 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
 
         String nvalue = value.trim().toLowerCase();
         E eValue = decodeMap.get(nvalue);
-        if (eValue == null) {
-            throw PropertyException.illegalPropertyValueException(this, value);
-        } else {
+        if (eValue != null) {
             return eValue;
         }
+        throw PropertyException.illegalPropertyValueException(this, value);
     }
 
     /**
@@ -189,7 +188,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      */
     public final LocalizableMessage getValueSynopsis(Locale locale, E value) {
         ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
-        String property = "property." + getName() + ".syntax.enumeration.value." + value.toString() + ".synopsis";
+        String property = "property." + getName() + ".syntax.enumeration.value." + value + ".synopsis";
         try {
             return resource.getMessage(getManagedObjectDefinition(), property, locale);
         } catch (MissingResourceException e) {

@@ -36,11 +36,12 @@ import java.util.Set;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 @Test(singleThreaded = true)
@@ -103,10 +104,8 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
             validatePropertyDefinition(objectDef, configObjectClass, propDef, errors);
         }
 
-        if (errors.length() > 0) {
-            Assert.fail("The configuration definition for " + objectDef.getName() + " has the following problems: "
-                + EOL + errors.toString());
-        }
+        assertTrue(errors.length() != 0,
+                "The configuration definition for " + objectDef.getName() + " has the following problems: " + EOL + errors);
     }
 
     /** Exceptions to properties ending in -class being exactly 'java-class'. */
