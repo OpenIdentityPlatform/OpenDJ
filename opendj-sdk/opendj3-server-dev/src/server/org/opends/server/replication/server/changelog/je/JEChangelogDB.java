@@ -26,9 +26,7 @@
 package org.opends.server.replication.server.changelog.je;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -56,9 +54,9 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
+import org.opends.server.replication.server.changelog.api.ReplicaId;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
@@ -93,15 +91,12 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
    */
   private final ConcurrentMap<DN, ConcurrentMap<Integer, JEReplicaDB>> domainToReplicaDBs =
       new ConcurrentHashMap<DN, ConcurrentMap<Integer, JEReplicaDB>>();
-  /**
-   * \@GuardedBy("itself")
-   */
-  private final Map<DN, List<DomainDBCursor>> registeredDomainCursors =
-      new HashMap<DN, List<DomainDBCursor>>();
+  private final ConcurrentSkipListMap<DN, CopyOnWriteArrayList<DomainDBCursor>> registeredDomainCursors =
+      new ConcurrentSkipListMap<DN, CopyOnWriteArrayList<DomainDBCursor>>();
   private final CopyOnWriteArrayList<MultiDomainDBCursor> registeredMultiDomainCursors =
       new CopyOnWriteArrayList<MultiDomainDBCursor>();
-  private final ConcurrentSkipListMap<ReplicaId, List<ReplicaCursor>> replicaCursors =
-      new ConcurrentSkipListMap<ReplicaId, List<ReplicaCursor>>();
+  private final ConcurrentSkipListMap<ReplicaId, CopyOnWriteArrayList<ReplicaCursor>> replicaCursors =
+      new ConcurrentSkipListMap<ReplicaId, CopyOnWriteArrayList<ReplicaCursor>>();
   private ReplicationDbEnv replicationEnv;
   private final ReplicationServerCfg config;
   private final File dbDirectory;
@@ -190,8 +185,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (Exception e)
     {
-      logger.traceException(e);
-
       final LocalizableMessageBuilder mb = new LocalizableMessageBuilder(
           e.getLocalizedMessage()).append(" ").append(String.valueOf(dbDirectory));
       throw new ConfigException(ERR_FILE_CHECK_CREATE_FAILED.get(mb.toString()), e);
@@ -336,7 +329,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     catch (ChangelogException e)
     {
       logger.traceException(e);
-
       logger.error(ERR_COULD_NOT_READ_DB, this.dbDirectory.getAbsolutePath(), e.getLocalizedMessage());
     }
   }
@@ -714,13 +706,14 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   @Override
   public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState,
       final KeyMatchingStrategy matchingStrategy, final PositionStrategy positionStrategy,
-      final  Set<DN> excludedDomainDns) throws ChangelogException
+      final Set<DN> excludedDomainDns) throws ChangelogException
   {
     final MultiDomainDBCursor cursor = new MultiDomainDBCursor(this, matchingStrategy, positionStrategy);
     registeredMultiDomainCursors.add(cursor);
     for (DN baseDN : domainToReplicaDBs.keySet())
     {
-      if (!excludedDomainDns.contains(baseDN)) {
+      if (!excludedDomainDns.contains(baseDN))
+      {
         cursor.addDomain(baseDN, startState.getServerState(baseDN));
       }
     }
@@ -745,18 +738,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   private DomainDBCursor newDomainDBCursor(final DN baseDN, final KeyMatchingStrategy matchingStrategy,
       final PositionStrategy positionStrategy)
   {
-    synchronized (registeredDomainCursors)
-    {
-      final DomainDBCursor cursor = new DomainDBCursor(baseDN, this, matchingStrategy, positionStrategy);
-      List<DomainDBCursor> cursors = registeredDomainCursors.get(baseDN);
-      if (cursors == null)
-      {
-        cursors = new ArrayList<DomainDBCursor>();
-        registeredDomainCursors.put(baseDN, cursors);
-      }
-      cursors.add(cursor);
-      return cursor;
-    }
+    final DomainDBCursor cursor = new DomainDBCursor(baseDN, this, matchingStrategy, positionStrategy);
+    putCursor(registeredDomainCursors, baseDN, cursor);
+    return cursor;
   }
 
   private CSN getOfflineCSN(DN baseDN, int serverId, CSN startAfterCSN)
@@ -785,20 +769,26 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       final ReplicaId replicaId = ReplicaId.of(baseDN, serverId);
       final ReplicaCursor replicaCursor = new ReplicaCursor(cursor, offlineCSN, replicaId, this);
 
-      synchronized (replicaCursors)
-      {
-        List<ReplicaCursor> cursors = replicaCursors.get(replicaId);
-        if (cursors == null)
-        {
-          cursors = new ArrayList<ReplicaCursor>();
-          replicaCursors.put(replicaId, cursors);
-        }
-        cursors.add(replicaCursor);
-      }
+      putCursor(replicaCursors, replicaId, replicaCursor);
 
       return replicaCursor;
     }
     return EMPTY_CURSOR_REPLICA_DB;
+  }
+
+  private <K, V> void putCursor(ConcurrentSkipListMap<K, CopyOnWriteArrayList<V>> map, final K key, final V cursor)
+  {
+    CopyOnWriteArrayList<V> cursors = map.get(key);
+    if (cursors == null)
+    {
+      cursors = new CopyOnWriteArrayList<V>();
+      CopyOnWriteArrayList<V> previousValue = map.putIfAbsent(key, cursors);
+      if (previousValue != null)
+      {
+        cursors = previousValue;
+      }
+    }
+    cursors.add(cursor);
   }
 
   /** {@inheritDoc} */
@@ -812,19 +802,16 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     else if (cursor instanceof DomainDBCursor)
     {
       final DomainDBCursor domainCursor = (DomainDBCursor) cursor;
-      synchronized (registeredMultiDomainCursors)
+      final List<DomainDBCursor> cursors = registeredDomainCursors.get(domainCursor.getBaseDN());
+      if (cursors != null)
       {
-        final List<DomainDBCursor> cursors = registeredDomainCursors.get(domainCursor.getBaseDN());
-        if (cursors != null)
-        {
-          cursors.remove(cursor);
-        }
+        cursors.remove(cursor);
       }
     }
     else if (cursor instanceof ReplicaCursor)
     {
       final ReplicaCursor replicaCursor = (ReplicaCursor) cursor;
-      final List<ReplicaCursor> cursors =  replicaCursors.get(replicaCursor.getReplicaId());
+      final List<ReplicaCursor> cursors = replicaCursors.get(replicaCursor.getReplicaId());
       if (cursors != null)
       {
         cursors.remove(cursor);
@@ -847,7 +834,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
-      notifyReplicaOnline(indexer, baseDN, updateMsg.getCSN().getServerId());
+      notifyReplicaOnline(indexer, baseDN, csn.getServerId());
       indexer.publishUpdateMsg(baseDN, updateMsg);
     }
     return pair.getSecond(); // replica DB was created
@@ -872,6 +859,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       replicationEnv.notifyReplicaOnline(baseDN, serverId);
     }
+    updateCursorsWithOfflineCSN(baseDN, serverId, null);
   }
 
   /** {@inheritDoc} */
@@ -887,10 +875,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     updateCursorsWithOfflineCSN(baseDN, offlineCSN.getServerId(), offlineCSN);
   }
 
-  private void updateCursorsWithOfflineCSN(final DN baseDN, int serverId, final CSN offlineCSN)
+  private void updateCursorsWithOfflineCSN(final DN baseDN, final int serverId, final CSN offlineCSN)
   {
     final List<ReplicaCursor> cursors = replicaCursors.get(ReplicaId.of(baseDN, serverId));
-    if (cursors != null && !cursors.isEmpty())
+    if (cursors != null)
     {
       for (ReplicaCursor cursor : cursors)
       {
