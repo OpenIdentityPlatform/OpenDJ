@@ -311,7 +311,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             if (sslSession != null) {
                 final String cipherString = sslSession.getCipherSuite();
                 for (final Object[] cipher : CIPHER_KEY_SIZES) {
-                    if (cipherString.indexOf((String) cipher[0]) >= 0) {
+                    if (cipherString.contains((String) cipher[0])) {
                         return (Integer) cipher[1];
                     }
                 }
