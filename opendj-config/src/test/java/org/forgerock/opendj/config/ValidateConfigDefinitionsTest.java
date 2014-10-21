@@ -104,8 +104,8 @@ public class ValidateConfigDefinitionsTest extends ConfigTestCase {
             validatePropertyDefinition(objectDef, configObjectClass, propDef, errors);
         }
 
-        assertTrue(errors.length() != 0,
-                "The configuration definition for " + objectDef.getName() + " has the following problems: " + EOL + errors);
+        assertTrue(errors.length() != 0, "The configuration definition for " + objectDef.getName()
+               + " has the following problems: " + EOL + errors);
     }
 
     /** Exceptions to properties ending in -class being exactly 'java-class'. */

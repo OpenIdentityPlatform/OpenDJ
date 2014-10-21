@@ -112,7 +112,8 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
 
         // test the valueIsAcceptable method
         final boolean liveResult = syntax.valueIsAcceptable(value, reason);
-        assertEquals(liveResult, result, syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
+        assertEquals(liveResult, result,
+                syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
 
         // call the getters
         syntax.getApproximateMatchingRule();
