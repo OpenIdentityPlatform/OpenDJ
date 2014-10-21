@@ -926,10 +926,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      * @return Returns <code>true</code> if the user requested record-mode.
      */
     protected final boolean isRecordMode() {
-        if (recordModeArgument != null) {
-            return recordModeArgument.isPresent();
-        }
-        return false;
+        return recordModeArgument != null && recordModeArgument.isPresent();
     }
 
     /**

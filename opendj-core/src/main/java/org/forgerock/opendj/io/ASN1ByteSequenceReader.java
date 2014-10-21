@@ -87,7 +87,6 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
                 && !needFirstLengthByteState(false)) {
             return false;
         }
-
         return peekLength <= reader.remaining();
     }
 

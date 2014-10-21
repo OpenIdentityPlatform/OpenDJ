@@ -457,7 +457,7 @@ public final class VirtualListViewRequestControl implements Control {
      *         {@code false} if this control is using a target assertion.
      */
     public boolean hasTargetOffset() {
-        return assertionValue != null ? false : true;
+        return assertionValue == null;
     }
 
     /** {@inheritDoc} */

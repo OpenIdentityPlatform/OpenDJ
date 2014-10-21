@@ -194,10 +194,7 @@ public final class ExtendedOperations {
      * @return True if the control is supported.
      */
     static boolean isSupported(final String extendedOperation) {
-        if (extendedOperations != null && !extendedOperations.isEmpty()) {
-            return extendedOperations.contains(extendedOperation);
-        }
-        return false;
+        return extendedOperations != null && extendedOperations.contains(extendedOperation);
     }
     // --- JCite check support ---
 
