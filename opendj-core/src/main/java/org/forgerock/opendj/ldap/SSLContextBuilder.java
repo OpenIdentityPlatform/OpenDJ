@@ -94,14 +94,14 @@ public final class SSLContextBuilder {
      */
     public static final String PROTOCOL_TLS1_1 = "TLSv1.1";
 
-    private TrustManager trustManager = null;
-    private KeyManager keyManager = null;
+    private TrustManager trustManager;
+    private KeyManager keyManager;
     private String protocol = PROTOCOL_TLS1;
-    private SecureRandom random = null;
+    private SecureRandom random;
 
     /** These are mutually exclusive. */
-    private Provider provider = null;
-    private String providerName = null;
+    private Provider provider;
+    private String providerName;
 
     /**
      * Creates a new SSL context builder using default parameters.

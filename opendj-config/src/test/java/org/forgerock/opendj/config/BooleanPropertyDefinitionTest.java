@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class BooleanPropertyDefinitionTest extends ConfigTestCase {
 
-    BooleanPropertyDefinition.Builder builder = null;
+    private BooleanPropertyDefinition.Builder builder;
 
     @BeforeClass
     public void setUp() throws Exception {

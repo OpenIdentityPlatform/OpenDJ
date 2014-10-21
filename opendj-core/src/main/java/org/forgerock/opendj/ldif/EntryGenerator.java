@@ -73,10 +73,10 @@ public final class EntryGenerator implements EntryReader {
     private final List<LocalizableMessage> warnings = new LinkedList<LocalizableMessage>();
 
     /** Indicates if the generator is closed. */
-    private boolean isClosed = false;
+    private boolean isClosed;
 
     /** Indicates if the generator is initialized, which means template file has been parsed. */
-    private boolean isInitialized = false;
+    private boolean isInitialized;
 
     /** Random seed is used to generate random data. */
     private int randomSeed = DEFAULT_RANDOM_SEED;

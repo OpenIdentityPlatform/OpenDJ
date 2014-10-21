@@ -220,19 +220,19 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
 
     private final Map<String, String> additionalAuthParams = new LinkedHashMap<String, String>();
     private String authenticationID;
-    private String authorizationID = null;
+    private String authorizationID;
 
-    private String cipher = null;
-    private Integer maxReceiveBufferSize = null;
-    private Integer maxSendBufferSize = null;
+    private String cipher;
+    private Integer maxReceiveBufferSize;
+    private Integer maxSendBufferSize;
     private byte[] password;
     private final List<String> qopValues = new LinkedList<String>();
-    private String realm = null;
+    private String realm;
     /**
      * Do not use primitives for these so that we can distinguish between default
      * settings (null) and values set by the caller.
      */
-    private Boolean serverAuth = null;
+    private Boolean serverAuth;
 
     DigestMD5SASLBindRequestImpl(final DigestMD5SASLBindRequest digestMD5SASLBindRequest) {
         super(digestMD5SASLBindRequest);

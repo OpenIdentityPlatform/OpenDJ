@@ -38,7 +38,7 @@ import org.forgerock.util.promise.NeverThrowsException;
  */
 public final class Iterators {
     private static final class ArrayIterator<M> implements Iterator<M> {
-        private int i = 0;
+        private int i;
         private final M[] a;
 
         /** Constructed via factory methods. */
@@ -88,7 +88,7 @@ public final class Iterators {
 
         private boolean hasNextMustIterate = true;
         private final Iterator<M> iterator;
-        private M next = null;
+        private M next;
 
         private final P parameter;
         private final Predicate<? super M, P> predicate;

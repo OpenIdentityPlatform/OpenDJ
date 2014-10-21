@@ -45,9 +45,9 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
     private Filter filter;
     private DN name;
     private SearchScope scope;
-    private int sizeLimit = 0;
-    private int timeLimit = 0;
-    private boolean typesOnly = false;
+    private int sizeLimit;
+    private int timeLimit;
+    private boolean typesOnly;
 
     SearchRequestImpl(final DN name, final SearchScope scope, final Filter filter) {
         this.name = name;

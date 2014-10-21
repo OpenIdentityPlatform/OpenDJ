@@ -260,8 +260,8 @@ public final class SimpleAuth {
     private static int port;
     private static String bindDN;
     private static String bindPassword;
-    private static boolean useStartTLS = false;
-    private static boolean useSSL = false;
+    private static boolean useStartTLS;
+    private static boolean useSSL;
     private static String keystore;
     private static String storepass;
 

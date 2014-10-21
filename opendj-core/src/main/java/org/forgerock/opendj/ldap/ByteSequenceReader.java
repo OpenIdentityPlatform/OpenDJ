@@ -34,7 +34,7 @@ package org.forgerock.opendj.ldap;
 public final class ByteSequenceReader {
 
     /** The current position in the byte sequence. */
-    private int pos = 0;
+    private int pos;
 
     /** The underlying byte sequence. */
     private final ByteSequence sequence;

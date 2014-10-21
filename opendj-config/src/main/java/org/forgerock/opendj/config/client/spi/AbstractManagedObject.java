@@ -82,15 +82,11 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     private final class DefaultManagedObjectFactory implements RelationDefinitionVisitor<Void, Void> {
 
         /** Possible exceptions. */
-        private ManagedObjectAlreadyExistsException moaee = null;
-
-        private MissingMandatoryPropertiesException mmpe = null;
-
-        private ConcurrentModificationException cme = null;
-
-        private OperationRejectedException ore = null;
-
-        private LdapException ere = null;
+        private ManagedObjectAlreadyExistsException moaee;
+        private MissingMandatoryPropertiesException mmpe;
+        private ConcurrentModificationException cme;
+        private OperationRejectedException ore;
+        private LdapException ere;
 
         /** {@inheritDoc} */
         @Override

@@ -103,9 +103,9 @@ public abstract class ReferenceCountedObject<T> {
         }
     }
 
-    private T instance = null;
+    private T instance;
     private final Object lock = new Object();
-    private int refCount = 0;
+    private int refCount;
 
     /**
      * Creates a new referenced object whose reference count is initially zero.

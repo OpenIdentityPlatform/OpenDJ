@@ -256,7 +256,7 @@ public final class ConnectionState {
      * {@code true} if the connection has failed due to a disconnect
      * notification.
      */
-    private boolean failedDueToDisconnect = false;
+    private boolean failedDueToDisconnect;
 
     /**
      * Registered event listeners.

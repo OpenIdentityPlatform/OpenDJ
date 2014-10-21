@@ -43,7 +43,7 @@ public final class TableBuilder {
      * The current column number in the current row where 0 represents
      * the left-most column in the table.
      */
-    private int column = 0;
+    private int column;
 
     /** The current with of each column. */
     private List<Integer> columnWidths = new ArrayList<Integer>();
@@ -52,7 +52,7 @@ public final class TableBuilder {
     private List<LocalizableMessage> header = new ArrayList<LocalizableMessage>();
 
     /** The current number of rows in the table. */
-    private int height = 0;
+    private int height;
 
     /** The list of table rows. */
     private List<List<String>> rows = new ArrayList<List<String>>();
@@ -64,7 +64,7 @@ public final class TableBuilder {
     private List<Integer> sortKeys = new ArrayList<Integer>();
 
     /** The current number of columns in the table. */
-    private int width = 0;
+    private int width;
 
     /**
      * Creates a new table printer.

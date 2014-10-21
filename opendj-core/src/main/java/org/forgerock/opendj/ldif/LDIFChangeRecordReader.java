@@ -146,7 +146,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
         }
     }
 
-    private ChangeRecord nextChangeRecord = null;
+    private ChangeRecord nextChangeRecord;
 
     /**
      * Creates a new LDIF change record reader whose source is the provided

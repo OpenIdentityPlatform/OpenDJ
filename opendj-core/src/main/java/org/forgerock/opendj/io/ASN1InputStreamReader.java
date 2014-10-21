@@ -49,19 +49,12 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
-
-    private byte peekType = 0;
-
+    private byte peekType;
     private int peekLength = -1;
-
-    private int lengthBytesNeeded = 0;
-
+    private int lengthBytesNeeded;
     private final int maxElementSize;
-
     private InputStream in;
-
     private final LinkedList<InputStream> streamStack;
-
     private byte[] buffer;
 
     /**

@@ -123,35 +123,22 @@ import java.util.Vector;
  */
 public final class MultiColumnPrinter {
 
-    /**
-     * Left ID.
-     */
+    /** Left ID. */
     public static final int LEFT = 0;
-
-    /**
-     * Center ID.
-     */
+    /** Center ID. */
     public static final int CENTER = 1;
-
-    /**
-     * Right ID.
-     */
+    /** Right ID. */
     public static final int RIGHT = 2;
 
     private int numCol = 2;
-
     private int gap = 4;
 
     private int align = CENTER;
-
     private int titleAlign = CENTER;
 
-    private String border = null;
-
-    private List<String[]> titleTable = null;
-
-    private List<int[]> titleSpanTable = null;
-
+    private String border;
+    private List<String[]> titleTable;
+    private List<int[]> titleSpanTable;
     private final int[] curLength;
 
     private final ConsoleApplication app;

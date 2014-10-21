@@ -467,7 +467,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         /**
          * Any argument exception thrown when creating the naming arguments.
          */
-        private ArgumentException e = null;
+        private ArgumentException e;
 
         /**
          * Indicates whether the sub-command is a create-xxx sub-command, in which case the final path element will have

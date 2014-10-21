@@ -133,9 +133,9 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
     private static final int MAX_STRING_BUFFER_SIZE = 1024;
     private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
-    private byte peekType = 0;
+    private byte peekType;
     private int peekLength = -1;
-    private int lengthBytesNeeded = 0;
+    private int lengthBytesNeeded;
     private final int maxElementSize;
     private final CompositeBuffer buffer;
     private SequenceLimiter readLimiter;

@@ -346,7 +346,7 @@ final class PropertyValueEditor {
             implements MenuCallback<Void> {
 
         /** Any exception that was caught during processing. */
-        private ClientException e = null;
+        private ClientException e;
 
         /** The managed object being edited. */
         private final ManagedObject<?> mo;
@@ -561,7 +561,7 @@ final class PropertyValueEditor {
             implements MenuCallback<Boolean> {
 
         /** Any exception that was caught during processing. */
-        private ClientException e = null;
+        private ClientException e;
 
         /** The managed object being edited. */
         private final ManagedObject<?> mo;
@@ -1276,7 +1276,7 @@ final class PropertyValueEditor {
             MenuCallback<Boolean> {
 
         /** Any exception that was caught during processing. */
-        private ClientException e = null;
+        private ClientException e;
 
         /** The managed object being edited. */
         private final ManagedObject<?> mo;
@@ -1357,7 +1357,7 @@ final class PropertyValueEditor {
             implements MenuCallback<Boolean> {
 
         /** Any exception that was caught during processing. */
-        private ClientException e = null;
+        private ClientException e;
 
         /** The managed object being edited. */
         private final ManagedObject<?> mo;

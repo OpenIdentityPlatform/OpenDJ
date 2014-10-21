@@ -48,7 +48,7 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
          * Counts the number of separators that should be output the next time a non-empty cell is displayed. The tab
          * separators are not displayed immediately so that we can avoid displaying unnecessary trailing separators.
          */
-        private int requiredSeparators = 0;
+        private int requiredSeparators;
 
         /** Private constructor. */
         private Serializer() {
@@ -114,10 +114,10 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
     }
 
     /** Indicates whether or not the headings should be output. */
-    private boolean displayHeadings = false;
+    private boolean displayHeadings;
 
     /** The output destination. */
-    private PrintWriter writer = null;
+    private PrintWriter writer;
 
     /**
      * Creates a new tab separated table printer for the specified output stream. Headings will not be displayed by

@@ -150,13 +150,11 @@ public final class GetSymmetricKeyExtendedRequest extends
         return new GetSymmetricKeyExtendedRequest();
     }
 
-    private String requestSymmetricKey = null;
-
-    private String instanceKeyID = null;
+    private String requestSymmetricKey;
+    private String instanceKeyID;
 
     /** Instantiation via factory. */
     private GetSymmetricKeyExtendedRequest() {
-
     }
 
     /**

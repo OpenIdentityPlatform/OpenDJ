@@ -41,7 +41,7 @@ final class WhoAmIExtendedResultImpl extends AbstractExtendedResult<WhoAmIExtend
         WhoAmIExtendedResult {
 
     /** The authorization ID. */
-    private String authorizationID = null;
+    private String authorizationID;
 
     /** Instantiation via factory. */
     WhoAmIExtendedResultImpl(final ResultCode resultCode) {

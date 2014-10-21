@@ -46,15 +46,10 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
-
-    private byte peekType = 0;
-
+    private byte peekType;
     private int peekLength = -1;
-
     private final int maxElementSize;
-
     private ByteSequenceReader reader;
-
     private final LinkedList<ByteSequenceReader> readerStack;
 
     /**

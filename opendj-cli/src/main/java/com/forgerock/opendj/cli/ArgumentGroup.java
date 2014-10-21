@@ -40,10 +40,10 @@ import org.forgerock.i18n.LocalizableMessage;
 public final class ArgumentGroup implements Comparable<ArgumentGroup> {
 
     /** Description for this group of arguments. */
-    private LocalizableMessage description = null;
+    private LocalizableMessage description;
 
     /** List of arguments belonging to this group. */
-    private List<Argument> args = null;
+    private List<Argument> args;
 
     /** Governs groups position within usage statement. */
     private final Integer priority;

@@ -115,7 +115,7 @@ public class ConnectionEntryReader implements EntryReader {
      */
     private static final class BufferHandler implements SearchResultHandler, ResultHandler<Result> {
         private final BlockingQueue<Response> responses;
-        private volatile boolean isInterrupted = false;
+        private volatile boolean isInterrupted;
 
         private BufferHandler(final BlockingQueue<Response> responses) {
             this.responses = responses;
@@ -176,7 +176,7 @@ public class ConnectionEntryReader implements EntryReader {
 
     private final BufferHandler buffer;
     private final LdapPromise<Result> promise;
-    private Response nextResponse = null;
+    private Response nextResponse;
 
     /**
      * Creates a new connection entry reader whose destination is the provided

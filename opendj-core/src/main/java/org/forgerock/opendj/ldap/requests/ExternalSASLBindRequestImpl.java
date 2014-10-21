@@ -96,7 +96,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
         }
     }
 
-    private String authorizationID = null;
+    private String authorizationID;
 
     ExternalSASLBindRequestImpl() {
         // Nothing to do.

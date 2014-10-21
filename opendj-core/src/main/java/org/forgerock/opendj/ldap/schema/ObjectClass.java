@@ -82,7 +82,7 @@ public final class ObjectClass extends SchemaElement {
     private boolean needsValidating = true;
 
     /** The indicates whether or not validation failed. */
-    private boolean isValid = false;
+    private boolean isValid;
 
     ObjectClass(final String oid, final List<String> names, final String description,
             final boolean obsolete, final Set<String> superiorClassOIDs,

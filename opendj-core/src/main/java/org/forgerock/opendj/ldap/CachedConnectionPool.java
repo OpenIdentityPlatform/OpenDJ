@@ -143,8 +143,8 @@ final class CachedConnectionPool implements ConnectionPool {
         private final Connection connection;
         private LdapException error;
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
-        private boolean isDisconnectNotification = false;
-        private List<ConnectionEventListener> listeners = null;
+        private boolean isDisconnectNotification;
+        private List<ConnectionEventListener> listeners;
         private final Object stateLock = new Object();
 
         PooledConnection(final Connection connection) {
@@ -700,7 +700,7 @@ final class CachedConnectionPool implements ConnectionPool {
     private final FailureHandler<LdapException> connectionFailureHandler = new ConnectionFailureHandler();
     private final int corePoolSize;
     private final ConnectionFactory factory;
-    private boolean isClosed = false;
+    private boolean isClosed;
     private final ScheduledFuture<?> idleTimeoutFuture;
     private final long idleTimeoutMillis;
     private final int maxPoolSize;

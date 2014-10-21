@@ -88,7 +88,7 @@ public final class ContainsCondition implements Condition {
     }
 
     /** The strongly typed private implementation. */
-    private Impl<?> impl = null;
+    private Impl<?> impl;
 
     /** The property name. */
     private final String propertyName;

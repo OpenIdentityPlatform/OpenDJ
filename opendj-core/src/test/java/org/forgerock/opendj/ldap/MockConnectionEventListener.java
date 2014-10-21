@@ -42,9 +42,9 @@ public final class MockConnectionEventListener implements ConnectionEventListene
     private final CountDownLatch closedLatch = new CountDownLatch(1);
     private final CountDownLatch errorLatch = new CountDownLatch(1);
     private final CountDownLatch notificationLatch = new CountDownLatch(1);
-    private Boolean isDisconnectNotification = null;
+    private Boolean isDisconnectNotification;
     private LdapException error;
-    private ExtendedResult notification = null;
+    private ExtendedResult notification;
     private final AtomicInteger invocationCount = new AtomicInteger();
 
     /** {@inheritDoc} */

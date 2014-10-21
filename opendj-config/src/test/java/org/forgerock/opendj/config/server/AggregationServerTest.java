@@ -229,17 +229,17 @@ public final class AggregationServerTest extends AdminTestCase {
      * definition.
      */
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
-        aggregationPropertyDefinitionDefault = null;
+        aggregationPropertyDefinitionDefault;
 
     /**
      * An aggregation where the target must be enabled if the source is enabled.
      */
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
-        aggregationPropertyDefinitionTargetAndSourceMustBeEnabled = null;
+        aggregationPropertyDefinitionTargetAndSourceMustBeEnabled;
 
     /** An aggregation where the target must be enabled. */
     private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg>
-        aggregationPropertyDefinitionTargetMustBeEnabled = null;
+        aggregationPropertyDefinitionTargetMustBeEnabled;
     // @Checkstyle:on
 
     @BeforeClass

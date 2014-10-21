@@ -148,13 +148,13 @@ final class SubCommandHandlerFactory {
     private final SortedSet<DeleteSubCommandHandler> deleteHandlers = new TreeSet<DeleteSubCommandHandler>();
 
     /** Any exception that occurred whilst creating the sub-commands. */
-    private ArgumentException exception = null;
+    private ArgumentException exception;
 
     /** The set of get-xxx-prop available sub-commands. */
     private final SortedSet<GetPropSubCommandHandler> getPropHandlers = new TreeSet<GetPropSubCommandHandler>();
 
     /** The help sub-command handler. */
-    private HelpSubCommandHandler helpHandler = null;
+    private HelpSubCommandHandler helpHandler;
 
     /** The set of list-xxx available sub-commands. */
     private final SortedSet<ListSubCommandHandler> listHandlers = new TreeSet<ListSubCommandHandler>();

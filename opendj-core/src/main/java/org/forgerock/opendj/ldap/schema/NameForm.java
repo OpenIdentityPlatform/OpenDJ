@@ -55,7 +55,7 @@ public final class NameForm extends SchemaElement {
      * A fluent API for incrementally constructing name forms.
      */
     public static final class Builder extends SchemaElementBuilder<Builder> {
-        private boolean isObsolete = false;
+        private boolean isObsolete;
         private final List<String> names = new LinkedList<String>();
         private String oid;
         private final Set<String> optionalAttributes = new LinkedHashSet<String>();

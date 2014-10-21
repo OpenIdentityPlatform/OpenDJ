@@ -349,7 +349,7 @@ abstract class TemplateTag {
          * Indicates whether the values should be selected sequentially or at
          * random.
          */
-        private boolean isSequential = false;
+        private boolean isSequential;
 
         /** The index used for sequential access. */
         private int nextIndex;

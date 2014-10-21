@@ -125,25 +125,16 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         }
 
         protected final H resultHandler;
-
         /** These should be notified when a cancel request arrives, at most once. */
-        private List<CancelRequestListener> cancelRequestListeners = null;
-
-        private LocalizableMessage cancelRequestReason = null;
-
+        private List<CancelRequestListener> cancelRequestListeners;
+        private LocalizableMessage cancelRequestReason;
         /** These should be notified when the result is set. */
-        private List<ExtendedResultHandlerHolder<?>> cancelResultHandlers = null;
-
+        private List<ExtendedResultHandlerHolder<?>> cancelResultHandlers;
         private final ServerConnectionImpl clientConnection;
-
         private final boolean isCancelSupported;
-
         private final int messageID;
-
         private boolean sendResult = true;
-
         private RequestState state = RequestState.PENDING;
-
         /** Cancellation state guarded by lock. */
         private final Object stateLock = new Object();
 

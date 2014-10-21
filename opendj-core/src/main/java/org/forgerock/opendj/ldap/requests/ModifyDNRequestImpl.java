@@ -38,10 +38,10 @@ import org.forgerock.util.Reject;
  */
 final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest> implements
         ModifyDNRequest {
-    private boolean deleteOldRDN = false;
+    private boolean deleteOldRDN;
     private DN name;
     private RDN newRDN;
-    private DN newSuperior = null;
+    private DN newSuperior;
 
     ModifyDNRequestImpl(final DN name, final RDN newRDN) {
         this.name = name;
