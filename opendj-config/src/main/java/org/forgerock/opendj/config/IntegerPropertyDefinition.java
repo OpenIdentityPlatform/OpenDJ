@@ -64,16 +64,16 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
     public static final class Builder extends AbstractBuilder<Integer, IntegerPropertyDefinition> {
 
         /** The lower limit of the property value. */
-        private int lowerLimit = 0;
+        private int lowerLimit;
 
         /** The optional upper limit of the property value. */
-        private Integer upperLimit = null;
+        private Integer upperLimit;
 
         /**
          * Indicates whether this property allows the use of the "unlimited" value
          * (represented using a -1 or the string "unlimited").
          */
-        private boolean allowUnlimited = false;
+        private boolean allowUnlimited;
 
         /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {

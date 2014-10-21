@@ -36,7 +36,7 @@ package org.forgerock.opendj.config;
 public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends DefaultBehaviorProvider<T> {
 
     /** The absolute path to the managed object containing the property. */
-    private ManagedObjectPath<?, ?> path = null;
+    private ManagedObjectPath<?, ?> path;
 
     /**
      * The string representation of the managed object path specifying

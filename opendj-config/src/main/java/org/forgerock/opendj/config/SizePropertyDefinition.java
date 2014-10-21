@@ -63,16 +63,16 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
     public static final class Builder extends AbstractBuilder<Long, SizePropertyDefinition> {
 
         /** The lower limit of the property value in bytes. */
-        private long lowerLimit = 0L;
+        private long lowerLimit;
 
         /** The optional upper limit of the property value in bytes. */
-        private Long upperLimit = null;
+        private Long upperLimit;
 
         /**
          * Indicates whether this property allows the use of the "unlimited" memory
          * size value (represented using a -1L or the string "unlimited").
          */
-        private boolean allowUnlimited = false;
+        private boolean allowUnlimited;
 
         /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
