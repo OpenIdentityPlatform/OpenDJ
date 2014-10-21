@@ -30,6 +30,7 @@ import java.io.Console;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -82,8 +83,10 @@ public final class SearchBind {
         try {
             connection = factory.getConnection();
             SearchResultEntry entry =
-                    connection.searchSingleEntry(baseDN, SearchScope.WHOLE_SUBTREE, "(mail=" + mail
-                            + ")", "cn");
+                    connection.searchSingleEntry(baseDN,
+                            SearchScope.WHOLE_SUBTREE,
+                            Filter.equality("mail", mail).toString(),
+                            "cn");
             DN bindDN = entry.getName();
             connection.bind(bindDN.toString(), password);
 
