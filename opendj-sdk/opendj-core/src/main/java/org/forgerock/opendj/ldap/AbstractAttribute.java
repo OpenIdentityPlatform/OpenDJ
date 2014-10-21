@@ -62,22 +62,14 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
         if (attribute == object) {
             return true;
         }
-
         if (!(object instanceof Attribute)) {
             return false;
         }
 
         final Attribute other = (Attribute) object;
-        if (!attribute.getAttributeDescription().equals(other.getAttributeDescription())) {
-            return false;
-        }
-
-        // Attribute description is the same, compare values.
-        if (attribute.size() != other.size()) {
-            return false;
-        }
-
-        return attribute.containsAll(other);
+        return attribute.getAttributeDescription().equals(other.getAttributeDescription())
+                && attribute.size() == other.size()
+                && attribute.containsAll(other);
     }
 
     /**

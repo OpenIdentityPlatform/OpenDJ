@@ -132,14 +132,8 @@ final class UserPasswordSyntaxImpl extends AbstractSyntaxImpl {
             return false;
         }
 
-        // The closing curly brace must not be the last character of the
-        // password.
-        if (closingBracePos == value.length() - 1) {
-            return false;
-        }
-
-        // If we've gotten here, then it looks to be encoded.
-        return true;
+        // The closing curly brace must not be the last character of the password
+        return closingBracePos != value.length() - 1;
     }
 
     @Override

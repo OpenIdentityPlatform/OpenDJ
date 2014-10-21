@@ -673,8 +673,7 @@ public final class AVA implements Comparable<AVA> {
             final MatchingRule rule = attributeType.getEqualityMatchingRule();
             if (rule != null) {
                 final Comparator<ByteSequence> comparator = rule.comparator();
-                return comparator.compare(normalizedValue, otherNormalizedValue) != 0 ? false
-                        : true;
+                return comparator.compare(normalizedValue, otherNormalizedValue) == 0;
             } else {
                 return normalizedValue.equals(otherNormalizedValue);
             }

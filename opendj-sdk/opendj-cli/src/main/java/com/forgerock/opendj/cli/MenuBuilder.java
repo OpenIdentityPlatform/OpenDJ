@@ -600,12 +600,8 @@ public final class MenuBuilder<T> {
         TableBuilder nbuilder = new TableBuilder();
         Map<String, MenuCallback<T>> callbacks = new HashMap<String, MenuCallback<T>>();
 
-        // Determine whether multiple columns should be used for numeric
-        // options.
-        boolean useMultipleColumns = false;
-        if (threshold >= 0 && numericCallbacks.size() >= threshold) {
-            useMultipleColumns = true;
-        }
+        // Determine whether multiple columns should be used for numeric options
+        boolean useMultipleColumns = threshold >= 0 && numericCallbacks.size() >= threshold;
 
         // Create optional column headers.
         if (!columnHeadings.isEmpty()) {

@@ -102,7 +102,6 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
                 && !needAdditionalLengthBytesState(false, false)) {
             return false;
         }
-
         return peekLength <= in.available();
     }
 

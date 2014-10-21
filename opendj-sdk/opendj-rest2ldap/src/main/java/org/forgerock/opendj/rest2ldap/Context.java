@@ -143,22 +143,11 @@ final class Context implements Closeable {
 
         boolean isMatchingRead(final SearchRequest request) {
             // Cached reads are always base object.
-            if (!request.getScope().equals(SearchScope.BASE_OBJECT)) {
-                return false;
-            }
-
-            // Filters must match.
-            if (!request.getFilter().toString().equals(cachedFilterString)) {
-                return false;
-            }
-
-            // List of requested attributes must match.
-            if (!request.getAttributes().equals(cachedRequest.getAttributes())) {
-                return false;
-            }
-
-            // Don't need to check anything else.
-            return true;
+            return request.getScope().equals(SearchScope.BASE_OBJECT)
+                    // Filters must match.
+                    && request.getFilter().toString().equals(cachedFilterString)
+                    // List of requested attributes must match.
+                    && request.getAttributes().equals(cachedRequest.getAttributes());
         }
 
         void setPromise(final LdapPromise<Result> promise) {

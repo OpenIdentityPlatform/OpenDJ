@@ -1970,12 +1970,7 @@ final class PropertyValueEditor {
             // Create an option for editing/viewing each property.
             for (PropertyDefinition<?> pd : c) {
                 // Determine whether this property should be modifiable.
-                boolean isReadOnly = false;
-
-                if (pd.hasOption(PropertyOption.MONITORING)) {
-                    isReadOnly = true;
-                }
-
+                boolean isReadOnly = pd.hasOption(PropertyOption.MONITORING);
                 if (!isCreate && pd.hasOption(PropertyOption.READ_ONLY)) {
                     isReadOnly = true;
                 }

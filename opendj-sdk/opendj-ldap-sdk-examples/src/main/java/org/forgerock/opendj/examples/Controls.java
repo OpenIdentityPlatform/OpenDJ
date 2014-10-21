@@ -1083,10 +1083,7 @@ public final class Controls {
      * @return True if the control is supported.
      */
     static boolean isSupported(final String control) {
-        if (controls != null && !controls.isEmpty()) {
-            return controls.contains(control);
-        }
-        return false;
+        return controls != null && controls.contains(control);
     }
     // --- JCite check support ---
 

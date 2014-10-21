@@ -602,17 +602,10 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                     }
                 }
             } else {
-                final RequestContextImpl<R, ResultHandler<R>> requestContext;
-                if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
-                    // StartTLS requests cannot be cancelled.
-                    requestContext =
-                            new RequestContextImpl<R, ResultHandler<R>>(this, resultHandler,
-                                    messageID, false);
-                } else {
-                    requestContext =
-                            new RequestContextImpl<R, ResultHandler<R>>(this, resultHandler,
-                                    messageID, true);
-                }
+                // StartTLS requests cannot be cancelled.
+                boolean isCancelSupported = !request.getOID().equals(StartTLSExtendedRequest.OID);
+                final RequestContextImpl<R, ResultHandler<R>> requestContext =
+                        new RequestContextImpl<R, ResultHandler<R>>(this, resultHandler, messageID, isCancelSupported);
 
                 if (addPendingRequest(requestContext)) {
                     requestHandler.handleExtendedRequest(requestContext, request,
