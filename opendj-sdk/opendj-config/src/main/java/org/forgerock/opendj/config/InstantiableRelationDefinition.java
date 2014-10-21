@@ -65,7 +65,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
         AbstractBuilder<C, S, InstantiableRelationDefinition<C, S>> {
 
         /** The optional naming property definition. */
-        private PropertyDefinition<?> namingPropertyDefinition = null;
+        private PropertyDefinition<?> namingPropertyDefinition;
 
         /** The plural name of the relation. */
         private final String pluralName;

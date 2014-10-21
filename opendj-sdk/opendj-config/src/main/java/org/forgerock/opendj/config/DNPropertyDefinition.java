@@ -43,16 +43,14 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      */
     private final DN baseDN;
 
-    /**
-     * An interface for incrementally constructing DN property definitions.
-     */
+    /** An interface for incrementally constructing DN property definitions. */
     public static final class Builder extends AbstractBuilder<DN, DNPropertyDefinition> {
 
         /**
          * Optional base DN which all valid values must be immediately
          * subordinate to.
          */
-        private DN baseDN = null;
+        private DN baseDN;
 
         /** Private constructor. */
         private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {

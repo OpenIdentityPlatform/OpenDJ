@@ -169,10 +169,9 @@ public final class ConfigurationFramework {
      * We contain a reference to the URLClassLoader rather than
      * sub-class it so that it is possible to replace the loader at
      * run-time. For example, when removing or replacing extension Jar
-     * files (the URLClassLoader only supports adding new
-     * URLs, not removal).
+     * files (the URLClassLoader only supports adding new URLs, not removal).
      */
-    private MyURLClassLoader loader = null;
+    private MyURLClassLoader loader;
 
     private boolean isClient = true;
     private String installPath;

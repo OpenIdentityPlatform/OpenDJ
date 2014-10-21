@@ -59,7 +59,7 @@ public final class SingletonRelationDefinition<C extends ConfigurationClient, S 
          * The optional default managed object associated with this
          * singleton relation.
          */
-        private DefaultManagedObject<? extends C, ? extends S> defaultManagedObject = null;
+        private DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
         /**
          * Creates a new builder which can be used to incrementally build an
