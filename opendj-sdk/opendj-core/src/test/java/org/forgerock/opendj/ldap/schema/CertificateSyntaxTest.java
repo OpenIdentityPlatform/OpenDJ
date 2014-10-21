@@ -33,7 +33,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_CERTIFICATE_OID;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 /**
  * Certificate syntax tests.
@@ -104,18 +104,15 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
      *            The expected result of the test
      */
     @Test(dataProvider = "acceptableValues")
-    public void testAcceptableValues(ByteString value, Boolean result) {
+    public void testAcceptableValues(ByteString value, boolean result) {
         // Make sure that the specified class can be instantiated as a task.
         final Syntax syntax = getRule();
 
         final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
 
         // test the valueIsAcceptable method
-        final Boolean liveResult = syntax.valueIsAcceptable(value, reason);
-
-        if (liveResult != result) {
-            fail(syntax + ".valueIsAcceptable gave bad result for " + value.toString() + "reason : " + reason);
-        }
+        final boolean liveResult = syntax.valueIsAcceptable(value, reason);
+        assertEquals(liveResult, result, syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
 
         // call the getters
         syntax.getApproximateMatchingRule();
@@ -146,11 +143,8 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
         final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
 
         // test the valueIsAcceptable method
-        final Boolean liveResult = syntax.valueIsAcceptable(value, reason);
-
-        if (!liveResult) {
-            fail(syntax + ".valueIsAcceptable gave bad result for " + value.toString() + "reason : " + reason);
-        }
+        final boolean liveResult = syntax.valueIsAcceptable(value, reason);
+        assertTrue(liveResult, syntax + ".valueIsAcceptable gave bad result for " + value + "reason : " + reason);
     }
 
 

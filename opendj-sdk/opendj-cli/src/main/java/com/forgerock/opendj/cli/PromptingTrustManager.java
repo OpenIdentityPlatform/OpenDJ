@@ -285,8 +285,7 @@ public final class PromptingTrustManager implements X509TrustManager {
                     onDiskTrustStore.setCertificateEntry(alias, aChain);
                 }
             } catch (final Exception e) {
-                LOG.warn(LocalizableMessage.raw("Error setting certificate to store: " + e + "\nCert: "
-                        + aChain.toString()));
+                LOG.warn(LocalizableMessage.raw("Error setting certificate to store: " + e + "\nCert: " + aChain));
             }
         }
 
@@ -374,9 +373,8 @@ public final class PromptingTrustManager implements X509TrustManager {
             case UNTRUSTED:
                 if (exception instanceof CertificateException) {
                     throw (CertificateException) exception;
-                } else {
-                    throw new CertificateException(exception);
                 }
+                throw new CertificateException(exception);
             case CERTIFICATE_DETAILS:
                 for (final X509Certificate aChain : chain) {
                     app.println();
