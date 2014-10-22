@@ -117,7 +117,7 @@
   for words in the dictionary, or for subscriber names in the phone book.
   A sample entry follows.</para>
 
-  <programlisting language="LDIF">
+  <programlisting language="ldif">
 dn: uid=bjensen,ou=People,dc=example,dc=com
 uid: bjensen
 cn: Babs Jensen
@@ -219,6 +219,30 @@ mail: escape@example.com</computeroutput>
   <literal>""</literal> (the empty string), is called the root DSE, and
   contains information about what the server supports, including the other
   base DNs it serves.</para></footnote></para>
+
+  <para>
+   A directory server stores two kinds of attributes in a directory entry:
+   <firstterm>user attributes</firstterm>
+   and <firstterm>operational attributes</firstterm>.
+   User attributes hold the information for users of the directory.
+   All of the attributes shown in the entry at the outset of this section
+   are user attributes.
+   Operational attributes hold information used by the directory itself.
+   Examples of operational attributes include
+   <literal>entryUUID</literal>, <literal>modifyTimestamp</literal>,
+   and <literal>subschemaSubentry</literal>.
+   When an LDAP search operation finds an entry in the directory,
+   the directory server returns all the visible user attributes
+   unless the search request restricts the list of attributes
+   by specifying those attributes explicitly.
+   The directory server does not however return any operational attributes
+   unless the search request specifically asks for them.
+   Generally speaking, applications should change only user attributes,
+   and leave updates of operational attributes to the server,
+   relying on public directory server interfaces to change server behavior.
+   An exception is access control instruction (<literal>aci</literal>) attributes,
+   which are operational attributes used to control access to directory data.
+  </para>
  </section>
  
  <section xml:id="ldap-client-server-communication">
@@ -281,7 +305,7 @@ mail: escape@example.com</computeroutput>
     else, her DN would have to change. For another example, if you decide
     to consolidate <literal>ou=Customers</literal> and
     <literal>ou=Employees</literal> under <literal>ou=People</literal>
-    instead, all the entries underneath much change distinguished names.
+    instead, all the entries underneath must change distinguished names.
     <footnote><para>Renaming entire branches of entries can be a major
     operation for the directory, so avoid moving entire branches if you
     can.</para></footnote></para>
