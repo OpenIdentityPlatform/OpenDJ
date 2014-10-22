@@ -100,6 +100,10 @@ public class CollationEqualityMatchingRuleTest extends MatchingRuleTest {
         // 'ar' does not share oid with another locale
         MatchingRule rule3 = Schema.getCoreSchema().getMatchingRule("ar.3");
         assertThat(rule3.getNames()).containsOnly("ar.eq", "ar.3");
+
+        // equality matching rule is also the default matching rule
+        MatchingRule rule4 = Schema.getCoreSchema().getMatchingRule("ar");
+        assertThat(rule4.getNames()).containsOnly("ar");
     }
 
     @Test
