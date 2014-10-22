@@ -479,6 +479,16 @@
      on the entries returned by the search.</para>
     </listitem>
    </varlistentry>
+
+   <varlistentry>
+    <term><literal>1.1</literal></term>
+    <listitem>
+     <para>
+      Return no attributes, only the DNs of matching entries.
+     </para>
+    </listitem>
+   </varlistentry>
+
   </variablelist>
  </refsect1>
  <refsect1>
