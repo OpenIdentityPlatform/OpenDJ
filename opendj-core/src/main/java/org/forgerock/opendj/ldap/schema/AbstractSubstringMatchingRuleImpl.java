@@ -291,7 +291,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         final char[] escapeChars = new char[] { '*' };
         final SubstringReader reader = new SubstringReader(valueString);
 
-        ByteString bytes = evaluateEscapes(reader, escapeChars, false);
+        ByteString bytes = evaluateEscapes(reader, escapeChars);
         if (bytes.length() > 0) {
             initialString = bytes;
         }
@@ -300,7 +300,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         }
         while (true) {
             reader.read();
-            bytes = evaluateEscapes(reader, escapeChars, false);
+            bytes = evaluateEscapes(reader, escapeChars);
             if (reader.remaining() > 0) {
                 if (bytes.length() == 0) {
                     throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
@@ -487,22 +487,15 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         return (char) b;
     }
 
-    private ByteString evaluateEscapes(final SubstringReader reader, final char[] escapeChars,
-            final boolean trim) throws DecodeException {
-        // FIXME JNR I believe the trim parameter is dead code
-        return evaluateEscapes(reader, escapeChars, escapeChars, trim);
+    private ByteString evaluateEscapes(final SubstringReader reader, final char[] escapeChars) throws DecodeException {
+        return evaluateEscapes(reader, escapeChars, escapeChars);
     }
 
     private ByteString evaluateEscapes(final SubstringReader reader, final char[] escapeChars,
-            final char[] delimiterChars, final boolean trim) throws DecodeException {
+            final char[] delimiterChars) throws DecodeException {
         int length = 0;
-        int lengthWithoutSpace = 0;
         char c;
         ByteStringBuilder valueBuffer = null;
-
-        if (trim) {
-            reader.skipWhitespaces();
-        }
 
         reader.mark();
         while (reader.remaining() > 0) {
@@ -514,26 +507,16 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 valueBuffer.append(reader.read(length));
                 valueBuffer.append(evaluateEscapedChar(reader, escapeChars));
                 reader.mark();
-                length = lengthWithoutSpace = 0;
+                length = 0;
             }
             if (delimiterChars != null) {
                 for (final char delimiterChar : delimiterChars) {
                     if (c == delimiterChar) {
                         reader.reset();
                         if (valueBuffer != null) {
-                            if (trim) {
-                                valueBuffer.append(reader.read(lengthWithoutSpace));
-                            } else {
-                                valueBuffer.append(reader.read(length));
-                            }
+                            valueBuffer.append(reader.read(length));
                             return valueBuffer.toByteString();
                         } else {
-                            if (trim) {
-                                if (lengthWithoutSpace > 0) {
-                                    return ByteString.valueOf(reader.read(lengthWithoutSpace));
-                                }
-                                return ByteString.empty();
-                            }
                             if (length > 0) {
                                 return ByteString.valueOf(reader.read(length));
                             }
@@ -543,28 +526,13 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 }
             }
             length++;
-            if (c != ' ') {
-                lengthWithoutSpace = length;
-            } else {
-                lengthWithoutSpace++;
-            }
         }
 
         reader.reset();
         if (valueBuffer != null) {
-            if (trim) {
-                valueBuffer.append(reader.read(lengthWithoutSpace));
-            } else {
-                valueBuffer.append(reader.read(length));
-            }
+            valueBuffer.append(reader.read(length));
             return valueBuffer.toByteString();
         } else {
-            if (trim) {
-                if (lengthWithoutSpace > 0) {
-                    return ByteString.valueOf(reader.read(lengthWithoutSpace));
-                }
-                return ByteString.empty();
-            }
             if (length > 0) {
                 return ByteString.valueOf(reader.read(length));
             }
