@@ -918,7 +918,11 @@ final class CoreSchemaImpl {
             final Locale locale = localesCache.get(names.get(0));
             addCollationMatchingRule(builder, oid, names, 1, "lt", collationLessThanMatchingRule(locale));
             addCollationMatchingRule(builder, oid, names, 2, "lte", collationLessThanOrEqualMatchingRule(locale));
-            addCollationMatchingRule(builder, oid, names, 3, "eq", collationEqualityMatchingRule(locale));
+            MatchingRuleImpl collationEqualityMatchingRule = collationEqualityMatchingRule(locale);
+            addCollationMatchingRule(builder, oid, names, 3, "eq", collationEqualityMatchingRule);
+            // the default oid is registered with equality matching rule
+            final int ignored = 0;
+            addCollationMatchingRule(builder, oid, names, ignored, "", collationEqualityMatchingRule);
             addCollationMatchingRule(builder, oid, names, 4, "gte", collationGreaterThanOrEqualToMatchingRule(locale));
             addCollationMatchingRule(builder, oid, names, 5, "gt", collationGreaterThanMatchingRule(locale));
             addCollationMatchingRule(builder, oid, names, 6, "sub", collationSubstringMatchingRule(locale));
@@ -929,7 +933,8 @@ final class CoreSchemaImpl {
     private static void addCollationMatchingRule(final SchemaBuilder builder, final String baseOid,
             final List<String> names, final int numericSuffix, final String symbolicSuffix,
             final MatchingRuleImpl matchingRuleImplementation) {
-        builder.buildMatchingRule(baseOid + "." + numericSuffix)
+        final String oid = symbolicSuffix.isEmpty() ? baseOid : baseOid + "." + numericSuffix;
+        builder.buildMatchingRule(oid)
             .names(collationMatchingRuleNames(names, numericSuffix, symbolicSuffix))
             .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
             .extraProperties(OPENDS_ORIGIN)
@@ -943,17 +948,24 @@ final class CoreSchemaImpl {
      * @param localeNames
      *            List of locale names that correspond to the matching rule (e.g., "en", "en-US")
      * @param numSuffix
-     *            numeric suffix corresponding to type of matching rule (e.g, 5 for greater than matching rule)
+     *            numeric suffix corresponding to type of matching rule (e.g, 5 for greater than matching rule). It is
+     *            ignored if equal to zero (0).
      * @param symbolicSuffix
-     *            symbolic suffix corresponding to type of matching rule (e.g, "gt" for greater than matching rule)
+     *            symbolic suffix corresponding to type of matching rule (e.g, "gt" for greater than matching rule). It
+     *            may be empty ("") to indicate the default rule.
      * @return the names list (e.g, "en.5", "en.gt", "en-US.5", "en-US.gt")
      */
     private static String[] collationMatchingRuleNames(final List<String> localeNames, final int numSuffix,
-            final String symbolicSuffix) {
+        final String symbolicSuffix) {
         final List<String> names = new ArrayList<String>();
         for (String localeName : localeNames) {
-            names.add(localeName + "." + numSuffix);
-            names.add(localeName + "." + symbolicSuffix);
+            if (symbolicSuffix.isEmpty()) {
+                // the default rule
+                names.add(localeName);
+            } else {
+                names.add(localeName + "." + numSuffix);
+                names.add(localeName + "." + symbolicSuffix);
+            }
         }
         return names.toArray(new String[names.size()]);
     }
