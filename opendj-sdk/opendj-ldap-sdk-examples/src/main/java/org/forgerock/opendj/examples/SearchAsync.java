@@ -71,21 +71,26 @@ public final class SearchAsync {
                     WRITER.writeEntry(entry);
                     ++entryCount;
                 } else { // Cancel the search.
-                    CancelExtendedRequest request = Requests.newCancelExtendedRequest(requestID);
-                    connection.extendedRequestAsync(request).onSuccess(new SuccessHandler<ExtendedResult>() {
-                        @Override
-                        public void handleResult(ExtendedResult result) {
-                            System.err.println("Cancel request succeeded");
-                            CANCEL_LATCH.countDown();
-                        }
-                    }).onFailure(new FailureHandler<LdapException>() {
-                        @Override
-                        public void handleError(LdapException error) {
-                            System.err.println("Cancel request failed with result code: "
-                                    + error.getResult().getResultCode().intValue());
-                            CANCEL_LATCH.countDown();
-                        }
-                    });
+                    CancelExtendedRequest request =
+                            Requests.newCancelExtendedRequest(requestID);
+                    connection.extendedRequestAsync(request)
+                            .onSuccess(new SuccessHandler<ExtendedResult>() {
+                                @Override
+                                public void handleResult(ExtendedResult result) {
+                                    System.err.println("Cancel request succeeded");
+                                    CANCEL_LATCH.countDown();
+                                }
+                            })
+                            .onFailure(new FailureHandler<LdapException>() {
+                                @Override
+                                public void handleError(LdapException error) {
+                                    System.err.println("Cancel request failed: "
+                                            + error.getResult().getResultCode().intValue()
+                                            + " "
+                                            + error.getResult().getDiagnosticMessage());
+                                    CANCEL_LATCH.countDown();
+                                }
+                            });
                     return false;
                 }
             } catch (final IOException e) {
@@ -112,7 +117,6 @@ public final class SearchAsync {
         }
 
     }
-
     // --- JCite search result handler ---
 
     // --- JCite decl1 ---
@@ -176,37 +180,47 @@ public final class SearchAsync {
             return;
         }
 
+        // --- Using Promises ---
         // Initiate the asynchronous connect, bind, and search.
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
 
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {
-            @Override
-            public Promise<BindResult, LdapException> apply(Connection connection) throws LdapException {
-                SearchAsync.connection = connection;
-                return connection.bindAsync(Requests.newSimpleBindRequest(userName, password.toCharArray()));
-            }
-        }).thenAsync(new AsyncFunction<BindResult, Result, LdapException>() {
-            @Override
-            public Promise<Result, LdapException> apply(BindResult result) throws LdapException {
-                LdapPromise<Result> promise = connection.searchAsync(
-                        Requests.newSearchRequest(baseDN, scope, filter, attributes), new SearchResultHandlerImpl());
-                requestID = promise.getRequestID();
-                return promise;
-            }
-        }).onSuccess(new SuccessHandler<Result>() {
-            @Override
-            public void handleResult(Result result) {
-                resultCode = result.getResultCode().intValue();
-                COMPLETION_LATCH.countDown();
-            }
-        }).onFailure(new FailureHandler<LdapException>() {
-            @Override
-            public void handleError(LdapException error) {
-                System.err.println(error.getMessage());
-                resultCode = error.getResult().getResultCode().intValue();
-                COMPLETION_LATCH.countDown();
-            }
-        });
+        factory.getConnectionAsync()
+                .thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {
+                    @Override
+                    public Promise<BindResult, LdapException> apply(Connection connection)
+                            throws LdapException {
+                        SearchAsync.connection = connection;
+                        return connection.bindAsync(Requests
+                                .newSimpleBindRequest(userName, password.toCharArray()));
+                    }
+                })
+                .thenAsync(new AsyncFunction<BindResult, Result, LdapException>() {
+                    @Override
+                    public Promise<Result, LdapException> apply(BindResult result)
+                            throws LdapException {
+                        LdapPromise<Result> promise = connection.searchAsync(
+                                Requests.newSearchRequest(baseDN, scope, filter, attributes),
+                                new SearchResultHandlerImpl());
+                        requestID = promise.getRequestID();
+                        return promise;
+                    }
+                })
+                .onSuccess(new SuccessHandler<Result>() {
+                    @Override
+                    public void handleResult(Result result) {
+                        resultCode = result.getResultCode().intValue();
+                        COMPLETION_LATCH.countDown();
+                    }
+                })
+                .onFailure(new FailureHandler<LdapException>() {
+                    @Override
+                    public void handleError(LdapException error) {
+                        System.err.println(error.getMessage());
+                        resultCode = error.getResult().getResultCode().intValue();
+                        COMPLETION_LATCH.countDown();
+                    }
+                });
+        // --- Using Promises ---
 
         // Await completion.
         try {

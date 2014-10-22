@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2014 ForgeRock AS
+  !
+-->
+<programlisting language="xml"
+                xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+                xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+                xsi:schemaLocation='http://docbook.org/ns/docbook
+                                    http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+<![CDATA[
+<repositories>
+  <repository>
+    <id>forgerock-staging-repository</id>
+    <name>ForgeRock Release Repository</name>
+    <url>${mavenRepoReleases}</url>
+    <snapshots>
+      <enabled>false</enabled>
+    </snapshots>
+  </repository>
+  <repository>
+    <id>forgerock-snapshots-repository</id>
+    <name>ForgeRock Snapshot Repository</name>
+    <url>${mavenRepoSnapshots}</url>
+    <releases>
+      <enabled>false</enabled>
+    </releases>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
+    <groupId>${project.groupId}</groupId>
+    <artifactId>opendj-core</artifactId>
+    <version>${project.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>${project.groupId}</groupId>
+    <artifactId>opendj-grizzly</artifactId>
+    <version>${project.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-simple</artifactId>
+    <version>${slf4jVersion}</version>
+  </dependency>
+</dependencies>
+]]>
+</programlisting>
