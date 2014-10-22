@@ -316,7 +316,7 @@ public final class Utils {
             final StringTokenizer lineTokenizer = new StringTokenizer(text, "\r\n", true);
             while (lineTokenizer.hasMoreTokens()) {
                 final String line = lineTokenizer.nextToken();
-                if (line.equals("\r") || line.equals("\n")) {
+                if ("\r".equals(line) || "\n".equals(line)) {
                     // It's an end-of-line character, so append it as-is.
                     buffer.append(line);
                 } else if (line.length() <= width) {
@@ -331,7 +331,7 @@ public final class Utils {
                     final StringTokenizer wordTokenizer = new StringTokenizer(line, " ", true);
                     while (wordTokenizer.hasMoreTokens()) {
                         final String word = wordTokenizer.nextToken();
-                        if (word.equals(" ")) {
+                        if (" ".equals(word)) {
                             // It's a space, so add it to the delim buffer only
                             // if the line buffer is not empty.
                             if (lineBuffer.length() > 0) {
@@ -351,8 +351,7 @@ public final class Utils {
 
                             if (wordTokenizer.hasMoreTokens()) {
                                 // The next token must be a space, so remove it.
-                                // If there are still more tokens after that, then append an
-                                // EOL.
+                                // If there are still more tokens after that, then append an EOL.
                                 wordTokenizer.nextToken();
                                 if (wordTokenizer.hasMoreTokens()) {
                                     buffer.append(EOL);
@@ -448,14 +447,13 @@ public final class Utils {
      *         trying to establish a connection and <CODE>false</CODE> otherwise.
      */
     public static boolean isCertificateException(Throwable t) {
-        boolean returnValue = false;
-
-        while (!returnValue && t != null) {
-            returnValue = t instanceof SSLHandshakeException || t instanceof GeneralSecurityException;
+        while (t != null) {
+            if (t instanceof SSLHandshakeException || t instanceof GeneralSecurityException) {
+                return true;
+            }
             t = t.getCause();
         }
-
-        return returnValue;
+        return false;
     }
 
     /**
