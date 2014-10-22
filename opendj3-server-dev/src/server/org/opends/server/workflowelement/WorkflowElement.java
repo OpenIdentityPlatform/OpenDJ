@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.workflowelement;
-
 
 import java.util.List;
 import java.util.Observable;
@@ -33,14 +32,10 @@ import java.util.Observer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
 
 import org.opends.server.admin.std.server.WorkflowElementCfg;
-import org.opends.server.api.MonitorProvider;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Operation;
 import org.opends.server.types.CanceledOperationException;
-
+import org.opends.server.types.Operation;
 
 /**
  * This class defines the super class for all the workflow elements. A workflow
@@ -82,16 +77,6 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
     newWorkflowElementNotificationList =
       new ConcurrentHashMap<String, List<Observer>>();
 
-
-  // The observable status of the workflow element.
-  // The status contains the health indicator (aka saturation index)
-  // of the workflow element.
-  private ObservableWorkflowElementStatus observableStatus =
-    new ObservableWorkflowElementStatus(this);
-
-  // The statistics exported by the workflow element
-  private MonitorProvider<MonitorProviderCfg> statistics;
-
   /**
    * Provides the observable state of the workflow element.
    * This method is intended to be called by the WorkflowElementConfigManager
@@ -104,18 +89,6 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   {
     return observableState;
   }
-
-
-  /**
-   * Provides the observable status of the workflow element.
-   *
-   * @return the observable status of the workflow element.
-   */
-  protected ObservableWorkflowElementStatus getObservableStatus()
-  {
-    return observableStatus;
-  }
-
 
   /**
    * Registers with a specific workflow element to be notified when the
@@ -280,16 +253,13 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   {
     this.workflowElementID = workflowElementID;
     this.workflowElementTypeInfo = workflowElementTypeInfo;
-    this.statistics = this.createStatistics();
-    if (this.statistics != null) {
-      DirectoryServer.registerMonitorProvider(this.statistics);
-    }
   }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void update(Observable o, Object arg)
   {
     // By default, do nothing when notification hits the workflow element.
@@ -340,10 +310,6 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    */
   public void finalizeWorkflowElement()
   {
-    // Deregister the monitor provider.
-    if (statistics != null) {
-      DirectoryServer.deregisterMonitorProvider(statistics);
-    }
   }
 
   /**
@@ -392,97 +358,5 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   public String getWorkflowElementID()
   {
     return workflowElementID;
-  }
-
-
-  /**
-   * Modifies the saturation index of the workflow element.
-   *
-   * @param  newValue
-   *         The new value of the saturation index of the workflow element.
-   */
-  public void setSaturationIndex(int newValue)
-  {
-    observableStatus.setSaturationIndex(newValue);
-  }
-
-
-  /**
-   * Gets the saturation index of the workflow element.
-   *
-   * @return  the value of the saturation index of the workflow element.
-   */
-  public int getSaturationIndex()
-  {
-    return observableStatus.getSaturationIndex();
-  }
-
-
-  /**
-   * Registers an observer with the saturation index of the workflow
-   * element. The observer will be notified when the saturation index
-   * is updated.
-   *
-   * @param  observer
-   *         The observer to notify when the saturation index is modified.
-   */
-  public void registerForSaturationIndexUpdate(Observer observer)
-  {
-    observableStatus.addObserver(observer);
-  }
-
-
-  /**
-   * Deregisters an observer with the saturation index of the workflow
-   * element.
-   *
-   * @param  observer
-   *         The observer to deregister.
-   */
-  public void deregisterForSaturationIndexUpdate(Observer observer)
-  {
-    observableStatus.deleteObserver(observer);
-  }
-
-  /**
-   * Retrieves the list of child workflow elements, ie the
-   * WorkflowElements below this one in the topology tree.
-   *
-   * @return child workflow elements
-   */
-  public abstract List<WorkflowElement<?>> getChildWorkflowElements();
-
-  /**
-   * Checks whether the tree of workflow elements below this one
-   * contains the provided workflow element.
-   *
-   * @param element The WorkflowElement we are looking for in the topology
-   *        below this object.
-   * @return boolean
-   */
-  public boolean hasChildWorkflowElement(WorkflowElement<?> element) {
-    if (this.getChildWorkflowElements().size() == 0) {
-      return (this.equals(element));
-    }
-
-    for (WorkflowElement<?> subElement : this.getChildWorkflowElements()) {
-      if (subElement.equals(element) ||
-          subElement.hasChildWorkflowElement(element)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Creates the statistics exposed by the workflow element. By default,
-   * workflow elements do not expose anything but specific implementations
-   * can override this method and provide their own stats.
-   * @return the statistics exposed by the workflow element.
-   */
-  public MonitorProvider<MonitorProviderCfg> createStatistics() {
-    // by default, no stats are created;
-    // This method should be overriden if necessary
-    return null;
   }
 }

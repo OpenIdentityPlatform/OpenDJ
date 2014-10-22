@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.opends.server.core.networkgroups;
-
-
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,31 +36,12 @@ import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
-
-
 /**
  * A connection criteria which matches connections authenticated using a
  * permitted bind DN.
  */
 final class BindDNConnectionCriteria implements ConnectionCriteria
 {
-
-  /**
-   * Creates a new bind DN connection criteria using the provided DN
-   * patterns.
-   *
-   * @param patterns
-   *          The DN patterns.
-   * @return The new bind DN connection criteria.
-   */
-  public static BindDNConnectionCriteria create(
-      Collection<PatternDN> patterns)
-  {
-    return new BindDNConnectionCriteria(new ArrayList<PatternDN>(
-        patterns));
-  }
-
-
 
   /**
    * Creates a new bind DN connection criteria using the provided DN
@@ -94,8 +74,13 @@ final class BindDNConnectionCriteria implements ConnectionCriteria
 
 
 
-  // Private constructor.
-  private BindDNConnectionCriteria(List<PatternDN> patterns)
+  /**
+   * Creates a new bind DN connection criteria using the provided DN patterns.
+   *
+   * @param patterns
+   *          The DN patterns.
+   */
+  BindDNConnectionCriteria(List<PatternDN> patterns)
   {
     this.patterns = patterns;
   }
@@ -105,6 +90,7 @@ final class BindDNConnectionCriteria implements ConnectionCriteria
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean matches(ClientConnection connection)
   {
     DN dn = connection.getAuthenticationInfo().getAuthenticationDN();
@@ -116,6 +102,7 @@ final class BindDNConnectionCriteria implements ConnectionCriteria
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean willMatchAfterBind(ClientConnection connection,
       DN bindDN, AuthenticationType authType, boolean isSecure)
   {

@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -41,13 +43,11 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.WorkflowElementCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.WorkflowElementCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 
@@ -65,8 +65,6 @@ public class WorkflowElementConfigManager
 
 {
 
-  private final ServerContext serverContext;
-
   /**
    * Creates a new instance of this workflow config manager.
    *
@@ -75,7 +73,6 @@ public class WorkflowElementConfigManager
    */
   public WorkflowElementConfigManager(ServerContext serverContext)
   {
-    this.serverContext = serverContext;
   }
 
   /**
@@ -144,6 +141,7 @@ public class WorkflowElementConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       WorkflowElementCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -175,6 +173,7 @@ public class WorkflowElementConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       WorkflowElementCfg configuration)
   {
@@ -215,6 +214,7 @@ public class WorkflowElementConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       WorkflowElementCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -229,6 +229,7 @@ public class WorkflowElementConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       WorkflowElementCfg configuration)
   {
@@ -263,6 +264,7 @@ public class WorkflowElementConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       WorkflowElementCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -294,6 +296,7 @@ public class WorkflowElementConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       WorkflowElementCfg configuration)
   {
@@ -418,7 +421,6 @@ public class WorkflowElementConfigManager
       // I cannot use the parameterized type WorflowElement<?>
       // because it would break the line WorkflowElement.class below.
       // Use SuppressWarning because we know the cast is safe.
-      @SuppressWarnings("unchecked")
       Class<? extends WorkflowElement>    workflowElementClass;
 
       definition = WorkflowElementCfgDefn.getInstance();

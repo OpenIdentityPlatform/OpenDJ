@@ -9130,30 +9130,6 @@ public final class DirectoryServer
   }
 
   /**
-   * Return the WorkflowElement associated with a name and try to
-   * create it if it does not exists yet.
-   *
-   * @param workflowElementID the name of the requested workflow element
-   * @return the associated workflow element
-   * @throws ConfigException if the configuration is invalid
-   * @throws InitializationException if the initialization failed
-   */
-  public static WorkflowElement getOrCreateWorkflowElement(
-          String workflowElementID)
-    throws ConfigException, InitializationException {
-
-    WorkflowElement we = directoryServer.workflowElements.get(
-      workflowElementID);
-
-    if (we == null) {
-      we = directoryServer.workflowElementConfigManager.
-        loadAndRegisterWorkflowElement(workflowElementID);
-    }
-
-    return we;
-  }
-
-  /**
    * Registers the provided workflow element from the Directory Server.
    *
    * @param  we  The workflow element to register. It must not be
@@ -9196,16 +9172,6 @@ public final class DirectoryServer
     {
       directoryServer.workflowElements.remove(workflowElementID);
     }
-  }
-
-  /**
-   * Verifies if the provided workflow element ID is already registered.
-   *
-   * @param workflowElementID workflow element identifier
-   * @return boolean indicating if workflow element is already registered
-   */
-  public static boolean isWorkflowElementRegistered(String workflowElementID) {
-    return directoryServer.workflowElements.containsKey(workflowElementID);
   }
 
   /**
