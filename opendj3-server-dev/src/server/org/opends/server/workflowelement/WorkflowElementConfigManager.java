@@ -189,11 +189,7 @@ public class WorkflowElementConfigManager
     {
       try
       {
-        WorkflowElement<?> we = loadAndRegisterWorkflowElement(configuration);
-
-        // Notify observers who want to be notify when new workflow elements
-        // are created.
-        WorkflowElement.notifyStateUpdate(we);
+        loadAndRegisterWorkflowElement(configuration);
       }
       catch (InitializationException de)
       {
@@ -336,11 +332,7 @@ public class WorkflowElementConfigManager
     {
       try
       {
-        WorkflowElement<?> we = loadAndRegisterWorkflowElement(configuration);
-
-        // Notify observers who want to be notify when new workflow elements
-        // are created.
-        WorkflowElement.notifyStateUpdate(we);
+        loadAndRegisterWorkflowElement(configuration);
       }
       catch (InitializationException de)
       {

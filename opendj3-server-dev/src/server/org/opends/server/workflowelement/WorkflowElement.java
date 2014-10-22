@@ -51,28 +51,17 @@ import org.opends.server.types.Operation;
 public abstract class WorkflowElement <T extends WorkflowElementCfg>
     implements Observer
 {
-  // Indicates whether the workflow element encapsulates a private local
-  // backend.
-  private boolean isPrivate = false;
 
-
-  // An information indicating the type of the current workflow element.
-  // This information is for debug and tooling purpose only.
-  private String workflowElementTypeInfo = "not defined";
-
-
-  // The workflow element identifier.
-  private String workflowElementID = null;
-
-
-  // The observable state of the workflow element.
+  /** The observable state of the workflow element. */
   private ObservableWorkflowElementState observableState =
     new ObservableWorkflowElementState(this);
 
 
-  // The list of observers who want to be notified when a workflow element
-  // required by the observer is created. The key of the map is a string
-  // that identifies the newly created workflow element.
+  /**
+   * The list of observers who want to be notified when a workflow element
+   * required by the observer is created. The key of the map is a string that
+   * identifies the newly created workflow element.
+   */
   private static ConcurrentMap<String, List<Observer>>
     newWorkflowElementNotificationList =
       new ConcurrentHashMap<String, List<Observer>>();
@@ -85,7 +74,7 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    *
    * @return the observable state of the workflow element
    */
-  protected ObservableWorkflowElementState getObservableState()
+  protected final ObservableWorkflowElementState getObservableState()
   {
     return observableState;
   }
@@ -194,88 +183,11 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
     }
   }
 
-
-  /**
-   * Notifies all the observers who want to be warn when a workflow element
-   * is created.
-   *
-   * @param workflowElement  the newly created workflow element
-   */
-  public static void notifyStateUpdate(
-      WorkflowElement<?> workflowElement)
-  {
-    // Go through the list of observers and notify them all
-    String weID = workflowElement.getWorkflowElementID();
-
-    List<Observer> observers = newWorkflowElementNotificationList.get(weID);
-    if (observers != null)
-    {
-      for (Observer observer: observers)
-      {
-        // The update might fail because an observer could have been
-        // terminated. In this case, just ignore the failure and remove
-        // the observer from the list of objects to notify.
-        try
-        {
-          observer.update(workflowElement.getObservableState(), null);
-        }
-        catch(Exception e)
-        {
-          observers.remove(observer);
-        }
-      }
-    }
-  }
-
-
-  /**
-   * Creates a new instance of the workflow element.
-   */
-  public WorkflowElement()
-  {
-    // There is nothing to do in the constructor.
-  }
-
-
-  /**
-   * Initializes the instance of the workflow element.
-   *
-   * @param workflowElementID  the workflow element identifier as defined
-   *                           in the configuration.
-   * @param workflowElementTypeInfo  an information to indicate the type of
-   *                                 the current workflow element. For example
-   *                                 "Backend" if the current workflow element
-   *                                 is a local backend workflow element.
-   */
-  public void initialize(
-      String workflowElementID,
-      String workflowElementTypeInfo)
-  {
-    this.workflowElementID = workflowElementID;
-    this.workflowElementTypeInfo = workflowElementTypeInfo;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void update(Observable o, Object arg)
+  public final void update(Observable o, Object arg)
   {
     // By default, do nothing when notification hits the workflow element.
-  }
-
-
-  /**
-   * Get the type of the workflow element. The type is a string information
-   * indicating which type is the current workflow element. This information
-   * is intended to be used by tools for trace and debug purpose.
-   *
-   * @return the type of the workflow element.
-   */
-  public String getWorkflowElementTypeInfo()
-  {
-    return this.workflowElementTypeInfo;
   }
 
 
@@ -292,7 +204,7 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    * @return  {@code true} if the provided configuration is acceptable
    *          for this workflow element, or {@code false} if not.
    */
-  public boolean isConfigurationAcceptable(
+  public final boolean isConfigurationAcceptable(
       T configuration,
       List<String> unacceptableReasons)
   {
@@ -308,9 +220,7 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    * workflow element is unloaded.  No action is taken in the default
    * implementation.
    */
-  public void finalizeWorkflowElement()
-  {
-  }
+  public abstract void finalizeWorkflowElement();
 
   /**
    * Executes the workflow element for an operation.
@@ -331,32 +241,12 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    * @return <code>true</code> if the workflow element encapsulates a private
    *         local backend, <code>false</code> otherwise
    */
-  public boolean isPrivate()
-  {
-    return isPrivate;
-  }
-
-
-  /**
-   * Specifies whether the workflow element encapsulates a private local
-   * backend.
-   *
-   * @param  isPrivate  Indicates whether the workflow element encapsulates a
-   *                    private local backend.
-   */
-  protected void setPrivate(boolean isPrivate)
-  {
-    this.isPrivate = isPrivate;
-  }
-
+  public abstract boolean isPrivate();
 
   /**
    * Provides the workflow element identifier.
    *
    * @return the workflow element identifier
    */
-  public String getWorkflowElementID()
-  {
-    return workflowElementID;
-  }
+  public abstract String getWorkflowElementID();
 }

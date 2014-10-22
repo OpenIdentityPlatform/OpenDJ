@@ -81,17 +81,6 @@ abstract class ResourceLimitsPolicy extends QOSPolicy
    */
   abstract int getSizeLimit();
 
-
-
-  /**
-   * Returns the statistics associated with this resource limits policy.
-   *
-   * @return The statistics associated with this resource limits policy.
-   */
-  abstract ResourceLimitsPolicyStatistics getStatistics();
-
-
-
   /**
    * Returns the maximum length of time in seconds permitted for a
    * search operation processed by this network group.

@@ -50,19 +50,6 @@ abstract class RequestFilteringPolicy extends QOSPolicy
     // No implementation required.
   }
 
-
-
-  /**
-   * Returns the statistics associated with this request filtering
-   * policy.
-   *
-   * @return The statistics associated with this request filtering
-   *         policy.
-   */
-  abstract RequestFilteringPolicyStatistics getStatistics();
-
-
-
   /**
    * Determines if the provided operation is allowed according to this
    * request filtering policy.
