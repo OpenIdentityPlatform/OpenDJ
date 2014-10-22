@@ -345,7 +345,8 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             break;
 
         case 'Z':
-            // This is fine only if we are at the end of the value.
+        case 'z':
+                // This is fine only if we are at the end of the value.
             if (length == 11) {
                 final TimeZone tz = TIME_ZONE_UTC_OBJ;
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
@@ -415,6 +416,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             break;
 
         case 'Z':
+        case 'z':
             // This is fine only if we are at the end of the value.
             if (length == 13) {
                 final TimeZone tz = TIME_ZONE_UTC_OBJ;
@@ -454,6 +456,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                     1000);
 
         case 'Z':
+        case 'z':
             // This is fine only if we are at the end of the value.
             if (length == 15) {
                 final TimeZone tz = TIME_ZONE_UTC_OBJ;
@@ -616,6 +619,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 break;
 
             case 'Z':
+            case 'z':
                 // This is only acceptable if we're at the end of the value.
                 if (i != (value.length() - 1)) {
                     final LocalizableMessage message =
