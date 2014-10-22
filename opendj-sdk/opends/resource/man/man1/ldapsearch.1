@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: ldapsearch
 .\"    Author: 
-.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 10/23/2013
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 10/22/2014
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.7.0-SNAPSHOT
+.\"    Source: OpenDJ 3.0.0
 .\"  Language: English
 .\"
-.TH "LDAPSEARCH" "1" "10/23/2013" "OpenDJ 2\&.7\&.0\-SNAPSHOT" "Tools Reference"
+.TH "LDAPSEARCH" "1" "10/22/2014" "OpenDJ 3\&.0\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -392,6 +392,11 @@ Return all attributes of the specified object class, where
 \fIobjectclass\fR
 is one of the object classes on the entries returned by the search\&.
 .RE
+.PP
+1\&.1
+.RS 4
+Return no attributes, only the DNs of matching entries\&.
+.RE
 .SH "EXIT CODES"
 .PP
 0
@@ -430,6 +435,7 @@ ldapdelete\&.port=1389
 ldapmodify\&.port=1389
 ldappasswordmodify\&.port=1389
 ldapsearch\&.port=1389
+  
 .fi
 .if n \{\
 .RE
@@ -443,7 +449,7 @@ jensen, returning only DNs and uid values\&.
 .RS 4
 .\}
 .nf
-$ ldapsearch \-p 1389 \-b dc=example,dc=com "(uid=*jensen*)" uid
+$ \fBldapsearch \-p 1389 \-b dc=example,dc=com "(uid=*jensen*)" uid\fR
 dn: uid=ajensen,ou=People,dc=example,dc=com
 uid: ajensen
 
@@ -467,6 +473,7 @@ uid: tjensen
 
 
 Result Code:  0 (Success)
+  
 .fi
 .if n \{\
 .RE
@@ -482,7 +489,7 @@ object class\&.
 .RS 4
 .\}
 .nf
-$ ldapsearch \-p 1389 \-b dc=example,dc=com "(uid=bjensen)" @inetorgperson
+$ \fBldapsearch \-p 1389 \-b dc=example,dc=com "(uid=bjensen)" @inetorgperson\fR
 dn: uid=bjensen,ou=People,dc=example,dc=com
 givenName: Barbara
 objectClass: person
@@ -501,6 +508,7 @@ l: Cupertino
 ou: Product Development
 ou: People
 facsimileTelephoneNumber: +1 408 555 1992
+  
 .fi
 .if n \{\
 .RE
@@ -514,7 +522,7 @@ in the attribute list to return all operational attributes, as in the following 
 .RS 4
 .\}
 .nf
-$ ldapsearch \-p 1389 \-b dc=example,dc=com "(uid=bjensen)" +
+$ \fBldapsearch \-p 1389 \-b dc=example,dc=com "(uid=bjensen)" +\fR
 dn: uid=bjensen,ou=People,dc=example,dc=com
 numSubordinates: 0
 structuralObjectClass: inetOrgPerson
@@ -524,11 +532,12 @@ subschemaSubentry: cn=schema
 hasSubordinates: false
 entryDN: uid=bjensen,ou=people,dc=example,dc=com
 entryUUID: fc252fd9\-b982\-3ed6\-b42a\-c76d2546312c
+  
 .fi
 .if n \{\
 .RE
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2013 ForgeRock AS
+Copyright \(co 2011-2014 ForgeRock AS
 .br
