@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: ldifsearch
 .\"    Author: 
-.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 10/16/2012
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 10/22/2014
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 3.0.0
 .\"  Language: English
 .\"
-.TH "LDIFSEARCH" "1" "10/16/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDIFSEARCH" "1" "10/22/2014" "OpenDJ 3\&.0\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -131,6 +131,11 @@ Return all attributes of the specified object class, where
 \fIobjectclass\fR
 is one of the object classes on the entries returned by the search\&.
 .RE
+.PP
+1\&.1
+.RS 4
+Return no attributes, only the DNs of matching entries\&.
+.RE
 .SH "EXIT CODES"
 .PP
 0
@@ -150,7 +155,7 @@ The following example demonstrates use of the command\&.
 .RS 4
 .\}
 .nf
-$ ldifsearch \-l /path/to/Example\&.ldif \-b dc=example,dc=com uid=bjensen
+$ \fBldifsearch \-l /path/to/Example\&.ldif \-b dc=example,dc=com uid=bjensen\fR
 dn: uid=bjensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -173,6 +178,7 @@ ou: Product Development
 ou: People
 uidNumber: 1076
 gidNumber: 1000
+  
 .fi
 .if n \{\
 .RE
@@ -188,8 +194,8 @@ object class\&.
 .RS 4
 .\}
 .nf
-$ ldifsearch \-\-ldifFile /path/to/Example\&.ldif
- \-\-baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount
+$ \fBldifsearch \-\-ldifFile /path/to/Example\&.ldif \e
+ \-\-baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount\fR
 dn: uid=bjensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
@@ -203,11 +209,12 @@ cn: Babs Jensen
 homeDirectory: /home/bjensen
 uidNumber: 1076
 gidNumber: 1000
+  
 .fi
 .if n \{\
 .RE
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2014 ForgeRock AS
 .br
