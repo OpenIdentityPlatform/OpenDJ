@@ -47,10 +47,14 @@
    <secondary>Checking supported features</secondary>
   </indexterm>
 
-  <para>The directory entry with distinguished name <literal>""</literal> (empty
-  string) is called the <firstterm>root DSE</firstterm>. DSE stands for
-  DSA-Specific Entry. DSA stands for Directory Server Agent, a single
-  directory server.</para>
+  <para>
+   The directory entry with distinguished name
+   <literal>""</literal> (empty string)
+   is called the <firstterm>root DSE</firstterm>.
+   DSE stands for DSA-Specific Entry.
+   DSA stands for Directory System Agent.
+   The DSE is a different entry on each server.
+  </para>
 
   <para>The root DSE serves to expose information over LDAP about what the
   directory server supports in terms of LDAP controls, auth password schemes,
