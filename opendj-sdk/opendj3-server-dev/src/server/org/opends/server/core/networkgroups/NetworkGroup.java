@@ -431,7 +431,7 @@ public class NetworkGroup
    *          The network group ID.
    * @return The network group, of <code>null</code> if no match was found.
    */
-  public static NetworkGroup getNetworkGroup(String networkGroupID)
+  static NetworkGroup getNetworkGroup(String networkGroupID)
   {
     return registeredNetworkGroups.get(networkGroupID);
   }
@@ -1038,7 +1038,7 @@ public class NetworkGroup
    * group is unloaded. No action is taken in the default
    * implementation.
    */
-  public void finalizeNetworkGroup()
+  void finalizeNetworkGroup()
   {
     if (configuration != null)
     {
@@ -1125,7 +1125,7 @@ public class NetworkGroup
    *         the specified class, or <code>null</code> if none was
    *         found.
    */
-  public <T extends QOSPolicy> T getNetworkGroupQOSPolicy(Class<T> clazz)
+  <T extends QOSPolicy> T getNetworkGroupQOSPolicy(Class<T> clazz)
   {
     for (QOSPolicy policy : policies.values())
     {
@@ -1134,7 +1134,6 @@ public class NetworkGroup
         return clazz.cast(policy);
       }
     }
-
     return null;
   }
 
@@ -1300,50 +1299,6 @@ public class NetworkGroup
       }
     }
   }
-
-
-
-  /**
-   * Returns the request filtering policy statistics associated with
-   * this network group.
-   *
-   * @return The request filtering policy statistics associated with
-   *         this network group.
-   */
-  RequestFilteringPolicyStatistics getRequestFilteringPolicyStatistics()
-  {
-    if (requestFilteringPolicy != null)
-    {
-      return requestFilteringPolicy.getStatistics();
-    }
-    else
-    {
-      return null;
-    }
-  }
-
-
-
-  /**
-   * Returns the resource limits policy statistics associated with this
-   * network group.
-   *
-   * @return The resource limits policy statistics associated with this
-   *         network group.
-   */
-  ResourceLimitsPolicyStatistics getResourceLimitsPolicyStatistics()
-  {
-    if (resourceLimitsPolicy != null)
-    {
-      return resourceLimitsPolicy.getStatistics();
-    }
-    else
-    {
-      return null;
-    }
-  }
-
-
 
   /**
    * Registers the current network group (this) with the server.

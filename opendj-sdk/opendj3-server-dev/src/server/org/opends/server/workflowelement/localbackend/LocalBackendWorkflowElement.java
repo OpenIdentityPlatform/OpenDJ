@@ -63,9 +63,17 @@ public class LocalBackendWorkflowElement extends
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * An information indicating the type of the current workflow element. This
+   * information is for debug and tooling purpose only.
+   */
+  private String workflowElementTypeInfo = "not defined";
+
+  /** The workflow element identifier. */
+  private String workflowElementID;
+
   /** the backend associated with the local workflow element. */
   private Backend<?> backend;
-
 
   /** the set of local backend workflow elements registered with the server. */
   private static TreeMap<String, LocalBackendWorkflowElement>
@@ -104,16 +112,17 @@ public class LocalBackendWorkflowElement extends
    */
   private void initialize(String workflowElementID, Backend<?> backend)
   {
-    super.initialize(workflowElementID, BACKEND_WORKFLOW_ELEMENT);
-
+    this.workflowElementID = workflowElementID;
+    this.workflowElementTypeInfo = BACKEND_WORKFLOW_ELEMENT;
     this.backend  = backend;
-
-    if (this.backend != null)
-    {
-      setPrivate(this.backend.isPrivateBackend());
-    }
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public boolean isPrivate()
+  {
+    return this.backend != null && this.backend.isPrivateBackend();
+  }
 
   /**
    * Initializes a new instance of the local backend workflow element.
@@ -148,7 +157,8 @@ public class LocalBackendWorkflowElement extends
   public void finalizeWorkflowElement()
   {
     // null all fields so that any use of the finalized object will raise a NPE
-    super.initialize(null, null);
+    this.workflowElementID = null;
+    this.workflowElementTypeInfo = null;
     backend = null;
   }
 
@@ -219,14 +229,9 @@ public class LocalBackendWorkflowElement extends
       // Get the new configuration
       if (applyChanges)
       {
-        super.initialize(
-          configuration.dn().rdn().getAttributeValue(0).toString(),
-          BACKEND_WORKFLOW_ELEMENT);
-        backend = newBackend;
-        if (backend != null)
-        {
-          setPrivate(backend.isPrivateBackend());
-        }
+        initialize(
+            configuration.dn().rdn().getAttributeValue(0).toString(),
+            newBackend);
       }
     }
 
@@ -722,7 +727,16 @@ public class LocalBackendWorkflowElement extends
                                   newAttachment);
   }
 
-
+  /**
+   * Provides the workflow element identifier.
+   *
+   * @return the workflow element identifier
+   */
+  @Override
+  public String getWorkflowElementID()
+  {
+    return workflowElementID;
+  }
 
   /**
    * Gets the backend associated with this local backend workflow
@@ -799,7 +813,7 @@ public class LocalBackendWorkflowElement extends
   {
     return getClass().getSimpleName()
         + " backend=" + backend
-        + " workflowElementID=" + getWorkflowElementID()
-        + " workflowElementTypeInfo=" + getWorkflowElementTypeInfo();
+        + " workflowElementID=" + this.workflowElementID
+        + " workflowElementTypeInfo=" + this.workflowElementTypeInfo;
   }
 }
