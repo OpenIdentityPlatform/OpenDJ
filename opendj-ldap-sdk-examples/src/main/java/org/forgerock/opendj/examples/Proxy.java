@@ -122,7 +122,8 @@ public final class Proxy {
         final RequestHandlerFactory<LDAPClientContext, RequestContext> proxyFactory =
                 new RequestHandlerFactory<LDAPClientContext, RequestContext>() {
                     @Override
-                    public ProxyBackend handleAccept(LDAPClientContext clientContext) throws LdapException {
+                    public ProxyBackend handleAccept(LDAPClientContext clientContext)
+                            throws LdapException {
                         return new ProxyBackend(factory, bindFactory);
                     }
                 };

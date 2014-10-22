@@ -28,7 +28,8 @@
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
  xsi:schemaLocation='http://docbook.org/ns/docbook
                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'>
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Getting OpenDJ LDAP SDK</title>
 
  <para>This chapter introduces OpenDJ LDAP SDK, demonstrating how to get the
@@ -96,43 +97,12 @@
    <para>Let that expensive computer you bought do the work.</para>
 
    <step>
-    <para>Include the ForgeRock repository in your list, and include the SDK
-    as a dependency.</para>
+    <para>
+     Include the ForgeRock repository in your list,
+     and include SDK and SLF4J dependencies.
+    </para>
 
-    <programlisting language="xml">&lt;repositories&gt;
-  &lt;repository&gt;
-    &lt;id&gt;forgerock-staging-repository&lt;/id&gt;
-    &lt;name&gt;ForgeRock Release Repository&lt;/name&gt;
-    &lt;url&gt;${mavenRepoReleases}&lt;/url&gt;
-    &lt;snapshots&gt;
-      &lt;enabled&gt;false&lt;/enabled&gt;
-    &lt;/snapshots&gt;
-  &lt;/repository&gt;
-  &lt;repository&gt;
-    &lt;id&gt;forgerock-snapshots-repository&lt;/id&gt;
-    &lt;name&gt;ForgeRock Snapshot Repository&lt;/name&gt;
-    &lt;url&gt;${mavenRepoSnapshots}&lt;/url&gt;
-    &lt;releases&gt;
-      &lt;enabled&gt;false&lt;/enabled&gt;
-    &lt;/releases&gt;
-  &lt;/repository&gt;
-&lt;/repositories&gt;
-
-...
-
-&lt;dependencies&gt;
-  &lt;dependency&gt;
-    &lt;groupId&gt;${project.groupId}&lt;/groupId&gt;
-    &lt;artifactId&gt;opendj-core&lt;/artifactId&gt;
-    &lt;version&gt;<?eval ${docTargetVersion}?>&lt;/version&gt;
-  &lt;/dependency&gt;
-  &lt;dependency&gt;
-    &lt;groupId&gt;${project.groupId}&lt;/groupId&gt;
-    &lt;artifactId&gt;opendj-grizzly&lt;/artifactId&gt;
-    &lt;version&gt;<?eval ${docTargetVersion}?>&lt;/version&gt;
-  &lt;/dependency&gt;
-&lt;/dependencies&gt;
-	</programlisting>
+    <xinclude:include href="../shared/programlisting-get-sdk.xml" />
    </step>
   </procedure>
 
@@ -195,23 +165,6 @@ Checked out revision <replaceable>XXXX</replaceable>.</computeroutput>
     <screen>
 $ <userinput>cd opendj/</userinput>
 $ <userinput>mvn install</userinput>
-<computeroutput>[INFO] Scanning for projects...
-[INFO] ------------------------------------------------------------------------
-[INFO] Reactor Build Order:
-[INFO] 
-[INFO] OpenDJ Directory Services Project
-[INFO] OpenDJ Core APIs
-[INFO] OpenDJ Grizzly Transport Provider
-[INFO] OpenDJ SDK
-[INFO] OpenDJ SDK Toolkit
-       ...
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time: 2:51.315s
-[INFO] Finished at: Wed Apr 10 14:28:36 CEST 2013
-[INFO] Final Memory: 37M/382M
-[INFO] ------------------------------------------------------------------------</computeroutput>
     </screen>
    </step>
    <step>

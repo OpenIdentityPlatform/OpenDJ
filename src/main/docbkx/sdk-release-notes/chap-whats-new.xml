@@ -34,6 +34,23 @@
   <para>
    This release provides the following new features and enhancements.
   </para>
-  
-  <para>TODO</para><!-- https://github.com/markcraig/release-notes-list-builder -->
+
+  <itemizedlist>
+   <listitem>
+    <para>
+     TODO
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     The SDK now supports Promises rather than Futures,
+     easing development of asynchronous client applications
+     (<link
+      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1285"
+      xlink:show="new"
+     >OPENDJ-1285</link>).
+    </para>
+   </listitem>
+  </itemizedlist>
 </chapter>

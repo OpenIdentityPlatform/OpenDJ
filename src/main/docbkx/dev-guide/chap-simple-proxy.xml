@@ -160,20 +160,27 @@ final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</progr
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.Proxy:--- JCite listener ---]</programlisting>
 
-  <para>You get a <literal>ServerConnectionFactory</literal> to handle requests
-  coming from clients. The <literal>ServerConnectionFactory</literal> takes a
-  request handler that deals with the incoming client requests. The request
-  handler implements handlers for all supported operations. The Proxy example
-  implements a <literal>ProxyBackend</literal> to handle requests. The
-  <literal>ProxyBackend</literal> sends the requests on to the backend
-  directory servers and routes the results returned back to client
-  applications.</para>
+  <para>
+   The connection handler is a <literal>ServerConnectionFactory</literal>
+   to handle requests coming from clients.
+   The factory takes a request handler implementation
+   that deals with all supported incoming client requests.
+   The Proxy example uses a <literal>ProxyBackend</literal> to handle requests.
+   The <literal>ProxyBackend</literal> sends the requests on
+   to the backend directory servers
+   and routes the results returned back to client applications.
+  </para>
 
   <programlisting language="java"
   >[jcp:org.forgerock.opendj.examples.Proxy:--- JCite backend ---]</programlisting>
 
-  <para>See the Proxy example code for details about the
-  <literal>ProxyBackend</literal> implementation.</para>
+  <para>
+   For details about the <literal>ProxyBackend</literal> implementation, see
+   <link
+    xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ProxyBackend.html"
+    xlink:show="new"
+   >ProxyBackend.java</link>.
+  </para>
  </section>
 
  <section xml:id="dn-attr-rewriting">
