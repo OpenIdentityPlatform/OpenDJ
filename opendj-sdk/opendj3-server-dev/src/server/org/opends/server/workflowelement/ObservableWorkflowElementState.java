@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.opends.server.workflowelement;
 
+import java.util.Observable;
 
 /**
  * This class implements an observable workflow element state.
@@ -32,13 +34,13 @@ package org.opends.server.workflowelement;
  * state of the workflow element has changed. Typically, observers are
  * notified when a workflow element is enabled or disabled.
  */
-public class ObservableWorkflowElementState
-    extends ObservableWorkflowElement
+public class ObservableWorkflowElementState extends Observable
 {
   // The "enabled" state of the observed workflow element.
   // By default, a workflow element is enabled (otherwise this
   // instance of workflow element state would not exist).
   private boolean enabled = true;
+  private final WorkflowElement<?> observedWorkflowElement;
 
 
   /**
@@ -48,10 +50,9 @@ public class ObservableWorkflowElementState
    * @param  observedWorkflowElement
    *         The workflow element to observe.
    */
-  public ObservableWorkflowElementState(
-      WorkflowElement<?> observedWorkflowElement)
+  ObservableWorkflowElementState(WorkflowElement<?> observedWorkflowElement)
   {
-    super(observedWorkflowElement);
+    this.observedWorkflowElement = observedWorkflowElement;
   }
 
 
@@ -61,8 +62,7 @@ public class ObservableWorkflowElementState
    *
    * @param enabled  the new "enabled" state of the observed workflow element
    */
-  public void setWorkflowElementEnabled(
-      boolean enabled)
+  public void setWorkflowElementEnabled(boolean enabled)
   {
     if (this.enabled != enabled)
     {
@@ -80,5 +80,16 @@ public class ObservableWorkflowElementState
   public boolean workflowElementIsEnabled()
   {
     return enabled;
+  }
+
+
+  /**
+   * Gets the observed workflow element.
+   *
+   * @return the observed workflow element.
+   */
+  public WorkflowElement<?> getObservedWorkflowElement()
+  {
+    return observedWorkflowElement;
   }
 }

@@ -33,22 +33,22 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalBackendWorkflowElementCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.workflowelement.LeafWorkflowElement;
+import org.opends.server.workflowelement.WorkflowElement;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -58,7 +58,7 @@ import static org.opends.server.config.ConfigConstants.*;
  * handle the processing of an operation against a local backend.
  */
 public class LocalBackendWorkflowElement extends
-    LeafWorkflowElement<LocalBackendWorkflowElementCfg>
+    WorkflowElement<LocalBackendWorkflowElementCfg>
     implements ConfigurationChangeListener<LocalBackendWorkflowElementCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

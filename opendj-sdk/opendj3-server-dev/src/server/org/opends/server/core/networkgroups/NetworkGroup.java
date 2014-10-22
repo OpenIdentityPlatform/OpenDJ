@@ -26,11 +26,6 @@
  */
 package org.opends.server.core.networkgroups;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.forgerock.util.Reject.*;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -56,13 +52,11 @@ import org.opends.server.admin.std.server.QOSPolicyCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.QOSPolicy;
 import org.opends.server.api.QOSPolicyFactory;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.WorkflowTopologyNode;
-import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -70,6 +64,11 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.workflowelement.WorkflowElement;
+
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines the network group. A network group is used to
@@ -299,7 +298,7 @@ public class NetworkGroup
       new TreeMap<String, NetworkGroup>();
 
   // A lock to protect concurrent access to the registeredNetworkGroups.
-  private static Object registeredNetworkGroupsLock = new Object();
+  private static final Object registeredNetworkGroupsLock = new Object();
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
@@ -799,11 +798,6 @@ public class NetworkGroup
   // is not stored in the list of registered workflow nodes.
   private RootDseWorkflowTopology rootDSEWorkflowNode = null;
 
-  // The network group statistics.
-  private final NetworkGroupStatistics statistics;
-
-
-
   /**
    * Creates a new system network group using the provided ID.
    *
@@ -819,7 +813,6 @@ public class NetworkGroup
         ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
     this.isDefaultNetworkGroup =
         DEFAULT_NETWORK_GROUP_NAME.equals(networkGroupID);
-    this.statistics = new NetworkGroupStatistics(this);
     this.configuration = null;
     this.changeListener = null;
     this.policyListener = null;
@@ -836,7 +829,6 @@ public class NetworkGroup
     this.isInternalNetworkGroup = false;
     this.isAdminNetworkGroup = false;
     this.isDefaultNetworkGroup = false;
-    this.statistics = new NetworkGroupStatistics(this);
     this.configuration = configuration;
     this.changeListener = new ChangeListener();
     this.policyListener = new QOSPolicyListener();
@@ -1073,8 +1065,6 @@ public class NetworkGroup
     resourceLimitsPolicy = null;
     criteria = ConnectionCriteria.TRUE;
     policies.clear();
-    // Remove the stats
-    statistics.finalizeStatistics();
   }
 
 
@@ -1278,21 +1268,6 @@ public class NetworkGroup
     }
   }
 
-
-
-  /**
-   * Updates the operations statistics.
-   *
-   * @param message
-   *          The LDAP message being processed
-   */
-  public void updateMessageRead(LDAPMessage message)
-  {
-    statistics.updateMessageRead(message);
-  }
-
-
-
   /**
    * Deregisters the current network group (this) with the server. The
    * method also decrements the reference counter of the workflows so
@@ -1477,46 +1452,6 @@ public class NetworkGroup
       }
     }
   }
-
-
-
-  /**
-   * Dumps info from the current network group for debug purpose.
-   * <p>
-   * This method is intended for testing only.
-   *
-   * @param leftMargin
-   *          white spaces used to indent traces
-   * @return a string buffer that contains trace information
-   */
-  StringBuilder toString(String leftMargin)
-  {
-    StringBuilder sb = new StringBuilder();
-    String newMargin = leftMargin + "   ";
-
-    sb.append(leftMargin + "Networkgroup (" + networkGroupID + "\n");
-    sb.append(leftMargin + "List of registered workflows:\n");
-    for (WorkflowTopologyNode node : registeredWorkflowNodes.values())
-    {
-      sb.append(node.toString(newMargin));
-    }
-
-    namingContexts.toString(leftMargin);
-
-    sb.append(leftMargin + "rootDSEWorkflow:\n");
-    if (rootDSEWorkflowNode == null)
-    {
-      sb.append(newMargin + "null\n");
-    }
-    else
-    {
-      sb.append(rootDSEWorkflowNode.toString(newMargin));
-    }
-
-    return sb;
-  }
-
-
 
   /**
    * Checks whether the base DN of a new workflow to register is present

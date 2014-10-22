@@ -26,8 +26,6 @@
  */
 package org.opends.server.protocols.ldap;
 
-
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -52,6 +50,7 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
@@ -61,7 +60,6 @@ import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.extensions.TLSCapableConnection;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
@@ -72,7 +70,6 @@ import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class defines an LDAP client connection, which is a type of
@@ -1624,7 +1621,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     if (keepStats)
     {
       statTracker.updateMessageRead(message);
-      this.getNetworkGroup().updateMessageRead(message);
     }
     operationsPerformed.getAndIncrement();
 

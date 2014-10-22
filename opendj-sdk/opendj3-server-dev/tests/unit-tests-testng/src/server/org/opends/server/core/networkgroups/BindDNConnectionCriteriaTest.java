@@ -26,8 +26,7 @@
  */
 package org.opends.server.core.networkgroups;
 
-
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,12 +38,11 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.authorization.dseecompat.PatternDN;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
-import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
+import static org.testng.Assert.*;
 
 /**
  * Unit tests for BindDNConnectionCriteria.
@@ -118,9 +116,8 @@ public class BindDNConnectionCriteriaTest extends
         new MockClientConnection(12345, false, clientBindDN,
             AllowedAuthMethod.SIMPLE);
 
-    BindDNConnectionCriteria criteria =
-        BindDNConnectionCriteria.create(allowedDNPatterns);
-    Assert.assertEquals(criteria.matches(client), expectedResult);
+    BindDNConnectionCriteria criteria = new BindDNConnectionCriteria(new ArrayList<PatternDN>(allowedDNPatterns));
+    assertEquals(criteria.matches(client), expectedResult);
   }
 
 
@@ -146,10 +143,8 @@ public class BindDNConnectionCriteriaTest extends
         new MockClientConnection(12345, false, DN.rootDN(),
             AllowedAuthMethod.ANONYMOUS);
 
-    BindDNConnectionCriteria criteria =
-        BindDNConnectionCriteria.create(allowedDNPatterns);
-    Assert
-        .assertEquals(criteria.willMatchAfterBind(client, clientBindDN,
+    BindDNConnectionCriteria criteria = new BindDNConnectionCriteria(new ArrayList<PatternDN>(allowedDNPatterns));
+    assertEquals(criteria.willMatchAfterBind(client, clientBindDN,
             AuthenticationType.SIMPLE, false), expectedResult);
   }
 
