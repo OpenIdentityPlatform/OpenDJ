@@ -176,7 +176,7 @@ public class CommandBuilder {
         for (final Argument arg : args) {
             // This CLI is always using SSL, and the argument has been removed from
             // the user interface
-            if (arg.getName().equals("useSSL")) {
+            if ("useSSL".equals(arg.getName())) {
                 continue;
             }
             String argName;

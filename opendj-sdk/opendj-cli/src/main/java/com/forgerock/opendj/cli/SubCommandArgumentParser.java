@@ -628,12 +628,12 @@ public class SubCommandArgumentParser extends ArgumentParser {
                         a = subCommand.getArgument(argName);
                     }
                     if (a == null) {
-                        if (argName.equals(OPTION_LONG_HELP)) {
+                        if (OPTION_LONG_HELP.equals(argName)) {
                             // "--help" will always be interpreted as requesting usage
                             // information.
                             getUsage(usageOutputStream);
                             return;
-                        } else if (argName.equals(OPTION_LONG_PRODUCT_VERSION)) {
+                        } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
                             // "--version" will always be interpreted as requesting usage
                             // information.
                             versionPresent = true;
@@ -685,11 +685,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     }
 
                     a.addValue(argValue);
-                } else {
-                    if (argValue != null) {
-                        throw new ArgumentException(
-                                ERR_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(origArgName));
-                    }
+                } else if (argValue != null) {
+                    throw new ArgumentException(
+                            ERR_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(origArgName));
                 }
             } else if (arg.startsWith("-")) {
                 // This indicates that we are using the 1-character name to reference
@@ -797,43 +795,41 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     }
 
                     a.addValue(argValue);
-                } else {
-                    if (argValue != null) {
-                        // If we've gotten here, then it means that we're in a scenario like
-                        // "-abc" where "a" is a valid argument that doesn't take a value.
-                        // However, this could still be valid if all remaining characters in
-                        // the value are also valid argument characters that don't take
-                        // values.
-                        int valueLength = argValue.length();
-                        for (int j = 0; j < valueLength; j++) {
-                            char c = argValue.charAt(j);
-                            Argument b = globalShortIDMap.get(c);
+                } else if (argValue != null) {
+                    // If we've gotten here, then it means that we're in a scenario like
+                    // "-abc" where "a" is a valid argument that doesn't take a value.
+                    // However, this could still be valid if all remaining characters in
+                    // the value are also valid argument characters that don't take
+                    // values.
+                    int valueLength = argValue.length();
+                    for (int j = 0; j < valueLength; j++) {
+                        char c = argValue.charAt(j);
+                        Argument b = globalShortIDMap.get(c);
+                        if (b == null) {
+                            if (subCommand == null) {
+                                throw new ArgumentException(
+                                        ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
+                            }
+                            b = subCommand.getArgument(c);
                             if (b == null) {
-                                if (subCommand == null) {
-                                    throw new ArgumentException(
-                                            ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
-                                }
-                                b = subCommand.getArgument(c);
-                                if (b == null) {
-                                    throw new ArgumentException(
-                                            ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
-                                }
+                                throw new ArgumentException(
+                                        ERR_SUBCMDPARSER_NO_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
                             }
+                        }
 
-                            if (b.needsValue()) {
-                                // This means we're in a scenario like "-abc" where b is a
-                                // valid argument that takes a value. We don't support that.
-                                throw new ArgumentException(ERR_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES.get(
-                                        argCharacter, argValue, c));
-                            }
-                            b.setPresent(true);
+                        if (b.needsValue()) {
+                            // This means we're in a scenario like "-abc" where b is a
+                            // valid argument that takes a value. We don't support that.
+                            throw new ArgumentException(ERR_SUBCMDPARSER_CANT_MIX_ARGS_WITH_VALUES.get(
+                                    argCharacter, argValue, c));
+                        }
+                        b.setPresent(true);
 
-                            // If this is the usage argument, then immediately stop and
-                            // print usage information.
-                            if (usageGroupArguments.containsKey(b)) {
-                                getUsage(b, usageOutputStream);
-                                return;
-                            }
+                        // If this is the usage argument, then immediately stop and
+                        // print usage information.
+                        if (usageGroupArguments.containsKey(b)) {
+                            getUsage(b, usageOutputStream);
+                            return;
                         }
                     }
                 }
@@ -986,21 +982,19 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 }
 
                 buffer.append(EOL);
-            } else {
-                if (longID != null) {
-                    if (a.equals(usageArgument)) {
-                        buffer.append("-?, ");
-                    }
-                    buffer.append("--");
-                    buffer.append(longID);
-
-                    if (a.needsValue()) {
-                        buffer.append(" ");
-                        buffer.append(a.getValuePlaceholder());
-                    }
-
-                    buffer.append(EOL);
+            } else if (longID != null) {
+                if (a.equals(usageArgument)) {
+                    buffer.append("-?, ");
                 }
+                buffer.append("--");
+                buffer.append(longID);
+
+                if (a.needsValue()) {
+                    buffer.append(" ");
+                    buffer.append(a.getValuePlaceholder());
+                }
+
+                buffer.append(EOL);
             }
 
             indentAndWrap2(INDENT, a.getDescription(), buffer);

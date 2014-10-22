@@ -28,12 +28,8 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.util.StaticUtils.EOL;
-import static com.forgerock.opendj.util.StaticUtils.getBytes;
-import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,6 +48,7 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.util.Utils;
 
 /**
  * This class defines a utility that can be used to deal with command-line
@@ -523,10 +520,8 @@ public class ArgumentParser {
                 if (scriptName != null) {
                     if (currentPropertyName.startsWith(scriptName)) {
                         propertyName = currentPropertyName.substring(scriptName.length() + 1);
-                    } else {
-                        if (p.containsKey(scriptName + "." + currentPropertyName)) {
-                            continue;
-                        }
+                    } else if (p.containsKey(scriptName + "." + currentPropertyName)) {
+                        continue;
                     }
                 }
                 argumentProperties.setProperty(propertyName.toLowerCase(), p
@@ -712,8 +707,15 @@ public class ArgumentParser {
     public String getUsage() {
         final StringBuilder buffer = new StringBuilder();
         getUsage(buffer);
-
         return buffer.toString();
+    }
+
+    private void writeUsageToOutputStream() {
+        try {
+            getUsage(usageOutputStream);
+        } catch (final Exception e) {
+            // Ignored.
+        }
     }
 
     /**
@@ -728,10 +730,7 @@ public class ArgumentParser {
      *             information to the provided output stream.
      */
     void getUsage(final OutputStream outputStream) throws IOException {
-        final StringBuilder buffer = new StringBuilder();
-        getUsage(buffer);
-
-        outputStream.write(getBytes(buffer.toString()));
+        outputStream.write(getBytes(getUsage()));
     }
 
     /**
@@ -741,7 +740,7 @@ public class ArgumentParser {
      * @param buffer
      *            The buffer to which the usage information should be appended.
      */
-    void getUsage(final StringBuilder buffer) {
+    private void getUsage(final StringBuilder buffer) {
         usageOrVersionDisplayed = true;
         final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
         if (scriptName == null || scriptName.length() == 0) {
@@ -840,11 +839,8 @@ public class ArgumentParser {
      *         arguments.
      */
     public LocalizableMessage getUsageMessage() {
-        final StringBuilder buffer = new StringBuilder();
-        getUsage(buffer);
-
         // TODO: rework getUsage(OutputStream) to work with messages framework
-        return LocalizableMessage.raw(buffer.toString());
+        return LocalizableMessage.raw(getUsage());
     }
 
     /**
@@ -921,8 +917,7 @@ public class ArgumentParser {
             if (arg.equals("--")) {
                 // This is a special indicator that we have reached the end of
                 // the named arguments and that everything that follows after
-                // this
-                // should be considered trailing arguments.
+                // this should be considered trailing arguments.
                 inTrailingArgs = true;
             } else if (arg.startsWith("--")) {
                 // This indicates that we are using the long name to reference
@@ -958,18 +953,12 @@ public class ArgumentParser {
                 // Get the argument with the specified name.
                 final Argument a = longIDMap.get(argName);
                 if (a == null) {
-                    if (argName.equals(OPTION_LONG_HELP)) {
+                    if (OPTION_LONG_HELP.equals(argName)) {
                         // "--help" will always be interpreted as requesting
-                        // usage
-                        // information.
-                        try {
-                            getUsage(usageOutputStream);
-                        } catch (final Exception e) {
-                            // Ignored.
-                        }
-
+                        // usage information.
+                        writeUsageToOutputStream();
                         return;
-                    } else if (argName.equals(OPTION_LONG_PRODUCT_VERSION)) {
+                    } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
                         // "--version" will always be interpreted as requesting
                         // version information.
                         usageOrVersionDisplayed = true;
@@ -984,9 +973,8 @@ public class ArgumentParser {
                         return;
                     } else {
                         // There is no such argument registered.
-                        final LocalizableMessage message =
-                                ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID.get(origArgName);
-                        throw new ArgumentException(message);
+                        throw new ArgumentException(
+                                ERR_ARGPARSER_NO_ARGUMENT_WITH_LONG_ID.get(origArgName));
                     }
                 } else {
                     a.setPresent(true);
@@ -994,12 +982,7 @@ public class ArgumentParser {
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
                     if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
-                        try {
-                            getUsage(usageOutputStream);
-                        } catch (final Exception e) {
-                            // Ignored.
-                        }
-
+                        writeUsageToOutputStream();
                         return;
                     }
                 }
@@ -1009,10 +992,8 @@ public class ArgumentParser {
                 if (a.needsValue()) {
                     if (argValue == null) {
                         if ((i + 1) == numArguments) {
-                            final LocalizableMessage message =
-                                    ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID
-                                            .get(origArgName);
-                            throw new ArgumentException(message);
+                            throw new ArgumentException(
+                                    ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_LONG_ID.get(origArgName));
                         }
 
                         argValue = rawArguments[++i];
@@ -1020,10 +1001,9 @@ public class ArgumentParser {
 
                     final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
                     if (!a.valueIsAcceptable(argValue, invalidReason)) {
-                        final LocalizableMessage message =
+                        throw new ArgumentException(
                                 ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.get(argValue,
-                                        origArgName, invalidReason.toString());
-                        throw new ArgumentException(message);
+                                        origArgName, invalidReason));
                     }
 
                     // If the argument already has a value, then make sure it is
@@ -1033,12 +1013,9 @@ public class ArgumentParser {
                     }
 
                     a.addValue(argValue);
-                } else {
-                    if (argValue != null) {
-                        final LocalizableMessage message =
-                                ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(origArgName);
-                        throw new ArgumentException(message);
-                    }
+                } else if (argValue != null) {
+                    throw new ArgumentException(
+                            ERR_ARGPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(origArgName));
                 }
             } else if (arg.startsWith("-")) {
                 // This indicates that we are using the 1-character name to
@@ -1063,14 +1040,7 @@ public class ArgumentParser {
                 final Argument a = shortIDMap.get(argCharacter);
                 if (a == null) {
                     if (argCharacter == '?') {
-                        // "-?" will always be interpreted as requesting usage
-                        // information.
-                        try {
-                            getUsage(usageOutputStream);
-                        } catch (final Exception e) {
-                            // Ignored.
-                        }
-
+                        writeUsageToOutputStream();
                         return;
                     } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION
                             && !shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION)) {
@@ -1097,12 +1067,7 @@ public class ArgumentParser {
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
                     if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
-                        try {
-                            getUsage(usageOutputStream);
-                        } catch (final Exception e) {
-                            // Ignored.
-                        }
-
+                        writeUsageToOutputStream();
                         return;
                     }
                 }
@@ -1132,42 +1097,33 @@ public class ArgumentParser {
                     }
 
                     a.addValue(argValue);
-                } else {
-                    if (argValue != null) {
-                        // If we've gotten here, then it means that we're in a scenario like
-                        // "-abc" where "a" is a valid argument that doesn't take a value.
-                        // However, this could still be valid if all remaining characters
-                        // in the value are also valid argument characters that don't take values.
-                        final int valueLength = argValue.length();
-                        for (int j = 0; j < valueLength; j++) {
-                            final char c = argValue.charAt(j);
-                            final Argument b = shortIDMap.get(c);
-                            if (b == null) {
-                                // There is no such argument registered.
-                                final LocalizableMessage message =
-                                        ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(argCharacter);
-                                throw new ArgumentException(message);
-                            } else if (b.needsValue()) {
-                                // This means we're in a scenario like "-abc"
-                                // where b is a valid argument that takes a value.
-                                // We don't support that.
-                                final LocalizableMessage message =
-                                        ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(argCharacter, argValue, c);
-                                throw new ArgumentException(message);
-                            } else {
-                                b.setPresent(true);
+                } else if (argValue != null) {
+                    // If we've gotten here, then it means that we're in a scenario like
+                    // "-abc" where "a" is a valid argument that doesn't take a value.
+                    // However, this could still be valid if all remaining characters
+                    // in the value are also valid argument characters that don't take values.
+                    final int valueLength = argValue.length();
+                    for (int j = 0; j < valueLength; j++) {
+                        final char c = argValue.charAt(j);
+                        final Argument b = shortIDMap.get(c);
+                        if (b == null) {
+                            // There is no such argument registered.
+                            throw new ArgumentException(
+                                    ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(argCharacter));
+                        } else if (b.needsValue()) {
+                            // This means we're in a scenario like "-abc"
+                            // where b is a valid argument that takes a value.
+                            // We don't support that.
+                            throw new ArgumentException(
+                                    ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(argCharacter, argValue, c));
+                        } else {
+                            b.setPresent(true);
 
-                                // If this is the usage argument,
-                                // then immediately stop and print usage information.
-                                if (usageArgument != null && usageArgument.getName().equals(b.getName())) {
-                                    try {
-                                        getUsage(usageOutputStream);
-                                    } catch (final Exception e) {
-                                        // Ignored.
-                                    }
-
-                                    return;
-                                }
+                            // If this is the usage argument,
+                            // then immediately stop and print usage information.
+                            if (usageArgument != null && usageArgument.getName().equals(b.getName())) {
+                                writeUsageToOutputStream();
+                                return;
                             }
                         }
                     }
@@ -1192,8 +1148,7 @@ public class ArgumentParser {
             throw new ArgumentException(ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(minTrailingArguments));
         }
 
-        // If we don't have the argumentProperties, try to load a properties
-        // file.
+        // If we don't have the argumentProperties, try to load a properties file
         if (argumentProperties == null) {
             argumentProperties = checkExternalProperties();
         }
@@ -1228,19 +1183,20 @@ public class ArgumentParser {
 
         Properties argumentProperties = null;
 
+        FileInputStream fis = null;
         try {
+            fis = new FileInputStream(propertiesFile);
             final Properties p = new Properties();
-            final FileInputStream fis = new FileInputStream(propertiesFile);
             p.load(fis);
-            fis.close();
             argumentProperties = p;
         } catch (final Exception e) {
             if (requirePropertiesFile) {
                 final LocalizableMessage message =
-                        ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
-                                .valueOf(propertiesFile), getExceptionMessage(e));
+                        ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(propertiesFile, getExceptionMessage(e));
                 throw new ArgumentException(message, e);
             }
+        } finally {
+            Utils.closeSilently(fis);
         }
 
         parseArguments(rawArguments, argumentProperties);
@@ -1516,21 +1472,19 @@ public class ArgumentParser {
             }
 
             buffer.append(EOL);
-        } else {
-            if (longID != null) {
-                if (usageArgument.getName().equals(a.getName())) {
-                    buffer.append("-?, ");
-                }
-                buffer.append("--");
-                buffer.append(longID);
-
-                if (a.needsValue()) {
-                    buffer.append(" ");
-                    buffer.append(a.getValuePlaceholder());
-                }
-
-                buffer.append(EOL);
+        } else if (longID != null) {
+            if (usageArgument.getName().equals(a.getName())) {
+                buffer.append("-?, ");
             }
+            buffer.append("--");
+            buffer.append(longID);
+
+            if (a.needsValue()) {
+                buffer.append(" ");
+                buffer.append(a.getValuePlaceholder());
+            }
+
+            buffer.append(EOL);
         }
 
         // Write one or more lines with the description of the argument.
