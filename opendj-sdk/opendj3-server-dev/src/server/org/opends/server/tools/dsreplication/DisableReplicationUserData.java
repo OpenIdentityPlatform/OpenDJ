@@ -22,101 +22,21 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.tools.dsreplication;
 
 /**
  * This class is used to store the information provided by the user to
  * disable replication.  It is required because when we are in interactive
  * mode the ReplicationCliArgumentParser is not enough.
- *
  */
-public class DisableReplicationUserData extends ReplicationUserData
+public class DisableReplicationUserData extends MonoServerReplicationUserData
 {
-  private String hostName;
-  private int port;
-  private boolean useStartTLS;
-  private boolean useSSL;
   private String bindDn;
   private String bindPwd;
   private boolean disableReplicationServer;
   private boolean disableAll;
-
-  /**
-   * Returns the host name of the server.
-   * @return the host name of the server.
-   */
-  public String getHostName()
-  {
-    return hostName;
-  }
-
-  /**
-   * Sets the host name of the server.
-   * @param hostName the host name of the server.
-   */
-  public void setHostName(String hostName)
-  {
-    this.hostName = hostName;
-  }
-
-  /**
-   * Returns the port of the server.
-   * @return the port of the server.
-   */
-  public int getPort()
-  {
-    return port;
-  }
-
-  /**
-   * Sets the port of the server.
-   * @param port the port of the server.
-   */
-  public void setPort(int port)
-  {
-    this.port = port;
-  }
-  /**
-   * Returns <CODE>true</CODE> if we must use SSL to connect to the server and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we must use SSL to connect to the server and
-   * <CODE>false</CODE> otherwise.
-   */
-  boolean useSSL()
-  {
-    return useSSL;
-  }
-
-  /**
-   * Sets whether we must use SSL to connect to the server or not.
-   * @param useSSL whether we must use SSL to connect to the server or not.
-   */
-  void setUseSSL(boolean useSSL)
-  {
-    this.useSSL = useSSL;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we must use StartTLS to connect to the server
-   * and <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we must use StartTLS to connect to the server
-   * and <CODE>false</CODE> otherwise.
-   */
-  boolean useStartTLS()
-  {
-    return useStartTLS;
-  }
-
-  /**
-   * Sets whether we must use StartTLS to connect to the server or not.
-   * @param useStartTLS whether we must use SSL to connect to the server or not.
-   */
-  void setUseStartTLS(boolean useStartTLS)
-  {
-    this.useStartTLS = useStartTLS;
-  }
 
   /**
    * Returns the bind DN to be used to connect to the server if no Administrator

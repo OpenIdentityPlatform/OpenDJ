@@ -26,14 +26,6 @@
  */
 package org.opends.quicksetup.util;
 
-import static org.forgerock.util.Utils.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static com.forgerock.opendj.util.OperatingSystem.isUnix;
-import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-
 import java.io.*;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -47,16 +39,19 @@ import javax.naming.ldap.LdapName;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.TrustManager;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.quicksetup.*;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.SecurityOptions;
+import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
@@ -65,17 +60,21 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.util.DynamicConstants.*;
 
 /**
  * This class provides some static convenience methods of different nature.
- *
  */
 public class Utils
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int BUFFER_SIZE = 1024;
-
   private static final int MAX_LINE_WIDTH = 80;
 
   private Utils()
@@ -822,7 +821,7 @@ public class Utils
  */
   public static boolean isCertificateException(Throwable t)
   {
-    return ConnectionUtils.isCertificateException(t);
+    return com.forgerock.opendj.cli.Utils.isCertificateException(t);
   }
 
   /**
