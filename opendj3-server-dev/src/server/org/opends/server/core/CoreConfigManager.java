@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
+import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
