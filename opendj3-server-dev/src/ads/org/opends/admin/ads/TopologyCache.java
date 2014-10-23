@@ -26,11 +26,6 @@
  */
 package org.opends.admin.ads;
 
-import static org.opends.messages.QuickSetupMessages
-    .INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER;
-import static org.opends.messages.QuickSetupMessages
-    .INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -57,6 +52,8 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.util.Utils;
+
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * This class allows to read the configuration of the different servers that are
@@ -219,17 +216,7 @@ public class TopologyCache
    */
   private void readReplicationMonitoring()
   {
-    Set<ReplicaDescriptor> replicasToUpdate = new HashSet<ReplicaDescriptor>();
-    for (ServerDescriptor server : getServers())
-    {
-      for (ReplicaDescriptor replica : server.getReplicas())
-      {
-        if (replica.isReplicated())
-        {
-          replicasToUpdate.add(replica);
-        }
-      }
-    }
+    Set<ReplicaDescriptor> replicasToUpdate = getReplicasToUpdate();
     for (ServerDescriptor server : getServers())
     {
       if (server.isReplicationServer())
@@ -237,26 +224,10 @@ public class TopologyCache
         // If is replication server, then at least we were able to read the
         // configuration, so assume that we might be able to read monitoring
         // (even if an exception occurred before).
-        Set<ReplicaDescriptor> candidateReplicas =
-            new HashSet<ReplicaDescriptor>();
-        // It contains replication information: analyze it.
-        String repServer = server.getReplicationServerHostPort();
-        for (SuffixDescriptor suffix : getSuffixes())
-        {
-          Set<String> repServers = suffix.getReplicationServers();
-          for (String r : repServers)
-          {
-            if (r.equalsIgnoreCase(repServer))
-            {
-              candidateReplicas.addAll(suffix.getReplicas());
-              break;
-            }
-          }
-        }
+        Set<ReplicaDescriptor> candidateReplicas = getCandidateReplicas(server);
         if (!candidateReplicas.isEmpty())
         {
-          Set<ReplicaDescriptor> updatedReplicas =
-              new HashSet<ReplicaDescriptor>();
+          Set<ReplicaDescriptor> updatedReplicas = new HashSet<ReplicaDescriptor>();
           try
           {
             updateReplicas(server, candidateReplicas, updatedReplicas);
@@ -275,6 +246,49 @@ public class TopologyCache
         break;
       }
     }
+  }
+
+  private Set<ReplicaDescriptor> getReplicasToUpdate()
+  {
+    Set<ReplicaDescriptor> replicasToUpdate = new HashSet<ReplicaDescriptor>();
+    for (ServerDescriptor server : getServers())
+    {
+      for (ReplicaDescriptor replica : server.getReplicas())
+      {
+        if (replica.isReplicated())
+        {
+          replicasToUpdate.add(replica);
+        }
+      }
+    }
+    return replicasToUpdate;
+  }
+
+  private Set<ReplicaDescriptor> getCandidateReplicas(ServerDescriptor server)
+  {
+    Set<ReplicaDescriptor> candidateReplicas = new HashSet<ReplicaDescriptor>();
+    // It contains replication information: analyze it.
+    String repServer = server.getReplicationServerHostPort();
+    for (SuffixDescriptor suffix : getSuffixes())
+    {
+      if (containsIgnoreCase(suffix.getReplicationServers(), repServer))
+      {
+        candidateReplicas.addAll(suffix.getReplicas());
+      }
+    }
+    return candidateReplicas;
+  }
+
+  private boolean containsIgnoreCase(Set<String> col, String toFind)
+  {
+    for (String s : col)
+    {
+      if (s.equalsIgnoreCase(toFind))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -310,9 +324,7 @@ public class TopologyCache
    */
   public Set<ServerDescriptor> getServers()
   {
-    HashSet<ServerDescriptor> copy = new HashSet<ServerDescriptor>();
-    copy.addAll(servers);
-    return copy;
+    return new HashSet<ServerDescriptor>(servers);
   }
 
   /**
@@ -324,9 +336,7 @@ public class TopologyCache
    */
   public Set<SuffixDescriptor> getSuffixes()
   {
-    HashSet<SuffixDescriptor> copy = new HashSet<SuffixDescriptor>();
-    copy.addAll(suffixes);
-    return copy;
+    return new HashSet<SuffixDescriptor>(suffixes);
   }
 
   /**
@@ -431,8 +441,7 @@ public class TopologyCache
 
           break;
         case GENERIC_CREATING_CONNECTION:
-          if ((e.getCause() != null)
-              && Utils.isCertificateException(e.getCause()))
+          if (Utils.isCertificateException(e.getCause()))
           {
             exceptionMsgs.add(
                 INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
@@ -532,7 +541,7 @@ public class TopologyCache
             {
               try
               {
-                replica.setMissingChanges(new Integer(s));
+                replica.setMissingChanges(Integer.valueOf(s));
               }
               catch (Throwable t)
               {

@@ -30,13 +30,9 @@ package org.opends.admin.ads.util;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
-import java.security.GeneralSecurityException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.CommunicationException;
 import javax.naming.Context;
@@ -52,9 +48,10 @@ import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
 
@@ -221,6 +218,7 @@ public class ConnectionUtils
     final KeyManager   fKeyManager   = keyManager;
 
     Thread t = new Thread(new Runnable() {
+      @Override
       public void run() {
         try {
           TrustedSocketFactory.setCurrentThreadTrustManager(fTrustManager,
@@ -795,28 +793,6 @@ public class ConnectionUtils
       ldapUrl = "ldap://"+host+":"+port;
     }
     return ldapUrl;
-  }
-
-  /**
-   * Tells whether the provided Throwable was caused because of a problem with
-   * a certificate while trying to establish a connection.
-   * @param t the Throwable to analyze.
-   * @return <CODE>true</CODE> if the provided Throwable was caused because of a
-   * problem with a certificate while trying to establish a connection and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean isCertificateException(Throwable t)
-  {
-    boolean returnValue = false;
-
-    while (!returnValue && (t != null))
-    {
-      returnValue = (t instanceof SSLHandshakeException) ||
-      (t instanceof GeneralSecurityException);
-      t = t.getCause();
-    }
-
-    return returnValue;
   }
 
   /**
