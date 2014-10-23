@@ -36,9 +36,6 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.Box;
@@ -51,6 +48,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
@@ -59,10 +58,10 @@ import org.opends.guitools.controlpanel.util.ConfigFromFile;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.Step;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.UserDataCertificateException;
-import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.event.MinimumSizeComponentListener;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.ui.UIFactory;
@@ -71,9 +70,10 @@ import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 /**
  * This class is a dialog that appears when the user must provide authentication
@@ -149,10 +149,8 @@ public class LoginDialog extends JDialog
     return isCanceled;
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   */
+  /** {@inheritDoc} */
+  @Override
   public void setVisible(boolean visible)
   {
     cancelButton.setEnabled(true);
@@ -331,6 +329,7 @@ public class LoginDialog extends JDialog
     buttonPanel.add(okButton, gbc);
     okButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         okClicked();
@@ -345,6 +344,7 @@ public class LoginDialog extends JDialog
     buttonPanel.add(cancelButton, gbc);
     cancelButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         cancelClicked();
@@ -384,6 +384,7 @@ public class LoginDialog extends JDialog
   {
     BackgroundTask<Boolean> worker = new BackgroundTask<Boolean>()
     {
+      @Override
       public Boolean processBackgroundTask() throws NamingException,
       ApplicationException
       {
@@ -432,13 +433,14 @@ public class LoginDialog extends JDialog
         return isServerRunning;
       }
 
+      @Override
       public void backgroundTaskCompleted(Boolean returnValue,
           Throwable throwable)
       {
         if (throwable != null)
         {
           logger.info(LocalizableMessage.raw("Error connecting: " + throwable, throwable));
-          if (Utils.isCertificateException(throwable))
+          if (isCertificateException(throwable))
           {
             ApplicationTrustManager.Cause cause =
               trustManager.getLastRefusedCause();
@@ -570,7 +572,7 @@ public class LoginDialog extends JDialog
           else
           {
             String hostName = tfHostName.getText();
-            if ((hostName == null) || (hostName.trim().length() == 0))
+            if (hostName == null || hostName.trim().length() == 0)
             {
               displayError(INFO_EMPTY_REMOTE_HOST.get(),
                   INFO_ERROR_TITLE.get());
@@ -665,13 +667,14 @@ public class LoginDialog extends JDialog
       String authType = ce.getAuthType();
       String host = ce.getHost();
 
-      if ((chain != null) && (authType != null) && (host != null))
+      if (chain != null && authType != null && host != null)
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getTrustManager().acceptCertificate(chain, authType, host);
         /* Simulate a click on the OK by calling in the okClicked method. */
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             okClicked();

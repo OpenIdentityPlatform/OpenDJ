@@ -32,27 +32,82 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import javax.naming.*;
-import javax.naming.directory.*;
+import javax.naming.NameAlreadyBoundException;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.NamingSecurityException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.Rdn;
 import javax.swing.JPanel;
 
-import org.opends.admin.ads.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContextException;
+import org.opends.admin.ads.ReplicaDescriptor;
+import org.opends.admin.ads.ServerDescriptor;
+import org.opends.admin.ads.SuffixDescriptor;
+import org.opends.admin.ads.TopologyCache;
+import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.quicksetup.*;
+import org.opends.quicksetup.ApplicationException;
+import org.opends.quicksetup.ButtonName;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.Installation;
+import org.opends.quicksetup.JavaArguments;
+import org.opends.quicksetup.LicenseFile;
+import org.opends.quicksetup.ProgressStep;
+import org.opends.quicksetup.QuickSetupLog;
+import org.opends.quicksetup.ReturnCode;
+import org.opends.quicksetup.SecurityOptions;
+import org.opends.quicksetup.Step;
+import org.opends.quicksetup.UserData;
+import org.opends.quicksetup.UserDataCertificateException;
+import org.opends.quicksetup.UserDataConfirmationException;
+import org.opends.quicksetup.UserDataException;
+import org.opends.quicksetup.WizardStep;
 import org.opends.quicksetup.event.ButtonActionListener;
 import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.installer.ui.*;
-import org.opends.quicksetup.ui.*;
+import org.opends.quicksetup.installer.ui.DataOptionsPanel;
+import org.opends.quicksetup.installer.ui.DataReplicationPanel;
+import org.opends.quicksetup.installer.ui.GlobalAdministratorPanel;
+import org.opends.quicksetup.installer.ui.InstallLicensePanel;
+import org.opends.quicksetup.installer.ui.InstallReviewPanel;
+import org.opends.quicksetup.installer.ui.InstallWelcomePanel;
+import org.opends.quicksetup.installer.ui.RemoteReplicationPortsPanel;
+import org.opends.quicksetup.installer.ui.RuntimeOptionsPanel;
+import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
+import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
+import org.opends.quicksetup.ui.FieldName;
+import org.opends.quicksetup.ui.FinishedPanel;
+import org.opends.quicksetup.ui.GuiApplication;
+import org.opends.quicksetup.ui.ProgressPanel;
+import org.opends.quicksetup.ui.QuickSetup;
+import org.opends.quicksetup.ui.QuickSetupDialog;
+import org.opends.quicksetup.ui.QuickSetupErrorPanel;
+import org.opends.quicksetup.ui.QuickSetupStepPanel;
+import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
@@ -63,14 +118,12 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
-import static com.forgerock.opendj.cli.Utils.canWrite;
-import static com.forgerock.opendj.cli.Utils.isDN;
-import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 /**
  * This is an abstract class that is in charge of actually performing the
@@ -93,10 +146,10 @@ public abstract class Installer extends GuiApplication {
   private TopologyCache lastLoadedCache;
 
   /** Indicates that we've detected that there is something installed. */
-  boolean forceToDisplaySetup = false;
+  boolean forceToDisplaySetup;
 
   /** When true indicates that the user has canceled this operation. */
-  protected boolean canceled = false;
+  protected boolean canceled;
 
   private boolean javaVersionCheckFailed;
 
@@ -105,7 +158,7 @@ public abstract class Installer extends GuiApplication {
       hmConfiguredRemoteReplication =
           new HashMap<ServerDescriptor, ConfiguredReplication>();
 
-  // Constants used to do checks
+  /** Constants used to do checks. */
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -153,7 +206,7 @@ public abstract class Installer extends GuiApplication {
   private final Map<WizardStep, WizardStep> hmPreviousSteps =
     new HashMap<WizardStep, WizardStep>();
 
-  private char[] selfSignedCertPw = null;
+  private char[] selfSignedCertPw;
 
   private boolean registeredNewServerOnRemote;
   private boolean createdAdministrator;
@@ -195,26 +248,24 @@ public abstract class Installer extends GuiApplication {
     lstSteps.add(FINISHED);
     try {
       if (!QuickSetupLog.isInitialized())
+      {
         QuickSetupLog.initLogFileHandler(
                 File.createTempFile(
                     Constants.LOG_FILE_PREFIX,
                     Constants.LOG_FILE_SUFFIX));
+      }
     } catch (IOException e) {
       System.err.println("Failed to initialize log");
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isCancellable() {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public UserData createUserData() {
     UserData ud = new UserData();
@@ -228,7 +279,7 @@ public abstract class Installer extends GuiApplication {
   {
     for (int i=0; i<userArguments.length; i++)
     {
-      if (userArguments[i].equalsIgnoreCase("--connectTimeout"))
+      if ("--connectTimeout".equalsIgnoreCase(userArguments[i]))
       {
         if (i < userArguments.length - 1)
         {
@@ -247,17 +298,13 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void forceToDisplay() {
     forceToDisplaySetup = true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canGoBack(WizardStep step) {
     return step != WELCOME &&
@@ -265,9 +312,7 @@ public abstract class Installer extends GuiApplication {
             step != FINISHED;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canGoForward(WizardStep step) {
     return step != REVIEW &&
@@ -275,26 +320,20 @@ public abstract class Installer extends GuiApplication {
             step != FINISHED;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canFinish(WizardStep step) {
     return step == REVIEW;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSubStep(WizardStep step)
   {
     return SUBSTEPS.contains(step);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVisible(WizardStep step, UserData userData)
   {
@@ -313,31 +352,27 @@ public abstract class Installer extends GuiApplication {
     {
       DataReplicationOptions repl = userData.getReplicationOptions();
       return repl != null
-          && (repl.getType() != DataReplicationOptions.Type.STANDALONE)
-          && (repl.getType() != DataReplicationOptions.Type.FIRST_IN_TOPOLOGY);
+          && repl.getType() != DataReplicationOptions.Type.STANDALONE
+          && repl.getType() != DataReplicationOptions.Type.FIRST_IN_TOPOLOGY;
     }
     else if (step == REMOTE_REPLICATION_PORTS)
     {
-      return isVisible(SUFFIXES_OPTIONS, userData) &&
-      (userData.getRemoteWithNoReplicationPort().size() > 0) &&
-      (userData.getSuffixesToReplicateOptions().getType() ==
-        SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES);
+      return isVisible(SUFFIXES_OPTIONS, userData)
+          && userData.getRemoteWithNoReplicationPort().size() > 0
+          && userData.getSuffixesToReplicateOptions().getType() ==
+              SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
     }
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVisible(WizardStep step, QuickSetup qs)
   {
     return isVisible(step, getUserData());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.REVIEW) {
@@ -352,9 +387,7 @@ public abstract class Installer extends GuiApplication {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void nextClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
@@ -368,9 +401,7 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void closeClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
@@ -389,9 +420,7 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isFinished()
   {
@@ -400,9 +429,7 @@ public abstract class Installer extends GuiApplication {
         || getCurrentProgressStep() == InstallProgressStep.FINISHED_WITH_ERROR;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void cancel() {
     setCurrentProgressStep(InstallProgressStep.WAITING_TO_CANCEL);
@@ -410,9 +437,7 @@ public abstract class Installer extends GuiApplication {
     this.canceled = true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void quitClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == FINISHED)
@@ -435,32 +460,24 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ButtonName getInitialFocusButtonName() {
-    ButtonName name;
     if (!installStatus.isInstalled() || forceToDisplaySetup)
     {
-      name = ButtonName.NEXT;
-    } else
-    {
-      if (installStatus.canOverwriteCurrentInstall())
-      {
-        name = ButtonName.CONTINUE_INSTALL;
-      }
-      else
-      {
-        name = ButtonName.QUIT;
-      }
+      return ButtonName.NEXT;
     }
-    return name;
+    else if (installStatus.canOverwriteCurrentInstall())
+    {
+      return ButtonName.CONTINUE_INSTALL;
+    }
+    else
+    {
+      return ButtonName.QUIT;
+    }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public JPanel createFramePanel(QuickSetupDialog dlg) {
     JPanel p;
@@ -505,17 +522,13 @@ public abstract class Installer extends GuiApplication {
     return p;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<? extends WizardStep> getWizardSteps() {
     return Collections.unmodifiableSet(new HashSet<WizardStep>(lstSteps));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     QuickSetupStepPanel p = null;
@@ -547,61 +560,47 @@ public abstract class Installer extends GuiApplication {
     return p;
   }
 
-  /**
-  * {@inheritDoc}
-  */
+  /** {@inheritDoc} */
   @Override
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
 
     if (installStatus.isInstalled() && forceToDisplaySetup) {
       // Simulate a close button event
       dlg.notifyButtonEvent(ButtonName.QUIT);
+    } else if (dlg.getDisplayedStep() == Step.PROGRESS) {
+      // Simulate a close button event
+      dlg.notifyButtonEvent(ButtonName.CLOSE);
     } else {
-      if (dlg.getDisplayedStep() == Step.PROGRESS) {
-        // Simulate a close button event
-        dlg.notifyButtonEvent(ButtonName.CLOSE);
-      } else {
-        // Simulate a quit button event
-        dlg.notifyButtonEvent(ButtonName.QUIT);
-      }
+      // Simulate a quit button event
+      dlg.notifyButtonEvent(ButtonName.QUIT);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_INSTALL_TOOLTIP.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getQuitButtonToolTip() {
     return INFO_QUIT_BUTTON_INSTALL_TOOLTIP.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_INSTALL_TOOLTIP.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getExtraDialogHeight() {
     return UIFactory.EXTRA_DIALOG_HEIGHT;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == WELCOME) {
@@ -616,9 +615,7 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFrameTitle() {
     return Utils.getCustomizedObject("INFO_FRAME_INSTALL_TITLE",
@@ -630,9 +627,7 @@ public abstract class Installer extends GuiApplication {
   private InstallProgressStep currentProgressStep =
           InstallProgressStep.NOT_STARTED;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
@@ -645,7 +640,7 @@ public abstract class Installer extends GuiApplication {
       } else if (step == WELCOME) {
         dlg.setDefaultButton(ButtonName.NEXT);
         dlg.setFocusOnButton(ButtonName.NEXT);
-      } else if ((step == PROGRESS) || (step == FINISHED)) {
+      } else if (step == PROGRESS || step == FINISHED) {
         dlg.setDefaultButton(ButtonName.CLOSE);
         dlg.setFocusOnButton(ButtonName.CLOSE);
       } else {
@@ -654,26 +649,20 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ProgressStep getCurrentProgressStep()
   {
     return currentProgressStep;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getFirstWizardStep() {
     return WELCOME;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getNextWizardStep(WizardStep step) {
     WizardStep next = null;
@@ -736,9 +725,7 @@ public abstract class Installer extends GuiApplication {
     return next;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LinkedHashSet<WizardStep> getOrderedSteps()
   {
@@ -760,9 +747,7 @@ public abstract class Installer extends GuiApplication {
     return orderedSteps;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getPreviousWizardStep(WizardStep step) {
     //  Try with the steps calculated in method getNextWizardStep.
@@ -778,9 +763,7 @@ public abstract class Installer extends GuiApplication {
     return prev;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getFinishedStep() {
     return Step.FINISHED;
@@ -882,15 +865,7 @@ public abstract class Installer extends GuiApplication {
     }
 
     String aliasInKeyStore = sec.getAliasToUse();
-    String aliasInTrustStore;
-    if (aliasInKeyStore == null)
-    {
-      aliasInTrustStore = SELF_SIGNED_CERT_ALIAS;
-    }
-    else
-    {
-      aliasInTrustStore = aliasInKeyStore;
-    }
+    String aliasInTrustStore = aliasInKeyStore != null ? aliasInKeyStore : SELF_SIGNED_CERT_ALIAS;
 
     switch (sec.getCertificateType())
     {
@@ -1023,12 +998,9 @@ public abstract class Installer extends GuiApplication {
                 ReturnCode.CONFIGURATION_ERROR,
                 INFO_ERROR_CONFIGURING.get(), null);
           }
-          else
+          else if (getUserData().getNewSuffixOptions().getBaseDns().isEmpty())
           {
-            if (getUserData().getNewSuffixOptions().getBaseDns().isEmpty())
-            {
-              helper.deleteBackend(getBackendName());
-            }
+            helper.deleteBackend(getBackendName());
           }
         } catch (ApplicationException aex)
         {
@@ -1321,20 +1293,16 @@ public abstract class Installer extends GuiApplication {
             joinAsString(", ", ldifPaths))));
       }
     }
+    else if (isVerbose())
+    {
+      mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(
+        ldifPaths.getFirst())));
+      mb.append(getLineBreak());
+    }
     else
     {
-      if (isVerbose())
-      {
-        mb.append(getFormattedProgress(INFO_PROGRESS_IMPORTING_LDIF.get(
-          ldifPaths.getFirst())));
-        mb.append(getLineBreak());
-      }
-      else
-      {
-        mb.append(getFormattedProgress(
-                INFO_PROGRESS_IMPORTING_LDIF_NON_VERBOSE.get(
-                ldifPaths.getFirst())));
-      }
+      mb.append(getFormattedProgress(
+          INFO_PROGRESS_IMPORTING_LDIF_NON_VERBOSE.get(ldifPaths.getFirst())));
     }
     notifyListeners(mb.toMessage());
 
@@ -1416,14 +1384,11 @@ public abstract class Installer extends GuiApplication {
       invokeLongOperation(thread);
     } catch (ApplicationException ae)
     {
-      if (!isVerbose())
+      if (!isVerbose() && lastImportProgress != null)
       {
-        if (lastImportProgress != null)
-        {
-          notifyListeners(
-              getFormattedProgress(LocalizableMessage.raw(lastImportProgress)));
-          notifyListeners(getLineBreak());
-        }
+        notifyListeners(
+            getFormattedProgress(LocalizableMessage.raw(lastImportProgress)));
+        notifyListeners(getLineBreak());
       }
       throw ae;
     }
@@ -1451,7 +1416,7 @@ public abstract class Installer extends GuiApplication {
     File templatePath = createTemplateFile();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-    if (isVerbose() || (nEntries > THRESHOLD_AUTOMATIC_DATA_VERBOSE))
+    if (isVerbose() || nEntries > THRESHOLD_AUTOMATIC_DATA_VERBOSE)
     {
       mb.append(getFormattedProgress(
             INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(nEntries)));
@@ -1864,8 +1829,7 @@ public abstract class Installer extends GuiApplication {
         getUserData().getSuffixesToReplicateOptions().getSuffixes();
       for (SuffixDescriptor suffix : suffixes)
       {
-        Set<String> h = new HashSet<String>();
-        h.addAll(suffix.getReplicationServers());
+        Set<String> h = new HashSet<String>(suffix.getReplicationServers());
         adsServers.addAll(suffix.getReplicationServers());
         h.add(getLocalReplicationServer());
         adsServers.add(getLocalReplicationServer());
@@ -2013,17 +1977,14 @@ public abstract class Installer extends GuiApplication {
               knownServerIds);
         long remoteTimeMeasureTime = System.currentTimeMillis();
         long remoteTime = Utils.getServerClock(ctx);
-        if ((localTime != -1) && (remoteTime != -1))
+        if (localTime != -1 && remoteTime != -1
+            && Math.abs(localTime - remoteTime - localTimeMeasureTime + remoteTimeMeasureTime) >
+                THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000)
         {
-          if (Math.abs(localTime - remoteTime - localTimeMeasureTime +
-              remoteTimeMeasureTime) >
-          (THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000))
-          {
-            notifyListeners(getFormattedWarning(
-                INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
-                    localServerDisplay, ConnectionUtils.getHostPort(ctx),
-                    THRESHOLD_CLOCK_DIFFERENCE_WARNING)));
-          }
+          notifyListeners(getFormattedWarning(
+              INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
+                  localServerDisplay, ConnectionUtils.getHostPort(ctx),
+                  THRESHOLD_CLOCK_DIFFERENCE_WARNING)));
         }
 
         hmConfiguredRemoteReplication.put(server, repl);
@@ -2404,7 +2365,7 @@ public abstract class Installer extends GuiApplication {
       catch (NamingException ne)
       {
         LocalizableMessage msg;
-        if (Utils.isCertificateException(ne))
+        if (isCertificateException(ne))
         {
           msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
               getHostPort(server), ne.toString(true));
@@ -2471,8 +2432,7 @@ public abstract class Installer extends GuiApplication {
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
             filter.addBaseDNToSearch(dn);
-            ServerDescriptor s = ServerDescriptor.createStandalone(rCtx,
-                filter);
+            ServerDescriptor s = ServerDescriptor.createStandalone(rCtx, filter);
             for (ReplicaDescriptor r : s.getReplicas())
             {
               if (areDnsEqual(r.getSuffix().getDN(), dn))
@@ -2484,7 +2444,7 @@ public abstract class Installer extends GuiApplication {
           catch (NamingException ne)
           {
             LocalizableMessage msg;
-            if (Utils.isCertificateException(ne))
+            if (isCertificateException(ne))
             {
               msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
                   getHostPort(server), ne.toString(true));
@@ -2567,8 +2527,7 @@ public abstract class Installer extends GuiApplication {
     DataReplicationOptions repl = getUserData().getReplicationOptions();
     boolean isRemoteServer =
             repl.getType() == DataReplicationOptions.Type.IN_EXISTING_TOPOLOGY;
-    AuthenticationData auth = (isRemoteServer) ? repl.getAuthenticationData()
-                                             : null;
+    AuthenticationData auth = isRemoteServer ? repl.getAuthenticationData() : null;
     InitialLdapContext remoteCtx = null; // Bound to remote ADS host (if any).
     InitialLdapContext localCtx = null; // Bound to local server.
     ADSContext adsContext = null; // Bound to ADS host (via one of above).
@@ -2651,7 +2610,10 @@ public abstract class Installer extends GuiApplication {
           filter);
       server.updateAdsPropertiesWithServerProperties();
       if (0 == adsContext.registerOrUpdateServer(server.getAdsProperties())) {
-        if (isRemoteServer) registeredNewServerOnRemote = true;
+        if (isRemoteServer)
+        {
+          registeredNewServerOnRemote = true;
+        }
       } else {
         logger.warn(LocalizableMessage.raw("Server was already registered. Updating " +
                 "server registration."));
@@ -2679,7 +2641,10 @@ public abstract class Installer extends GuiApplication {
           }
           adsContext.createAdministrator(getAdministratorProperties(
                   getUserData()));
-          if (isRemoteServer && !createdRemoteAds) createdAdministrator = true;
+          if (isRemoteServer && !createdRemoteAds)
+          {
+            createdAdministrator = true;
+          }
           if (isVerbose())
           {
             notifyListeners(getFormattedDoneWithLineBreak());
@@ -2708,16 +2673,13 @@ public abstract class Installer extends GuiApplication {
       LocalizableMessage msg;
       if (isRemoteServer)
       {
-        msg = Utils.getMessageForException(ne, getHostDisplay(auth));
+        msg = getMessageForException(ne, getHostDisplay(auth));
       }
       else
       {
         msg = Utils.getMessageForException(ne);
       }
-      throw new ApplicationException(
-          ReturnCode.CONFIGURATION_ERROR,
-          msg,
-          ne);
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, msg, ne);
     }
     catch (ADSContextException ace)
     {
@@ -2741,20 +2703,15 @@ public abstract class Installer extends GuiApplication {
    */
   protected boolean createNotReplicatedSuffix()
   {
-    boolean createSuffix;
-
     DataReplicationOptions repl =
       getUserData().getReplicationOptions();
 
     SuffixesToReplicateOptions suf =
       getUserData().getSuffixesToReplicateOptions();
 
-    createSuffix =
-      (repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY) ||
-      (repl.getType() == DataReplicationOptions.Type.STANDALONE) ||
-      (suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY);
-
-    return createSuffix;
+    return repl.getType() == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY
+        || repl.getType() == DataReplicationOptions.Type.STANDALONE
+        || suf.getType() == SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
   }
 
   /**
@@ -3002,7 +2959,7 @@ public abstract class Installer extends GuiApplication {
       // Check the server location
       String serverLocation = qs.getFieldStringValue(FieldName.SERVER_LOCATION);
 
-      if ((serverLocation == null) || ("".equals(serverLocation.trim())))
+      if (serverLocation == null || "".equals(serverLocation.trim()))
       {
         errorMsgs.add(INFO_EMPTY_SERVER_LOCATION.get());
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
@@ -3011,10 +2968,10 @@ public abstract class Installer extends GuiApplication {
       {
         String existingParentDirectory = null;
         File f = new File(serverLocation);
-        while ((existingParentDirectory == null) && (f != null))
+        while (existingParentDirectory == null && f != null)
         {
           f = f.getParentFile();
-          if ((f != null) && f.exists())
+          if (f != null && f.exists())
           {
             if (f.isDirectory())
             {
@@ -3033,29 +2990,26 @@ public abstract class Installer extends GuiApplication {
                   serverLocation));
           qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
         }
+        else if (!canWrite(existingParentDirectory))
+        {
+          errorMsgs.add(INFO_DIRECTORY_NOT_WRITABLE.get(
+                  existingParentDirectory));
+          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+        }
+        else if (!hasEnoughSpace(existingParentDirectory,
+            getRequiredInstallSpace()))
+        {
+          long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
+          errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(
+                  existingParentDirectory, requiredInMb));
+          qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
+        }
         else
         {
-          if (!canWrite(existingParentDirectory))
-          {
-            errorMsgs.add(INFO_DIRECTORY_NOT_WRITABLE.get(
-                    existingParentDirectory));
-            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-          }
-          else if (!hasEnoughSpace(existingParentDirectory,
-              getRequiredInstallSpace()))
-          {
-            long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
-            errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(
-                    existingParentDirectory, requiredInMb));
-            qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-          }
-          else
-          {
-            confirmationMsg =
-              INFO_PARENT_DIRECTORY_DOES_NOT_EXIST_CONFIRMATION.get(
-                      serverLocation);
-            getUserData().setServerLocation(serverLocation);
-          }
+          confirmationMsg =
+            INFO_PARENT_DIRECTORY_DOES_NOT_EXIST_CONFIRMATION.get(
+                    serverLocation);
+          getUserData().setServerLocation(serverLocation);
         }
       } else if (fileExists(serverLocation))
       {
@@ -3074,7 +3028,7 @@ public abstract class Installer extends GuiApplication {
         long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
         errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(serverLocation, requiredInMb));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      } else if (OperatingSystem.isWindows() && (serverLocation.contains("%")))
+      } else if (OperatingSystem.isWindows() && serverLocation.contains("%"))
       {
         errorMsgs.add(INFO_INVALID_CHAR_IN_PATH.get("%"));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
@@ -3088,7 +3042,7 @@ public abstract class Installer extends GuiApplication {
     // Check the host is not empty.
     // TODO: check that the host name is valid...
     String hostName = qs.getFieldStringValue(FieldName.HOST_NAME);
-    if ((hostName == null) || hostName.trim().length() == 0)
+    if (hostName == null || hostName.trim().length() == 0)
     {
       errorMsgs.add(INFO_EMPTY_HOST_NAME.get());
       qs.displayFieldInvalid(FieldName.HOST_NAME, true);
@@ -3105,7 +3059,7 @@ public abstract class Installer extends GuiApplication {
     try
     {
       port = Integer.parseInt(sPort);
-      if ((port < MIN_PORT_VALUE) || (port > MAX_PORT_VALUE))
+      if (port < MIN_PORT_VALUE || port > MAX_PORT_VALUE)
       {
         errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
@@ -3130,8 +3084,8 @@ public abstract class Installer extends GuiApplication {
     try
     {
       adminConnectorPort = Integer.parseInt(sPort);
-      if ((adminConnectorPort < MIN_PORT_VALUE) ||
-          (adminConnectorPort > MAX_PORT_VALUE))
+      if (adminConnectorPort < MIN_PORT_VALUE
+          || adminConnectorPort > MAX_PORT_VALUE)
       {
         errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
@@ -3163,7 +3117,7 @@ public abstract class Installer extends GuiApplication {
     int securePort = sec.getSslPort();
     if (sec.getEnableSSL())
     {
-      if ((securePort < MIN_PORT_VALUE) || (securePort > MAX_PORT_VALUE))
+      if (securePort < MIN_PORT_VALUE || securePort > MAX_PORT_VALUE)
       {
         errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
@@ -3200,7 +3154,7 @@ public abstract class Installer extends GuiApplication {
     // Check the Directory Manager DN
     String dmDn = qs.getFieldStringValue(FieldName.DIRECTORY_MANAGER_DN);
 
-    if ((dmDn == null) || (dmDn.trim().length() == 0))
+    if (dmDn == null || dmDn.trim().length() == 0)
     {
       errorMsgs.add(INFO_EMPTY_DIRECTORY_MANAGER_DN.get());
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
@@ -3239,7 +3193,7 @@ public abstract class Installer extends GuiApplication {
     {
       errorMsgs.add(INFO_PWD_TOO_SHORT.get(MIN_DIRECTORY_MANAGER_PWD));
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD, true);
-      if ((pwd2 == null) || (pwd2.length() < MIN_DIRECTORY_MANAGER_PWD))
+      if (pwd2 == null || pwd2.length() < MIN_DIRECTORY_MANAGER_PWD)
       {
         qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_PWD_CONFIRM, true);
       }
@@ -3423,8 +3377,8 @@ public abstract class Installer extends GuiApplication {
     try
     {
       replicationPort = Integer.parseInt(sPort);
-      if ((replicationPort < MIN_PORT_VALUE) ||
-          (replicationPort > MAX_PORT_VALUE))
+      if (replicationPort < MIN_PORT_VALUE
+          || replicationPort > MAX_PORT_VALUE)
       {
         errorMsgs.add(INFO_INVALID_REPLICATION_PORT_VALUE_RANGE.get(MIN_PORT_VALUE, MAX_PORT_VALUE));
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
@@ -3436,9 +3390,9 @@ public abstract class Installer extends GuiApplication {
       {
         /* Check that we did not chose this port for another protocol */
         SecurityOptions sec = getUserData().getSecurityOptions();
-        if ((replicationPort == getUserData().getServerPort()) ||
-            (replicationPort == getUserData().getServerJMXPort()) ||
-            ((replicationPort == sec.getSslPort()) && sec.getEnableSSL()))
+        if (replicationPort == getUserData().getServerPort()
+            || replicationPort == getUserData().getServerJMXPort()
+            || (replicationPort == sec.getSslPort() && sec.getEnableSSL()))
         {
           errorMsgs.add(
               INFO_REPLICATION_PORT_ALREADY_CHOSEN_FOR_OTHER_PROTOCOL.get());
@@ -3462,7 +3416,7 @@ public abstract class Installer extends GuiApplication {
       String pwd, QuickSetup qs, List<LocalizableMessage> errorMsgs)
   {
     // Check host
-    if ((host == null) || (host.length() == 0))
+    if (host == null || host.length() == 0)
     {
       errorMsgs.add(INFO_EMPTY_REMOTE_HOST.get());
       qs.displayFieldInvalid(FieldName.REMOTE_SERVER_HOST, true);
@@ -3485,7 +3439,7 @@ public abstract class Installer extends GuiApplication {
     }
 
     // Check dn
-    if ((dn == null) || (dn.length() == 0))
+    if (dn == null || dn.length() == 0)
     {
       errorMsgs.add(INFO_EMPTY_REMOTE_DN.get());
       qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
@@ -3496,7 +3450,7 @@ public abstract class Installer extends GuiApplication {
     }
 
     // Check password
-    if ((pwd == null) || (pwd.length() == 0))
+    if (pwd == null || pwd.length() == 0)
     {
       errorMsgs.add(INFO_EMPTY_REMOTE_PWD.get());
       qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
@@ -3561,8 +3515,7 @@ public abstract class Installer extends GuiApplication {
             LocalizableMessage errorMsg = INFO_NOT_GLOBAL_ADMINISTRATOR_PROVIDED.get();
             throw new UserDataException(Step.REPLICATION_OPTIONS, errorMsg);
           case GENERIC_CREATING_CONNECTION:
-            if ((e.getCause() != null) &&
-                isCertificateException(e.getCause()))
+            if (isCertificateException(e.getCause()))
             {
               UserDataCertificateException.Type excType;
               ApplicationTrustManager.Cause cause = null;
@@ -3670,8 +3623,7 @@ public abstract class Installer extends GuiApplication {
       }
       else if (t instanceof NamingException)
       {
-        errorMsgs.add(Utils.getMessageForException((NamingException)t,
-            host+":"+port));
+        errorMsgs.add(getMessageForException((NamingException) t, host + ":" + port));
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_DN, true);
         qs.displayFieldInvalid(FieldName.REMOTE_SERVER_PWD, true);
         if (!(t instanceof NamingSecurityException))
@@ -3713,7 +3665,7 @@ public abstract class Installer extends GuiApplication {
     // Check the Global Administrator UID
     String uid = qs.getFieldStringValue(FieldName.GLOBAL_ADMINISTRATOR_UID);
 
-    if ((uid == null) || (uid.trim().length() == 0))
+    if (uid == null || uid.trim().length() == 0)
     {
       errorMsgs.add(INFO_EMPTY_ADMINISTRATOR_UID.get());
       qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_UID, true);
@@ -3744,10 +3696,9 @@ public abstract class Installer extends GuiApplication {
     {
       errorMsgs.add(INFO_PWD_TOO_SHORT.get(MIN_DIRECTORY_MANAGER_PWD));
       qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD, true);
-      if ((pwd2 == null) || (pwd2.length() < MIN_DIRECTORY_MANAGER_PWD))
+      if (pwd2 == null || pwd2.length() < MIN_DIRECTORY_MANAGER_PWD)
       {
-        qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM,
-            true);
+        qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM, true);
       }
       pwdValid = false;
     }
@@ -3855,8 +3806,8 @@ public abstract class Installer extends GuiApplication {
       try
       {
         int replicationPort = Integer.parseInt(sPort);
-        if ((replicationPort < MIN_PORT_VALUE) ||
-            (replicationPort > MAX_PORT_VALUE))
+        if (replicationPort < MIN_PORT_VALUE
+            || replicationPort > MAX_PORT_VALUE)
         {
           errorMsgs.add(INFO_INVALID_REMOTE_REPLICATION_PORT_VALUE_RANGE.get(
               getHostPort(server), MIN_PORT_VALUE, MAX_PORT_VALUE));
@@ -3868,11 +3819,10 @@ public abstract class Installer extends GuiApplication {
           {
             securePort = getUserData().getSecurityOptions().getSslPort();
           }
-          if ((replicationPort == getUserData().getServerPort()) ||
-              (replicationPort == getUserData().getServerJMXPort()) ||
-              (replicationPort ==
-                getUserData().getReplicationOptions().getReplicationPort()) ||
-              (replicationPort == securePort))
+          if (replicationPort == getUserData().getServerPort()
+              || replicationPort == getUserData().getServerJMXPort()
+              || replicationPort == getUserData().getReplicationOptions().getReplicationPort()
+              || replicationPort == securePort)
           {
             errorMsgs.add(
                   INFO_REMOTE_REPLICATION_PORT_ALREADY_CHOSEN_FOR_OTHER_PROTOCOL
@@ -3920,7 +3870,7 @@ public abstract class Installer extends GuiApplication {
     // Check the base dn
     boolean validBaseDn = false;
     String baseDn = qs.getFieldStringValue(FieldName.DIRECTORY_BASE_DN);
-    if ((baseDn == null) || (baseDn.trim().length() == 0))
+    if (baseDn == null || baseDn.trim().length() == 0)
     {
       // Do nothing, the user does not want to provide a base DN.
       baseDn = "";
@@ -3938,7 +3888,7 @@ public abstract class Installer extends GuiApplication {
       validBaseDn = true;
     }
 
-    if (baseDn.equals(""))
+    if ("".equals(baseDn))
     {
       List<String> baseDns = new LinkedList<String>();
       dataOptions = NewSuffixOptions.createEmpty(baseDns);
@@ -3953,7 +3903,7 @@ public abstract class Installer extends GuiApplication {
       {
       case IMPORT_FROM_LDIF_FILE:
         String ldifPath = qs.getFieldStringValue(FieldName.LDIF_PATH);
-        if ((ldifPath == null) || (ldifPath.trim().equals("")))
+        if (ldifPath == null || "".equals(ldifPath.trim()))
         {
           errorMsgs.add(INFO_NO_LDIF_PATH.get());
           qs.displayFieldInvalid(FieldName.LDIF_PATH, true);
@@ -3981,7 +3931,7 @@ public abstract class Installer extends GuiApplication {
 
         // Check the number of entries
         String nEntries = qs.getFieldStringValue(FieldName.NUMBER_ENTRIES);
-        if ((nEntries == null) || (nEntries.trim().equals("")))
+        if (nEntries == null || "".equals(nEntries.trim()))
         {
           errorMsgs.add(INFO_NO_NUMBER_ENTRIES.get());
           qs.displayFieldInvalid(FieldName.NUMBER_ENTRIES, true);
@@ -4101,8 +4051,8 @@ public abstract class Installer extends GuiApplication {
       getUserData().getSuffixesToReplicateOptions();
     SuffixesToReplicateOptions.Type type;
 
-    if ((suf == null) || (suf.getType() ==
-      SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE))
+    if (suf == null
+        || suf.getType() == SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE)
     {
       type = SuffixesToReplicateOptions.Type.NO_SUFFIX_TO_REPLICATE;
     }
@@ -4157,13 +4107,13 @@ public abstract class Installer extends GuiApplication {
       getUserData().getSuffixesToReplicateOptions();
     SuffixesToReplicateOptions.Type type;
     Set<SuffixDescriptor> suffixes = new HashSet<SuffixDescriptor>();
-    if (suf == null)
+    if (suf != null)
     {
-      type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
+      type = suf.getType();
     }
     else
     {
-      type = suf.getType();
+      type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
     }
 
     ServerDescriptor s = ServerDescriptor.createStandalone(ctx,
@@ -4189,9 +4139,7 @@ public abstract class Installer extends GuiApplication {
    */
   protected String getSelfSignedKeystorePath()
   {
-    String parentFile = getPath(getInstancePath(),
-        Installation.CONFIG_PATH_RELATIVE);
-    return (getPath(parentFile, "keystore"));
+    return getPath2("keystore");
   }
 
   /**
@@ -4202,9 +4150,7 @@ public abstract class Installer extends GuiApplication {
    */
   private String getTrustManagerPath()
   {
-    String parentFile = getPath(getInstancePath(),
-        Installation.CONFIG_PATH_RELATIVE);
-    return (getPath(parentFile, "truststore"));
+    return getPath2("truststore");
   }
 
   /**
@@ -4214,9 +4160,7 @@ public abstract class Installer extends GuiApplication {
    */
   private String getTemporaryCertificatePath()
   {
-    String parentFile = getPath(getInstancePath(),
-        Installation.CONFIG_PATH_RELATIVE);
-    return (getPath(parentFile, "server-cert.txt"));
+    return getPath2("server-cert.txt");
   }
 
   /**
@@ -4225,11 +4169,14 @@ public abstract class Installer extends GuiApplication {
    */
   private String getKeystorePinPath()
   {
-    String parentFile = getPath(getInstancePath(),
-        Installation.CONFIG_PATH_RELATIVE);
-    return (getPath(parentFile, "keystore.pin"));
+    return getPath2("keystore.pin");
   }
 
+  private String getPath2(String relativePath)
+  {
+    String parentFile = getPath(getInstancePath(), Installation.CONFIG_PATH_RELATIVE);
+    return getPath(parentFile, relativePath);
+  }
 
   /**
    * Returns the validity period to be used to generate the self-signed
@@ -4484,7 +4431,7 @@ public abstract class Installer extends GuiApplication {
         }
         totalEntries = Math.max(totalEntries, processed+unprocessed);
 
-        if ((processed != -1) && (unprocessed != -1))
+        if (processed != -1 && unprocessed != -1)
         {
           if (processed + unprocessed > 0)
           {
@@ -4531,32 +4478,27 @@ public abstract class Installer extends GuiApplication {
           {
             minRefreshPeriod = 10000;
           }
-          if (((currentTime - minRefreshPeriod) > lastTimeMsgLogged))
+          if (currentTime - minRefreshPeriod > lastTimeMsgLogged)
           {
             lastTimeMsgLogged = currentTime;
             logger.info(LocalizableMessage.raw("Progress msg: "+msg));
           }
-          if (displayProgress)
+          if (displayProgress
+              && currentTime - minRefreshPeriod > lastTimeMsgDisplayed
+              && !msg.equals(lastDisplayedMsg))
           {
-            if (((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
-                !msg.equals(lastDisplayedMsg))
-            {
-              notifyListeners(getFormattedProgress(msg));
-              lastDisplayedMsg = msg;
-              notifyListeners(getLineBreak());
-              lastTimeMsgDisplayed = currentTime;
-            }
+            notifyListeners(getFormattedProgress(msg));
+            lastDisplayedMsg = msg;
+            notifyListeners(getLineBreak());
+            lastTimeMsgDisplayed = currentTime;
           }
         }
 
         String logMsg = getFirstValue(sr, "ds-task-log-message");
-        if (logMsg != null)
+        if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
-          if (!logMsg.equals(lastLogMsg))
-          {
-            logger.info(LocalizableMessage.raw(logMsg));
-            lastLogMsg = logMsg;
-          }
+          logger.info(LocalizableMessage.raw(logMsg));
+          lastLogMsg = logMsg;
         }
         InstallerHelper helper = new InstallerHelper();
         String state = getFirstValue(sr, "ds-task-state");
@@ -4566,23 +4508,22 @@ public abstract class Installer extends GuiApplication {
           isOver = true;
           LocalizableMessage errorMsg;
           logger.info(LocalizableMessage.raw("Last task entry: "+sr));
-          if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
+          if (displayProgress && msg != null && !msg.equals(lastDisplayedMsg))
           {
             notifyListeners(getFormattedProgress(msg));
             lastDisplayedMsg = msg;
             notifyListeners(getLineBreak());
           }
 
-          if (lastLogMsg == null)
+          if (lastLogMsg != null)
           {
-            errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
-                    sourceServerDisplay, state, sourceServerDisplay);
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
+                    sourceServerDisplay, lastLogMsg, state, sourceServerDisplay);
           }
           else
           {
-            errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
-                    sourceServerDisplay, lastLogMsg, state,
-                    sourceServerDisplay);
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
+                    sourceServerDisplay, state, sourceServerDisplay);
           }
 
           logger.warn(LocalizableMessage.raw("Processed errorMsg: "+errorMsg));
@@ -4599,8 +4540,7 @@ public abstract class Installer extends GuiApplication {
             ApplicationException ae = new ApplicationException(
                 ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
-            if ((lastLogMsg == null) ||
-                helper.isPeersNotFoundError(lastLogMsg))
+            if (lastLogMsg == null || helper.isPeersNotFoundError(lastLogMsg))
             {
               logger.warn(LocalizableMessage.raw("Throwing peer not found error.  "+
                   "Last Log Msg: "+lastLogMsg));
@@ -4753,13 +4693,10 @@ public abstract class Installer extends GuiApplication {
           res.close();
         }
         String logMsg = getFirstValue(sr, "ds-task-log-message");
-        if (logMsg != null)
+        if (logMsg != null && !logMsg.equals(lastLogMsg))
         {
-          if (!logMsg.equals(lastLogMsg))
-          {
-            logger.info(LocalizableMessage.raw(logMsg));
-            lastLogMsg = logMsg;
-          }
+          logger.info(LocalizableMessage.raw(logMsg));
+          lastLogMsg = logMsg;
         }
         InstallerHelper helper = new InstallerHelper();
         String state = getFirstValue(sr, "ds-task-state");
@@ -4768,16 +4705,15 @@ public abstract class Installer extends GuiApplication {
         {
           isOver = true;
           LocalizableMessage errorMsg;
-          if (lastLogMsg == null)
+          if (lastLogMsg != null)
           {
-            errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
-                    sourceServerDisplay, state, sourceServerDisplay);
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
+                    sourceServerDisplay, lastLogMsg, state, sourceServerDisplay);
           }
           else
           {
-            errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
-                    sourceServerDisplay, lastLogMsg, state,
-                    sourceServerDisplay);
+            errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
+                    sourceServerDisplay, state, sourceServerDisplay);
           }
 
           if (helper.isCompletedWithErrors(state))
@@ -4901,9 +4837,7 @@ public abstract class Installer extends GuiApplication {
     return hostPort;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void applicationPrintStreamReceived(String message)
   {
@@ -4945,7 +4879,7 @@ public abstract class Installer extends GuiApplication {
  */
 abstract class InvokeThread extends Thread implements Runnable
 {
-  protected boolean isOver = false;
+  protected boolean isOver;
   protected ApplicationException ae;
 
   /**

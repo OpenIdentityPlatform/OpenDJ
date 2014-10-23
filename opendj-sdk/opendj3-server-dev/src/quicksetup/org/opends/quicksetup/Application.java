@@ -27,9 +27,18 @@
 
 package org.opends.quicksetup;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.PrintStream;
+import java.util.LinkedHashSet;
+import java.util.Map;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
@@ -39,24 +48,14 @@ import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.event.ProgressUpdateListener;
+import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 import org.opends.quicksetup.util.UIKeyStore;
-import org.opends.quicksetup.ui.GuiApplication;
 import org.opends.quicksetup.util.Utils;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.QuickSetupMessages.*;
-
-
-import java.io.PrintStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Map;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
 
 /**
  * This class represents an application that can be run in the context of
@@ -94,8 +93,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @throws RuntimeException if there was a problem
    *  creating the new Application object
    */
-  static public GuiApplication create()
-          throws RuntimeException {
+  public static GuiApplication create() throws RuntimeException {
     GuiApplication app;
     String appClassName =
             System.getProperty("org.opends.quicksetup.Application.class");
@@ -152,6 +150,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * the install progress.
    * @param l the ProgressUpdateListener to be added.
    */
+  @Override
   public void addProgressUpdateListener(ProgressUpdateListener l)
   {
     listenerDelegate.addProgressUpdateListener(l);
@@ -161,6 +160,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * Removes a ProgressUpdateListener.
    * @param l the ProgressUpdateListener to be removed.
    */
+  @Override
   public void removeProgressUpdateListener(ProgressUpdateListener l)
   {
     listenerDelegate.removeProgressUpdateListener(l);
@@ -176,13 +176,13 @@ public abstract class Application implements ProgressNotifier, Runnable {
       String installPath = getInstallationPath();
       String instancePath = getInstancePath();
       if (installPath != null) {
-        if (instancePath == null)
+        if (instancePath != null)
         {
-          installation = new Installation(installPath, installPath);
+          installation = new Installation(installPath, instancePath);
         }
         else
         {
-          installation = new Installation(installPath, instancePath);
+          installation = new Installation(installPath, installPath);
         }
       }
     }
@@ -247,6 +247,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @param newLogDetail the new log messages that we have for the
    * installation in formatted form.
    */
+  @Override
   public void notifyListeners(Integer ratio, LocalizableMessage currentPhaseSummary,
       LocalizableMessage newLogDetail)
   {
@@ -514,7 +515,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * @return <CODE>true</CODE> if the install is finished or <CODE>false
    * </CODE> if not.
    */
-  abstract public boolean isFinished();
+  public abstract boolean isFinished();
 
   /**
    * Returns the trust manager that can be used to establish secure connections.
@@ -562,7 +563,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    *
    * @return boolean where true inidcates that the operation is cancellable
    */
-  abstract public boolean isCancellable();
+  public abstract boolean isCancellable();
 
   /**
    * Signals that the application should cancel a currently running
@@ -571,7 +572,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
    * out changes the application should make sure that <code>isFinished</code>
    * returns true so that the application can complete.
    */
-  abstract public void cancel();
+  public abstract void cancel();
 
   /**
    * Checks whether the operation has been aborted.  If it has throws an
@@ -658,7 +659,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
     catch (NamingException ne)
     {
       LocalizableMessage msg;
-      if (Utils.isCertificateException(ne))
+      if (isCertificateException(ne))
       {
         msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
             server.getHostPort(true), ne.toString(true));
@@ -750,9 +751,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
       super();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     protected LocalizableMessage formatString(String s) {
       return getFormattedLogError(LocalizableMessage.raw(s));
     }
@@ -781,9 +781,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
       super();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     protected LocalizableMessage formatString(String s) {
       return getFormattedLog(LocalizableMessage.raw(s));
     }
@@ -803,7 +802,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
      * @param string to format
      * @return formatted message
      */
-    abstract protected LocalizableMessage formatString(String string);
+    protected abstract LocalizableMessage formatString(String string);
 
     /**
      * Default constructor.
@@ -815,24 +814,16 @@ public abstract class Application implements ProgressNotifier, Runnable {
       isFirstLine = true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void println(String msg)
     {
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-      if (isFirstLine)
+      if (!isFirstLine && !Utils.isCli())
       {
-        mb.append(formatString(msg));
-      } else
-      {
-        if (!Utils.isCli())
-        {
-          mb.append(getLineBreak());
-        }
-        mb.append(formatString(msg));
+        mb.append(getLineBreak());
       }
+      mb.append(formatString(msg));
 
       notifyListeners(mb.toMessage());
       applicationPrintStreamReceived(msg);
@@ -840,9 +831,7 @@ public abstract class Application implements ProgressNotifier, Runnable {
       isFirstLine = false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void write(byte[] b, int off, int len)
     {
@@ -864,7 +853,6 @@ public abstract class Application implements ProgressNotifier, Runnable {
 
   /**
    * Class used to add points periodically to the end of the logs.
-   *
    */
   protected class PointAdder implements Runnable
   {
@@ -921,9 +909,8 @@ public abstract class Application implements ProgressNotifier, Runnable {
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void run()
     {
       while (!stopPointAdder)

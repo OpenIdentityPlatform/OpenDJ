@@ -26,14 +26,6 @@
  */
 package org.opends.guitools.uninstaller;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_BINDPWD;
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_BINDPWD_FILE;
-import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-import static org.forgerock.util.Utils.joinAsString;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -85,6 +77,13 @@ import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ReturnCode;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+
 /**
  * The class used to provide some CLI interface in the uninstall.
  *
@@ -100,15 +99,12 @@ public class UninstallCliHelper extends ConsoleApplication {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private UninstallerArgumentParser parser;
-
-  private boolean forceNonInteractive;
-
-  private LDAPConnectionConsoleInteraction ci = null;
-
+  private LDAPConnectionConsoleInteraction ci;
   private ControlPanelInfo info;
 
+  private boolean forceNonInteractive;
   private boolean useSSL = true;
-  private boolean useStartTLS = false;
+  private boolean useStartTLS;
 
   /**
    * Default constructor.
@@ -220,17 +216,14 @@ public class UninstallCliHelper extends ConsoleApplication {
         userData.setExternalDbsToRemove(outsideDbs);
         userData.setExternalLogsToRemove(outsideLogs);
       }
+      else if (!isInteractive)
+      {
+        throw new UserDataException(null,
+           ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED_NON_INTERACTIVE.get());
+      }
       else
       {
-        if (!isInteractive)
-        {
-          throw new UserDataException(null,
-             ERR_CLI_UNINSTALL_NOTHING_TO_BE_UNINSTALLED_NON_INTERACTIVE.get());
-        }
-        else
-        {
-          isCanceled = askWhatToDelete(userData, outsideDbs, outsideLogs);
-        }
+        isCanceled = askWhatToDelete(userData, outsideDbs, outsideLogs);
       }
       String adminUid = args.getAdministratorUID();
       if (adminUid == null && !args.isInteractive())
@@ -560,9 +553,9 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           try
           {
+            println();
             if (confirmToUpdateRemote())
             {
-              println();
               cancelled = !askForAuthenticationIfNeeded(userData);
               if (cancelled)
               {
@@ -583,7 +576,6 @@ public class UninstallCliHelper extends ConsoleApplication {
             }
             else
             {
-              println();
               /* Ask for confirmation to stop server */
               cancelled = !confirmToStopServer();
             }
@@ -602,75 +594,72 @@ public class UninstallCliHelper extends ConsoleApplication {
               errorWithRemote));
         }
       }
-      else
+      else if (interactive)
       {
-        if (interactive)
+        println();
+        try
         {
-          println();
-          try
+          if (confirmToUpdateRemoteAndStart())
           {
-            if (confirmToUpdateRemoteAndStart())
+            boolean startWorked = startServer(userData.isQuiet());
+            // Ask for authentication if needed, etc.
+            if (startWorked)
             {
-              boolean startWorked = startServer(userData.isQuiet());
-              // Ask for authentication if needed, etc.
-              if (startWorked)
+              cancelled = !askForAuthenticationIfNeeded(userData);
+              if (cancelled)
               {
-                cancelled = !askForAuthenticationIfNeeded(userData);
+                println();
+                /* Ask for confirmation to stop server */
+                cancelled = !confirmToStopServer();
+              }
+              else
+              {
+                cancelled =
+                  !updateUserUninstallDataWithRemoteServers(userData);
                 if (cancelled)
                 {
                   println();
                   /* Ask for confirmation to stop server */
                   cancelled = !confirmToStopServer();
                 }
-                else
-                {
-                  cancelled =
-                    !updateUserUninstallDataWithRemoteServers(userData);
-                  if (cancelled)
-                  {
-                    println();
-                    /* Ask for confirmation to stop server */
-                    cancelled = !confirmToStopServer();
-                  }
-                }
-                userData.setStopServer(true);
               }
-              else
-              {
-                userData.setStopServer(false);
-                println();
-                /* Ask for confirmation to delete files */
-                cancelled = !confirmDeleteFiles();
-              }
+              userData.setStopServer(true);
             }
             else
             {
+              userData.setStopServer(false);
               println();
               /* Ask for confirmation to delete files */
               cancelled = !confirmDeleteFiles();
             }
           }
-          catch (ClientException ce)
+          else
           {
-            throw new UserDataException(null, ce.getMessageObject(), ce);
+            println();
+            /* Ask for confirmation to delete files */
+            cancelled = !confirmDeleteFiles();
           }
+        }
+        catch (ClientException ce)
+        {
+          throw new UserDataException(null, ce.getMessageObject(), ce);
+        }
+      }
+      else
+      {
+        boolean startWorked = startServer(userData.isQuiet());
+        // Ask for authentication if needed, etc.
+        if (startWorked)
+        {
+          userData.setStopServer(true);
+          boolean errorWithRemote =
+            !updateUserUninstallDataWithRemoteServers(userData);
+          cancelled = errorWithRemote && !parser.isForceOnError();
         }
         else
         {
-          boolean startWorked = startServer(userData.isQuiet());
-          // Ask for authentication if needed, etc.
-          if (startWorked)
-          {
-            userData.setStopServer(true);
-            boolean errorWithRemote =
-              !updateUserUninstallDataWithRemoteServers(userData);
-            cancelled = errorWithRemote && !parser.isForceOnError();
-          }
-          else
-          {
-            cancelled  = !forceOnError;
-            userData.setStopServer(false);
-          }
+          cancelled  = !forceOnError;
+          userData.setStopServer(false);
         }
       }
       if (!cancelled || parser.isForceOnError())
@@ -682,48 +671,45 @@ public class UninstallCliHelper extends ConsoleApplication {
             userData.getStopServer()));
       }
     }
+    else if (conf.isServerRunning())
+    {
+      try
+      {
+        if (interactive)
+        {
+          println();
+          /* Ask for confirmation to stop server */
+          cancelled = !confirmToStopServer();
+        }
+
+        if (!cancelled)
+        {
+          /* During all the confirmations, the server might be stopped. */
+          userData.setStopServer(
+              Installation.getLocal().getStatus().isServerRunning());
+          logger.info(LocalizableMessage.raw("Must stop the server after confirmations? "+
+              userData.getStopServer()));
+        }
+      }
+      catch (ClientException ce)
+      {
+        throw new UserDataException(null, ce.getMessageObject(), ce);
+      }
+    }
     else
     {
-      if (conf.isServerRunning())
+      userData.setStopServer(false);
+      if (interactive)
       {
+        println();
+        /* Ask for confirmation to delete files */
         try
         {
-          if (interactive)
-          {
-            println();
-            /* Ask for confirmation to stop server */
-            cancelled = !confirmToStopServer();
-          }
-
-          if (!cancelled)
-          {
-            /* During all the confirmations, the server might be stopped. */
-            userData.setStopServer(
-                Installation.getLocal().getStatus().isServerRunning());
-            logger.info(LocalizableMessage.raw("Must stop the server after confirmations? "+
-                userData.getStopServer()));
-          }
+          cancelled = !confirmDeleteFiles();
         }
         catch (ClientException ce)
         {
           throw new UserDataException(null, ce.getMessageObject(), ce);
-        }
-      }
-      else
-      {
-        userData.setStopServer(false);
-        if (interactive)
-        {
-          println();
-          /* Ask for confirmation to delete files */
-          try
-          {
-            cancelled = !confirmDeleteFiles();
-          }
-          catch (ClientException ce)
-          {
-            throw new UserDataException(null, ce.getMessageObject(), ce);
-          }
         }
       }
     }
@@ -1245,17 +1231,15 @@ public class UninstallCliHelper extends ConsoleApplication {
     catch (NamingException ne)
     {
       logger.warn(LocalizableMessage.raw("Error connecting to server: "+ne, ne));
-      if (Utils.isCertificateException(ne))
+      if (isCertificateException(ne))
       {
         String details = ne.getMessage() != null ?
             ne.getMessage() : ne.toString();
-        exceptionMsg =
-          INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(details);
+        exceptionMsg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(details);
       }
       else
       {
-        exceptionMsg = getThrowableMsg(
-            INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
+        exceptionMsg = getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       }
     } catch (TopologyCacheException te)
     {
@@ -1376,8 +1360,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         stopProcessing = true;
         break;
       case GENERIC_CREATING_CONNECTION:
-        if (e.getCause() != null &&
-            Utils.isCertificateException(e.getCause()))
+        if (isCertificateException(e.getCause()))
         {
           if (isInteractive())
           {
@@ -1479,11 +1462,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
-    if (forceNonInteractive)
-    {
-      return false;
-    }
-    return parser.isInteractive();
+    return !forceNonInteractive && parser.isInteractive();
   }
 
 

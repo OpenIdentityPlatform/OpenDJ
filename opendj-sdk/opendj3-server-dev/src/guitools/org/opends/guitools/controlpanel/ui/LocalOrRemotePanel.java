@@ -27,11 +27,6 @@
 
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.cli.Utils.isDN;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
@@ -82,9 +77,13 @@ import org.opends.server.types.OpenDsException;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+
 /**
  * The panel that appears when the user is asked to provide authentication.
- *
  */
 public class LocalOrRemotePanel extends StatusGenericPanel
 {
@@ -120,18 +119,14 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_LOCAL_OR_REMOTE_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public GenericDialog.ButtonType getButtonType()
   {
@@ -153,16 +148,14 @@ public class LocalOrRemotePanel extends StatusGenericPanel
    */
   public int getPort()
   {
-    int port = -1;
     try
     {
-      port = new Integer(this.port.getText().trim());
+      return Integer.valueOf(this.port.getText().trim());
     }
-    catch (Exception ex)
+    catch (Exception ignored)
     {
-      // Ignore
+      return -1;
     }
-    return port;
   }
 
   /**
@@ -407,9 +400,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
@@ -417,23 +408,16 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     {
       return pwd;
     }
-    else
-    {
-      return combo;
-    }
+    return combo;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -485,9 +469,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -540,7 +522,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         try
         {
           int p = Integer.parseInt(port.getText());
-          if ((p <= 0) || (p > 65535))
+          if (p <= 0 || p > 65535)
           {
             errors.add(INFO_INVALID_REMOTE_SERVER_PORT.get(0, 65535));
           }
@@ -560,9 +542,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       BackgroundTask<InitialLdapContext> worker =
         new BackgroundTask<InitialLdapContext>()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public InitialLdapContext processBackgroundTask() throws Throwable
         {
@@ -639,15 +619,12 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void backgroundTaskCompleted(InitialLdapContext ctx,
             Throwable throwable)
         {
           boolean handleCertificateException = false;
-
           boolean localServerErrorConnecting = false;
 
           if (throwable != null)
@@ -658,7 +635,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             {
               errors.add(((OpenDsException)throwable).getMessageObject());
             }
-            else if (Utils.isCertificateException(throwable))
+            else if (isCertificateException(throwable))
             {
               ApplicationTrustManager.Cause cause =
                 getInfo().getTrustManager().getLastRefusedCause();
@@ -739,7 +716,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
                     hostName.getText().trim(),
                     new Integer(port.getText().trim()));
                 NamingException ne = (NamingException)throwable;
-                errors.add(Utils.getMessageForException(ne, hostPort));
+                errors.add(getMessageForException(ne, hostPort));
                 setPrimaryInvalid(portLabel);
               }
               setPrimaryInvalid(dnLabel);
@@ -820,9 +797,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -852,7 +827,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       String authType = ce.getAuthType();
       String host = ce.getHost();
 
-      if ((chain != null) && (authType != null) && (host != null))
+      if (chain != null && authType != null && host != null)
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
@@ -997,16 +972,13 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         msg = ERR_NOT_SAME_PRODUCT_IN_REMOTE_SERVER_NOT_FOUND.get(hostName,
             productName, DynamicConstants.PRODUCT_NAME);
       }
-      else
+      else if (!String.valueOf(DynamicConstants.MAJOR_VERSION).equals(major)
+          || !String.valueOf(DynamicConstants.MINOR_VERSION).equals(minor)
+          || !String.valueOf(DynamicConstants.POINT_VERSION).equals(point))
       {
-        if (!String.valueOf(DynamicConstants.MAJOR_VERSION).equals(major) ||
-            !String.valueOf(DynamicConstants.MINOR_VERSION).equals(minor) ||
-            !String.valueOf(DynamicConstants.POINT_VERSION).equals(point))
-        {
-          msg = ERR_INCOMPATIBLE_VERSION_IN_REMOTE_SERVER.get(hostName,
-              major, minor, point, DynamicConstants.MAJOR_VERSION,
-              DynamicConstants.MINOR_VERSION, DynamicConstants.POINT_VERSION);
-        }
+        msg = ERR_INCOMPATIBLE_VERSION_IN_REMOTE_SERVER.get(hostName,
+            major, minor, point, DynamicConstants.MAJOR_VERSION,
+            DynamicConstants.MINOR_VERSION, DynamicConstants.POINT_VERSION);
       }
     }
     catch (Throwable t)

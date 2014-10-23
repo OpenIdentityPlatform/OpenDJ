@@ -35,9 +35,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -46,12 +43,16 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.quicksetup.util.Utils;
+
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -76,7 +77,7 @@ public class TopologyCache
   private final Set<PreferredConnection> preferredConnections =
       new LinkedHashSet<PreferredConnection>();
   private final TopologyCacheFilter filter = new TopologyCacheFilter();
-  private final static int MULTITHREAD_TIMEOUT = 90 * 1000;
+  private static final int MULTITHREAD_TIMEOUT = 90 * 1000;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -441,7 +442,7 @@ public class TopologyCache
 
           break;
         case GENERIC_CREATING_CONNECTION:
-          if (Utils.isCertificateException(e.getCause()))
+          if (isCertificateException(e.getCause()))
           {
             exceptionMsgs.add(
                 INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
@@ -507,7 +508,7 @@ public class TopologyCache
             // This is not a replica, but a replication server. Skip it
             continue;
           }
-          replicaId = new Integer(sid);
+          replicaId = Integer.valueOf(sid);
         }
         catch (Throwable t)
         {
@@ -519,7 +520,7 @@ public class TopologyCache
         {
           if (Utils.areDnsEqual(dn, replica.getSuffix().getDN())
               && replica.isReplicated()
-              && (replica.getReplicationId() == replicaId))
+              && replica.getReplicationId() == replicaId)
           {
             // This statistic is optional.
             String s = ConnectionUtils.getFirstValue(sr,

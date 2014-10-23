@@ -27,11 +27,6 @@
 
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.cli.Utils.isDN;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.net.URI;
@@ -60,9 +55,13 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+
 /**
  * The panel that appears when the user is asked to provide authentication.
- *
  */
 public class LoginPanel extends StatusGenericPanel
 {
@@ -85,9 +84,7 @@ public class LoginPanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
@@ -136,26 +133,20 @@ public class LoginPanel extends StatusGenericPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return pwd;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -166,9 +157,7 @@ public class LoginPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -214,9 +203,7 @@ public class LoginPanel extends StatusGenericPanel
       BackgroundTask<InitialLdapContext> worker =
         new BackgroundTask<InitialLdapContext>()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public InitialLdapContext processBackgroundTask() throws Throwable
         {
@@ -274,9 +261,7 @@ public class LoginPanel extends StatusGenericPanel
           }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void backgroundTaskCompleted(InitialLdapContext ctx,
             Throwable throwable)
@@ -286,7 +271,7 @@ public class LoginPanel extends StatusGenericPanel
           {
             logger.info(LocalizableMessage.raw("Error connecting: " + throwable, throwable));
 
-            if (Utils.isCertificateException(throwable))
+            if (isCertificateException(throwable))
             {
               ApplicationTrustManager.Cause cause =
                 getInfo().getTrustManager().getLastRefusedCause();
@@ -409,9 +394,7 @@ public class LoginPanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -440,7 +423,7 @@ public class LoginPanel extends StatusGenericPanel
       String authType = ce.getAuthType();
       String host = ce.getHost();
 
-      if ((chain != null) && (authType != null) && (host != null))
+      if (chain != null && authType != null && host != null)
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
