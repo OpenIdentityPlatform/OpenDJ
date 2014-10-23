@@ -29,17 +29,21 @@ package org.opends.server.core;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
-import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
+import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
+import org.opends.server.admin.std.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
+import org.opends.server.admin.std.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -124,87 +128,100 @@ public class CoreConfigManager
    */
   private static void applyGlobalConfiguration(GlobalCfg globalConfig)
   {
-    DirectoryServer.setCheckSchema(globalConfig.isCheckSchema());
+    setCheckSchema(globalConfig.isCheckSchema());
+    setDefaultPasswordPolicyDN(globalConfig.getDefaultPasswordPolicyDN());
+    setAddMissingRDNAttributes(globalConfig.isAddMissingRDNAttributes());
+    setAllowAttributeNameExceptions(globalConfig.isAllowAttributeNameExceptions());
+    setSyntaxEnforcementPolicy(convert(globalConfig.getInvalidAttributeSyntaxBehavior()));
+    setServerErrorResultCode(ResultCode.valueOf(globalConfig.getServerErrorResultCode()));
+    setSingleStructuralObjectClassPolicy(convert(globalConfig.getSingleStructuralObjectclassBehavior()));
 
-    DirectoryServer.setDefaultPasswordPolicyDN(
-         globalConfig.getDefaultPasswordPolicyDN());
+    setNotifyAbandonedOperations(globalConfig.isNotifyAbandonedOperations());
+    setSizeLimit(globalConfig.getSizeLimit());
+    setTimeLimit((int) globalConfig.getTimeLimit());
+    setProxiedAuthorizationIdentityMapperDN(globalConfig.getProxiedAuthorizationIdentityMapperDN());
+    setWritabilityMode(convert(globalConfig.getWritabilityMode()));
+    setRejectUnauthenticatedRequests(globalConfig.isRejectUnauthenticatedRequests());
+    setBindWithDNRequiresPassword(globalConfig.isBindWithDNRequiresPassword());
+    setLookthroughLimit(globalConfig.getLookthroughLimit());
 
-    DirectoryServer.setAddMissingRDNAttributes(
-         globalConfig.isAddMissingRDNAttributes());
+    setMailServerPropertySets(getMailServerProperties(globalConfig.getSMTPServer()));
+    setAllowedTasks(globalConfig.getAllowedTask());
+    setDisabledPrivileges(convert(globalConfig.getDisabledPrivilege()));
+    setReturnBindErrorMessages(globalConfig.isReturnBindErrorMessages());
+    setIdleTimeLimit(globalConfig.getIdleTimeLimit());
+    setSaveConfigOnSuccessfulStartup(globalConfig.isSaveConfigOnSuccessfulStartup());
 
-    DirectoryServer.setAllowAttributeNameExceptions(
-         globalConfig.isAllowAttributeNameExceptions());
-
-    switch (globalConfig.getInvalidAttributeSyntaxBehavior())
+    // If the workflow configuration mode has changed then reconfigure
+    // the workflows-only if the server is running. If the server is not
+    // running (ie. the server is starting up) simply update the workflow
+    // configuration mode as the workflow configuration is processed
+    // elsewhere.
+    WorkflowConfigurationMode oldMode =
+      DirectoryServer.getWorkflowConfigurationMode();
+    WorkflowConfigurationMode newMode =
+      globalConfig.getWorkflowConfigurationMode();
+    if (DirectoryServer.isRunning())
     {
-      case ACCEPT:
-        DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.ACCEPT);
-        break;
-      case WARN:
-        DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.WARN);
-        break;
-      case REJECT:
-      default:
-        DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.REJECT);
-        break;
+      DirectoryServer.reconfigureWorkflows(oldMode, newMode);
+    }
+    else
+    {
+      DirectoryServer.setWorkflowConfigurationMode(newMode);
     }
 
-    DirectoryServer.setServerErrorResultCode(
-         ResultCode.valueOf(globalConfig.getServerErrorResultCode()));
+    setUseNanoTime(globalConfig.getEtimeResolution() == GlobalCfgDefn.EtimeResolution.NANOSECONDS);
+    setMaxAllowedConnections(globalConfig.getMaxAllowedClientConnections());
+    setMaxPersistentSearchLimit(globalConfig.getMaxPsearches());
+    setMaxInternalBufferSize((int) globalConfig.getMaxInternalBufferSize());
+  }
 
-    switch (globalConfig.getSingleStructuralObjectclassBehavior())
+  private static AcceptRejectWarn convert(InvalidAttributeSyntaxBehavior invalidAttributeSyntaxBehavior)
+  {
+    switch (invalidAttributeSyntaxBehavior)
     {
-      case ACCEPT:
-        DirectoryServer.setSingleStructuralObjectClassPolicy(
-             AcceptRejectWarn.ACCEPT);
-        break;
-      case WARN:
-        DirectoryServer.setSingleStructuralObjectClassPolicy(
-             AcceptRejectWarn.WARN);
-        break;
-      case REJECT:
-      default:
-        DirectoryServer.setSingleStructuralObjectClassPolicy(
-             AcceptRejectWarn.REJECT);
-        break;
+    case ACCEPT:
+      return AcceptRejectWarn.ACCEPT;
+    case WARN:
+      return AcceptRejectWarn.WARN;
+    case REJECT:
+    default:
+      return AcceptRejectWarn.REJECT;
     }
+  }
 
-    DirectoryServer.setNotifyAbandonedOperations(
-         globalConfig.isNotifyAbandonedOperations());
-
-    DirectoryServer.setSizeLimit(globalConfig.getSizeLimit());
-
-    DirectoryServer.setTimeLimit((int) globalConfig.getTimeLimit());
-
-    DirectoryServer.setProxiedAuthorizationIdentityMapperDN(
-         globalConfig.getProxiedAuthorizationIdentityMapperDN());
-
-    switch (globalConfig.getWritabilityMode())
+  private static AcceptRejectWarn convert(SingleStructuralObjectclassBehavior singleStructuralObjectclassBehavior)
+  {
+    switch (singleStructuralObjectclassBehavior)
     {
-      case ENABLED:
-        DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
-        break;
-      case INTERNAL_ONLY:
-        DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
-        break;
-      case DISABLED:
-      default:
-        DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
-        break;
+    case ACCEPT:
+      return AcceptRejectWarn.ACCEPT;
+    case WARN:
+      return AcceptRejectWarn.WARN;
+    case REJECT:
+    default:
+      return AcceptRejectWarn.REJECT;
     }
+  }
 
-    DirectoryServer.setRejectUnauthenticatedRequests(
-         globalConfig.isRejectUnauthenticatedRequests());
+  private static WritabilityMode convert(GlobalCfgDefn.WritabilityMode writabilityMode)
+  {
+    switch (writabilityMode)
+    {
+    case ENABLED:
+      return WritabilityMode.ENABLED;
+    case INTERNAL_ONLY:
+      return WritabilityMode.INTERNAL_ONLY;
+    case DISABLED:
+    default:
+      return WritabilityMode.DISABLED;
+    }
+  }
 
-    DirectoryServer.setBindWithDNRequiresPassword(
-         globalConfig.isBindWithDNRequiresPassword());
-
-    DirectoryServer.setLookthroughLimit(globalConfig.getLookthroughLimit());
-
-
+  private static List<Properties> getMailServerProperties(Set<String> smtpServers)
+  {
     List<Properties> mailServerProperties = new ArrayList<Properties>();
-    Set<String> smtpServers = globalConfig.getSMTPServer();
-    if ((smtpServers != null) && (! smtpServers.isEmpty()))
+    if (smtpServers != null && !smtpServers.isEmpty())
     {
       for (String smtpServer : smtpServers)
       {
@@ -229,128 +246,77 @@ public class CoreConfigManager
         mailServerProperties.add(properties);
       }
     }
-    DirectoryServer.setMailServerPropertySets(mailServerProperties);
+    return mailServerProperties;
+  }
 
-    DirectoryServer.setAllowedTasks(globalConfig.getAllowedTask());
-
-
+  private static HashSet<Privilege> convert(Set<DisabledPrivilege> configuredDisabledPrivs)
+  {
     HashSet<Privilege> disabledPrivileges = new HashSet<Privilege>();
-    Set<GlobalCfgDefn.DisabledPrivilege> configuredDisabledPrivs =
-         globalConfig.getDisabledPrivilege();
     if (configuredDisabledPrivs != null)
     {
-      for (GlobalCfgDefn.DisabledPrivilege p : configuredDisabledPrivs)
+      for (DisabledPrivilege p : configuredDisabledPrivs)
       {
-        switch (p)
+        final Privilege privilege = convert(p);
+        if (privilege != null)
         {
-          case BACKEND_BACKUP:
-            disabledPrivileges.add(Privilege.BACKEND_BACKUP);
-            break;
-          case BACKEND_RESTORE:
-            disabledPrivileges.add(Privilege.BACKEND_RESTORE);
-            break;
-          case BYPASS_ACL:
-            disabledPrivileges.add(Privilege.BYPASS_ACL);
-            break;
-          case CANCEL_REQUEST:
-            disabledPrivileges.add(Privilege.CANCEL_REQUEST);
-            break;
-          case CONFIG_READ:
-            disabledPrivileges.add(Privilege.CONFIG_READ);
-            break;
-          case CONFIG_WRITE:
-            disabledPrivileges.add(Privilege.CONFIG_WRITE);
-            break;
-          case DATA_SYNC:
-            disabledPrivileges.add(Privilege.DATA_SYNC);
-            break;
-          case DISCONNECT_CLIENT:
-            disabledPrivileges.add(Privilege.DISCONNECT_CLIENT);
-            break;
-          case JMX_NOTIFY:
-            disabledPrivileges.add(Privilege.JMX_NOTIFY);
-            break;
-          case JMX_READ:
-            disabledPrivileges.add(Privilege.JMX_READ);
-            break;
-          case JMX_WRITE:
-            disabledPrivileges.add(Privilege.JMX_WRITE);
-            break;
-          case LDIF_EXPORT:
-            disabledPrivileges.add(Privilege.LDIF_EXPORT);
-            break;
-          case LDIF_IMPORT:
-            disabledPrivileges.add(Privilege.LDIF_IMPORT);
-            break;
-          case MODIFY_ACL:
-            disabledPrivileges.add(Privilege.MODIFY_ACL);
-            break;
-          case PASSWORD_RESET:
-            disabledPrivileges.add(Privilege.PASSWORD_RESET);
-            break;
-          case PRIVILEGE_CHANGE:
-            disabledPrivileges.add(Privilege.PRIVILEGE_CHANGE);
-            break;
-          case PROXIED_AUTH:
-            disabledPrivileges.add(Privilege.PROXIED_AUTH);
-            break;
-          case SERVER_RESTART:
-            disabledPrivileges.add(Privilege.SERVER_RESTART);
-            break;
-          case SERVER_SHUTDOWN:
-            disabledPrivileges.add(Privilege.SERVER_SHUTDOWN);
-            break;
-          case UNINDEXED_SEARCH:
-            disabledPrivileges.add(Privilege.UNINDEXED_SEARCH);
-            break;
-          case UPDATE_SCHEMA:
-            disabledPrivileges.add(Privilege.UPDATE_SCHEMA);
-            break;
-          case SUBENTRY_WRITE:
-            disabledPrivileges.add(Privilege.SUBENTRY_WRITE);
-            break;
+          disabledPrivileges.add(privilege);
         }
       }
     }
-    DirectoryServer.setDisabledPrivileges(disabledPrivileges);
+    return disabledPrivileges;
+  }
 
-    DirectoryServer.setReturnBindErrorMessages(
-         globalConfig.isReturnBindErrorMessages());
-
-    DirectoryServer.setIdleTimeLimit(globalConfig.getIdleTimeLimit());
-
-    DirectoryServer.setSaveConfigOnSuccessfulStartup(
-         globalConfig.isSaveConfigOnSuccessfulStartup());
-
-    // If the workflow configuration mode has changed then reconfigure
-    // the workflows-only if the server is running. If the server is not
-    // running (ie. the server is starting up) simply update the workflow
-    // configuration mode as the workflow configuration is processed
-    // elsewhere.
-    WorkflowConfigurationMode oldMode =
-      DirectoryServer.getWorkflowConfigurationMode();
-    WorkflowConfigurationMode newMode =
-      globalConfig.getWorkflowConfigurationMode();
-    if (DirectoryServer.isRunning())
+  private static Privilege convert(DisabledPrivilege privilege)
+  {
+    switch (privilege)
     {
-      DirectoryServer.reconfigureWorkflows(oldMode, newMode);
+      case BACKEND_BACKUP:
+        return Privilege.BACKEND_BACKUP;
+      case BACKEND_RESTORE:
+        return Privilege.BACKEND_RESTORE;
+      case BYPASS_ACL:
+        return Privilege.BYPASS_ACL;
+      case CANCEL_REQUEST:
+        return Privilege.CANCEL_REQUEST;
+      case CONFIG_READ:
+        return Privilege.CONFIG_READ;
+      case CONFIG_WRITE:
+        return Privilege.CONFIG_WRITE;
+      case DATA_SYNC:
+        return Privilege.DATA_SYNC;
+      case DISCONNECT_CLIENT:
+        return Privilege.DISCONNECT_CLIENT;
+      case JMX_NOTIFY:
+        return Privilege.JMX_NOTIFY;
+      case JMX_READ:
+        return Privilege.JMX_READ;
+      case JMX_WRITE:
+        return Privilege.JMX_WRITE;
+      case LDIF_EXPORT:
+        return Privilege.LDIF_EXPORT;
+      case LDIF_IMPORT:
+        return Privilege.LDIF_IMPORT;
+      case MODIFY_ACL:
+        return Privilege.MODIFY_ACL;
+      case PASSWORD_RESET:
+        return Privilege.PASSWORD_RESET;
+      case PRIVILEGE_CHANGE:
+        return Privilege.PRIVILEGE_CHANGE;
+      case PROXIED_AUTH:
+        return Privilege.PROXIED_AUTH;
+      case SERVER_RESTART:
+        return Privilege.SERVER_RESTART;
+      case SERVER_SHUTDOWN:
+        return Privilege.SERVER_SHUTDOWN;
+      case UNINDEXED_SEARCH:
+        return Privilege.UNINDEXED_SEARCH;
+      case UPDATE_SCHEMA:
+        return Privilege.UPDATE_SCHEMA;
+      case SUBENTRY_WRITE:
+        return Privilege.SUBENTRY_WRITE;
+      default:
+        return null;
     }
-    else
-    {
-      DirectoryServer.setWorkflowConfigurationMode(newMode);
-    }
-
-    DirectoryServer.setUseNanoTime(globalConfig.getEtimeResolution() ==
-      GlobalCfgDefn.EtimeResolution.NANOSECONDS);
-
-    DirectoryServer.setMaxAllowedConnections(
-        globalConfig.getMaxAllowedClientConnections());
-
-    DirectoryServer.setMaxPersistentSearchLimit(
-        globalConfig.getMaxPsearches());
-
-    DirectoryServer.setMaxInternalBufferSize((int) globalConfig
-        .getMaxInternalBufferSize());
   }
 
 
