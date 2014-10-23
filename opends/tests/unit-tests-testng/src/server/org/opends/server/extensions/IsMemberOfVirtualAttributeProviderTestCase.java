@@ -1294,7 +1294,101 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
+  /**
+   * Tests the {@code processSearch} method when dealing with nested groups.
+   * This is a test for issue OPENDJ-1586. Before the fix the method would
+   * only return the direct members of the groups. Now it should return
+   * all.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testProcessSearchWithNestedGroup() throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.addEntries(
+        "dn: ou=People,o=test",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: People",
+        "",
+        "dn: uid=test.user,ou=People,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user",
+        "givenName: Test",
+        "sn: User",
+        "cn: Test User",
+        "userPassword: password",
+        "",
+        "dn: uid=test.user2,ou=People,o=test",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalPerson",
+        "objectClass: inetOrgPerson",
+        "uid: test.user2",
+        "givenName: Test",
+        "sn: User2",
+        "cn: Test User2",
+        "userPassword: password",
+        "",
+        "dn: ou=Groups,o=test",
+        "objectClass: top",
+        "objectClass: organizationalUnit",
+        "ou: Groups",
+        "",
+        "dn: cn=Test Group 1,ou=Groups,o=test",
+        "objectClass: top",
+        "objectClass: groupOfNames",
+        "cn: Test Group 1",
+        "member: uid=test.user,ou=People,o=test",
+        "",
+        "dn: cn=Test Group 2,ou=Groups,o=test",
+        "objectClass: top",
+        "objectClass: groupOfNames",
+        "cn: Test Group 2",
+        "member: uid=test.user2,ou=People,o=test",
+        "",
+        "dn: cn=Test Group 3,ou=Groups,o=test",
+        "objectClass: top",
+        "objectClass: groupOfNames",
+        "cn: Test Group 3",
+        "member: cn=Test Group 1,ou=Groups,o=test");
 
+    IsMemberOfVirtualAttributeProvider provider =
+        new IsMemberOfVirtualAttributeProvider();
+
+    VirtualAttributeRule rule =
+        new VirtualAttributeRule(isMemberOfType, provider,
+            Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+            Collections.<DN>emptySet(),
+            Collections.<SearchFilter>emptySet(),
+            VirtualAttributeCfgDefn.ConflictBehavior.
+                VIRTUAL_OVERRIDES_REAL);
+
+    InternalClientConnection conn =
+        InternalClientConnection.getRootConnection();
+    InternalSearchOperation searchOperation =
+        new InternalSearchOperation(conn,
+            InternalClientConnection.nextOperationID(),
+            InternalClientConnection.nextMessageID(),
+            null,
+            DN.decode("o=test"),
+            SearchScope.WHOLE_SUBTREE,
+            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+            SearchFilter.createFilterFromString("isMemberOf=cn=Test Group 3,ou=Groups,o=test"),
+            null, null);
+    provider.processSearch(rule, new LocalBackendSearchOperation(searchOperation));
+
+    List<SearchResultEntry> entries = searchOperation.getSearchEntries();
+    assertEquals(entries.size(), 2, "Expecting 2 entries, but got " + entries.size());
+    // First direct members
+    assertEquals(entries.get(0).getDN().toNormalizedString(), "cn=test group 1,ou=groups,o=test");
+    // Then indirect members
+    assertEquals(entries.get(1).getDN().toNormalizedString(), "uid=test.user,ou=people,o=test");
+  }
 
   /**
    * Tests if a search using ismemberof works for a dynamic group with large
