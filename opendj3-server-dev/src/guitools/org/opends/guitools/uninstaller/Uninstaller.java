@@ -24,8 +24,22 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.uninstaller;
+
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.URI;
+import java.security.cert.X509Certificate;
+import java.util.*;
+
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -55,38 +69,25 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.ReplicationDomainCfgClient;
-import
-org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
 import org.opends.server.admin.std.client.ReplicationServerCfgClient;
+import org.opends.server.admin.std.client.ReplicationSynchronizationProviderCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ClientException;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-
-import java.io.*;
-import java.net.InetAddress;
-import java.net.URI;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.awt.event.WindowEvent;
-
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
+import static org.opends.server.tools.ConfigureWindowsService.*;
 
 /**
  * This class is in charge of performing the uninstallation of Open DS.
@@ -153,20 +154,14 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
     logger.info(LocalizableMessage.raw("Uninstaller is created."));
   }
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFrameTitle() {
-    LocalizableMessage title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
-        INFO_FRAME_UNINSTALL_TITLE.get(
-        DynamicConstants.PRODUCT_NAME), LocalizableMessage.class);
-    return title;
+    LocalizableMessage defaultVal = INFO_FRAME_UNINSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME);
+    return Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE", defaultVal, LocalizableMessage.class);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public UserData createUserData() {
     UninstallUserData data = new UninstallUserData();
@@ -174,17 +169,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return data;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getFirstWizardStep() {
     return Step.CONFIRM_UNINSTALL;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getNextWizardStep(WizardStep step) {
     Step nextStep = null;
@@ -198,9 +189,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return nextStep;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getPreviousWizardStep(WizardStep step) {
     Step prevStep = null;
@@ -214,73 +203,60 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return prevStep;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public WizardStep getFinishedStep() {
     return Step.FINISHED;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean finishOnLeft()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canGoBack(WizardStep step) {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canGoForward(WizardStep step) {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean canFinish(WizardStep step) {
     return step == Step.CONFIRM_UNINSTALL;
   }
 
   /**
-   * {@inheritDoc}
+   * Whether the provided wizard step allow to quit.
+   *
+   * @param step the wizard step
+   * @return true if the provided wizard step allow to quit, false otherwise
    */
   public boolean canQuit(WizardStep step) {
     return step == Step.CONFIRM_UNINSTALL;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void nextClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
-      throw new IllegalStateException(
-          "Cannot click on next from progress step");
+      throw new IllegalStateException("Cannot click on next from progress step");
     } else if (cStep == REVIEW) {
       throw new IllegalStateException("Cannot click on next from review step");
     } else if (cStep == FINISHED) {
-      throw new IllegalStateException(
-          "Cannot click on next from finished step");
+      throw new IllegalStateException("Cannot click on next from finished step");
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void closeClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
@@ -338,8 +314,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     uud.setExternalDbsToRemove(dbs);
     uud.setExternalLogsToRemove(logs);
 
-    if ((dbs.size() == 0) &&
-            (logs.size() == 0) &&
+    if (dbs.size() == 0 &&
+            logs.size() == 0 &&
             !uud.getRemoveLibrariesAndTools() &&
             !uud.getRemoveDatabases() &&
             !uud.getRemoveConfigurationAndSchema() &&
@@ -352,9 +328,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void quitClicked(WizardStep step, QuickSetup qs) {
     if (step == Step.PROGRESS) {
@@ -368,33 +342,25 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     qs.quit();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_UNINSTALL_TOOLTIP.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_UNINSTALL_TOOLTIP.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getFinishButtonLabel() {
     return INFO_FINISH_BUTTON_UNINSTALL_LABEL.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
@@ -407,9 +373,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void notifyListeners(Integer ratio, LocalizableMessage currentPhaseSummary,
       final LocalizableMessage newLogDetail)
@@ -438,9 +402,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.CONFIRM_UNINSTALL) {
@@ -491,46 +453,25 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                 {
                   askForAuthenticationAndLaunch(qs);
                 }
-                else
+                else if (qs.displayConfirmation(
+                        INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_MSG.get(),
+                        INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_TITLE.get()))
                 {
-                  if (qs.displayConfirmation(
-                          INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_MSG.get(),
-                          INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_TITLE.get()))
-                  {
-                    getUserData().setStopServer(true);
-                    qs.launch();
-                    qs.setCurrentStep(
-                        getNextWizardStep(Step.CONFIRM_UNINSTALL));
-                  } else {
-                    getUserData().setStopServer(false);
-                  }
+                  getUserData().setStopServer(true);
+                  qs.launch();
+                  qs.setCurrentStep(getNextWizardStep(Step.CONFIRM_UNINSTALL));
+                } else {
+                  getUserData().setStopServer(false);
                 }
               }
-              else
+              else if (qs.displayConfirmation(
+                  INFO_CONFIRM_UNINSTALL_REPLICATION_SERVER_NOT_RUNNING_MSG.get(),
+                  INFO_CONFIRM_UNINSTALL_REPLICATION_SERVER_NOT_RUNNING_TITLE.get()))
               {
-                if (qs.displayConfirmation(
-                    INFO_CONFIRM_UNINSTALL_REPLICATION_SERVER_NOT_RUNNING_MSG
-                            .get(),
-                    INFO_CONFIRM_UNINSTALL_REPLICATION_SERVER_NOT_RUNNING_TITLE
-                            .get()))
+                boolean startWorked = startServer(qs.getDialog().getFrame());
+                if (startWorked)
                 {
-                  boolean startWorked = startServer(qs.getDialog().getFrame());
-                  if (startWorked)
-                  {
-                    askForAuthenticationAndLaunch(qs);
-                  }
-                  else
-                  {
-                    getUserData().setStopServer(false);
-                    if (qs.displayConfirmation(
-                        INFO_CONFIRM_UNINSTALL_SERVER_NOT_RUNNING_MSG.get(),
-                        INFO_CONFIRM_UNINSTALL_SERVER_NOT_RUNNING_TITLE.get()))
-                    {
-                      qs.launch();
-                      qs.setCurrentStep(
-                          getNextWizardStep(Step.CONFIRM_UNINSTALL));
-                    }
-                  }
+                  askForAuthenticationAndLaunch(qs);
                 }
                 else
                 {
@@ -545,6 +486,18 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                   }
                 }
               }
+              else
+              {
+                getUserData().setStopServer(false);
+                if (qs.displayConfirmation(
+                    INFO_CONFIRM_UNINSTALL_SERVER_NOT_RUNNING_MSG.get(),
+                    INFO_CONFIRM_UNINSTALL_SERVER_NOT_RUNNING_TITLE.get()))
+                {
+                  qs.launch();
+                  qs.setCurrentStep(
+                      getNextWizardStep(Step.CONFIRM_UNINSTALL));
+                }
+              }
             }
             else if (!conf.isServerRunning())
             {
@@ -554,20 +507,17 @@ public class Uninstaller extends GuiApplication implements CliApplication {
                       INFO_CONFIRM_UNINSTALL_SERVER_NOT_RUNNING_TITLE.get()))
               {
                 qs.launch();
-                qs.setCurrentStep(getNextWizardStep(
-                    Step.CONFIRM_UNINSTALL));
+                qs.setCurrentStep(getNextWizardStep(Step.CONFIRM_UNINSTALL));
               }
+            }
+            else if (qs.displayConfirmation(
+                    INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_MSG.get(),
+                    INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_TITLE.get())) {
+              getUserData().setStopServer(true);
+              qs.launch();
+              qs.setCurrentStep(getNextWizardStep(Step.CONFIRM_UNINSTALL));
             } else {
-              if (qs.displayConfirmation(
-                      INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_MSG.get(),
-                      INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_TITLE.get())) {
-                getUserData().setStopServer(true);
-                qs.launch();
-                qs.setCurrentStep(getNextWizardStep(
-                    Step.CONFIRM_UNINSTALL));
-              } else {
-                getUserData().setStopServer(false);
-              }
+              getUserData().setStopServer(false);
             }
           }
         }
@@ -579,17 +529,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void updateUserData(WizardStep step, QuickSetup qs) {
     // do nothing;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
@@ -597,7 +543,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     if (step == Step.CONFIRM_UNINSTALL) {
       dlg.setDefaultButton(ButtonName.FINISH);
       dlg.setFocusOnButton(ButtonName.FINISH);
-    } else if ((step == PROGRESS) || (step == FINISHED)) {
+    } else if (step == PROGRESS || step == FINISHED) {
       dlg.setDefaultButton(ButtonName.CLOSE);
       dlg.setFocusOnButton(ButtonName.CLOSE);
       dlg.setButtonEnabled(ButtonName.CLOSE, false);
@@ -695,22 +641,16 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         } else {
           arg = joinAsString(getLineBreak().toString(), paths);
         }
-        successMsg =
-            INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES_CLI
-            .get(arg);
+        successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES_CLI.get(arg);
       } else {
         successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_CLI.get();
       }
+    } else if (getUninstallUserData().getRemoveLibrariesAndTools()) {
+      String formattedPath =
+          addWordBreaks(joinAsString(getLineBreak().toString(), paths), 60, 5);
+      successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES.get(formattedPath);
     } else {
-      if (getUninstallUserData().getRemoveLibrariesAndTools()) {
-        String formattedPath =
-            addWordBreaks(joinAsString(getLineBreak().toString(), paths), 60, 5);
-        successMsg =
-            INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY_REMOVE_JARFILES
-            .get(formattedPath);
-      } else {
-        successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY.get();
-      }
+      successMsg = INFO_SUMMARY_UNINSTALL_FINISHED_SUCCESSFULLY.get();
     }
     hmSummary.put(UninstallProgressStep.FINISHED_SUCCESSFULLY,
             getFormattedSuccess(successMsg));
@@ -1059,8 +999,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /** {@inheritDoc} */
   @Override
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
-    if ((dlg.getDisplayedStep() == PROGRESS) ||
-        (dlg.getDisplayedStep() == FINISHED)) {
+    if (dlg.getDisplayedStep() == PROGRESS ||
+        dlg.getDisplayedStep() == FINISHED) {
       // Simulate a close button event
       dlg.notifyButtonEvent(ButtonName.CLOSE);
     } else {
@@ -1266,9 +1206,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       for (File rootFile : rootFiles)
       {
         int beforeRatio = minRatio +
-                ((it.next() * (maxRatio - minRatio)) / totalRatio);
-        hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES,
-                beforeRatio);
+                (it.next() * (maxRatio - minRatio)) / totalRatio;
+        hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, beforeRatio);
         deleteRecursively(rootFile, filter);
       }
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
@@ -1421,9 +1360,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
     private File installationPath = installation.getRootDirectory();
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean accept(File file) {
       UninstallUserData userData = getUninstallUserData();
@@ -1485,19 +1422,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   private boolean isWindowsServiceEnabled() {
     if (isWindowsServiceEnabled == null) {
-      if (ConfigureWindowsService.serviceState(null, null) ==
-              ConfigureWindowsService.SERVICE_STATE_ENABLED) {
-        isWindowsServiceEnabled = Boolean.TRUE;
-      } else {
-        isWindowsServiceEnabled = Boolean.FALSE;
-      }
+      isWindowsServiceEnabled = serviceState(null, null) == SERVICE_STATE_ENABLED;
     }
     return isWindowsServiceEnabled.booleanValue();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ApplicationTrustManager getTrustManager()
   {
@@ -1512,20 +1442,18 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   protected void disableWindowsService() throws ApplicationException {
     notifyListeners(getFormattedWithPoints(
             INFO_PROGRESS_DISABLING_WINDOWS_SERVICE.get()));
-    int code = ConfigureWindowsService.disableService(System.out, System.err);
+    int code = disableService(System.out, System.err);
 
     LocalizableMessage errorMessage = INFO_ERROR_DISABLING_WINDOWS_SERVICE.get(
             getInstallationPath());
 
     switch (code) {
-      case ConfigureWindowsService.SERVICE_DISABLE_SUCCESS:
+      case SERVICE_DISABLE_SUCCESS:
         break;
-      case ConfigureWindowsService.SERVICE_ALREADY_DISABLED:
+      case SERVICE_ALREADY_DISABLED:
         break;
       default:
-        throw new ApplicationException(
-            ReturnCode.WINDOWS_SERVICE_ERROR,
-                errorMessage, null);
+        throw new ApplicationException(ReturnCode.WINDOWS_SERVICE_ERROR, errorMessage, null);
     }
     notifyListeners(getLineBreak());
   }
@@ -1680,18 +1608,15 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       qs.getDialog().workerStarted();
       worker.startBackgroundTask();
     }
-    else
+    else if (qs.displayConfirmation(
+        INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_MSG.get(),
+        INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_TITLE.get()))
     {
-      if (qs.displayConfirmation(
-          INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_MSG.get(),
-          INFO_CONFIRM_UNINSTALL_SERVER_RUNNING_TITLE.get()))
-      {
-        getUserData().setStopServer(true);
-        qs.launch();
-        qs.setCurrentStep(getNextWizardStep(Step.CONFIRM_UNINSTALL));
-      } else {
-        getUserData().setStopServer(false);
-      }
+      getUserData().setStopServer(true);
+      qs.launch();
+      qs.setCurrentStep(getNextWizardStep(Step.CONFIRM_UNINSTALL));
+    } else {
+      getUserData().setStopServer(false);
     }
   }
 
@@ -1740,8 +1665,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         stopProcessing = true;
         break;
       case GENERIC_CREATING_CONNECTION:
-        if ((e.getCause() != null) &&
-            isCertificateException(e.getCause()))
+        if (isCertificateException(e.getCause()))
         {
           UserDataCertificateException.Type excType;
           ApplicationTrustManager.Cause cause = null;
@@ -1792,7 +1716,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
       exceptionMsgs.add(getMessage(e));
     }
-    if (!stopProcessing && (exceptionMsgs.size() > 0))
+    if (!stopProcessing && exceptionMsgs.size() > 0)
     {
       LocalizableMessage confirmationMsg =
         ERR_UNINSTALL_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.get(
@@ -1836,7 +1760,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       String authType = ce.getAuthType();
       String host = ce.getHost();
 
-      if ((chain != null) && (authType != null) && (host != null))
+      if (chain != null && authType != null && host != null)
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getTrustManager().acceptCertificate(chain, authType, host);
@@ -2191,7 +2115,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
     try
     {
-      if (adsContext.hasAdminData() && (serverADSProperties != null))
+      if (adsContext.hasAdminData() && serverADSProperties != null)
       {
         logger.info(LocalizableMessage.raw("Unregistering server on ADS of server "+
             ConnectionUtils.getHostPort(ctx)+".  Properties: "+

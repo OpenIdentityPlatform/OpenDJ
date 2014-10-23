@@ -27,8 +27,6 @@
 
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.messages.AdminToolMessages.*;
-
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -36,27 +34,27 @@ import java.awt.Insets;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.guitools.controlpanel.browser.BasicNodeError;
 import org.opends.guitools.controlpanel.browser.ReferralLimitExceededException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.AdminToolMessages.*;
+
 /**
  * The panel that is displayed when there is an error searching an entry.
- *
  */
 public class ErrorSearchingEntryPanel extends StatusGenericPanel
 {
   private static final long serialVersionUID = -8460172599072631973L;
 
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public ErrorSearchingEntryPanel()
   {
     super();
@@ -74,35 +72,30 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
     errorPane.setVisible(true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return errorPane;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_ERROR_SEARCHING_ENTRY_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
-
   }
 
   /**
@@ -145,7 +138,7 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
       {
         sb.append("<br>");
       }
-      sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+ref);
+      sb.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").append(ref);
     }
     details.append(INFO_CTRL_PANEL_ERROR_RESOLVING_REFERRAL_MSG.get(dn, sb));
     Exception ex = error.getException();
@@ -172,23 +165,20 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
             }
             else
             {
-              msg = Utils.getMessageForException((NamingException)ex, hostPort);
+              msg = getMessageForException((NamingException) ex, hostPort);
             }
+          }
+          else if (ex instanceof ReferralLimitExceededException)
+          {
+            msg = LocalizableMessage.raw(ex.getLocalizedMessage());
+          }
+          else if (ex instanceof NameNotFoundException)
+          {
+            msg = ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL_NO_HOST.get(arg);
           }
           else
           {
-            if (ex instanceof ReferralLimitExceededException)
-            {
-              msg = LocalizableMessage.raw(ex.getLocalizedMessage());
-            }
-            else if (ex instanceof NameNotFoundException)
-            {
-              msg = ERR_CTRL_PANEL_COULD_NOT_FIND_PROVIDED_ENTRY_IN_REFERRAL_NO_HOST.get(arg);
-            }
-            else
-            {
-              msg = Utils.getMessageForException((NamingException)ex);
-            }
+            msg = Utils.getMessageForException((NamingException)ex);
           }
         }
         catch (Throwable t)
@@ -209,12 +199,11 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
       }
       if (arg != null)
       {
-        details.append("<br><br>"+
-            ERR_CTRL_PANEL_RESOLVING_REFERRAL_DETAILS.get(arg, msg));
+        details.append("<br><br>").append(ERR_CTRL_PANEL_RESOLVING_REFERRAL_DETAILS.get(arg, msg));
       }
       else
       {
-        details.append("<br><br>"+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(msg));
+        details.append("<br><br>").append(INFO_CTRL_PANEL_DETAILS_THROWABLE.get(msg));
       }
     }
     else if (ex != null)
@@ -224,9 +213,9 @@ public class ErrorSearchingEntryPanel extends StatusGenericPanel
       {
         msg = ex.toString();
       }
-      details.append("<br><br>"+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(msg));
+      details.append("<br><br>").append(INFO_CTRL_PANEL_DETAILS_THROWABLE.get(msg));
     }
-    details.append("<br><br>"+INFO_CTRL_PANEL_HOW_TO_EDIT_REFERRALS.get());
+    details.append("<br><br>").append(INFO_CTRL_PANEL_HOW_TO_EDIT_REFERRALS.get());
     updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
         details.toMessage(), ColorAndFontConstants.defaultFont);
   }

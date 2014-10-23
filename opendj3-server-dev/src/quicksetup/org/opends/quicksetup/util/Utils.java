@@ -810,74 +810,6 @@ public class Utils
         env, trustManager, null, verifier);
   }
 
-
-/**
- * Tells whether the provided Throwable was caused because of a problem with
- * a certificate while trying to establish a connection.
- * @param t the Throwable to analyze.
- * @return <CODE>true</CODE> if the provided Throwable was caused because of a
- * problem with a certificate while trying to establish a connection and
- * <CODE>false</CODE> otherwise.
- */
-  public static boolean isCertificateException(Throwable t)
-  {
-    return com.forgerock.opendj.cli.Utils.isCertificateException(t);
-  }
-
-  /**
-   * Returns a message object for the given NamingException.
-   * @param ne the NamingException.
-   * @param hostPort the hostPort representation of the server we were
-   * contacting when the NamingException occurred.
-   * @return a message object for the given NamingException.
-   */
-  public static LocalizableMessage getMessageForException(NamingException ne,
-      String hostPort)
-  {
-    LocalizableMessage msg;
-    String arg;
-    if (ne.getLocalizedMessage() != null)
-    {
-      arg = ne.getLocalizedMessage();
-    }
-    else if (ne.getExplanation() != null)
-    {
-      arg = ne.getExplanation();
-    }
-    else
-    {
-      arg = ne.toString(true);
-    }
-    if (Utils.isCertificateException(ne))
-    {
-      msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(
-          hostPort, arg);
-    }
-    else if (ne instanceof AuthenticationException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
-    }
-    else if (ne instanceof NoPermissionException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
-    }
-    else if (ne instanceof NamingSecurityException)
-    {
-      msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
-    }
-    else if (ne instanceof CommunicationException)
-    {
-      msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
-    }
-    else
-    {
-       msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
-    }
-    return msg;
-  }
-
-
-
   /**
    * Returns a message object for the given NamingException.  The code assume
    * that we are trying to connect to the local server.
@@ -887,7 +819,7 @@ public class Utils
   public static LocalizableMessage getMessageForException(NamingException ne)
   {
     LocalizableMessage msg;
-    if (Utils.isCertificateException(ne))
+    if (isCertificateException(ne))
     {
       msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE.get(ne.toString(true));
     }

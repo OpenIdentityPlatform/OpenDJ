@@ -27,8 +27,28 @@
  */
 package org.opends.server.tools.dsreplication;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
@@ -120,11 +140,7 @@ import com.forgerock.opendj.cli.ValidationCallback;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
-import static com.forgerock.opendj.cli.Utils.getCurrentOperationDateMessage;
-import static com.forgerock.opendj.cli.Utils.getMessageForException;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
-import static com.forgerock.opendj.cli.Utils.SHELL_COMMENT_SEPARATOR;
+import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.forgerock.util.Utils.*;

@@ -27,10 +27,6 @@
 
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.INFO_CERTIFICATE_EXCEPTION;
-import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
-
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -50,9 +46,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -77,6 +70,10 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
@@ -97,15 +94,21 @@ import org.opends.guitools.controlpanel.ui.components.TreePanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
+
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * The abstract class used to refactor some code.  The classes that extend this
@@ -161,9 +164,8 @@ implements BackendPopulatedListener
   private GenericDialog otherBaseDNDlg;
 
   private boolean firstTimeDisplayed = true;
-
-  private Object lastSelectedBaseDN = null;
-  private boolean ignoreBaseDNEvents = false;
+  private Object lastSelectedBaseDN;
+  private boolean ignoreBaseDNEvents;
 
   /**
    * LDAP filter message.
@@ -211,36 +213,28 @@ implements BackendPopulatedListener
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresBorder()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean callConfigurationChangedInBackground()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setInfo(ControlPanelInfo info)
   {
@@ -253,9 +247,7 @@ implements BackendPopulatedListener
     info.addBackendPopulatedListener(this);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final GenericDialog.ButtonType getButtonType()
   {
@@ -271,9 +263,7 @@ implements BackendPopulatedListener
    */
   protected abstract GenericDialog.ButtonType getBrowseButtonType();
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toBeDisplayed(boolean visible)
   {
@@ -289,18 +279,14 @@ implements BackendPopulatedListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void setEnabledOK(boolean enable)
   {
     okButton.setEnabled(enable);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void setEnabledCancel(boolean enable)
   {
@@ -351,6 +337,7 @@ implements BackendPopulatedListener
     baseDNs.setRenderer(new CustomComboBoxCellRenderer(baseDNs));
     baseDNs.addItemListener(new ItemListener()
     {
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         if (ignoreBaseDNEvents || (ev.getStateChange() != ItemEvent.SELECTED))
@@ -522,6 +509,7 @@ implements BackendPopulatedListener
     });
     filter.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         filter.displayRefreshIcon(true);
@@ -542,6 +530,7 @@ implements BackendPopulatedListener
     add(applyButton, gbc);
     applyButton.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         applyButtonClicked();
@@ -602,6 +591,7 @@ implements BackendPopulatedListener
       buttonsPanel.add(closeButton, gbc);
       closeButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           closeClicked();
@@ -615,6 +605,7 @@ implements BackendPopulatedListener
       buttonsPanel.add(okButton, gbc);
       okButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           okClicked();
@@ -629,6 +620,7 @@ implements BackendPopulatedListener
       buttonsPanel.add(okButton, gbc);
       okButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           okClicked();
@@ -643,6 +635,7 @@ implements BackendPopulatedListener
       buttonsPanel.add(cancelButton, gbc);
       cancelButton.addActionListener(new ActionListener()
       {
+        @Override
         public void actionPerformed(ActionEvent ev)
         {
           cancelClicked();
@@ -657,17 +650,14 @@ implements BackendPopulatedListener
     return buttonsPanel;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return baseDNs;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void cancelClicked()
   {
@@ -692,7 +682,7 @@ implements BackendPopulatedListener
     DN theDN = null;
     if (s != null)
     {
-      displayAll = s.equals(ALL_BASE_DNS);
+      displayAll = ALL_BASE_DNS.equals(s);
       if (!displayAll)
       {
         try
@@ -738,11 +728,7 @@ implements BackendPopulatedListener
         {
           for (BaseDNDescriptor baseDN : backend.getBaseDns())
           {
-            boolean isBaseDN = false;
-            if ((theDN != null) && baseDN.getDn().equals(theDN))
-            {
-              isBaseDN = true;
-            }
+            boolean isBaseDN = baseDN.getDn().equals(theDN);
             String dn = Utilities.unescapeUtf8(baseDN.getDn().toString());
             if (displayAll)
             {
@@ -837,7 +823,7 @@ implements BackendPopulatedListener
       }
       else if (USER_FILTER.equals(attr))
       {
-        if (s.equals("*"))
+        if ("*".equals(s))
         {
           returnValue = "(objectClass=person)";
         }
@@ -849,7 +835,7 @@ implements BackendPopulatedListener
       }
       else if (GROUP_FILTER.equals(attr))
       {
-        if (s.equals("*"))
+        if ("*".equals(s))
         {
           returnValue =
             "(|(objectClass=groupOfUniqueNames)(objectClass=groupOfURLs))";
@@ -898,9 +884,8 @@ implements BackendPopulatedListener
   protected abstract Component createMainPanel();
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void backendPopulated(BackendPopulatedEvent ev)
   {
     if (controller.getConfigurationConnection() != null)
@@ -911,7 +896,7 @@ implements BackendPopulatedListener
       String s = getBaseDN();
       if (s != null)
       {
-        displayAll = s.equals(ALL_BASE_DNS);
+        displayAll = ALL_BASE_DNS.equals(s);
         if (!displayAll)
         {
           try
@@ -940,11 +925,11 @@ implements BackendPopulatedListener
           for (BaseDNDescriptor baseDN : backend.getBaseDns())
           {
             boolean isBaseDN = false;
-            if ((theDN != null) && baseDN.getDn().equals(theDN))
+            if (baseDN.getDn().equals(theDN))
             {
               isBaseDN = true;
             }
-            else if ((theDN != null) && baseDN.getDn().isAncestorOf(theDN))
+            else if (baseDN.getDn().isAncestorOf(theDN))
             {
               isSubordinate = true;
             }
@@ -983,20 +968,16 @@ implements BackendPopulatedListener
             }
           }
         }
-        if (isSubordinate)
+        if (isSubordinate && controller.findChildNode(rootNode, s) == -1)
         {
-          if (controller.findChildNode(rootNode, s) == -1)
-          {
-            controller.addNodeUnderRoot(s);
-          }
+          controller.addNodeUnderRoot(s);
         }
       }
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -1042,7 +1023,7 @@ implements BackendPopulatedListener
     Utilities.setBorder(lNoMatchFound, new EmptyBorder(15, 15, 15, 15));
     p.add(lNoMatchFound, gbc);
 
-    if ((getInfo() != null) && (controller == null))
+    if (getInfo() != null && controller == null)
     {
       createBrowserController(getInfo());
     }
@@ -1068,9 +1049,8 @@ implements BackendPopulatedListener
     controller.setMaxChildren(MAX_NUMBER_ENTRIES);
     controller.addBrowserEventListener(new BrowserEventListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void processBrowserEvent(BrowserEvent ev)
       {
         if (ev.getType() == BrowserEvent.Type.SIZE_LIMIT_REACHED)
@@ -1082,29 +1062,25 @@ implements BackendPopulatedListener
     });
     controller.getTreeModel().addTreeModelListener(new TreeModelListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void treeNodesChanged(TreeModelEvent e)
       {
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void treeNodesInserted(TreeModelEvent e)
       {
         checkRootNode();
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void treeNodesRemoved(TreeModelEvent e)
       {
         checkRootNode();
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void treeStructureChanged(TreeModelEvent e)
       {
         checkRootNode();
@@ -1112,7 +1088,7 @@ implements BackendPopulatedListener
     });
   }
 
-  final static String[] systemIndexes = {"aci", "dn2id", "ds-sync-hist",
+  static final String[] systemIndexes = {"aci", "dn2id", "ds-sync-hist",
     "entryUUID", "id2children", "id2subtree"};
   private static boolean displayIndex(String name)
   {
@@ -1166,9 +1142,8 @@ implements BackendPopulatedListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           Object selected = filterAttribute.getSelectedItem();
@@ -1235,7 +1210,7 @@ implements BackendPopulatedListener
           }
         }
         hmBaseDNs.put(backendID, someBaseDNs);
-        if (backendID.equalsIgnoreCase("userRoot"))
+        if ("userRoot".equalsIgnoreCase(backendID))
         {
           for (String baseDN : someBaseDNs)
           {
@@ -1285,23 +1260,22 @@ implements BackendPopulatedListener
       baseDNNewElements.add(COMBO_SEPARATOR);
       baseDNNewElements.add(OTHER_BASE_DN);
     }
-    if (firstTimeDisplayed && (baseDNWithEntries != null))
+    if (firstTimeDisplayed && baseDNWithEntries != null)
     {
       ignoreBaseDNEvents = true;
     }
     updateComboBoxModel(baseDNNewElements,
         (DefaultComboBoxModel)baseDNs.getModel());
     // Select the element in the combo box.
-    if (firstTimeDisplayed && (baseDNWithEntries != null))
+    if (firstTimeDisplayed && baseDNWithEntries != null)
     {
       final Object toSelect = new CategorizedComboBoxElement(
           Utilities.unescapeUtf8(baseDNWithEntries.getDn().toString()),
           CategorizedComboBoxElement.Type.REGULAR);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           // After this updateBrowseController is called.
@@ -1339,7 +1313,7 @@ implements BackendPopulatedListener
         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(
             INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_TO_BROWSE_SUMMARY.get());
-        mb.append("<br><br>"+getAuthenticateHTML());
+        mb.append("<br><br>").append(getAuthenticateHTML());
         errorDetails = mb.toMessage();
         errorTitle = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
 
@@ -1365,9 +1339,8 @@ implements BackendPopulatedListener
             final NamingException[] fNe = {null};
             Runnable runnable = new Runnable()
             {
-              /**
-               * {@inheritDoc}
-               */
+              /** {@inheritDoc} */
+              @Override
               public void run()
               {
                 try
@@ -1424,7 +1397,7 @@ implements BackendPopulatedListener
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
           desc.getHostname()));
-      mb.append("<br><br>"+getAuthenticateHTML());
+      mb.append("<br><br>").append(getAuthenticateHTML());
       errorDetails = mb.toMessage();
       errorTitle = INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
       displayErrorPane = true;
@@ -1447,9 +1420,8 @@ implements BackendPopulatedListener
     final LocalizableMessage fErrorDetails = errorDetails;
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         applyButton.setEnabled(!fDisplayErrorPane);
@@ -1562,18 +1534,9 @@ implements BackendPopulatedListener
     {
       dn = null;
     }
-    if (dn != null)
+    if (dn != null && dn.trim().length() == 0)
     {
-      if (dn.trim().length() == 0)
-      {
-        dn = ALL_BASE_DNS;
-      }
-      // The following is never true. OTHER_BASE_DN is a LocalizableMessage
-      // Comment out buggy code
-      // else if (OTHER_BASE_DN.equals(dn))
-      // {
-      //   dn = null;
-      // }
+      dn = ALL_BASE_DNS;
     }
     return dn;
   }
@@ -1600,7 +1563,7 @@ implements BackendPopulatedListener
     }
     catch (NamingException ne)
     {
-      if (Utils.isCertificateException(ne))
+      if (isCertificateException(ne))
       {
         ApplicationTrustManager.Cause cause =
           getInfo().getTrustManager().getLastRefusedCause();
@@ -1654,6 +1617,7 @@ implements BackendPopulatedListener
             {
               SwingUtilities.invokeAndWait(new Runnable()
               {
+                @Override
                 public void run()
                 {
                   try
@@ -1717,7 +1681,7 @@ implements BackendPopulatedListener
       String authType = ce.getAuthType();
       String host = ce.getHost();
 
-      if ((chain != null) && (authType != null) && (host != null))
+      if (chain != null && authType != null && host != null)
       {
         logger.info(LocalizableMessage.raw("Accepting certificate presented by host "+host));
         getInfo().getTrustManager().acceptCertificate(chain, authType, host);
@@ -1780,9 +1744,7 @@ implements BackendPopulatedListener
       super(combo);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Component getListCellRendererComponent(JList list, Object value,
         int index, boolean isSelected, boolean cellHasFocus)
@@ -1916,6 +1878,7 @@ implements BackendPopulatedListener
           recalculate = false;
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               int nEntries = 0;
@@ -1942,6 +1905,7 @@ implements BackendPopulatedListener
           {
             SwingUtilities.invokeLater(new Runnable()
             {
+              @Override
               public void run()
               {
                 filter.displayRefreshIcon(mustDisplayRefreshIcon);
