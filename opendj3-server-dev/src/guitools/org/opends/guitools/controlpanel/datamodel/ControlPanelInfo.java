@@ -27,8 +27,6 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.util.Collection;
@@ -66,6 +64,11 @@ import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 
 /**
  * This is the classes that is shared among all the different places in the
@@ -248,16 +251,14 @@ public class ControlPanelInfo
         toRemove.add(i);
       }
     }
+
     if (!toRemove.isEmpty())
     {
       boolean returnValue = modifiedIndexes.removeAll(toRemove);
       indexModified(toRemove.iterator().next());
       return returnValue;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 
   /**
@@ -566,11 +567,11 @@ public class ControlPanelInfo
           }
           else if (lastRemoteAdministrationURL != null)
           {
-            ctx = Utils.createLdapsContext(lastRemoteAdministrationURL,
+            ctx = createLdapsContext(lastRemoteAdministrationURL,
                 lastWorkingBindDN,
                 lastWorkingBindPwd,
                 getConnectTimeout(), null,
-                getTrustManager());
+                getTrustManager(), null);
           }
         }
         catch (ConfigReadException cre)
@@ -819,7 +820,6 @@ public class ControlPanelInfo
             regenerateDescriptor();
             Thread.sleep(poolingPeriod);
           }
-
         }
         catch (Throwable t)
         {
@@ -944,10 +944,7 @@ public class ControlPanelInfo
       // been called).
       return localAdminConnectorURL;
     }
-    else
-    {
-      return adminConnectorURL;
-    }
+    return adminConnectorURL;
   }
 
   /**
@@ -1033,9 +1030,7 @@ public class ControlPanelInfo
             }
             else
             {
-              url = sProtocol +"://"+
-              ConnectionUtils.getHostNameForLdapUrl(server.getHostname())+
-              ":"+port;
+              url = sProtocol + "://" + getHostNameForLdapUrl(server.getHostname()) + ":" + port;
             }
           }
         }
@@ -1046,16 +1041,11 @@ public class ControlPanelInfo
             if (server.isLocal())
             {
               InetAddress address = addresses.first();
-              url = sProtocol +"://"+
-              ConnectionUtils.getHostNameForLdapUrl(address.getHostAddress())+
-              ":"+
-              port;
+              url = sProtocol + "://" + getHostNameForLdapUrl(address.getHostAddress()) + ":" + port;
             }
             else
             {
-              url = sProtocol +"://"+
-              ConnectionUtils.getHostNameForLdapUrl(server.getHostname())+
-              ":"+port;
+              url = sProtocol + "://" + getHostNameForLdapUrl(server.getHostname()) + ":" + port;
             }
           }
         }
@@ -1072,8 +1062,6 @@ public class ControlPanelInfo
    * @return the Administration Connector URL.
    */
   private static String getAdminConnectorURL(ServerDescriptor server) {
-    String url = null;
-
     ConnectionHandlerDescriptor desc = server.getAdminConnector();
     if (desc != null)
     {
@@ -1081,21 +1069,17 @@ public class ControlPanelInfo
       SortedSet<InetAddress> addresses = desc.getAddresses();
       if (addresses.size() == 0) {
         if (port > 0) {
-          url = ConnectionUtils.getLDAPUrl("localhost", port, true);
+          return getLDAPUrl("localhost", port, true);
         }
       } else {
         if (port > 0) {
           InetAddress address = addresses.first();
           String a = address.getHostAddress();
-          url = ConnectionUtils.getLDAPUrl(a, port, true);
+          return getLDAPUrl(a, port, true);
         }
       }
     }
-    else
-    {
-      url = null;
-    }
-    return url;
+    return null;
   }
 
   /**

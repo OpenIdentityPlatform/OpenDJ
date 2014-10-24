@@ -121,6 +121,9 @@ import com.forgerock.opendj.util.OperatingSystem;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.ServerDescriptor.*;
+import static org.opends.admin.ads.ServerDescriptor.ServerProperty.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
@@ -1517,9 +1520,6 @@ public abstract class Installer extends GuiApplication {
       // Try to connect
       DataReplicationOptions repl = getUserData().getReplicationOptions();
       AuthenticationData auth = repl.getAuthenticationData();
-      String ldapUrl = getLdapUrl(auth);
-      String dn = auth.getDn();
-      String pwd = auth.getPwd();
       if (isVerbose())
       {
         notifyListeners(getFormattedWithPoints(
@@ -1527,18 +1527,7 @@ public abstract class Installer extends GuiApplication {
       }
       try
       {
-        if (auth.useSecureConnection())
-        {
-          ApplicationTrustManager trustManager = getTrustManager();
-          trustManager.setHost(auth.getHostName());
-          ctx = createLdapsContext(ldapUrl, dn, pwd,
-              getConnectTimeout(), null, trustManager);
-        }
-        else
-        {
-          ctx = createLdapContext(ldapUrl, dn, pwd,
-              getConnectTimeout(), null);
-        }
+        ctx = createInitialLdapContext(auth);
 
         ADSContext adsContext = new ADSContext(ctx);
         if (createdRemoteAds)
@@ -1774,8 +1763,7 @@ public abstract class Installer extends GuiApplication {
       }
       for (ServerDescriptor server : lastLoadedCache.getServers())
       {
-        Object v = server.getServerProperties().get
-        (ServerDescriptor.ServerProperty.REPLICATION_SERVER_ID);
+        Object v = server.getServerProperties().get(REPLICATION_SERVER_ID);
         if (v != null)
         {
           knownReplicationServerIds.add((Integer)v);
@@ -1791,8 +1779,7 @@ public abstract class Installer extends GuiApplication {
         for (ReplicaDescriptor replica : suffix.getReplicas())
         {
           knownServerIds.add(replica.getReplicationId());
-          Object v = replica.getServer().getServerProperties().get
-          (ServerDescriptor.ServerProperty.REPLICATION_SERVER_ID);
+          Object v = replica.getServer().getServerProperties().get(REPLICATION_SERVER_ID);
           if (v != null)
           {
             knownReplicationServerIds.add((Integer)v);
@@ -1903,10 +1890,8 @@ public abstract class Installer extends GuiApplication {
       for (ServerDescriptor server : hm.keySet())
       {
         notifyListeners(getFormattedWithPoints(
-            INFO_PROGRESS_CONFIGURING_REPLICATION_REMOTE.get(
-                    getHostPort(server))));
-        Integer v = (Integer)server.getServerProperties().get(
-            ServerDescriptor.ServerProperty.REPLICATION_SERVER_PORT);
+            INFO_PROGRESS_CONFIGURING_REPLICATION_REMOTE.get(getHostPort(server))));
+        Integer v = (Integer)server.getServerProperties().get(REPLICATION_SERVER_PORT);
         int replicationPort;
         boolean enableSecureReplication;
         if (v != null)
@@ -2348,7 +2333,7 @@ public abstract class Installer extends GuiApplication {
         filter.setSearchMonitoringInformation(false);
         filter.addBaseDNToSearch(ADSContext.getAdministrationSuffixDN());
         filter.addBaseDNToSearch(Constants.SCHEMA_DN);
-        ServerDescriptor s = ServerDescriptor.createStandalone(rCtx, filter);
+        ServerDescriptor s = createStandalone(rCtx, filter);
         for (ReplicaDescriptor replica : s.getReplicas())
         {
           String dn = replica.getSuffix().getDN();
@@ -2432,7 +2417,7 @@ public abstract class Installer extends GuiApplication {
             TopologyCacheFilter filter = new TopologyCacheFilter();
             filter.setSearchMonitoringInformation(false);
             filter.addBaseDNToSearch(dn);
-            ServerDescriptor s = ServerDescriptor.createStandalone(rCtx, filter);
+            ServerDescriptor s = createStandalone(rCtx, filter);
             for (ReplicaDescriptor r : s.getReplicas())
             {
               if (areDnsEqual(r.getSuffix().getDN(), dn))
@@ -2538,22 +2523,7 @@ public abstract class Installer extends GuiApplication {
     {
       if (isRemoteServer)
       {
-        /* In case the user specified an existing topology... */
-        String ldapUrl = getLdapUrl(auth);
-        String dn = auth.getDn();
-        String pwd = auth.getPwd();
-        if (auth.useSecureConnection())
-        {
-          ApplicationTrustManager trustManager = getTrustManager();
-          trustManager.setHost(auth.getHostName());
-          remoteCtx = createLdapsContext(ldapUrl, dn, pwd,
-              getConnectTimeout(), null, trustManager);
-        }
-        else
-        {
-          remoteCtx = createLdapContext(ldapUrl, dn, pwd,
-              getConnectTimeout(), null);
-        }
+        remoteCtx = createInitialLdapContext(auth);
         adsContext = new ADSContext(remoteCtx); // adsContext owns remoteCtx
 
         /* Check the remote server for ADS. If it does not exist, create the
@@ -2570,8 +2540,7 @@ public abstract class Installer extends GuiApplication {
           TopologyCacheFilter filter = new TopologyCacheFilter();
           filter.setSearchMonitoringInformation(false);
           filter.setSearchBaseDNInformation(false);
-          ServerDescriptor server
-                  = ServerDescriptor.createStandalone(remoteCtx, filter);
+          ServerDescriptor server = createStandalone(remoteCtx, filter);
           server.updateAdsPropertiesWithServerProperties();
           adsContext.registerServer(server.getAdsProperties());
           createdRemoteAds = true;
@@ -2606,8 +2575,7 @@ public abstract class Installer extends GuiApplication {
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
       filter.setSearchBaseDNInformation(false);
-      ServerDescriptor server = ServerDescriptor.createStandalone(localCtx,
-          filter);
+      ServerDescriptor server = createStandalone(localCtx, filter);
       server.updateAdsPropertiesWithServerProperties();
       if (0 == adsContext.registerOrUpdateServer(server.getAdsProperties())) {
         if (isRemoteServer)
@@ -2620,8 +2588,7 @@ public abstract class Installer extends GuiApplication {
       }
       if (isRemoteServer)
       {
-        ServerDescriptor.seedAdsTrustStore(localCtx,
-                                           adsContext.getTrustedCertificates());
+        seedAdsTrustStore(localCtx, adsContext.getTrustedCertificates());
       }
       if (isVerbose())
       {
@@ -2693,6 +2660,22 @@ public abstract class Installer extends GuiApplication {
     {
       StaticUtils.close(remoteCtx, localCtx);
     }
+  }
+
+  private InitialLdapContext createInitialLdapContext(AuthenticationData auth) throws NamingException
+  {
+    String ldapUrl = getLdapUrl(auth);
+    String dn = auth.getDn();
+    String pwd = auth.getPwd();
+
+    if (auth.useSecureConnection())
+    {
+      ApplicationTrustManager trustManager = getTrustManager();
+      trustManager.setHost(auth.getHostName());
+      return createLdapsContext(ldapUrl, dn, pwd,
+          getConnectTimeout(), null, trustManager, null);
+    }
+    return createLdapContext(ldapUrl, dn, pwd, getConnectTimeout(), null);
   }
 
   /**
@@ -3479,7 +3462,7 @@ public abstract class Installer extends GuiApplication {
       try
       {
         ctx = createLdapsContext(ldapUrl, dn, pwd,
-            getConnectTimeout(), null, trustManager);
+            getConnectTimeout(), null, trustManager, null);
       }
       catch (Throwable t)
       {
@@ -3489,7 +3472,7 @@ public abstract class Installer extends GuiApplication {
           dn = ADSContext.getAdministratorDN(dn);
           effectiveDn[0] = dn;
           ctx = createLdapsContext(ldapUrl, dn, pwd,
-              getConnectTimeout(), null, trustManager);
+              getConnectTimeout(), null, trustManager, null);
         }
         else
         {
@@ -4116,8 +4099,7 @@ public abstract class Installer extends GuiApplication {
       type = SuffixesToReplicateOptions.Type.NEW_SUFFIX_IN_TOPOLOGY;
     }
 
-    ServerDescriptor s = ServerDescriptor.createStandalone(ctx,
-        new TopologyCacheFilter());
+    ServerDescriptor s = createStandalone(ctx, new TopologyCacheFilter());
     Set<ReplicaDescriptor> replicas = s.getReplicas();
     for (ReplicaDescriptor replica : replicas)
     {
@@ -4225,8 +4207,7 @@ public abstract class Installer extends GuiApplication {
       for (ReplicaDescriptor replica : suffix.getReplicas())
       {
         ServerDescriptor server = replica.getServer();
-        Object v = server.getServerProperties().get(
-            ServerDescriptor.ServerProperty.IS_REPLICATION_SERVER);
+        Object v = server.getServerProperties().get(IS_REPLICATION_SERVER);
         if (!Boolean.TRUE.equals(v))
         {
           AuthenticationData authData = new AuthenticationData();
@@ -4247,7 +4228,7 @@ public abstract class Installer extends GuiApplication {
     String dn = getUserData().getDirectoryManagerDn();
     String pwd = getUserData().getDirectoryManagerPwd();
     return createLdapsContext(ldapUrl, dn, pwd,
-        getConnectTimeout(), null, null);
+        getConnectTimeout(), null, null, null);
   }
 
   /**

@@ -24,15 +24,11 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.admin.ads.util;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
@@ -41,13 +37,18 @@ import javax.naming.TimeLimitExceededException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
+import org.opends.admin.ads.TopologyCacheException.Type;
 import org.opends.admin.ads.TopologyCacheFilter;
-import org.opends.admin.ads.ADSContext.ServerProperty;
 
-import static org.opends.server.util.StaticUtils.close;
+import com.forgerock.opendj.cli.Utils;
+
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Class used to load the configuration of a server.  Basically the code
@@ -129,9 +130,8 @@ public class ServerLoader extends Thread
     return lastException;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void interrupt()
   {
     if (!isOver)
@@ -158,6 +158,7 @@ public class ServerLoader extends Thread
   /**
    * The method where we try to generate the ServerDescriptor object.
    */
+  @Override
   public void run()
   {
     lastException = null;
@@ -209,20 +210,11 @@ public class ServerLoader extends Thread
     {
       logger.warn(LocalizableMessage.raw(
           "NamingException error reading server: "+getLastLdapUrl(), ne));
-      if (ctx == null)
-      {
-        lastException =
-            new TopologyCacheException(
-                TopologyCacheException.Type.GENERIC_CREATING_CONNECTION, ne,
-                trustManager, getLastLdapUrl());
-      }
-      else
-      {
-        lastException =
-          new TopologyCacheException(
-              TopologyCacheException.Type.GENERIC_READING_SERVER, ne,
-              trustManager, getLastLdapUrl());
-      }
+      Type type = ctx == null
+          ? TopologyCacheException.Type.GENERIC_CREATING_CONNECTION
+          : TopologyCacheException.Type.GENERIC_READING_SERVER;
+      lastException = new TopologyCacheException(
+          type, ne, trustManager, getLastLdapUrl());
     }
     catch (Throwable t)
     {
@@ -311,15 +303,12 @@ public class ServerLoader extends Thread
    */
   private String getLdapUrl(Map<ServerProperty,Object> serverProperties)
   {
-    String ldapUrl = null;
-    Object v = serverProperties.get(ServerProperty.LDAP_ENABLED);
-    boolean ldapEnabled = (v != null) && "true".equalsIgnoreCase(v.toString());
-    if (ldapEnabled)
+    if (isLdapEnabled(serverProperties))
     {
-      ldapUrl = "ldap://"+getHostNameForLdapUrl(serverProperties)+":"+
-      serverProperties.get(ServerProperty.LDAP_PORT);
+      return "ldap://" + getHostNameForLdapUrl(serverProperties) + ":"
+          + serverProperties.get(ServerProperty.LDAP_PORT);
     }
-    return ldapUrl;
+    return null;
   }
 
   /**
@@ -332,18 +321,12 @@ public class ServerLoader extends Thread
    */
   private String getStartTlsLdapUrl(Map<ServerProperty,Object> serverProperties)
   {
-    String ldapUrl = null;
-    Object v = serverProperties.get(ServerProperty.LDAP_ENABLED);
-    boolean ldapEnabled = (v != null) && "true".equalsIgnoreCase(v.toString());
-    v = serverProperties.get(ServerProperty.STARTTLS_ENABLED);
-    boolean startTLSEnabled = (v != null) &&
-    "true".equalsIgnoreCase(v.toString());
-    if (ldapEnabled && startTLSEnabled)
+    if (isLdapEnabled(serverProperties) && isStartTlsEnabled(serverProperties))
     {
-      ldapUrl = "ldap://"+getHostNameForLdapUrl(serverProperties)+":"+
-      serverProperties.get(ServerProperty.LDAP_PORT);
+      return "ldap://" + getHostNameForLdapUrl(serverProperties) + ":"
+          + serverProperties.get(ServerProperty.LDAP_PORT);
     }
-    return ldapUrl;
+    return null;
   }
 
   /**
@@ -356,15 +339,13 @@ public class ServerLoader extends Thread
    */
   private String getLdapsUrl(Map<ServerProperty,Object> serverProperties)
   {
-    String ldapsUrl = null;
-    Object v = serverProperties.get(ServerProperty.LDAPS_ENABLED);
-    boolean ldapsEnabled = (v != null) && "true".equalsIgnoreCase(v.toString());
+    boolean ldapsEnabled = isLdapsEnabled(serverProperties);
     if (ldapsEnabled)
     {
-      ldapsUrl = "ldaps://"+getHostNameForLdapUrl(serverProperties)+":"+
-      serverProperties.get(ServerProperty.LDAPS_PORT);
+      return "ldaps://" + getHostNameForLdapUrl(serverProperties) + ":"
+          + serverProperties.get(ServerProperty.LDAPS_PORT);
     }
-    return ldapsUrl;
+    return null;
   }
 
   /**
@@ -378,26 +359,44 @@ public class ServerLoader extends Thread
   private String getAdminConnectorUrl(
     Map<ServerProperty,Object> serverProperties)
   {
-    String adminUrl = null;
     boolean portDefined;
-
-    Object v = serverProperties.get(ServerProperty.ADMIN_ENABLED);
-    if ((v != null) && "true".equalsIgnoreCase(String.valueOf(v)))
+    if (isPropertyEnabled(serverProperties, ServerProperty.ADMIN_ENABLED))
     {
-      v = serverProperties.get(ServerProperty.ADMIN_PORT);
+      Object v = serverProperties.get(ServerProperty.ADMIN_PORT);
       portDefined = v != null;
     }
     else
     {
       portDefined = false;
     }
+
     if (portDefined)
     {
-      adminUrl = "ldaps://"+getHostNameForLdapUrl(serverProperties)+":"+
-      serverProperties.get(ServerProperty.ADMIN_PORT);
+      return "ldaps://" + getHostNameForLdapUrl(serverProperties) + ":"
+          + serverProperties.get(ServerProperty.ADMIN_PORT);
     }
+    return null;
+  }
 
-    return adminUrl;
+  private boolean isLdapEnabled(Map<ServerProperty, Object> serverProperties)
+  {
+    return isPropertyEnabled(serverProperties, ServerProperty.LDAP_ENABLED);
+  }
+
+  private boolean isLdapsEnabled(Map<ServerProperty, Object> serverProperties)
+  {
+    return isPropertyEnabled(serverProperties, ServerProperty.LDAPS_ENABLED);
+  }
+
+  private boolean isStartTlsEnabled(Map<ServerProperty, Object> serverProperties)
+  {
+    return isPropertyEnabled(serverProperties, ServerProperty.STARTTLS_ENABLED);
+  }
+
+  private boolean isPropertyEnabled(Map<ServerProperty, Object> serverProperties, ServerProperty property)
+  {
+    Object v = serverProperties.get(property);
+    return v != null && "true".equalsIgnoreCase(v.toString());
   }
 
   /**
@@ -411,7 +410,7 @@ public class ServerLoader extends Thread
       Map<ServerProperty,Object> serverProperties)
   {
     String host = (String)serverProperties.get(ServerProperty.HOST_NAME);
-    return ConnectionUtils.getHostNameForLdapUrl(host);
+    return Utils.getHostNameForLdapUrl(host);
   }
 
   /**
@@ -422,19 +421,18 @@ public class ServerLoader extends Thread
    */
   private boolean isAdministratorDn()
   {
-    boolean isAdministratorDn = false;
     try
     {
       LdapName theDn = new LdapName(dn);
       LdapName containerDn =
         new LdapName(ADSContext.getAdministratorContainerDN());
-      isAdministratorDn = theDn.startsWith(containerDn);
+      return theDn.startsWith(containerDn);
     }
     catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error parsing authentication DNs.", t));
     }
-    return isAdministratorDn;
+    return false;
   }
 
   /**

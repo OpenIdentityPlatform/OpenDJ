@@ -26,15 +26,18 @@
  */
 package org.opends.quicksetup.util;
 
-import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.server.util.SetupUtils;
@@ -42,14 +45,12 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.CliConstants;
 
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * Class used to manipulate an OpenDS server.
@@ -467,7 +468,7 @@ public class ServerController {
               hostName = "0.0.0.0";
             }
 
-            hostName = ConnectionUtils.getHostNameForLdapUrl(hostName);
+            hostName = getHostNameForLdapUrl(hostName);
             String ldapUrl = "ldaps://"+hostName+":" + port;
             try
             {
@@ -476,10 +477,8 @@ public class ServerController {
               {
                 timeout = application.getUserData().getConnectTimeout();
               }
-              ctx = Utils.createLdapsContext(
-                  ldapUrl,
-                  userDn, userPw, timeout,
-                  null, null);
+              ctx = createLdapsContext(ldapUrl, userDn, userPw, timeout,
+                  null, null, null);
               connected = true;
             }
             catch (NamingException ne)

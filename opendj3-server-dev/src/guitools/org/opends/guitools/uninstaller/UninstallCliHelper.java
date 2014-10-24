@@ -81,6 +81,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -1128,9 +1129,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     String ldapUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
     if (useSSL)
     {
-      ctx =
-          Utils.createLdapsContext(ldapUrl, bindDn, pwd, connectTimeout, null,
-              trustManager);
+      ctx = createLdapsContext(ldapUrl, bindDn, pwd, connectTimeout, null, trustManager, null);
     }
     else if (useStartTLS)
     {
@@ -1140,7 +1139,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     else
     {
-      ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd, connectTimeout, null);
+      ctx = createLdapContext(ldapUrl, bindDn, pwd, connectTimeout, null);
     }
     if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
     {

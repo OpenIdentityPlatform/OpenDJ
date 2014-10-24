@@ -26,10 +26,6 @@
  */
 package org.opends.guitools.controlpanel.util;
 
-import static org.opends.messages.AdminToolMessages.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
-import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -94,6 +90,9 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -108,13 +107,8 @@ import org.opends.guitools.controlpanel.event.ComboKeySelectionManager;
 import org.opends.guitools.controlpanel.event.TextComponentFocusListener;
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.ui.components.LabelWithHelpIcon;
-import org.opends.guitools.controlpanel.ui.components.
- SelectableLabelWithHelpIcon;
-import org.opends.guitools.controlpanel.ui.renderer.
- AccessibleTableHeaderRenderer;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.guitools.controlpanel.ui.components.SelectableLabelWithHelpIcon;
+import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRenderer;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
@@ -133,8 +127,12 @@ import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.server.types.CommonSchemaElements.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * A static class that provides miscellaneous functions.
@@ -961,12 +959,7 @@ public class Utilities
       loader = ControlPanel.class.getClassLoader();
     }
     java.net.URL imgURL = loader.getResource(path);
-    if (imgURL != null) {
-      return new ImageIcon(imgURL);
-    } else {
-      System.err.println("Couldn't find file: " + path);
-      return null;
-    }
+    return imgURL != null ? new ImageIcon(imgURL) : null;
   }
 
   /**
@@ -1293,14 +1286,7 @@ public class Utilities
     {
       parent = parent.getParent();
     }
-    if (parent != null)
-    {
-      return (JFrame)parent;
-    }
-    else
-    {
-      return null;
-    }
+    return parent != null ? (JFrame) parent : null;
   }
 
   /**
@@ -1491,17 +1477,15 @@ public class Utilities
    */
   public static boolean areDnsEqual(String dn1, String dn2)
   {
-    boolean areDnsEqual = false;
     try
     {
       LdapName name1 = new LdapName(dn1);
       LdapName name2 = new LdapName(dn2);
-      areDnsEqual = name1.equals(name2);
+      return name1.equals(name2);
     } catch (Exception ex)
     {
+      return false;
     }
-
-    return areDnsEqual;
   }
 
 
@@ -2328,20 +2312,17 @@ public class Utilities
       ControlPanelInfo controlInfo, String bindDN, String pwd)
   throws NamingException, ConfigReadException
   {
-    InitialLdapContext ctx;
     String usedUrl = controlInfo.getAdminConnectorURL();
     if (usedUrl == null)
     {
       throw new ConfigReadException(
           ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
     }
-    ctx = Utils.createLdapsContext(usedUrl,
-        bindDN, pwd, controlInfo.getConnectTimeout(), null,
-        controlInfo.getTrustManager());
 
-    /*
-     * Search for the config to check that it is the directory manager.
-     */
+    InitialLdapContext ctx = createLdapsContext(usedUrl,
+        bindDN, pwd, controlInfo.getConnectTimeout(), null,
+        controlInfo.getTrustManager(), null);
+    // Search for the config to check that it is the directory manager.
     checkCanReadConfig(ctx);
     return ctx;
   }
@@ -2386,9 +2367,9 @@ public class Utilities
         throw new ConfigReadException(
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
-      ctx = Utils.createLdapsContext(usedUrl,
+      ctx = createLdapsContext(usedUrl,
           bindDN, pwd, controlInfo.getConnectTimeout(), null,
-          controlInfo.getTrustManager());
+          controlInfo.getTrustManager(), null);
     }
     else
     {
@@ -2398,7 +2379,7 @@ public class Utilities
         throw new ConfigReadException(
             ERR_COULD_NOT_FIND_VALID_LDAPURL.get());
       }
-      ctx = Utils.createLdapContext(usedUrl,
+      ctx = createLdapContext(usedUrl,
           bindDN, pwd, controlInfo.getConnectTimeout(), null);
     }
 
@@ -2597,24 +2578,21 @@ public class Utilities
   public static Object getFirstMonitoringValue(CustomSearchResult sr,
       String attrName)
   {
-    Object o = null;
     if (sr != null)
     {
       List<Object> values = sr.getAttributeValues(attrName);
-      if ((values != null) && (values.size() > 0))
+      if (values != null && values.size() > 0)
       {
-        o = values.iterator().next();
+        Object o = values.iterator().next();
         try
         {
-          Long l = Long.parseLong(o.toString());
-          o = l;
+          return Long.parseLong(o.toString());
         }
         catch (Throwable t1)
         {
           try
           {
-            Double d = Double.parseDouble(o.toString());
-            o = d;
+            return Double.parseDouble(o.toString());
           }
           catch (Throwable t2)
           {
@@ -2622,7 +2600,7 @@ public class Utilities
         }
       }
     }
-    return o;
+    return null;
   }
 
   /**
@@ -2634,41 +2612,37 @@ public class Utilities
   public static String getMonitoringValue(MonitoringAttributes attr,
       CustomSearchResult monitoringEntry)
   {
-    String returnValue;
     Object monitoringValue =
       Utilities.getFirstMonitoringValue(monitoringEntry,
         attr.getAttributeName());
     if (monitoringValue == null)
     {
-      returnValue = NO_VALUE_SET.toString();
+      return NO_VALUE_SET.toString();
     }
     else if (isNotImplemented(attr, monitoringEntry))
     {
-      returnValue = NOT_IMPLEMENTED.toString();
+      return NOT_IMPLEMENTED.toString();
     }
     else if (attr.isNumericDate())
     {
       if("0".equals(monitoringValue.toString()))
       {
-        returnValue = NO_VALUE_SET.toString();
+        return NO_VALUE_SET.toString();
       }
       else
       {
         Long l = Long.parseLong(monitoringValue.toString());
         Date date = new Date(l);
-        returnValue = ConfigFromDirContext.formatter.format(date);
+        return ConfigFromDirContext.formatter.format(date);
       }
     }
     else if (attr.isTime())
     {
       if("-1".equals(monitoringValue.toString()))
       {
-        returnValue = NO_VALUE_SET.toString();
+        return NO_VALUE_SET.toString();
       }
-      else
-      {
-        returnValue = monitoringValue.toString();
-      }
+      return monitoringValue.toString();
     }
     else if (attr.isGMTDate())
     {
@@ -2676,11 +2650,11 @@ public class Utilities
       {
         Date date = ConfigFromDirContext.utcParser.parse(
             monitoringValue.toString());
-        returnValue = ConfigFromDirContext.formatter.format(date);
+        return ConfigFromDirContext.formatter.format(date);
       }
       catch (Throwable t)
       {
-        returnValue = monitoringValue.toString();
+        return monitoringValue.toString();
       }
     }
     else if (attr.isValueInBytes())
@@ -2688,13 +2662,9 @@ public class Utilities
       Long l = Long.parseLong(monitoringValue.toString());
       long mb = l / (1024 * 1024);
       long kbs = (l - (mb * 1024 * 1024)) / 1024;
-      returnValue = INFO_CTRL_PANEL_MEMORY_VALUE.get(mb , kbs).toString();
+      return INFO_CTRL_PANEL_MEMORY_VALUE.get(mb, kbs).toString();
     }
-    else
-    {
-      returnValue = monitoringValue.toString();
-    }
-    return returnValue;
+    return monitoringValue.toString();
   }
 
   /**
@@ -2708,7 +2678,6 @@ public class Utilities
   public static boolean isNotImplemented(MonitoringAttributes attr,
       CustomSearchResult monitoringEntry)
   {
-    boolean returnValue;
     Object monitoringValue = Utilities.getFirstMonitoringValue(
         monitoringEntry,
         attr.getAttributeName());
@@ -2717,18 +2686,14 @@ public class Utilities
       try
       {
         Long.parseLong(String.valueOf(monitoringValue));
-        returnValue = false;
+        return false;
       }
       catch (Throwable t)
       {
-        returnValue = true;
+        return true;
       }
     }
-    else
-    {
-      returnValue = false;
-    }
-    return returnValue;
+    return false;
   }
 
   /**
