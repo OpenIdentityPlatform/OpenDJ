@@ -131,6 +131,7 @@ import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.TabSeparatedTablePrinter;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TablePrinter;
@@ -204,52 +205,57 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private enum SubcommandChoice
   {
-    /**
-     * Enable replication.
-     */
-    ENABLE(INFO_REPLICATION_ENABLE_MENU_PROMPT.get()),
-    /**
-     * Disable replication.
-     */
-    DISABLE(INFO_REPLICATION_DISABLE_MENU_PROMPT.get()),
-    /**
-     * Initialize replication.
-     */
-    INITIALIZE(INFO_REPLICATION_INITIALIZE_MENU_PROMPT.get()),
-    /**
-     * Initialize All.
-     */
-    INITIALIZE_ALL(INFO_REPLICATION_INITIALIZE_ALL_MENU_PROMPT.get()),
-    /**
-     * Pre external initialization.
-     */
-    PRE_EXTERNAL_INITIALIZATION(
+    /** Enable replication. */
+    ENABLE(ENABLE_REPLICATION_SUBCMD_NAME, INFO_REPLICATION_ENABLE_MENU_PROMPT.get()),
+    /** Disable replication. */
+    DISABLE(DISABLE_REPLICATION_SUBCMD_NAME, INFO_REPLICATION_DISABLE_MENU_PROMPT.get()),
+    /** Initialize replication. */
+    INITIALIZE(INITIALIZE_REPLICATION_SUBCMD_NAME, INFO_REPLICATION_INITIALIZE_MENU_PROMPT.get()),
+    /** Initialize All. */
+    INITIALIZE_ALL(INITIALIZE_ALL_REPLICATION_SUBCMD_NAME, INFO_REPLICATION_INITIALIZE_ALL_MENU_PROMPT.get()),
+    /** Pre external initialization. */
+    PRE_EXTERNAL_INITIALIZATION(PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME,
         INFO_REPLICATION_PRE_EXTERNAL_INITIALIZATION_MENU_PROMPT.get()),
-    /**
-     * Post external initialization.
-     */
-    POST_EXTERNAL_INITIALIZATION(
+    /** Post external initialization. */
+    POST_EXTERNAL_INITIALIZATION(POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME,
         INFO_REPLICATION_POST_EXTERNAL_INITIALIZATION_MENU_PROMPT.get()),
-    /**
-     * Replication status.
-     */
-    STATUS(INFO_REPLICATION_STATUS_MENU_PROMPT.get()),
-    /**
-     * Replication purge historical.
-     */
-    PURGE_HISTORICAL(INFO_REPLICATION_PURGE_HISTORICAL_MENU_PROMPT.get()),
-    /**
-     * Cancel operation.
-     */
-    CANCEL(null);
+    /** Replication status. */
+    STATUS(STATUS_REPLICATION_SUBCMD_NAME, INFO_REPLICATION_STATUS_MENU_PROMPT.get()),
+    /** Replication purge historical. */
+    PURGE_HISTORICAL(PURGE_HISTORICAL_SUBCMD_NAME, INFO_REPLICATION_PURGE_HISTORICAL_MENU_PROMPT.get()),
+    /** Cancel operation. */
+    CANCEL(null, null);
+
+    private final String name;
     private LocalizableMessage prompt;
-    private SubcommandChoice(LocalizableMessage prompt)
+
+    private SubcommandChoice(String name, LocalizableMessage prompt)
     {
+      this.name = name;
       this.prompt = prompt;
     }
-    LocalizableMessage getPrompt()
+
+    private LocalizableMessage getPrompt()
     {
       return prompt;
+    }
+
+    private String getName()
+    {
+      return name;
+    }
+
+    private static SubcommandChoice fromName(String subCommandName)
+    {
+      SubcommandChoice[] f = values();
+      for (SubcommandChoice subCommand : f)
+      {
+        if (subCommand.name.equals(subCommandName))
+        {
+          return subCommand;
+        }
+      }
+      return null;
     }
   }
 
@@ -472,83 +478,21 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         boolean subcommandLaunched = true;
         String subCommand = null;
-        if (argParser.isEnableReplicationSubcommand())
+        final SubcommandChoice subcommandChoice = getSubcommandChoice(argParser.getSubCommand());
+        if (subcommandChoice != null)
         {
-          returnValue = enableReplication();
-          subCommand = ENABLE_REPLICATION_SUBCMD_NAME;
-        }
-        else if (argParser.isDisableReplicationSubcommand())
-        {
-          returnValue = disableReplication();
-          subCommand = DISABLE_REPLICATION_SUBCMD_NAME;
-        }
-        else if (argParser.isInitializeReplicationSubcommand())
-        {
-          returnValue = initializeReplication();
-          subCommand = INITIALIZE_REPLICATION_SUBCMD_NAME;
-        }
-        else if (argParser.isInitializeAllReplicationSubcommand())
-        {
-          returnValue = initializeAllReplication();
-          subCommand = INITIALIZE_ALL_REPLICATION_SUBCMD_NAME;
-        }
-        else if (argParser.isPreExternalInitializationSubcommand())
-        {
-          returnValue = preExternalInitialization();
-          subCommand = PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
-        }
-        else if (argParser.isPostExternalInitializationSubcommand())
-        {
-          returnValue = postExternalInitialization();
-          subCommand = POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
-        }
-        else if (argParser.isStatusReplicationSubcommand())
-        {
-          returnValue = statusReplication();
-          subCommand = STATUS_REPLICATION_SUBCMD_NAME;
-        }
-        else if (argParser.isPurgeHistoricalSubcommand())
-        {
-          returnValue = purgeHistorical();
-          subCommand = PURGE_HISTORICAL_SUBCMD_NAME;
+          subCommand = subcommandChoice.getName();
+          returnValue = execute(subcommandChoice, returnValue);
         }
         else if (argParser.isInteractive())
         {
-          switch (promptForSubcommand())
+          final SubcommandChoice subCommandChoice = promptForSubcommand();
+          if (subCommandChoice != null && !SubcommandChoice.CANCEL.equals(subCommandChoice))
           {
-          case ENABLE:
-            subCommand = ENABLE_REPLICATION_SUBCMD_NAME;
-            break;
-
-          case DISABLE:
-            subCommand = DISABLE_REPLICATION_SUBCMD_NAME;
-            break;
-
-          case INITIALIZE:
-            subCommand = INITIALIZE_REPLICATION_SUBCMD_NAME;
-            break;
-
-          case INITIALIZE_ALL:
-            subCommand = INITIALIZE_ALL_REPLICATION_SUBCMD_NAME;
-            break;
-
-          case PRE_EXTERNAL_INITIALIZATION:
-            subCommand = PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
-            break;
-
-          case POST_EXTERNAL_INITIALIZATION:
-            subCommand = POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME;
-            break;
-
-          case STATUS:
-            subCommand = STATUS_REPLICATION_SUBCMD_NAME;
-            break;
-
-          case PURGE_HISTORICAL:
-            subCommand = PURGE_HISTORICAL_SUBCMD_NAME;
-            break;
-
-          default:
+            subCommand = subCommandChoice.getName();
+          }
+          else
+          {
             // User canceled
             returnValue = USER_CANCELLED;
           }
@@ -590,6 +534,39 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     return returnValue.getReturnCode();
+  }
+
+  private SubcommandChoice getSubcommandChoice(SubCommand subCommand)
+  {
+    if (subCommand != null)
+    {
+      return SubcommandChoice.fromName(subCommand.getName());
+    }
+    return null;
+  }
+
+  private ReplicationCliReturnCode execute(SubcommandChoice subcommandChoice, ReplicationCliReturnCode defaultValue)
+  {
+    switch (subcommandChoice)
+    {
+    case ENABLE:
+      return enableReplication();
+    case DISABLE:
+      return disableReplication();
+    case INITIALIZE:
+      return initializeReplication();
+    case INITIALIZE_ALL:
+      return initializeAllReplication();
+    case PRE_EXTERNAL_INITIALIZATION:
+      return preExternalInitialization();
+    case POST_EXTERNAL_INITIALIZATION:
+      return postExternalInitialization();
+    case STATUS:
+      return statusReplication();
+    case PURGE_HISTORICAL:
+      return purgeHistorical();
+    }
+    return defaultValue;
   }
 
   /**
@@ -1012,11 +989,10 @@ public class ReplicationCliMain extends ConsoleApplication
     println();
   }
 
-  private ReplicationCliReturnCode purgeHistoricalLocallyTask(
-      PurgeHistoricalUserData uData)
-  throws ReplicationCliException
+  private ReplicationCliReturnCode purgeHistoricalLocallyTask(PurgeHistoricalUserData uData)
+      throws ReplicationCliException
   {
-    ReplicationCliReturnCode returnCode = ReplicationCliReturnCode.SUCCESSFUL;
+    ReplicationCliReturnCode returnCode = SUCCESSFUL;
     if (isFirstCallFromScript())
     {
       // Launch the process: launch dsreplication in non-interactive mode with
@@ -1074,7 +1050,7 @@ public class ReplicationCliMain extends ConsoleApplication
             argParser.getConfigClass());
       returnCode = localPurgeHistorical.execute();
 
-      if (returnCode == ReplicationCliReturnCode.SUCCESSFUL)
+      if (returnCode == SUCCESSFUL)
       {
         printSuccessMessage(uData, null);
       }
@@ -1453,7 +1429,7 @@ public class ReplicationCliMain extends ConsoleApplication
   throws ReplicationCliException
   {
     printPurgeProgressMessage(uData);
-    ReplicationCliReturnCode returnCode = ReplicationCliReturnCode.SUCCESSFUL;
+    ReplicationCliReturnCode returnCode = SUCCESSFUL;
     boolean taskCreated = false;
     boolean isOver = false;
     String dn = null;
@@ -1570,7 +1546,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (returnCode == ReplicationCliReturnCode.SUCCESSFUL)
+    if (returnCode == SUCCESSFUL)
     {
       printSuccessMessage(uData, taskID);
     }
@@ -1696,8 +1672,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (notFound.size() > 0)
       {
         println();
-        println(ERR_REPLICATION_PURGE_SUFFIXES_NOT_FOUND.get(
-                joinAsString(Constants.LINE_SEPARATOR, notFound)));
+        println(ERR_REPLICATION_PURGE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (interactive)
       {
@@ -2779,20 +2754,9 @@ public class ReplicationCliMain extends ConsoleApplication
       if (!disableSchema && !disableADS)
       {
         println();
-        try
+        if (!uData.disableAll() && !uData.getBaseDNs().isEmpty())
         {
-          if (!uData.disableAll() &&
-              !uData.getBaseDNs().isEmpty())
-          {
-            cancelled = !askConfirmation(
-              INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true,
-              logger);
-          }
-        }
-        catch (ClientException ce)
-        {
-          println(ce.getMessageObject());
-          cancelled = true;
+          cancelled = !askConfirmation(INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true);
         }
         println();
       }
@@ -4858,8 +4822,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (userProvidedReplicatedSuffixes.size() > 0)
       {
         println();
-        println(INFO_ALREADY_REPLICATED_SUFFIXES.get(
-            joinAsString(Constants.LINE_SEPARATOR, userProvidedReplicatedSuffixes)));
+        println(INFO_ALREADY_REPLICATED_SUFFIXES.get(toSingleLine(userProvidedReplicatedSuffixes)));
       }
       suffixes.clear();
     }
@@ -4887,14 +4850,12 @@ public class ReplicationCliMain extends ConsoleApplication
       if (notFound.size() > 0)
       {
         println();
-        println(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(
-              joinAsString(Constants.LINE_SEPARATOR, notFound)));
+        println(ERR_REPLICATION_ENABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (alreadyReplicated.size() > 0)
       {
         println();
-        println(INFO_ALREADY_REPLICATED_SUFFIXES.get(
-            joinAsString(Constants.LINE_SEPARATOR, alreadyReplicated)));
+        println(INFO_ALREADY_REPLICATED_SUFFIXES.get(toSingleLine(alreadyReplicated)));
       }
       if (interactive)
       {
@@ -4963,7 +4924,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-            joinAsString(Constants.LINE_SEPARATOR, userProvidedNotReplicatedSuffixes)));
+            toSingleLine(userProvidedNotReplicatedSuffixes)));
       }
       suffixes.clear();
     }
@@ -4991,14 +4952,12 @@ public class ReplicationCliMain extends ConsoleApplication
       if (notFound.size() > 0 && displayErrors)
       {
         println();
-        println(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(
-                joinAsString(Constants.LINE_SEPARATOR, notFound)));
+        println(ERR_REPLICATION_DISABLE_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (alreadyNotReplicated.size() > 0 && displayErrors)
       {
         println();
-        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-                joinAsString(Constants.LINE_SEPARATOR, alreadyNotReplicated)));
+        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(toSingleLine(alreadyNotReplicated)));
       }
       if (interactive)
       {
@@ -5119,7 +5078,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println();
         println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-            joinAsString(Constants.LINE_SEPARATOR, userProvidedNotReplicatedSuffixes)));
+            toSingleLine(userProvidedNotReplicatedSuffixes)));
       }
       suffixes.clear();
     }
@@ -5147,14 +5106,12 @@ public class ReplicationCliMain extends ConsoleApplication
       if (notFound.size() > 0)
       {
         println();
-        println(ERR_REPLICATION_INITIALIZE_LOCAL_SUFFIXES_NOT_FOUND.get(
-                joinAsString(Constants.LINE_SEPARATOR, notFound)));
+        println(ERR_REPLICATION_INITIALIZE_LOCAL_SUFFIXES_NOT_FOUND.get(toSingleLine(notFound)));
       }
       if (alreadyNotReplicated.size() > 0)
       {
         println();
-        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(
-                joinAsString(Constants.LINE_SEPARATOR, alreadyNotReplicated)));
+        println(INFO_ALREADY_NOT_REPLICATED_SUFFIXES.get(toSingleLine(alreadyNotReplicated)));
       }
       if (interactive)
       {
@@ -5186,13 +5143,11 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             else if (argParser.isPreExternalInitializationSubcommand())
             {
-              println(
-                 ERR_NO_SUFFIXES_SELECTED_TO_PRE_EXTERNAL_INITIALIZATION.get());
+              println(ERR_NO_SUFFIXES_SELECTED_TO_PRE_EXTERNAL_INITIALIZATION.get());
             }
             else if (argParser.isPostExternalInitializationSubcommand())
             {
-              println(
-                ERR_NO_SUFFIXES_SELECTED_TO_POST_EXTERNAL_INITIALIZATION.get());
+              println(ERR_NO_SUFFIXES_SELECTED_TO_POST_EXTERNAL_INITIALIZATION.get());
             }
 
             for (String dn : availableSuffixes)
@@ -5244,6 +5199,10 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
+  private String toSingleLine(Collection<String> notFound)
+  {
+    return joinAsString(Constants.LINE_SEPARATOR, notFound);
+  }
 
   /**
    * Checks that we can initialize the provided baseDNs between the two servers.
@@ -5283,8 +5242,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (notFound.size() > 0)
       {
         println();
-        println(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(
-                joinAsString(Constants.LINE_SEPARATOR, notFound)));
+        println(ERR_SUFFIXES_CANNOT_BE_INITIALIZED.get(toSingleLine(notFound)));
       }
       if (interactive)
       {
@@ -5378,40 +5336,34 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!baseDNsWithNoReplicationServer.isEmpty())
     {
       LocalizableMessage errorMsg =
-        ERR_REPLICATION_NO_REPLICATION_SERVER.get(
-            joinAsString(Constants.LINE_SEPARATOR, baseDNsWithNoReplicationServer));
-      throw new ReplicationCliException(
-          errorMsg,
-          ReplicationCliReturnCode.ERROR_USER_DATA, null);
+        ERR_REPLICATION_NO_REPLICATION_SERVER.get(toSingleLine(baseDNsWithNoReplicationServer));
+      throw new ReplicationCliException(errorMsg, ERROR_USER_DATA, null);
     }
     else if (!baseDNsWithOneReplicationServer.isEmpty())
     {
       if (isInteractive())
       {
-        LocalizableMessage confirmMsg =
-          INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_CONFIRM.get(
-              joinAsString(Constants.LINE_SEPARATOR, baseDNsWithOneReplicationServer));
+        LocalizableMessage confirmMsg = INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_CONFIRM.get(
+            toSingleLine(baseDNsWithOneReplicationServer));
         try
         {
           if (!confirmAction(confirmMsg, false))
           {
             throw new ReplicationCliException(
-                ERR_REPLICATION_USER_CANCELLED.get(),
-                ReplicationCliReturnCode.USER_CANCELLED, null);
+                ERR_REPLICATION_USER_CANCELLED.get(), USER_CANCELLED, null);
           }
         }
         catch (Throwable t)
         {
           throw new ReplicationCliException(
-              ERR_REPLICATION_USER_CANCELLED.get(),
-              ReplicationCliReturnCode.USER_CANCELLED, t);
+              ERR_REPLICATION_USER_CANCELLED.get(), USER_CANCELLED, t);
         }
       }
       else
       {
         LocalizableMessage warningMsg =
           INFO_REPLICATION_ONLY_ONE_REPLICATION_SERVER_WARNING.get(
-              joinAsString(Constants.LINE_SEPARATOR, baseDNsWithOneReplicationServer));
+              toSingleLine(baseDNsWithOneReplicationServer));
         println(warningMsg);
         println();
       }
@@ -6090,7 +6042,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         if (!baseDNs.isEmpty())
         {
-          String arg = joinAsString(Constants.LINE_SEPARATOR, baseDNs);
+          String arg = toSingleLine(baseDNs);
           if (!isInteractive())
           {
             println(INFO_DISABLE_REPLICATION_ONE_POINT_OF_FAILURE.get(arg));
@@ -6159,7 +6111,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
         if (!suffixArg.isEmpty())
         {
-          String arg = joinAsString(Constants.LINE_SEPARATOR, suffixArg);
+          String arg = toSingleLine(suffixArg);
           if (!isInteractive())
           {
             println(INFO_DISABLE_REPLICATION_DISABLE_IN_REMOTE.get(arg));
@@ -8465,8 +8417,7 @@ public class ReplicationCliMain extends ConsoleApplication
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
     mb.append(rce.getMessageObject());
     File logFile = ControlPanelLog.getLogFile();
-    if (logFile != null &&
-        rce.getErrorCode() != ReplicationCliReturnCode.USER_CANCELLED)
+    if (logFile != null && rce.getErrorCode() != USER_CANCELLED)
     {
       mb.append(Constants.LINE_SEPARATOR);
       mb.append(INFO_GENERAL_SEE_FOR_DETAILS.get(logFile.getPath()));
@@ -10110,8 +10061,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 Constants.LINE_SEPARATOR)));
         }
         throw new ReplicationCliException(mb.toMessage(),
-            ReplicationCliReturnCode.REPLICATION_ADS_MERGE_NOT_SUPPORTED,
-            null);
+            REPLICATION_ADS_MERGE_NOT_SUPPORTED, null);
       }
 
       ADSContext adsCtxSource;
