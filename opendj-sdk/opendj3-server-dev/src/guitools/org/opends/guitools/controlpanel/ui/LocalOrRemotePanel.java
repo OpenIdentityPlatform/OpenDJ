@@ -79,6 +79,7 @@ import org.opends.server.util.StaticUtils;
 
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 
@@ -583,10 +584,10 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             {
               usedUrl = ConnectionUtils.getLDAPUrl(hostName.getText().trim(),
                   new Integer(port.getText().trim()), true);
-              ctx = Utils.createLdapsContext(usedUrl, dn.getText(),
+              ctx = createLdapsContext(usedUrl, dn.getText(),
                   String.valueOf(pwd.getPassword()),
                   getInfo().getConnectTimeout(), null,
-                  getInfo().getTrustManager());
+                  getInfo().getTrustManager(), null);
               checkVersion(ctx);
             }
 

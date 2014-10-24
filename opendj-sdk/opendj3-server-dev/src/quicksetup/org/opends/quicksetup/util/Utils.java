@@ -64,6 +64,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.forgerock.util.Utils.*;
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.DynamicConstants.*;
 
@@ -709,66 +710,6 @@ public class Utils
   }
 
   /**
-   * Creates a clear LDAP connection and returns the corresponding LdapContext.
-   * This methods uses the specified parameters to create a JNDI environment
-   * hashtable and creates an InitialLdapContext instance.
-   *
-   * @param ldapURL
-   *          the target LDAP URL
-   * @param dn
-   *          passed as Context.SECURITY_PRINCIPAL if not null
-   * @param pwd
-   *          passed as Context.SECURITY_CREDENTIALS if not null
-   * @param timeout
-   *          passed as com.sun.jndi.ldap.connect.timeout if > 0
-   * @param env
-   *          null or additional environment properties
-   *
-   * @throws NamingException
-   *           the exception thrown when instantiating InitialLdapContext
-   *
-   * @return the created InitialLdapContext.
-   * @see javax.naming.Context
-   * @see javax.naming.ldap.InitialLdapContext
-   */
-  public static InitialLdapContext createLdapContext(String ldapURL, String dn,
-      String pwd, int timeout, Hashtable<String, String> env)
-      throws NamingException
-  {
-    return ConnectionUtils.createLdapContext(ldapURL, dn, pwd, timeout, env);
-  }
-
-  /**
-   * Creates an LDAPS connection and returns the corresponding LdapContext.
-   * This method uses the TrusteSocketFactory class so that the specified
-   * trust manager gets called during the SSL handshake. If trust manager is
-   * null, certificates are not verified during SSL handshake.
-   *
-   * @param ldapsURL      the target *LDAPS* URL.
-   * @param dn            passed as Context.SECURITY_PRINCIPAL if not null.
-   * @param pwd           passed as Context.SECURITY_CREDENTIALS if not null.
-   * @param timeout       passed as com.sun.jndi.ldap.connect.timeout if > 0.
-   * @param env           null or additional environment properties.
-   * @param trustManager  null or the trust manager to be invoked during SSL
-   * negociation.
-   *
-   * @return the established connection with the given parameters.
-   *
-   * @throws NamingException the exception thrown when instantiating
-   * InitialLdapContext.
-   *
-   * @see javax.naming.Context
-   * @see javax.naming.ldap.InitialLdapContext
-   * @see org.opends.admin.ads.util.TrustedSocketFactory
-   */
-  public static InitialLdapContext createLdapsContext(String ldapsURL,
-      String dn, String pwd, int timeout, Hashtable<String, String> env,
-      TrustManager trustManager) throws NamingException {
-    return ConnectionUtils.createLdapsContext(ldapsURL, dn, pwd, timeout, env,
-        trustManager, null);
-  }
-
-  /**
    * Creates an LDAP+StartTLS connection and returns the corresponding
    * LdapContext.
    * This method first creates an LdapContext with anonymous bind. Then it
@@ -1057,21 +998,6 @@ public class Utils
       perm = "644";
     }
     return perm;
-  }
-
-  /**
-   * Returns the String representation of the first value of an attribute in a
-   * LDAP entry.
-   * @param entry the entry.
-   * @param attrName the attribute name.
-   * @return the String representation of the first value of an attribute in a
-   * LDAP entry.
-   * @throws NamingException if there is an error processing the entry.
-   */
-  static public String getFirstValue(SearchResult entry, String attrName)
-  throws NamingException
-  {
-    return ConnectionUtils.getFirstValue(entry, attrName);
   }
 
   /**

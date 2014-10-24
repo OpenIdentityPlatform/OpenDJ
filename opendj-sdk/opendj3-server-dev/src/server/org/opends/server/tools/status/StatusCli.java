@@ -24,16 +24,16 @@
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.server.tools.status;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.INFO_ERROR_READING_SERVER_CONFIGURATION;
 import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
-import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
-import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.File;
 import java.io.InputStream;
@@ -65,14 +65,13 @@ import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNTableModel;
@@ -1277,7 +1276,7 @@ class StatusCli extends ConsoleApplication
   {
     // Interact with the user though the console to get
     // LDAP connection information
-    final String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
+    final String hostName = getHostNameForLdapUrl(ci.getHostName());
     final Integer portNumber = ci.getPortNumber();
     final String bindDN = ci.getBindDN();
     final String bindPassword = ci.getBindPassword();

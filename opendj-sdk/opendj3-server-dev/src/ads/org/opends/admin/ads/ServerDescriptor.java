@@ -24,7 +24,6 @@
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  *      Portion Copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.admin.ads;
 
 import java.util.ArrayList;
@@ -35,28 +34,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.NameAlreadyBoundException;
 import javax.naming.directory.*;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.schema.SchemaConstants;
+
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 
 /**
  * The object of this class represent an OpenDS server.
  */
 public class ServerDescriptor
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  private static final String TRUSTSTORE_DN = "cn=ads-truststore";
+
   private final Map<ADSContext.ServerProperty, Object> adsProperties =
     new HashMap<ADSContext.ServerProperty, Object>();
   private final Set<ReplicaDescriptor> replicas =
@@ -65,103 +68,61 @@ public class ServerDescriptor
     new HashMap<ServerProperty, Object>();
   private TopologyCacheException lastException;
 
-  private static final String TRUSTSTORE_DN = "cn=ads-truststore";
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   /**
    * Enumeration containing the different server properties that we can keep in
    * the ServerProperty object.
    */
   public enum ServerProperty
   {
-    /**
-     * The associated value is a String.
-     */
+    /** The associated value is a String. */
     HOST_NAME,
-    /**
-     * The associated value is an ArrayList of Integer.
-     */
+    /** The associated value is an ArrayList of Integer. */
     LDAP_PORT,
-    /**
-     * The associated value is an ArrayList of Integer.
-     */
+    /** The associated value is an ArrayList of Integer. */
     LDAPS_PORT,
-    /**
-     * The associated value is an Integer.
-     */
+    /** The associated value is an Integer. */
     ADMIN_PORT,
-    /**
-     * The associated value is an ArrayList of Boolean.
-     */
+    /** The associated value is an ArrayList of Boolean. */
     LDAP_ENABLED,
-    /**
-     * The associated value is an ArrayList of Boolean.
-     */
+    /** The associated value is an ArrayList of Boolean. */
     LDAPS_ENABLED,
-    /**
-     * The associated value is an ArrayList of Boolean.
-     */
+    /** The associated value is an ArrayList of Boolean. */
     ADMIN_ENABLED,
-    /**
-     * The associated value is an ArrayList of Boolean.
-     */
+    /** The associated value is an ArrayList of Boolean. */
     STARTTLS_ENABLED,
-    /**
-     * The associated value is an ArrayList of Integer.
-     */
+    /** The associated value is an ArrayList of Integer. */
     JMX_PORT,
-    /**
-     * The associated value is an ArrayList of Integer.
-     */
+    /** The associated value is an ArrayList of Integer. */
     JMXS_PORT,
-    /**
-     * The associated value is an ArrayList of Boolean.
-     */
+    /** The associated value is an ArrayList of Boolean. */
     JMX_ENABLED,
-    /**
-     * The associated value is an ArrayList of Boolean.
-     */
+    /** The associated value is an ArrayList of Boolean. */
     JMXS_ENABLED,
-    /**
-     * The associated value is an Integer.
-     */
+    /** The associated value is an Integer. */
     REPLICATION_SERVER_PORT,
-    /**
-     * The associated value is a Boolean.
-     */
+    /** The associated value is a Boolean. */
     IS_REPLICATION_SERVER,
-    /**
-     * The associated value is a Boolean.
-     */
+    /** The associated value is a Boolean. */
     IS_REPLICATION_ENABLED,
-    /**
-     * The associated value is a Boolean.
-     */
+    /** The associated value is a Boolean. */
     IS_REPLICATION_SECURE,
     /**
      * List of servers specified in the Replication Server configuration.
      * This is a Set of String.
      */
     EXTERNAL_REPLICATION_SERVERS,
-    /**
-     * The associated value is an Integer.
-     */
+    /** The associated value is an Integer. */
     REPLICATION_SERVER_ID,
     /**
      * The instance key-pair public-key certificate. The associated value is a
      * byte[] (ds-cfg-public-key-certificate;binary).
      */
     INSTANCE_PUBLIC_KEY_CERTIFICATE,
-    /**
-     * The schema generation ID.
-     */
+    /** The schema generation ID. */
     SCHEMA_GENERATION_ID
   }
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   protected ServerDescriptor()
   {
   }
@@ -366,7 +327,7 @@ public class ServerDescriptor
     }
     if (port != -1)
     {
-      ldapUrl = ConnectionUtils.getLDAPUrl(host, port, false);
+      ldapUrl = getLDAPUrl(host, port, false);
     }
     return ldapUrl;
   }
@@ -403,7 +364,7 @@ public class ServerDescriptor
     }
     if (port != -1)
     {
-      ldapsUrl = ConnectionUtils.getLDAPUrl(host, port, true);
+      ldapsUrl = getLDAPUrl(host, port, true);
     }
     return ldapsUrl;
   }
@@ -440,7 +401,7 @@ public class ServerDescriptor
     }
     if (port != -1)
     {
-      adminConnectorUrl = ConnectionUtils.getLDAPUrl(host, port, true);
+      adminConnectorUrl = getLDAPUrl(host, port, true);
     }
     return adminConnectorUrl;
   }
@@ -782,14 +743,13 @@ public class ServerDescriptor
   {
     ServerDescriptor desc = new ServerDescriptor();
 
-
-    updateLdapConfiguration(desc, ctx, filter);
-    updateAdminConnectorConfiguration(desc, ctx, filter);
-    updateJmxConfiguration(desc, ctx, filter);
+    updateLdapConfiguration(desc, ctx);
+    updateAdminConnectorConfiguration(desc, ctx);
+    updateJmxConfiguration(desc, ctx);
     updateReplicas(desc, ctx, filter);
     updateReplication(desc, ctx, filter);
-    updatePublicKeyCertificate(desc, ctx, filter);
-    updateMiscellaneous(desc, ctx, filter);
+    updatePublicKeyCertificate(desc, ctx);
+    updateMiscellaneous(desc, ctx);
 
     desc.serverProperties.put(ServerProperty.HOST_NAME,
         ConnectionUtils.getHostName(ctx));
@@ -797,9 +757,8 @@ public class ServerDescriptor
     return desc;
   }
 
-  private static void updateLdapConfiguration(ServerDescriptor desc,
-      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
-  throws NamingException
+  private static void updateLdapConfiguration(ServerDescriptor desc, InitialLdapContext ctx)
+      throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -865,9 +824,8 @@ public class ServerDescriptor
     }
   }
 
-  private static void updateAdminConnectorConfiguration(ServerDescriptor desc,
-      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
-  throws NamingException
+  private static void updateAdminConnectorConfiguration(ServerDescriptor desc, InitialLdapContext ctx)
+      throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -911,9 +869,7 @@ public class ServerDescriptor
     }
   }
 
-  private static void updateJmxConfiguration(ServerDescriptor desc,
-      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
-  throws NamingException
+  private static void updateJmxConfiguration(ServerDescriptor desc, InitialLdapContext ctx) throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -1288,8 +1244,7 @@ public class ServerDescriptor
    @throws NamingException if unable to retrieve certificate from bound
    instance.
    */
-  private static void updatePublicKeyCertificate(ServerDescriptor desc,
-      InitialLdapContext ctx, TopologyCacheFilter filter) throws NamingException
+  private static void updatePublicKeyCertificate(ServerDescriptor desc, InitialLdapContext ctx) throws NamingException
   {
     /* TODO: this DN is declared in some core constants file. Create a constants
        file for the installer and import it into the core. */
@@ -1333,9 +1288,7 @@ public class ServerDescriptor
     }
   }
 
-  private static void updateMiscellaneous(ServerDescriptor desc,
-      InitialLdapContext ctx, TopologyCacheFilter cacheFilter)
-  throws NamingException
+  private static void updateMiscellaneous(ServerDescriptor desc, InitialLdapContext ctx) throws NamingException
   {
     SearchControls ctls = new SearchControls();
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
@@ -1492,22 +1445,6 @@ public class ServerDescriptor
       listeners.close();
     }
     return v;
-  }
-
-  /*
-   * The following 2 methods are convenience methods to retrieve String values
-   * from an entry.
-   */
-  private static String getFirstValue(SearchResult entry, String attrName)
-  throws NamingException
-  {
-    return ConnectionUtils.getFirstValue(entry, attrName);
-  }
-
-  private static Set<String> getValues(SearchResult entry, String attrName)
-  throws NamingException
-  {
-    return ConnectionUtils.getValues(entry, attrName);
   }
 
   /**

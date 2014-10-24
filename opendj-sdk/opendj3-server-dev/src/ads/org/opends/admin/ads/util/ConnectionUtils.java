@@ -55,6 +55,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
 
+import com.forgerock.opendj.cli.Utils;
+
 /**
  * Class providing some utilities to create LDAP connections using JNDI and
  * to manage entries retrieved using JNDI.
@@ -745,35 +747,6 @@ public class ConnectionUtils
   }
 
   /**
-   * Returns the String that can be used to represent a given host name in a
-   * LDAP URL. This method must be used when we have IPv6 addresses (the address
-   * in the LDAP URL must be enclosed with brackets).
-   *
-   * @param host
-   *          The host name.
-   * @return The String that can be used to represent a given host name in a
-   *         LDAP URL.
-   */
-  public static String getHostNameForLdapUrl(String host)
-  {
-    if ((host != null) && host.indexOf(":") != -1)
-    {
-      // Assume an IPv6 address has been specified and adds the brackets
-      // for the URL.
-      host = host.trim();
-      if (!host.startsWith("["))
-      {
-        host = "[" + host;
-      }
-      if (!host.endsWith("]"))
-      {
-        host = host + "]";
-      }
-    }
-    return host;
-  }
-
-  /**
    * Returns the LDAP URL for the provided parameters.
    * @param host the host name.
    * @param port the LDAP port.
@@ -782,17 +755,8 @@ public class ConnectionUtils
    */
   public static String getLDAPUrl(String host, int port, boolean useSSL)
   {
-    String ldapUrl;
-    host = getHostNameForLdapUrl(host);
-    if (useSSL)
-    {
-      ldapUrl = "ldaps://"+host+":"+port;
-    }
-    else
-    {
-      ldapUrl = "ldap://"+host+":"+port;
-    }
-    return ldapUrl;
+    host = Utils.getHostNameForLdapUrl(host);
+    return (useSSL ? "ldaps://" : "ldap://") + host + ":" + port;
   }
 
   /**

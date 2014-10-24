@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
-
-
 
 import java.util.Collection;
 import java.util.Hashtable;
@@ -48,14 +46,13 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
 import org.opends.admin.ads.util.BlindTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.TrustedSocketFactory;
 import org.opends.server.admin.client.AuthenticationException;
 import org.opends.server.admin.client.AuthenticationNotSupportedException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.schema.SchemaConstants;
 
-
+import static com.forgerock.opendj.cli.Utils.*;
 
 /**
  * An LDAP connection adaptor which maps LDAP requests onto an
@@ -102,29 +99,12 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
       String name, String password) throws CommunicationException,
       AuthenticationNotSupportedException, AuthenticationException {
     Hashtable<String, Object> env = new Hashtable<String, Object>();
-    env
-        .put(Context.INITIAL_CONTEXT_FACTORY,
-            "com.sun.jndi.ldap.LdapCtxFactory");
-    String hostname = ConnectionUtils.getHostNameForLdapUrl(host) ;
+    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+    String hostname = getHostNameForLdapUrl(host);
     env.put(Context.PROVIDER_URL, "ldap://" + hostname + ":" + port);
     env.put(Context.SECURITY_PRINCIPAL, name);
     env.put(Context.SECURITY_CREDENTIALS, password);
-
-    DirContext ctx;
-    try {
-      ctx = new InitialLdapContext(env, null);
-    } catch (javax.naming.CommunicationException e) {
-      throw new CommunicationException(e);
-    } catch (javax.naming.AuthenticationException e) {
-      throw new AuthenticationException(e);
-    } catch (javax.naming.AuthenticationNotSupportedException e) {
-      throw new AuthenticationNotSupportedException(e);
-    } catch (NamingException e) {
-      // Assume some kind of communication problem.
-      throw new CommunicationException(e);
-    }
-
-    return new JNDIDirContextAdaptor(ctx);
+    return createJNDIDirContextAdaptor(env);
   }
 
   /**
@@ -153,9 +133,8 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
       String name, String password) throws CommunicationException,
       AuthenticationNotSupportedException, AuthenticationException {
     Hashtable<String, Object> env = new Hashtable<String, Object>();
-    env.put(Context.INITIAL_CONTEXT_FACTORY,
-            "com.sun.jndi.ldap.LdapCtxFactory");
-    String hostname = ConnectionUtils.getHostNameForLdapUrl(host) ;
+    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+    String hostname = getHostNameForLdapUrl(host);
     env.put(Context.PROVIDER_URL, "ldaps://" + hostname + ":" + port);
     env.put(Context.SECURITY_PRINCIPAL, name);
     env.put(Context.SECURITY_CREDENTIALS, password);
@@ -164,8 +143,13 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
     env.put(Context.SECURITY_PROTOCOL, "ssl");
     env.put("java.naming.ldap.factory.socket",
         org.opends.admin.ads.util.TrustedSocketFactory.class.getName());
-    TrustedSocketFactory.setCurrentThreadTrustManager(new BlindTrustManager(),
-              null);
+    TrustedSocketFactory.setCurrentThreadTrustManager(new BlindTrustManager(), null);
+    return createJNDIDirContextAdaptor(env);
+  }
+
+  private static JNDIDirContextAdaptor createJNDIDirContextAdaptor(Hashtable<String, Object> env)
+      throws CommunicationException, AuthenticationException, AuthenticationNotSupportedException
+  {
     DirContext ctx;
     try {
       ctx = new InitialLdapContext(env, null);
@@ -179,38 +163,29 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
       // Assume some kind of communication problem.
       throw new CommunicationException(e);
     }
-
     return new JNDIDirContextAdaptor(ctx);
   }
 
 
-  // The JNDI connection context.
+  /** The JNDI connection context. */
   private final DirContext dirContext;
 
-
-
-  // Create a new JNDI connection adaptor using the provider JNDI
-  // DirContext.
+  /**
+   * Create a new JNDI connection adaptor using the provider JNDI
+   * DirContext.
+   */
   private JNDIDirContextAdaptor(DirContext dirContext) {
     this.dirContext = dirContext;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void createEntry(LdapName dn, Attributes attributes)
       throws NamingException {
     dirContext.createSubcontext(dn, attributes).close();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void deleteSubtree(LdapName dn) throws NamingException {
     // Delete the children first.
@@ -224,20 +199,16 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean entryExists(LdapName dn) throws NamingException {
     boolean entryExists = false;
     String filter = "(objectClass=*)";
     SearchControls controls = new SearchControls();
     controls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    controls
-        .setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
+    controls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
     try {
-      NamingEnumeration<SearchResult> results = dirContext.search(dn, filter,
-          controls);
+      NamingEnumeration<SearchResult> results = dirContext.search(dn, filter, controls);
       try
       {
         while (results.hasMore()) {
@@ -258,9 +229,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<LdapName> listEntries(LdapName dn, String filter)
       throws NamingException {
@@ -293,9 +262,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(LdapName dn, Attributes mods) throws NamingException {
     ModificationItem[] modList = new ModificationItem[mods.size()];
@@ -310,9 +277,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Attributes readEntry(LdapName dn, Collection<String> attrIds)
       throws NamingException {
@@ -322,9 +287,7 @@ public final class JNDIDirContextAdaptor extends LDAPConnection {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void unbind() {
     try {
