@@ -38,7 +38,6 @@ import javax.management.remote.JMXConnectionNotification;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -53,7 +52,6 @@ import static org.opends.messages.ProtocolMessages.*;
 /**
  * This class defines the set of methods and structures that must be implemented
  * by a Directory Server client connection.
- *
  */
 public class JmxClientConnection
        extends ClientConnection implements NotificationListener
@@ -61,32 +59,19 @@ public class JmxClientConnection
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The message ID counter to use for jmx connections. */
-  private AtomicInteger nextMessageID;
-
+  private final AtomicInteger nextMessageID;
   /** The operation ID counter to use for operations on this connection. */
-  private AtomicLong nextOperationID;
-
+  private final AtomicLong nextOperationID;
   /** The empty operation list for this connection. */
-  private LinkedList<Operation> operationList;
-
+  private final LinkedList<Operation> operationList;
   /** The connection ID for this client connection. */
-  private long connectionID;
-
-  /**
-   * The JMX connection ID for this client connection.
-   */
-  protected String jmxConnectionID = null;
-
-  /**
-   * The reference to the connection handler that accepted this connection.
-   */
-  private JmxConnectionHandler jmxConnectionHandler;
-
-  /**
-   * Indicate that the disconnect process is started.
-   */
-  private boolean disconnectStarted = false;
-
+  private final long connectionID;
+  /** The JMX connection ID for this client connection. */
+  protected String jmxConnectionID;
+  /** The reference to the connection handler that accepted this connection. */
+  private final JmxConnectionHandler jmxConnectionHandler;
+  /** Indicate that the disconnect process is started. */
+  private boolean disconnectStarted;
 
   /**
    * Creates a new Jmx client connection that will be authenticated as
@@ -102,7 +87,7 @@ public class JmxClientConnection
   {
     super();
 
-    this.setNetworkGroup(NetworkGroup.getAdminNetworkGroup());
+    setNetworkGroup(NetworkGroup.getAdminNetworkGroup());
 
     nextMessageID    = new AtomicInteger(1);
     nextOperationID  = new AtomicLong(0);
@@ -120,40 +105,32 @@ public class JmxClientConnection
     }
     operationList = new LinkedList<Operation>();
 
-    //
     // Register the Jmx Notification listener (this)
     jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate
         .addNotificationListener(this, null, null);
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleNotification(Notification notif, Object handback)
   {
-    JMXConnectionNotification jcn ;
-
     // We don't have the expected notification
     if ( ! (notif instanceof JMXConnectionNotification))
     {
       return ;
     }
-    else
-    {
-      jcn = (JMXConnectionNotification) notif ;
-    }
+    JMXConnectionNotification jcn = (JMXConnectionNotification) notif;
 
     // The only handled notifications are CLOSED and FAILED
-    if ((!jcn.getType().equals(JMXConnectionNotification.CLOSED))
-        && (!jcn.getType().equals(JMXConnectionNotification.FAILED)))
+    if (!JMXConnectionNotification.CLOSED.equals(jcn.getType())
+        && !JMXConnectionNotification.FAILED.equals(jcn.getType()))
     {
       return;
     }
 
     // Check if the closed connection corresponds to the current connection
-    if (!(jcn.getConnectionId().equals(jmxConnectionID)))
+    if (!jcn.getConnectionId().equals(jmxConnectionID))
     {
       return;
     }
@@ -404,362 +381,6 @@ public class JmxClientConnection
   }
 
 
-
-  /**
-   * Processes an Jmx add operation with the provided information.
-   *
-   * @param  rawEntryDN     The DN to use for the entry to add.
-   * @param  rawAttributes  The set of attributes to include in the entry to
-   *                        add.
-   *
-   * @return  A reference to the add operation that was processed and contains
-   *          information about the result of the processing.
-   */
-  public AddOperation processAdd(ByteString rawEntryDN,
-                                 ArrayList<RawAttribute> rawAttributes)
-  {
-    AddOperationBasis addOperation =
-         new AddOperationBasis(this, nextOperationID(), nextMessageID(),
-                          new ArrayList<Control>(0), rawEntryDN, rawAttributes);
-
-    // Check if we have enough privilege
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
-      addOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      addOperation.run();
-    }
-    return addOperation;
-  }
-
-  /**
-   * Processes an internal add operation with the provided
-   * information.
-   *
-   * @param  entryDN                The entry DN for the add
-   *                                operation.
-   * @param  objectClasses          The set of objectclasses for the
-   *                                add operation.
-   * @param  userAttributes         The set of user attributes for the
-   *                                add operation.
-   * @param  operationalAttributes  The set of operational attributes
-   *                                for the add operation.
-   *
-   * @return  A reference to the add operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public AddOperation processAdd(DN entryDN,
-                           Map<ObjectClass,String> objectClasses,
-                           Map<AttributeType,List<Attribute>>
-                                userAttributes,
-                           Map<AttributeType,List<Attribute>>
-                                operationalAttributes)
-  {
-    AddOperationBasis addOperation =
-         new AddOperationBasis(this, nextOperationID(),
-                          nextMessageID(),
-                          new ArrayList<Control>(0), entryDN,
-                          objectClasses, userAttributes,
-                          operationalAttributes);
-    // Check if we have enough privilege
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_ADD_INSUFFICIENT_PRIVILEGES.get();
-      addOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      addOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      addOperation.run();
-    }
-    return addOperation;
-  }
-
-  /**
-   * Processes an internal delete operation with the provided
-   * information.
-   *
-   * @param  entryDN  The entry DN for the delete operation.
-   *
-   * @return  A reference to the delete operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public DeleteOperation processDelete(DN entryDN)
-  {
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(this, nextOperationID(),
-                             nextMessageID(),
-                             new ArrayList<Control>(0), entryDN);
-    // Check if we have enough privilege
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
-      deleteOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      deleteOperation.run();
-    }
-    return deleteOperation;
-  }
-
-
-  /**
-   * Processes an Jmx compare operation with the provided information.
-   *
-   * @param  rawEntryDN      The entry DN for the compare operation.
-   * @param  attributeType   The attribute type for the compare operation.
-   * @param  assertionValue  The assertion value for the compare operation.
-   *
-   * @return  A reference to the compare operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public CompareOperation processCompare(ByteString rawEntryDN,
-                                         String attributeType,
-                                         ByteString assertionValue)
-  {
-    CompareOperationBasis compareOperation =
-         new CompareOperationBasis(this, nextOperationID(), nextMessageID(),
-                              new ArrayList<Control>(0), rawEntryDN,
-                              attributeType, assertionValue);
-
-    // Check if we have enough privilege
-    if (! hasPrivilege(Privilege.JMX_READ, null))
-    {
-      LocalizableMessage message = ERR_JMX_SEARCH_INSUFFICIENT_PRIVILEGES.get();
-      compareOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      compareOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      compareOperation.run();
-    }
-    return compareOperation;
-  }
-
-
-
-  /**
-   * Processes an Jmx delete operation with the provided information.
-   *
-   * @param  rawEntryDN  The entry DN for the delete operation.
-   *
-   * @return  A reference to the delete operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public DeleteOperation processDelete(ByteString rawEntryDN)
-  {
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(this, nextOperationID(), nextMessageID(),
-                             new ArrayList<Control>(0), rawEntryDN);
-
-    // Check if we have enough privilege
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_DELETE_INSUFFICIENT_PRIVILEGES.get();
-      deleteOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      deleteOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      deleteOperation.run();
-    }
-    return deleteOperation;
-  }
-
-
-
-  /**
-   * Processes an Jmx extended operation with the provided information.
-   *
-   * @param  requestOID    The OID for the extended request.
-   * @param  requestValue  The encoded +value for the extended operation, or
-   *                       <CODE>null</CODE> if there is no value.
-   *
-   * @return  A reference to the extended operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public ExtendedOperation processExtendedOperation(String requestOID,
-                                ByteString requestValue)
-  {
-    ExtendedOperationBasis extendedOperation =
-         new ExtendedOperationBasis(this, nextOperationID(), nextMessageID(),
-                               new ArrayList<Control>(0), requestOID,
-                               requestValue);
-
-    extendedOperation.run();
-    return extendedOperation;
-  }
-
-
-
-  /**
-   * Processes an Jmx modify operation with the provided information.
-   *
-   * @param  rawEntryDN        The raw entry DN for this modify operation.
-   * @param  rawModifications  The set of modifications for this modify
-   *                           operation.
-   *
-   * @return  A reference to the modify operation that was processed and
-   *          contains information about the result of the processing
-   */
-  public ModifyOperation processModify(ByteString rawEntryDN,
-                              ArrayList<RawModification> rawModifications)
-  {
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(this, nextOperationID(), nextMessageID(),
-                             new ArrayList<Control>(0), rawEntryDN,
-                             rawModifications);
-
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
-      modifyOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      modifyOperation.run();
-    }
-    return modifyOperation;
-  }
-
-
-  /**
-   * Processes an internal modify operation with the provided
-   * information.
-   *
-   * @param  entryDN        The entry DN for this modify operation.
-   * @param  modifications  The set of modifications for this modify
-   *                        operation.
-   *
-   * @return  A reference to the modify operation that was processed
-   *          and contains information about the result of the
-   *          processing.
-   */
-  public ModifyOperation processModify(DN entryDN,
-                              List<Modification> modifications)
-  {
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(this, nextOperationID(),
-                             nextMessageID(),
-                             new ArrayList<Control>(0), entryDN,
-                             modifications);
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_MODIFY_INSUFFICIENT_PRIVILEGES.get();
-      modifyOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      modifyOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      modifyOperation.run();
-    }
-    return modifyOperation;
-  }
-
-  /**
-   * Processes an Jmx modify DN operation with the provided information.
-   *
-   * @param  rawEntryDN    The current DN of the entry to rename.
-   * @param  rawNewRDN     The new RDN to use for the entry.
-   * @param  deleteOldRDN  The flag indicating whether the old RDN value is to
-   *                       be removed from the entry.
-   *
-   * @return  A reference to the modify DN operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
-                                           ByteString rawNewRDN,
-                                           boolean deleteOldRDN)
-  {
-    return processModifyDN(rawEntryDN, rawNewRDN, deleteOldRDN, null);
-  }
-
-
-
-  /**
-   * Processes an Jmx modify DN operation with the provided information.
-   *
-   * @param  rawEntryDN      The current DN of the entry to rename.
-   * @param  rawNewRDN       The new RDN to use for the entry.
-   * @param  deleteOldRDN    The flag indicating whether the old RDN value is to
-   *                         be removed from the entry.
-   * @param  rawNewSuperior  The new superior for the modify DN operation, or
-   *                         <CODE>null</CODE> if the entry will remain below
-   *                         the same parent.
-   *
-   * @return  A reference to the modify DN operation that was processed and
-   *          contains information about the result of the processing.
-   */
-  public ModifyDNOperation processModifyDN(ByteString rawEntryDN,
-                                           ByteString rawNewRDN,
-                                           boolean deleteOldRDN,
-                                           ByteString rawNewSuperior)
-  {
-    ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(this, nextOperationID(), nextMessageID(),
-                               new ArrayList<Control>(0), rawEntryDN, rawNewRDN,
-                               deleteOldRDN, rawNewSuperior);
-
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
-      modifyDNOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      modifyDNOperation.run();
-    }
-    return modifyDNOperation;
-  }
-
-  /**
-   * Processes an internal modify DN operation with the provided
-   * information.
-   *
-   * @param  entryDN       The current DN of the entry to rename.
-   * @param  newRDN        The new RDN to use for the entry.
-   * @param  deleteOldRDN  The flag indicating whether the old RDN
-   *                       value is to be removed from the entry.
-   * @param  newSuperior   The new superior for the modify DN
-   *                       operation, or <CODE>null</CODE> if the
-   *                       entry will remain below the same parent.
-   *
-   * @return  A reference to the modify DN operation that was
-   *          processed and contains information about the result of
-   *          the processing.
-   */
-  public ModifyDNOperation processModifyDN(DN entryDN, RDN newRDN,
-                                           boolean deleteOldRDN,
-                                           DN newSuperior)
-  {
-    ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(this, nextOperationID(),
-                               nextMessageID(),
-                               new ArrayList<Control>(0), entryDN,
-                               newRDN, deleteOldRDN, newSuperior);
-
-    if (! hasPrivilege(Privilege.JMX_WRITE, null))
-    {
-      LocalizableMessage message = ERR_JMX_MODDN_INSUFFICIENT_PRIVILEGES.get();
-      modifyDNOperation.setErrorMessage(new LocalizableMessageBuilder(message));
-      modifyDNOperation.setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS) ;
-    }
-    else
-    {
-      modifyDNOperation.run();
-    }
-    return modifyDNOperation;
-  }
-
   /**
    * Processes an Jmx search operation with the provided information.
    *
@@ -889,10 +510,7 @@ public class JmxClientConnection
     try
     {
       UnbindOperationBasis unbindOp = new UnbindOperationBasis(
-          this,
-          this.nextOperationID(),
-          this.nextMessageID(), null);
-
+          this, nextOperationID(), nextMessageID(), null);
       unbindOp.run();
     }
    catch (Exception e)
@@ -1023,11 +641,7 @@ public class JmxClientConnection
     // cancelled.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getMonitorSummary()
   {
@@ -1090,9 +704,7 @@ public class JmxClientConnection
     return 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getSSF() {
       return 0;
