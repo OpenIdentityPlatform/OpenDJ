@@ -95,10 +95,8 @@ public class Target
           } else {
               urlDN=targetURL.getBaseDN();
               if(!urlDN.isDescendantOf(aciDN)) {
-                  LocalizableMessage message = WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.
-                      get(urlDN.toNormalizedString(),
-                          aciDN.toNormalizedString());
-                  throw new AciException(message);
+                  throw new AciException(WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.get(urlDN.toString(),
+                      aciDN.toString()));
               }
           }
         }

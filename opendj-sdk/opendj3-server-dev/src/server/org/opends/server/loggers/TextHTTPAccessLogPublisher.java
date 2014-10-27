@@ -200,7 +200,7 @@ public final class TextHTTPAccessLogPublisher extends
           // The asynchronous setting is being turned on.
           final AsynchronousTextWriter asyncWriter =
               new AsynchronousTextWriter("Asynchronous Text Writer for "
-                  + config.dn().toNormalizedString(), config.getQueueSize(),
+                  + config.dn().toString(), config.getQueueSize(),
                   config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
         }
@@ -209,7 +209,7 @@ public final class TextHTTPAccessLogPublisher extends
         {
           // The asynchronous setting is being turned on.
           final ParallelTextWriter asyncWriter = new ParallelTextWriter(
-              "Parallel Text Writer for " + config.dn().toNormalizedString(),
+              "Parallel Text Writer for " + config.dn().toString(),
               config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
         }
@@ -322,7 +322,7 @@ public final class TextHTTPAccessLogPublisher extends
           && !cfg.isAsynchronous();
 
       final MultifileTextWriter theWriter = new MultifileTextWriter(
-          "Multifile Text Writer for " + cfg.dn().toNormalizedString(),
+          "Multifile Text Writer for " + cfg.dn().toString(),
           cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
           writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
 
@@ -342,13 +342,13 @@ public final class TextHTTPAccessLogPublisher extends
         if (cfg.getQueueSize() > 0)
         {
           this.writer = new AsynchronousTextWriter(
-              "Asynchronous Text Writer for " + cfg.dn().toNormalizedString(),
+              "Asynchronous Text Writer for " + cfg.dn().toString(),
               cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
         }
         else
         {
           this.writer = new ParallelTextWriter("Parallel Text Writer for "
-              + cfg.dn().toNormalizedString(), cfg.isAutoFlush(), theWriter);
+              + cfg.dn().toString(), cfg.isAutoFlush(), theWriter);
         }
       }
       else

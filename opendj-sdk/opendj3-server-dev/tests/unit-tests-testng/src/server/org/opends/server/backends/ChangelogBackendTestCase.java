@@ -1257,7 +1257,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   /** Check the DEL entry has the right content. */
   private void assertDelEntry(SearchResultEntry entry, String uid, String entryUUID,
-      long changeNumber, CSN csn, String cookie)
+      long changeNumber, CSN csn, String cookie) throws Exception
   {
     assertAttributeValue(entry, "changetype", "delete");
     assertAttributeValue(entry, "targetuniqueid", entryUUID);
@@ -1267,7 +1267,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
 
   /** Check the ADD entry has the right content. */
   private void assertAddEntry(SearchResultEntry entry, String uid, String entryUUID,
-      long changeNumber, CSN csn, String cookie)
+      long changeNumber, CSN csn, String cookie) throws Exception
   {
     assertAttributeValue(entry, "changetype", "add");
     assertEntryMatchesLDIF(entry, "changes",
@@ -1278,7 +1278,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   private void assertModEntry(SearchResultEntry entry, String uid, String entryUUID,
-      long changeNumber, CSN csn, String cookie)
+      long changeNumber, CSN csn, String cookie) throws Exception
   {
     assertAttributeValue(entry, "changetype", "modify");
     assertEntryMatchesLDIF(entry, "changes",
@@ -1289,7 +1289,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   private void assertModDNEntry(SearchResultEntry entry, String uid, String newUid,
-      String entryUUID, long changeNumber, CSN csn, String cookie)
+      String entryUUID, long changeNumber, CSN csn, String cookie) throws Exception
   {
     assertAttributeValue(entry, "changetype", "modrdn");
     assertAttributeValue(entry, "newrdn", "uid=" + newUid);
@@ -1300,7 +1300,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   }
 
   private void assertEntryCommonAttributes(SearchResultEntry resultEntry,
-      String uid, String entryUUID, long changeNumber, CSN csn, String cookie)
+      String uid, String entryUUID, long changeNumber, CSN csn, String cookie) throws Exception
   {
     if (changeNumber == 0)
     {
@@ -1383,18 +1383,18 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         .isEqualToIgnoringCase(expectedValue);
   }
 
-  private void assertDNWithChangeNumber(SearchResultEntry resultEntry, long changeNumber)
+  private void assertDNWithChangeNumber(SearchResultEntry resultEntry, long changeNumber) throws Exception
   {
-    String actualDN = resultEntry.getName().toNormalizedString();
-    String expectedDN = "changenumber=" + changeNumber + ",cn=changelog";
-    assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
+    DN actualDN = resultEntry.getName();
+    DN expectedDN = DN.valueOf("changenumber=" + changeNumber + ",cn=changelog");
+    assertThat(actualDN).isEqualTo(expectedDN);
   }
 
-  private void assertDNWithCSN(SearchResultEntry resultEntry, CSN csn)
+  private void assertDNWithCSN(SearchResultEntry resultEntry, CSN csn) throws Exception
   {
-    String actualDN = resultEntry.getName().toNormalizedString();
-    String expectedDN = "replicationcsn=" + csn + "," + TEST_ROOT_DN_STRING + ",cn=changelog";
-    assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
+    DN actualDN = resultEntry.getName();
+    DN expectedDN = DN.valueOf("replicationcsn=" + csn + "," + TEST_ROOT_DN_STRING + ",cn=changelog");
+    assertThat(actualDN).isEqualTo(expectedDN);
   }
 
   /**

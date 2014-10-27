@@ -395,7 +395,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     String compromisedTime = TimeThread.getGeneralizedTime();
     for (Entry e : searchOp.getSearchEntries()) {
       TestCaseUtils.applyModifications(true,
-        "dn: " + e.getName().toNormalizedString(),
+        "dn: " + e.getName().toString(),
         "changetype: modify",
         "replace: " + ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME,
         ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME + ": "
@@ -426,7 +426,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // using a compromised key can no longer be decrypted.
     for (Entry e : searchOp.getSearchEntries()) {
       TestCaseUtils.applyModifications(true,
-        "dn: " + e.getName().toNormalizedString(), "changetype: delete");
+        "dn: " + e.getName().toString(), "changetype: delete");
     }
     Thread.sleep(1000); // Clearing the cache is asynchronous.
     try {

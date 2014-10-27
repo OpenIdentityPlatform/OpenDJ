@@ -610,7 +610,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
       if (!this.baseDN.equals(baseDN))
       {
         LocalizableMessage message = ERR_RS_DN_DOES_NOT_MATCH.get(
-            this.baseDN.toNormalizedString(), baseDN.toNormalizedString());
+            this.baseDN.toString(), baseDN.toString());
         throw new DirectoryException(ResultCode.OTHER, message, null);
       }
     }

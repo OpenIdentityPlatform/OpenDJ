@@ -115,14 +115,14 @@ final class AuthMethodConnectionCriteria implements ConnectionCriteria
       switch (method)
       {
       case ANONYMOUS:
-        if (bindDN.toNormalizedString().length() == 0)
+        if (bindDN.toString().length() == 0)
         {
           return true;
         }
         break;
       case SIMPLE:
         if (authType == AuthenticationType.SIMPLE
-            && bindDN.toNormalizedString().length() > 0)
+            && bindDN.toString().length() > 0)
         {
           return true;
         }

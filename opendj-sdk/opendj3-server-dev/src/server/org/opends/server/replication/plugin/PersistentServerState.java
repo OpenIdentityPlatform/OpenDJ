@@ -344,7 +344,7 @@ class PersistentServerState
       {
         // An error happened trying to search for the updates
         // Log an error
-        logger.error(ERR_CANNOT_RECOVER_CHANGES, baseDN.toNormalizedString());
+        logger.error(ERR_CANNOT_RECOVER_CHANGES, baseDN.toString());
         return;
       }
 
@@ -369,7 +369,7 @@ class PersistentServerState
       {
         // Update the serverState with the new maxCsn present in the database
         update(dbMaxCSN);
-        logger.info(NOTE_SERVER_STATE_RECOVERY, baseDN.toNormalizedString(), dbMaxCSN);
+        logger.info(NOTE_SERVER_STATE_RECOVERY, baseDN.toString(), dbMaxCSN);
       }
     }
   }

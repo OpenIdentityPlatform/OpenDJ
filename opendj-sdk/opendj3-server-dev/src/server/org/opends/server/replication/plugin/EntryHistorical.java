@@ -680,7 +680,7 @@ public class EntryHistorical
                * historical information is going to be kept.
                * Log information for the repair tool.
                */
-              logger.error(ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL, entry.getName().toNormalizedString(),
+              logger.error(ERR_UNKNOWN_ATTRIBUTE_IN_HISTORICAL, entry.getName().toString(),
                   histVal.getAttrString());
               continue;
             }
