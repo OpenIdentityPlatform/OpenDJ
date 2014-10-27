@@ -137,7 +137,7 @@ public class TextErrorLogPublisher
 
       MultifileTextWriter writer =
           new MultifileTextWriter("Multifile Text Writer for " +
-              config.dn().toNormalizedString(),
+              config.dn().toString(),
                                   config.getTimeInterval(),
                                   fnPolicy,
                                   perm,
@@ -162,7 +162,7 @@ public class TextErrorLogPublisher
       {
         this.writer = new AsynchronousTextWriter(
             "Asynchronous Text Writer for " +
-              config.dn().toNormalizedString(),
+              config.dn().toString(),
             config.getQueueSize(), config.isAutoFlush(), writer);
       }
       else
@@ -520,7 +520,7 @@ public class TextErrorLogPublisher
         {
           // The asynchronous setting is being turned on.
           writer = new AsynchronousTextWriter("Asynchronous Text Writer for " +
-              config.dn().toNormalizedString(), config.getQueueSize(),
+              config.dn().toString(), config.getQueueSize(),
                                                 config.isAutoFlush(),
                                                 mfWriter);
         }

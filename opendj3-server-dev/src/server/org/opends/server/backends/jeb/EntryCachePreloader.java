@@ -284,7 +284,7 @@ class EntryCachePreloader
             processedEntries.getAndIncrement();
           } catch (Exception ex) {
             logger.traceException(ex);
-            logger.error(ERR_CACHE_PRELOAD_ENTRY_FAILED, entry.getName().toNormalizedString(),
+            logger.error(ERR_CACHE_PRELOAD_ENTRY_FAILED, entry.getName().toString(),
               (ex.getCause() != null ? ex.getCause().getMessage() :
                 stackTraceToSingleLineString(ex)));
           }

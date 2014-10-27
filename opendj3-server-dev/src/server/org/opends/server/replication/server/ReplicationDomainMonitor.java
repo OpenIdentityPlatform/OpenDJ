@@ -311,7 +311,7 @@ class ReplicationDomainMonitor
       {
         // This is a response for an earlier request whose computing is
         // already complete.
-        logger.debug(INFO_IGNORING_REMOTE_MONITOR_DATA, domain.getBaseDN().toNormalizedString(), msg.getSenderID());
+        logger.debug(INFO_IGNORING_REMOTE_MONITOR_DATA, domain.getBaseDN().toString(), msg.getSenderID());
         return;
       }
 

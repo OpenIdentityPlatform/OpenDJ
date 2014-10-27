@@ -1703,7 +1703,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           if (nodeID == null)
           {
             LocalizableMessage msg =
-              ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toNormalizedString());
+              ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toString());
             throw new JebException(msg);
           }
 
@@ -2066,7 +2066,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (parentID == null)
       {
         LocalizableMessage msg =
-          ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN.toNormalizedString());
+          ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN.toString());
         throw new JebException(msg);
       }
 

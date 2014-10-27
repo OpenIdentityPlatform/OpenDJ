@@ -450,7 +450,7 @@ class ReplicationDB
   @Override
   public String toString()
   {
-    return serverId + " " + baseDN.toNormalizedString();
+    return serverId + " " + baseDN.toString();
   }
 
   /** Hold a cursor and an indicator of wether the cursor should be considered as empty. */

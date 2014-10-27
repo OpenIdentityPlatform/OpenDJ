@@ -829,12 +829,12 @@ public class ReplicationBroker
         final int rsServerId = rs.rsInfo.getServerId();
         if (rsGenId == getGenerationID() || rsGenId == -1)
         {
-          logger.info(NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG, serverId, rsServerId, baseDN.toNormalizedString(),
+          logger.info(NOTE_NOW_FOUND_SAME_GENERATION_CHANGELOG, serverId, rsServerId, baseDN.toString(),
               rs.replicationServer, getGenerationID());
         }
         else
         {
-          logger.warn(WARN_NOW_FOUND_BAD_GENERATION_CHANGELOG, serverId, rsServerId, baseDN.toNormalizedString(),
+          logger.warn(WARN_NOW_FOUND_BAD_GENERATION_CHANGELOG, serverId, rsServerId, baseDN.toString(),
               rs.replicationServer, getGenerationID(), rsGenId);
         }
       }
@@ -849,12 +849,12 @@ public class ReplicationBroker
 
           if (rsInfos.size() > 0)
           {
-            logger.warn(WARN_COULD_NOT_FIND_CHANGELOG, serverId, baseDN.toNormalizedString(),
+            logger.warn(WARN_COULD_NOT_FIND_CHANGELOG, serverId, baseDN.toString(),
                 Utils.joinAsString(", ", rsInfos.keySet()));
           }
           else
           {
-            logger.warn(WARN_NO_AVAILABLE_CHANGELOGS, serverId, baseDN.toNormalizedString());
+            logger.warn(WARN_NO_AVAILABLE_CHANGELOGS, serverId, baseDN.toString());
           }
         }
       }
@@ -962,7 +962,7 @@ public class ReplicationBroker
         */
         logger.warn(WARN_CONNECTED_TO_SERVER_WITH_WRONG_GROUP_ID,
             groupId, rs.getServerId(), rsInfo.getServerURL(), rs.getGroupId(),
-            baseDN.toNormalizedString(), getServerId());
+            baseDN.toString(), getServerId());
       }
       startRSHeartBeatMonitoring(rs);
       if (rsInfo.getProtocolVersion() >=
@@ -974,7 +974,7 @@ public class ReplicationBroker
     }
     catch (Exception e)
     {
-      logger.error(ERR_COMPUTING_FAKE_OPS, baseDN.toNormalizedString(), rsInfo.getServerURL(),
+      logger.error(ERR_COMPUTING_FAKE_OPS, baseDN.toString(), rsInfo.getServerURL(),
           e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
     }
     finally
@@ -1109,7 +1109,7 @@ public class ReplicationBroker
       if (!getBaseDN().equals(repDN))
       {
         errorMessage = ERR_DS_DN_DOES_NOT_MATCH.get(
-            repDN.toNormalizedString(), getBaseDN().toNormalizedString());
+            repDN.toString(), getBaseDN().toString());
         return setConnectedRS(ConnectedRS.noConnectedRS());
       }
 
@@ -1139,17 +1139,17 @@ public class ReplicationBroker
     catch (ConnectException e)
     {
       errorMessage = WARN_NO_CHANGELOG_SERVER_LISTENING.get(getServerId(),
-          serverURL, getBaseDN().toNormalizedString());
+          serverURL, getBaseDN().toString());
     }
     catch (SocketTimeoutException e)
     {
       errorMessage = WARN_TIMEOUT_CONNECTING_TO_RS.get(getServerId(),
-          serverURL, getBaseDN().toNormalizedString());
+          serverURL, getBaseDN().toString());
     }
     catch (Exception e)
     {
       errorMessage = WARN_EXCEPTION_STARTING_SESSION_PHASE.get(getServerId(),
-          serverURL, getBaseDN().toNormalizedString(),
+          serverURL, getBaseDN().toString(),
           stackTraceToSingleLineString(e));
     }
     finally
@@ -1223,7 +1223,7 @@ public class ReplicationBroker
     {
       logger.error(WARN_EXCEPTION_STARTING_SESSION_PHASE,
           getServerId(), electedRS.rsInfo.getServerURL(),
-          getBaseDN().toNormalizedString(), stackTraceToSingleLineString(e));
+          getBaseDN().toString(), stackTraceToSingleLineString(e));
 
       setConnectedRS(ConnectedRS.noConnectedRS());
       return null;
@@ -2184,7 +2184,7 @@ public class ReplicationBroker
         catch (Exception e)
         {
           logger.error(NOTE_EXCEPTION_RESTARTING_SESSION,
-              getBaseDN().toNormalizedString(), e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
+              getBaseDN().toString(), e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
         }
 
         if (rs.isConnected() || !infiniteTry)
@@ -2488,7 +2488,7 @@ public class ReplicationBroker
         {
           // RS performs a proper disconnection
           logger.warn(WARN_REPLICATION_SERVER_PROPERLY_DISCONNECTED, previousRsServerID, rs.replicationServer,
-              serverId, baseDN.toNormalizedString());
+              serverId, baseDN.toString());
 
           // Try to find a suitable RS
           reStart(rs.session, true);
@@ -2554,7 +2554,7 @@ public class ReplicationBroker
                 {
                   message = NOTE_LOAD_BALANCE_REPLICATION_SERVER.get(
                       serverId, previousRsServerID, rs.replicationServer,
-                      baseDN.toNormalizedString());
+                      baseDN.toString());
                 }
                 else
                 {
@@ -2562,7 +2562,7 @@ public class ReplicationBroker
                   message = NOTE_NEW_BEST_REPLICATION_SERVER.get(
                       serverId, previousRsServerID, rs.replicationServer,
                       bestRsServerId,
-                      baseDN.toNormalizedString(),
+                      baseDN.toString(),
                       evals.getEvaluation(previousRsServerID),
                       evals.getEvaluation(bestRsServerId));
                 }
@@ -2597,7 +2597,7 @@ public class ReplicationBroker
           {
             // We did not initiate the close on our side, log an error message.
             logger.error(WARN_REPLICATION_SERVER_BADLY_DISCONNECTED,
-                serverId, baseDN.toNormalizedString(), previousRsServerID,
+                serverId, baseDN.toString(), previousRsServerID,
                 rs.replicationServer);
           }
 
@@ -2853,7 +2853,7 @@ public class ReplicationBroker
           new ChangeStatusMsg(ServerStatus.INVALID_STATUS, newStatus));
     } catch (IOException ex)
     {
-      logger.error(ERR_EXCEPTION_SENDING_CS, getBaseDN().toNormalizedString(),
+      logger.error(ERR_EXCEPTION_SENDING_CS, getBaseDN().toString(),
         getServerId(), ex.getLocalizedMessage() + " " + stackTraceToSingleLineString(ex));
     }
   }

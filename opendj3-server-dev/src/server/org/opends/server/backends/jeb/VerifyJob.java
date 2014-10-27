@@ -601,7 +601,7 @@ public class VerifyJob
             {
               logger.trace("File dn2id has DN <%s> referencing entry " +
                   "with wrong DN <%s>%n", new String(key.getData()),
-                                          entry.getName().toNormalizedString());
+                                          entry.getName().toString());
             }
           }
         }
@@ -1235,7 +1235,7 @@ public class VerifyJob
         if (logger.isTraceEnabled())
         {
           logger.trace("File dn2id is missing key %s.%n",
-                     dn.toNormalizedString());
+                     dn.toString());
         }
         errorCount++;
       }
@@ -1318,7 +1318,7 @@ public class VerifyJob
           if (logger.isTraceEnabled())
           {
             logger.trace("File dn2id is missing key %s.%n",
-                       parentDN.toNormalizedString());
+                       parentDN.toString());
           }
           errorCount++;
         }
@@ -1330,7 +1330,7 @@ public class VerifyJob
           logger.traceException(e);
 
           logger.trace("File dn2id has error reading key %s: %s.",
-                     parentDN.toNormalizedString(),
+                     parentDN.toString(),
                      e.getMessage());
         }
         errorCount++;
@@ -1390,7 +1390,7 @@ public class VerifyJob
           if (logger.isTraceEnabled())
           {
             logger.trace("File dn2id is missing key %s.%n",
-                       dn.toNormalizedString());
+                       dn.toString());
           }
           errorCount++;
         }
@@ -1402,7 +1402,7 @@ public class VerifyJob
           logger.traceException(e);
 
           logger.trace("File dn2id has error reading key %s: %s.%n",
-                     dn.toNormalizedString(),
+                     dn.toString(),
                      e.getMessage());
         }
         errorCount++;

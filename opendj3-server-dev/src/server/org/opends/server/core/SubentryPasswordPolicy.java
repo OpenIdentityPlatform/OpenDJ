@@ -179,7 +179,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
             ERR_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE.get(
-                this.passwordPolicySubentryDN.toNormalizedString(), value));
+                this.passwordPolicySubentryDN.toString(), value));
       }
 
       // Check the syntax.
@@ -263,7 +263,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
             {
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                   ERR_PWPOLICY_UNKNOWN_VALIDATOR.get(
-                      this.passwordPolicySubentryDN.toNormalizedString(),
+                      this.passwordPolicySubentryDN.toString(),
                       validatorDN.toString(), PWD_ATTR_VALIDATOR));
             }
             pValidatorNames.add(validatorDN);
@@ -717,7 +717,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       // Only log an error once, on first error
       if (isAlreadyLogged.compareAndSet(false, true)) {
         logger.error(ERR_PWPOLICY_REJECT_DUE_TO_UNKNOWN_VALIDATOR_LOG,
-            userEntry.getName().toNormalizedString(), pwPolicyName, validatorName);
+            userEntry.getName().toString(), pwPolicyName, validatorName);
       }
       return false;
     }

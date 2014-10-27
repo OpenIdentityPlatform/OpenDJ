@@ -251,7 +251,7 @@ public class ReplicationServerHandler extends ServerHandler
       }
 
       logger.debug(INFO_REPLICATION_SERVER_CONNECTION_TO_RS, getReplicationServerId(), getServerId(),
-              replicationServerDomain.getBaseDN().toNormalizedString(),
+              replicationServerDomain.getBaseDN().toString(),
               session.getReadableRemoteAddress());
 
       super.finalizeStart();
@@ -375,7 +375,7 @@ public class ReplicationServerHandler extends ServerHandler
         replicationServerDomain.receiveTopoInfoFromRS(inTopoMsg, this, false);
 
       logger.debug(INFO_REPLICATION_SERVER_CONNECTION_FROM_RS, getReplicationServerId(), getServerId(),
-              replicationServerDomain.getBaseDN().toNormalizedString(),
+              replicationServerDomain.getBaseDN().toString(),
               session.getReadableRemoteAddress());
 
       super.finalizeStart();

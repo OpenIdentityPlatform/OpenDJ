@@ -551,6 +551,6 @@ public final class ConfigEntry
   @Override
   public String toString()
   {
-    return entry.getName().toNormalizedString();
+    return entry.getName().toString();
   }
 }
