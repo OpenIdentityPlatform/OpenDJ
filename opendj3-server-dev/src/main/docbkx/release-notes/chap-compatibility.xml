@@ -52,6 +52,22 @@
    </listitem>
 
    <listitem>
+    <para>
+     LDAP SDK ${sdkDocTargetVersion}
+     <filename>makeldif.template</filename> files
+     are not backwards-compatible
+     with the OpenDJ directory server <command>make-ldif</command> command.
+    </para>
+
+    <para>
+     When specifying a branch in LDAP SDK <command>makeldif</command> templates,
+     you must now also specify the object classes for the branch.
+     Server <command>make-ldif</command> templates require branch specifications
+     that do not specify the object classes for the branch.
+    </para>
+   </listitem>
+
+   <listitem>
     <para>The following global ACI settings have changed.</para>
 
     <itemizedlist>
