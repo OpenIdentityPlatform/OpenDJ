@@ -24,56 +24,31 @@
   !    
 -->
 <chapter xml:id='chap-compatibility'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>OpenDJ Compatibility</title>
 
- <para>This chapter covers both major changes to existing functionality, and
- also deprecated and removed functionality.</para>
+ <para>
+  This chapter covers both major changes to existing functionality,
+  and also deprecated and removed functionality.
+ </para>
 
  <section xml:id="changed-functionality">
   <title>Important Changes to Existing Functionality</title>
 
-  <para>OpenDJ <?eval ${docTargetVersion}?> improves on earlier releases
-  introducing many new features. Also take the following into account.</para>
+  <para>
+   Take the following changes into account
+   when upgrading to OpenDJ ${docTargetVersion}.
+  </para>
 
   <itemizedlist>
    <listitem>
-    <para>The upgrade process and <command>upgrade</command> command have
-    changed to facilitate native packaging on more platforms. See
-    <link xlink:show="new" xlink:href="install-guide#chap-upgrade"
-    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Upgrading to
-    OpenDJ <?eval ${docTargetVersion}?></citetitle></link> for
-    instructions.</para>
-   </listitem>
-
-   <listitem>
-    <para>The default DB cache size is now 50%, rather than 10%.</para>
-    <para>If you have multiple backends, configure cache sizes
-    accordingly.</para>
-   </listitem>
-
-   <listitem>
-    <para>The number of LDAP request handlers now defaults to half the CPU
-    count.</para>
-   </listitem>
-
-   <listitem>
-    <para>The replication purge delay default has increased from one day to
-    three days.</para>
-   </listitem>
-
-   <listitem>
-    <para>Syntax checking has been added for certificate and country attribute
-    values. This affects applications updating those attribute values.
-    Applications updating country attribute values must now use Country String
-    syntax for example, which uses two-character codes from <link
-    xlink:show="new" xlink:href="http://www.iso.org/iso/country_codes.htm">ISO
-    3166</link> such as <literal>US</literal> instead of full names such as
-    <literal>United States</literal>.</para>
+    <para>
+     TODO: Update for next release
+    </para>
    </listitem>
 
    <listitem>
@@ -81,54 +56,26 @@
 
     <itemizedlist>
      <listitem>
-      <para>OpenDJ directory server now allows any client to use the LDAP
-      Permissive Modify Request control, <literal>1.2.840.113556.1.4.1413</literal>,
-      by default for newly installed servers.</para>
-
-      <para>This was introduced in OpenDJ 2.6.0.</para>
-     </listitem>
-
-     <listitem>
-      <para>The "Anonymous read access" global ACI has changed. The list of
-      attributes that are not allowed has been changed to add
-      <literal>includedAttributes</literal> and to remove
-      <literal>targetUniqueID</literal>.</para>
-
-      <para>This was introduced in OpenDJ 2.6.0.</para>
-     </listitem>
-
-     <listitem>
       <para>The attribute <literal>debugsearchindex</literal> has also been
       added to the list of attributes that are not allowed in the "Anonymous
       read access" global ACI.</para>
-
-      <!-- TODO: update to concrete version, e.g. 2.8.0, upon release -->
-      <para>This was introduced in OpenDJ <?eval ${docTargetVersion}?>.</para>
      </listitem>
     </itemizedlist>
 
-    <para>When you upgrade from earlier versions of OpenDJ, however, the
-    previous <literal>global-aci</literal> settings are not updated. To apply
-    the changes manually, change the relevant <literal>global-aci</literal>
-    settings by using the <command>dsconfig</command> command. An example of
-    how to change a <literal>global-aci</literal> property can be found in the
-    <citetitle>Administration Guide</citetitle>, <link xlink:show="new"
-    xlink:href="admin-guide#access-control-disable-anonymous"
-    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>ACI: Disable
-    Anonymous Access</citetitle></link>.</para>
-   </listitem>
-
-   <listitem>
-    <para>For the SNMP Connection Handler, the default
-    <literal>security-agent-file</literal> has changed to
-    <filename>opendj-snmp.security</filename> (<link xlink:show="new"
-    xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-982"
-    >OPENDJ-982</link>), and the upgrade process changes the file name. The
-    <literal>community</literal> has also changed to <literal>OpenDJ</literal>.
-    If the SNMP Connection Handler fails to start after upgrade, use the
-    <command>dsconfig</command> command to make sure that the
-    <literal>security-agent-file</literal> property is correctly set for your
-    installation.</para>
+    <para>
+     When you upgrade from earlier versions of OpenDJ, however,
+     the previous <literal>global-aci</literal> settings are not updated.
+     To apply the changes manually,
+     change the relevant <literal>global-aci</literal> settings
+     by using the <command>dsconfig</command> command.
+     An example of how to change a <literal>global-aci</literal> property
+     can be found in the <citetitle>Administration Guide</citetitle> section,
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#access-control-disable-anonymous"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><citetitle>ACI: Disable Anonymous Access</citetitle></link>.
+    </para>
    </listitem>
   </itemizedlist>
 
@@ -144,28 +91,20 @@
  <section xml:id="deprecated-functionality">
   <title>Deprecated Functionality</title>
   
-  <para>OpenDJ <?eval ${docTargetVersion}?> makes use of new environment
-  variables aligned with the project name to use <literal>OPENDJ</literal>.
-  Use of the old variables is Deprecated. The old variables are likely to be
-  removed in a future release.</para>
-
-  <para>The <command>dsframework</command> command is Deprecated and likely
-  to be removed in a future release.</para>
-
-  <itemizedlist>
-   <para>The following OpenDJ LDAP SDK methods are Deprecated and likely to be
-   removed in a future release.</para>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport</literal></para></listitem>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport</literal></para></listitem>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport</literal></para></listitem>
-   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport</literal></para></listitem>
-  </itemizedlist>
+  <para>
+   TODO: Update for next release
+  </para>
  </section>
  
  <section xml:id="removed-functionality">
   <title>Removed Functionality</title>
-  
-  <para>Native packages in SVR4 format for Solaris are not provided at this
-  time.</para>
+
+  <para>
+   TODO: Update for next release
+  </para>
+
+  <para>
+   Native packages in SVR4 format for Solaris are not provided at this time.
+  </para>
  </section>
 </chapter>
