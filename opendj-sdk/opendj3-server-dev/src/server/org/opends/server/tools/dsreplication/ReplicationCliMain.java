@@ -666,25 +666,23 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           return defaultValue;
         }
-        else
+
+        try
         {
-          try
+          int i = Integer.parseInt(ninput);
+          if (i < 1)
           {
-            int i = Integer.parseInt(ninput);
-            if (i < 1)
-            {
-              throw new NumberFormatException();
-            }
-            return i;
+            throw new NumberFormatException();
           }
-          catch (NumberFormatException e)
-          {
-            // Try again...
-            app.println();
-            app.println(ERR_BAD_INTEGER.get(ninput));
-            app.println();
-            return null;
-          }
+          return i;
+        }
+        catch (NumberFormatException e)
+        {
+          // Try again...
+          app.println();
+          app.println(ERR_BAD_INTEGER.get(ninput));
+          app.println();
+          return null;
         }
       }
 
@@ -821,7 +819,7 @@ public class ReplicationCliMain extends ConsoleApplication
       new PreExternalInitializationUserData();
     if (argParser.isInteractive())
     {
-      if (promptIfRequired(uData))
+      if (promptIfRequiredForPreOrPost(uData))
       {
         return preExternalInitialization(uData);
       }
@@ -849,7 +847,7 @@ public class ReplicationCliMain extends ConsoleApplication
       new PostExternalInitializationUserData();
     if (argParser.isInteractive())
     {
-      if (promptIfRequired(uData))
+      if (promptIfRequiredForPreOrPost(uData))
       {
         return postExternalInitialization(uData);
       }
@@ -1362,7 +1360,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private InitialLdapContext createAdministrativeContext(MonoServerReplicationUserData uData)
   {
-    final String bindDn = ADSContext.getAdministratorDN(uData.getAdminUid());
+    final String bindDn = getAdministratorDN(uData.getAdminUid());
     return createAdministrativeContext(uData, bindDn);
   }
 
@@ -2882,94 +2880,15 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Updates the contents of the provided PreExternalInitializationUserData
-   * object with the information provided in the command-line.  If some
-   * information is missing, ask the user to provide valid data.
+   * Updates the contents of the provided user data
+   * object with the information provided in the command-line.
+   * If some information is missing, ask the user to provide valid data.
    * We assume that if this method is called we are in interactive mode.
    * @param uData the object to be updated.
    * @return <CODE>true</CODE> if the object was successfully updated and
    * <CODE>false</CODE> if the user cancelled the operation.
    */
-  private boolean promptIfRequired(PreExternalInitializationUserData uData)
-  {
-    boolean cancelled = false;
-
-    String adminPwd = argParser.getBindPasswordAdmin();
-    String adminUid = argParser.getAdministratorUID();
-
-    String host = argParser.getHostNameToInitializeAll();
-    int port = argParser.getPortToInitializeAll();
-
-    /*
-     * Try to connect to the server.
-     */
-    InitialLdapContext ctx = null;
-
-    while (ctx == null && !cancelled)
-    {
-      try
-      {
-        ci.run();
-        host = ci.getHostName();
-        port = ci.getPortNumber();
-        adminUid = ci.getAdministratorUID();
-        adminPwd = ci.getBindPassword();
-
-        ctx = createInitialLdapContextInteracting(ci);
-
-        if (ctx == null)
-        {
-          cancelled = true;
-        }
-      }
-      catch (ClientException ce)
-      {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        println();
-        println(ce.getMessageObject());
-        println();
-        ci.resetConnectionArguments();
-      }
-      catch (ArgumentException ae)
-      {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
-        cancelled = true;
-      }
-    }
-    if (!cancelled)
-    {
-      uData.setHostName(host);
-      uData.setPort(port);
-      uData.setAdminUid(adminUid);
-      uData.setAdminPwd(adminPwd);
-    }
-
-    if (!cancelled)
-    {
-      LinkedList<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForInitializeReplication(suffixes, ctx, true);
-      cancelled = suffixes.isEmpty();
-
-      uData.setBaseDNs(suffixes);
-    }
-
-    close(ctx);
-    return !cancelled;
-  }
-
-  /**
-   * Updates the contents of the provided PostExternalInitializationUserData
-   * object with the information provided in the command-line.  If some
-   * information is missing, ask the user to provide valid data.
-   * We assume that if this method is called we are in interactive mode.
-   * @param uData the object to be updated.
-   * @return <CODE>true</CODE> if the object was successfully updated and
-   * <CODE>false</CODE> if the user cancelled the operation.
-   */
-  private boolean promptIfRequired(PostExternalInitializationUserData uData)
+  private boolean promptIfRequiredForPreOrPost(MonoServerReplicationUserData uData)
   {
     boolean cancelled = false;
 
@@ -3121,8 +3040,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!cancelled)
     {
-      LinkedList<String> suffixes = argParser.getBaseDNs();
-      uData.setBaseDNs(suffixes);
+      uData.setBaseDNs(argParser.getBaseDNs());
     }
 
     close(ctx);
@@ -3284,7 +3202,8 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         cancelled = true;
       }
-    }    if (!cancelled)
+    }
+    if (!cancelled)
     {
       uData.setHostNameDestination(hostDestination);
       uData.setPortDestination(portDestination);
@@ -3293,8 +3212,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled)
     {
       LinkedList<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForInitializeReplication(suffixes, ctxSource, ctxDestination,
-          true);
+      checkSuffixesForInitializeReplication(suffixes, ctxSource, ctxDestination, true);
       cancelled = suffixes.isEmpty();
 
       uData.setBaseDNs(suffixes);
@@ -3383,13 +3301,11 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void initializeWithArgParser(EnableReplicationUserData uData)
   {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
-    String adminUid = getValue(argParser.getAdministratorUID(),
-        argParser.getDefaultAdministratorUID());
-    uData.setAdminUid(adminUid);
-    String adminPwd = argParser.getBindPasswordAdmin();
-    uData.setAdminPwd(adminPwd);
+    initialize(uData);
+    String adminUid = uData.getAdminUid();
+    String adminPwd = uData.getAdminPwd();
 
+    final String adminDN = getAdministratorDN(adminUid);
     String host1Name = getValue(argParser.getHostName1(),
         argParser.getDefaultHostName1());
     uData.setHostName1(host1Name);
@@ -3399,7 +3315,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String pwd1 = argParser.getBindPassword1();
     if (pwd1 == null)
     {
-      uData.setBindDn1(ADSContext.getAdministratorDN(adminUid));
+      uData.setBindDn1(adminDN);
       uData.setPwd1(adminPwd);
     }
     else
@@ -3408,10 +3324,9 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         InitialLdapContext ctx = createAdministrativeContext(
-            uData.getHostName1(), uData.getPort1(), useSSL,
-            useStartTLS, ADSContext.getAdministratorDN(adminUid),
-            adminPwd, getConnectTimeout(), getTrustManager());
-        uData.setBindDn1(ADSContext.getAdministratorDN(adminUid));
+            uData.getHostName1(), uData.getPort1(), useSSL, useStartTLS,
+            adminDN, adminPwd, getConnectTimeout(), getTrustManager());
+        uData.setBindDn1(adminDN);
         uData.setPwd1(adminPwd);
         ctx.close();
       }
@@ -3434,7 +3349,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String pwd2 = argParser.getBindPassword2();
     if (pwd2 == null)
     {
-      uData.setBindDn2(ADSContext.getAdministratorDN(adminUid));
+      uData.setBindDn2(adminDN);
       uData.setPwd2(adminPwd);
     }
     else
@@ -3443,10 +3358,9 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         InitialLdapContext ctx = createAdministrativeContext(
-            uData.getHostName2(), uData.getPort2(), useSSL,
-            useStartTLS, ADSContext.getAdministratorDN(adminUid),
-            adminPwd, getConnectTimeout(), getTrustManager());
-        uData.setBindDn2(ADSContext.getAdministratorDN(adminUid));
+            uData.getHostName2(), uData.getPort2(), useSSL, useStartTLS,
+            adminDN, adminPwd, getConnectTimeout(), getTrustManager());
+        uData.setBindDn2(adminDN);
         uData.setPwd2(adminPwd);
         ctx.close();
       }
@@ -3492,12 +3406,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void initializeWithArgParser(InitializeReplicationUserData uData)
   {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
-    String adminUid = getValue(argParser.getAdministratorUID(),
-        argParser.getDefaultAdministratorUID());
-    uData.setAdminUid(adminUid);
-    String adminPwd = argParser.getBindPasswordAdmin();
-    uData.setAdminPwd(adminPwd);
+    initialize(uData);
 
     String hostNameSource = getValue(argParser.getHostNameSource(),
         argParser.getDefaultHostNameSource());
@@ -3529,12 +3438,11 @@ public class ReplicationCliMain extends ConsoleApplication
     if (bindDn == null && adminUid == null)
     {
       adminUid = argParser.getDefaultAdministratorUID();
-      bindDn = ADSContext.getAdministratorDN(adminUid);
+      bindDn = getAdministratorDN(adminUid);
     }
     uData.setAdminUid(adminUid);
     uData.setBindDn(bindDn);
-    String adminPwd = argParser.getBindPasswordAdmin();
-    uData.setAdminPwd(adminPwd);
+    uData.setAdminPwd(argParser.getBindPasswordAdmin());
 
     String hostName = getValue(argParser.getHostNameToDisable(),
         argParser.getDefaultHostNameToDisable());
@@ -3549,20 +3457,13 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Initializes the contents of the provided initialize all replication user
-   * data object with what was provided in the command-line without prompting to
-   * the user.
-   * @param uData the initialize all replication user data object to be
-   * initialized.
+   * Initializes the contents of the provided user data object with what was
+   * provided in the command-line without prompting to the user.
+   * @param uData the user data object to be initialized.
    */
-  private void initializeWithArgParser(InitializeAllReplicationUserData uData)
+  private void initializeWithArgParser(MonoServerReplicationUserData uData)
   {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
-    String adminUid = getValue(argParser.getAdministratorUID(),
-        argParser.getDefaultAdministratorUID());
-    uData.setAdminUid(adminUid);
-    String adminPwd = argParser.getBindPasswordAdmin();
-    uData.setAdminPwd(adminPwd);
+    initialize(uData);
 
     String hostName = getValue(argParser.getHostNameToInitializeAll(),
         argParser.getDefaultHostNameToInitializeAll());
@@ -3571,55 +3472,6 @@ public class ReplicationCliMain extends ConsoleApplication
         argParser.getDefaultPortToInitializeAll());
     uData.setPort(port);
   }
-
-  /**
-   * Initializes the contents of the provided pre external replication user
-   * data object with what was provided in the command-line without prompting to
-   * the user.
-   * @param uData the pre external replication user data object to be
-   * initialized.
-   */
-  private void initializeWithArgParser(PreExternalInitializationUserData uData)
-  {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
-    String adminUid = getValue(argParser.getAdministratorUID(),
-        argParser.getDefaultAdministratorUID());
-    uData.setAdminUid(adminUid);
-    String adminPwd = argParser.getBindPasswordAdmin();
-    uData.setAdminPwd(adminPwd);
-
-    String hostName = getValue(argParser.getHostNameToInitializeAll(),
-        argParser.getDefaultHostNameToInitializeAll());
-    uData.setHostName(hostName);
-    int port = getValue(argParser.getPortToInitializeAll(),
-        argParser.getDefaultPortToInitializeAll());
-    uData.setPort(port);
-  }
-
-  /**
-   * Initializes the contents of the provided post external replication user
-   * data object with what was provided in the command-line without prompting to
-   * the user.
-   * @param uData the pre external replication user data object to be
-   * initialized.
-   */
-  private void initializeWithArgParser(PostExternalInitializationUserData uData)
-  {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
-    String adminUid = getValue(argParser.getAdministratorUID(),
-        argParser.getDefaultAdministratorUID());
-    uData.setAdminUid(adminUid);
-    String adminPwd = argParser.getBindPasswordAdmin();
-    uData.setAdminPwd(adminPwd);
-
-    String hostName = getValue(argParser.getHostNameToInitializeAll(),
-        argParser.getDefaultHostNameToInitializeAll());
-    uData.setHostName(hostName);
-    int port = getValue(argParser.getPortToInitializeAll(),
-        argParser.getDefaultPortToInitializeAll());
-    uData.setPort(port);
-  }
-
 
   /**
    * Initializes the contents of the provided status replication user data
@@ -3629,12 +3481,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void initializeWithArgParser(StatusReplicationUserData uData)
   {
-    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
-    String adminUid = getValue(argParser.getAdministratorUID(),
-        argParser.getDefaultAdministratorUID());
-    uData.setAdminUid(adminUid);
-    String adminPwd = argParser.getBindPasswordAdmin();
-    uData.setAdminPwd(adminPwd);
+    initialize(uData);
 
     String hostName = getValue(argParser.getHostNameToStatus(),
         argParser.getDefaultHostNameToStatus());
@@ -3644,6 +3491,14 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.setPort(port);
 
     uData.setScriptFriendly(argParser.isScriptFriendly());
+  }
+
+  private void initialize(ReplicationUserData uData)
+  {
+    uData.setBaseDNs(new LinkedList<String>(argParser.getBaseDNs()));
+    String adminUid = getValue(argParser.getAdministratorUID(), argParser.getDefaultAdministratorUID());
+    uData.setAdminUid(adminUid);
+    uData.setAdminPwd(argParser.getBindPasswordAdmin());
   }
 
   /**
@@ -3774,6 +3629,7 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               break;
             }
+
             switch (e.getType())
             {
               case NOT_GLOBAL_ADMINISTRATOR:
@@ -3812,7 +3668,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   try
                   {
                     ctx[0] = createAdministrativeContext(host, port, isSSL,
-                        isStartTLS, ADSContext.getAdministratorDN(adminUid),
+                        isStartTLS, getAdministratorDN(adminUid),
                         adminPwd, getConnectTimeout(), getTrustManager());
                     adsContext = new ADSContext(ctx[0]);
                     cache = new TopologyCache(adsContext, getTrustManager(),
@@ -3840,14 +3696,12 @@ public class ReplicationCliMain extends ConsoleApplication
                     (EnableReplicationUserData)uData;
                   if (isFirstOrSourceServer)
                   {
-                    enableData.setBindDn1(
-                        ADSContext.getAdministratorDN(adminUid));
+                    enableData.setBindDn1(getAdministratorDN(adminUid));
                     enableData.setPwd1(adminPwd);
                   }
                   else
                   {
-                    enableData.setBindDn2(
-                        ADSContext.getAdministratorDN(adminUid));
+                    enableData.setBindDn2(getAdministratorDN(adminUid));
                     enableData.setPwd2(adminPwd);
                   }
                 }
@@ -4347,8 +4201,9 @@ public class ReplicationCliMain extends ConsoleApplication
       DisableReplicationUserData uData)
   {
     print(formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
-    String bindDn = uData.getAdminUid() == null ? uData.getBindDn() :
-      ADSContext.getAdministratorDN(uData.getAdminUid());
+    String bindDn = uData.getAdminUid() != null
+        ? getAdministratorDN(uData.getAdminUid())
+        : uData.getBindDn();
 
     InitialLdapContext ctx = createAdministrativeContext(uData, bindDn);
     if (ctx != null)
@@ -4537,7 +4392,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       return createAdministrativeContext(
           host, port, useSSL, useStartTLS,
-          ADSContext.getAdministratorDN(uData.getAdminUid()), uData.getAdminPwd(),
+          getAdministratorDN(uData.getAdminUid()), uData.getAdminPwd(),
           getConnectTimeout(), getTrustManager());
     }
     catch (NamingException ne)
@@ -5570,11 +5425,9 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (Throwable t)
       {
         logger.error(LocalizableMessage.raw("Error seeding truststores: "+t, t));
-        String arg = (t instanceof OpenDsException) ?
-            ((OpenDsException)t).getMessageObject().toString() : t.toString();
         throw new ReplicationCliException(
             ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(getHostPort(ctxDestination),
-            getHostPort(adsCtxSource.getDirContext()), arg),
+            getHostPort(adsCtxSource.getDirContext()), toString(t)),
             ERROR_SEEDING_TRUSTORE, t);
       }
     }
@@ -8855,19 +8708,13 @@ public class ReplicationCliMain extends ConsoleApplication
         (DisableReplicationUserData)uData;
       if (disableData.disableAll())
       {
-        commandBuilder.addArgument(new BooleanArgument(
-            argParser.disableAllArg.getName(),
-            argParser.disableAllArg.getShortIdentifier(),
-            argParser.disableAllArg.getLongIdentifier(),
-            INFO_DESCRIPTION_DISABLE_ALL.get()));
+        commandBuilder.addArgument(newBooleanArgument(
+            argParser.disableAllArg, INFO_DESCRIPTION_DISABLE_ALL));
       }
       else if (disableData.disableReplicationServer())
       {
-        commandBuilder.addArgument(new BooleanArgument(
-            argParser.disableReplicationServerArg.getName(),
-            argParser.disableReplicationServerArg.getShortIdentifier(),
-            argParser.disableReplicationServerArg.getLongIdentifier(),
-            INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER.get()));
+        commandBuilder.addArgument(newBooleanArgument(
+            argParser.disableReplicationServerArg, INFO_DESCRIPTION_DISABLE_REPLICATION_SERVER));
       }
     }
 
@@ -8894,33 +8741,17 @@ public class ReplicationCliMain extends ConsoleApplication
       CommandBuilder interactionBuilder = ci.getCommandBuilder();
       for (Argument arg : interactionBuilder.getArguments())
       {
-        if (arg.getLongIdentifier().equals(OPTION_LONG_BINDPWD))
+        if (OPTION_LONG_BINDPWD.equals(arg.getLongIdentifier()))
         {
-          StringArgument bindPasswordArg = new StringArgument("adminPassword",
-              OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
-              INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
-          bindPasswordArg.addValue(arg.getValue());
-          commandBuilder.addObfuscatedArgument(bindPasswordArg);
+          commandBuilder.addObfuscatedArgument(getAdminPasswordArg(arg));
         }
         else if (OPTION_LONG_BINDPWD_FILE.equals(arg.getLongIdentifier()))
         {
-          FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-              "adminPasswordFile",
-              OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
-              INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
-          bindPasswordFileArg.getNameToValueMap().putAll(
-              ((FileBasedArgument)arg).getNameToValueMap());
-          commandBuilder.addArgument(bindPasswordFileArg);
-        }
-        else if (interactionBuilder.isObfuscated(arg))
-        {
-          commandBuilder.addObfuscatedArgument(arg);
+          commandBuilder.addArgument(getAdminPasswordFileArg(arg));
         }
         else
         {
-          commandBuilder.addArgument(arg);
+          addArgument(commandBuilder, arg, interactionBuilder.isObfuscated(arg));
         }
       }
     }
@@ -8997,13 +8828,10 @@ public class ReplicationCliMain extends ConsoleApplication
     ArrayList<Argument> toMoveArgs = new ArrayList<Argument>();
     for (String longID : identifiersToMove)
     {
-      for (Argument arg : commandBuilder.getArguments())
+      final Argument arg = findArg(commandBuilder, longID);
+      if (arg != null)
       {
-        if (longID.equals(arg.getLongIdentifier()))
-        {
-          toMoveArgs.add(arg);
-          break;
-        }
+        toMoveArgs.add(arg);
       }
     }
     for (Argument argToMove : toMoveArgs)
@@ -9045,6 +8873,35 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
+  private Argument findArg(CommandBuilder commandBuilder, String longIdentifier)
+  {
+    for (Argument arg : commandBuilder.getArguments())
+    {
+      if (longIdentifier.equals(arg.getLongIdentifier()))
+      {
+        return arg;
+      }
+    }
+    return null;
+  }
+
+  private boolean existsArg(CommandBuilder commandBuilder, String longIdentifier)
+  {
+    return findArg(commandBuilder, longIdentifier) != null;
+  }
+
+  private void addArgument(CommandBuilder commandBuilder, Argument arg, boolean isObfuscated)
+  {
+    if (isObfuscated)
+    {
+      commandBuilder.addObfuscatedArgument(arg);
+    }
+    else
+    {
+      commandBuilder.addArgument(arg);
+    }
+  }
+
   private void updateCommandBuilder(CommandBuilder commandBuilder,
       EnableReplicationUserData uData)
   throws ArgumentException
@@ -9055,15 +8912,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (firstServerCommandBuilder != null)
     {
-      boolean useAdminUID = false;
-      for (Argument arg : firstServerCommandBuilder.getArguments())
-      {
-        if (OPTION_LONG_ADMIN_UID.equals(arg.getLongIdentifier()))
-        {
-          useAdminUID = true;
-          break;
-        }
-      }
+      boolean useAdminUID = existsArg(firstServerCommandBuilder, OPTION_LONG_ADMIN_UID);
       // This is required when both the bindDN and the admin UID are provided
       // in the command-line.
       boolean forceAddBindDN1 = false;
@@ -9074,123 +8923,65 @@ public class ReplicationCliMain extends ConsoleApplication
         String adminUID = uData.getAdminUid();
         if (bindDN1 != null
             && adminUID != null
-            && !areDnsEqual(ADSContext.getAdministratorDN(adminUID), bindDN1))
+            && !areDnsEqual(getAdministratorDN(adminUID), bindDN1))
         {
           forceAddBindDN1 = true;
-          for (Argument arg : firstServerCommandBuilder.getArguments())
-          {
-            if (OPTION_LONG_BINDPWD_FILE.equals(arg.getLongIdentifier()))
-            {
-              forceAddBindPwdFile1 = true;
-              break;
-            }
-          }
+          forceAddBindPwdFile1 = existsArg(firstServerCommandBuilder, OPTION_LONG_BINDPWD_FILE);
         }
       }
       for (Argument arg : firstServerCommandBuilder.getArguments())
       {
         if (OPTION_LONG_HOST.equals(arg.getLongIdentifier()))
         {
-          StringArgument host = new StringArgument("host1", OPTION_SHORT_HOST,
-              "host1", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-              null,
-              null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1.get());
-          host.addValue(uData.getHostName1());
-          commandBuilder.addArgument(host);
+          commandBuilder.addArgument(getHostArg("host1", OPTION_SHORT_HOST, uData.getHostName1(),
+              INFO_DESCRIPTION_ENABLE_REPLICATION_HOST1));
         }
         else if (OPTION_LONG_PORT.equals(arg.getLongIdentifier()))
         {
-          IntegerArgument port = new IntegerArgument("port1", OPTION_SHORT_PORT,
-              "port1",
-              false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444, null,
-              INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1.get());
-          port.addValue(String.valueOf(uData.getPort1()));
-          commandBuilder.addArgument(port);
+          commandBuilder.addArgument(getPortArg("port1", OPTION_SHORT_PORT, uData.getPort1(),
+              INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT1));
 
           if (forceAddBindDN1)
           {
-            StringArgument bindDN = new StringArgument("bindDN1",
-                OPTION_SHORT_BINDDN,
-                "bindDN1", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-                "cn=Directory Manager", null,
-                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
-            bindDN.addValue(uData.getBindDn1());
-            commandBuilder.addArgument(bindDN);
+            commandBuilder.addArgument(getBindDN1Arg(uData));
             if (forceAddBindPwdFile1)
             {
-              FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-                  "bindPasswordFile1",
-                  null, "bindPasswordFile1", false, false,
-                  INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
+              FileBasedArgument bindPasswordFileArg = getBindPasswordFile1Arg();
               bindPasswordFileArg.getNameToValueMap().put("{password file}",
                   "{password file}");
               commandBuilder.addArgument(bindPasswordFileArg);
             }
             else
             {
-              StringArgument bindPasswordArg = new StringArgument(
-                  "bindPassword1",
-                  null, "bindPassword1", false, false, true,
-                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
-              bindPasswordArg.addValue(arg.getValue());
-              commandBuilder.addObfuscatedArgument(bindPasswordArg);
+              commandBuilder.addObfuscatedArgument(getBindPassword1Arg(arg));
             }
           }
         }
         else if (OPTION_LONG_BINDDN.equals(arg.getLongIdentifier()))
         {
-          StringArgument bindDN = new StringArgument("bindDN1",
-              OPTION_SHORT_BINDDN,
-              "bindDN1", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-              "cn=Directory Manager", null,
-              INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
-          bindDN.addValue(uData.getBindDn1());
-          commandBuilder.addArgument(bindDN);
+          commandBuilder.addArgument(getBindDN1Arg(uData));
         }
         else if (OPTION_LONG_BINDPWD.equals(arg.getLongIdentifier()))
         {
           if (useAdminUID)
           {
             adminInformationAdded = true;
-            StringArgument bindPasswordArg = new StringArgument("adminPassword",
-                OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
-                INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
-            bindPasswordArg.addValue(arg.getValue());
-            commandBuilder.addObfuscatedArgument(bindPasswordArg);
+            commandBuilder.addObfuscatedArgument(getAdminPasswordArg(arg));
           }
           else
           {
-            StringArgument bindPasswordArg = new StringArgument("bindPassword1",
-                null, "bindPassword1", false, false, true,
-                INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
-            bindPasswordArg.addValue(arg.getValue());
-            commandBuilder.addObfuscatedArgument(bindPasswordArg);
+            commandBuilder.addObfuscatedArgument(getBindPassword1Arg(arg));
           }
         }
         else if (OPTION_LONG_BINDPWD_FILE.equals(arg.getLongIdentifier()))
         {
           if (useAdminUID)
           {
-            FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-                "adminPasswordFile",
-                OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
-                INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
-            bindPasswordFileArg.getNameToValueMap().putAll(
-                ((FileBasedArgument)arg).getNameToValueMap());
-            commandBuilder.addArgument(bindPasswordFileArg);
+            commandBuilder.addArgument(getAdminPasswordFileArg(arg));
           }
           else
           {
-            FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-                "bindPasswordFile1",
-                null, "bindPasswordFile1", false, false,
-                INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
+            FileBasedArgument bindPasswordFileArg = getBindPasswordFile1Arg();
             bindPasswordFileArg.getNameToValueMap().putAll(
                 ((FileBasedArgument)arg).getNameToValueMap());
             commandBuilder.addArgument(bindPasswordFileArg);
@@ -9203,14 +8994,7 @@ public class ReplicationCliMain extends ConsoleApplication
             adminInformationAdded = true;
           }
 
-          if (firstServerCommandBuilder.isObfuscated(arg))
-          {
-            commandBuilder.addObfuscatedArgument(arg);
-          }
-          else
-          {
-            commandBuilder.addArgument(arg);
-          }
+          addArgument(commandBuilder, arg, firstServerCommandBuilder.isObfuscated(arg));
         }
       }
     }
@@ -9219,23 +9003,8 @@ public class ReplicationCliMain extends ConsoleApplication
     if (ci != null && ci.getCommandBuilder() != null)
     {
       CommandBuilder interactionBuilder = ci.getCommandBuilder();
-      boolean useAdminUID = false;
-      boolean hasBindDN = false;
-      for (Argument arg : interactionBuilder.getArguments())
-      {
-        if (OPTION_LONG_ADMIN_UID.equals(arg.getLongIdentifier()))
-        {
-          useAdminUID = true;
-        }
-        else if (OPTION_LONG_BINDDN.equals(arg.getLongIdentifier()))
-        {
-          hasBindDN = true;
-        }
-        if (useAdminUID && hasBindDN)
-        {
-          break;
-        }
-      }
+      boolean useAdminUID = existsArg(interactionBuilder, OPTION_LONG_ADMIN_UID);
+      boolean hasBindDN = existsArg(interactionBuilder, OPTION_LONG_BINDDN);
 //    This is required when both the bindDN and the admin UID are provided
       // in the command-line.
       boolean forceAddBindDN2 = false;
@@ -9246,17 +9015,10 @@ public class ReplicationCliMain extends ConsoleApplication
         String adminUID = uData.getAdminUid();
         if (bindDN2 != null
             && adminUID != null
-            && !areDnsEqual(ADSContext.getAdministratorDN(adminUID), bindDN2))
+            && !areDnsEqual(getAdministratorDN(adminUID), bindDN2))
         {
           forceAddBindDN2 = true;
-          for (Argument arg : interactionBuilder.getArguments())
-          {
-            if (arg.getLongIdentifier().equals(OPTION_LONG_BINDPWD_FILE))
-            {
-              forceAddBindPwdFile2 = true;
-              break;
-            }
-          }
+          forceAddBindPwdFile2 = existsArg(interactionBuilder, OPTION_LONG_BINDPWD_FILE);
         }
       }
       ArrayList<Argument> argsToAnalyze = new ArrayList<Argument>();
@@ -9264,82 +9026,44 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         if (OPTION_LONG_HOST.equals(arg.getLongIdentifier()))
         {
-          StringArgument host = new StringArgument("host2", 'O',
-              "host2", false, false, true, INFO_HOST_PLACEHOLDER.get(),
-              null,
-              null, INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2.get());
-          host.addValue(uData.getHostName2());
-          commandBuilder.addArgument(host);
+          commandBuilder.addArgument(getHostArg("host2", 'O', uData.getHostName2(),
+              INFO_DESCRIPTION_ENABLE_REPLICATION_HOST2));
         }
         else if (OPTION_LONG_PORT.equals(arg.getLongIdentifier()))
         {
-          IntegerArgument port = new IntegerArgument("port2", null, "port2",
-              false, false, true, INFO_PORT_PLACEHOLDER.get(), 4444, null,
-              INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2.get());
-          port.addValue(String.valueOf(uData.getPort2()));
-          commandBuilder.addArgument(port);
+          commandBuilder.addArgument(getPortArg("port2", null, uData.getPort2(),
+              INFO_DESCRIPTION_ENABLE_REPLICATION_SERVER_PORT2));
 
           if (forceAddBindDN2)
           {
-            StringArgument bindDN = new StringArgument("bindDN2",
-                OPTION_SHORT_BINDDN,
-                "bindDN2", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-                "cn=Directory Manager", null,
-                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
-            bindDN.addValue(uData.getBindDn2());
-            commandBuilder.addArgument(bindDN);
+            commandBuilder.addArgument(getBindDN2Arg(uData, OPTION_SHORT_BINDDN));
             if (forceAddBindPwdFile2)
             {
-              FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-                  "bindPasswordFile2",
-                  null, "bindPasswordFile2", false, false,
-                  INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
+              FileBasedArgument bindPasswordFileArg = getBindPasswordFile2Arg();
               bindPasswordFileArg.getNameToValueMap().put("{password file}",
                   "{password file}");
               commandBuilder.addArgument(bindPasswordFileArg);
             }
             else
             {
-              StringArgument bindPasswordArg = new StringArgument(
-                  "bindPassword2",
-                  null, "bindPassword2", false, false, true,
-                  INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                  INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
-              bindPasswordArg.addValue(arg.getValue());
-              commandBuilder.addObfuscatedArgument(bindPasswordArg);
+              commandBuilder.addObfuscatedArgument(getBindPassword2Arg(arg));
             }
           }
         }
         else if (OPTION_LONG_BINDDN.equals(arg.getLongIdentifier()))
         {
-          StringArgument bindDN = new StringArgument("bindDN2", null,
-              "bindDN2", false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-              "cn=Directory Manager", null,
-              INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
-          bindDN.addValue(uData.getBindDn2());
-          commandBuilder.addArgument(bindDN);
+          commandBuilder.addArgument(getBindDN2Arg(uData, null));
         }
         else if (OPTION_LONG_BINDPWD.equals(arg.getLongIdentifier()))
         {
           if (useAdminUID && !adminInformationAdded)
           {
             adminInformationAdded = true;
-            StringArgument bindPasswordArg = new StringArgument("adminPassword",
-                OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
-                INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
-            bindPasswordArg.addValue(arg.getValue());
-            commandBuilder.addObfuscatedArgument(bindPasswordArg);
+            commandBuilder.addObfuscatedArgument(getAdminPasswordArg(arg));
           }
           else if (hasBindDN)
           {
-            StringArgument bindPasswordArg = new StringArgument("bindPassword2",
-                null, "bindPassword2", false, false, true,
-                INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
-            bindPasswordArg.addValue(arg.getValue());
-            commandBuilder.addObfuscatedArgument(bindPasswordArg);
+            commandBuilder.addObfuscatedArgument(getBindPassword2Arg(arg));
           }
         }
         else if (OPTION_LONG_BINDPWD_FILE.equals(arg.getLongIdentifier()))
@@ -9347,22 +9071,11 @@ public class ReplicationCliMain extends ConsoleApplication
           if (useAdminUID && !adminInformationAdded)
           {
             adminInformationAdded = true;
-            FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-                "adminPasswordFile",
-                OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
-                INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
-            bindPasswordFileArg.getNameToValueMap().putAll(
-                ((FileBasedArgument)arg).getNameToValueMap());
-            commandBuilder.addArgument(bindPasswordFileArg);
+            commandBuilder.addArgument(getAdminPasswordFileArg(arg));
           }
           else if (hasBindDN)
           {
-            FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-                "bindPasswordFile2",
-                null, "bindPasswordFile2", false, false,
-                INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
+            FileBasedArgument bindPasswordFileArg = getBindPasswordFile2Arg();
             bindPasswordFileArg.getNameToValueMap().putAll(
                 ((FileBasedArgument)arg).getNameToValueMap());
             commandBuilder.addArgument(bindPasswordFileArg);
@@ -9377,26 +9090,9 @@ public class ReplicationCliMain extends ConsoleApplication
       for (Argument arg : argsToAnalyze)
       {
         // Just check that the arguments have not already been added.
-        boolean found = false;
-        for (Argument a : commandBuilder.getArguments())
+        if (!existsArg(commandBuilder, arg.getLongIdentifier()))
         {
-          if (a.getLongIdentifier().equals(arg.getLongIdentifier()))
-          {
-            found = true;
-            break;
-          }
-        }
-
-        if (!found)
-        {
-          if (interactionBuilder.isObfuscated(arg))
-          {
-            commandBuilder.addObfuscatedArgument(arg);
-          }
-          else
-          {
-            commandBuilder.addArgument(arg);
-          }
+          addArgument(commandBuilder, arg, interactionBuilder.isObfuscated(arg));
         }
       }
     }
@@ -9404,13 +9100,13 @@ public class ReplicationCliMain extends ConsoleApplication
     // Try to add the new administration information.
     if (!adminInformationAdded)
     {
-      StringArgument adminUID = new StringArgument(OPTION_LONG_ADMIN_UID, 'I',
-          OPTION_LONG_ADMIN_UID, false, false, true,
-          INFO_ADMINUID_PLACEHOLDER.get(),
-          Constants.GLOBAL_ADMIN_UID, null,
-          INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
       if (uData.getAdminUid() != null)
       {
+        StringArgument adminUID = new StringArgument(OPTION_LONG_ADMIN_UID, 'I',
+            OPTION_LONG_ADMIN_UID, false, false, true,
+            INFO_ADMINUID_PLACEHOLDER.get(),
+            Constants.GLOBAL_ADMIN_UID, null,
+            INFO_DESCRIPTION_REPLICATION_ADMIN_UID.get(ENABLE_REPLICATION_SUBCMD_NAME));
         adminUID.addValue(uData.getAdminUid());
         commandBuilder.addArgument(adminUID);
       }
@@ -9419,38 +9115,26 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         commandBuilder.addArgument(userProvidedAdminPwdFile);
       }
-      else
+      else if (uData.getAdminPwd() != null)
       {
-        Argument bindPasswordArg = new StringArgument("adminPassword",
-            OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
-            INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-            INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
-        if (uData.getAdminPwd() != null)
-        {
-          bindPasswordArg.addValue(uData.getAdminPwd());
-          commandBuilder.addObfuscatedArgument(bindPasswordArg);
-        }
+        Argument bindPasswordArg = getAdminPasswordArg();
+        bindPasswordArg.addValue(uData.getAdminPwd());
+        commandBuilder.addObfuscatedArgument(bindPasswordArg);
       }
     }
 
     if (uData.configureReplicationServer1() &&
         !uData.configureReplicationDomain1())
     {
-      commandBuilder.addArgument(new BooleanArgument(
-          argParser.onlyReplicationServer1Arg.getName(),
-          argParser.onlyReplicationServer1Arg.getShortIdentifier(),
-          argParser.onlyReplicationServer1Arg.getLongIdentifier(),
-          INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1.get()));
+      commandBuilder.addArgument(newBooleanArgument(
+          argParser.onlyReplicationServer1Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER1));
     }
 
     if (!uData.configureReplicationServer1() &&
         uData.configureReplicationDomain1())
     {
-      commandBuilder.addArgument(new BooleanArgument(
-          argParser.noReplicationServer1Arg.getName(),
-          argParser.noReplicationServer1Arg.getShortIdentifier(),
-          argParser.noReplicationServer1Arg.getLongIdentifier(),
-          INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1.get()));
+      commandBuilder.addArgument(newBooleanArgument(
+          argParser.noReplicationServer1Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER1));
     }
 
     if (uData.configureReplicationServer1() &&
@@ -9475,21 +9159,15 @@ public class ReplicationCliMain extends ConsoleApplication
     if (uData.configureReplicationServer2() &&
         !uData.configureReplicationDomain2())
     {
-      commandBuilder.addArgument(new BooleanArgument(
-          argParser.onlyReplicationServer2Arg.getName(),
-          argParser.onlyReplicationServer2Arg.getShortIdentifier(),
-          argParser.onlyReplicationServer2Arg.getLongIdentifier(),
-          INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2.get()));
+      commandBuilder.addArgument(newBooleanArgument(
+          argParser.onlyReplicationServer2Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_ONLY_REPLICATION_SERVER2));
     }
 
     if (!uData.configureReplicationServer2() &&
         uData.configureReplicationDomain2())
     {
-      commandBuilder.addArgument(new BooleanArgument(
-          argParser.noReplicationServer2Arg.getName(),
-          argParser.noReplicationServer2Arg.getShortIdentifier(),
-          argParser.noReplicationServer2Arg.getLongIdentifier(),
-          INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2.get()));
+      commandBuilder.addArgument(newBooleanArgument(
+          argParser.noReplicationServer2Arg, INFO_DESCRIPTION_ENABLE_REPLICATION_NO_REPLICATION_SERVER2));
     }
     if (uData.configureReplicationServer2() &&
         uData.getReplicationPort2() > 0)
@@ -9532,6 +9210,66 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
+  private BooleanArgument newBooleanArgument(BooleanArgument arg, Arg0 msg) throws ArgumentException
+  {
+    return new BooleanArgument(arg.getName(), arg.getShortIdentifier(), arg.getLongIdentifier(), msg.get());
+  }
+
+  private StringArgument getBindPassword1Arg(Argument arg) throws ArgumentException
+  {
+    StringArgument bindPasswordArg = new StringArgument(
+        "bindPassword1", null, "bindPassword1", false, false, true,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD1.get());
+    bindPasswordArg.addValue(arg.getValue());
+    return bindPasswordArg;
+  }
+
+  private StringArgument getBindPassword2Arg(Argument arg) throws ArgumentException
+  {
+    StringArgument bindPasswordArg = new StringArgument(
+        "bindPassword2", null, "bindPassword2", false, false, true,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORD2.get());
+    bindPasswordArg.addValue(arg.getValue());
+    return bindPasswordArg;
+  }
+
+  private FileBasedArgument getBindPasswordFile1Arg() throws ArgumentException
+  {
+    return new FileBasedArgument(
+        "bindPasswordFile1", null, "bindPasswordFile1", false, false,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE1.get());
+  }
+
+  private FileBasedArgument getBindPasswordFile2Arg() throws ArgumentException
+  {
+    return new FileBasedArgument(
+        "bindPasswordFile2", null, "bindPasswordFile2", false, false,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDPASSWORDFILE2.get());
+  }
+
+  private StringArgument getBindDN1Arg(EnableReplicationUserData uData) throws ArgumentException
+  {
+    StringArgument bindDN = new StringArgument("bindDN1", OPTION_SHORT_BINDDN, "bindDN1", false, false, true,
+        INFO_BINDDN_PLACEHOLDER.get(), "cn=Directory Manager", null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN1.get());
+    bindDN.addValue(uData.getBindDn1());
+    return bindDN;
+  }
+
+  private StringArgument getBindDN2Arg(EnableReplicationUserData uData, Character shortIdentifier)
+      throws ArgumentException
+  {
+    StringArgument bindDN = new StringArgument("bindDN2", shortIdentifier, "bindDN2", false, false, true,
+        INFO_BINDDN_PLACEHOLDER.get(), "cn=Directory Manager", null,
+        INFO_DESCRIPTION_ENABLE_REPLICATION_BINDDN2.get());
+    bindDN.addValue(uData.getBindDn2());
+    return bindDN;
+  }
+
   private void updateCommandBuilder(CommandBuilder commandBuilder,
       InitializeReplicationUserData uData)
   throws ArgumentException
@@ -9545,51 +9283,25 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         if (OPTION_LONG_HOST.equals(arg.getLongIdentifier()))
         {
-          StringArgument host = new StringArgument("hostSource", 'O',
-              "hostSource", false, false, true,
-              INFO_HOST_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE.get());
-          host.addValue(uData.getHostNameSource());
-          commandBuilder.addArgument(host);
+          commandBuilder.addArgument(getHostArg("hostSource", 'O', uData.getHostNameSource(),
+              INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_SOURCE));
         }
         else if (OPTION_LONG_PORT.equals(arg.getLongIdentifier()))
         {
-          IntegerArgument port = new IntegerArgument("portSource", null,
-              "portSource", false, false, true,
-              INFO_PORT_PLACEHOLDER.get(),
-              4444,
-              null,
-         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE.get());
-          port.addValue(String.valueOf(uData.getPortSource()));
-          commandBuilder.addArgument(port);
+          commandBuilder.addArgument(getPortArg("portSource", null, uData.getPortSource(),
+              INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_SOURCE));
         }
         else if (OPTION_LONG_BINDPWD.equals(arg.getLongIdentifier()))
         {
-          StringArgument bindPasswordArg = new StringArgument("adminPassword",
-              OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
-              INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
-          bindPasswordArg.addValue(arg.getValue());
-          commandBuilder.addObfuscatedArgument(bindPasswordArg);
+          commandBuilder.addObfuscatedArgument(getAdminPasswordArg(arg));
         }
         else if (OPTION_LONG_BINDPWD_FILE.equals(arg.getLongIdentifier()))
         {
-          FileBasedArgument bindPasswordFileArg = new FileBasedArgument(
-              "adminPasswordFile",
-              OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
-              INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
-          bindPasswordFileArg.getNameToValueMap().putAll(
-              ((FileBasedArgument)arg).getNameToValueMap());
-          commandBuilder.addArgument(bindPasswordFileArg);
-        }
-        else if (firstServerCommandBuilder.isObfuscated(arg))
-        {
-          commandBuilder.addObfuscatedArgument(arg);
+          commandBuilder.addArgument(getAdminPasswordFileArg(arg));
         }
         else
         {
-          commandBuilder.addArgument(arg);
+          addArgument(commandBuilder, arg, firstServerCommandBuilder.isObfuscated(arg));
         }
       }
     }
@@ -9600,35 +9312,66 @@ public class ReplicationCliMain extends ConsoleApplication
       CommandBuilder interactionBuilder = ci.getCommandBuilder();
       for (Argument arg : interactionBuilder.getArguments())
       {
-        if (arg.getLongIdentifier().equals(OPTION_LONG_HOST))
+        if (OPTION_LONG_HOST.equals(arg.getLongIdentifier()))
         {
-          StringArgument host = new StringArgument("hostDestination", 'O',
-              "hostDestination", false, false, true,
-              INFO_HOST_PLACEHOLDER.get(),
-              null, null,
-              INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION.get());
-          host.addValue(uData.getHostNameDestination());
-          commandBuilder.addArgument(host);
+          commandBuilder.addArgument(getHostArg("hostDestination", 'O', uData.getHostNameDestination(),
+              INFO_DESCRIPTION_INITIALIZE_REPLICATION_HOST_DESTINATION));
         }
         else if (OPTION_LONG_PORT.equals(arg.getLongIdentifier()))
         {
-          IntegerArgument port = new IntegerArgument("portDestination", null,
-              "portDestination", false, false, true,
-              INFO_PORT_PLACEHOLDER.get(),
-              4444,
-              null,
-         INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION.get());
-          port.addValue(String.valueOf(uData.getPortDestination()));
-          commandBuilder.addArgument(port);
+          commandBuilder.addArgument(getPortArg("portDestination", null, uData.getPortDestination(),
+              INFO_DESCRIPTION_INITIALIZE_REPLICATION_SERVER_PORT_DESTINATION));
         }
       }
     }
   }
 
+  private StringArgument getAdminPasswordArg(Argument arg) throws ArgumentException
+  {
+    StringArgument sArg = getAdminPasswordArg();
+    sArg.addValue(arg.getValue());
+    return sArg;
+  }
+
+  private StringArgument getAdminPasswordArg() throws ArgumentException
+  {
+    return new StringArgument("adminPassword",
+        OPTION_SHORT_BINDPWD, "adminPassword", false, false, true,
+        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORD.get());
+  }
+
+  private FileBasedArgument getAdminPasswordFileArg(Argument arg) throws ArgumentException
+  {
+    FileBasedArgument fbArg = new FileBasedArgument(
+        "adminPasswordFile", OPTION_SHORT_BINDPWD_FILE, "adminPasswordFile", false, false,
+        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+        INFO_DESCRIPTION_REPLICATION_ADMIN_BINDPASSWORDFILE.get());
+    fbArg.getNameToValueMap().putAll(((FileBasedArgument) arg).getNameToValueMap());
+    return fbArg;
+  }
+
+  private IntegerArgument getPortArg(String longIdentifier, Character shortIdentifier, int value, Arg0 arg)
+      throws ArgumentException
+  {
+    IntegerArgument iArg = new IntegerArgument(longIdentifier, shortIdentifier, longIdentifier, false, false, true,
+        INFO_PORT_PLACEHOLDER.get(), 4444, null, arg.get());
+    iArg.addValue(String.valueOf(value));
+    return iArg;
+  }
+
+  private StringArgument getHostArg(String longIdentifier, char shortIdentifier, String value,
+      Arg0 description) throws ArgumentException
+  {
+    StringArgument sArg = new StringArgument(longIdentifier, shortIdentifier, longIdentifier, false, false, true,
+        INFO_HOST_PLACEHOLDER.get(), null, null, description.get());
+    sArg.addValue(value);
+    return sArg;
+  }
+
   private void updateAvailableAndReplicatedSuffixesForOneDomain(
       InitialLdapContext ctxDomain, InitialLdapContext ctxOther,
-      Collection<String> availableSuffixes,
-      Collection<String> alreadyReplicatedSuffixes)
+      Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
   {
     Collection<ReplicaDescriptor> replicas = getReplicas(ctxDomain);
     int replicationPort = getReplicationPort(ctxOther);
@@ -9644,6 +9387,7 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         availableSuffixes.add(replica.getSuffix().getDN());
       }
+
       if (!isReplicationServerConfigured)
       {
         availableSuffixes.add(replica.getSuffix().getDN());
@@ -9665,8 +9409,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void updateAvailableAndReplicatedSuffixesForNoDomain(
       InitialLdapContext ctx1, InitialLdapContext ctx2,
-      Collection<String> availableSuffixes,
-      Collection<String> alreadyReplicatedSuffixes)
+      Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
   {
     int replicationPort1 = getReplicationPort(ctx1);
     boolean isReplicationServer1Configured = replicationPort1 != -1;
@@ -9736,8 +9479,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void updateAvailableAndReplicatedSuffixesForNoDomainOneSense(
       TopologyCache cache1, TopologyCache cache2, String replicationServer1,
       String replicationServer2,
-      Collection<String> availableSuffixes,
-      Collection<String> alreadyReplicatedSuffixes)
+      Set<String> availableSuffixes, Set<String> alreadyReplicatedSuffixes)
   {
     for (SuffixDescriptor suffix : cache1.getSuffixes())
     {
@@ -9949,7 +9691,7 @@ public class ReplicationCliMain extends ConsoleApplication
       print(INFO_REPLICATION_MERGING_REGISTRIES_PROGRESS.get());
       pointAdder.start();
 
-      Collection<LocalizableMessage> cache1Errors = cache1.getErrorMessages();
+      Set<LocalizableMessage> cache1Errors = cache1.getErrorMessages();
       if (!cache1Errors.isEmpty())
       {
         throw new ReplicationCliException(
@@ -9960,7 +9702,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     ERROR_READING_ADS, null);
       }
 
-      Collection<LocalizableMessage> cache2Errors = cache2.getErrorMessages();
+      Set<LocalizableMessage> cache2Errors = cache2.getErrorMessages();
       if (!cache2Errors.isEmpty())
       {
         throw new ReplicationCliException(
@@ -10130,10 +9872,8 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (Throwable t)
       {
         logger.error(LocalizableMessage.raw("Error seeding truststore: "+t, t));
-        String arg = (t instanceof OpenDsException) ?
-            ((OpenDsException)t).getMessageObject().toString() : t.toString();
         LocalizableMessage msg = ERR_REPLICATION_ENABLE_SEEDING_TRUSTSTORE.get(
-            getHostPort(adsCtx2.getDirContext()), getHostPort(adsCtx1.getDirContext()), arg);
+            getHostPort(adsCtx2.getDirContext()), getHostPort(adsCtx1.getDirContext()), toString(t));
         throw new ReplicationCliException(msg, ERROR_SEEDING_TRUSTORE, t);
       }
       pointAdder.stop();
@@ -10147,6 +9887,12 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       pointAdder.stop();
     }
+  }
+
+  private String toString(Throwable t)
+  {
+    return (t instanceof OpenDsException) ?
+        ((OpenDsException) t).getMessageObject().toString() : t.toString();
   }
 
   private TopologyCache createTopologyCache(ADSContext adsCtx, Set<PreferredConnection> cnx)
@@ -10259,6 +10005,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   private String binDir;
+
   /**
    * Returns the binary/script directory.
    * @return the binary/script directory.
@@ -10299,9 +10046,7 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 }
 
-/**
- * Class used to compare replication servers.
- */
+/** Class used to compare replication servers. */
 class ReplicationServerComparator implements Comparator<ServerDescriptor>
 {
   /** {@inheritDoc} */
@@ -10324,10 +10069,7 @@ class ReplicationServerComparator implements Comparator<ServerDescriptor>
   }
 }
 
-/**
- * Class used to compare suffixes.
- *
- */
+/** Class used to compare suffixes. */
 class SuffixComparator implements Comparator<SuffixDescriptor>
 {
   /** {@inheritDoc} */
@@ -10338,9 +10080,7 @@ class SuffixComparator implements Comparator<SuffixDescriptor>
   }
 }
 
-/**
- * Class used to compare servers.
- */
+/** Class used to compare servers. */
 class ServerComparator implements Comparator<ServerDescriptor>
 {
   /** {@inheritDoc} */
