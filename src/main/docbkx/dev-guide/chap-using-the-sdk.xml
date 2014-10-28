@@ -72,7 +72,7 @@
   </para>
 
   <programlisting language="java">
-[jcp:org.forgerock.opendj.examples.SearchAsync: --- Using Promises ---]
+[jcp:org.forgerock.opendj.examples.SearchAsync:--- Using Promises ---]
   </programlisting>
 
   <para>
