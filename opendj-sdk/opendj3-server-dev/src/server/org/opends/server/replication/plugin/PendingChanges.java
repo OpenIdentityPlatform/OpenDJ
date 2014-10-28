@@ -41,18 +41,16 @@ import org.opends.server.types.operation.PluginOperation;
 /**
  * This class is used to store the list of local operations currently
  * in progress and not yet committed in the database.
- *
- * It is used to make sure that operations are sent to the Replication
- * Server in the order defined by their CSN.
- * It is also used to update the ServerState at the appropriate time.
- *
- * On object of this class is instantiated for each ReplicationDomain.
+ * <p>
+ * It is used to make sure that operations are sent to the Replication Server
+ * in the order defined by their CSN. It is also used to update the ServerState
+ * at the appropriate time.
+ * <p>
+ * An object of this class is instantiated for each ReplicationDomain.
  */
 class PendingChanges
 {
-  /**
-   * A map used to store the pending changes.
-   */
+  /** A map used to store the pending changes. */
   private final TreeMap<CSN, PendingChange> pendingChanges =
       new TreeMap<CSN, PendingChange>();
 
@@ -62,9 +60,7 @@ class PendingChanges
    */
   private final CSNGenerator csnGenerator;
 
-  /**
-   * The ReplicationDomain that will be used to send UpdateMsg.
-   */
+  /** The ReplicationDomain that will be used to send UpdateMsg. */
   private final ReplicationDomain domain;
 
   private boolean recoveringOldChanges = false;
@@ -106,7 +102,7 @@ class PendingChanges
    * Mark an update message as committed.
    *
    * @param csn The CSN of the update message that must be set as committed.
-   * @param msg          The message associated to the update.
+   * @param msg The message associated to the update.
    */
   private synchronized void commit(CSN csn, LDAPUpdateMsg msg)
   {
@@ -120,8 +116,7 @@ class PendingChanges
   }
 
   /**
-   * Add a new UpdateMsg to the pending list from the provided local
-   * operation.
+   * Add a new UpdateMsg to the pending list from the provided local operation.
    *
    * @param operation The local operation for which an UpdateMsg must
    *                  be added in the pending list.
@@ -232,7 +227,7 @@ class PendingChanges
    * change that was sent to the ReplicationServer with the CSN of the last
    * operation that was taken out of the PendingChanges list. If the two match
    * then the recovery is completed and normal procedure can restart. Otherwise
-   * the RSUpdate thread must continue to look for older changes and no changes
+   * the RSUpdater thread must continue to look for older changes and no changes
    * can be committed from the pendingChanges list.
    *
    * @param recovered
