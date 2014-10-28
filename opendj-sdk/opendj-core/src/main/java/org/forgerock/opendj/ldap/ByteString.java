@@ -37,7 +37,6 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -142,6 +141,9 @@ public final class ByteString implements ByteSequence {
      * @return The byte string with the encoded bytes of the provided string.
      */
     public static ByteString valueOf(final String s) {
+        if (s.length() == 0) {
+            return EMPTY;
+        }
         return wrap(StaticUtils.getBytes(s));
     }
 
@@ -159,6 +161,9 @@ public final class ByteString implements ByteSequence {
      * @see #toBase64String()
      */
     public static ByteString valueOfBase64(final String s) {
+        if (s.length() == 0) {
+            return EMPTY;
+        }
         return Base64.decode(s);
     }
 
@@ -174,21 +179,18 @@ public final class ByteString implements ByteSequence {
      *             does not contain an even number of digits.
      */
     public static ByteString valueOfHex(final String hexString) {
-        byte[] bytes = null;
-        int length = 0;
-        if (hexString == null || (length = hexString.length()) == 0) {
-            bytes = new byte[0];
-        } else {
-            if (length % 2 != 0) {
-                final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexString);
-                throw new LocalizedIllegalArgumentException(message);
-            }
-            final int arrayLength = length / 2;
-            bytes = new byte[arrayLength];
-            for (int i = 0; i < arrayLength; i++) {
-                bytes[i] =
-                        hexToByte(hexString, hexString.charAt(i * 2), hexString.charAt(i * 2 + 1));
-            }
+        if (hexString == null || hexString.length() == 0) {
+            return EMPTY;
+        }
+
+        final int length = hexString.length();
+        if (length % 2 != 0) {
+            throw new LocalizedIllegalArgumentException(ERR_HEX_DECODE_INVALID_LENGTH.get(hexString));
+        }
+        final int arrayLength = length / 2;
+        final byte[] bytes = new byte[arrayLength];
+        for (int i = 0; i < arrayLength; i++) {
+            bytes[i] = hexToByte(hexString, hexString.charAt(i * 2), hexString.charAt(i * 2 + 1));
         }
         return valueOf(bytes);
     }
@@ -204,6 +206,9 @@ public final class ByteString implements ByteSequence {
      * @return A byte string containing a copy of the provided byte array.
      */
     public static ByteString valueOf(final byte[] bytes) {
+        if (bytes.length == 0) {
+            return EMPTY;
+        }
         return wrap(Arrays.copyOf(bytes, bytes.length));
     }
 
@@ -217,6 +222,9 @@ public final class ByteString implements ByteSequence {
      *         char array.
      */
     public static ByteString valueOf(final char[] chars) {
+        if (chars.length == 0) {
+            return EMPTY;
+        }
         return wrap(StaticUtils.getBytes(chars));
     }
 
@@ -358,7 +366,6 @@ public final class ByteString implements ByteSequence {
                 return false;
             }
         }
-
         return true;
     }
 
@@ -397,15 +404,12 @@ public final class ByteString implements ByteSequence {
      * @return The string representation of the byte array sub-sequence.
      */
     static String toString(final byte[] b, final int offset, final int length) {
-        String stringValue;
         try {
-            stringValue = new String(b, offset, length, "UTF-8");
+            return new String(b, offset, length, "UTF-8");
         } catch (final UnsupportedEncodingException e) {
             // TODO: I18N
             throw new RuntimeException("Unable to decode bytes as UTF-8 string", e);
         }
-
-        return stringValue;
     }
 
     private static byte hexToByte(final String value, final char c1, final char c2) {
@@ -466,8 +470,7 @@ public final class ByteString implements ByteSequence {
             b = (byte) 0xF0;
             break;
         default:
-            final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(value, c1);
-            throw new LocalizedIllegalArgumentException(message);
+            throw new LocalizedIllegalArgumentException(ERR_HEX_DECODE_INVALID_CHARACTER.get(value, c1));
         }
 
         switch (c2) {
@@ -526,8 +529,7 @@ public final class ByteString implements ByteSequence {
             b |= 0x0F;
             break;
         default:
-            final LocalizableMessage message = ERR_HEX_DECODE_INVALID_CHARACTER.get(value, c2);
-            throw new LocalizedIllegalArgumentException(message);
+            throw new LocalizedIllegalArgumentException(ERR_HEX_DECODE_INVALID_CHARACTER.get(value, c2));
         }
 
         return b;
@@ -542,10 +544,7 @@ public final class ByteString implements ByteSequence {
     /** The number of bytes to expose from the buffer. */
     final int length;
 
-    /**
-     * The start index of the range of bytes to expose through this byte
-     * string.
-     */
+    /** The start index of the range of bytes to expose through this byte string. */
     final int offset;
 
     /**
@@ -730,7 +729,7 @@ public final class ByteString implements ByteSequence {
             indentBuf.append(' ');
         }
         int pos = 0;
-        while ((length - pos) >= 16) {
+        while (length - pos >= 16) {
             StringBuilder asciiBuf = new StringBuilder(17);
             byte currentByte = buffer[offset + pos];
             builder.append(indentBuf);
@@ -755,7 +754,7 @@ public final class ByteString implements ByteSequence {
             builder.append(EOL);
         }
 
-        int remaining = (length - pos);
+        int remaining = length - pos;
         if (remaining > 0) {
             StringBuilder asciiBuf = new StringBuilder(remaining + 1);
 

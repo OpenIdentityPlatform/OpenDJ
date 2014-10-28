@@ -78,6 +78,7 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
             { ByteString.valueOf("cn=testvalue".toCharArray()), "cn=testvalue".getBytes("UTF-8") },
             { ByteString.valueOf((Object) "cn=testvalue".toCharArray()),
                 "cn=testvalue".getBytes("UTF-8") },
+            { ByteString.valueOf(new byte[0]), new byte[0] },
             { ByteString.valueOf(testBytes), testBytes },
             { ByteString.valueOf((Object) testBytes), testBytes },
             { ByteString.valueOf(ByteString.valueOf("cn=testvalue")),
@@ -258,6 +259,12 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     public void testValueOfHex() {
         ByteString byteString = ByteString.valueOfHex("636E3D7465737476616C7565");
         assertThat(byteString.toString()).isEqualTo("cn=testvalue");
+    }
+
+    @Test
+    public void testValueOfEmptyHex() {
+        ByteString byteString = ByteString.valueOfHex("");
+        assertThat(byteString.toString()).isEqualTo("");
     }
 
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
