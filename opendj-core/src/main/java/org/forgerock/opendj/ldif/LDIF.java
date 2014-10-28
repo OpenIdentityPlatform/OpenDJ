@@ -26,7 +26,6 @@
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.getBytes;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -448,7 +447,7 @@ public final class LDIF {
         while (patch.hasNext()) {
             final ChangeRecord change = patch.readChangeRecord();
             final DN changeDN = change.getName();
-            final byte[] changeNormDN = getBytes(change.getName().toNormalizedString());
+            final byte[] changeNormDN = toNormalizedByteArray(change.getName());
 
             final DecodeException de =
                     change.accept(new ChangeRecordVisitor<DecodeException, Void>() {
@@ -462,8 +461,7 @@ public final class LDIF {
                                 try {
                                     final Entry entry =
                                             listener.handleDuplicateEntry(change, existingEntry);
-                                    entries.put(getBytes(entry.getName().toNormalizedString()),
-                                            encodeEntry(entry)[1]);
+                                    entries.put(toNormalizedByteArray(entry.getName()), encodeEntry(entry)[1]);
                                 } catch (final DecodeException e) {
                                     return e;
                                 }
@@ -489,9 +487,8 @@ public final class LDIF {
                                     if (change.getControl(SubtreeDeleteRequestControl.DECODER,
                                             new DecodeOptions()) != null) {
                                         entries.subMap(
-                                                getBytes(change.getName().toNormalizedString()),
-                                                getBytes(change.getName().child(RDN.maxValue())
-                                                        .toNormalizedString())).clear();
+                                            toNormalizedByteArray(change.getName()),
+                                            toNormalizedByteArray(change.getName().child(RDN.maxValue()))).clear();
                                     } else {
                                         entries.remove(changeNormDN);
                                     }
@@ -535,8 +532,7 @@ public final class LDIF {
                                 // @formatter:off
                                 final Iterator<Map.Entry<byte[], byte[]>> i =
                                     entries.subMap(changeNormDN,
-                                        getBytes(changeDN.child(RDN.maxValue()).
-                                                toNormalizedString())).entrySet().iterator();
+                                        toNormalizedByteArray(changeDN.child(RDN.maxValue()))).entrySet().iterator();
                                 // @formatter:on
 
                                 while (i.hasNext()) {
@@ -544,8 +540,7 @@ public final class LDIF {
                                     final Entry entry = decodeEntry(e.getValue());
                                     final DN renamedDN = entry.getName().rename(oldDN, newDN);
                                     entry.setName(renamedDN);
-                                    renamedEntries.put(getBytes(renamedDN.toNormalizedString()),
-                                            encodeEntry(entry)[1]);
+                                    renamedEntries.put(toNormalizedByteArray(renamedDN), encodeEntry(entry)[1]);
                                     i.remove();
                                 }
 
@@ -562,18 +557,16 @@ public final class LDIF {
                                     targetEntry.addAttribute(ava.toAttribute());
                                 }
 
-                                renamedEntries.remove(getBytes(targetEntry.getName()
-                                        .toNormalizedString()));
-                                renamedEntries.put(getBytes(targetEntry.getName()
-                                        .toNormalizedString()), encodeEntry(targetEntry)[1]);
+                                renamedEntries.remove(toNormalizedByteArray(targetEntry.getName()));
+                                renamedEntries.put(toNormalizedByteArray(targetEntry.getName()),
+                                        encodeEntry(targetEntry)[1]);
 
                                 // Add the renamed entries.
                                 final Iterator<byte[]> j = renamedEntries.values().iterator();
                                 while (j.hasNext()) {
                                     final Entry renamedEntry = decodeEntry(j.next());
                                     final byte[] existingEntryDn =
-                                            entries.get(getBytes(renamedEntry.getName()
-                                                    .toNormalizedString()));
+                                            entries.get(toNormalizedByteArray(renamedEntry.getName()));
 
                                     if (existingEntryDn != null) {
                                         final Entry existingEntry = decodeEntry(existingEntryDn);
@@ -581,15 +574,12 @@ public final class LDIF {
                                             final Entry tmp =
                                                     listener.handleDuplicateEntry(change,
                                                             existingEntry, renamedEntry);
-                                            entries.put(
-                                                    getBytes(tmp.getName().toNormalizedString()),
-                                                    encodeEntry(tmp)[1]);
+                                            entries.put(toNormalizedByteArray(tmp.getName()), encodeEntry(tmp)[1]);
                                         } catch (final DecodeException e) {
                                             return e;
                                         }
                                     } else {
-                                        entries.put(getBytes(renamedEntry.getName()
-                                                .toNormalizedString()),
+                                        entries.put(toNormalizedByteArray(renamedEntry.getName()),
                                                 encodeEntry(renamedEntry)[1]);
                                     }
                                 }
@@ -839,10 +829,14 @@ public final class LDIF {
         }
     }
 
+    private static byte[] toNormalizedByteArray(DN dn) {
+        return dn.toIrreversibleNormalizedByteString().toByteArray();
+    }
+
     private static byte[][] encodeEntry(final Entry entry) {
         final byte[][] bEntry = new byte[2][];
         // Store normalized DN
-        bEntry[0] = getBytes(entry.getName().toNormalizedString());
+        bEntry[0] = toNormalizedByteArray(entry.getName());
         try {
             // Store ASN1 representation of the entry.
             final ByteStringBuilder bsb = new ByteStringBuilder();

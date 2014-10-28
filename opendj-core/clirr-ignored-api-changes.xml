@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !      Copyright 2014 ForgeRock AS
-  !    
+  !
 -->
 <differences>
 <!--
@@ -190,7 +190,7 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <differenceType>8001</differenceType>
     <justification>Renamed SchemaValidationPolicy.Policy to SchemaValidationPolicy.Action</justification>
   </difference>
-  
+
   <difference>
     <className>org/forgerock/opendj/ldap/LDAPListenerOptions</className>
     <differenceType>7002</differenceType>
@@ -382,5 +382,12 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>*</method>
     <to>org.forgerock.util.promise.Function</to>
     <justification>OPENDJ-1550 Replace SDK Function with Function from forgerock-util</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/DN</className>
+    <differenceType>7002</differenceType>
+    <method>*toNormalizedString()</method>
+    <to>*toIrreversibleNormalizedByteString()</to>
+    <justification>OPENDJ-1585 Function has been renamed to avoid abuse</justification>
   </difference>
 </differences>

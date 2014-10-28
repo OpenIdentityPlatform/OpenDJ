@@ -43,7 +43,7 @@ final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractEqualityMa
             throws DecodeException {
         try {
             DN dn = DN.valueOf(value.toString(), schema.asNonStrictSchema());
-            return ByteString.valueOf(dn.toNormalizedString());
+            return dn.toIrreversibleNormalizedByteString();
         } catch (final LocalizedIllegalArgumentException e) {
             throw DecodeException.error(e.getMessageObject());
         }
