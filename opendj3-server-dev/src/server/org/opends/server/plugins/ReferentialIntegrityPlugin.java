@@ -57,7 +57,6 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -335,7 +334,7 @@ public class ReferentialIntegrityPlugin
 
       for (DN baseDN : cfgBaseDNs)
       {
-        Backend b = DirectoryServer.getBackend(baseDN);
+        Backend<?> b = DirectoryServer.getBackend(baseDN);
         if ((b != null) && (!b.isIndexed(type, IndexType.EQUALITY)))
         {
           isAcceptable = false;
@@ -666,14 +665,11 @@ public class ReferentialIntegrityPlugin
    */
   private Set<DN> getBaseDNsToSearch()
   {
-    if(baseDNs.isEmpty())
+    if (baseDNs.isEmpty())
     {
       return DirectoryServer.getPublicNamingContexts().keySet();
     }
-    else
-    {
-      return baseDNs;
-    }
+    return baseDNs;
   }
 
   /**
@@ -1232,31 +1228,22 @@ public class ReferentialIntegrityPlugin
    * @return        The SUCCESS if the integrity is maintained or
    *                CONSTRAINT_VIOLATION otherwise
    */
-  private PluginResult.PreOperation isIntegrityMaintained(Attribute attr,
-                                                          DN entryDN,
-                                                          DN entryBaseDN)
+  private PluginResult.PreOperation isIntegrityMaintained(Attribute attr, DN entryDN, DN entryBaseDN)
   {
-    final MatchingRule rule = attr.getAttributeType().getEqualityMatchingRule();
     try
     {
       for (ByteString attrVal : attr)
       {
-        DN valueEntryDN = DN.decode(rule.normalizeAttributeValue(attrVal));
+        DN valueEntryDN = DN.decode(attrVal);
 
         final Entry valueEntry;
-        if (currentConfiguration.getCheckReferencesScopeCriteria()
-          == CheckReferencesScopeCriteria.NAMING_CONTEXT)
+        if (currentConfiguration.getCheckReferencesScopeCriteria() == CheckReferencesScopeCriteria.NAMING_CONTEXT)
         {
-          if (valueEntryDN.matchesBaseAndScope(entryBaseDN,
-            SearchScope.SUBORDINATES))
+          if (valueEntryDN.matchesBaseAndScope(entryBaseDN, SearchScope.SUBORDINATES))
           {
-            return PluginResult.PreOperation.stopProcessing(
-                  ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(
-                      valueEntryDN, attr.getName(), entryDN)
-                );
+            return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
+                ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attr.getName(), entryDN));
           }
-
           valueEntry = DirectoryServer.getEntry(valueEntryDN);
         }
         else
@@ -1267,27 +1254,22 @@ public class ReferentialIntegrityPlugin
         // Verify that the value entry exists in the backend.
         if (valueEntry == null)
         {
-          return PluginResult.PreOperation.stopProcessing(
-            ResultCode.CONSTRAINT_VIOLATION,
-            ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(
-                valueEntryDN, attr.getName(), entryDN));
+          return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_PLUGIN_REFERENT_ENTRY_MISSING.get(valueEntryDN, attr.getName(), entryDN));
         }
 
         // Verify that the value entry conforms to the filter.
         SearchFilter filter = attrFiltMap.get(attr.getAttributeType());
         if (filter != null && !filter.matchesEntry(valueEntry))
         {
-          return PluginResult.PreOperation.stopProcessing(
-            ResultCode.CONSTRAINT_VIOLATION,
-            ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(
-                valueEntry.getName(), attr.getName(), entryDN, filter));
+          return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_PLUGIN_REFERENT_FILTER_MISMATCH.get(valueEntry.getName(), attr.getName(), entryDN, filter));
         }
       }
     }
     catch (Exception de)
     {
-      return PluginResult.PreOperation.stopProcessing(
-        ResultCode.OTHER,
+      return PluginResult.PreOperation.stopProcessing(ResultCode.OTHER,
         ERR_PLUGIN_REFERENT_EXCEPTION.get(de.getLocalizedMessage()));
     }
 
