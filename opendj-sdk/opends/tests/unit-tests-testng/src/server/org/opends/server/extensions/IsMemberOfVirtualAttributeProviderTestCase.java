@@ -1281,16 +1281,13 @@ public class IsMemberOfVirtualAttributeProviderTestCase
          conn.processDelete(DN.decode("cn=test group 1,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 2,ou=groups,o=test"));
+    deleteOperation = conn.processDelete(DN.decode("cn=test group 2,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 3,ou=groups,o=test"));
+    deleteOperation = conn.processDelete(DN.decode("cn=test group 3,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
-    deleteOperation =
-         conn.processDelete(DN.decode("cn=test group 4,ou=groups,o=test"));
+    deleteOperation = conn.processDelete(DN.decode("cn=test group 4,ou=groups,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1388,6 +1385,15 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertEquals(entries.get(0).getDN().toNormalizedString(), "cn=test group 1,ou=groups,o=test");
     // Then indirect members
     assertEquals(entries.get(1).getDN().toNormalizedString(), "uid=test.user,ou=people,o=test");
+
+    // Explicitly delete created groups, to reset the group manager
+    DeleteOperation deleteOperation =
+        conn.processDelete(DN.decode("cn=Test Group 1,ou=groups,o=test"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    deleteOperation = conn.processDelete(DN.decode("cn=Test Group 2,ou=groups,o=test"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    deleteOperation = conn.processDelete(DN.decode("cn=Test Group 3,ou=groups,o=test"));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
   /**
