@@ -110,7 +110,7 @@ final class CertificateExactMatchingRuleImpl
             return value.toByteString();
         }
 
-        final String certificateIssuer = normalizeDN(schema, dnstring);
+        final ByteString certificateIssuer = normalizeDN(schema, dnstring);
         return createEncodedValue(serialNumber, certificateIssuer);
     }
 
@@ -183,14 +183,14 @@ final class CertificateExactMatchingRuleImpl
             throw DecodeException.error(message);
         }
 
-        final String certificateIssuer = normalizeDN(schema, dnstring);
+        final ByteString certificateIssuer = normalizeDN(schema, dnstring);
         return DefaultAssertion.equality(createEncodedValue(serialNumber, certificateIssuer));
     }
 
-    private String normalizeDN(final Schema schema, final String dnstring) throws DecodeException {
+    private ByteString normalizeDN(final Schema schema, final String dnstring) throws DecodeException {
         try {
             DN dn = DN.valueOf(dnstring, schema.asNonStrictSchema());
-            return dn.toNormalizedString();
+            return dn.toIrreversibleNormalizedByteString();
         } catch (Exception e) {
             logger.traceException(e);
 
@@ -210,10 +210,9 @@ final class CertificateExactMatchingRuleImpl
      *
      * @return the encoded ByteString
      */
-    private static ByteString createEncodedValue(BigInteger serial,
-            String issuerDN) {
+    private static ByteString createEncodedValue(BigInteger serial, ByteString issuerDN) {
         ByteStringBuilder builder = new ByteStringBuilder();
-        builder.append(StaticUtils.getBytes(issuerDN));
+        builder.append(issuerDN);
         builder.append((byte) 0); // Separator
         builder.append(serial.toByteArray());
         return builder.toByteString();
