@@ -189,16 +189,14 @@ public final class TextAccessLogPublisher extends
             && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          writer = new AsynchronousTextWriter(
-          "Asynchronous Text Writer for " + config.dn().toString(),
+          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
           config.getQueueSize(), config.isAutoFlush(), mfWriter);
         }
 
         if (!(writer instanceof ParallelTextWriter) && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          writer = new ParallelTextWriter(
-              "Parallel Text Writer for " + config.dn().toString(),
+          writer = new ParallelTextWriter("Parallel Text Writer for " + config.dn(),
               config.isAutoFlush(), mfWriter);
         }
 
@@ -253,7 +251,7 @@ public final class TextAccessLogPublisher extends
           && !cfg.isAsynchronous();
 
       final MultifileTextWriter theWriter = new MultifileTextWriter(
-          "Multifile Text Writer for " + cfg.dn().toString(),
+          "Multifile Text Writer for " + cfg.dn(),
           cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
           writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
 
@@ -273,13 +271,13 @@ public final class TextAccessLogPublisher extends
         if (cfg.getQueueSize() > 0)
         {
           this.writer = new AsynchronousTextWriter(
-              "Asynchronous Text Writer for " + cfg.dn().toString(),
+              "Asynchronous Text Writer for " + cfg.dn(),
               cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
         }
         else
         {
-          this.writer = new ParallelTextWriter("Parallel Text Writer for "
-              + cfg.dn().toString(), cfg.isAutoFlush(), theWriter);
+          this.writer = new ParallelTextWriter("Parallel Text Writer for " + cfg.dn(),
+              cfg.isAutoFlush(), theWriter);
         }
       }
       else

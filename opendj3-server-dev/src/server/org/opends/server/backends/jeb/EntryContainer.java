@@ -119,7 +119,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /**
    * The backend to which this entry entryContainer belongs.
    */
-  private final Backend backend;
+  private final Backend<?> backend;
 
   /**
    * The root container in which this entryContainer belongs.
@@ -1702,9 +1702,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           EntryID nodeID = dn2id.get(txn, dn, LockMode.DEFAULT);
           if (nodeID == null)
           {
-            LocalizableMessage msg =
-              ERR_JEB_MISSING_DN2ID_RECORD.get(dn.toString());
-            throw new JebException(msg);
+            throw new JebException(ERR_JEB_MISSING_DN2ID_RECORD.get(dn));
           }
 
           // Insert into id2subtree for this node.
@@ -2065,9 +2063,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       EntryID parentID = dn2id.get(txn, parentDN, LockMode.DEFAULT);
       if (parentID == null)
       {
-        LocalizableMessage msg =
-          ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN.toString());
-        throw new JebException(msg);
+        throw new JebException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN));
       }
 
       if(indexBuffer != null)

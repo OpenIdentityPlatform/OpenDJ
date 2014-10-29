@@ -464,8 +464,7 @@ public class DataServerHandler extends ServerHandler
       replicationServerDomain.register(this);
 
       logger.debug(INFO_REPLICATION_SERVER_CONNECTION_FROM_DS, getReplicationServerId(), getServerId(),
-              replicationServerDomain.getBaseDN().toString(),
-              session.getReadableRemoteAddress());
+              replicationServerDomain.getBaseDN(), session.getReadableRemoteAddress());
 
       super.finalizeStart();
     }

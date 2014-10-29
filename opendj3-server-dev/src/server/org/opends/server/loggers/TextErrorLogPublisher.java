@@ -41,11 +41,12 @@ import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.FileBasedErrorLogPublisherCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;
@@ -53,7 +54,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
@@ -114,9 +114,7 @@ public class TextErrorLogPublisher
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeLogPublisher(FileBasedErrorLogPublisherCfg config, ServerContext serverContext)
       throws ConfigException, InitializationException
@@ -135,9 +133,7 @@ public class TextErrorLogPublisher
       boolean writerAutoFlush =
           config.isAutoFlush() && !config.isAsynchronous();
 
-      MultifileTextWriter writer =
-          new MultifileTextWriter("Multifile Text Writer for " +
-              config.dn().toString(),
+      MultifileTextWriter writer = new MultifileTextWriter("Multifile Text Writer for " + config.dn(),
                                   config.getTimeInterval(),
                                   fnPolicy,
                                   perm,
@@ -160,9 +156,7 @@ public class TextErrorLogPublisher
 
       if(config.isAsynchronous())
       {
-        this.writer = new AsynchronousTextWriter(
-            "Asynchronous Text Writer for " +
-              config.dn().toString(),
+        this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
             config.getQueueSize(), config.isAutoFlush(), writer);
       }
       else
@@ -181,38 +175,7 @@ public class TextErrorLogPublisher
           ERR_CONFIG_LOGGING_CANNOT_OPEN_FILE.get(logFile, config.dn(), e), e);
     }
 
-    Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs =
-        config.getDefaultSeverity();
-    if(defSevs.isEmpty())
-    {
-      defaultSeverities.add(Severity.ERROR);
-      defaultSeverities.add(Severity.WARNING);
-    } else
-    {
-      for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
-      {
-        if(defSev.toString().equalsIgnoreCase(LOG_SEVERITY_ALL))
-        {
-          defaultSeverities.add(Severity.ERROR);
-          defaultSeverities.add(Severity.WARNING);
-          defaultSeverities.add(Severity.NOTICE);
-          defaultSeverities.add(Severity.INFORMATION);
-        }
-        else if (defSev.toString().equalsIgnoreCase(LOG_SEVERITY_NONE))
-        {
-          // don't add any severity
-        }
-        else
-        {
-          Severity errorSeverity =
-              Severity.parseString(defSev.name());
-          if(errorSeverity != null)
-          {
-            defaultSeverities.add(errorSeverity);
-          }
-        }
-      }
-    }
+    setDefaultSeverities(config.getDefaultSeverity());
 
     for(String overrideSeverity : config.getOverrideSeverity())
     {
@@ -237,7 +200,7 @@ public class TextErrorLogPublisher
             {
               String severityName = sevTokenizer.nextToken();
               severityName = severityName.replace("-", "_").toUpperCase();
-              if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
+              if(LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
               {
                 severities.add(Severity.ERROR);
                 severities.add(Severity.WARNING);
@@ -248,8 +211,7 @@ public class TextErrorLogPublisher
               {
                 try
                 {
-                  Severity severity = Severity.parseString(severityName);
-                  severities.add(severity);
+                  severities.add(Severity.parseString(severityName));
                 }
                 catch(Exception e)
                 {
@@ -277,9 +239,7 @@ public class TextErrorLogPublisher
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isConfigurationAcceptable(
       FileBasedErrorLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -287,9 +247,7 @@ public class TextErrorLogPublisher
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FileBasedErrorLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
@@ -335,7 +293,7 @@ public class TextErrorLogPublisher
           {
             String severityName = sevTokenizer.nextToken();
             severityName = severityName.replace("-", "_").toUpperCase();
-            if(!severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
+            if(!LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
             {
               try
               {
@@ -356,9 +314,7 @@ public class TextErrorLogPublisher
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       FileBasedErrorLogPublisherCfg config)
@@ -368,38 +324,7 @@ public class TextErrorLogPublisher
     boolean adminActionRequired = false;
     List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
-    Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs =
-        config.getDefaultSeverity();
-    defaultSeverities.clear();
-    if(defSevs.isEmpty())
-    {
-      defaultSeverities.add(Severity.ERROR);
-      defaultSeverities.add(Severity.WARNING);
-    } else
-    {
-      for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
-      {
-        if(defSev.toString().equalsIgnoreCase(LOG_SEVERITY_ALL))
-        {
-          defaultSeverities.add(Severity.ERROR);
-          defaultSeverities.add(Severity.WARNING);
-          defaultSeverities.add(Severity.INFORMATION);
-          defaultSeverities.add(Severity.NOTICE);
-        }
-        else if (defSev.toString().equalsIgnoreCase(LOG_SEVERITY_NONE))
-        {
-          // don't add any severity
-        }
-        else
-        {
-          Severity errorSeverity = Severity.parseString(defSev.name());
-          if(errorSeverity != null)
-          {
-            defaultSeverities.add(errorSeverity);
-          }
-        }
-      }
-    }
+    setDefaultSeverities(config.getDefaultSeverity());
 
     definedSeverities.clear();
     for(String overrideSeverity : config.getOverrideSeverity())
@@ -426,7 +351,7 @@ public class TextErrorLogPublisher
             {
               String severityName = sevTokenizer.nextToken();
               severityName = severityName.replace("-", "_").toUpperCase();
-              if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
+              if(LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
               {
                 severities.add(Severity.ERROR);
                 severities.add(Severity.INFORMATION);
@@ -437,8 +362,7 @@ public class TextErrorLogPublisher
               {
                 try
                 {
-                  Severity severity = Severity.parseString(severityName);
-                  severities.add(severity);
+                  severities.add(Severity.parseString(severityName));
                 }
                 catch(Exception e)
                 {
@@ -510,7 +434,7 @@ public class TextErrorLogPublisher
         if(writer instanceof AsynchronousTextWriter && !config.isAsynchronous())
         {
           // The asynchronous setting is being turned off.
-          AsynchronousTextWriter asyncWriter = ((AsynchronousTextWriter)writer);
+          AsynchronousTextWriter asyncWriter = (AsynchronousTextWriter)writer;
           writer = mfWriter;
           asyncWriter.shutdown(false);
         }
@@ -519,10 +443,8 @@ public class TextErrorLogPublisher
             config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " +
-              config.dn().toString(), config.getQueueSize(),
-                                                config.isAutoFlush(),
-                                                mfWriter);
+          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
+              config.getQueueSize(), config.isAutoFlush(), mfWriter);
         }
 
         if (currentConfig.isAsynchronous()
@@ -545,11 +467,43 @@ public class TextErrorLogPublisher
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
+  private void setDefaultSeverities(Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs)
+  {
+    defaultSeverities.clear();
+    if (defSevs.isEmpty())
+    {
+      defaultSeverities.add(Severity.ERROR);
+      defaultSeverities.add(Severity.WARNING);
+    }
+    else
+    {
+      for (ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
+      {
+        String defaultSeverity = defSev.toString();
+        if (LOG_SEVERITY_ALL.equalsIgnoreCase(defaultSeverity))
+        {
+          defaultSeverities.add(Severity.ERROR);
+          defaultSeverities.add(Severity.WARNING);
+          defaultSeverities.add(Severity.INFORMATION);
+          defaultSeverities.add(Severity.NOTICE);
+        }
+        else if (LOG_SEVERITY_NONE.equalsIgnoreCase(defaultSeverity))
+        {
+          // don't add any severity
+        }
+        else
+        {
+          Severity errorSeverity = Severity.parseString(defSev.name());
+          if (errorSeverity != null)
+          {
+            defaultSeverities.add(errorSeverity);
+          }
+        }
+      }
+    }
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -604,9 +558,7 @@ public class TextErrorLogPublisher
     return severities.contains(severity);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {

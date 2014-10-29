@@ -198,10 +198,9 @@ public final class TextHTTPAccessLogPublisher extends
             && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          final AsynchronousTextWriter asyncWriter =
-              new AsynchronousTextWriter("Asynchronous Text Writer for "
-                  + config.dn().toString(), config.getQueueSize(),
-                  config.isAutoFlush(), mfWriter);
+          final AsynchronousTextWriter asyncWriter = new AsynchronousTextWriter(
+              "Asynchronous Text Writer for " + config.dn(),
+              config.getQueueSize(), config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
         }
 
@@ -209,7 +208,7 @@ public final class TextHTTPAccessLogPublisher extends
         {
           // The asynchronous setting is being turned on.
           final ParallelTextWriter asyncWriter = new ParallelTextWriter(
-              "Parallel Text Writer for " + config.dn().toString(),
+              "Parallel Text Writer for " + config.dn(),
               config.isAutoFlush(), mfWriter);
           writer = asyncWriter;
         }
@@ -322,7 +321,7 @@ public final class TextHTTPAccessLogPublisher extends
           && !cfg.isAsynchronous();
 
       final MultifileTextWriter theWriter = new MultifileTextWriter(
-          "Multifile Text Writer for " + cfg.dn().toString(),
+          "Multifile Text Writer for " + cfg.dn(),
           cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
           writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
 
@@ -341,14 +340,13 @@ public final class TextHTTPAccessLogPublisher extends
       {
         if (cfg.getQueueSize() > 0)
         {
-          this.writer = new AsynchronousTextWriter(
-              "Asynchronous Text Writer for " + cfg.dn().toString(),
+          this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + cfg.dn(),
               cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
         }
         else
         {
-          this.writer = new ParallelTextWriter("Parallel Text Writer for "
-              + cfg.dn().toString(), cfg.isAutoFlush(), theWriter);
+          this.writer = new ParallelTextWriter("Parallel Text Writer for " + cfg.dn(),
+              cfg.isAutoFlush(), theWriter);
         }
       }
       else

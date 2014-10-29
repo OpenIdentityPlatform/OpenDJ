@@ -24,16 +24,16 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.forgerock.i18n.LocalizableMessage;
 
-import static org.opends.messages.AccessControlMessages.*;
-import static org.opends.server.authorization.dseecompat.Aci.*;
 import java.util.regex.Pattern;
+
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
+
+import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.authorization.dseecompat.Aci.*;
 
 /**
  * A class representing an ACI target keyword.
@@ -48,18 +48,18 @@ public class Target
     /**
      * True if the URL contained a DN wild-card pattern.
      */
-    private boolean isPattern=false;
+    private boolean isPattern;
 
     /**
      * The target DN from the URL or null if it was a wild-card pattern.
      */
-    private DN urlDN=null;
+    private DN urlDN;
 
     /**
      * The pattern matcher for a wild-card pattern or null if the URL
      * contained an ordinary DN.
      */
-    private PatternDN patternDN =null;
+    private PatternDN patternDN;
 
     /*
      * TODO Save aciDN parameter and use it in matchesPattern re-write.
@@ -82,11 +82,8 @@ public class Target
         this.operator = operator;
         try {
           //The NULL_LDAP_URL corresponds to the root DSE.
-          if((!target.equals(NULL_LDAP_URL)) &&
-             (!Pattern.matches(LDAP_URL, target))) {
-              LocalizableMessage message =
-                  WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target);
-              throw new AciException(message);
+          if (!NULL_LDAP_URL.equals(target) && !Pattern.matches(LDAP_URL, target)) {
+              throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target));
           }
           LDAPURL targetURL =  LDAPURL.decode(target, false);
           if(targetURL.getRawBaseDN().indexOf("*") != -1) {
@@ -95,15 +92,12 @@ public class Target
           } else {
               urlDN=targetURL.getBaseDN();
               if(!urlDN.isDescendantOf(aciDN)) {
-                  throw new AciException(WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.get(urlDN.toString(),
-                      aciDN.toString()));
+                  throw new AciException(WARN_ACI_SYNTAX_TARGET_DN_NOT_DESCENDENTOF.get(urlDN, aciDN));
               }
           }
         }
         catch (DirectoryException e){
-            LocalizableMessage message =
-                WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target);
-            throw new AciException(message);
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_TARGETKEYWORD_EXPRESSION.get(target));
         }
     }
 

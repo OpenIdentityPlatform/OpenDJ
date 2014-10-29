@@ -218,8 +218,7 @@ class ReplicationDB
     {
       throw new ChangelogException(
           ERR_EXCEPTION_COULD_NOT_ADD_CHANGE_TO_REPLICA_DB.get(
-              change.toString(), String.valueOf(baseDN),
-              String.valueOf(serverId), stackTraceToSingleLineString(e)));
+              change, baseDN, serverId, stackTraceToSingleLineString(e)));
     }
     finally
     {
@@ -450,7 +449,7 @@ class ReplicationDB
   @Override
   public String toString()
   {
-    return serverId + " " + baseDN.toString();
+    return serverId + " " + baseDN;
   }
 
   /** Hold a cursor and an indicator of wether the cursor should be considered as empty. */

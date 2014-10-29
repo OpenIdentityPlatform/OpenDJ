@@ -33,8 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 import javax.crypto.Mac;
 import javax.naming.directory.SearchControls;
@@ -47,11 +45,9 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.CryptoManagerException;
 import org.opends.server.types.DN;
@@ -66,7 +62,9 @@ import org.testng.annotations.Test;
 
 import com.forgerock.opendj.cli.CliConstants;
 
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -149,40 +147,32 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
   // TODO: other-than-default MAC
 
-  /**
-   Cipher parameters
-   */
   private class CipherParameters {
     private final String fAlgorithm;
     private final String fMode;
     private final String fPadding;
     private final int fKeyLength;
-    private final int fIVLength;
 
     public CipherParameters(final String algorithm, final String mode,
-                            final String padding, final int keyLength,
-                            final int ivLength) {
+                            final String padding, final int keyLength) {
       fAlgorithm = algorithm;
       fMode = mode;
       fPadding = padding;
       fKeyLength = keyLength;
-      fIVLength = ivLength;
     }
 
     public String getTransformation() {
-      if (null == fAlgorithm) return null; // default
-      return (null == fMode)
-              ? fAlgorithm
-              : (new StringBuilder(fAlgorithm)).append("/").append(fMode)
-                .append("/").append(fPadding).toString();
+      if (null != fAlgorithm)
+      {
+        return fMode != null
+                  ? fAlgorithm + "/" + fMode + "/" + fPadding
+                  : fAlgorithm;
+      }
+      return null;
     }
 
     public int getKeyLength() {
       return fKeyLength;
-    }
-
-    public int getIVLength() {
-      return fIVLength;
     }
   }
 
@@ -194,28 +184,20 @@ public class CryptoManagerTestCase extends CryptoTestCase {
    */
   @DataProvider(name = "cipherParametersData")
   public Object[][] cipherParametersData() {
-
-    List<CipherParameters> paramList = new LinkedList<CipherParameters>();
-    // default (preferred) AES/CBC/PKCS5Padding 128bit key.
-    paramList.add(new CipherParameters(null, null, null, 128, 128));
-    // custom
+    return new Object[][] {
+      // default (preferred) AES/CBC/PKCS5Padding 128bit key.
+      { new CipherParameters(null, null, null, 128) },
+      // custom
 // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2448
-// TODO: paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 448, 64));
-// TODO: paramList.add(new CipherParameters("AES", "CBC", "PKCS5Padding", 256, 64));
-    paramList.add(new CipherParameters("AES", "CFB", "NoPadding", 128, 64));
-    paramList.add(new CipherParameters("Blowfish", "CFB", "NoPadding", 128, 64));
-    paramList.add(new CipherParameters("RC4", null, null, 104, 0));
-    paramList.add(new CipherParameters("RC4", "NONE", "NoPadding", 128, 0));
-    paramList.add(new CipherParameters("DES", "CFB", "NoPadding", 56, 64));
-    paramList.add(new CipherParameters("DESede", "ECB", "PKCS5Padding", 168, 64));
-
-    Object[][] cipherParameters = new Object[paramList.size()][1];
-    for (int i=0; i < paramList.size(); i++)
-    {
-      cipherParameters[i] = new Object[] { paramList.get(i) };
-    }
-
-    return cipherParameters;
+// TODO: { new CipherParameters("Blowfish", "CFB", "NoPadding", 448) },
+// TODO: { new CipherParameters("AES", "CBC", "PKCS5Padding", 256) },
+      { new CipherParameters("AES", "CFB", "NoPadding", 128) },
+      { new CipherParameters("Blowfish", "CFB", "NoPadding", 128) },
+      { new CipherParameters("RC4", null, null, 104) },
+      { new CipherParameters("RC4", "NONE", "NoPadding", 128) },
+      { new CipherParameters("DES", "CFB", "NoPadding", 56) },
+      { new CipherParameters("DESede", "ECB", "PKCS5Padding", 168) },
+    };
   }
 
 
@@ -367,19 +349,16 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     final String baseDNStr // TODO: is this DN defined elsewhere as a constant?
             = "cn=secret keys," + ADSContext.getAdministrationSuffixDN();
     final DN baseDN = DN.valueOf(baseDNStr);
-    final String FILTER_OC_INSTANCE_KEY
-            = new StringBuilder("(objectclass=")
-            .append(ConfigConstants.OC_CRYPTO_CIPHER_KEY)
-            .append(")").toString();
+    final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + OC_CRYPTO_CIPHER_KEY + ")";
     final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
-            .append(ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME)
+            .append(ATTR_CRYPTO_KEY_COMPROMISED_TIME)
             .append("=*))").toString();
     final String FILTER_CIPHER_TRANSFORMATION_NAME = new StringBuilder("(")
-            .append(ConfigConstants.ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME)
+            .append(ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME)
             .append("=").append(cipherTransformationName)
             .append(")").toString();
     final String FILTER_CIPHER_KEY_LENGTH = new StringBuilder("(")
-            .append(ConfigConstants.ATTR_CRYPTO_KEY_LENGTH_BITS)
+            .append(ATTR_CRYPTO_KEY_LENGTH_BITS)
             .append("=").append(String.valueOf(cipherKeyLength))
             .append(")").toString();
     final String searchFilter = new StringBuilder("(&")
@@ -395,11 +374,10 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     String compromisedTime = TimeThread.getGeneralizedTime();
     for (Entry e : searchOp.getSearchEntries()) {
       TestCaseUtils.applyModifications(true,
-        "dn: " + e.getName().toString(),
+        "dn: " + e.getName(),
         "changetype: modify",
-        "replace: " + ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME,
-        ConfigConstants.ATTR_CRYPTO_KEY_COMPROMISED_TIME + ": "
-                + compromisedTime);
+        "replace: " + ATTR_CRYPTO_KEY_COMPROMISED_TIME,
+        ATTR_CRYPTO_KEY_COMPROMISED_TIME + ": " + compromisedTime);
     }
     //Wait so the above asynchronous modification can be applied. The crypto
     //manager's cipherKeyEntryCache needs to be updated before the encrypt()
@@ -425,8 +403,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     // 3. Delete the compromised entry(ies) and ensure ciphertext produced
     // using a compromised key can no longer be decrypted.
     for (Entry e : searchOp.getSearchEntries()) {
-      TestCaseUtils.applyModifications(true,
-        "dn: " + e.getName().toString(), "changetype: delete");
+      TestCaseUtils.applyModifications(true, "dn: " + e.getName(), "changetype: delete");
     }
     Thread.sleep(1000); // Clearing the cache is asynchronous.
     try {
