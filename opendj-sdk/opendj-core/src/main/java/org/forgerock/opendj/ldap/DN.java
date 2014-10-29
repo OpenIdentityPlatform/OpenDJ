@@ -22,13 +22,9 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
-
-import static com.forgerock.opendj.util.StaticUtils.getBytes;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_DN_TYPE_NOT_FOUND;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -48,6 +44,9 @@ import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * A distinguished name (DN) as defined in RFC 4512 section 2.3 is the
@@ -274,10 +273,9 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             if (dn2.isRootDN()) {
                 // both are equal.
                 return 0;
-            } else {
-                // dn1 comes before dn2.
-                return -1;
             }
+            // dn1 comes before dn2.
+            return -1;
         }
 
         if (dn2.isRootDN()) {
@@ -483,6 +481,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public int compareTo(final DN dn) {
         return compareTo(this, dn);
     }
@@ -740,14 +739,17 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *
      * @return An iterator of the RDNs contained in this DN.
      */
+    @Override
     public Iterator<RDN> iterator() {
         return new Iterator<RDN>() {
             private DN dn = DN.this;
 
+            @Override
             public boolean hasNext() {
                 return dn.rdn != null;
             }
 
+            @Override
             public RDN next() {
                 if (dn.rdn == null) {
                     throw new NoSuchElementException();
@@ -758,6 +760,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
                 return rdn;
             }
 
+            @Override
             public void remove() {
                 throw new UnsupportedOperationException();
             }
@@ -921,11 +924,11 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @return The normalized string representation of the provided DN, not usable as a valid DN
      */
     public ByteString toIrreversibleNormalizedByteString() {
-        final StringBuilder builder = new StringBuilder(size());
         if (rdn() == null) {
             return ByteString.empty();
         }
 
+        final StringBuilder builder = new StringBuilder(size());
         int i = size() - 1;
         normalizeRDN(builder, parent(i).rdn());
         for (i--; i >= 0; i--) {
