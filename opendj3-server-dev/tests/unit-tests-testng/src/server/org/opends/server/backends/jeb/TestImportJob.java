@@ -26,23 +26,26 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.tasks.TaskUtils;
-import org.opends.server.core.DirectoryServer;
-import static org.opends.server.util.ServerConstants.OC_TOP;
-import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
-import org.opends.server.types.*;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
-import static org.testng.Assert.*;
-
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.io.ByteArrayOutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.tasks.TaskUtils;
+import org.opends.server.types.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class TestImportJob extends JebTestCase
@@ -310,16 +313,7 @@ public class TestImportJob extends JebTestCase
     importConfig.writeRejectedEntries(rejectedEntries);
     importConfig.writeSkippedEntries(skippedEntries);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
-    try
-    {
-      be.importLDIF(importConfig);
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    importLDIF(importConfig);
 
     be = (BackendImpl) DirectoryServer.getBackend(beID);
     RootContainer rootContainer = be.getRootContainer();
@@ -407,16 +401,7 @@ public class TestImportJob extends JebTestCase
     importConfig.setIncludeBranches(includeBranches);
     importConfig.setExcludeBranches(excludeBranches);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
-    try
-    {
-      be.importLDIF(importConfig);
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    importLDIF(importConfig);
 
     be = (BackendImpl) DirectoryServer.getBackend(beID);
     RootContainer rootContainer = be.getRootContainer();
@@ -491,16 +476,7 @@ public class TestImportJob extends JebTestCase
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
-    try
-    {
-      be.importLDIF(importConfig);
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    importLDIF(importConfig);
 
     be = (BackendImpl) DirectoryServer.getBackend(beID);
     RootContainer rootContainer = be.getRootContainer();
@@ -550,16 +526,8 @@ public class TestImportJob extends JebTestCase
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
-    try
-    {
-      be.importLDIF(importConfig);
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    importLDIF(importConfig);
+
     assertTrue(rejectedEntries.toString().contains(
         "uid=user.446,dc=importtest1,dc=com"));
   }
@@ -576,16 +544,7 @@ public class TestImportJob extends JebTestCase
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
-    try
-    {
-      be.importLDIF(importConfig);
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    importLDIF(importConfig);
 
     importConfig = new LDIFImportConfig(homeDirName + File.separator
         + "entries1.ldif");
@@ -593,16 +552,7 @@ public class TestImportJob extends JebTestCase
     importConfig.setReplaceExistingEntries(false);
     importConfig.setValidateSchema(true);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
-    try
-    {
-      be.importLDIF(importConfig);
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    importLDIF(importConfig);
 
     be = (BackendImpl) DirectoryServer.getBackend(beID);
     RootContainer rootContainer = be.getRootContainer();
@@ -657,16 +607,7 @@ public class TestImportJob extends JebTestCase
     importConfig.setValidateSchema(true);
     importConfig.writeRejectedEntries(rejectedEntries);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
-    try
-    {
-      be.importLDIF(importConfig);
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
+    importLDIF(importConfig);
 
     assertTrue(rejectedEntries.toString().contains(
         "uid=user.446,dc=importtest1,dc=com"));
@@ -688,6 +629,16 @@ public class TestImportJob extends JebTestCase
     importConfig.setExcludeBranches(excludeBranches);
     importConfig.writeSkippedEntries(skippedEntries);
 
+    importLDIF(importConfig);
+
+    assertTrue(skippedEntries.toString().contains(
+        "dc=skipped,dc=importtest1,dc=com"));
+    assertTrue(skippedEntries.toString().contains(
+        "uid=user.446,dc=skipped,dc=importtest1,dc=com"));
+  }
+
+  private void importLDIF(LDIFImportConfig importConfig) throws DirectoryException
+  {
     be = (BackendImpl) DirectoryServer.getBackend(beID);
     TaskUtils.disableBackend(beID);
     try
@@ -698,13 +649,7 @@ public class TestImportJob extends JebTestCase
     {
       TaskUtils.enableBackend(beID);
     }
-    assertTrue(skippedEntries.toString().contains(
-        "dc=skipped,dc=importtest1,dc=com"));
-    assertTrue(skippedEntries.toString().contains(
-        "uid=user.446,dc=skipped,dc=importtest1,dc=com"));
   }
-
-
 
   /**
    * Builds an entry suitable for using in the verify job to gather statistics
