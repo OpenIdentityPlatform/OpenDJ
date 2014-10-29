@@ -66,6 +66,20 @@ public final class CollectionUtils
   }
 
   /**
+   * Creates a new {@link List} with the provided elements.
+   *
+   * @param <E>
+   *          the elements' type
+   * @param elements
+   *          the elements to add to the new List
+   * @return a new ArrayList with the provided elements
+   */
+  public static <E> List<E> newList(E... elements)
+  {
+    return newArrayList(elements);
+  }
+
+  /**
    * Creates a new {@link HashSet} with the provided elements.
    *
    * @param <E>
@@ -105,5 +119,33 @@ public final class CollectionUtils
   public static <E> TreeSet<E> newTreeSet(E... elements)
   {
     return new TreeSet<E>(Arrays.asList(elements));
+  }
+
+  /**
+   * Creates a new {@link SortedSet} with the provided elements.
+   *
+   * @param <E>
+   *          the elements' type
+   * @param elements
+   *          the elements to add to the new SortedSet
+   * @return a new TreeSet with the provided elements
+   */
+  public static <E> SortedSet<E> newSortedSet(E... elements)
+  {
+    return newTreeSet(elements);
+  }
+
+  /**
+   * Creates a new {@link Set} with the provided elements.
+   *
+   * @param <E>
+   *          the elements' type
+   * @param elements
+   *          the elements to add to the new Set
+   * @return a new TreeSet with the provided elements
+   */
+  public static <E> Set<E> newSet(E... elements)
+  {
+    return newHashSet(elements);
   }
 }

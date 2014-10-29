@@ -52,8 +52,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**

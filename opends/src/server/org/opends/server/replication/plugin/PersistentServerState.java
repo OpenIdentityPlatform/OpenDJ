@@ -28,6 +28,7 @@ package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -59,6 +60,8 @@ class PersistentServerState
     * The attribute name used to store the state in the backend.
     */
    private static final String REPLICATION_STATE = "ds-sync-state";
+  private static final LinkedHashSet<String> REPLICATION_STATE_ATTRS =
+      new LinkedHashSet<String>(Collections.singleton(REPLICATION_STATE));
 
   /**
    * Create a new PersistentServerState based on an already existing
@@ -160,7 +163,7 @@ class PersistentServerState
        */
       final InternalSearchOperation search = getRootConnection().processSearch(
           baseDN, SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
-          0, 0, false, filter, Collections.singleton(REPLICATION_STATE));
+          0, 0, false, filter, REPLICATION_STATE_ATTRS);
       final ResultCode resultCode = search.getResultCode();
       if (resultCode != ResultCode.SUCCESS
           && resultCode != ResultCode.NO_SUCH_OBJECT)
@@ -197,7 +200,7 @@ class PersistentServerState
           DN.decode("cn=config"),
           SearchScope.SUBORDINATE_SUBTREE,
           DereferencePolicy.NEVER_DEREF_ALIASES,
-          1, 0, false, filter, Collections.singleton(REPLICATION_STATE));
+          1, 0, false, filter, REPLICATION_STATE_ATTRS);
       return getFirstResult(op);
     }
     catch (DirectoryException e)

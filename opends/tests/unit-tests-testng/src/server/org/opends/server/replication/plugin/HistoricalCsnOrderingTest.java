@@ -46,6 +46,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.*;
+import org.opends.server.util.CollectionUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;
 
@@ -70,7 +71,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     private TestBroker(List<ReplicationMsg> list)
     {
       super(new DummyReplicationDomain(0), null,
-          new DomainFakeCfg(null, 0, TestCaseUtils.<String> newSortedSet()), null);
+          new DomainFakeCfg(null, 0, CollectionUtils.<String> newSortedSet()), null);
       this.list = list;
     }
 

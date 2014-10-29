@@ -1922,21 +1922,6 @@ public final class TestCaseUtils {
              "--set", "enabled:" + enabled);
   }
 
-  public static <T> Set<T> newSet(T... elems)
-  {
-    return new HashSet<T>(Arrays.asList(elems));
-  }
-
-  public static <T> SortedSet<T> newSortedSet(T... elems)
-  {
-    return new TreeSet<T>(Arrays.asList(elems));
-  }
-
-  public static <T> List<T> newList(T... elems)
-  {
-    return new ArrayList<T>(Arrays.asList(elems));
-  }
-
   /** Saves a thread dump in a file with the provided id used in file prefix. */
   public static void generateThreadDump(String id)
   {

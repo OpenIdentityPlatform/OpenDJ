@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 import static java.util.Collections.*;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")

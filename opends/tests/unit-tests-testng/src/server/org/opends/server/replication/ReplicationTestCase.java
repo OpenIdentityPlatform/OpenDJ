@@ -60,13 +60,13 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.DirectoryStringSyntax.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.types.SearchScope.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**

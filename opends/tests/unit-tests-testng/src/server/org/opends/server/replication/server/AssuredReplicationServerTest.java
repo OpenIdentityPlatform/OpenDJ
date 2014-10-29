@@ -63,6 +63,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
 
 /**
