@@ -45,6 +45,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
+import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -539,8 +540,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     //Create a persistent search request.
-    Set<String> attributes = new LinkedHashSet<String>();
-    attributes.add("cn");
+    LinkedHashSet<String> attributes = newLinkedHashSet("cn");
     List<Control> controls = new LinkedList<Control>();
           // Creates psearch control
     Set<PersistentSearchChangeType> changeTypes =

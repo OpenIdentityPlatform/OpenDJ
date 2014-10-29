@@ -78,7 +78,7 @@ public class UniqueAttributePlugin
    * The set of attributes that will be requested when performing internal
    * search operations.  This indicates that no attributes should be returned.
    */
-  private static final Set<String> SEARCH_ATTRS = new LinkedHashSet<String>(1);
+  private static final LinkedHashSet<String> SEARCH_ATTRS = new LinkedHashSet<String>(1);
   static
   {
     SEARCH_ATTRS.add(SchemaConstants.NO_ATTRIBUTES);

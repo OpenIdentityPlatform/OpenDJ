@@ -634,7 +634,7 @@ public class TestBackendImpl extends JebTestCase {
   public void testSearchIndex() throws Exception {
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    Set<String> attribs = new LinkedHashSet<String>();
+    LinkedHashSet<String> attribs = new LinkedHashSet<String>();
 
     String debugString;
     int finalStartPos;
@@ -1288,7 +1288,7 @@ public class TestBackendImpl extends JebTestCase {
 
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    Set<String> attribs = new LinkedHashSet<String>();
+    LinkedHashSet<String> attribs = new LinkedHashSet<String>();
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
     InternalSearchOperation search =
@@ -1470,7 +1470,7 @@ public class TestBackendImpl extends JebTestCase {
 
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    Set<String> attribs = new LinkedHashSet<String>();
+    LinkedHashSet<String> attribs = new LinkedHashSet<String>();
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
     InternalSearchOperation search =

@@ -146,7 +146,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
    * When used in a search operation, it includes all attributes (user and
    * operational)
    */
-  private static final Set<String> ALL_ATTRIBUTES = newSet("*", "+");
+  private static final LinkedHashSet<String> ALL_ATTRIBUTES = newLinkedHashSet("*", "+");
   private static final List<Control> NO_CONTROL = null;
 
   @BeforeClass
@@ -776,8 +776,8 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     String testName = "attributesVisibleOutsideRootDSE";
     debugInfo(testName, "Starting test \n\n");
 
-    Set<String> attributes =
-        newSet("firstchangenumber", "lastchangenumber", "changelog", "lastExternalChangelogCookie");
+    LinkedHashSet<String> attributes =
+        newLinkedHashSet("firstchangenumber", "lastchangenumber", "changelog", "lastExternalChangelogCookie");
 
     InternalSearchOperation searchOp = searchDNWithBaseScope(TEST_ROOT_DN_STRING, attributes);
     waitForSearchOpResult(searchOp, ResultCode.SUCCESS);
@@ -849,7 +849,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     {
       try
       {
-        final Set<String> attributes = new LinkedHashSet<String>();
+        final LinkedHashSet<String> attributes = new LinkedHashSet<String>();
         if (expectedFirstChangeNumber > 0)
         {
           attributes.add("firstchangenumber");
@@ -900,7 +900,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     String cookie = "";
     LDIFWriter ldifWriter = getLDIFWriter();
 
-    InternalSearchOperation searchOp = searchDNWithBaseScope("", newSet("lastExternalChangelogCookie"));
+    InternalSearchOperation searchOp = searchDNWithBaseScope("", newLinkedHashSet("lastExternalChangelogCookie"));
     List<SearchResultEntry> entries = searchOp.getSearchEntries();
     if (entries != null)
     {
@@ -1108,7 +1108,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return searchChangelog(filterString, ALL_ATTRIBUTES, NO_CONTROL, expectedNbEntries, expectedResultCode, testName);
   }
 
-  private InternalSearchOperation searchChangelog(String filterString, Set<String> attributes,
+  private InternalSearchOperation searchChangelog(String filterString, LinkedHashSet<String> attributes,
       List<Control> controls, int expectedNbEntries, ResultCode expectedResultCode, String testName) throws Exception
   {
     InternalSearchOperation searchOperation = null;
@@ -1134,7 +1134,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return searchOperation;
   }
 
-  private InternalSearchOperation searchDNWithBaseScope(String dn, Set<String> attributes) throws Exception
+  private InternalSearchOperation searchDNWithBaseScope(String dn, LinkedHashSet<String> attributes) throws Exception
   {
     final InternalSearchOperation searchOp = connection.processSearch(
         dn,
