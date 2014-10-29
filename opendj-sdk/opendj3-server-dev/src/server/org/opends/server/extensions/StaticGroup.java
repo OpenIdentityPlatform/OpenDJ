@@ -33,20 +33,20 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.adapter.server3x.Converters;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DN.CompactDn;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -64,56 +64,52 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
 
 /**
- * This class provides a static group implementation, in which the DNs
- * of all members are explicitly listed.  There are three variants of
- * static groups:  two based on the {@code groupOfNames} and
- * {@code groupOfEntries} object classes, which store the member list in
- * the {@code member} attribute, and one based on the
- * {@code groupOfUniqueNames} object class, which stores the member list
- * in the {@code uniqueMember} attribute.
+ * A static group implementation, in which the DNs of all members are explicitly
+ * listed.
+ * <p>
+ * There are three variants of static groups:
+ * <ul>
+ *   <li>one based on the {@code groupOfNames} object class: which stores the
+ * member list in the {@code member} attribute</li>
+ *   <li>one based on the {@code groupOfEntries} object class, which also stores
+ * the member list in the {@code member} attribute</li>
+ *   <li>one based on the {@code groupOfUniqueNames} object class, which stores
+ * the member list in the {@code uniqueMember} attribute.</li>
+ * </ul>
  */
-public class StaticGroup
-       extends Group<StaticGroupImplementationCfg>
+public class StaticGroup extends Group<StaticGroupImplementationCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The attribute type used to hold the membership list for this group.
+  /** The attribute type used to hold the membership list for this group. */
   private AttributeType memberAttributeType;
 
-  // The DN of the entry that holds the definition for this group.
+  /** The DN of the entry that holds the definition for this group. */
   private DN groupEntryDN;
 
-  // The set of the DNs of the members for this group.
-  private LinkedHashSet<ByteString> memberDNs;
+  /** The set of the DNs of the members for this group. */
+  private LinkedHashSet<CompactDn> memberDNs;
 
-  //The list of nested group DNs for this group.
+  /** The list of nested group DNs for this group. */
   private LinkedList<DN> nestedGroups = new LinkedList<DN>();
 
-  //Passed to the group manager to see if the nested group list needs to be
-  //refreshed.
-  private long nestedGroupRefreshToken =
-                              DirectoryServer.getGroupManager().refreshToken();
-
-
+  /** Passed to the group manager to see if the nested group list needs to be refreshed. */
+  private long nestedGroupRefreshToken = DirectoryServer.getGroupManager().refreshToken();
 
   /**
-   * Creates a new, uninitialized static group instance.  This is intended for
-   * internal use only.
+   * Creates an uninitialized static group. This is intended for internal use
+   * only, to allow {@code GroupManager} to dynamically create a group.
    */
   public StaticGroup()
   {
     super();
-
-
-    // No initialization is required here.
   }
-
-
 
   /**
    * Creates a new static group instance with the provided information.
@@ -125,12 +121,9 @@ public class StaticGroup
    * @param  memberDNs            The set of the DNs of the members for this
    *                              group.
    */
-  public StaticGroup(DN groupEntryDN, AttributeType memberAttributeType,
-                     LinkedHashSet<ByteString> memberDNs)
+  private StaticGroup(DN groupEntryDN, AttributeType memberAttributeType, LinkedHashSet<CompactDn> memberDNs)
   {
     super();
-
-
     ifNull(groupEntryDN, memberAttributeType, memberDNs);
 
     this.groupEntryDN        = groupEntryDN;
@@ -138,85 +131,66 @@ public class StaticGroup
     this.memberDNs           = memberDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public void initializeGroupImplementation(
-                   StaticGroupImplementationCfg configuration)
+  public void initializeGroupImplementation(StaticGroupImplementationCfg configuration)
          throws ConfigException, InitializationException
   {
     // No additional initialization is required.
   }
 
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public StaticGroup newInstance(Entry groupEntry)
-         throws DirectoryException
+  public StaticGroup newInstance(Entry groupEntry) throws DirectoryException
   {
     ifNull(groupEntry);
-
 
     // Determine whether it is a groupOfNames, groupOfEntries or
     // groupOfUniqueNames entry.  If not, then that's a problem.
     AttributeType someMemberAttributeType;
-    ObjectClass groupOfEntriesClass =
-         DirectoryConfig.getObjectClass(OC_GROUP_OF_ENTRIES_LC, true);
-    ObjectClass groupOfNamesClass =
-         DirectoryConfig.getObjectClass(OC_GROUP_OF_NAMES_LC, true);
-    ObjectClass groupOfUniqueNamesClass =
-         DirectoryConfig.getObjectClass(OC_GROUP_OF_UNIQUE_NAMES_LC, true);
+    ObjectClass groupOfEntriesClass = DirectoryConfig.getObjectClass(OC_GROUP_OF_ENTRIES_LC, true);
+    ObjectClass groupOfNamesClass = DirectoryConfig.getObjectClass(OC_GROUP_OF_NAMES_LC, true);
+    ObjectClass groupOfUniqueNamesClass = DirectoryConfig.getObjectClass(OC_GROUP_OF_UNIQUE_NAMES_LC, true);
     if (groupEntry.hasObjectClass(groupOfEntriesClass))
     {
       if (groupEntry.hasObjectClass(groupOfNamesClass))
       {
-        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_NAMES);
+        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.get(
+            groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
       else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
-        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_UNIQUE_NAMES);
+        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.get(
+            groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      someMemberAttributeType = DirectoryConfig
-              .getAttributeType(ATTR_MEMBER, true);
+      someMemberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
     }
     else if (groupEntry.hasObjectClass(groupOfNamesClass))
     {
       if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
       {
-        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.
-            get(groupEntry.getName(), OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
+        LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.get(
+            groupEntry.getName(), OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
 
-      someMemberAttributeType = DirectoryConfig
-              .getAttributeType(ATTR_MEMBER, true);
+      someMemberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
     }
     else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
     {
-      someMemberAttributeType =
-           DirectoryConfig.getAttributeType(ATTR_UNIQUE_MEMBER_LC, true);
+      someMemberAttributeType = DirectoryConfig.getAttributeType(ATTR_UNIQUE_MEMBER_LC, true);
     }
     else
     {
-      LocalizableMessage message = ERR_STATICGROUP_NO_VALID_OC.
-          get(groupEntry.getName(), OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
+      LocalizableMessage message =
+          ERR_STATICGROUP_NO_VALID_OC.get(groupEntry.getName(), OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    List<Attribute> memberAttrList =
-         groupEntry.getAttribute(someMemberAttributeType);
+    List<Attribute> memberAttrList = groupEntry.getAttribute(someMemberAttributeType);
     int membersCount = 0;
     if (memberAttrList != null)
     {
@@ -225,45 +199,36 @@ public class StaticGroup
         membersCount += a.size();
       }
     }
-    LinkedHashSet<ByteString> someMemberDNs =
-            new LinkedHashSet<ByteString>(membersCount);
+    LinkedHashSet<CompactDn> someMemberDNs = new LinkedHashSet<CompactDn>(membersCount);
 
     if (memberAttrList != null)
     {
       for (Attribute a : memberAttrList)
       {
-        MatchingRule eqRule = a.getAttributeType().getEqualityMatchingRule();
         for (ByteString v : a)
         {
           try
           {
-            someMemberDNs.add(eqRule.normalizeAttributeValue(v));
+            someMemberDNs.add(org.forgerock.opendj.ldap.DN.valueOf(v.toString()).compact());
           }
-          catch (DecodeException de)
+          catch (LocalizedIllegalArgumentException e)
           {
-            logger.traceException(de);
+            logger.traceException(e);
             logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v,
-                someMemberAttributeType.getNameOrOID(), groupEntry.getName(), de.getMessageObject());
+                someMemberAttributeType.getNameOrOID(), groupEntry.getName(), e.getMessageObject());
           }
         }
       }
     }
-
-    return new StaticGroup(groupEntry.getName(),
-            someMemberAttributeType, someMemberDNs);
+    return new StaticGroup(groupEntry.getName(), someMemberAttributeType, someMemberDNs);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
   {
-    // FIXME -- This needs to exclude enhanced groups once we have support for
-    // them.
+    // FIXME -- This needs to exclude enhanced groups once we have support for them.
     String filterString =
          "(&(|(objectClass=groupOfNames)(objectClass=groupOfUniqueNames)" +
             "(objectClass=groupOfEntries))" +
@@ -271,18 +236,13 @@ public class StaticGroup
     return SearchFilter.createFilterFromString(filterString);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isGroupDefinition(Entry entry)
   {
     ifNull(entry);
 
-    // FIXME -- This needs to exclude enhanced groups once we have support for
-    //them.
+    // FIXME -- This needs to exclude enhanced groups once we have support for them.
     ObjectClass virtualStaticGroupClass =
          DirectoryConfig.getObjectClass(OC_VIRTUAL_STATIC_GROUP, true);
     if (entry.hasObjectClass(virtualStaticGroupClass))
@@ -325,44 +285,28 @@ public class StaticGroup
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public DN getGroupDN()
   {
     return groupEntryDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setGroupDN(DN groupDN)
   {
     groupEntryDN = groupDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsNestedGroups()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public List<DN> getNestedGroupDNs()
   {
@@ -374,42 +318,30 @@ public class StaticGroup
     return nestedGroups;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
-     ifNull(nestedGroupDN);
+    ifNull(nestedGroupDN);
 
     synchronized (this)
     {
       if (nestedGroups.contains(nestedGroupDN))
       {
-        LocalizableMessage msg = ERR_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS.get(
-            nestedGroupDN, groupEntryDN);
+        LocalizableMessage msg = ERR_STATICGROUP_ADD_NESTED_GROUP_ALREADY_EXISTS.get(nestedGroupDN, groupEntryDN);
         throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, msg);
       }
 
-      Attribute attr = Attributes.create(memberAttributeType,
-          nestedGroupDN.toString());
+      Attribute attr = Attributes.create(memberAttributeType, nestedGroupDN.toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.ADD, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
-                                      false));
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis modifyOperation =
-           new ModifyOperationBasis(conn,
-                   InternalClientConnection.nextOperationID(),
-                   InternalClientConnection.nextMessageID(), requestControls,
-                               groupEntryDN, mods);
+      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
+          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
@@ -418,23 +350,17 @@ public class StaticGroup
         throw new DirectoryException(modifyOperation.getResultCode(), msg);
       }
 
-
       LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
       newNestedGroups.add(nestedGroupDN);
       nestedGroups = newNestedGroups;
       //Add it to the member DN list.
-      LinkedHashSet<ByteString> newMemberDNs =
-              new LinkedHashSet<ByteString>(memberDNs);
-      newMemberDNs.add(ByteString.valueOf(nestedGroupDN.toNormalizedString()));
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs);
+      newMemberDNs.add(toCompactDn(nestedGroupDN));
       memberDNs = newMemberDNs;
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
@@ -445,65 +371,48 @@ public class StaticGroup
     {
       if (! nestedGroups.contains(nestedGroupDN))
       {
-        throw new DirectoryException(
-                ResultCode.NO_SUCH_ATTRIBUTE,
+        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                 ERR_STATICGROUP_REMOVE_NESTED_GROUP_NO_SUCH_GROUP.get(nestedGroupDN, groupEntryDN));
       }
 
-      Attribute attr = Attributes.create(memberAttributeType,
-          nestedGroupDN.toString());
+      Attribute attr = Attributes.create(memberAttributeType, nestedGroupDN.toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.DELETE, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
-                                      false));
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis modifyOperation =
-           new ModifyOperationBasis(conn,
-                   InternalClientConnection.nextOperationID(),
-                   InternalClientConnection.nextMessageID(), requestControls,
-                   groupEntryDN, mods);
+      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
+          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        throw new DirectoryException(
-                modifyOperation.getResultCode(),
-                ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.get(
-                    nestedGroupDN, groupEntryDN, modifyOperation.getErrorMessage()));
+        LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.get(
+            nestedGroupDN, groupEntryDN, modifyOperation.getErrorMessage());
+        throw new DirectoryException(modifyOperation.getResultCode(), message);
       }
-
 
       LinkedList<DN> newNestedGroups = new LinkedList<DN>(nestedGroups);
       newNestedGroups.remove(nestedGroupDN);
       nestedGroups = newNestedGroups;
       //Remove it from the member DN list.
-      LinkedHashSet<ByteString> newMemberDNs =
-              new LinkedHashSet<ByteString>(memberDNs);
-      newMemberDNs.remove(
-              ByteString.valueOf(nestedGroupDN.toNormalizedString()));
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs);
+      newMemberDNs.remove(toCompactDn(nestedGroupDN));
       memberDNs = newMemberDNs;
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public boolean isMember(DN userDN, Set<DN> examinedGroups)
-          throws DirectoryException
+  public boolean isMember(DN userDN, Set<DN> examinedGroups) throws DirectoryException
   {
     reloadIfNeeded();
-    ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
-    if(memberDNs.contains(userDNString))
+    CompactDn compactUserDN = toCompactDn(userDN);
+    if (memberDNs.contains(compactUserDN))
     {
       return true;
     }
-    else if (! examinedGroups.add(getGroupDN()))
+    else if (!examinedGroups.add(getGroupDN()))
     {
       return false;
     }
@@ -511,9 +420,8 @@ public class StaticGroup
     {
       for(DN nestedGroupDN : nestedGroups)
       {
-        Group<? extends GroupImplementationCfg> g =
-            DirectoryServer.getGroupManager().getGroupInstance(nestedGroupDN);
-        if((g != null) && (g.isMember(userDN, examinedGroups)))
+        Group<? extends GroupImplementationCfg> group = getGroupManager().getGroupInstance(nestedGroupDN);
+        if (group != null && group.isMember(userDN, examinedGroups))
         {
           return true;
         }
@@ -522,11 +430,7 @@ public class StaticGroup
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
@@ -534,108 +438,83 @@ public class StaticGroup
     return isMember(userEntry.getName(), examinedGroups);
   }
 
-
-
   /**
    * Check if the group manager has registered a new group instance or removed a
    * a group instance that might impact this group's membership list.
    */
-  private void
-  reloadIfNeeded() throws DirectoryException
+  private void reloadIfNeeded() throws DirectoryException
   {
     //Check if group instances have changed by passing the group manager
     //the current token.
-    if(DirectoryServer.getGroupManager().
-            hasInstancesChanged(nestedGroupRefreshToken))
+    if (DirectoryServer.getGroupManager().hasInstancesChanged(nestedGroupRefreshToken))
     {
       synchronized (this)
       {
-        Group thisGroup =
-               DirectoryServer.getGroupManager().getGroupInstance(groupEntryDN);
-        //Check if the group itself has been removed
-        if(thisGroup == null) {
-          throw new DirectoryException(
-                  ResultCode.NO_SUCH_ATTRIBUTE,
+        Group<?> thisGroup = DirectoryServer.getGroupManager().getGroupInstance(groupEntryDN);
+        // Check if the group itself has been removed
+        if (thisGroup == null) {
+          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                   ERR_STATICGROUP_GROUP_INSTANCE_INVALID.get(groupEntryDN));
-        } else if(thisGroup != this) {
-          LinkedHashSet<ByteString> newMemberDNs =
-                  new LinkedHashSet<ByteString>();
-          MemberList memberList=thisGroup.getMembers();
-          while (memberList.hasMoreMembers()) {
-            try {
-              newMemberDNs.add(ByteString.valueOf(
-                      memberList.nextMemberDN().toNormalizedString()));
-            } catch (MembershipException ex) {}
+        } else if (thisGroup != this) {
+          LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>();
+          MemberList memberList = thisGroup.getMembers();
+          while (memberList.hasMoreMembers())
+          {
+            try
+            {
+              newMemberDNs.add(toCompactDn(memberList.nextMemberDN()));
+            }
+            catch (MembershipException ex)
+            {
+              // TODO: should we throw an exception there instead of silently fail ?
+            }
           }
-          memberDNs=newMemberDNs;
+          memberDNs = newMemberDNs;
         }
         LinkedList<DN> newNestedGroups = new LinkedList<DN>();
-        for(ByteString dnString : memberDNs)
+        for (CompactDn compactDn : memberDNs)
         {
-          DN dn = DN.decode(dnString);
-          Group gr=DirectoryServer.getGroupManager().getGroupInstance(dn);
-          if(gr != null)
+          DN dn = fromCompactDn(compactDn);
+          Group<?> group = DirectoryServer.getGroupManager().getGroupInstance(dn);
+          if (group != null)
           {
-            newNestedGroups.add(gr.getGroupDN());
+            newNestedGroups.add(group.getGroupDN());
           }
         }
-        nestedGroupRefreshToken =
-                DirectoryServer.getGroupManager().refreshToken();
+        nestedGroupRefreshToken = DirectoryServer.getGroupManager().refreshToken();
         nestedGroups=newNestedGroups;
       }
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public MemberList getMembers()
-         throws DirectoryException
+  public MemberList getMembers() throws DirectoryException
   {
     reloadIfNeeded();
     return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public MemberList getMembers(DN baseDN, SearchScope scope,
-                               SearchFilter filter)
-         throws DirectoryException
+  public MemberList getMembers(DN baseDN, SearchScope scope, SearchFilter filter) throws DirectoryException
   {
     reloadIfNeeded();
-    if ((baseDN == null) && (filter == null))
+    if (baseDN == null && filter == null)
     {
       return new SimpleStaticGroupMemberList(groupEntryDN, memberDNs);
     }
-    else
-    {
-      return new FilteredStaticGroupMemberList(groupEntryDN, memberDNs, baseDN,
-                                               scope, filter);
-    }
+    return new FilteredStaticGroupMemberList(groupEntryDN, memberDNs, baseDN, scope, filter);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean mayAlterMemberList()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
@@ -645,94 +524,70 @@ public class StaticGroup
     synchronized (this)
     {
       DN userDN = userEntry.getName();
-      ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
+      CompactDn compactUserDN = toCompactDn(userDN);
 
-      if (memberDNs.contains(userDNString))
+      if (memberDNs.contains(compactUserDN))
       {
         LocalizableMessage message = ERR_STATICGROUP_ADD_MEMBER_ALREADY_EXISTS.get(userDN, groupEntryDN);
         throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS, message);
       }
 
-      Attribute attr = Attributes.create(memberAttributeType, userDN
-          .toString());
+      Attribute attr = Attributes.create(memberAttributeType, userDN.toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.ADD, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
-                                      false));
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis modifyOperation =
-           new ModifyOperationBasis(conn, nextOperationID(),
-                               nextMessageID(), requestControls,
-                               groupEntryDN, mods);
+      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
+          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        LocalizableMessage message = ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.
-            get(userDN, groupEntryDN, modifyOperation.getErrorMessage());
-        throw new DirectoryException(modifyOperation.getResultCode(), message);
+        throw new DirectoryException(modifyOperation.getResultCode(),
+            ERR_STATICGROUP_ADD_MEMBER_UPDATE_FAILED.get(userDN, groupEntryDN, modifyOperation.getErrorMessage()));
       }
 
-
-      LinkedHashSet<ByteString> newMemberDNs =
-           new LinkedHashSet<ByteString>(memberDNs.size()+1);
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs.size()+1);
       newMemberDNs.addAll(memberDNs);
-      newMemberDNs.add(userDNString);
+      newMemberDNs.add(compactUserDN);
       memberDNs = newMemberDNs;
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public void removeMember(DN userDN)
-         throws UnsupportedOperationException, DirectoryException
+  public void removeMember(DN userDN) throws UnsupportedOperationException, DirectoryException
   {
     ifNull(userDN);
 
-    ByteString userDNString = ByteString.valueOf(userDN.toNormalizedString());
+    CompactDn compactUserDN = toCompactDn(userDN);
     synchronized (this)
     {
-      if (! memberDNs.contains(userDNString))
+      if (! memberDNs.contains(compactUserDN))
       {
         LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_NO_SUCH_MEMBER.get(userDN, groupEntryDN);
         throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
       }
 
-
-      Attribute attr = Attributes.create(memberAttributeType, userDN
-          .toString());
+      Attribute attr = Attributes.create(memberAttributeType, userDN.toString());
       LinkedList<Modification> mods = new LinkedList<Modification>();
       mods.add(new Modification(ModificationType.DELETE, attr));
 
       LinkedList<Control> requestControls = new LinkedList<Control>();
-      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
-                                      false));
+      requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
 
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperationBasis modifyOperation =
-           new ModifyOperationBasis(conn, nextOperationID(),
-                               nextMessageID(), requestControls,
-                               groupEntryDN, mods);
+      ModifyOperationBasis modifyOperation = new ModifyOperationBasis(
+          getRootConnection(), nextOperationID(), nextMessageID(), requestControls, groupEntryDN, mods);
       modifyOperation.run();
       if (modifyOperation.getResultCode() != ResultCode.SUCCESS)
       {
-        LocalizableMessage message = ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.
-            get(userDN, groupEntryDN, modifyOperation.getErrorMessage());
-        throw new DirectoryException(modifyOperation.getResultCode(), message);
+        throw new DirectoryException(modifyOperation.getResultCode(),
+            ERR_STATICGROUP_REMOVE_MEMBER_UPDATE_FAILED.get(userDN, groupEntryDN, modifyOperation.getErrorMessage()));
       }
 
-
-      LinkedHashSet<ByteString> newMemberDNs =
-              new LinkedHashSet<ByteString>(memberDNs);
-      newMemberDNs.remove(userDNString);
+      LinkedHashSet<CompactDn> newMemberDNs = new LinkedHashSet<CompactDn>(memberDNs);
+      newMemberDNs.remove(compactUserDN);
       memberDNs = newMemberDNs;
       //If it is in the nested group list remove it.
       if(nestedGroups.contains(userDN)) {
@@ -743,17 +598,37 @@ public class StaticGroup
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void toString(StringBuilder buffer)
   {
     buffer.append("StaticGroup(");
     buffer.append(groupEntryDN);
     buffer.append(")");
+  }
+
+  /**
+   * Convert the provided DN to a compact DN.
+   *
+   * @param dn
+   *            The DN
+   * @return the compact representation of the DN
+   */
+  static CompactDn toCompactDn(DN dn)
+  {
+    return Converters.from(dn).compact();
+  }
+
+  /**
+   * Convert the provided compact DN to a DN.
+   *
+   * @param compactDn
+   *            Compact representation of a DN
+   * @return the regular DN
+   */
+  static DN fromCompactDn(CompactDn compactDn)
+  {
+    return Converters.to(compactDn.toDn());
   }
 }
 

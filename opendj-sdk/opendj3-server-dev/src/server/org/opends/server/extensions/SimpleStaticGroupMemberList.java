@@ -29,20 +29,23 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.Set;
 
-import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN.CompactDn;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.extensions.StaticGroup.*;
 import static org.forgerock.util.Reject.*;
 
 
@@ -52,25 +55,15 @@ import static org.forgerock.util.Reject.*;
  * may be used in conjunction when static groups when no additional criteria is
  * to be used to select a subset of the group members.
  */
-public class SimpleStaticGroupMemberList
-       extends MemberList
+public class SimpleStaticGroupMemberList extends MemberList
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-
-  // The DN of the static group with which this member list is associated.
+  /** The DN of the static group with which this member list is associated. */
   private DN groupDN;
 
-  // The iterator used to traverse the set of member DNs.
-  private Iterator<ByteString> memberDNIterator;
-
-  // The set of DNs for the users that are members of the associated static
-  // group.
-  private ArrayList<ByteString> memberDNs;
-
-
+  /** The iterator used to traverse the set of member DNs. */
+  private Iterator<CompactDn> memberDNIterator;
 
   /**
    * Creates a new simple static group member list with the provided set of
@@ -81,70 +74,55 @@ public class SimpleStaticGroupMemberList
    * @param  memberDNs  The set of DNs for the users that are members of the
    *                    associated static group.
    */
-  public SimpleStaticGroupMemberList(DN groupDN, Set<ByteString> memberDNs)
+  public SimpleStaticGroupMemberList(DN groupDN, Set<CompactDn> memberDNs)
   {
     ifNull(groupDN, memberDNs);
-
     this.groupDN   = groupDN;
-    this.memberDNs = new ArrayList<ByteString>(memberDNs);
-    memberDNIterator = memberDNs.iterator();
+    this.memberDNIterator = memberDNs.iterator();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasMoreMembers()
   {
     return memberDNIterator.hasNext();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public DN nextMemberDN()
          throws MembershipException
   {
     DN dn = null;
-
     if (memberDNIterator.hasNext())
     {
-      try{
-        dn = DN.decode(memberDNIterator.next());
+      try
+      {
+        dn = fromCompactDn(memberDNIterator.next());
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
         // Should not happen
-        logger.traceException(de);
-        LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.get(dn, groupDN, de.getMessageObject());
-        throw new MembershipException(message, true, de);
+        logger.traceException(e);
+        throw new MembershipException(ERR_STATICMEMBERS_CANNOT_DECODE_DN.get(dn, groupDN, e.getMessageObject()),
+            true, e);
       }
     }
 
     return dn;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public Entry nextMemberEntry()
-         throws MembershipException
+  public Entry nextMemberEntry() throws MembershipException
   {
     if (memberDNIterator.hasNext())
     {
-      ByteString memberDN = memberDNIterator.next();
+      CompactDn memberDN = memberDNIterator.next();
 
       try
       {
-        Entry memberEntry = DirectoryConfig.getEntry(DN.decode(memberDN));
+        Entry memberEntry = DirectoryConfig.getEntry(fromCompactDn(memberDN));
         if (memberEntry == null)
         {
           LocalizableMessage message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(memberDN, groupDN);
@@ -156,20 +134,15 @@ public class SimpleStaticGroupMemberList
       catch (DirectoryException de)
       {
         logger.traceException(de);
-
-        LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_GET_ENTRY.get(memberDN, groupDN, de.getMessageObject());
-        throw new MembershipException(message, true, de);
+        throw new MembershipException(ERR_STATICMEMBERS_CANNOT_GET_ENTRY.get(memberDN, groupDN, de.getMessageObject()),
+            true, de);
       }
     }
 
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void close()
   {
