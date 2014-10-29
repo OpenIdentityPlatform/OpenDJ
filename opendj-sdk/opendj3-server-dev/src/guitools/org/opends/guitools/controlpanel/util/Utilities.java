@@ -142,13 +142,18 @@ public class Utilities
   private static File rootDirectory;
   private static File instanceRootDirectory;
 
-  private static String[] attrsToObfuscate =
-  {ServerConstants.ATTR_USER_PASSWORD};
+  private static final String HTML_SPACE = "&nbsp;";
+  private static final String[] attrsToObfuscate = { ServerConstants.ATTR_USER_PASSWORD };
+  private static final String[] passwordSyntaxOIDs = { SchemaConstants.SYNTAX_USER_PASSWORD_OID };
+  private static final String[] binarySyntaxOIDs = {
+    SchemaConstants.SYNTAX_BINARY_OID,
+    SchemaConstants.SYNTAX_JPEG_OID,
+    SchemaConstants.SYNTAX_CERTIFICATE_OID,
+    SchemaConstants.SYNTAX_OCTET_STRING_OID
+  };
 
   private static ImageIcon warningIcon;
-
   private static ImageIcon requiredIcon;
-
 
   private static LocalizableMessage NO_VALUE_SET =
     INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
@@ -194,23 +199,18 @@ public class Utilities
    */
   public static boolean mustObfuscate(String attrName, Schema schema)
   {
-    boolean toObfuscate = false;
-    if (schema == null)
+    if (schema != null)
     {
-      for (String attr : attrsToObfuscate)
+      return hasPasswordSyntax(attrName, schema);
+    }
+    for (String attr : attrsToObfuscate)
+    {
+      if (attr.equalsIgnoreCase(attrName))
       {
-        if (attr.equalsIgnoreCase(attrName))
-        {
-          toObfuscate = true;
-          break;
-        }
+        return true;
       }
     }
-    else
-    {
-      toObfuscate = hasPasswordSyntax(attrName, schema);
-    }
-    return toObfuscate;
+    return false;
   }
 
   /**
@@ -768,14 +768,13 @@ public class Utilities
    */
   public static void setBorder(JComponent comp, Border border)
   {
-    if (comp.getBorder() == null)
+    if (comp.getBorder() != null)
     {
-      comp.setBorder(border);
+      comp.setBorder(BorderFactory.createCompoundBorder(comp.getBorder(), border));
     }
     else
     {
-      comp.setBorder(BorderFactory.createCompoundBorder(comp.getBorder(),
-          border));
+      comp.setBorder(border);
     }
   }
 
@@ -838,7 +837,7 @@ public class Utilities
         }
         Component comp = renderer.getTableCellRendererComponent(table,
             table.getModel().getColumnName(col), false, false, 0, col);
-        int colHeight = comp.getPreferredSize().height + (2 * verticalMargin);
+        int colHeight = comp.getPreferredSize().height + 2 * verticalMargin;
         if (colHeight > screenSize.height)
         {
           // There are some issues on Mac OS and sometimes the preferred size
@@ -855,7 +854,7 @@ public class Utilities
       TableColumn tcol = table.getColumnModel().getColumn(col);
       TableCellRenderer renderer = tcol.getHeaderRenderer();
 
-      if ((renderer == null) && (header != null))
+      if (renderer == null && header != null)
       {
         renderer = header.getDefaultRenderer();
       }
@@ -864,8 +863,7 @@ public class Utilities
       {
         Component comp = renderer.getTableCellRendererComponent(table,
             table.getModel().getColumnName(col), false, false, 0, col);
-        colMaxWidth = comp.getPreferredSize().width  + (2 * horizontalMargin) +
-        8;
+        colMaxWidth = comp.getPreferredSize().width  + 2 * horizontalMargin + 8;
       }
 
       if (colMaxWidth > screenSize.width)
@@ -877,7 +875,7 @@ public class Utilities
       {
         renderer = table.getCellRenderer(row, col);
         Component comp = table.prepareRenderer(renderer, row, col);
-        int colWidth = comp.getPreferredSize().width + (2 * horizontalMargin);
+        int colWidth = comp.getPreferredSize().width + 2 * horizontalMargin;
         colMaxWidth = Math.max(colMaxWidth, colWidth);
       }
       tcol.setPreferredWidth(colMaxWidth);
@@ -887,9 +885,7 @@ public class Utilities
 
     if (header != null && header.isVisible())
     {
-      header.setPreferredSize(new Dimension(
-          headerMaxWidth,
-          headerMaxHeight));
+      header.setPreferredSize(new Dimension(headerMaxWidth, headerMaxHeight));
     }
 
 
@@ -901,7 +897,7 @@ public class Utilities
         TableCellRenderer renderer = table.getCellRenderer(row, col);
         Component comp = renderer.getTableCellRendererComponent(table,
             table.getModel().getValueAt(row, col), false, false, row, col);
-        int colHeight = comp.getPreferredSize().height + (2 * verticalMargin);
+        int colHeight = comp.getPreferredSize().height + 2 * verticalMargin;
         if (colHeight > screenSize.height)
         {
           colHeight = 0;
@@ -937,12 +933,7 @@ public class Utilities
    */
   public static String applyFont(CharSequence html, Font font)
   {
-    StringBuilder buf = new StringBuilder();
-
-    buf.append("<span style=\"").append(getFontStyle(font)).append("\">")
-        .append(html).append("</span>");
-
-    return buf.toString();
+    return "<span style=\"" + getFontStyle(font) + "\">" + html + "</span>";
   }
 
 
@@ -986,19 +977,15 @@ public class Utilities
       LocalizableMessage description, boolean useFast)
   {
     ImageIcon icon = new ImageIcon(bytes, description.toString());
-    if ((maxHeight > icon.getIconHeight()) || (icon.getIconHeight() <= 0))
+    if (maxHeight > icon.getIconHeight() || icon.getIconHeight() <= 0)
     {
       return icon;
     }
-    else
-    {
-      int newHeight = maxHeight;
-      int newWidth = (newHeight * icon.getIconWidth()) / icon.getIconHeight();
-      int algo = useFast ? Image.SCALE_FAST : Image.SCALE_SMOOTH;
-      Image scaledImage = icon.getImage().getScaledInstance(newWidth, newHeight,
-          algo);
-      return new ImageIcon(scaledImage);
-    }
+    int newHeight = maxHeight;
+    int newWidth = (newHeight * icon.getIconWidth()) / icon.getIconHeight();
+    int algo = useFast ? Image.SCALE_FAST : Image.SCALE_SMOOTH;
+    Image scaledImage = icon.getImage().getScaledInstance(newWidth, newHeight, algo);
+    return new ImageIcon(scaledImage);
   }
 
   /**
@@ -1023,7 +1010,7 @@ public class Utilities
     JEditorPane pane2 = makeHtmlPane(wrappedText, font);
     pane.setPreferredSize(pane2.getPreferredSize());
     JFrame frame = getFrame(pane);
-    if ((frame != null) && frame.isVisible())
+    if (frame != null && frame.isVisible())
     {
       frame.getRootPane().revalidate();
       frame.getRootPane().repaint();
@@ -1035,7 +1022,7 @@ public class Utilities
    * @param s string to strip
    * @return resulting string
    */
-  static public String stripHtmlToSingleLine(String s) {
+  public static String stripHtmlToSingleLine(String s) {
     String o = null;
     if (s != null) {
       s = s.replaceAll("<br>", " ");
@@ -1047,12 +1034,10 @@ public class Utilities
       // '<tag attr="1 > 0">'. See test class for cases that
       // might cause problems.
       o = s.replaceAll("\\<.*?\\>","");
-
     }
     return o;
   }
 
-  private final static String HTML_SPACE = "&nbsp;";
   /**
    * Wraps the contents of the provided message using the specified number of
    * columns.
@@ -1256,16 +1241,16 @@ public class Utilities
   {
     comp.setLocationRelativeTo(ref);
     // Apply the golden mean
-    if ((ref != null) && ref.isVisible())
+    if (ref != null && ref.isVisible())
     {
       int refY = ref.getY();
       int refHeight = ref.getHeight();
       int compHeight = comp.getPreferredSize().height;
 
-      int newY = refY + (int) ((refHeight * 0.3819) - (compHeight * 0.5));
+      int newY = refY + (int) (refHeight * 0.3819 - compHeight * 0.5);
       // Check that the new window will be fully visible
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      if ((newY > 0) && (screenSize.height > newY + compHeight))
+      if (newY > 0 && screenSize.height > newY + compHeight)
       {
         comp.setLocation(comp.getX(), newY);
       }
@@ -1282,7 +1267,7 @@ public class Utilities
   public static JFrame getFrame(Component comp)
   {
     Component parent = comp;
-    while ((parent != null) && !(parent instanceof JFrame))
+    while (parent != null && !(parent instanceof JFrame))
     {
       parent = parent.getParent();
     }
@@ -1324,9 +1309,10 @@ public class Utilities
       int pos = 0;
       for (int i = 0; i < stringBytes.length; i++)
       {
-        if ((stringBytes[i] == '\\') && (i + 2 < stringBytes.length) &&
-            StaticUtils.isHexDigit(stringBytes[i+1]) &&
-            StaticUtils.isHexDigit(stringBytes[i+2]))
+        if (stringBytes[i] == '\\'
+                && i + 2 < stringBytes.length
+                && StaticUtils.isHexDigit(stringBytes[i+1])
+                && StaticUtils.isHexDigit(stringBytes[i+2]))
         {
           // Convert hex-encoded UTF-8 to 16-bit chars.
           byte b;
@@ -1534,9 +1520,8 @@ public class Utilities
     return o;
   }
 
-  /* The pattern for control characters */
-  private static Pattern cntrl_pattern =
-      Pattern.compile("\\p{Cntrl}", Pattern.MULTILINE);
+  /** The pattern for control characters. */
+  private static Pattern cntrl_pattern = Pattern.compile("\\p{Cntrl}", Pattern.MULTILINE);
 
   /**
    * Checks if a string contains control characters.
@@ -1587,10 +1572,9 @@ public class Utilities
   public static Name getJNDIName(String dn) throws InvalidNameException
   {
     Name name = new CompositeName();
-    if ((dn != null) && (dn.length() > 0)) {
+    if (dn != null && dn.length() > 0) {
       name.add(dn);
     }
-
     return name;
   }
 
@@ -1950,29 +1934,24 @@ public class Utilities
    */
   public static boolean isServerRunning(File serverRootDirectory)
   {
-    boolean isServerRunning;
-    String lockFileName = ServerConstants.SERVER_LOCK_FILE_NAME +
-    ServerConstants.LOCK_FILE_SUFFIX;
+    String lockFileName = ServerConstants.SERVER_LOCK_FILE_NAME + ServerConstants.LOCK_FILE_SUFFIX;
     String lockPathRelative = Installation.LOCKS_PATH_RELATIVE;
     File locksPath = new File(serverRootDirectory, lockPathRelative);
     String lockFile = new File(locksPath, lockFileName).getAbsolutePath();
     StringBuilder failureReason = new StringBuilder();
     try {
-      if (LockFileManager.acquireExclusiveLock(lockFile,
-              failureReason)) {
-        LockFileManager.releaseLock(lockFile,
-                failureReason);
-        isServerRunning = false;
-      } else {
-        isServerRunning = true;
+      if (LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      {
+        LockFileManager.releaseLock(lockFile, failureReason);
+        return false;
       }
+      return true;
     }
     catch (Throwable t) {
       // Assume that if we cannot acquire the lock file the
       // server is running.
-      isServerRunning = true;
+      return true;
     }
-    return isServerRunning;
   }
 
   private static final String VALID_SCHEMA_SYNTAX =
@@ -1987,24 +1966,22 @@ public class Utilities
    */
   public static boolean isValidObjectclassName(String s)
   {
-    boolean isValid;
-    if ((s == null) || (s.length() == 0))
+    if (s == null || s.length() == 0)
     {
-      isValid = false;
-    } else {
-      isValid = true;
-      StringCharacterIterator iter =
-        new StringCharacterIterator(s,  0);
-      for (char c = iter.first();
-      (c != CharacterIterator.DONE) && isValid;
-      c = iter.next()) {
-        if (VALID_SCHEMA_SYNTAX.indexOf(Character.toLowerCase(c)) == -1)
-        {
-          isValid = false;
-        }
-      }
+      return false;
     }
-    return isValid;
+
+    final StringCharacterIterator iter = new StringCharacterIterator(s, 0);
+    char c = iter.first();
+    while (c != CharacterIterator.DONE)
+    {
+      if (VALID_SCHEMA_SYNTAX.indexOf(Character.toLowerCase(c)) == -1)
+      {
+        return false;
+      }
+      c = iter.next();
+    }
+    return true;
   }
 
   /**
@@ -2041,24 +2018,24 @@ public class Utilities
     return INFO_CTRL_PANEL_VLV_INDEX_CELL.get(index.getName()).toString();
   }
 
-  private final static String[] standardSchemaFileNames =
+  private static final String[] standardSchemaFileNames =
   {
       "00-core.ldif", "01-pwpolicy.ldif", "03-changelog.ldif",
       "03-uddiv3.ldif", "05-solaris.ldif"
   };
 
-  private final static String[] configurationSchemaOrigins =
+  private static final String[] configurationSchemaOrigins =
   {
       "OpenDJ Directory Server", "OpenDS Directory Server",
       "Sun Directory Server", "Microsoft Active Directory"
   };
 
-  private final static String[] standardSchemaOrigins =
+  private static final String[] standardSchemaOrigins =
   {
       "Sun Java System Directory Server", "Solaris Specific", "X.501"
   };
 
-  private final static String[] configurationSchemaFileNames =
+  private static final String[] configurationSchemaFileNames =
   {
       "02-config.ldif", "06-compat.ldif"
   };
@@ -2072,30 +2049,20 @@ public class Utilities
    */
   public static boolean isStandard(SchemaFileElement fileElement)
   {
-    boolean isStandard = false;
-    String fileName = getSchemaFile(fileElement);
+    final String fileName = getSchemaFile(fileElement);
     if (fileName != null)
     {
-      isStandard = contains(standardSchemaFileNames, fileName);
-      if (!isStandard)
-      {
-        isStandard = fileName.toLowerCase().indexOf("-rfc") != -1;
-      }
+      return contains(standardSchemaFileNames, fileName) || fileName.toLowerCase().indexOf("-rfc") != -1;
     }
     else if (fileElement instanceof CommonSchemaElements)
     {
       String xOrigin = getOrigin(fileElement);
       if (xOrigin != null)
       {
-        isStandard = contains(standardSchemaOrigins, xOrigin);
-        if (!isStandard)
-        {
-          isStandard = xOrigin.startsWith("RFC ") ||
-          xOrigin.startsWith("draft-");
-        }
+        return contains(standardSchemaOrigins, xOrigin) || xOrigin.startsWith("RFC ") || xOrigin.startsWith("draft-");
       }
     }
-    return isStandard;
+    return false;
   }
 
   /**
@@ -2107,21 +2074,20 @@ public class Utilities
    */
   public static boolean isConfiguration(SchemaFileElement fileElement)
   {
-    boolean isConfiguration = false;
     String fileName = getSchemaFile(fileElement);
     if (fileName != null)
     {
-      isConfiguration = contains(configurationSchemaFileNames, fileName);
+      return contains(configurationSchemaFileNames, fileName);
     }
     else if (fileElement instanceof CommonSchemaElements)
     {
       String xOrigin = getOrigin(fileElement);
       if (xOrigin != null)
       {
-        isConfiguration = contains(configurationSchemaOrigins, xOrigin);
+        return contains(configurationSchemaOrigins, xOrigin);
       }
     }
-    return isConfiguration;
+    return false;
   }
 
   private static boolean contains(String[] names, String toFind)
@@ -2154,27 +2120,14 @@ public class Utilities
    */
   public static String getSyntaxText(AttributeSyntax<?> syntax)
   {
-    String returnValue;
     String syntaxName = syntax.getName();
     String syntaxOID = syntax.getOID();
-    if (syntaxName == null)
+    if (syntaxName != null)
     {
-      returnValue = syntaxOID;
+      return syntaxName + " - " + syntaxOID;
     }
-    else
-    {
-      returnValue = syntaxName+" - "+syntaxOID;
-    }
-    return returnValue;
+    return syntaxOID;
   }
-
-  private final static String[] binarySyntaxOIDs =
-  {
-    SchemaConstants.SYNTAX_BINARY_OID,
-    SchemaConstants.SYNTAX_JPEG_OID,
-    SchemaConstants.SYNTAX_CERTIFICATE_OID,
-    SchemaConstants.SYNTAX_OCTET_STRING_OID
-  };
 
   /**
    * Returns <CODE>true</CODE> if the provided attribute has image syntax and
@@ -2186,23 +2139,22 @@ public class Utilities
    */
   public static boolean hasImageSyntax(String attrName, Schema schema)
   {
-    boolean hasImageSyntax = false;
     attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
     if ("photo".equals(attrName))
     {
-      hasImageSyntax = true;
+      return true;
     }
     // Check all the attributes that we consider binaries.
-    if (!hasImageSyntax && (schema != null))
+    if (schema != null)
     {
       AttributeType attr = schema.getAttributeType(attrName);
       if (attr != null)
       {
         String syntaxOID = attr.getSyntax().getOID();
-        hasImageSyntax = SchemaConstants.SYNTAX_JPEG_OID.equals(syntaxOID);
+        return SchemaConstants.SYNTAX_JPEG_OID.equals(syntaxOID);
       }
     }
-    return hasImageSyntax;
+    return false;
   }
 
   /**
@@ -2215,33 +2167,9 @@ public class Utilities
    */
   public static boolean hasBinarySyntax(String attrName, Schema schema)
   {
-    boolean hasBinarySyntax = attrName.toLowerCase().indexOf(";binary") != -1;
-    // Check all the attributes that we consider binaries.
-    if (!hasBinarySyntax && (schema != null))
-    {
-      attrName =
-        Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
-      AttributeType attr = schema.getAttributeType(attrName);
-      if (attr != null)
-      {
-        String syntaxOID = attr.getSyntax().getOID();
-        for (String oid : binarySyntaxOIDs)
-        {
-          if (oid.equals(syntaxOID))
-          {
-            hasBinarySyntax = true;
-            break;
-          }
-        }
-      }
-    }
-    return hasBinarySyntax;
+    return attrName.toLowerCase().contains(";binary")
+        || hasAnySyntax(attrName, schema, binarySyntaxOIDs);
   }
-
-  private final static String[] passwordSyntaxOIDs =
-  {
-    SchemaConstants.SYNTAX_USER_PASSWORD_OID
-  };
 
   /**
    * Returns <CODE>true</CODE> if the provided attribute has password syntax and
@@ -2253,27 +2181,21 @@ public class Utilities
    */
   public static boolean hasPasswordSyntax(String attrName, Schema schema)
   {
-    boolean hasPasswordSyntax = false;
-    // Check all the attributes that we consider binaries.
+    return hasAnySyntax(attrName, schema, passwordSyntaxOIDs);
+  }
+
+  private static boolean hasAnySyntax(String attrName, Schema schema, String[] oids)
+  {
     if (schema != null)
     {
-      attrName =
-        Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
+      attrName = Utilities.getAttributeNameWithoutOptions(attrName).toLowerCase();
       AttributeType attr = schema.getAttributeType(attrName);
       if (attr != null)
       {
-        String syntaxOID = attr.getSyntax().getOID();
-        for (String oid : passwordSyntaxOIDs)
-        {
-          if (oid.equals(syntaxOID))
-          {
-            hasPasswordSyntax = true;
-            break;
-          }
-        }
+        return contains(oids, attr.getSyntax().getOID());
       }
     }
-    return hasPasswordSyntax;
+    return false;
   }
 
   /**
@@ -2395,14 +2317,10 @@ public class Utilities
   public static void checkCanReadConfig(InitialLdapContext ctx)
   throws NamingException
   {
-    /*
-     * Search for the config to check that it is the directory manager.
-     */
+    // Search for the config to check that it is the directory manager.
     SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(
-    SearchControls. OBJECT_SCOPE);
-    searchControls
-        .setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
+    searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
+    searchControls.setReturningAttributes(new String[] { SchemaConstants.NO_ATTRIBUTES });
     NamingEnumeration<SearchResult> sr =
       ctx.search("cn=config", "objectclass=*", searchControls);
     try
@@ -2453,8 +2371,7 @@ public class Utilities
     if (confEntry != null)
     {
       // Copy the values to avoid problems with this recursive method.
-      ArrayList<DN> childDNs = new ArrayList<DN>();
-      childDNs.addAll(confEntry.getChildren().keySet());
+      ArrayList<DN> childDNs = new ArrayList<DN>(confEntry.getChildren().keySet());
       for (DN childDN : childDNs)
       {
         deleteConfigSubtree(confHandler, childDN);
@@ -2531,7 +2448,7 @@ public class Utilities
   {
     JScrollPane scroll = null;
     Container parent = comp.getParent();
-    while ((scroll == null) && (parent != null))
+    while (scroll == null && parent != null)
     {
       if (parent instanceof JScrollPane)
       {
@@ -2661,7 +2578,7 @@ public class Utilities
     {
       Long l = Long.parseLong(monitoringValue.toString());
       long mb = l / (1024 * 1024);
-      long kbs = (l - (mb * 1024 * 1024)) / 1024;
+      long kbs = (l - mb * 1024 * 1024) / 1024;
       return INFO_CTRL_PANEL_MEMORY_VALUE.get(mb, kbs).toString();
     }
     return monitoringValue.toString();
@@ -2679,9 +2596,8 @@ public class Utilities
       CustomSearchResult monitoringEntry)
   {
     Object monitoringValue = Utilities.getFirstMonitoringValue(
-        monitoringEntry,
-        attr.getAttributeName());
-    if (attr.isNumeric() && (monitoringValue != null))
+        monitoringEntry, attr.getAttributeName());
+    if (attr.isNumeric() && monitoringValue != null)
     {
       try
       {
@@ -2735,14 +2651,14 @@ public class Utilities
       int i = 0;
       for (Object newElement : newElements)
       {
-        if (comparator == null)
-        {
-          changed = !newElement.equals(model.getElementAt(i));
-        }
-        else
+        if (comparator != null)
         {
           changed =
             comparator.compare(newElement, model.getElementAt(i)) != 0;
+        }
+        else
+        {
+          changed = !newElement.equals(model.getElementAt(i));
         }
         if (changed)
         {
@@ -2780,13 +2696,10 @@ public class Utilities
         for (int i=0; i<model.getSize(); i++)
         {
           Object o = model.getElementAt(i);
-          if (o instanceof CategorizedComboBoxElement)
+          if (o instanceof CategorizedComboBoxElement
+              && ((CategorizedComboBoxElement)o).getType() == CategorizedComboBoxElement.Type.CATEGORY)
           {
-            if (((CategorizedComboBoxElement)o).getType() ==
-              CategorizedComboBoxElement.Type.CATEGORY)
-            {
-              continue;
-            }
+            continue;
           }
           model.setSelectedItem(o);
           break;

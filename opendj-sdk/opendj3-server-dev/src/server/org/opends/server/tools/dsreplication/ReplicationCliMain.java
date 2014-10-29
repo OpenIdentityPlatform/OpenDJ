@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
@@ -358,9 +359,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message =
-        ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      println(message);
+      println(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
       returnValue = CANNOT_INITIALIZE_ARGS;
     }
@@ -383,9 +382,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ArgumentException ae)
       {
-        LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
-        println(message);
+        println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
         println();
         println(LocalizableMessage.raw(argParser.getUsage()));
         logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
@@ -1507,16 +1504,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          LocalizableMessage errorMsg;
-          String server = getHostPort(ctx);
-          if (lastLogMsg != null)
-          {
-            errorMsg = INFO_ERROR_DURING_PURGE_HISTORICAL_LOG.get(lastLogMsg, state, server);
-          }
-          else
-          {
-            errorMsg = INFO_ERROR_DURING_PURGE_HISTORICAL_NO_LOG.get(state, server);
-          }
+          LocalizableMessage errorMsg = getPurgeErrorMsg(lastLogMsg, state, ctx);
 
           if (helper.isCompletedWithErrors(state))
           {
@@ -1549,6 +1537,16 @@ public class ReplicationCliMain extends ConsoleApplication
       printSuccessMessage(uData, taskID);
     }
     return returnCode;
+  }
+
+  private LocalizableMessage getPurgeErrorMsg(String lastLogMsg, String state, InitialLdapContext ctx)
+  {
+    String server = getHostPort(ctx);
+    if (lastLogMsg != null)
+    {
+      return INFO_ERROR_DURING_PURGE_HISTORICAL_LOG.get(lastLogMsg, state, server);
+    }
+    return INFO_ERROR_DURING_PURGE_HISTORICAL_NO_LOG.get(state, server);
   }
 
   /**
@@ -1764,114 +1762,26 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(PurgeHistoricalUserData uData)
   {
-    boolean cancelled = false;
-    boolean onlineSet = false;
-
-    boolean firstTry = true;
-    Boolean serverRunning = null;
-
     InitialLdapContext ctx = null;
-    while (!cancelled && !onlineSet)
+    try
     {
-      boolean promptForConnection = false;
-      if (argParser.connectionArgumentsPresent() && firstTry)
+      ctx = getInitialLdapContext(uData);
+      if (ctx == null)
       {
-        promptForConnection = true;
+        return false;
       }
-      else
-      {
-        if (serverRunning == null)
-        {
-          serverRunning = Utilities.isServerRunning(
-              Installation.getLocal().getInstanceDirectory());
-        }
-        if (!serverRunning)
-        {
-          try
-          {
-            println();
-            promptForConnection =
-              !askConfirmation(
-                  INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_PROMPT.get(),
-                  true, logger);
-          }
-          catch (ClientException ce)
-          {
-            println(ce.getMessageObject());
-            cancelled = true;
-          }
-        }
-        else
-        {
-          promptForConnection = true;
-        }
-      }
-      if (promptForConnection)
-      {
-        try
-        {
-          ci.run();
-          String host = ci.getHostName();
-          int port = ci.getPortNumber();
-          String adminUid = ci.getAdministratorUID();
-          String adminPwd = ci.getBindPassword();
 
-          ctx = createInitialLdapContextInteracting(ci);
-          if (ctx == null)
-          {
-            cancelled = true;
-          }
-          else
-          {
-            uData.setOnline(true);
-            uData.setAdminUid(adminUid);
-            uData.setAdminPwd(adminPwd);
-            uData.setHostName(host);
-            uData.setPort(port);
-            onlineSet = true;
-          }
-        }
-        catch (ClientException ce)
-        {
-          logger.warn(LocalizableMessage.raw("Client exception "+ce));
-          println();
-          println(ce.getMessageObject());
-          println();
-          ci.resetConnectionArguments();
-        }
-        catch (ArgumentException ae)
-        {
-          logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-          println();
-          println(ae.getMessageObject());
-          println();
-          cancelled = true;
-        }
-      }
-      else
-      {
-        uData.setOnline(false);
-        onlineSet = true;
-      }
-      firstTry = false;
-    }
-
-    if (!cancelled)
-    {
-      int maximumDuration = argParser.getMaximumDuration();
       /* Prompt for maximum duration */
+      int maximumDuration = argParser.getMaximumDuration();
       if (!argParser.maximumDurationArg.isPresent())
       {
         println();
-        maximumDuration = askInteger(
-            INFO_REPLICATION_PURGE_HISTORICAL_MAXIMUM_DURATION_PROMPT.get(),
+        maximumDuration = askInteger(INFO_REPLICATION_PURGE_HISTORICAL_MAXIMUM_DURATION_PROMPT.get(),
             argParser.getDefaultMaximumDuration(), logger);
       }
       uData.setMaximumDuration(maximumDuration);
-    }
 
-    if (!cancelled)
-    {
+
       LinkedList<String> suffixes = argParser.getBaseDNs();
       if (uData.isOnline())
       {
@@ -1881,31 +1791,110 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         checkSuffixesForLocalPurgeHistorical(suffixes, true);
       }
-      cancelled = suffixes.isEmpty();
+      if (suffixes.isEmpty())
+      {
+        return false;
+      }
       uData.setBaseDNs(suffixes);
+
+
+      if (uData.isOnline())
+      {
+        List<? extends TaskEntry> taskEntries = getAvailableTaskEntries(ctx);
+
+        TaskScheduleInteraction interaction =
+            new TaskScheduleInteraction(uData.getTaskSchedule(), argParser.taskArgs, this,
+                INFO_PURGE_HISTORICAL_TASK_NAME.get());
+        interaction.setFormatter(formatter);
+        interaction.setTaskEntries(taskEntries);
+        try
+        {
+          interaction.run();
+        }
+        catch (ClientException ce)
+        {
+          println(ce.getMessageObject());
+          return false;
+        }
+      }
+      return true;
     }
-
-    if (uData.isOnline() && !cancelled)
+    finally
     {
-      List<? extends TaskEntry> taskEntries = getAvailableTaskEntries(ctx);
+      close(ctx);
+    }
+  }
 
-      TaskScheduleInteraction interaction =
-        new TaskScheduleInteraction(uData.getTaskSchedule(), argParser.taskArgs,
-            this, INFO_PURGE_HISTORICAL_TASK_NAME.get());
-      interaction.setFormatter(formatter);
-      interaction.setTaskEntries(taskEntries);
+  private InitialLdapContext getInitialLdapContext(PurgeHistoricalUserData uData)
+  {
+    boolean firstTry = true;
+    Boolean serverRunning = null;
+
+    while (true)
+    {
+      boolean promptForConnection = firstTry && argParser.connectionArgumentsPresent();
+      if (!promptForConnection)
+      {
+        if (serverRunning == null)
+        {
+          serverRunning = Utilities.isServerRunning(Installation.getLocal().getInstanceDirectory());
+        }
+
+        if (!serverRunning)
+        {
+          try
+          {
+            println();
+            promptForConnection = !askConfirmation(
+                INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_PROMPT.get(), true, logger);
+          }
+          catch (ClientException ce)
+          {
+            println(ce.getMessageObject());
+          }
+
+          if (!promptForConnection)
+          {
+            uData.setOnline(false);
+            return null;
+          }
+        }
+      }
+
+
       try
       {
-        interaction.run();
+        ci.run();
+
+        InitialLdapContext ctx = createInitialLdapContextInteracting(ci);
+        if (ctx != null)
+        {
+          uData.setOnline(true);
+          uData.setHostName(ci.getHostName());
+          uData.setPort(ci.getPortNumber());
+          uData.setAdminUid(ci.getAdministratorUID());
+          uData.setAdminPwd(ci.getBindPassword());
+        }
+        return ctx;
       }
       catch (ClientException ce)
       {
+        logger.warn(LocalizableMessage.raw("Client exception " + ce));
+        println();
         println(ce.getMessageObject());
-        cancelled = true;
+        println();
+        ci.resetConnectionArguments();
       }
+      catch (ArgumentException ae)
+      {
+        logger.warn(LocalizableMessage.raw("Argument exception " + ae));
+        println();
+        println(ae.getMessageObject());
+        println();
+        return null;
+      }
+      firstTry = false;
     }
-    close(ctx);
-    return !cancelled;
   }
 
   private List<? extends TaskEntry> getAvailableTaskEntries(
@@ -1985,8 +1974,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setHeadingMessage(
-            INFO_REPLICATION_ENABLE_HOST1_CONNECTION_PARAMETERS.get());
+        ci.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST1_CONNECTION_PARAMETERS.get());
         ci.run();
         host1 = ci.getHostName();
         port1 = ci.getPortNumber();
@@ -2005,7 +1993,6 @@ public class ReplicationCliMain extends ConsoleApplication
         pwd1 = ci.getBindPassword();
 
         ctx1 = createInitialLdapContextInteracting(ci);
-
         if (ctx1 == null)
         {
           cancelled = true;
@@ -2057,9 +2044,9 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       // Try to get the replication port for server 1 only if it is required.
-      if (!replicationServer1Configured
+      if (!cancelled
           && configureReplicationServer1
-          && !cancelled
+          && !replicationServer1Configured
           && argParser.advancedArg.isPresent()
           && configureReplicationDomain1)
       {
@@ -2078,8 +2065,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
       if (!cancelled
-          && !replicationServer1Configured
-          && configureReplicationServer1)
+          && configureReplicationServer1
+          && !replicationServer1Configured)
       {
         boolean tryWithDefault = argParser.getReplicationPort1() != -1;
         while (replicationPort1 == -1)
@@ -2157,9 +2144,9 @@ public class ReplicationCliMain extends ConsoleApplication
       // eventually admin authentication data.
       if (!cancelled)
       {
-        InitialLdapContext[] aux = new InitialLdapContext[] {ctx1};
+        AtomicReference<InitialLdapContext> aux = new AtomicReference<InitialLdapContext>(ctx1);
         cancelled = !loadADSAndAcceptCertificates(aux, uData, true);
-        ctx1 = aux[0];
+        ctx1 = aux.get();
       }
       if (!cancelled)
       {
@@ -2233,8 +2220,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setHeadingMessage(
-            INFO_REPLICATION_ENABLE_HOST2_CONNECTION_PARAMETERS.get());
+        ci.setHeadingMessage(INFO_REPLICATION_ENABLE_HOST2_CONNECTION_PARAMETERS.get());
         ci.run();
         host2 = ci.getHostName();
         port2 = ci.getPortNumber();
@@ -2265,7 +2251,6 @@ public class ReplicationCliMain extends ConsoleApplication
         if (!error)
         {
           ctx2 = createInitialLdapContextInteracting(ci, true);
-
           if (ctx2 == null)
           {
             cancelled = true;
@@ -2332,8 +2317,9 @@ public class ReplicationCliMain extends ConsoleApplication
       }
 
       // Try to get the replication port for server 2 only if it is required.
-      if (!replicationServer2Configured && configureReplicationServer2 &&
-          !cancelled)
+      if (!cancelled
+          && configureReplicationServer2
+          && !replicationServer2Configured)
       {
         // Only ask if the replication domain will be configured (if not the
         // replication server MUST be configured).
@@ -2352,8 +2338,9 @@ public class ReplicationCliMain extends ConsoleApplication
             cancelled = true;
           }
         }
-        if (!cancelled &&
-            !replicationServer2Configured && configureReplicationServer2)
+        if (!cancelled
+            && configureReplicationServer2
+            && !replicationServer2Configured)
         {
           boolean tryWithDefault = argParser.getReplicationPort2() != -1;
           while (replicationPort2 == -1)
@@ -2439,9 +2426,9 @@ public class ReplicationCliMain extends ConsoleApplication
       // to load the ADS to ask the user to accept the certificates.
       if (!cancelled)
       {
-        InitialLdapContext[] aux = new InitialLdapContext[] {ctx2};
+        AtomicReference<InitialLdapContext> aux = new AtomicReference<InitialLdapContext>(ctx2);
         cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
-        ctx2 = aux[0];
+        ctx2 = aux.get();
       }
       if (!cancelled)
       {
@@ -2510,15 +2497,11 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           try
           {
-            adminPwdConfirm =
-                String
-                    .valueOf(readPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT
-                        .get()));
+            adminPwdConfirm = String.valueOf(readPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT.get()));
           }
           catch (ClientException ex)
           {
-            logger.warn(LocalizableMessage
-                .raw("Error reading input: " + ex, ex));
+            logger.warn(LocalizableMessage.raw("Error reading input: " + ex, ex));
           }
           println();
         }
@@ -2591,7 +2574,6 @@ public class ReplicationCliMain extends ConsoleApplication
         adminPwd = ci.getBindPassword();
 
         ctx = createInitialLdapContextInteracting(ci);
-
         if (ctx == null)
         {
           cancelled = true;
@@ -2630,9 +2612,9 @@ public class ReplicationCliMain extends ConsoleApplication
       // disableReplication(DisableReplicationUserData) method.  Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
-      InitialLdapContext[] aux = new InitialLdapContext[] {ctx};
+      AtomicReference<InitialLdapContext> aux = new AtomicReference<InitialLdapContext>(ctx);
       cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
-      ctx = aux[0];
+      ctx = aux.get();
     }
 
     boolean disableAll = argParser.disableAllArg.isPresent();
@@ -2776,94 +2758,46 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequired(InitializeAllReplicationUserData uData)
   {
-    boolean cancelled = false;
-
-    String adminPwd = argParser.getBindPasswordAdmin();
-    String adminUid = argParser.getAdministratorUID();
-
-    String host = argParser.getHostNameToInitializeAll();
-    int port = argParser.getPortToInitializeAll();
-
-    /*
-     * Try to connect to the server.
-     */
     InitialLdapContext ctx = null;
-
-    while (ctx == null && !cancelled)
+    try
     {
-      try
+      ctx = getInitialLdapContext(uData);
+      if (ctx == null)
       {
-        ci.setHeadingMessage(
-            INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
-        ci.run();
-        host = ci.getHostName();
-        port = ci.getPortNumber();
-        adminUid = ci.getAdministratorUID();
-        adminPwd = ci.getBindPassword();
-
-        ctx = createInitialLdapContextInteracting(ci);
-
-        if (ctx == null)
-        {
-          cancelled = true;
-        }
+        return false;
       }
-      catch (ClientException ce)
-      {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        println();
-        println(ce.getMessageObject());
-        println();
-        ci.resetConnectionArguments();
-      }
-      catch (ArgumentException ae)
-      {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
-        cancelled = true;
-      }
-    }
-    if (!cancelled)
-    {
-      uData.setHostName(host);
-      uData.setPort(port);
-      uData.setAdminUid(adminUid);
-      uData.setAdminPwd(adminPwd);
-    }
 
-    if (!cancelled)
-    {
       LinkedList<String> suffixes = argParser.getBaseDNs();
       checkSuffixesForInitializeReplication(suffixes, ctx, true);
-      cancelled = suffixes.isEmpty();
-
+      if (suffixes.isEmpty())
+      {
+        return false;
+      }
       uData.setBaseDNs(suffixes);
-    }
 
-    if (!cancelled)
-    {
       // Ask for confirmation to initialize.
-      String hostPortSource = getHostPort(ctx);
-      LocalizableMessage msg;
-      if (initializeADS(uData.getBaseDNs()))
-      {
-        msg = INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(
-            ADSContext.getAdministrationSuffixDN(), hostPortSource);
-      }
-      else
-      {
-        msg = INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_GENERIC.get(hostPortSource);
-      }
-
       println();
-      cancelled = !askConfirmation(msg, true);
+      if (!askConfirmation(getPrompt(uData, ctx), true))
+      {
+        return false;
+      }
       println();
+      return true;
     }
+    finally
+    {
+      close(ctx);
+    }
+  }
 
-    close(ctx);
-    return !cancelled;
+  private LocalizableMessage getPrompt(InitializeAllReplicationUserData uData, InitialLdapContext ctx)
+  {
+    String hostPortSource = getHostPort(ctx);
+    if (initializeADS(uData.getBaseDNs()))
+    {
+      return INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_ADS.get(ADSContext.getAdministrationSuffixDN(), hostPortSource);
+    }
+    return INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_GENERIC.get(hostPortSource);
   }
 
   private boolean askConfirmation(final LocalizableMessage msg, final boolean defaultValue)
@@ -2890,39 +2824,55 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private boolean promptIfRequiredForPreOrPost(MonoServerReplicationUserData uData)
   {
-    boolean cancelled = false;
-
-    String adminPwd = argParser.getBindPasswordAdmin();
-    String adminUid = argParser.getAdministratorUID();
-
-    String host = argParser.getHostNameToInitializeAll();
-    int port = argParser.getPortToInitializeAll();
-
-    /*
-     * Try to connect to the server.
-     */
     InitialLdapContext ctx = null;
+    try
+    {
+      ctx = getInitialLdapContext(uData);
+      if (ctx == null)
+      {
+        return false;
+      }
+      LinkedList<String> suffixes = argParser.getBaseDNs();
+      checkSuffixesForInitializeReplication(suffixes, ctx, true);
+      uData.setBaseDNs(suffixes);
+      return !suffixes.isEmpty();
+    }
+    finally
+    {
+      close(ctx);
+    }
+  }
 
-    while (ctx == null && !cancelled)
+  private InitialLdapContext getInitialLdapContext(MonoServerReplicationUserData uData)
+  {
+    // Try to connect to the server.
+    while (true)
     {
       try
       {
-        ci.run();
-        host = ci.getHostName();
-        port = ci.getPortNumber();
-        adminUid = ci.getAdministratorUID();
-        adminPwd = ci.getBindPassword();
-
-        ctx = createInitialLdapContextInteracting(ci);
-
-        if (ctx == null)
+        if (uData instanceof InitializeAllReplicationUserData)
         {
-          cancelled = true;
+          ci.setHeadingMessage(INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
         }
+        ci.run();
+
+        InitialLdapContext ctx = createInitialLdapContextInteracting(ci);
+        if (ctx != null)
+        {
+          uData.setHostName(ci.getHostName());
+          uData.setPort(ci.getPortNumber());
+          uData.setAdminUid(ci.getAdministratorUID());
+          uData.setAdminPwd(ci.getBindPassword());
+          if (uData instanceof StatusReplicationUserData)
+          {
+            ((StatusReplicationUserData) uData).setScriptFriendly(argParser.isScriptFriendly());
+          }
+        }
+        return ctx;
       }
       catch (ClientException ce)
       {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
+        logger.warn(LocalizableMessage.raw("Client exception " + ce));
         println();
         println(ce.getMessageObject());
         println();
@@ -2930,32 +2880,13 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       catch (ArgumentException ae)
       {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
+        logger.warn(LocalizableMessage.raw("Argument exception " + ae));
         println();
         println(ae.getMessageObject());
         println();
-        cancelled = true;
+        return null;
       }
     }
-    if (!cancelled)
-    {
-      uData.setHostName(host);
-      uData.setPort(port);
-      uData.setAdminUid(adminUid);
-      uData.setAdminPwd(adminPwd);
-    }
-
-    if (!cancelled)
-    {
-      LinkedList<String> suffixes = argParser.getBaseDNs();
-      checkSuffixesForInitializeReplication(suffixes, ctx, true);
-      cancelled = suffixes.isEmpty();
-
-      uData.setBaseDNs(suffixes);
-    }
-
-    close(ctx);
-    return !cancelled;
   }
 
   /**
@@ -2972,79 +2903,38 @@ public class ReplicationCliMain extends ConsoleApplication
   private boolean promptIfRequired(StatusReplicationUserData uData)
   throws ReplicationCliException
   {
-    boolean cancelled = false;
-
-    String adminPwd = argParser.getBindPasswordAdmin();
-    String adminUid = argParser.getAdministratorUID();
-
-    String host = argParser.getHostNameToStatus();
-    int port = argParser.getPortToStatus();
-
-    /*
-     * Try to connect to the server.
-     */
     InitialLdapContext ctx = null;
-    while (ctx == null && !cancelled)
+    try
     {
-      try
+      ctx = getInitialLdapContext(uData);
+      if (ctx == null)
       {
-        ci.run();
-        host = ci.getHostName();
-        port = ci.getPortNumber();
-        adminUid = ci.getAdministratorUID();
-        adminPwd = ci.getBindPassword();
+        return false;
+      }
 
-        ctx = createInitialLdapContextInteracting(ci);
-
-        if (ctx == null)
-        {
-          cancelled = true;
-        }
-      }
-      catch (ClientException ce)
-      {
-        logger.warn(LocalizableMessage.raw("Client exception "+ce));
-        println();
-        println(ce.getMessageObject());
-        println();
-        ci.resetConnectionArguments();
-      }
-      catch (ArgumentException ae)
-      {
-        logger.warn(LocalizableMessage.raw("Argument exception "+ae));
-        println();
-        println(ae.getMessageObject());
-        println();
-        cancelled = true;
-      }
-    }
-    if (!cancelled)
-    {
-      uData.setHostName(host);
-      uData.setPort(port);
-      uData.setAdminUid(adminUid);
-      uData.setAdminPwd(adminPwd);
-      uData.setScriptFriendly(argParser.isScriptFriendly());
-    }
-    if (ctx != null)
-    {
       // If the server contains an ADS, try to load it and only load it: if
       // there are issues with the ADS they will be encountered in the
-      // statusReplication(StatusReplicationUserData) method.  Here we have
+      // statusReplication(StatusReplicationUserData) method. Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
-      InitialLdapContext[] aux = new InitialLdapContext[] {ctx};
-      cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
-      ctx = aux[0];
-    }
+      AtomicReference<InitialLdapContext> aux = new AtomicReference<InitialLdapContext>(ctx);
+      boolean cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+      ctx = aux.get();
+      if (cancelled)
+      {
+        return false;
+      }
 
-    if (!cancelled)
+      if (!cancelled)
+      {
+        uData.setBaseDNs(argParser.getBaseDNs());
+      }
+      return !cancelled;
+    }
+    finally
     {
-      uData.setBaseDNs(argParser.getBaseDNs());
+      close(ctx);
     }
-
-    close(ctx);
-    return !cancelled;
   }
 
   /**
@@ -3067,12 +2957,9 @@ public class ReplicationCliMain extends ConsoleApplication
     int portSource = argParser.getPortSource();
 
     Map<String, String> pwdFile = null;
-
     if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
     {
-      pwdFile =
-        argParser.getSecureArgsList().bindPasswordFileArg.
-        getNameToValueMap();
+      pwdFile = argParser.getSecureArgsList().bindPasswordFileArg.getNameToValueMap();
     }
 
 
@@ -3092,8 +2979,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setHeadingMessage(
-            INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
+        ci.setHeadingMessage(INFO_REPLICATION_INITIALIZE_SOURCE_CONNECTION_PARAMETERS.get());
         ci.run();
         hostSource = ci.getHostName();
         portSource = ci.getPortNumber();
@@ -3159,8 +3045,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       try
       {
-        ci.setHeadingMessage(
-           INFO_REPLICATION_INITIALIZE_DESTINATION_CONNECTION_PARAMETERS.get());
+        ci.setHeadingMessage(INFO_REPLICATION_INITIALIZE_DESTINATION_CONNECTION_PARAMETERS.get());
         ci.run();
         hostDestination = ci.getHostName();
         portDestination = ci.getPortNumber();
@@ -3221,27 +3106,26 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!cancelled)
     {
       // Ask for confirmation to initialize.
-      String hostPortSource = getHostPort(ctxSource);
-      String hostPortDestination = getHostPort(ctxDestination);
-      LocalizableMessage msg;
-      if (initializeADS(uData.getBaseDNs()))
-      {
-        msg = INFO_REPLICATION_CONFIRM_INITIALIZE_ADS.get(
-            ADSContext.getAdministrationSuffixDN(), hostPortDestination, hostPortSource);
-      }
-      else
-      {
-        msg = INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(
-            hostPortDestination, hostPortSource);
-      }
-
       println();
-      cancelled = !askConfirmation(msg, true);
+      cancelled = !askConfirmation(getPrompt(uData, ctxSource, ctxDestination), true);
       println();
     }
 
     close(ctxSource, ctxDestination);
     return !cancelled;
+  }
+
+  private LocalizableMessage getPrompt(InitializeReplicationUserData uData, InitialLdapContext ctxSource,
+      InitialLdapContext ctxDestination)
+  {
+    String hostPortSource = getHostPort(ctxSource);
+    String hostPortDestination = getHostPort(ctxDestination);
+    if (initializeADS(uData.getBaseDNs()))
+    {
+      final String adminSuffixDN = ADSContext.getAdministrationSuffixDN();
+      return INFO_REPLICATION_CONFIRM_INITIALIZE_ADS.get(adminSuffixDN, hostPortDestination, hostPortSource);
+    }
+    return INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(hostPortDestination, hostPortSource);
   }
 
   private boolean initializeADS(List<String> baseDNs)
@@ -3566,16 +3450,17 @@ public class ReplicationCliMain extends ConsoleApplication
    * if the user did not accept a certificate or any of the confirmation
    * messages.
    */
-  private boolean loadADSAndAcceptCertificates(InitialLdapContext[] ctx,
+  private boolean loadADSAndAcceptCertificates(AtomicReference<InitialLdapContext> ctx,
       ReplicationUserData uData, boolean isFirstOrSourceServer)
   throws ReplicationCliException
   {
     boolean cancelled = false;
     boolean triedWithUserProvidedAdmin = false;
-    String host = getHostName(ctx[0]);
-    int port = getPort(ctx[0]);
-    boolean isSSL = isSSL(ctx[0]);
-    boolean isStartTLS = isStartTLS(ctx[0]);
+    final InitialLdapContext ctx1 = ctx.get();
+    String host = getHostName(ctx1);
+    int port = getPort(ctx1);
+    boolean isSSL = isSSL(ctx1);
+    boolean isStartTLS = isStartTLS(ctx1);
     if (getTrustManager() == null)
     {
       // This is required when the user did  connect to the server using SSL or
@@ -3585,7 +3470,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     try
     {
-      ADSContext adsContext = new ADSContext(ctx[0]);
+      ADSContext adsContext = new ADSContext(ctx1);
       if (adsContext.hasAdminData())
       {
         boolean reloadTopology = true;
@@ -3599,7 +3484,7 @@ public class ReplicationCliMain extends ConsoleApplication
               getTrustManager(), getConnectTimeout());
           cache.getFilter().setSearchMonitoringInformation(false);
           cache.getFilter().setSearchBaseDNInformation(false);
-          cache.setPreferredConnections(getPreferredConnections(ctx[0]));
+          cache.setPreferredConnections(getPreferredConnections(ctx1));
           cache.reloadTopology();
 
           reloadTopology = false;
@@ -3664,18 +3549,19 @@ public class ReplicationCliMain extends ConsoleApplication
                     adminPwd = askForAdministratorPwd(logger);
                     println();
                   }
-                  close(ctx[0]);
+                  close(ctx1);
                   try
                   {
-                    ctx[0] = createAdministrativeContext(host, port, isSSL,
+                    final InitialLdapContext ctx2 = createAdministrativeContext(host, port, isSSL,
                         isStartTLS, getAdministratorDN(adminUid),
                         adminPwd, getConnectTimeout(), getTrustManager());
-                    adsContext = new ADSContext(ctx[0]);
+                    ctx.set(ctx2);
+                    adsContext = new ADSContext(ctx2);
                     cache = new TopologyCache(adsContext, getTrustManager(),
                         getConnectTimeout());
                     cache.getFilter().setSearchMonitoringInformation(false);
                     cache.getFilter().setSearchBaseDNInformation(false);
-                    cache.setPreferredConnections(getPreferredConnections(ctx[0]));
+                    cache.setPreferredConnections(getPreferredConnections(ctx2));
                     connected = true;
                   }
                   catch (Throwable t)
@@ -4332,7 +4218,6 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     InitialLdapContext ctxSource = createAdministrativeContext(uData, true);
     InitialLdapContext ctxDestination = createAdministrativeContext(uData, false);
-
     try
     {
       if (ctxSource == null || ctxDestination == null)
@@ -4342,41 +4227,36 @@ public class ReplicationCliMain extends ConsoleApplication
 
       List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctxSource, ctxDestination, false);
-      if (!baseDNs.isEmpty())
-      {
-        if (mustPrintCommandBuilder())
-        {
-          uData.setBaseDNs(baseDNs);
-          printNewCommandBuilder(INITIALIZE_REPLICATION_SUBCMD_NAME, uData);
-        }
-
-        ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-        for (String baseDN : baseDNs)
-        {
-          try
-          {
-            println();
-            LocalizableMessage msg =
-                formatter.getFormattedProgress(INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, getHostPort(ctxSource)));
-            print(msg);
-            println();
-            initializeSuffix(baseDN, ctxSource, ctxDestination, true);
-            returnValue = SUCCESSFUL;
-          }
-          catch (ReplicationCliException rce)
-          {
-            println();
-            println(getCriticalExceptionMessage(rce));
-            returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-          }
-        }
-        return returnValue;
-      }
-      else
+      if (baseDNs.isEmpty())
       {
         return REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
       }
+      if (mustPrintCommandBuilder())
+      {
+        uData.setBaseDNs(baseDNs);
+        printNewCommandBuilder(INITIALIZE_REPLICATION_SUBCMD_NAME, uData);
+      }
+
+      ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+      for (String baseDN : baseDNs)
+      {
+        try
+        {
+          println();
+          print(formatter.getFormattedProgress(INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, getHostPort(ctxSource))));
+          println();
+          initializeSuffix(baseDN, ctxSource, ctxDestination, true);
+          returnValue = SUCCESSFUL;
+        }
+        catch (ReplicationCliException rce)
+        {
+          println();
+          println(getCriticalExceptionMessage(rce));
+          returnValue = rce.getErrorCode();
+          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+        }
+      }
+      return returnValue;
     }
     finally
     {
@@ -4427,39 +4307,36 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctx, false);
-      if (!baseDNs.isEmpty())
-      {
-        if (mustPrintCommandBuilder())
-        {
-          uData.setBaseDNs(baseDNs);
-          printNewCommandBuilder(INITIALIZE_ALL_REPLICATION_SUBCMD_NAME, uData);
-        }
-
-        ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-        for (String baseDN : baseDNs)
-        {
-          try
-          {
-            println();
-            print(formatter.getFormattedProgress(INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, getHostPort(ctx))));
-            println();
-            initializeAllSuffix(baseDN, ctx, true);
-            returnValue = SUCCESSFUL;
-          }
-          catch (ReplicationCliException rce)
-          {
-            println();
-            println(getCriticalExceptionMessage(rce));
-            returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-          }
-        }
-        return returnValue;
-      }
-      else
+      if (baseDNs.isEmpty())
       {
         return REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
       }
+      if (mustPrintCommandBuilder())
+      {
+        uData.setBaseDNs(baseDNs);
+        printNewCommandBuilder(INITIALIZE_ALL_REPLICATION_SUBCMD_NAME, uData);
+      }
+
+      ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
+      for (String baseDN : baseDNs)
+      {
+        try
+        {
+          println();
+          print(formatter.getFormattedProgress(INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN, getHostPort(ctx))));
+          println();
+          initializeAllSuffix(baseDN, ctx, true);
+          returnValue = SUCCESSFUL;
+        }
+        catch (ReplicationCliException rce)
+        {
+          println();
+          println(getCriticalExceptionMessage(rce));
+          returnValue = rce.getErrorCode();
+          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+        }
+      }
+      return returnValue;
     }
     finally
     {
@@ -4490,43 +4367,39 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctx, false);
-      if (!baseDNs.isEmpty())
-      {
-        if (mustPrintCommandBuilder())
-        {
-          uData.setBaseDNs(baseDNs);
-          printNewCommandBuilder(PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME, uData);
-        }
-
-        ReplicationCliReturnCode returnValue = SUCCESSFUL;
-        for (String baseDN : baseDNs)
-        {
-          try
-          {
-            println();
-            print(formatter.getFormattedWithPoints(
-                INFO_PROGRESS_PRE_EXTERNAL_INITIALIZATION.get(baseDN)));
-            preExternalInitialization(baseDN, ctx);
-            print(formatter.getFormattedDone());
-            println();
-          }
-          catch (ReplicationCliException rce)
-          {
-            println();
-            println(getCriticalExceptionMessage(rce));
-            returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-          }
-        }
-        println();
-        print(INFO_PROGRESS_PRE_INITIALIZATION_FINISHED_PROCEDURE.get(POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
-        println();
-        return returnValue;
-      }
-      else
+      if (baseDNs.isEmpty())
       {
         return REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
       }
+      if (mustPrintCommandBuilder())
+      {
+        uData.setBaseDNs(baseDNs);
+        printNewCommandBuilder(PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME, uData);
+      }
+
+      ReplicationCliReturnCode returnValue = SUCCESSFUL;
+      for (String baseDN : baseDNs)
+      {
+        try
+        {
+          println();
+          print(formatter.getFormattedWithPoints(INFO_PROGRESS_PRE_EXTERNAL_INITIALIZATION.get(baseDN)));
+          preExternalInitialization(baseDN, ctx);
+          print(formatter.getFormattedDone());
+          println();
+        }
+        catch (ReplicationCliException rce)
+        {
+          println();
+          println(getCriticalExceptionMessage(rce));
+          returnValue = rce.getErrorCode();
+          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+        }
+      }
+      println();
+      print(INFO_PROGRESS_PRE_INITIALIZATION_FINISHED_PROCEDURE.get(POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
+      println();
+      return returnValue;
     }
     finally
     {
@@ -4557,43 +4430,39 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctx, false);
-      if (!baseDNs.isEmpty())
-      {
-        if (mustPrintCommandBuilder())
-        {
-          uData.setBaseDNs(baseDNs);
-          printNewCommandBuilder(POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME, uData);
-        }
-
-        ReplicationCliReturnCode returnValue = SUCCESSFUL;
-        for (String baseDN : baseDNs)
-        {
-          try
-          {
-            println();
-            print(formatter.getFormattedWithPoints(
-                INFO_PROGRESS_POST_EXTERNAL_INITIALIZATION.get(baseDN)));
-            postExternalInitialization(baseDN, ctx);
-            println(formatter.getFormattedDone());
-            println();
-          }
-          catch (ReplicationCliException rce)
-          {
-            println();
-            println(getCriticalExceptionMessage(rce));
-            returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
-          }
-        }
-        println();
-        print(INFO_PROGRESS_POST_INITIALIZATION_FINISHED_PROCEDURE.get());
-        println();
-        return returnValue;
-      }
-      else
+      if (baseDNs.isEmpty())
       {
         return REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
       }
+      if (mustPrintCommandBuilder())
+      {
+        uData.setBaseDNs(baseDNs);
+        printNewCommandBuilder(POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME, uData);
+      }
+
+      ReplicationCliReturnCode returnValue = SUCCESSFUL;
+      for (String baseDN : baseDNs)
+      {
+        try
+        {
+          println();
+          print(formatter.getFormattedWithPoints(INFO_PROGRESS_POST_EXTERNAL_INITIALIZATION.get(baseDN)));
+          postExternalInitialization(baseDN, ctx);
+          println(formatter.getFormattedDone());
+          println();
+        }
+        catch (ReplicationCliException rce)
+        {
+          println();
+          println(getCriticalExceptionMessage(rce));
+          returnValue = rce.getErrorCode();
+          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
+        }
+      }
+      println();
+      print(INFO_PROGRESS_POST_INITIALIZATION_FINISHED_PROCEDURE.get());
+      println();
+      return returnValue;
     }
     finally
     {
@@ -6710,9 +6579,7 @@ public class ReplicationCliMain extends ConsoleApplication
         tableBuilder.appendCell(EMPTY_MSG);
       }
       // Secure
-      tableBuilder.appendCell(
-        LocalizableMessage.raw(
-          Boolean.toString(server.isReplicationSecure())));
+      tableBuilder.appendCell(LocalizableMessage.raw(Boolean.toString(server.isReplicationSecure())));
     }
 
     PrintStream out = getOutputStream();
@@ -6720,15 +6587,13 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (scriptFriendly)
     {
-      print(
-          INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get());
+      print(INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get());
       println();
       printer = new TabSeparatedTablePrinter(out);
     }
     else
     {
-      LocalizableMessage msg =
-        INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get();
+      LocalizableMessage msg = INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get();
       print(msg);
       println();
       int length = msg.length();
@@ -7555,20 +7420,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          LocalizableMessage errorMsg;
-          String server = getHostPort(ctx);
-          if (lastLogMsg == null)
-          {
-            errorMsg = isPre
-                ? INFO_ERROR_DURING_PRE_EXTERNAL_INITIALIZATION_NO_LOG.get(state, server)
-                : INFO_ERROR_DURING_POST_EXTERNAL_INITIALIZATION_NO_LOG.get(state, server);
-          }
-          else
-          {
-            errorMsg = isPre
-                ? INFO_ERROR_DURING_PRE_EXTERNAL_INITIALIZATION_LOG.get(lastLogMsg, state, server)
-                : INFO_ERROR_DURING_POST_EXTERNAL_INITIALIZATION_LOG.get(lastLogMsg, state, server);
-          }
+          LocalizableMessage errorMsg = getPrePostErrorMsg(isPre, lastLogMsg, state, ctx);
 
           if (helper.isCompletedWithErrors(state))
           {
@@ -7599,6 +7451,20 @@ public class ReplicationCliMain extends ConsoleApplication
                 getThrowableMsg(msg, ne), ERROR_CONNECTING, ne);
       }
     }
+  }
+
+  private LocalizableMessage getPrePostErrorMsg(boolean isPre, String lastLogMsg, String state, InitialLdapContext ctx)
+  {
+    String server = getHostPort(ctx);
+    if (lastLogMsg == null)
+    {
+      return isPre
+          ? INFO_ERROR_DURING_PRE_EXTERNAL_INITIALIZATION_NO_LOG.get(state, server)
+          : INFO_ERROR_DURING_POST_EXTERNAL_INITIALIZATION_NO_LOG.get(state, server);
+    }
+    return isPre
+        ? INFO_ERROR_DURING_PRE_EXTERNAL_INITIALIZATION_LOG.get(lastLogMsg, state, server)
+        : INFO_ERROR_DURING_POST_EXTERNAL_INITIALIZATION_LOG.get(lastLogMsg, state, server);
   }
 
   private void sleepCatchInterrupt(long millis)
@@ -7706,10 +7572,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
         // Get the number of entries that have been handled and
         // a percentage...
-        String sProcessed = getFirstValue(sr,
-        "ds-task-processed-entry-count");
-        String sUnprocessed = getFirstValue(sr,
-        "ds-task-unprocessed-entry-count");
+        String sProcessed = getFirstValue(sr, "ds-task-processed-entry-count");
+        String sUnprocessed = getFirstValue(sr, "ds-task-unprocessed-entry-count");
         long processed = -1;
         long unprocessed = -1;
         if (sProcessed != null)
@@ -7758,7 +7622,6 @@ public class ReplicationCliMain extends ConsoleApplication
         if (helper.isDone(state) || helper.isStoppedByError(state))
         {
           isOver = true;
-          LocalizableMessage errorMsg;
           logger.info(LocalizableMessage.raw("Last task entry: "+sr));
           if (displayProgress && msg != null && !msg.equals(lastDisplayedMsg))
           {
@@ -7766,17 +7629,8 @@ public class ReplicationCliMain extends ConsoleApplication
             lastDisplayedMsg = msg;
             println();
           }
-          if (lastLogMsg == null)
-          {
-            errorMsg = INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(
-                    serverDisplay, state, serverDisplay);
-          }
-          else
-          {
-            errorMsg = INFO_ERROR_DURING_INITIALIZATION_LOG.get(
-                serverDisplay, lastLogMsg, state, serverDisplay);
-          }
 
+          LocalizableMessage errorMsg = getInitializeAllErrorMsg(serverDisplay, lastLogMsg, state);
           if (helper.isCompletedWithErrors(state))
           {
             logger.warn(LocalizableMessage.raw("Processed errorMsg: "+errorMsg));
@@ -7836,6 +7690,15 @@ public class ReplicationCliMain extends ConsoleApplication
                     serverDisplay), ne), ne);
       }
     }
+  }
+
+  private LocalizableMessage getInitializeAllErrorMsg(String serverDisplay, String lastLogMsg, String state)
+  {
+    if (lastLogMsg != null)
+    {
+      return INFO_ERROR_DURING_INITIALIZATION_LOG.get(serverDisplay, lastLogMsg, state, serverDisplay);
+    }
+    return INFO_ERROR_DURING_INITIALIZATION_NO_LOG.get(serverDisplay, state, serverDisplay);
   }
 
   private LocalizableMessage getMsg(LocalizableMessage lastDisplayedMsg,
