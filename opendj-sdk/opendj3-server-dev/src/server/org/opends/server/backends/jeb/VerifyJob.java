@@ -52,51 +52,25 @@ public class VerifyJob
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * The verify configuration.
-   */
-  private VerifyConfig verifyConfig;
-
-  /**
-   * The root container used for the verify job.
-   */
+  /** The verify configuration. */
+  private final VerifyConfig verifyConfig;
+  /** The root container used for the verify job. */
   private RootContainer rootContainer;
 
-  /**
-   * The number of milliseconds between job progress reports.
-   */
-  private long progressInterval = 10000;
-
-  /**
-   * The number of index keys processed.
-   */
-  private long keyCount = 0;
-
-  /**
-   * The number of errors found.
-   */
-  private long errorCount = 0;
-
-  /**
-   * The number of records that have exceeded the entry limit.
-   */
-  private long entryLimitExceededCount = 0;
-
-  /**
-   * The number of records that reference more than one entry.
-   */
-  private long multiReferenceCount = 0;
-
-  /**
-   * The total number of entry references.
-   */
-  private long entryReferencesCount = 0;
-
-  /**
-   * The maximum number of references per record.
-   */
-  private long maxEntryPerValue = 0;
+  /** The number of milliseconds between job progress reports. */
+  private final long progressInterval = 10000;
+  /** The number of index keys processed. */
+  private long keyCount;
+  /** The number of errors found. */
+  private long errorCount;
+  /** The number of records that have exceeded the entry limit. */
+  private long entryLimitExceededCount;
+  /** The number of records that reference more than one entry. */
+  private long multiReferenceCount;
+  /** The total number of entry references. */
+  private long entryReferencesCount;
+  /** The maximum number of references per record. */
+  private long maxEntryPerValue;
 
   /**
    * This map is used to gather some statistics about values that have
@@ -105,51 +79,31 @@ public class VerifyJob
   private IdentityHashMap<Index, HashMap<ByteString, Long>> entryLimitMap =
        new IdentityHashMap<Index, HashMap<ByteString, Long>>();
 
-  /**
-   * Indicates whether the DN database is to be verified.
-   */
-  private boolean verifyDN2ID = false;
+  /** Indicates whether the DN database is to be verified. */
+  private boolean verifyDN2ID;
+  /** Indicates whether the children database is to be verified. */
+  private boolean verifyID2Children;
+  /** Indicates whether the subtree database is to be verified. */
+  private boolean verifyID2Subtree;
 
-  /**
-   * Indicates whether the children database is to be verified.
-   */
-  private boolean verifyID2Children = false;
-
-  /**
-   * Indicates whether the subtree database is to be verified.
-   */
-  private boolean verifyID2Subtree = false;
-
-  /**
-   * The entry database.
-   */
+  /** The entry database. */
   private ID2Entry id2entry;
-
-  /**
-   * The DN database.
-   */
+  /** The DN database. */
   private DN2ID dn2id;
-
-  /**
-   * The children database.
-   */
+  /** The children database. */
   private Index id2c;
-
-  /**
-   * The subtree database.
-   */
+  /** The subtree database. */
   private Index id2s;
 
   /**
    * A list of the attribute indexes to be verified.
    */
-  private ArrayList<AttributeIndex> attrIndexList =
-      new ArrayList<AttributeIndex>();
+  private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
 
   /**
    * A list of the VLV indexes to be verified.
    */
-  private ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
+  private final ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
 
   /**
    * Construct a VerifyJob.
@@ -211,11 +165,11 @@ public class VerifyJob
         for (String index : list)
         {
           String lowerName = index.toLowerCase();
-          if (lowerName.equals("dn2id"))
+          if ("dn2id".equals(lowerName))
           {
             verifyDN2ID = true;
           }
-          else if (lowerName.equals("id2children"))
+          else if ("id2children".equals(lowerName))
           {
             if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
             {
@@ -228,7 +182,7 @@ public class VerifyJob
               throw new JebException(msg);
             }
           }
-          else if (lowerName.equals("id2subtree"))
+          else if ("id2subtree".equals(lowerName))
           {
             if (rootContainer.getConfiguration().isSubordinateIndexesEnabled())
             {
@@ -331,7 +285,7 @@ public class VerifyJob
       }
 
       long finishTime = System.currentTimeMillis();
-      long totalTime = (finishTime - startTime);
+      long totalTime = finishTime - startTime;
 
       float rate = 0;
       if (totalTime > 0)
@@ -350,7 +304,7 @@ public class VerifyJob
           float averageEntryReferences = 0;
           if (keyCount > 0)
           {
-            averageEntryReferences = (float)entryReferencesCount/keyCount;
+            averageEntryReferences = entryReferencesCount/keyCount;
           }
 
           logger.debug(INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
@@ -514,22 +468,20 @@ public class VerifyJob
     {
       iterateID2Subtree();
     }
-    else
+    else if (attrIndexList.size() > 0)
     {
-      if(attrIndexList.size() > 0)
-      {
-        AttributeIndex attrIndex = attrIndexList.get(0);
-        final IndexingOptions options = attrIndex.getIndexingOptions();
-        iterateAttrIndex(attrIndex.getEqualityIndex(), options);
-        iterateAttrIndex(attrIndex.getPresenceIndex(), options);
-        iterateAttrIndex(attrIndex.getSubstringIndex(), options);
-        iterateAttrIndex(attrIndex.getOrderingIndex(), options);
-        iterateAttrIndex(attrIndex.getApproximateIndex(), options);
-       // TODO: Need to iterate through ExtendedMatchingRules indexes.
-      } else if(vlvIndexList.size() > 0)
-      {
-        iterateVLVIndex(vlvIndexList.get(0), true);
-      }
+      AttributeIndex attrIndex = attrIndexList.get(0);
+      final IndexingOptions options = attrIndex.getIndexingOptions();
+      iterateAttrIndex(attrIndex.getEqualityIndex(), options);
+      iterateAttrIndex(attrIndex.getPresenceIndex(), options);
+      iterateAttrIndex(attrIndex.getSubstringIndex(), options);
+      iterateAttrIndex(attrIndex.getOrderingIndex(), options);
+      iterateAttrIndex(attrIndex.getApproximateIndex(), options);
+     // TODO: Need to iterate through ExtendedMatchingRules indexes.
+    }
+    else if (vlvIndexList.size() > 0)
+    {
+      iterateVLVIndex(vlvIndexList.get(0), true);
     }
   }
 
@@ -591,18 +543,14 @@ public class VerifyJob
                 "ID %d%n", new String(key.getData()), entryID.longValue());
           }
         }
-        else
+        else if (!Arrays.equals(JebFormat.dnToDNKey(
+            entry.getName(), verifyConfig.getBaseDN().size()), key.getData()))
         {
-          if (!Arrays.equals(JebFormat.dnToDNKey(
-              entry.getName(), verifyConfig.getBaseDN().size()), key.getData()))
+          errorCount++;
+          if (logger.isTraceEnabled())
           {
-            errorCount++;
-            if (logger.isTraceEnabled())
-            {
-              logger.trace("File dn2id has DN <%s> referencing entry " +
-                  "with wrong DN <%s>%n", new String(key.getData()),
-                                          entry.getName().toString());
-            }
+            logger.trace("File dn2id has DN <%s> referencing entry with wrong DN <%s>%n",
+                new String(key.getData()), entry.getName());
           }
         }
       }
@@ -892,13 +840,13 @@ public class VerifyJob
     }
     ByteString octetString = ByteString.wrap(key);
     Long counter = hashMap.get(octetString);
-    if (counter == null)
+    if (counter != null)
     {
-      counter = 1L;
+      counter++;
     }
     else
     {
-      counter++;
+      counter = 1L;
     }
     hashMap.put(octetString, counter);
   }
@@ -1097,13 +1045,10 @@ public class VerifyJob
 
           for (EntryID id : entryIDList)
           {
-            if (prevID != null && id.equals(prevID))
+            if (prevID != null && id.equals(prevID) && logger.isTraceEnabled())
             {
-              if (logger.isTraceEnabled())
-              {
-                logger.trace("Duplicate reference to ID %d%n%s",
-                           id.longValue(), keyDump(index, key.getData()));
-              }
+              logger.trace("Duplicate reference to ID %d%n%s",
+                         id.longValue(), keyDump(index, key.getData()));
             }
             prevID = id;
 
@@ -1234,8 +1179,7 @@ public class VerifyJob
       {
         if (logger.isTraceEnabled())
         {
-          logger.trace("File dn2id is missing key %s.%n",
-                     dn.toString());
+          logger.trace("File dn2id is missing key %s.%n", dn);
         }
         errorCount++;
       }
@@ -1243,10 +1187,7 @@ public class VerifyJob
       {
         if (logger.isTraceEnabled())
         {
-          logger.trace("File dn2id has ID %d instead of %d for key %s.%n",
-                     id.longValue(),
-                     entryID.longValue(),
-                     dn.toString());
+          logger.trace("File dn2id has ID %d instead of %d for key %s.%n", id.longValue(), entryID.longValue(), dn);
         }
         errorCount++;
       }
@@ -1256,10 +1197,7 @@ public class VerifyJob
       if (logger.isTraceEnabled())
       {
         logger.traceException(e);
-
-        logger.trace("File dn2id has error reading key %s: %s.%n",
-                   dn.toString(),
-                   e.getMessage());
+        logger.trace("File dn2id has error reading key %s: %s.%n", dn, e.getMessage());
       }
       errorCount++;
     }
@@ -1275,8 +1213,7 @@ public class VerifyJob
         {
           if (logger.isTraceEnabled())
           {
-            logger.trace("File dn2id is missing key %s.%n",
-                       parentDN.toString());
+            logger.trace("File dn2id is missing key %s.%n", parentDN);
           }
           errorCount++;
         }
@@ -1286,10 +1223,7 @@ public class VerifyJob
         if (logger.isTraceEnabled())
         {
           logger.traceException(e);
-
-          logger.trace("File dn2id has error reading key %s: %s.%n",
-                     parentDN.toString(),
-                     e.getMessage());
+          logger.trace("File dn2id has error reading key %s: %s.%n", parentDN, e.getMessage());
         }
         errorCount++;
       }
@@ -1317,8 +1251,7 @@ public class VerifyJob
         {
           if (logger.isTraceEnabled())
           {
-            logger.trace("File dn2id is missing key %s.%n",
-                       parentDN.toString());
+            logger.trace("File dn2id is missing key %s.%n", parentDN);
           }
           errorCount++;
         }
@@ -1328,10 +1261,7 @@ public class VerifyJob
         if (logger.isTraceEnabled())
         {
           logger.traceException(e);
-
-          logger.trace("File dn2id has error reading key %s: %s.",
-                     parentDN.toString(),
-                     e.getMessage());
+          logger.trace("File dn2id has error reading key %s: %s.", parentDN, e.getMessage());
         }
         errorCount++;
       }
@@ -1339,15 +1269,13 @@ public class VerifyJob
       {
         try
         {
-          ConditionResult cr;
-          cr = id2c.containsID(null, parentID.getDatabaseEntry(), entryID);
+          ConditionResult cr = id2c.containsID(null, parentID.getDatabaseEntry(), entryID);
           if (cr == ConditionResult.FALSE)
           {
             if (logger.isTraceEnabled())
             {
-              logger.trace("File id2children is missing ID %d " +
-                  "for key %d.%n",
-                         entryID.longValue(), parentID.longValue());
+              logger.trace("File id2children is missing ID %d for key %d.%n",
+                  entryID.longValue(), parentID.longValue());
             }
             errorCount++;
           }
@@ -1389,8 +1317,7 @@ public class VerifyJob
         {
           if (logger.isTraceEnabled())
           {
-            logger.trace("File dn2id is missing key %s.%n",
-                       dn.toString());
+            logger.trace("File dn2id is missing key %s.%n", dn);
           }
           errorCount++;
         }
@@ -1400,10 +1327,7 @@ public class VerifyJob
         if (logger.isTraceEnabled())
         {
           logger.traceException(e);
-
-          logger.trace("File dn2id has error reading key %s: %s.%n",
-                     dn.toString(),
-                     e.getMessage());
+          logger.trace("File dn2id has error reading key %s: %s.%n", dn, e.getMessage());
         }
         errorCount++;
       }
@@ -1523,17 +1447,15 @@ public class VerifyJob
     {
       try
       {
-        if(vlvIndex.shouldInclude(entry))
+        if (vlvIndex.shouldInclude(entry)
+            && !vlvIndex.containsValues(null, entryID.longValue(),
+                    vlvIndex.getSortValues(entry), vlvIndex.getSortTypes()))
         {
-          if (!vlvIndex.containsValues(null, entryID.longValue(),
-              vlvIndex.getSortValues(entry), vlvIndex.getSortTypes()))
+          if(logger.isTraceEnabled())
           {
-            if(logger.isTraceEnabled())
-            {
-              logger.trace("Missing entry %s in VLV index %s", entry.getName(), vlvIndex.getName());
-            }
-            errorCount++;
+            logger.trace("Missing entry %s in VLV index %s", entry.getName(), vlvIndex.getName());
           }
+          errorCount++;
         }
       }
       catch (DirectoryException e)
@@ -1541,9 +1463,7 @@ public class VerifyJob
         if (logger.isTraceEnabled())
         {
           logger.traceException(e);
-
-          logger.trace("Error checking entry %s against filter or " +
-              "base DN for VLV index %s: %s",
+          logger.trace("Error checking entry %s against filter or base DN for VLV index %s: %s",
                      entry.getName(), vlvIndex.getName(), e.getMessageObject());
         }
         errorCount++;
@@ -1708,7 +1628,7 @@ public class VerifyJob
   /**
    * This class reports progress of the verify job at fixed intervals.
    */
-  class ProgressTask extends TimerTask
+  private class ProgressTask extends TimerTask
   {
     /**
      * The total number of records to process.
@@ -1719,7 +1639,7 @@ public class VerifyJob
      * The number of records that had been processed at the time of the
      * previous progress report.
      */
-    private long previousCount = 0;
+    private long previousCount;
 
     /**
      * The time in milliseconds of the previous progress report.
@@ -1758,11 +1678,10 @@ public class VerifyJob
      * @throws DatabaseException An error occurred while accessing the JE
      * database.
      */
-    public ProgressTask(boolean indexIterator) throws DatabaseException
+    private ProgressTask(boolean indexIterator) throws DatabaseException
     {
       previousTime = System.currentTimeMillis();
-      prevEnvStats =
-          rootContainer.getEnvironmentStats(new StatsConfig());
+      prevEnvStats = rootContainer.getEnvironmentStats(new StatsConfig());
 
       if (indexIterator)
       {
@@ -1778,37 +1697,35 @@ public class VerifyJob
         {
           totalCount = id2s.getRecordCount();
         }
-        else
+        else if(attrIndexList.size() > 0)
         {
-          if(attrIndexList.size() > 0)
+          AttributeIndex attrIndex = attrIndexList.get(0);
+          totalCount = 0;
+          if (attrIndex.getEqualityIndex() != null)
           {
-            AttributeIndex attrIndex = attrIndexList.get(0);
-            totalCount = 0;
-            if (attrIndex.getEqualityIndex() != null)
-            {
-              totalCount += attrIndex.getEqualityIndex().getRecordCount();
-            }
-            if (attrIndex.getPresenceIndex() != null)
-            {
-              totalCount += attrIndex.getPresenceIndex().getRecordCount();
-            }
-            if (attrIndex.getSubstringIndex() != null)
-            {
-              totalCount += attrIndex.getSubstringIndex().getRecordCount();
-            }
-            if (attrIndex.getOrderingIndex() != null)
-            {
-              totalCount += attrIndex.getOrderingIndex().getRecordCount();
-            }
-            if (attrIndex.getApproximateIndex() != null)
-            {
-              totalCount += attrIndex.getApproximateIndex().getRecordCount();
-            }
-            // TODO: Add support for Extended Matching Rules indexes.
-          } else if(vlvIndexList.size() > 0)
-          {
-            totalCount = vlvIndexList.get(0).getRecordCount();
+            totalCount += attrIndex.getEqualityIndex().getRecordCount();
           }
+          if (attrIndex.getPresenceIndex() != null)
+          {
+            totalCount += attrIndex.getPresenceIndex().getRecordCount();
+          }
+          if (attrIndex.getSubstringIndex() != null)
+          {
+            totalCount += attrIndex.getSubstringIndex().getRecordCount();
+          }
+          if (attrIndex.getOrderingIndex() != null)
+          {
+            totalCount += attrIndex.getOrderingIndex().getRecordCount();
+          }
+          if (attrIndex.getApproximateIndex() != null)
+          {
+            totalCount += attrIndex.getApproximateIndex().getRecordCount();
+          }
+          // TODO: Add support for Extended Matching Rules indexes.
+        }
+        else if (vlvIndexList.size() > 0)
+        {
+          totalCount = vlvIndexList.get(0).getRecordCount();
         }
       }
       else
@@ -1825,7 +1742,7 @@ public class VerifyJob
     public void run()
     {
       long latestCount = keyCount;
-      long deltaCount = (latestCount - previousCount);
+      long deltaCount = latestCount - previousCount;
       long latestTime = System.currentTimeMillis();
       long deltaTime = latestTime - previousTime;
 
