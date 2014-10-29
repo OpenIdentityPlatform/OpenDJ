@@ -92,8 +92,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testStaticGroupMembershipMember()
-         throws Exception
+  public void testStaticGroupMembershipMember() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -125,8 +124,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "cn: Test Static Group",
       "member: uid=test.user,ou=People,o=test");
 
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -139,9 +137,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    DeleteOperation deleteOperation =
-         getRootConnection().processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    delete("cn=test static group,ou=groups,o=test");
   }
 
 
@@ -186,8 +182,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "cn: Test Static Group",
       "uniqueMember: uid=test.user,ou=People,o=test");
 
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -200,9 +195,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    DeleteOperation deleteOperation =
-         getRootConnection().processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    delete("cn=test static group,ou=groups,o=test");
   }
 
 
@@ -246,8 +239,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "cn: Test Dynamic Group",
       "memberURL: ldap:///ou=People,o=test??sub?(sn=user)");
 
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -260,9 +252,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    DeleteOperation deleteOperation =
-         getRootConnection().processDelete(DN.valueOf("cn=test dynamic group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    delete("cn=test dynamic group,ou=groups,o=test");
   }
 
 
@@ -330,8 +320,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user,ou=People,o=test",
       "member: uid=test.user2,ou=People,o=test");
 
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -346,18 +335,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    InternalClientConnection conn = getRootConnection();
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 2,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 3,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    delete("cn=test group 1,ou=groups,o=test",
+        "cn=test group 2,ou=groups,o=test",
+        "cn=test group 3,ou=groups,o=test");
   }
 
 
@@ -443,8 +423,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "cn: Test Group 6",
       "memberURL: ldap:///o=test??sub?(givenName=test)");
 
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(e);
     assertTrue(e.hasAttribute(isMemberOfType));
     for (Attribute a : e.getAttribute(isMemberOfType))
@@ -462,30 +441,12 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
-    InternalClientConnection conn = getRootConnection();
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 2,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 3,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 4,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 5,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 6,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    delete("cn=test group 1,ou=groups,o=test",
+        "cn=test group 2,ou=groups,o=test",
+        "cn=test group 3,ou=groups,o=test",
+        "cn=test group 4,ou=groups,o=test",
+        "cn=test group 5,ou=groups,o=test",
+        "cn=test group 6,ou=groups,o=test");
   }
 
 
@@ -510,8 +471,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testMatchesSubstring()
-         throws Exception
+  public void testMatchesSubstring() throws Exception
   {
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -523,13 +483,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = buildRule(provider);
 
     LinkedList<ByteString> subAny = new LinkedList<ByteString>();
     subAny.add(ByteString.valueOf("="));
@@ -547,8 +501,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testGreaterThanOrEqualTo()
-         throws Exception
+  public void testGreaterThanOrEqualTo() throws Exception
   {
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -560,13 +513,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = buildRule(provider);
 
     ByteString value = ByteString.valueOf("o=test2");
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, value),
@@ -582,8 +529,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testLessThanOrEqualTo()
-         throws Exception
+  public void testLessThanOrEqualTo() throws Exception
   {
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -595,13 +541,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = buildRule(provider);
 
     ByteString value = ByteString.valueOf("o=test2");
     assertEquals(provider.lessThanOrEqualTo(entry, rule, value),
@@ -617,8 +557,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testApproximatelyEqualTo()
-         throws Exception
+  public void testApproximatelyEqualTo() throws Exception
   {
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
@@ -630,13 +569,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = buildRule(provider);
 
     ByteString value = ByteString.valueOf("o=test2");
     assertEquals(provider.approximatelyEqualTo(entry, rule, value),
@@ -705,20 +638,12 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testFilters")
-  public void testIsSearchable(String filterString, boolean isSearchable,
-                               boolean shouldMatch)
-         throws Exception
+  public void testIsSearchable(String filterString, boolean isSearchable, boolean shouldMatch) throws Exception
   {
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = buildRule(provider);
 
     SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filterString);
     InternalSearchOperation searchOperation = new InternalSearchOperation(
@@ -745,9 +670,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testFilters")
-  public void testProcessSearch(String filterString, boolean isSearchable,
-                                boolean shouldMatch)
-         throws Exception
+  public void testProcessSearch(String filterString, boolean isSearchable, boolean shouldMatch) throws Exception
   {
     if (! isSearchable)
     {
@@ -826,20 +749,13 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       "member: uid=test.user2,ou=People,o=test",
       "member: uid=test.user3,ou=People,o=test");
 
-    Entry userEntry =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
+    Entry userEntry = DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
     assertNotNull(userEntry);
 
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = buildRule(provider);
 
     SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE, filterString);
     InternalClientConnection conn = getRootConnection();
@@ -865,21 +781,10 @@ public class IsMemberOfVirtualAttributeProviderTestCase
 
     assertEquals(matchFound, shouldMatch);
 
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 2,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 3,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test group 4,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    delete("cn=test group 1,ou=groups,o=test",
+        "cn=test group 2,ou=groups,o=test",
+        "cn=test group 3,ou=groups,o=test",
+        "cn=test group 4,ou=groups,o=test");
   }
 
   /**
@@ -948,13 +853,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     IsMemberOfVirtualAttributeProvider provider =
         new IsMemberOfVirtualAttributeProvider();
 
-    VirtualAttributeRule rule =
-        new VirtualAttributeRule(isMemberOfType, provider,
-            Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-            Collections.<DN>emptySet(),
-            Collections.<SearchFilter>emptySet(),
-            VirtualAttributeCfgDefn.ConflictBehavior.
-                VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = buildRule(provider);
 
     SearchRequest request = newSearchRequest(DN.valueOf("o=test"), SearchScope.WHOLE_SUBTREE,
         "isMemberOf=cn=Test Group 3,ou=Groups,o=test");
@@ -970,14 +869,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     // Then indirect members
     assertEquals(entries.get(1).getName(), DN.valueOf("uid=test.user,ou=people,o=test"));
 
-    DeleteOperation deleteOperation =
-        conn.processDelete(DN.valueOf("cn=test group 1,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-        conn.processDelete(DN.valueOf("cn=test group 2,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
+    delete("cn=test group 1,ou=groups,o=test",
+        "cn=test group 2,ou=groups,o=test",
+        "cn=test group 3,ou=groups,o=test");
   }
 
 
@@ -1020,8 +914,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
            .append("??sub?(objectclass=person)");
     TestCaseUtils.addEntries(builder.toString());
     //Verify the entry.
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("cn=user.0,ou=People"+SUFFIX));
+    Entry e = DirectoryServer.getEntry(DN.valueOf("cn=user.0,ou=People" + SUFFIX));
     assertNotNull(e);
     //Do an ldapsearch.
 
@@ -1033,6 +926,24 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     List<SearchResultEntry> entries = searchOperation.getSearchEntries();
     assertTrue(entries.size()>4000);
+  }
+
+  private VirtualAttributeRule buildRule(IsMemberOfVirtualAttributeProvider provider)
+  {
+    return new VirtualAttributeRule(isMemberOfType, provider,
+              Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+              Collections.<DN>emptySet(),
+              Collections.<SearchFilter>emptySet(),
+              VirtualAttributeCfgDefn.ConflictBehavior.VIRTUAL_OVERRIDES_REAL);
+  }
+
+  private void delete(String... dns) throws Exception
+  {
+    for (String dn : dns)
+    {
+      DeleteOperation deleteOperation = getRootConnection().processDelete(DN.valueOf(dn));
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    }
   }
 }
 
