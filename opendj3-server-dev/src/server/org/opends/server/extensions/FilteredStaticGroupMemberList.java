@@ -26,15 +26,14 @@
  */
 package org.opends.server.extensions;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.SearchScope;
-
+import org.forgerock.opendj.ldap.DN.CompactDn;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -51,41 +50,33 @@ import static org.opends.messages.ExtensionMessages.*;
  * may be used in conjunction when static groups when additional criteria is to
  * be used to select a subset of the group members.
  */
-public class FilteredStaticGroupMemberList
-       extends MemberList
+public class FilteredStaticGroupMemberList extends MemberList
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-
-  // The base DN below which all returned members should exist.
+  /** The base DN below which all returned members should exist. */
   private DN baseDN;
 
-  // The DN of the static group with which this member list is associated.
+  /** The DN of the static group with which this member list is associated. */
   private DN groupDN;
 
-  // The entry of the next entry that matches the member list criteria.
+  /** The entry of the next entry that matches the member list criteria. */
   private Entry nextMatchingEntry;
 
-  // The iterator used to traverse the set of member DNs.
-  private Iterator<ByteString> memberDNIterator;
+  /** The iterator used to traverse the set of member DNs. */
+  private Iterator<CompactDn> memberDNIterator;
 
-  // The set of DNs for the users that are members of the associated static
-  // group.
-  private ArrayList<ByteString> memberDNs;
-
-  // The membership exception that should be thrown the next time a member is
-  // requested.
+  /**
+   * The membership exception that should be thrown the next time a member is
+   * requested.
+   */
   private MembershipException nextMembershipException;
 
-  // The search filter that all returned members should match.
+  /** The search filter that all returned members should match. */
   private SearchFilter filter;
 
-  // The search scope to apply against the base DN for the member subset.
+  /** The search scope to apply against the base DN for the member subset. */
   private SearchScope scope;
-
-
 
   /**
    * Creates a new filtered static group member list with the provided
@@ -104,34 +95,19 @@ public class FilteredStaticGroupMemberList
    *                    match.  If this is {@code null}, then all members will
    *                    be considered eligible.
    */
-  public FilteredStaticGroupMemberList(DN groupDN, Set<ByteString> memberDNs,
-                                       DN baseDN, SearchScope scope,
-                                       SearchFilter filter)
+  public FilteredStaticGroupMemberList(DN groupDN, Set<CompactDn> memberDNs, DN baseDN, SearchScope scope,
+      SearchFilter filter)
   {
     ifNull(groupDN, memberDNs);
 
     this.groupDN   = groupDN;
-    this.memberDNs = new ArrayList<ByteString>(memberDNs);
-    memberDNIterator = memberDNs.iterator();
-
+    this.memberDNIterator = memberDNs.iterator();
     this.baseDN = baseDN;
     this.filter = filter;
+    this.scope = scope != null ? scope : SearchScope.WHOLE_SUBTREE;
 
-    if (scope == null)
-    {
-      this.scope = SearchScope.WHOLE_SUBTREE;
-    }
-    else
-    {
-      this.scope = scope;
-    }
-
-    nextMatchingEntry       = null;
-    nextMembershipException = null;
     nextMemberInternal();
   }
-
-
 
   /**
    * Attempts to find the next member that matches the associated criteria.
@@ -149,16 +125,13 @@ public class FilteredStaticGroupMemberList
       DN nextDN = null;
       try
       {
-        nextDN = DN.decode(memberDNIterator.next());
+        nextDN = StaticGroup.fromCompactDn(memberDNIterator.next());
       }
-      catch (DirectoryException de)
+      catch (LocalizedIllegalArgumentException e)
       {
-        logger.traceException(de);
-
-        LocalizableMessage message = ERR_STATICMEMBERS_CANNOT_DECODE_DN.
-            get(nextDN, groupDN, de.getMessageObject());
-        nextMembershipException =
-             new MembershipException(message, true, de);
+        logger.traceException(e);
+        nextMembershipException = new MembershipException(ERR_STATICMEMBERS_CANNOT_DECODE_DN.get(nextDN, groupDN,
+            e.getMessageObject()), true, e);
         return;
       }
 
@@ -198,7 +171,6 @@ public class FilteredStaticGroupMemberList
         }
       }
 
-
       // Get the entry for the potential member.  If we can't, then populate
       // the next membership exception.
       try
@@ -206,9 +178,7 @@ public class FilteredStaticGroupMemberList
         Entry memberEntry = DirectoryConfig.getEntry(nextDN);
         if (memberEntry == null)
         {
-          LocalizableMessage message = ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(nextDN, groupDN);
-          nextMembershipException =
-               new MembershipException(message, true);
+          nextMembershipException = new MembershipException(ERR_STATICMEMBERS_NO_SUCH_ENTRY.get(nextDN, groupDN), true);
           return;
         }
 
@@ -217,17 +187,14 @@ public class FilteredStaticGroupMemberList
           nextMatchingEntry = memberEntry;
           return;
         }
-        else
+        else if (filter.matchesEntry(memberEntry))
         {
-          if (filter.matchesEntry(memberEntry))
-          {
             nextMatchingEntry = memberEntry;
             return;
-          }
-          else
-          {
-            continue;
-          }
+        }
+        else
+        {
+          continue;
         }
       }
       catch (DirectoryException de)
@@ -242,17 +209,12 @@ public class FilteredStaticGroupMemberList
       }
     }
 
-
     // If we've gotten here, then there are no more members.
     nextMatchingEntry       = null;
     nextMembershipException = null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasMoreMembers()
   {
@@ -260,70 +222,45 @@ public class FilteredStaticGroupMemberList
     {
       return false;
     }
-
     return ((nextMatchingEntry != null) || (nextMembershipException != null));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public DN nextMemberDN()
-         throws MembershipException
+  public DN nextMemberDN() throws MembershipException
   {
     if (! memberDNIterator.hasNext())
     {
       return null;
     }
 
-    Entry e = nextMemberEntry();
-    if (e == null)
-    {
-      return null;
-    }
-    else
-    {
-      return e.getName();
-    }
+    Entry entry = nextMemberEntry();
+    return entry != null ? entry.getName() : null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public Entry nextMemberEntry()
-         throws MembershipException
+  public Entry nextMemberEntry() throws MembershipException
   {
     if (! memberDNIterator.hasNext())
     {
       return null;
     }
-
-    if (nextMembershipException == null)
-    {
-      Entry e = nextMatchingEntry;
-      nextMatchingEntry = null;
-      nextMemberInternal();
-      return e;
-    }
-    else
+    if (nextMembershipException != null)
     {
       MembershipException me = nextMembershipException;
       nextMembershipException = null;
       nextMemberInternal();
       throw me;
     }
+
+    Entry e = nextMatchingEntry;
+    nextMatchingEntry = null;
+    nextMemberInternal();
+    return e;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void close()
   {
