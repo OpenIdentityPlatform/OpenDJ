@@ -27,12 +27,12 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.MonitorMsg;
@@ -311,7 +311,7 @@ class ReplicationDomainMonitor
       {
         // This is a response for an earlier request whose computing is
         // already complete.
-        logger.debug(INFO_IGNORING_REMOTE_MONITOR_DATA, domain.getBaseDN().toString(), msg.getSenderID());
+        logger.debug(INFO_IGNORING_REMOTE_MONITOR_DATA, domain.getBaseDN(), msg.getSenderID());
         return;
       }
 

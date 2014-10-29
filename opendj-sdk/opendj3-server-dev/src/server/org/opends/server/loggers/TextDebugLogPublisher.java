@@ -138,9 +138,7 @@ public class TextDebugLogPublisher
       boolean writerAutoFlush =
           config.isAutoFlush() && !config.isAsynchronous();
 
-      MultifileTextWriter writer =
-          new MultifileTextWriter("Multifile Text Writer for " +
-              config.dn().toString(),
+      MultifileTextWriter writer = new MultifileTextWriter("Multifile Text Writer for " + config.dn(),
                                   config.getTimeInterval(),
                                   fnPolicy,
                                   perm,
@@ -163,8 +161,7 @@ public class TextDebugLogPublisher
 
       if(config.isAsynchronous())
       {
-        this.writer = new AsynchronousTextWriter(
-            "Asynchronous Text Writer for " + config.dn().toString(),
+        this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
             config.getQueueSize(), config.isAutoFlush(), writer);
       }
       else
@@ -306,10 +303,8 @@ public class TextDebugLogPublisher
             config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " +
-              config.dn().toString(), config.getQueueSize(),
-                                                config.isAutoFlush(),
-                                                mfWriter);
+          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
+              config.getQueueSize(), config.isAutoFlush(), mfWriter);
         }
 
         if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&

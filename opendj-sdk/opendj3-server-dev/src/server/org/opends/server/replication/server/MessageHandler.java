@@ -31,18 +31,22 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.types.Attributes.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -609,8 +613,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       if (!this.baseDN.equals(baseDN))
       {
-        LocalizableMessage message = ERR_RS_DN_DOES_NOT_MATCH.get(
-            this.baseDN.toString(), baseDN.toString());
+        LocalizableMessage message = ERR_RS_DN_DOES_NOT_MATCH.get(this.baseDN, baseDN);
         throw new DirectoryException(ResultCode.OTHER, message, null);
       }
     }

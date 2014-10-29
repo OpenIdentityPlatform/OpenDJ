@@ -138,9 +138,7 @@ public final class TextAuditLogPublisher extends
             && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
-          writer = new AsynchronousTextWriter(
-              "Asynchronous Text Writer for " +
-                  config.dn().toString(),
+          writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
               config.getQueueSize(), config.isAutoFlush(), mfWriter);
         }
 
@@ -198,8 +196,7 @@ public final class TextAuditLogPublisher extends
       boolean writerAutoFlush = cfg.isAutoFlush()
           && !cfg.isAsynchronous();
 
-      MultifileTextWriter writer = new MultifileTextWriter(
-          "Multifile Text Writer for " + cfg.dn().toString(),
+      MultifileTextWriter writer = new MultifileTextWriter("Multifile Text Writer for " + cfg.dn(),
           cfg.getTimeInterval(), fnPolicy, perm, errorHandler, "UTF-8",
           writerAutoFlush, cfg.isAppend(), (int) cfg.getBufferSize());
 
@@ -216,9 +213,8 @@ public final class TextAuditLogPublisher extends
 
       if (cfg.isAsynchronous())
       {
-        this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for "
-            + cfg.dn().toString(), cfg.getQueueSize(), cfg
-            .isAutoFlush(), writer);
+        this.writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + cfg.dn(),
+            cfg.getQueueSize(), cfg.isAutoFlush(), writer);
       }
       else
       {

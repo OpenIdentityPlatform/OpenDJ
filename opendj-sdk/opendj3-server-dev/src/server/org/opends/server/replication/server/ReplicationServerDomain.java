@@ -852,8 +852,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
              */
             LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
             mb.append(ERR_RS_ERROR_SENDING_ACK.get(
-                localReplicationServer.getServerId(), origServer.getServerId(),
-                csn, baseDN.toString()));
+                localReplicationServer.getServerId(), origServer.getServerId(), csn, baseDN));
             mb.append(" ");
             mb.append(stackTraceToSingleLineString(e));
             logger.error(mb.toMessage());
@@ -929,8 +928,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
              */
             LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
             mb.append(ERR_RS_ERROR_SENDING_ACK.get(
-                localReplicationServer.getServerId(), origServer.getServerId(),
-                csn, baseDN.toString()));
+                localReplicationServer.getServerId(), origServer.getServerId(), csn, baseDN));
             mb.append(" ");
             mb.append(stackTraceToSingleLineString(e));
             logger.error(mb.toMessage());
@@ -1484,7 +1482,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       RoutableMsg msg)
   {
     LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-    mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), msg.getDestination()));
+    mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN, msg.getDestination()));
     mb.append(" In Replication Server=").append(
       this.localReplicationServer.getMonitorInstanceName());
     mb.append(" unroutable message =").append(msg.getClass().getSimpleName());
@@ -1526,8 +1524,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
          * Send back an error to the originator of the message.
          */
         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-        mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(
-            baseDN.toString(), msg.getDestination()));
+        mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN, msg.getDestination()));
         mb.append(" unroutable message =" + msg.getClass().getSimpleName());
         mb.append(" Details: " + ioe.getLocalizedMessage());
         final LocalizableMessage message = mb.toMessage();
@@ -1847,7 +1844,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           }
         } catch (IOException e)
         {
-          logger.error(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID, baseDN.toString(), e.getMessage());
+          logger.error(ERR_EXCEPTION_FORWARDING_RESET_GEN_ID, baseDN, e.getMessage());
         }
       }
 
@@ -1860,7 +1857,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           dsHandler.changeStatusForResetGenId(newGenId);
         } catch (IOException e)
         {
-          logger.error(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID, baseDN.toString(),
+          logger.error(ERR_EXCEPTION_CHANGING_STATUS_AFTER_RESET_GEN_ID, baseDN,
               dsHandler.getServerId(), e.getMessage());
         }
       }
@@ -1872,7 +1869,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       // treatment.
       sendTopoInfoToAll();
 
-      logger.info(NOTE_RESET_GENERATION_ID, baseDN.toString(), newGenId);
+      logger.info(NOTE_RESET_GENERATION_ID, baseDN, newGenId);
     }
     catch(Exception e)
     {
@@ -1926,7 +1923,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       enqueueTopoInfoToAllExcept(senderHandler);
 
       logger.info(NOTE_DIRECTORY_SERVER_CHANGED_STATUS,
-          senderHandler.getServerId(), baseDN.toString(), newStatus);
+          senderHandler.getServerId(), baseDN, newStatus);
     }
     catch(Exception e)
     {
@@ -1988,7 +1985,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       catch (IOException e)
       {
         logger.error(ERR_EXCEPTION_CHANGING_STATUS_FROM_STATUS_ANALYZER,
-            baseDN.toString(), dsHandler.getServerId(), e.getMessage());
+            baseDN, dsHandler.getServerId(), e.getMessage());
       }
 
       if (newStatus == ServerStatus.INVALID_STATUS || newStatus == oldStatus)
@@ -2133,11 +2130,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       if (isDifferentGenerationId(rsHandler.getGenerationId()))
       {
-        LocalizableMessage message =
-            WARN_BAD_GENERATION_ID_FROM_RS.get(rsHandler.getServerId(),
-                rsHandler.session.getReadableRemoteAddress(), rsHandler
-                    .getGenerationId(), baseDN.toString(),
-                getLocalRSServerId(), generationId);
+        LocalizableMessage message = WARN_BAD_GENERATION_ID_FROM_RS.get(rsHandler.getServerId(),
+            rsHandler.session.getReadableRemoteAddress(), rsHandler.getGenerationId(),
+            baseDN, getLocalRSServerId(), generationId);
         logger.warn(message);
 
         ErrorMsg errorMsg = new ErrorMsg(getLocalRSServerId(),
@@ -2379,8 +2374,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           if (i == 2)
           {
             logger.error(ERR_EXCEPTION_SENDING_TOPO_INFO,
-                baseDN.toString(), type, handler.getServerId(),
-                e.getMessage());
+                baseDN, type, handler.getServerId(), e.getMessage());
           }
         }
       }
