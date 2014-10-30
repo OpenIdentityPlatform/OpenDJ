@@ -160,7 +160,7 @@ final class GuideSyntaxImpl extends AbstractSyntaxImpl {
 
         // See if the criteria is either "true" or "false". If so, then it
         // is valid.
-        if (criteria.equals("true") || criteria.equals("false")) {
+        if ("true".equals(criteria) || "false".equals(criteria)) {
             return true;
         }
 

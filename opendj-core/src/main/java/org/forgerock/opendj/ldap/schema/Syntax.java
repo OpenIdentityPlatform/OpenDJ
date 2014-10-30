@@ -364,7 +364,7 @@ public final class Syntax extends SchemaElement {
             // See if we need to override the implementation of the syntax
             for (final Map.Entry<String, List<String>> property : getExtraProperties().entrySet()) {
                 // Enums are handled in the schema builder.
-                if (property.getKey().equalsIgnoreCase("x-subst")) {
+                if ("x-subst".equalsIgnoreCase(property.getKey())) {
                     /**
                      * One unimplemented syntax can be substituted by another
                      * defined syntax. A substitution syntax is an
@@ -386,7 +386,7 @@ public final class Syntax extends SchemaElement {
                         }
                         impl = subSyntax.impl;
                     }
-                } else if (property.getKey().equalsIgnoreCase("x-pattern")) {
+                } else if ("x-pattern".equalsIgnoreCase(property.getKey())) {
                     final Iterator<String> values = property.getValue().iterator();
                     if (values.hasNext()) {
                         final String value = values.next();

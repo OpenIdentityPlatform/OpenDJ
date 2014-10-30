@@ -80,16 +80,8 @@ public final class Search {
             attributes = new String[0];
         }
 
-        SearchScope scope;
-        if (scopeString.equalsIgnoreCase("base")) {
-            scope = SearchScope.BASE_OBJECT;
-        } else if (scopeString.equalsIgnoreCase("one")) {
-            scope = SearchScope.SINGLE_LEVEL;
-        } else if (scopeString.equalsIgnoreCase("sub")) {
-            scope = SearchScope.WHOLE_SUBTREE;
-        } else if (scopeString.equalsIgnoreCase("subordinates")) {
-            scope = SearchScope.SUBORDINATES;
-        } else {
+        final SearchScope scope = SearchScope.valueOf(scopeString);
+        if (scope == null) {
             System.err.println("Unknown scope: " + scopeString);
             System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());
             return;

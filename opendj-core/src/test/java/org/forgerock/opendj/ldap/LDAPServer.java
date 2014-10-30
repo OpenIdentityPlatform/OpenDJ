@@ -267,9 +267,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                 .setServerSASLCredentials(ByteString.wrap(challenge)));
 
                         String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
-                        if (qop != null
-                                && (qop.equalsIgnoreCase("auth-int") || qop
-                                        .equalsIgnoreCase("auth-conf"))) {
+                        if ("auth-int".equalsIgnoreCase(qop) || "auth-conf".equalsIgnoreCase(qop)) {
                             ConnectionSecurityLayer csl = new ConnectionSecurityLayer() {
                                 @Override
                                 public void dispose() {
@@ -427,9 +425,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<R> resultHandler) throws UnsupportedOperationException {
             if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
-                final R result =
-                        request.getResultDecoder().newExtendedErrorResult(ResultCode.SUCCESS, "",
-                                "");
+                final R result = request.getResultDecoder().newExtendedErrorResult(ResultCode.SUCCESS, "", "");
                 resultHandler.handleResult(result);
                 clientContext.enableTLS(sslContext, null, sslContext.getSocketFactory()
                         .getSupportedCipherSuites(), false, false);

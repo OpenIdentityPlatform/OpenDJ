@@ -151,7 +151,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         this.isCollective = collective;
         this.isNoUserModification = noUserModification;
         this.attributeUsage = attributeUsage;
-        this.isObjectClassType = oid.equals("2.5.4.0");
+        this.isObjectClassType = "2.5.4.0".equals(oid);
         this.isPlaceHolder = false;
         this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
     }

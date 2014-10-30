@@ -111,36 +111,35 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     SchemaUtils.readNameDescriptors(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     SchemaUtils.readQuotedString(reader);
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
-                } else if (tokenName.equalsIgnoreCase("sup")) {
+                    // parsing for this token.
+                } else if ("sup".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the superior attribute
                     // type from which this attribute type should inherit its
                     // properties.
                     SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("equality")) {
+                } else if ("equality".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the equality matching
                     // rule to use for this attribute type.
                     SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("ordering")) {
+                } else if ("ordering".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the ordering matching
                     // rule to use for this attribute type.
                     SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("substr")) {
+                } else if ("substr".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the substring matching
                     // rule to use for this attribute type.
                     SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("syntax")) {
+                } else if ("syntax".equalsIgnoreCase(tokenName)) {
                     // This specifies the numeric OID of the syntax for this
                     // matching rule. It may optionally be immediately followed
                     // by
@@ -152,30 +151,25 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                     // not impose any practical limit on the length of attribute
                     // values.
                     SchemaUtils.readOIDLen(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("single-definition")) {
-                    // This indicates that attributes of this type are allowed
-                    // to
+                } else if ("single-definition".equalsIgnoreCase(tokenName)) {
+                    // This indicates that attributes of this type are allowed to
                     // have at most one definition. We do not need any more
                     // parsing for this token.
-                } else if (tokenName.equalsIgnoreCase("single-value")) {
+                } else if ("single-value".equalsIgnoreCase(tokenName)) {
                     // This indicates that attributes of this type are allowed
-                    // to
-                    // have at most one value. We do not need any more parsing
-                    // for
-                    // this token.
-                } else if (tokenName.equalsIgnoreCase("collective")) {
-                    // This indicates that attributes of this type are
-                    // collective
-                    // (i.e., have their values generated dynamically in some
-                    // way). We do not need any more parsing for this token.
-                } else if (tokenName.equalsIgnoreCase("no-user-modification")) {
+                    // to have at most one value.
+                    // We do not need any more parsing for this token.
+                } else if ("collective".equalsIgnoreCase(tokenName)) {
+                    // This indicates that attributes of this type are collective
+                    // (i.e., have their values generated dynamically in some way).
+                    // We do not need any more parsing for this token.
+                } else if ("no-user-modification".equalsIgnoreCase(tokenName)) {
                     // This indicates that the values of attributes of this type
                     // are not to be modified by end users. We do not need any
                     // more parsing for this token.
-                } else if (tokenName.equalsIgnoreCase("usage")) {
+                } else if ("usage".equalsIgnoreCase(tokenName)) {
                     // This specifies the usage string for this attribute type.
-                    // It
-                    // should be followed by one of the strings
+                    // It should be followed by one of the strings
                     // "userApplications", "directoryOperation",
                     // "distributedOperation", or "dSAOperation".
                     int length = 0;
@@ -189,10 +183,10 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
 
                     reader.reset();
                     final String usageStr = reader.read(length);
-                    if (!usageStr.equalsIgnoreCase("userapplications")
-                            && !usageStr.equalsIgnoreCase("directoryoperation")
-                            && !usageStr.equalsIgnoreCase("distributedoperation")
-                            && !usageStr.equalsIgnoreCase("dsaoperation")) {
+                    if (!"userapplications".equalsIgnoreCase(usageStr)
+                            && !"directoryoperation".equalsIgnoreCase(usageStr)
+                            && !"distributedoperation".equalsIgnoreCase(usageStr)
+                            && !"dsaoperation".equalsIgnoreCase(usageStr)) {
                         final LocalizableMessage message =
                                 WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition,
                                         usageStr);
@@ -203,8 +197,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     SchemaUtils.readExtensions(reader);

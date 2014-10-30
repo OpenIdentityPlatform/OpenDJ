@@ -26,8 +26,6 @@
  */
 package org.forgerock.opendj.io;
 
-import static org.testng.Assert.*;
-
 import java.io.IOException;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -38,6 +36,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.StaticUtils;
+
+import static org.testng.Assert.*;
 
 /**
  * An abstract base class for all ASN1Writer test cases.
@@ -339,18 +339,11 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
     public void testEncodeDecodeOctetString(final String s) throws Exception {
         getWriter().writeOctetString(s);
 
+        final String expected = s != null ? s : "";
         final ASN1Reader r = getReader(getEncodedBytes());
-        if (s == null) {
-            assertEquals(r.peekLength(), 0);
-        } else {
-            assertEquals(r.peekLength(), StaticUtils.getBytes(s).length);
-        }
+        assertEquals(r.peekLength(), StaticUtils.getBytes(expected).length);
         assertEquals(r.peekType(), ASN1.UNIVERSAL_OCTET_STRING_TYPE);
-        if (s == null) {
-            assertTrue(r.readOctetStringAsString().equals(""));
-        } else {
-            assertTrue(s.equals(r.readOctetStringAsString()));
-        }
+        assertEquals(r.readOctetStringAsString(), expected);
     }
 
     /**
@@ -410,18 +403,11 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
         for (final byte type : testTypes) {
             getWriter().writeOctetString(type, s);
 
+            final String expected = s != null ? s : "";
             final ASN1Reader r = getReader(getEncodedBytes());
-            if (s == null) {
-                assertEquals(r.peekLength(), 0);
-            } else {
-                assertEquals(r.peekLength(), StaticUtils.getBytes(s).length);
-            }
+            assertEquals(r.peekLength(), StaticUtils.getBytes(expected).length);
             assertEquals(r.peekType(), type);
-            if (s == null) {
-                assertTrue(r.readOctetStringAsString().equals(""));
-            } else {
-                assertTrue(s.equals(r.readOctetStringAsString()));
-            }
+            assertEquals(r.readOctetStringAsString(), expected);
         }
     }
 

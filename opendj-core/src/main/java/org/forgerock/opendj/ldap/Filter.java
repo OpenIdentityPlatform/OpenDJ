@@ -988,14 +988,12 @@ public final class Filter {
         int firstPos = asteriskPositions.removeFirst();
         if (firstPos == 0) {
             subInitial = null;
+        } else if (hasEscape) {
+            final ByteStringBuilder buffer = new ByteStringBuilder(firstPos);
+            escapeHexChars(buffer, attrType, valueBytes, 0, firstPos, equalPos);
+            subInitial = buffer.toByteString();
         } else {
-            if (hasEscape) {
-                final ByteStringBuilder buffer = new ByteStringBuilder(firstPos);
-                escapeHexChars(buffer, attrType, valueBytes, 0, firstPos, equalPos);
-                subInitial = buffer.toByteString();
-            } else {
-                subInitial = ByteString.wrap(valueBytes, 0, firstPos);
-            }
+            subInitial = ByteString.wrap(valueBytes, 0, firstPos);
         }
 
         // Next, process through the rest of the asterisks to get the subAny

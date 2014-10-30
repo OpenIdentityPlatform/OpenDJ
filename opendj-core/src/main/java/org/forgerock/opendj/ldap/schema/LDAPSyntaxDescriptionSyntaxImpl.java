@@ -120,15 +120,14 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the syntax. It is an
                     // arbitrary string of characters enclosed in single quotes.
                     SchemaUtils.readQuotedString(reader);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     if (extraProperties.isEmpty()) {
@@ -145,7 +144,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
             }
 
             for (final Map.Entry<String, List<String>> property : extraProperties.entrySet()) {
-                if (property.getKey().equalsIgnoreCase("x-pattern")) {
+                if ("x-pattern".equalsIgnoreCase(property.getKey())) {
                     final Iterator<String> values = property.getValue().iterator();
                     if (values.hasNext()) {
                         final String pattern = values.next();
@@ -161,7 +160,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                         }
                         break;
                     }
-                } else if (property.getKey().equalsIgnoreCase("x-enum")) {
+                } else if ("x-enum".equalsIgnoreCase(property.getKey())) {
                     final List<String> values = property.getValue();
                     for (int i = 0; i < values.size() - 1; i++) {
                         final String entry = values.get(i);

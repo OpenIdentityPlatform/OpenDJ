@@ -135,11 +135,8 @@ final class TeletexTerminalIdentifierSyntaxImpl extends AbstractSyntaxImpl {
             if (c == '$') {
                 pos++;
                 break;
-            } else {
-                if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-                    invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(valueString,
-                            String.valueOf(c), pos));
-                }
+            } else if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
+                invalidReason.append(ERR_ATTR_SYNTAX_TELETEXID_NOT_PRINTABLE.get(valueString, c, pos));
             }
         }
 

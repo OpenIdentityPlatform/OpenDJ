@@ -282,10 +282,10 @@ public final class SimpleAuth {
         bindPassword = args[3];
 
         if (args.length == 5) {
-            if (args[4].toLowerCase().equals("use-starttls")) {
+            if ("use-starttls".equals(args[4].toLowerCase())) {
                 useStartTLS = true;
                 useSSL = false;
-            } else if (args[4].toLowerCase().equals("use-ssl")) {
+            } else if ("use-ssl".equals(args[4].toLowerCase())) {
                 useStartTLS = false;
                 useSSL = true;
             } else {

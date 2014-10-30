@@ -23,10 +23,7 @@
  *
  *      Copyright 2010 Sun Microsystems, Inc.
  */
-
 package com.forgerock.opendj.ldap.controls;
-
-import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +39,8 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * Tests the account usability request control.
@@ -64,8 +63,6 @@ public class AccountUsabilityRequestControlTestCase extends ControlsTestCase {
         assertTrue(entries.size() > 0);
         final SearchResultEntry entry = entries.get(0);
         final Control ctrl = entry.getControls().get(0);
-        if (!ctrl.getOID().equals("1.3.6.1.4.1.42.2.27.9.5.8")) {
-            throw new Exception("expected control response 1.3.6.1.4.1.42.2.27.9.5.8");
-        }
+        assertEquals(ctrl.getOID(), "1.3.6.1.4.1.42.2.27.9.5.8", "expected control response 1.3.6.1.4.1.42.2.27.9.5.8");
     }
 }

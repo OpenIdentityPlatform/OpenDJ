@@ -1124,7 +1124,7 @@ final class PropertyValueEditor {
                 if (!oldValues.equals(currentValues)) {
                     result = MenuResult.success(true);
                 } else {
-                    result = MenuResult.<Boolean> cancel();
+                    result = MenuResult.cancel();
                 }
 
                 LocalizableMessage option = getKeepDefaultValuesMenuOption(d, defaultValues, oldValues, currentValues);
@@ -1474,10 +1474,10 @@ final class PropertyValueEditor {
 
             // The second (and possibly third) option is to always change
             // the property's value.
-            if (currentValue == null || !currentValue) {
+            if (!Boolean.TRUE.equals(currentValue)) {
                 LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(true));
 
-                if (defaultValue != null && defaultValue) {
+                if (Boolean.TRUE.equals(defaultValue)) {
                     option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_VALUE.get(svalue);
                 } else {
                     option = INFO_EDITOR_OPTION_CHANGE_TO_VALUE.get(svalue);
@@ -1486,10 +1486,10 @@ final class PropertyValueEditor {
                 builder.addNumberedOption(option, MenuResult.success(true));
             }
 
-            if (currentValue == null || currentValue) {
+            if (!Boolean.FALSE.equals(currentValue)) {
                 LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(false));
 
-                if (defaultValue != null && !defaultValue) {
+                if (Boolean.FALSE.equals(defaultValue)) {
                     option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_VALUE.get(svalue);
                 } else {
                     option = INFO_EDITOR_OPTION_CHANGE_TO_VALUE.get(svalue);
@@ -1977,18 +1977,12 @@ final class PropertyValueEditor {
 
                 // Create the appropriate property action.
                 MenuCallback<Boolean> callback;
-                if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
-                    if (isReadOnly) {
-                        callback = new ReadOnlyPropertyViewer(mo, pd);
-                    } else {
-                        callback = new MultiValuedPropertyEditor(mo, pd);
-                    }
+                if (isReadOnly) {
+                    callback = new ReadOnlyPropertyViewer(mo, pd);
+                } else if (pd.hasOption(PropertyOption.MULTI_VALUED)) {
+                    callback = new MultiValuedPropertyEditor(mo, pd);
                 } else {
-                    if (isReadOnly) {
-                        callback = new ReadOnlyPropertyViewer(mo, pd);
-                    } else {
-                        callback = new SingleValuedPropertyEditor(mo, pd);
-                    }
+                    callback = new SingleValuedPropertyEditor(mo, pd);
                 }
 
                 // Create the numeric option.
@@ -2027,7 +2021,7 @@ final class PropertyValueEditor {
 
             if (result.isSuccess()) {
                 if (result.getValue()) {
-                    return MenuResult.<Void> success();
+                    return MenuResult.success();
                 }
             } else if (result.isCancel()) {
                 return MenuResult.cancel();
