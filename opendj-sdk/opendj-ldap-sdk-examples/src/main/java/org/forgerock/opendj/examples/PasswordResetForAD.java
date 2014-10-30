@@ -93,7 +93,7 @@ public final class PasswordResetForAD {
                     Requests.newModifyRequest(DN.valueOf(targetDN));
             String passwordAttribute = "unicodePwd";
 
-            if (mode.equalsIgnoreCase("admin")) {
+            if ("admin".equalsIgnoreCase(mode)) {
                 // Request modify, replacing the password with the new.
 
                 request.addModification(
@@ -101,7 +101,7 @@ public final class PasswordResetForAD {
                         passwordAttribute,
                         encodePassword(newPassword)
                 );
-            } else if (mode.equalsIgnoreCase("self")) {
+            } else if ("self".equalsIgnoreCase(mode)) {
                 // Request modify, deleting the old password, adding the new.
 
                 // The default password policy for Active Directory domain

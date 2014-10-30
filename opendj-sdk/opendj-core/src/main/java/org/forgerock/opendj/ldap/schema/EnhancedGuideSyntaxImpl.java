@@ -115,15 +115,14 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         }
 
         final String scopeStr = valueStr.substring(lastSharpPos + 1).trim();
-        if (!(scopeStr.equals("baseobject") || scopeStr.equals("onelevel")
-                || scopeStr.equals("wholesubtree") || scopeStr.equals("subordinatesubtree"))) {
+        if (!"baseobject".equals(scopeStr) && !"onelevel".equals(scopeStr)
+                && !"wholesubtree".equals(scopeStr) && !"subordinatesubtree".equals(scopeStr)) {
             if (scopeStr.length() == 0) {
                 invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE.get(valueStr));
             } else {
                 invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(valueStr,
                         scopeStr));
             }
-
             return false;
         }
 

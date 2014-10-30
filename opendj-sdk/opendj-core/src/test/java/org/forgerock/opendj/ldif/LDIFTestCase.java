@@ -954,15 +954,14 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
 
         assertThat(((ModifyRequest) cr).getModifications().size()).isEqualTo(3);
         for (Modification mod : ((ModifyRequest) cr).getModifications()) {
+            final String attrDescription = mod.getAttribute().getAttributeDescription().toString();
+            final String firstValueAsString = mod.getAttribute().firstValueAsString();
             if (mod.getModificationType() == ModificationType.ADD) {
-                assertThat(mod.getAttribute().getAttributeDescription().toString().equals("description")
-                        || mod.getAttribute().getAttributeDescription().toString().equals("userPassword"));
-                assertThat(mod.getAttribute().firstValueAsString().equals("A new description.")
-                        || mod.getAttribute().firstValueAsString().equals("secret12"));
-            }
-            if (mod.getModificationType() == ModificationType.DELETE) {
-                assertThat(mod.getAttribute().getAttributeDescription().toString()).isEqualTo("userPassword");
-                assertThat(mod.getAttribute().firstValueAsString()).isEqualTo("changeme");
+                assertThat(attrDescription).isIn("description", "userPassword");
+                assertThat(firstValueAsString).isIn("A new description.", "secret12");
+            } else if (mod.getModificationType() == ModificationType.DELETE) {
+                assertThat(attrDescription).isEqualTo("userPassword");
+                assertThat(firstValueAsString).isEqualTo("changeme");
             }
         }
         reader.close();

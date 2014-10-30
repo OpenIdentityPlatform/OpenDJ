@@ -138,10 +138,9 @@ final class CertificateExactMatchingRuleImpl
         try {
             // the first namedValue is serialNumber
             identifier = parser.nextNamedValueIdentifier();
-            if (!identifier.equals(GSER_ID_SERIALNUMBER)) {
-                LocalizableMessage message =
-                        ERR_MR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND.get(GSER_ID_SERIALNUMBER);
-                throw DecodeException.error(message);
+            if (!GSER_ID_SERIALNUMBER.equals(identifier)) {
+                throw DecodeException.error(
+                        ERR_MR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND.get(GSER_ID_SERIALNUMBER));
             }
 
             // The value for the serialNumber
@@ -152,18 +151,16 @@ final class CertificateExactMatchingRuleImpl
 
             // the next namedValue is issuer
             identifier = parser.nextNamedValueIdentifier();
-            if (!identifier.equals(GSER_ID_ISSUER)) {
-                LocalizableMessage message =
-                        ERR_MR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND.get(GSER_ID_ISSUER);
-                throw DecodeException.error(message);
+            if (!GSER_ID_ISSUER.equals(identifier)) {
+                throw DecodeException.error(
+                        ERR_MR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND.get(GSER_ID_ISSUER));
             }
 
             // expecting "rdnSequence:"
             identifier = parser.nextChoiceValueIdentifier();
-            if (!identifier.equals(GSER_ID_RDNSEQUENCE)) {
-                LocalizableMessage message =
-                        ERR_MR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND.get(GSER_ID_RDNSEQUENCE);
-                throw DecodeException.error(message);
+            if (!GSER_ID_RDNSEQUENCE.equals(identifier)) {
+                throw DecodeException.error(
+                        ERR_MR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND.get(GSER_ID_RDNSEQUENCE));
             }
 
             // now the issuer dn

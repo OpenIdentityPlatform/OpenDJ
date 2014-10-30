@@ -238,7 +238,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
             if (ldapConnection != null) {
                 if (messageID == 0) {
                     // Unsolicited notification received.
-                    if (result.getOID() != null && result.getOID().equals(LDAP.OID_NOTICE_OF_DISCONNECTION)) {
+                    if (LDAP.OID_NOTICE_OF_DISCONNECTION.equals(result.getOID())) {
                         // Treat this as a connection error.
                         final Result errorResult = newResult(result.getResultCode()).setDiagnosticMessage(
                                         result.getDiagnosticMessage());
@@ -369,36 +369,35 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 final ExtendedResult result) throws DecodeException {
             final R decodedResponse = promise.decodeResult(result, conn.getLDAPOptions().getDecodeOptions());
 
-            if (promise.getRequest() instanceof StartTLSExtendedRequest) {
-                if (result.getResultCode() == ResultCode.SUCCESS) {
-                    try {
-                        final StartTLSExtendedRequest request = (StartTLSExtendedRequest) promise.getRequest();
-                        conn.startTLS(request.getSSLContext(), request.getEnabledProtocols(),
-                                request.getEnabledCipherSuites(),
-                                new EmptyCompletionHandler<SSLEngine>() {
-                                    @Override
-                                    public void completed(final SSLEngine result) {
-                                        conn.setBindOrStartTLSInProgress(false);
-                                        promise.setResultOrError(decodedResponse);
-                                    }
+            if (result.getResultCode() == ResultCode.SUCCESS
+                    && promise.getRequest() instanceof StartTLSExtendedRequest) {
+                try {
+                    final StartTLSExtendedRequest request = (StartTLSExtendedRequest) promise.getRequest();
+                    conn.startTLS(request.getSSLContext(), request.getEnabledProtocols(),
+                            request.getEnabledCipherSuites(),
+                            new EmptyCompletionHandler<SSLEngine>() {
+                                @Override
+                                public void completed(final SSLEngine result) {
+                                    conn.setBindOrStartTLSInProgress(false);
+                                    promise.setResultOrError(decodedResponse);
+                                }
 
-                                    @Override
-                                    public void failed(final Throwable throwable) {
-                                        final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR)
-                                                .setCause(throwable).setDiagnosticMessage("SSL handshake failed");
-                                        conn.setBindOrStartTLSInProgress(false);
-                                        conn.close(null, false, errorResult);
-                                        promise.adaptErrorResult(errorResult);
-                                    }
-                                });
-                        return;
-                    } catch (final IOException e) {
-                        final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR).setCause(e)
-                                .setDiagnosticMessage(e.getMessage());
-                        promise.adaptErrorResult(errorResult);
-                        conn.close(null, false, errorResult);
-                        return;
-                    }
+                                @Override
+                                public void failed(final Throwable throwable) {
+                                    final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR)
+                                            .setCause(throwable).setDiagnosticMessage("SSL handshake failed");
+                                    conn.setBindOrStartTLSInProgress(false);
+                                    conn.close(null, false, errorResult);
+                                    promise.adaptErrorResult(errorResult);
+                                }
+                            });
+                    return;
+                } catch (final IOException e) {
+                    final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR).setCause(e)
+                            .setDiagnosticMessage(e.getMessage());
+                    promise.adaptErrorResult(errorResult);
+                    conn.close(null, false, errorResult);
+                    return;
                 }
             }
 

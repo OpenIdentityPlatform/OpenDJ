@@ -113,27 +113,25 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     SchemaUtils.readNameDescriptors(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     SchemaUtils.readQuotedString(reader);
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
-                    // parsing
-                    // for this token.
-                } else if (tokenName.equalsIgnoreCase("form")) {
+                    // parsing for this token.
+                } else if ("form".equalsIgnoreCase(tokenName)) {
                     nameForm = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
-                } else if (tokenName.equalsIgnoreCase("sup")) {
+                } else if ("sup".equalsIgnoreCase(tokenName)) {
                     SchemaUtils.readRuleIDs(reader);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
-                    // or
-                    // an open parenthesis followed by one or more values in
+                    // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
                     SchemaUtils.readExtensions(reader);

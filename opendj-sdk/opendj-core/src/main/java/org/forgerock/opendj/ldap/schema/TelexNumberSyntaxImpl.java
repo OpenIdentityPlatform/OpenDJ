@@ -109,11 +109,8 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
             if (c == '$') {
                 pos++;
                 break;
-            } else {
-                if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-                    invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, String
-                            .valueOf(c), pos));
-                }
+            } else if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
+                invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, c, pos));
             }
         }
 
@@ -136,12 +133,9 @@ final class TelexNumberSyntaxImpl extends AbstractSyntaxImpl {
             if (c == '$') {
                 pos++;
                 break;
-            } else {
-                if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
-                    invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, String
-                            .valueOf(c), pos));
-                    return false;
-                }
+            } else if (!PrintableStringSyntaxImpl.isPrintableCharacter(c)) {
+                invalidReason.append(ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR.get(valueString, c, pos));
+                return false;
             }
         }
 

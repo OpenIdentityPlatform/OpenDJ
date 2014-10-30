@@ -591,11 +591,9 @@ public final class DSConfig extends ConsoleApplication {
             if (!canWrite(file)) {
                 println(ERR_DSCFG_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
                 return ReturnCode.ERROR_UNEXPECTED.get();
-            } else {
-                if (new File(file).isDirectory()) {
-                    println(ERR_DSCFG_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
-                    return ReturnCode.ERROR_UNEXPECTED.get();
-                }
+            } else if (new File(file).isDirectory()) {
+                println(ERR_DSCFG_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
+                return ReturnCode.ERROR_UNEXPECTED.get();
             }
         }
         // Creates the management context factory which is based on the connection

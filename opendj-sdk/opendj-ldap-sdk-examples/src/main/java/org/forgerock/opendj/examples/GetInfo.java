@@ -70,9 +70,9 @@ public final class GetInfo {
             connection.bind("", "".toCharArray()); // Anonymous bind
 
             final String attributeList;
-            if (infoType.toLowerCase().equals("controls")) {
+            if ("controls".equals(infoType.toLowerCase())) {
                 attributeList = "supportedControl";
-            } else if (infoType.toLowerCase().equals("extops")) {
+            } else if ("extops".equals(infoType.toLowerCase())) {
                 attributeList = "supportedExtension";
             } else {
                 attributeList = "+"; // All operational attributes
@@ -124,10 +124,11 @@ public final class GetInfo {
 
         host = args[0];
         port = Integer.parseInt(args[1]);
-        infoType = args[2]; // all, controls, or extops
-        if (!(infoType.toLowerCase().equals("all")
-                || infoType.toLowerCase().equals("controls")
-                || infoType.toLowerCase().equals("extops"))) {
+        infoType = args[2];
+        final String infoTypeLc = infoType.toLowerCase();
+        if (!("all".equals(infoTypeLc)
+                || "controls".equals(infoTypeLc)
+                || "extops".equals(infoTypeLc))) {
             giveUp();
         }
     }

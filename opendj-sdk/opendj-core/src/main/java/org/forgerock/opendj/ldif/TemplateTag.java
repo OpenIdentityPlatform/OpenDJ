@@ -421,15 +421,14 @@ abstract class TemplateTag {
             // "sequential" or "random". If there isn't one, then we should
             // assume "random".
             if (arguments.length == 2) {
-                if (arguments[1].equalsIgnoreCase("sequential")) {
+                if ("sequential".equalsIgnoreCase(arguments[1])) {
                     isSequential = true;
                     nextIndex = 0;
-                } else if (arguments[1].equalsIgnoreCase("random")) {
+                } else if ("random".equalsIgnoreCase(arguments[1])) {
                     isSequential = false;
                 } else {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_FILE_ACCESS_MODE.get(arguments[1],
-                            getName(), lineNumber);
-                    throw DecodeException.fatalError(message);
+                    throw DecodeException.fatalError(
+                        ERR_ENTRY_GENERATOR_TAG_INVALID_FILE_ACCESS_MODE.get(arguments[1], getName(), lineNumber));
                 }
             } else {
                 isSequential = false;
@@ -1013,10 +1012,10 @@ abstract class TemplateTag {
             int numArgs = arguments.length;
             String randomTypeString = arguments[0].toLowerCase();
 
-            if (randomTypeString.equals("alpha")) {
+            if ("alpha".equals(randomTypeString)) {
                 characterSet = ALPHA_CHARS;
                 decodeLength(arguments, 1, lineNumber, warnings);
-            } else if (randomTypeString.equals("numeric")) {
+            } else if ("numeric".equals(randomTypeString)) {
                 if (numArgs == 2) {
                     randomType = RandomType.CHARS_FIXED;
                     characterSet = NUMERIC_CHARS;
@@ -1079,10 +1078,10 @@ abstract class TemplateTag {
                             lineNumber, 2, 4, numArgs);
                     throw DecodeException.fatalError(message);
                 }
-            } else if (randomTypeString.equals("alphanumeric")) {
+            } else if ("alphanumeric".equals(randomTypeString)) {
                 characterSet = ALPHANUMERIC_CHARS;
                 decodeLength(arguments, 1, lineNumber, warnings);
-            } else if (randomTypeString.equals("chars")) {
+            } else if ("chars".equals(randomTypeString)) {
                 if (numArgs < 3 || numArgs > 4) {
                     LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 3, 4, numArgs);
@@ -1091,13 +1090,13 @@ abstract class TemplateTag {
 
                 characterSet = arguments[1].toCharArray();
                 decodeLength(arguments, 2, lineNumber, warnings);
-            } else if (randomTypeString.equals("hex")) {
+            } else if ("hex".equals(randomTypeString)) {
                 characterSet = HEX_CHARS;
                 decodeLength(arguments, 1, lineNumber, warnings);
-            } else if (randomTypeString.equals("base64")) {
+            } else if ("base64".equals(randomTypeString)) {
                 characterSet = BASE64_CHARS;
                 decodeLength(arguments, 1, lineNumber, warnings);
-            } else if (randomTypeString.equals("month")) {
+            } else if ("month".equals(randomTypeString)) {
                 randomType = RandomType.MONTH;
 
                 if (numArgs == 1) {
@@ -1120,7 +1119,7 @@ abstract class TemplateTag {
                             lineNumber, 1, 2, numArgs);
                     throw DecodeException.fatalError(message);
                 }
-            } else if (randomTypeString.equals("telephone")) {
+            } else if ("telephone".equals(randomTypeString)) {
                 randomType = RandomType.TELEPHONE;
             } else {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNKNOWN_RANDOM_TYPE.get(lineNumber,
@@ -1363,9 +1362,9 @@ abstract class TemplateTag {
         }
 
         private void initializeReset(String resetValue, int lineNumber) throws DecodeException {
-            if (resetValue.equalsIgnoreCase("true")) {
+            if ("true".equalsIgnoreCase(resetValue)) {
                 resetOnNewParents = true;
-            } else if (resetValue.equalsIgnoreCase("false")) {
+            } else if ("false".equalsIgnoreCase(resetValue)) {
                 resetOnNewParents = false;
             } else {
                 throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_BOOLEAN.get(

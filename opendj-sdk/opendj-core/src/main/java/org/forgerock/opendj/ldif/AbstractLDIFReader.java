@@ -572,7 +572,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
         }
 
         String attrName = toLowerCase(ldifLine.substring(0, colonPos));
-        if (attrName.equals("version")) {
+        if ("version".equals(attrName)) {
             // This is the version line, try the next line if there is one.
             if (!record.iterator.hasNext()) {
                 return null;
@@ -587,7 +587,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
             attrName = toLowerCase(ldifLine.substring(0, colonPos));
         }
 
-        if (!attrName.equals("dn")) {
+        if (!"dn".equals(attrName)) {
             throw DecodeException.error(ERR_LDIF_NO_DN.get(record.lineNumber, ldifLine));
         }
 

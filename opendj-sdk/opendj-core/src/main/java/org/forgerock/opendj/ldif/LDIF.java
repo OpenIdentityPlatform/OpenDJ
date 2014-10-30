@@ -749,7 +749,7 @@ public final class LDIF {
                 } else {
                     final Entry filteredEntry = new LinkedHashMapEntry(entry.getName());
                     for (final String atd : search.getAttributes()) {
-                        if (atd.equals("*")) {
+                        if ("*".equals(atd)) {
                             for (final Attribute attribute : entry.getAllAttributes()) {
                                 if (attribute.getAttributeDescription().getAttributeType()
                                         .getUsage() == AttributeUsage.USER_APPLICATIONS) {
@@ -762,7 +762,7 @@ public final class LDIF {
                                     }
                                 }
                             }
-                        } else if (atd.equals("+")) {
+                        } else if ("+".equals(atd)) {
                             for (final Attribute attribute : entry.getAllAttributes()) {
                                 if (attribute.getAttributeDescription().getAttributeType()
                                         .getUsage() != AttributeUsage.USER_APPLICATIONS) {

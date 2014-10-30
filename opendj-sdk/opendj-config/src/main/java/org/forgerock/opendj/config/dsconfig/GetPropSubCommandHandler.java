@@ -214,7 +214,6 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
 
         // Reset the command builder
         getCommandBuilder().clearArguments();
-
         setCommandBuilderUseful(false);
 
         // Update the command builder.
@@ -322,9 +321,8 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
                     public LocalizableMessage visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
                         if (app.isVerbose()) {
                             return d.getSynopsis();
-                        } else {
-                            return null;
                         }
+                        return null;
                     }
 
                     public LocalizableMessage visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
@@ -358,34 +356,32 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
             } else {
                 builder.appendCell(content);
             }
+        } else if (isRecordMode()) {
+            for (T value : values) {
+                builder.startRow();
+                builder.appendCell(pd.getName());
+                builder.appendCell(valuePrinter.print(pd, value));
+            }
         } else {
-            if (isRecordMode()) {
+            builder.startRow();
+            builder.appendCell(pd.getName());
+
+            if (app.isScriptFriendly()) {
                 for (T value : values) {
-                    builder.startRow();
-                    builder.appendCell(pd.getName());
                     builder.appendCell(valuePrinter.print(pd, value));
                 }
             } else {
-                builder.startRow();
-                builder.appendCell(pd.getName());
-
-                if (app.isScriptFriendly()) {
-                    for (T value : values) {
-                        builder.appendCell(valuePrinter.print(pd, value));
+                StringBuilder sb = new StringBuilder();
+                boolean isFirst = true;
+                for (T value : values) {
+                    if (!isFirst) {
+                        sb.append(", ");
                     }
-                } else {
-                    StringBuilder sb = new StringBuilder();
-                    boolean isFirst = true;
-                    for (T value : values) {
-                        if (!isFirst) {
-                            sb.append(", ");
-                        }
-                        sb.append(valuePrinter.print(pd, value));
-                        isFirst = false;
-                    }
-
-                    builder.appendCell(sb.toString());
+                    sb.append(valuePrinter.print(pd, value));
+                    isFirst = false;
                 }
+
+                builder.appendCell(sb.toString());
             }
         }
     }
