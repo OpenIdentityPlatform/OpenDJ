@@ -36,6 +36,7 @@ import java.util.WeakHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -512,9 +513,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     public int hashCode() {
         if (size == 0) {
             return 0;
-        } else {
-            return 31 * parent.hashCode() + rdn.hashCode();
         }
+        return 31 * parent.hashCode() + rdn.hashCode();
     }
 
     /**
@@ -928,7 +928,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             return ByteString.empty();
         }
 
-        final StringBuilder builder = new StringBuilder(size());
+        final StringBuilder builder = new StringBuilder();
         int i = size() - 1;
         normalizeRDN(builder, parent(i).rdn());
         for (i--; i >= 0; i--) {
@@ -1087,8 +1087,10 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @return The normalized string representation of the provided AVA.
      */
     private static StringBuilder normalizeAVA(final StringBuilder builder, final AVA ava) {
+        final AttributeType attributeType = ava.getAttributeType();
+
         ByteString value = ava.getAttributeValue();
-        final MatchingRule matchingRule = ava.getAttributeType().getEqualityMatchingRule();
+        final MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
         if (matchingRule != null) {
             try {
                 value = matchingRule.normalizeAttributeValue(ava.getAttributeValue());
@@ -1097,18 +1099,18 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             }
         }
 
-        if (!ava.getAttributeType().getNames().iterator().hasNext()) {
-            builder.append(ava.getAttributeType().getOID());
+        if (attributeType.getNames().isEmpty()) {
+            builder.append(attributeType.getOID());
             builder.append("=#");
             builder.append(value.toHexString());
         } else {
-            final String name = ava.getAttributeType().getNameOrOID();
+            final String name = attributeType.getNameOrOID();
             // Normalizing.
             StaticUtils.toLowerCase(name, builder);
 
             builder.append("=");
 
-            final Syntax syntax = ava.getAttributeType().getSyntax();
+            final Syntax syntax = attributeType.getSyntax();
             if (!syntax.isHumanReadable()) {
                 builder.append("#");
                 builder.append(value.toHexString());
