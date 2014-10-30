@@ -22,19 +22,18 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the org.forgerock.opendj.ldap.DN class.
@@ -976,8 +975,8 @@ public class DNTestCase extends SdkTestCase {
     @Test(dataProvider = "createRenameTestData")
     public void testRename(final String dn, final String fromDN, final String toDN,
             final String expectedDN) {
-        assertEquals(DN.valueOf(dn).rename(DN.valueOf(fromDN), DN.valueOf(toDN)), DN
-                .valueOf(expectedDN));
+        DN actual = DN.valueOf(dn).rename(DN.valueOf(fromDN), DN.valueOf(toDN));
+        assertEquals(actual, DN.valueOf(expectedDN));
     }
 
     /**
@@ -991,9 +990,7 @@ public class DNTestCase extends SdkTestCase {
         assertEquals(actual.toString(), "deviceId=123,uid=bjensen,dc=test");
     }
 
-    /**
-     * Tests the {@link DN#format(String, Object...)} method.
-     */
+    /** Tests the {@link DN#format(String, Object...)} method. */
     @Test
     public void testFormatEscape() {
         DN actual = DN.format("uid=%s,dc=test", "#cn=foo+sn=bar");
@@ -1002,12 +999,62 @@ public class DNTestCase extends SdkTestCase {
         assertEquals(actual.toString(), "uid=\\#cn\\=foo\\+sn\\=bar,dc=test");
     }
 
-    /**
-     * Tests the {@link DN#escapeAttributeValue(Object)} method.
-     */
+    /** Tests the {@link DN#escapeAttributeValue(Object)} method. */
     @Test
     public void testEscapeAttributeValue() {
         String actual = DN.escapeAttributeValue("#cn=foo+sn=bar");
         assertEquals(actual, "\\#cn\\=foo\\+sn\\=bar");
+    }
+
+    /** Tests the {@link DN#toIrreversibleNormalizedByteString()} method. */
+    @Test
+    public void testToIrreversibleNormalizedByteStringWithRootDN() {
+        ByteString actual = DN.rootDN().toIrreversibleNormalizedByteString();
+        assertEquals(actual, ByteString.empty());
+    }
+
+    /** Tests the {@link DN#iterator()} method. */
+    @Test
+    public void testIterator() {
+        final String childRdn = "dc=example";
+        final String parentRdn = "dc=com";
+        final Iterator<RDN> it = DN.valueOf(childRdn + "," + parentRdn).iterator();
+        assertTrue(it.hasNext());
+        assertEquals(it.next(), RDN.valueOf(childRdn));
+        assertTrue(it.hasNext());
+        assertEquals(it.next(), RDN.valueOf(parentRdn));
+        assertFalse(it.hasNext());
+        try {
+            it.next();
+            fail("Expected NoSuchElementException to be thrown");
+        } catch (NoSuchElementException expected) {
+            // do nothing
+        }
+        try {
+            it.remove();
+            fail("Expected UnsupportedOperationException to be thrown");
+        } catch (UnsupportedOperationException expected) {
+            // do nothing
+        }
+    }
+
+    @DataProvider
+    public Object[][] toIrreversibleNormalizedByteStringDataProvider() {
+        // @formatter:off
+        return new Object[][] {
+            { "dc=com", "dc=com" },
+            { "dc=example,dc=com", "dc=example,dc=com" },
+            { "dc=example,dc=com", "dc = example, dc = com" },
+            { "dc=example+cn=test,dc=com", "cn=test+dc=example,dc=com" },
+        };
+        // @formatter:on
+    }
+
+    /** Tests the {@link DN#toIrreversibleNormalizedByteString()} method. */
+    @Test(dataProvider = "toIrreversibleNormalizedByteStringDataProvider")
+    public void testToIrreversibleNormalizedByteString(String actualStr, String expectedStr) {
+        DN actual = DN.valueOf(actualStr);
+        DN expected = DN.valueOf(expectedStr);
+        assertEquals(actual.toIrreversibleNormalizedByteString(), expected.toIrreversibleNormalizedByteString());
     }
 }
