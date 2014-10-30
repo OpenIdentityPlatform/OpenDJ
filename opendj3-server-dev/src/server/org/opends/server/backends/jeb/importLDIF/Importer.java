@@ -40,7 +40,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -60,6 +59,7 @@ import com.sleepycat.util.PackedInteger;
 import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -3715,25 +3715,14 @@ public final class Importer implements DiskSpaceMonitorHandler
             }
             if (attrIndexParts.length != 1)
             {
+              String indexType = attrIndexParts[1];
               if (attrIndexParts.length == 2)
               {
-                if (attrIndexParts[1].equals("presence"))
-                {
-                  indexCount++;
-                }
-                else if (attrIndexParts[1].equals("equality"))
-                {
-                  indexCount++;
-                }
-                else if (attrIndexParts[1].equals("substring"))
-                {
-                  indexCount++;
-                }
-                else if (attrIndexParts[1].equals("ordering"))
-                {
-                  indexCount++;
-                }
-                else if (attrIndexParts[1].equals("approximate"))
+                if (indexType.equals("presence")
+                    || indexType.equals("equality")
+                    || indexType.equals("substring")
+                    || indexType.equals("ordering")
+                    || indexType.equals("approximate"))
                 {
                   indexCount++;
                 }
@@ -3746,31 +3735,7 @@ public final class Importer implements DiskSpaceMonitorHandler
               }
               else
               {
-                boolean found = false;
-                String s = attrIndexParts[1] + "." + attrIndexParts[2];
-                for (String idx : cfg.listLocalDBIndexes())
-                {
-                  LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
-                  if (indexCfg.getIndexType().contains(
-                      LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
-                  {
-                    Set<String> extensibleRules =
-                        indexCfg.getIndexExtensibleMatchingRule();
-                    for (String exRule : extensibleRules)
-                    {
-                      if (exRule.equalsIgnoreCase(s))
-                      {
-                        found = true;
-                        break;
-                      }
-                    }
-                  }
-                  if (found)
-                  {
-                    break;
-                  }
-                }
-                if (!found)
+                if (!findExtensibleMatchingRule(cfg, indexType + "." + attrIndexParts[2]))
                 {
                   LocalizableMessage msg =
                       ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
@@ -3790,33 +3755,28 @@ public final class Importer implements DiskSpaceMonitorHandler
                 }
                 found = true;
                 LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
-                if (indexCfg.getIndexType().contains(
-                    LocalDBIndexCfgDefn.IndexType.EQUALITY))
+                SortedSet<IndexType> indexType = indexCfg.getIndexType();
+                if (indexType.contains(EQUALITY))
                 {
                   indexCount++;
                 }
-                if (indexCfg.getIndexType().contains(
-                    LocalDBIndexCfgDefn.IndexType.ORDERING))
+                if (indexType.contains(ORDERING))
                 {
                   indexCount++;
                 }
-                if (indexCfg.getIndexType().contains(
-                    LocalDBIndexCfgDefn.IndexType.PRESENCE))
+                if (indexType.contains(PRESENCE))
                 {
                   indexCount++;
                 }
-                if (indexCfg.getIndexType().contains(
-                    LocalDBIndexCfgDefn.IndexType.SUBSTRING))
+                if (indexType.contains(SUBSTRING))
                 {
                   indexCount++;
                 }
-                if (indexCfg.getIndexType().contains(
-                    LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
+                if (indexType.contains(APPROXIMATE))
                 {
                   indexCount++;
                 }
-                if (indexCfg.getIndexType().contains(
-                    LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
+                if (indexType.contains(EXTENSIBLE))
                 {
                   Set<String> extensibleRules =
                       indexCfg.getIndexExtensibleMatchingRule();
@@ -3827,13 +3787,10 @@ public final class Importer implements DiskSpaceMonitorHandler
                     {
                       indexCount++;
                     }
-                    else
+                    else if (!shared)
                     {
-                      if (!shared)
-                      {
-                        shared = true;
-                        indexCount++;
-                      }
+                      shared = true;
+                      indexCount++;
                     }
                   }
                 }
@@ -3849,6 +3806,25 @@ public final class Importer implements DiskSpaceMonitorHandler
         }
       }
       return indexCount;
+    }
+
+    private boolean findExtensibleMatchingRule(LocalDBBackendCfg cfg, String indexExRuleName) throws ConfigException
+    {
+      for (String idx : cfg.listLocalDBIndexes())
+      {
+        LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+        if (indexCfg.getIndexType().contains(EXTENSIBLE))
+        {
+          for (String exRule : indexCfg.getIndexExtensibleMatchingRule())
+          {
+            if (exRule.equalsIgnoreCase(indexExRuleName))
+            {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
     }
 
     private void processEntry(Entry entry, EntryID entryID)
@@ -4361,49 +4337,23 @@ public final class Importer implements DiskSpaceMonitorHandler
    */
   public enum ImportIndexType
   {
-    /**
-     * The DN index type.
-     **/
+    /** The DN index type. */
     DN,
-
-    /**
-     * The equality index type.
-     **/
+    /** The equality index type. */
     EQUALITY,
-
-    /**
-     * The presence index type.
-     **/
+    /** The presence index type. */
     PRESENCE,
-
-    /**
-     * The sub-string index type.
-     **/
+    /** The sub-string index type. */
     SUBSTRING,
-
-    /**
-     * The ordering index type.
-     **/
+    /** The ordering index type. */
     ORDERING,
-
-    /**
-     * The approximate index type.
-     **/
+    /** The approximate index type. */
     APPROXIMATE,
-
-    /**
-     * The extensible sub-string index type.
-     **/
+    /** The extensible sub-string index type. */
     EX_SUBSTRING,
-
-    /**
-     * The extensible shared index type.
-     **/
+    /** The extensible shared index type. */
     EX_SHARED,
-
-    /**
-     * The vlv index type.
-     */
+    /** The vlv index type. */
     VLV
   }
 
@@ -4645,7 +4595,6 @@ public final class Importer implements DiskSpaceMonitorHandler
     private boolean insert(DatabaseEntry key, DatabaseEntry val, byte[] dnBytes)
         throws JebException
     {
-      boolean inserted = true;
       Cursor cursor = null;
       try
       {
@@ -4654,26 +4603,24 @@ public final class Importer implements DiskSpaceMonitorHandler
         if (status == OperationStatus.KEYEXIST)
         {
           DatabaseEntry dns = new DatabaseEntry();
-          inserted = false;
           status = cursor.getSearchKey(key, dns, LockMode.RMW);
           if (status == OperationStatus.NOTFOUND)
           {
-            LocalizableMessage message =
-                LocalizableMessage.raw("Search DN cache failed.");
-            throw new JebException(message);
+            throw new JebException(LocalizableMessage.raw("Search DN cache failed."));
           }
           if (!isDNMatched(dns, dnBytes))
           {
             addDN(dns, cursor, dnBytes);
-            inserted = true;
+            return true;
           }
+          return false;
         }
+        return true;
       }
       finally
       {
         close(cursor);
       }
-      return inserted;
     }
 
     //Add the DN to the DNs as because of a hash collision.
@@ -4727,7 +4674,6 @@ public final class Importer implements DiskSpaceMonitorHandler
     @Override
     public boolean contains(DN dn)
     {
-      boolean dnExists = false;
       Cursor cursor = null;
       DatabaseEntry key = new DatabaseEntry();
       byte[] dnBytes = StaticUtils.getBytes(dn.toNormalizedString());
@@ -4740,14 +4686,14 @@ public final class Importer implements DiskSpaceMonitorHandler
             cursor.getSearchKey(key, dns, LockMode.DEFAULT);
         if (status == OperationStatus.SUCCESS)
         {
-          dnExists = isDNMatched(dns, dnBytes);
+          return isDNMatched(dns, dnBytes);
         }
+        return false;
       }
       finally
       {
         close(cursor);
       }
-      return dnExists;
     }
 
     /**
