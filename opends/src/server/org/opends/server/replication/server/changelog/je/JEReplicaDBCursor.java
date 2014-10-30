@@ -48,8 +48,13 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   private JEReplicaDB replicaDB;
   private final CSN startCSN;
   private CSN lastNonNullCurrentCSN;
+  /**
+   * The underlying replica DB cursor.
+   * <p>
+   * Initially <code>null</code>, the first call to {@link #next()} will
+   * populate it. A call to {@link #close()} will set it to null again.
+   */
   private ReplServerDBCursor cursor;
-  private UpdateMsg currentChange;
 
   /**
    * Creates a new {@link JEReplicaDBCursor}. All created cursor must be
@@ -84,14 +89,24 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   @Override
   public UpdateMsg getRecord()
   {
-    return currentChange;
+    if (!isClosed() && cursor != null)
+    {
+      return cursor.getRecord();
+    }
+    return null;
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean next() throws ChangelogException
   {
-    if (currentChange == null)
+    if (isClosed())
+    {
+      return false;
+    }
+
+    final ReplServerDBCursor previousCursor = cursor;
+    if (getRecord() == null)
     {
       synchronized (this)
       {
@@ -112,16 +127,16 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
     }
 
     // For ON_MATCHING_KEY, do not call next() if the cursor has just been initialized.
-    if (positionStrategy == ON_MATCHING_KEY && currentChange != null
+    if (positionStrategy == ON_MATCHING_KEY && previousCursor != null
         || positionStrategy == AFTER_MATCHING_KEY)
     {
       cursor.next();
     }
-    currentChange = cursor.getRecord();
 
-    if (currentChange != null)
+    final UpdateMsg currentRecord = cursor.getRecord();
+    if (currentRecord != null)
     {
-      lastNonNullCurrentCSN = currentChange.getCSN();
+      lastNonNullCurrentCSN = currentRecord.getCSN();
       return true;
     }
     return false;
@@ -138,13 +153,17 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
     }
   }
 
+  private boolean isClosed()
+  {
+    return replicaDB == null;
+  }
+
   private void closeCursor()
   {
     if (cursor != null)
     {
       cursor.close();
       cursor = null;
-      currentChange = null;
     }
   }
 
@@ -164,8 +183,9 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   public String toString()
   {
     return getClass().getSimpleName()
+        + " currentChange=" + cursor.getRecord()
         + " positionStrategy=" + positionStrategy
-        + " currentChange=" + currentChange
+        + " matchingStrategy=" + matchingStrategy
         + " replicaDB=" + replicaDB;
   }
 }
