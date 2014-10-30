@@ -26,17 +26,41 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
 
 /**
  * This class implements the uniqueMemberMatch matching rule defined in X.520
- * and referenced in RFC 2252. It is based on the name and optional UID syntax,
- * and will compare values with a distinguished name and optional bit string
+ * and referenced in RFC 4517. It is based on the name and optional UID syntax,
+ * and will compare values with a distinguished name and optional bit string (uid)
  * suffix.
  */
 final class UniqueMemberEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
-        return value.toByteString();
+
+    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) throws DecodeException {
+        // Separate value into normalized DN and "optional uid" portion.
+        final String stringValue = value.toString().trim();
+        int dnEndPosition = stringValue.length();
+        String optionalUid = "";
+        int sharpPosition = -1;
+        if (stringValue.endsWith("'B") || stringValue.endsWith("'b")) {
+            sharpPosition = stringValue.lastIndexOf("#'");
+            if (sharpPosition > 0) {
+                dnEndPosition = sharpPosition;
+                optionalUid = stringValue.substring(sharpPosition);
+            }
+        }
+        try {
+            DN dn = DN.valueOf(stringValue.substring(0, dnEndPosition), schema.asNonStrictSchema());
+            return new ByteStringBuilder()
+                .append(dn.toIrreversibleNormalizedByteString())
+                .append(optionalUid).toByteString();
+        } catch (final LocalizedIllegalArgumentException e) {
+            throw DecodeException.error(e.getMessageObject());
+        }
     }
 }
