@@ -466,7 +466,6 @@ public final class Utils {
      * @return A message object for the given NamingException.
      */
     public static LocalizableMessage getMessageForException(NamingException ne, String hostPort) {
-        LocalizableMessage msg;
         String arg;
         if (ne.getLocalizedMessage() != null) {
             arg = ne.getLocalizedMessage();
@@ -475,20 +474,20 @@ public final class Utils {
         } else {
             arg = ne.toString(true);
         }
+
         if (Utils.isCertificateException(ne)) {
-            msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(hostPort, arg);
+            return INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(hostPort, arg);
         } else if (ne instanceof AuthenticationException) {
-            msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
+            return INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
         } else if (ne instanceof NoPermissionException) {
-            msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+            return INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
         } else if (ne instanceof NamingSecurityException) {
-            msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+            return INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
         } else if (ne instanceof CommunicationException) {
-            msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
+            return ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
         } else {
-            msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
+            return INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
         }
-        return msg;
     }
 
     /**
@@ -501,13 +500,13 @@ public final class Utils {
      * @return a localized message for a given properties key and throwable.
      */
     public static LocalizableMessage getThrowableMsg(final LocalizableMessage message, final Throwable t) {
-        final LocalizableMessageBuilder mb = new LocalizableMessageBuilder(message);
         LocalizableMessageDescriptor.Arg1<Object> tag;
         if (isOutOfMemory(t)) {
             tag = INFO_EXCEPTION_OUT_OF_MEMORY_DETAILS;
         } else {
             tag = INFO_EXCEPTION_DETAILS;
         }
+        final LocalizableMessageBuilder mb = new LocalizableMessageBuilder(message);
         String detail = t.toString();
         if (detail != null) {
             mb.append("  ").append(tag.get(detail));
@@ -547,10 +546,10 @@ public final class Utils {
     public static boolean isDN(String dn) {
         try {
             DN.valueOf(dn);
+            return true;
         } catch (Exception ex) {
             return false;
         }
-        return true;
     }
 
     /**
