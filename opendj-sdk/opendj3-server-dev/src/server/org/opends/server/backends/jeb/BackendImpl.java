@@ -66,6 +66,7 @@ import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -79,37 +80,15 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-    * The fully-qualified name of this class.
-    */
-   private static final String CLASS_NAME =
-        "org.opends.server.backends.jeb.BackendImpl";
-
-
-  /**
-   * The configuration of this JE backend.
-   */
+  /** The configuration of this JE backend. */
   private LocalDBBackendCfg cfg;
-
-  /**
-   * The root JE container to use for this backend.
-   */
+  /** The root JE container to use for this backend. */
   private RootContainer rootContainer;
-
-  /**
-   * A count of the total operation threads currently in the backend.
-   */
+  /** A count of the total operation threads currently in the backend. */
   private final AtomicInteger threadTotalCount = new AtomicInteger(0);
-
-  /**
-   * A count of the write operation threads currently in the backend.
-   */
+  /** A count of the write operation threads currently in the backend. */
   private final AtomicInteger threadWriteCount = new AtomicInteger(0);
-
-  /**
-   * The base DNs defined for this backend instance.
-   */
+  /** The base DNs defined for this backend instance. */
   private DN[] baseDNs;
 
   private MonitorProvider<?> rootContainerMonitor;
@@ -125,40 +104,26 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
       OID_VLV_REQUEST_CONTROL));
 
-  /**
-   * Begin a Backend API method that reads the database.
-   */
+  /** Begin a Backend API method that reads the database. */
   private void readerBegin()
   {
     threadTotalCount.getAndIncrement();
   }
 
-
-
-  /**
-   * End a Backend API method that reads the database.
-   */
+  /** End a Backend API method that reads the database. */
   private void readerEnd()
   {
     threadTotalCount.getAndDecrement();
   }
 
-
-
-  /**
-   * Begin a Backend API method that writes the database.
-   */
+  /** Begin a Backend API method that writes the database. */
   private void writerBegin()
   {
     threadTotalCount.getAndIncrement();
     threadWriteCount.getAndIncrement();
   }
 
-
-
-  /**
-   * End a Backend API method that writes the database.
-   */
+  /** End a Backend API method that writes the database. */
   private void writerEnd()
   {
     threadWriteCount.getAndDecrement();
@@ -248,14 +213,11 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       throws ConfigException, InitializationException
   {
     // Checksum this db environment and register its offline state id/checksum.
-    DirectoryServer.registerOfflineBackendStateID(this.getBackendID(),
-                                                  checksumDbEnv());
+    DirectoryServer.registerOfflineBackendStateID(getBackendID(), checksumDbEnv());
 
-    if(rootContainer == null)
+    if (mustOpenRootContainer())
     {
-      EnvironmentConfig envConfig =
-          ConfigurableEnvironment.parseConfigEntry(cfg);
-      rootContainer = initializeRootContainer(envConfig);
+      rootContainer = initializeRootContainer(parseConfigEntry(cfg));
     }
 
     // Preload the database cache.
@@ -515,18 +477,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
-    EntryContainer ec;
-    if (rootContainer != null)
-    {
-      ec = rootContainer.getEntryContainer(entryDN);
-    }
-    else
-    {
-      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
-
+    checkRootContainerInitialized();
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
     if(ec == null)
     {
       return -1;
@@ -564,18 +516,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   {
     readerBegin();
 
-    EntryContainer ec;
-    if (rootContainer != null)
-    {
-      ec = rootContainer.getEntryContainer(entryDN);
-    }
-    else
-    {
-      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
-
+    checkRootContainerInitialized();
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
     ec.sharedLock.lock();
     Entry entry;
     try
@@ -605,20 +547,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   {
     checkDiskSpace(addOperation);
     writerBegin();
-    DN entryDN = entry.getName();
 
-    EntryContainer ec;
-    if (rootContainer != null)
-    {
-      ec = rootContainer.getEntryContainer(entryDN);
-    }
-    else
-    {
-      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
-
+    checkRootContainerInitialized();
+    EntryContainer ec = rootContainer.getEntryContainer(entry.getName());
     ec.sharedLock.lock();
     try
     {
@@ -646,18 +577,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     checkDiskSpace(deleteOperation);
     writerBegin();
 
-    EntryContainer ec;
-    if (rootContainer != null)
-    {
-      ec = rootContainer.getEntryContainer(entryDN);
-    }
-    else
-    {
-      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
-
+    checkRootContainerInitialized();
+    EntryContainer ec = rootContainer.getEntryContainer(entryDN);
     ec.sharedLock.lock();
     try
     {
@@ -686,19 +607,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     checkDiskSpace(modifyOperation);
     writerBegin();
 
-    DN entryDN = newEntry.getName();
-    EntryContainer ec;
-    if (rootContainer != null)
-    {
-      ec = rootContainer.getEntryContainer(entryDN);
-    }
-    else
-    {
-      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
-
+    checkRootContainerInitialized();
+    EntryContainer ec = rootContainer.getEntryContainer(newEntry.getName());
     ec.sharedLock.lock();
 
     try
@@ -728,18 +638,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     checkDiskSpace(modifyDNOperation);
     writerBegin();
 
-    EntryContainer currentContainer;
-    if (rootContainer != null)
-    {
-      currentContainer = rootContainer.getEntryContainer(currentDN);
-    }
-    else
-    {
-      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
-
+    checkRootContainerInitialized();
+    EntryContainer currentContainer = rootContainer.getEntryContainer(currentDN);
     EntryContainer container = rootContainer.getEntryContainer(entry.getName());
 
     if (currentContainer != container)
@@ -776,17 +676,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   {
     readerBegin();
 
-    EntryContainer ec;
-    if (rootContainer != null)
-    {
-      ec = rootContainer.getEntryContainer(searchOperation.getBaseDN());
-    }
-    else
-    {
-      LocalizableMessage message = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
-    }
+    checkRootContainerInitialized();
+    EntryContainer ec = rootContainer.getEntryContainer(searchOperation.getBaseDN());
     ec.sharedLock.lock();
 
     try
@@ -805,7 +696,14 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
   }
 
-
+  private void checkRootContainerInitialized() throws DirectoryException
+  {
+    if (rootContainer == null)
+    {
+      LocalizableMessage msg = ERR_ROOT_CONTAINER_NOT_INITIALIZED.get(getBackendID());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), msg);
+    }
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -814,7 +712,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
-    boolean openRootContainer = rootContainer == null;
+    boolean openRootContainer = mustOpenRootContainer();
+    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     try
     {
       if (openRootContainer)
@@ -828,9 +727,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     catch (IOException ioe)
     {
       logger.traceException(ioe);
-      LocalizableMessage message = ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      throw new DirectoryException(errorRC, ERR_JEB_EXPORT_IO_ERROR.get(ioe.getMessage()));
     }
     catch (DatabaseException de)
     {
@@ -839,7 +736,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
     catch (ConfigException ce)
     {
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ce.getMessageObject());
+      throw new DirectoryException(errorRC, ce.getMessageObject());
     }
     catch (IdentifiedException e)
     {
@@ -848,8 +745,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         throw (DirectoryException) e;
       }
       logger.traceException(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
+      throw new DirectoryException(errorRC, e.getMessageObject());
     }
     finally
     {
@@ -857,7 +753,10 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
   }
 
-
+  private boolean mustOpenRootContainer()
+  {
+    return rootContainer == null;
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -870,14 +769,12 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     // underlying root container
     boolean openRootContainer = rootContainer == null;
 
-    // If the rootContainer is open, the backend is initialized by something
-    // else.
+    // If the rootContainer is open, the backend is initialized by something else.
     // We can't do import while the backend is online.
+    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     if(!openRootContainer)
     {
-      LocalizableMessage message = ERR_JEB_IMPORT_BACKEND_ONLINE.get();
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      throw new DirectoryException(errorRC, ERR_JEB_IMPORT_BACKEND_ONLINE.get());
     }
 
     try
@@ -911,37 +808,27 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       {
         throw ((DirectoryException) execEx.getCause());
       }
-      else
-      {
-        LocalizableMessage message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
-        throw new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(), message);
-      }
+      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()));
     }
     catch (InterruptedException intEx)
     {
       logger.traceException(intEx);
-      LocalizableMessage message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
+      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
     }
     catch (JebException je)
     {
       logger.traceException(je);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   je.getMessageObject());
+      throw new DirectoryException(errorRC, je.getMessageObject());
     }
     catch (InitializationException ie)
     {
       logger.traceException(ie);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ie.getMessageObject());
+      throw new DirectoryException(errorRC, ie.getMessageObject());
     }
     catch (ConfigException ce)
     {
       logger.traceException(ce);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   ce.getMessageObject());
+      throw new DirectoryException(errorRC, ce.getMessageObject());
     }
     finally
     {
@@ -1000,9 +887,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
-    boolean openRootContainer = rootContainer == null;
-    long errorCount = 0 ;
-
+    final boolean openRootContainer = mustOpenRootContainer();
     try
     {
       if (openRootContainer)
@@ -1011,7 +896,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       }
 
       VerifyJob verifyJob = new VerifyJob(verifyConfig);
-      errorCount = verifyJob.verifyBackend(rootContainer, statEntry);
+      return verifyJob.verifyBackend(rootContainer, statEntry);
     }
     catch (DatabaseException e)
     {
@@ -1028,7 +913,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     {
       closeTemporaryRootContainer(openRootContainer);
     }
-    return errorCount;
   }
 
 
@@ -1048,18 +932,17 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   {
     // If the backend already has the root container open, we must use the same
     // underlying root container
-    boolean openRootContainer = rootContainer == null;
+    boolean openRootContainer = mustOpenRootContainer();
 
     /*
      * If the rootContainer is open, the backend is initialized by something
      * else. We can't do any rebuild of system indexes while others are using
      * this backend.
      */
+    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
     if(!openRootContainer && rebuildConfig.includesSystemIndex())
     {
-      LocalizableMessage message = ERR_JEB_REBUILD_BACKEND_ONLINE.get();
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
+      throw new DirectoryException(errorRC, ERR_JEB_REBUILD_BACKEND_ONLINE.get());
     }
 
     try
@@ -1068,44 +951,35 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       if (openRootContainer)
       {
         envConfig = getEnvConfigForImport();
-
-        Importer importer = new Importer(rebuildConfig, cfg, envConfig);
         rootContainer = initializeRootContainer(envConfig);
-        importer.rebuildIndexes(rootContainer);
       }
       else
       {
-        envConfig = ConfigurableEnvironment.parseConfigEntry(cfg);
+        envConfig = parseConfigEntry(cfg);
 
-        Importer importer = new Importer(rebuildConfig, cfg, envConfig);
-        importer.rebuildIndexes(rootContainer);
       }
+      final Importer importer = new Importer(rebuildConfig, cfg, envConfig);
+      importer.rebuildIndexes(rootContainer);
     }
     catch (ExecutionException execEx)
     {
       logger.traceException(execEx);
-      LocalizableMessage message = ERR_EXECUTION_ERROR.get(execEx.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
+      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()));
     }
     catch (InterruptedException intEx)
     {
       logger.traceException(intEx);
-      LocalizableMessage message = ERR_INTERRUPTED_ERROR.get(intEx.getMessage());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              message);
+      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
     }
     catch (ConfigException ce)
     {
       logger.traceException(ce);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              ce.getMessageObject());
+      throw new DirectoryException(errorRC, ce.getMessageObject());
     }
     catch (JebException e)
     {
       logger.traceException(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-              e.getMessageObject());
+      throw new DirectoryException(errorRC, e.getMessageObject());
     }
     catch (InitializationException e)
     {
@@ -1141,11 +1015,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public void createBackup(BackupConfig backupConfig)
-      throws DirectoryException
+  public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    BackupManager backupManager =
-        new BackupManager(getBackendID());
+    BackupManager backupManager = new BackupManager(getBackendID());
     File parentDir = getFileForPath(cfg.getDBDirectory());
     File backendDir = new File(parentDir, cfg.getBackendId());
     backupManager.createBackup(backendDir, backupConfig);
@@ -1158,8 +1030,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
   {
-    BackupManager backupManager =
-        new BackupManager(getBackendID());
+    BackupManager backupManager = new BackupManager(getBackendID());
     backupManager.removeBackup(backupDirectory, backupID);
   }
 
@@ -1170,8 +1041,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public void restoreBackup(RestoreConfig restoreConfig)
       throws DirectoryException
   {
-    BackupManager backupManager =
-        new BackupManager(getBackendID());
+    BackupManager backupManager = new BackupManager(getBackendID());
     File parentDir = getFileForPath(cfg.getDBDirectory());
     File backendDir = new File(parentDir, cfg.getBackendId());
     backupManager.restoreBackup(backendDir, restoreConfig);
@@ -1198,12 +1068,11 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     // Make sure that the logging level value is acceptable.
     try {
       Level.parse(cfg.getDBLoggingLevel());
+      return true;
     } catch (Exception e) {
       unacceptableReasons.add(ERR_JEB_INVALID_LOGGING_LEVEL.get(cfg.getDBLoggingLevel(), cfg.dn()));
       return false;
     }
-
-    return true;
   }
 
 
@@ -1215,60 +1084,22 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     ResultCode resultCode = ResultCode.SUCCESS;
     ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
-
     try
     {
       if(rootContainer != null)
       {
-        DN[] newBaseDNs = new DN[newCfg.getBaseDN().size()];
-        newBaseDNs = newCfg.getBaseDN().toArray(newBaseDNs);
+        SortedSet<DN> newBaseDNs = newCfg.getBaseDN();
+        DN[] newBaseDNsArray = newBaseDNs.toArray(new DN[newBaseDNs.size()]);
 
         // Check for changes to the base DNs.
-        for (DN baseDN : cfg.getBaseDN())
+        removeDeletedBaseDNs(newBaseDNs);
+        ConfigChangeResult failure = createNewBaseDNs(newBaseDNsArray, messages);
+        if (failure != null)
         {
-          boolean found = false;
-          for (DN dn : newBaseDNs)
-          {
-            if (dn.equals(baseDN))
-            {
-              found = true;
-            }
-          }
-          if (!found)
-          {
-            // The base DN was deleted.
-            DirectoryServer.deregisterBaseDN(baseDN);
-            EntryContainer ec =
-                rootContainer.unregisterEntryContainer(baseDN);
-            ec.close();
-            ec.delete();
-          }
+          return failure;
         }
 
-        for (DN baseDN : newBaseDNs)
-        {
-          if (!rootContainer.getBaseDNs().contains(baseDN))
-          {
-            try
-            {
-              // The base DN was added.
-              EntryContainer ec =
-                  rootContainer.openEntryContainer(baseDN, null);
-              rootContainer.registerEntryContainer(baseDN, ec);
-              DirectoryServer.registerBaseDN(baseDN, this, false);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              resultCode = DirectoryServer.getServerErrorResultCode();
-              messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
-              return new ConfigChangeResult(resultCode, false, messages);
-            }
-          }
-        }
-
-        baseDNs = newBaseDNs;
+        baseDNs = newBaseDNsArray;
       }
 
       if(cfg.getDiskFullThreshold() != newCfg.getDiskFullThreshold() ||
@@ -1289,6 +1120,47 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
 
     return new ConfigChangeResult(resultCode, false, messages);
+  }
+
+  private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs) throws DirectoryException
+  {
+    for (DN baseDN : cfg.getBaseDN())
+    {
+      if (!newBaseDNs.contains(baseDN))
+      {
+        // The base DN was deleted.
+        DirectoryServer.deregisterBaseDN(baseDN);
+        EntryContainer ec = rootContainer.unregisterEntryContainer(baseDN);
+        ec.close();
+        ec.delete();
+      }
+    }
+  }
+
+  private ConfigChangeResult createNewBaseDNs(DN[] newBaseDNsArray, ArrayList<LocalizableMessage> messages)
+  {
+    for (DN baseDN : newBaseDNsArray)
+    {
+      if (!rootContainer.getBaseDNs().contains(baseDN))
+      {
+        try
+        {
+          // The base DN was added.
+          EntryContainer ec = rootContainer.openEntryContainer(baseDN, null);
+          rootContainer.registerEntryContainer(baseDN, ec);
+          DirectoryServer.registerBaseDN(baseDN, this, false);
+        }
+        catch (Exception e)
+        {
+          logger.traceException(e);
+
+          ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
+          messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
+          return new ConfigChangeResult(resultCode, false, messages);
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -1317,8 +1189,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public RootContainer getReadOnlyRootContainer()
       throws ConfigException, InitializationException
   {
-    EnvironmentConfig envConfig =
-        ConfigurableEnvironment.parseConfigEntry(cfg);
+    EnvironmentConfig envConfig = parseConfigEntry(cfg);
 
     envConfig.setReadOnly(true);
     envConfig.setAllowCreate(false);
@@ -1374,7 +1245,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   /** {@inheritDoc} */
   @Override
   public String getClassName() {
-    return CLASS_NAME;
+    return BackendImpl.class.getName();
   }
 
   /** {@inheritDoc} */
@@ -1417,8 +1288,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   @Override
   public void preloadEntryCache() throws
           UnsupportedOperationException {
-    EntryCachePreloader preloader =
-            new EntryCachePreloader(this);
+    EntryCachePreloader preloader = new EntryCachePreloader(this);
     preloader.preload();
   }
 
@@ -1426,22 +1296,18 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   @Override
   public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
     LocalizableMessage msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
-        monitor.getDirectory().getPath(), cfg.getBackendId(),
-        monitor.getFreeSpace(), Math.max(monitor.getLowThreshold(),
-            monitor.getFullThreshold()));
-    DirectoryServer.sendAlertNotification(this,
-        ALERT_TYPE_DISK_SPACE_LOW, msg);
+        monitor.getDirectory().getPath(), cfg.getBackendId(), monitor.getFreeSpace(),
+        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
+    DirectoryServer.sendAlertNotification(this, ALERT_TYPE_DISK_SPACE_LOW, msg);
   }
 
   /** {@inheritDoc} */
   @Override
   public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
     LocalizableMessage msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
-        monitor.getDirectory().getPath(), cfg.getBackendId(),
-        monitor.getFreeSpace(), Math.max(monitor.getLowThreshold(),
-            monitor.getFullThreshold()));
-    DirectoryServer.sendAlertNotification(this,
-        ALERT_TYPE_DISK_FULL, msg);
+        monitor.getDirectory().getPath(), cfg.getBackendId(), monitor.getFreeSpace(),
+        Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
+    DirectoryServer.sendAlertNotification(this, ALERT_TYPE_DISK_FULL, msg);
   }
 
   /** {@inheritDoc} */
@@ -1455,8 +1321,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   private void checkDiskSpace(Operation operation) throws DirectoryException
   {
     if(diskMonitor.isFullThresholdReached() ||
-        (diskMonitor.isLowThresholdReached() && operation != null &&
-            !operation.getClientConnection().hasPrivilege(
+        (diskMonitor.isLowThresholdReached()
+            && operation != null
+            && !operation.getClientConnection().hasPrivilege(
                 Privilege.BYPASS_LOCKDOWN, operation)))
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
