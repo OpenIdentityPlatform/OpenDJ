@@ -72,16 +72,12 @@ final class BooleanSyntaxImpl extends AbstractSyntaxImpl {
             final LocalizableMessageBuilder invalidReason) {
         final String valueString = value.toString().toUpperCase();
 
-        final boolean returnValue =
-                valueString.equals("TRUE") || valueString.equals("YES") || valueString.equals("ON")
-                        || valueString.equals("1") || valueString.equals("FALSE")
-                        || valueString.equals("NO") || valueString.equals("OFF")
-                        || valueString.equals("0");
-
-        if (!returnValue) {
+        if (!"TRUE".equals(valueString) && !"YES".equals(valueString)
+                && !"ON".equals(valueString) && !"1".equals(valueString)
+                && !"FALSE".equals(valueString) && !"NO".equals(valueString)
+                && !"OFF".equals(valueString) && !"0".equals(valueString)) {
             invalidReason.append(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(value.toString()));
         }
-
-        return returnValue;
+        return true;
     }
 }

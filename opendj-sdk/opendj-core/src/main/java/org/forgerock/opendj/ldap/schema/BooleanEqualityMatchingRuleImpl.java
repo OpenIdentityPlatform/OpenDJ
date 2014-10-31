@@ -40,14 +40,13 @@ final class BooleanEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String valueString = value.toString().toUpperCase();
-        if (valueString.equals("TRUE") || valueString.equals("YES") || valueString.equals("ON")
-                || valueString.equals("1")) {
+        if ("TRUE".equals(valueString) || "YES".equals(valueString)
+                || "ON".equals(valueString) || "1".equals(valueString)) {
             return SchemaConstants.TRUE_VALUE;
-        } else if (valueString.equals("FALSE") || valueString.equals("NO")
-                || valueString.equals("OFF") || valueString.equals("0")) {
+        } else if ("FALSE".equals(valueString) || "NO".equals(valueString)
+                || "OFF".equals(valueString) || "0".equals(valueString)) {
             return SchemaConstants.FALSE_VALUE;
         }
-
         throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(value.toString()));
     }
 }

@@ -80,17 +80,15 @@ public final class Functions {
             new Function<String, Boolean, NeverThrowsException>() {
                 public Boolean apply(final String value) {
                     final String valueString = StaticUtils.toLowerCase(value);
-
-                    if (valueString.equals("true") || valueString.equals("yes")
-                            || valueString.equals("on") || valueString.equals("1")) {
+                    if ("true".equals(valueString) || "yes".equals(valueString)
+                            || "on".equals(valueString) || "1".equals(valueString)) {
                         return Boolean.TRUE;
-                    } else if (valueString.equals("false") || valueString.equals("no")
-                            || valueString.equals("off") || valueString.equals("0")) {
+                    } else if ("false".equals(valueString) || "no".equals(valueString)
+                            || "off".equals(valueString) || "0".equals(valueString)) {
                         return Boolean.FALSE;
                     } else {
-                        final LocalizableMessage message =
-                                WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(valueString);
-                        throw new LocalizedIllegalArgumentException(message);
+                        throw new LocalizedIllegalArgumentException(
+                                WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(valueString));
                     }
                 }
             };

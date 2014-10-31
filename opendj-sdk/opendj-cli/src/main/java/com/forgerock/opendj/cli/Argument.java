@@ -197,31 +197,24 @@ public abstract class Argument {
      */
     public boolean getBooleanValue() throws ArgumentException {
         if (values.isEmpty()) {
-            final LocalizableMessage message = ERR_ARG_NO_BOOLEAN_VALUE.get(name);
-            throw new ArgumentException(message);
+            throw new ArgumentException(ERR_ARG_NO_BOOLEAN_VALUE.get(name));
         }
 
         final Iterator<String> iterator = values.iterator();
         final String valueString = toLowerCase(iterator.next());
-
-        boolean booleanValue;
-        if (valueString.equals("true") || valueString.equals("yes") || valueString.equals("on")
-                || valueString.equals("1")) {
-            booleanValue = true;
-        } else if (valueString.equals("false") || valueString.equals("no")
-                || valueString.equals("off") || valueString.equals("0")) {
-            booleanValue = false;
-        } else {
-            final LocalizableMessage message =
-                    ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name);
-            throw new ArgumentException(message);
+        if (iterator.hasNext()) {
+            throw new ArgumentException(ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name));
         }
 
-        if (iterator.hasNext()) {
-            final LocalizableMessage message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
-            throw new ArgumentException(message);
+        if ("true".equals(valueString) || "yes".equals(valueString)
+                || "on".equals(valueString) || "1".equals(valueString)) {
+            return true;
+        } else if ("false".equals(valueString) || "no".equals(valueString)
+                || "off".equals(valueString) || "0".equals(valueString)) {
+            return false;
         } else {
-            return booleanValue;
+            throw new ArgumentException(
+                    ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name));
         }
     }
 
