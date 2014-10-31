@@ -24,10 +24,7 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2012-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
-
-import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +42,9 @@ import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * An LDAP URL as defined in RFC 4516. In addition, the secure ldap (ldaps://)
@@ -300,9 +300,9 @@ public final class LDAPUrl {
                 dstPos++;
                 continue;
             }
-            decoded.setCharAt(dstPos, (char) ((decodeHex(urlString, index + srcPos + 1, decoded
-                    .charAt(srcPos + 1)) << 4) | (decodeHex(urlString, index + srcPos + 2, decoded
-                    .charAt(srcPos + 2)))));
+            int i = decodeHex(urlString, index + srcPos + 1, decoded.charAt(srcPos + 1)) << 4;
+            int j = decodeHex(urlString, index + srcPos + 2, decoded.charAt(srcPos + 2));
+            decoded.setCharAt(dstPos, (char) (i | j));
             dstPos++;
             srcPos += 3;
         }
@@ -477,19 +477,17 @@ public final class LDAPUrl {
         // Parse the url and build the LDAP URL.
         final int schemeIdx = urlString.indexOf("://");
         if (schemeIdx < 0) {
-            final LocalizableMessage msg = ERR_LDAPURL_NO_SCHEME.get(urlString);
-            throw new LocalizedIllegalArgumentException(msg);
+            throw new LocalizedIllegalArgumentException(ERR_LDAPURL_NO_SCHEME.get(urlString));
         }
-        final String scheme = StaticUtils.toLowerCase(urlString.substring(0, schemeIdx));
 
-        if (scheme.equalsIgnoreCase(DEFAULT_URL_SCHEME)) {
+        final String scheme = StaticUtils.toLowerCase(urlString.substring(0, schemeIdx));
+        if (DEFAULT_URL_SCHEME.equalsIgnoreCase(scheme)) {
             // Default ldap scheme.
             isSecured = false;
-        } else if (scheme.equalsIgnoreCase(SSL_URL_SCHEME)) {
+        } else if (SSL_URL_SCHEME.equalsIgnoreCase(scheme)) {
             isSecured = true;
         } else {
-            final LocalizableMessage msg = ERR_LDAPURL_BAD_SCHEME.get(urlString, scheme);
-            throw new LocalizedIllegalArgumentException(msg);
+            throw new LocalizedIllegalArgumentException(ERR_LDAPURL_BAD_SCHEME.get(urlString, scheme));
         }
 
         final int urlLength = urlString.length();
@@ -567,34 +565,17 @@ public final class LDAPUrl {
             scope = DEFAULT_SCOPE;
             filter = DEFAULT_FILTER;
             return;
-        } else {
-            final String attrDesc = urlString.substring(dnIdx + 1, attrIdx);
-            final StringTokenizer token = new StringTokenizer(attrDesc, String.valueOf(COMMA_CHAR));
-            final List<String> parsedAttrs = new ArrayList<String>(token.countTokens());
-            while (token.hasMoreElements()) {
-                parsedAttrs.add(token.nextToken());
-            }
-            attributes = Collections.unmodifiableList(parsedAttrs);
         }
+        attributes = parseAttributes(urlString.substring(dnIdx + 1, attrIdx));
 
         // Find the scope.
         final int scopeIdx = urlString.indexOf(QUESTION_CHAR, attrIdx + 1);
-        SearchScope parsedScope = SearchScope.BASE_OBJECT;
         if (scopeIdx < 0) {
             scope = DEFAULT_SCOPE;
             filter = DEFAULT_FILTER;
             return;
-        } else {
-            String scopeDef = urlString.substring(attrIdx + 1, scopeIdx);
-            scopeDef = StaticUtils.toLowerCase(scopeDef);
-            for (final SearchScope sscope : SearchScope.values()) {
-                if (sscope.toString().equals(scopeDef)) {
-                    parsedScope = sscope;
-                    break;
-                }
-            }
         }
-        scope = parsedScope;
+        scope = parseScope(urlString.substring(attrIdx + 1, scopeIdx));
 
         // Last one is filter.
         final String parsedFilter = urlString.substring(scopeIdx + 1, urlLength);
@@ -612,6 +593,25 @@ public final class LDAPUrl {
         } else {
             this.filter = DEFAULT_FILTER;
         }
+    }
+
+    private List<String> parseAttributes(final String attrDesc) {
+        final StringTokenizer token = new StringTokenizer(attrDesc, String.valueOf(COMMA_CHAR));
+        final List<String> parsedAttrs = new ArrayList<String>(token.countTokens());
+        while (token.hasMoreElements()) {
+            parsedAttrs.add(token.nextToken());
+        }
+        return Collections.unmodifiableList(parsedAttrs);
+    }
+
+    private SearchScope parseScope(String scopeDef) {
+        final String scope = toLowerCase(scopeDef);
+        for (final SearchScope sscope : SearchScope.values()) {
+            if (sscope.toString().equals(scope)) {
+                return sscope;
+            }
+        }
+        return SearchScope.BASE_OBJECT;
     }
 
     /**
@@ -743,28 +743,26 @@ public final class LDAPUrl {
             // port is not specified.
             host.append(hostAndPort);
             return urlPort;
-        } else {
-            String s = hostAndPort.substring(0, colonIdx);
-            if (s.length() == 0) {
-                // Use the default host as we allow only the port to be
-                // specified.
-                host.append(DEFAULT_HOST);
-            } else {
-                host.append(s);
-            }
-            s = hostAndPort.substring(colonIdx + 1, hostAndPort.length());
-            try {
-                urlPort = Integer.parseInt(s);
-            } catch (final NumberFormatException e) {
-                final LocalizableMessage msg = ERR_LDAPURL_CANNOT_DECODE_PORT.get(urlString, s);
-                throw new LocalizedIllegalArgumentException(msg);
-            }
+        }
 
-            // Check the validity of the port.
-            if (urlPort < 1 || urlPort > 65535) {
-                final LocalizableMessage msg = ERR_LDAPURL_INVALID_PORT.get(urlString, urlPort);
-                throw new LocalizedIllegalArgumentException(msg);
-            }
+        String s = hostAndPort.substring(0, colonIdx);
+        if (s.length() == 0) {
+            // Use the default host as we allow only the port to be
+            // specified.
+            host.append(DEFAULT_HOST);
+        } else {
+            host.append(s);
+        }
+        s = hostAndPort.substring(colonIdx + 1, hostAndPort.length());
+        try {
+            urlPort = Integer.parseInt(s);
+        } catch (final NumberFormatException e) {
+            throw new LocalizedIllegalArgumentException(ERR_LDAPURL_CANNOT_DECODE_PORT.get(urlString, s));
+        }
+
+        // Check the validity of the port.
+        if (urlPort < 1 || urlPort > 65535) {
+            throw new LocalizedIllegalArgumentException(ERR_LDAPURL_INVALID_PORT.get(urlString, urlPort));
         }
         return urlPort;
     }
