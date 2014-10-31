@@ -166,7 +166,7 @@ public final class SearchAsync {
             attributes = new String[0];
         }
 
-        final SearchScope scope = SearchScope.valueOf(scopeString);
+        scope = SearchScope.valueOf(scopeString);
         if (scope == null) {
             System.err.println("Unknown scope: " + scopeString);
             System.exit(ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue());
