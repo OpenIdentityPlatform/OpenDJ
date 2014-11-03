@@ -45,7 +45,8 @@ public class SizeUnitTest extends ConfigTestCase {
             { "gb", SizeUnit.GIGA_BYTES },
             { "gib", SizeUnit.GIBI_BYTES },
             { "tb", SizeUnit.TERA_BYTES },
-            { "tib", SizeUnit.TEBI_BYTES } };
+            { "tib", SizeUnit.TEBI_BYTES },
+        };
     }
 
     @Test(dataProvider = "stringToSizeLimitData")
@@ -80,7 +81,8 @@ public class SizeUnitTest extends ConfigTestCase {
             { "1000kb", 1000000L },
             { "1000 kilobytes", 1000000L },
             { "1000 KILOBYTES", 1000000L },
-            { "1000 KB", 1000000L } };
+            { "1000 KB", 1000000L },
+        };
     }
 
     @Test(dataProvider = "parseValueData")
@@ -243,12 +245,12 @@ public class SizeUnitTest extends ConfigTestCase {
             { SizeUnit.BYTES, 1L },
             { SizeUnit.KILO_BYTES, 1000L },
             { SizeUnit.KIBI_BYTES, 1024L },
-            { SizeUnit.MEGA_BYTES, (long) 1000 * 1000 },
-            { SizeUnit.MEBI_BYTES, (long) 1024 * 1024 },
-            { SizeUnit.GIGA_BYTES, (long) 1000 * 1000 * 1000 },
-            { SizeUnit.GIBI_BYTES, (long) 1024 * 1024 * 1024 },
-            { SizeUnit.TERA_BYTES, (long) 1000 * 1000 * 1000 * 1000 },
-            { SizeUnit.TEBI_BYTES, (long) 1024 * 1024 * 1024 * 1024 }
+            { SizeUnit.MEGA_BYTES, 1000L * 1000 },
+            { SizeUnit.MEBI_BYTES, 1024L * 1024 },
+            { SizeUnit.GIGA_BYTES, 1000L * 1000 * 1000 },
+            { SizeUnit.GIBI_BYTES, 1024L * 1024 * 1024 },
+            { SizeUnit.TERA_BYTES, 1000L * 1000 * 1000 * 1000 },
+            { SizeUnit.TEBI_BYTES, 1024L * 1024 * 1024 * 1024 },
         };
     }
 

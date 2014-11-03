@@ -69,7 +69,7 @@ final class Base64 {
         // The encoded value must have length that is a multiple of four
         // bytes.
         final int length = base64.length();
-        if ((length % 4) != 0) {
+        if (length % 4 != 0) {
             final LocalizableMessage message = ERR_BASE64_DECODE_INVALID_LENGTH.get(base64);
             throw new LocalizedIllegalArgumentException(message);
         }

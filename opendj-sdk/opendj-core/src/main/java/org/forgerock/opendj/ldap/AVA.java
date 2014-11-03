@@ -184,7 +184,7 @@ public final class AVA implements Comparable<AVA> {
             return;
         }
 
-        if ((length % 2) != 0) {
+        if (length % 2 != 0) {
             final LocalizableMessage message = ERR_HEX_DECODE_INVALID_LENGTH.get(hexBuffer);
             throw DecodeException.error(message);
         }
@@ -341,7 +341,7 @@ public final class AVA implements Comparable<AVA> {
                 // This character is escaped.
                 if (isHexDigit(c)) {
                     // Unicode characters.
-                    if (!(reader.remaining() > 0)) {
+                    if (reader.remaining() <= 0) {
                         final LocalizableMessage msg =
                                 ERR_ATTR_SYNTAX_DN_ESCAPED_HEX_VALUE_INVALID
                                         .get(reader.getString());
