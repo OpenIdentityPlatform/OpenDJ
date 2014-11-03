@@ -26,8 +26,6 @@
  */
 package org.opends.server.schema;
 
-
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -38,9 +36,7 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.schema.StringPrepProfile.*;
-
-
+import static com.forgerock.opendj.util.StringPrepProfile.*;
 
 /**
  * This class implements the wordMatch matching rule defined in X.520.  That

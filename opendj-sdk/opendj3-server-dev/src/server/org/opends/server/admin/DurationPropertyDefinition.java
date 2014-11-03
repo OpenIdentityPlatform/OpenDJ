@@ -24,16 +24,13 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.admin;
-
-
-
-import static org.forgerock.util.Reject.*;
 
 import java.util.EnumSet;
 
+import org.forgerock.opendj.config.DurationUnit;
 
+import static org.forgerock.util.Reject.*;
 
 /**
  * Duration property definition.
