@@ -564,10 +564,10 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
             lastElement.getManagedObjectDefinition());
     }
 
-    // Decode an element.
     // @Checkstyle:ignore
-    private static <C extends ConfigurationClient, S extends Configuration> Element<? extends C, ? extends S> createElement(
-        RelationDefinition<C, S> r, String path, String element, String type, String name) {
+    /** Decode an element. */
+    private static <C extends ConfigurationClient, S extends Configuration> Element<? extends C, ? extends S>
+    createElement(RelationDefinition<C, S> r, String path, String element, String type, String name) {
         // First determine the managed object definition.
         AbstractManagedObjectDefinition<? extends C, ? extends S> d = null;
 

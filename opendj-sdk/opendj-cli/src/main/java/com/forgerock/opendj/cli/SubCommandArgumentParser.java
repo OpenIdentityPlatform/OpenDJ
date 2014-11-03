@@ -1251,10 +1251,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
         String value;
         if (a.needsValue()) {
             LocalizableMessage pHolder = a.getValuePlaceholder();
-            if (pHolder == null) {
-                value = " {value}";
-            } else {
+            if (pHolder != null) {
                 value = " " + pHolder;
+            } else {
+                value = " {value}";
             }
         } else {
             value = "";

@@ -41,9 +41,7 @@ public abstract class BindRequestTestCase extends RequestsTestCase {
     @Test(dataProvider = "createModifiableInstance")
     public void testAuthType(final BindRequest request) throws Exception {
         final byte b = request.getAuthenticationType();
-        if (!(b == LDAP.TYPE_AUTHENTICATION_SASL || b == LDAP.TYPE_AUTHENTICATION_SIMPLE)) {
-            throw new Exception("Invalid bind type");
-        }
+        assertThat(b).isIn(LDAP.TYPE_AUTHENTICATION_SASL, LDAP.TYPE_AUTHENTICATION_SIMPLE);
     }
 
     @Test(dataProvider = "createModifiableInstance")

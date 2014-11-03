@@ -35,35 +35,23 @@ import java.util.regex.Pattern;
  */
 public enum DurationUnit {
 
-    /**
-     * A day unit.
-     */
-    DAYS((long) 24 * 60 * 60 * 1000, "d", "days"),
+    /** A day unit. */
+    DAYS(24 * 60 * 60 * 1000, "d", "days"),
 
-    /**
-     * An hour unit.
-     */
-    HOURS((long) 60 * 60 * 1000, "h", "hours"),
+    /** An hour unit. */
+    HOURS(60 * 60 * 1000, "h", "hours"),
 
-    /**
-     * A millisecond unit.
-     */
+    /** A millisecond unit. */
     MILLI_SECONDS(1L, "ms", "milliseconds"),
 
-    /**
-     * A minute unit.
-     */
-    MINUTES((long) 60 * 1000, "m", "minutes"),
+    /** A minute unit. */
+    MINUTES(60 * 1000, "m", "minutes"),
 
-    /**
-     * A second unit.
-     */
+    /** A second unit. */
     SECONDS(1000L, "s", "seconds"),
 
-    /**
-     * A week unit.
-     */
-    WEEKS((long) 7 * 24 * 60 * 60 * 1000, "w", "weeks");
+    /** A week unit. */
+    WEEKS(7 * 24 * 60 * 60 * 1000, "w", "weeks");
 
     /** A lookup table for resolving a unit from its name. */
     private static final Map<String, DurationUnit> NAME_TO_UNIT;

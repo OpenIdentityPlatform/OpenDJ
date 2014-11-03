@@ -709,18 +709,14 @@ public final class ServerManagementContext {
             pvalues.add(value);
         }
 
-        if (pvalues.isEmpty() && propertyDef.hasOption(PropertyOption.MANDATORY)) {
-            // The values maybe empty because of a previous exception.
-            if (exception == null) {
-                exception = PropertyException.propertyIsMandatoryException(propertyDef);
-            }
+        if (pvalues.isEmpty() && propertyDef.hasOption(PropertyOption.MANDATORY) && exception == null) {
+            exception = PropertyException.propertyIsMandatoryException(propertyDef);
         }
 
         if (exception != null) {
             throw exception;
-        } else {
-            return pvalues;
         }
+        return pvalues;
     }
 
     /** Gets the attribute values associated with a property from a ConfigEntry. */

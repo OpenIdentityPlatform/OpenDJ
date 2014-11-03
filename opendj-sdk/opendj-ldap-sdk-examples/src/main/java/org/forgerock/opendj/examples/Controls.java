@@ -475,7 +475,7 @@ public final class Controls {
                     final PasswordExpiredResponseControl control =
                             result.getControl(PasswordExpiredResponseControl.DECODER,
                                     new DecodeOptions());
-                    if (!(control == null) && control.hasValue()) {
+                    if (control != null && control.hasValue()) {
                         System.out.println("Password expired for " + dn);
                     }
                 } catch (final DecodeException de) {
@@ -513,7 +513,7 @@ public final class Controls {
                 final PasswordExpiringResponseControl control =
                         result.getControl(PasswordExpiringResponseControl.DECODER,
                                 new DecodeOptions());
-                if (!(control == null) && control.hasValue()) {
+                if (control != null && control.hasValue()) {
                     System.out.println("Password for " + dn + " expires in "
                             + control.getSecondsUntilExpiration() + " seconds.");
                 }
@@ -553,7 +553,7 @@ public final class Controls {
                 final PasswordPolicyResponseControl control =
                         result.getControl(PasswordPolicyResponseControl.DECODER,
                                 new DecodeOptions());
-                if (!(control == null) && !(control.getWarningType() == null)) {
+                if (control != null && control.getWarningType() != null) {
                     System.out.println("Password policy warning "
                             + control.getWarningType() + ", value "
                             + control.getWarningValue() + " for " + dn);
@@ -564,7 +564,7 @@ public final class Controls {
                     final PasswordPolicyResponseControl control =
                             result.getControl(PasswordPolicyResponseControl.DECODER,
                                     new DecodeOptions());
-                    if (!(control == null)) {
+                    if (control != null) {
                         System.out.println("Password policy error "
                                 + control.getErrorType() + " for " + dn);
                     }

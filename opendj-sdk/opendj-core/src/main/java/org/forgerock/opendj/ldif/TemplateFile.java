@@ -1144,10 +1144,10 @@ final class TemplateFile {
         final String[] arguments = args.toArray(new String[args.size()]);
 
         final AttributeValueTag tag = new AttributeValueTag();
-        if (branch == null) {
-            tag.initializeForTemplate(schema, this, template, arguments, lineNumber, warnings);
-        } else {
+        if (branch != null) {
             tag.initializeForBranch(schema, this, branch, arguments, lineNumber, warnings);
+        } else {
+            tag.initializeForTemplate(schema, this, template, arguments, lineNumber, warnings);
         }
         return tag;
     }

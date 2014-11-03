@@ -96,7 +96,7 @@ final class NumericStringSyntaxImpl extends AbstractSyntaxImpl {
         // or spaces.
         for (int i = 0; i < length; i++) {
             final char c = valueString.charAt(i);
-            if (!(isDigit(c) || c == ' ')) {
+            if (!isDigit(c) && c != ' ') {
                 invalidReason.append(WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(valueString,
                         String.valueOf(c), i));
                 return false;

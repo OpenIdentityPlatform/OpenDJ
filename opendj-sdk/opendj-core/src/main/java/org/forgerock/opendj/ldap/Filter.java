@@ -797,7 +797,7 @@ public final class Filter {
      */
     public static Filter present(final String attributeDescription) {
         Reject.ifNull(attributeDescription);
-        if (toLowerCase(attributeDescription).equals("objectclass")) {
+        if ("objectclass".equals(toLowerCase(attributeDescription))) {
             return OBJECT_CLASS_PRESENT;
         }
         return new Filter(new PresentImpl(attributeDescription));

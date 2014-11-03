@@ -66,10 +66,8 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
         // the synchronizer.
         if (!isDone()) {
             updateTimestamp();
-            if (searchResultHandler != null) {
-                if (!searchResultHandler.handleEntry(entry)) {
-                    searchResultHandler = null;
-                }
+            if (searchResultHandler != null && !searchResultHandler.handleEntry(entry)) {
+                searchResultHandler = null;
             }
         }
         return true;
@@ -84,10 +82,8 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
         // the synchronizer.
         if (!isDone()) {
             updateTimestamp();
-            if (searchResultHandler != null) {
-                if (!searchResultHandler.handleReference(reference)) {
-                    searchResultHandler = null;
-                }
+            if (searchResultHandler != null && !searchResultHandler.handleReference(reference)) {
+                searchResultHandler = null;
             }
         }
         return true;
@@ -96,8 +92,7 @@ public final class SearchResultLdapPromiseImpl extends ResultLdapPromiseImpl<Sea
     @Override
     Result newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
             final Throwable cause) {
-        return Responses.newResult(resultCode).setDiagnosticMessage(diagnosticMessage).setCause(
-                cause);
+        return Responses.newResult(resultCode).setDiagnosticMessage(diagnosticMessage).setCause(cause);
     }
 
     @Override

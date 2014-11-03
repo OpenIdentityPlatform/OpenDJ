@@ -126,9 +126,9 @@ public final class GetInfo {
         port = Integer.parseInt(args[1]);
         infoType = args[2];
         final String infoTypeLc = infoType.toLowerCase();
-        if (!("all".equals(infoTypeLc)
-                || "controls".equals(infoTypeLc)
-                || "extops".equals(infoTypeLc))) {
+        if (!"all".equals(infoTypeLc)
+                && !"controls".equals(infoTypeLc)
+                && !"extops".equals(infoTypeLc)) {
             giveUp();
         }
     }

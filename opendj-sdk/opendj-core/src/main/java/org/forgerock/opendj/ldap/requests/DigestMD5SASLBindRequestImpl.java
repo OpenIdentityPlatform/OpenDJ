@@ -170,9 +170,8 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
             final String qop = (String) saslClient.getNegotiatedProperty(Sasl.QOP);
             if (qop.equalsIgnoreCase("auth-int") || qop.equalsIgnoreCase("auth-conf")) {
                 return this;
-            } else {
-                return null;
             }
+            return null;
         }
 
         @Override
@@ -209,11 +208,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
 
         @Override
         void handle(final RealmCallback callback) throws UnsupportedCallbackException {
-            if (realm == null) {
-                callback.setText(callback.getDefaultText());
-            } else {
-                callback.setText(realm);
-            }
+            callback.setText(realm != null ? realm : callback.getDefaultText());
         }
 
     }

@@ -421,7 +421,7 @@ final class Context implements Closeable {
                     synchronized (cachedReads) {
                         cachedReads.put(request.getName(), pendingCachedRead);
                     }
-                    final LdapPromise<Result> promise = (LdapPromise<Result>) connection
+                    final LdapPromise<Result> promise = connection
                             .searchAsync(withControls(request), intermediateResponseHandler, pendingCachedRead)
                             .onSuccess(pendingCachedRead).onFailure(pendingCachedRead);
                     pendingCachedRead.setPromise(promise);

@@ -367,12 +367,8 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
             return true;
         } else if (o instanceof PropertyDefinition) {
             PropertyDefinition<?> other = (PropertyDefinition<?>) o;
-            if (propertyName.equals(other.propertyName)) {
-                if (theClass.equals(other.theClass)) {
-                    return true;
-                }
-            }
-            return false;
+            return propertyName.equals(other.propertyName)
+                    && theClass.equals(other.theClass);
         } else {
             return false;
         }

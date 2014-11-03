@@ -35,50 +35,32 @@ import java.util.regex.Pattern;
  */
 public enum SizeUnit {
 
-    /**
-     * A byte unit.
-     */
+    /** A byte unit. */
     BYTES(1L, "b", "bytes"),
 
-    /**
-     * A gibi-byte unit.
-     */
-    GIBI_BYTES((long) 1024 * 1024 * 1024, "gib", "gibibytes"),
+    /** A gibi-byte unit. */
+    GIBI_BYTES(1024 * 1024 * 1024, "gib", "gibibytes"),
 
-    /**
-     * A giga-byte unit.
-     */
-    GIGA_BYTES((long) 1000 * 1000 * 1000, "gb", "gigabytes"),
+    /** A giga-byte unit. */
+    GIGA_BYTES(1000 * 1000 * 1000, "gb", "gigabytes"),
 
-    /**
-     * A kibi-byte unit.
-     */
+    /** A kibi-byte unit. */
     KIBI_BYTES(1024L, "kib", "kibibytes"),
 
-    /**
-     * A kilo-byte unit.
-     */
+    /** A kilo-byte unit. */
     KILO_BYTES(1000L, "kb", "kilobytes"),
 
-    /**
-     * A mebi-byte unit.
-     */
-    MEBI_BYTES((long) 1024 * 1024, "mib", "mebibytes"),
+    /** A mebi-byte unit. */
+    MEBI_BYTES(1024 * 1024, "mib", "mebibytes"),
 
-    /**
-     * A mega-byte unit.
-     */
-    MEGA_BYTES((long) 1000 * 1000, "mb", "megabytes"),
+    /** A mega-byte unit. */
+    MEGA_BYTES(1000 * 1000, "mb", "megabytes"),
 
-    /**
-     * A tebi-byte unit.
-     */
-    TEBI_BYTES((long) 1024 * 1024 * 1024 * 1024, "tib", "tebibytes"),
+    /** A tebi-byte unit. */
+    TEBI_BYTES(1024L * 1024 * 1024 * 1024, "tib", "tebibytes"),
 
-    /**
-     * A tera-byte unit.
-     */
-    TERA_BYTES((long) 1000 * 1000 * 1000 * 1000, "tb", "terabytes");
+    /** A tera-byte unit. */
+    TERA_BYTES(1000L * 1000 * 1000 * 1000, "tb", "terabytes");
 
     /** A lookup table for resolving a unit from its name. */
     private static final Map<String, SizeUnit> NAME_TO_UNIT;

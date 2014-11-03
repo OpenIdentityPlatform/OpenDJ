@@ -262,11 +262,10 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         @Override
         public ConnectionSecurityLayer getConnectionSecurityLayer() {
             final String qop = (String) saslClient.getNegotiatedProperty(Sasl.QOP);
-            if (qop.equalsIgnoreCase("auth-int") || qop.equalsIgnoreCase("auth-conf")) {
+            if ("auth-int".equalsIgnoreCase(qop) || "auth-conf".equalsIgnoreCase(qop)) {
                 return this;
-            } else {
-                return null;
             }
+            return null;
         }
 
         @Override

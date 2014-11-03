@@ -2158,12 +2158,12 @@ public final class Schema {
                     if (!isAllowed) {
                         if (errorMessages != null) {
                             final LocalizableMessage message;
-                            if (ditContentRule == null) {
-                                message = ERR_ENTRY_SCHEMA_OC_DISALLOWED_ATTRIBUTES.get(
-                                        entry.getName(), t.getNameOrOID());
-                            } else {
+                            if (ditContentRule != null) {
                                 message = ERR_ENTRY_SCHEMA_DCR_DISALLOWED_ATTRIBUTES.get(
                                         entry.getName(), t.getNameOrOID(), ditContentRule.getNameOrOID());
+                            } else {
+                                message = ERR_ENTRY_SCHEMA_OC_DISALLOWED_ATTRIBUTES.get(
+                                        entry.getName(), t.getNameOrOID());
                             }
                             errorMessages.add(message);
                         }

@@ -486,12 +486,12 @@ final class LDAPDriver extends Driver {
 
         newProperties.addProperty(propertyDef, defaultValues, activeValues);
 
-        if (activeValues.isEmpty() && defaultValues.isEmpty() && propertyDef.hasOption(PropertyOption.MANDATORY)) {
-            // The active values maybe empty because of a previous
-            // exception.
-            if (exception == null) {
-                exception = PropertyException.propertyIsMandatoryException(propertyDef);
-            }
+        if (activeValues.isEmpty()
+                && defaultValues.isEmpty()
+                && propertyDef.hasOption(PropertyOption.MANDATORY)
+                && exception == null) {
+            // The active values maybe empty because of a previous exception.
+            exception = PropertyException.propertyIsMandatoryException(propertyDef);
         }
 
         if (exception != null) {
@@ -499,9 +499,8 @@ final class LDAPDriver extends Driver {
         }
     }
 
-    // Determine the type of managed object associated with the named
-    // entry.
     // @Checkstyle:off
+    /** Determine the type of managed object associated with the named entry. */
     private <C extends ConfigurationClient, S extends Configuration> ManagedObjectDefinition<? extends C, ? extends S>
         getEntryDefinition(AbstractManagedObjectDefinition<C, S> d, DN dn) throws LdapException,
         DefinitionDecodingException {

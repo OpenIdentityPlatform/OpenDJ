@@ -97,10 +97,10 @@ public final class ConfigurationMock {
                 Method getPropertyDefMethod = getPropertyDefinitionMethod(definitionClass, invokedMethodName);
                 Class<?> propertyReturnType = getPropertyReturnType(getPropertyDefMethod);
                 Object defaultValue = getDefaultValue(definition, getPropertyDefMethod, propertyReturnType);
-                if (defaultValue == null) {
-                    return answerFromDefaultMockitoBehavior(invocation);
+                if (defaultValue != null) {
+                    return defaultValue;
                 }
-                return defaultValue;
+                return answerFromDefaultMockitoBehavior(invocation);
             } catch (Exception e) {
                 return answerFromDefaultMockitoBehavior(invocation);
             }
