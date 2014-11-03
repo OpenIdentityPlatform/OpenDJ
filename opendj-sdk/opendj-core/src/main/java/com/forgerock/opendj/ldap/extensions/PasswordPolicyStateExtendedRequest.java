@@ -27,12 +27,6 @@
 
 package com.forgerock.opendj.ldap.extensions;
 
-import static com.forgerock.opendj.util.StaticUtils.formatAsGeneralizedTime;
-import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +49,10 @@ import org.forgerock.opendj.ldap.requests.ExtendedRequestDecoder;
 import org.forgerock.opendj.ldap.responses.AbstractExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.extensions.PasswordPolicyStateOperationType.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * This class implements an LDAP extended operation that can be used to query
@@ -142,10 +140,12 @@ public final class PasswordPolicyStateExtendedRequest
             this.values = values;
         }
 
+        @Override
         public PasswordPolicyStateOperationType getOperationType() {
             return property;
         }
 
+        @Override
         public Iterable<ByteString> getValues() {
             return values;
         }
@@ -161,6 +161,7 @@ public final class PasswordPolicyStateExtendedRequest
             implements
             ExtendedRequestDecoder<PasswordPolicyStateExtendedRequest, PasswordPolicyStateExtendedResult> {
 
+        @Override
         public PasswordPolicyStateExtendedRequest decodeExtendedRequest(
                 final ExtendedRequest<?> request, final DecodeOptions options)
                 throws DecodeException {
@@ -197,6 +198,7 @@ public final class PasswordPolicyStateExtendedRequest
             AbstractExtendedResultDecoder<PasswordPolicyStateExtendedResult> {
 
         /** {@inheritDoc} */
+        @Override
         public PasswordPolicyStateExtendedResult newExtendedErrorResult(
                 final ResultCode resultCode, final String matchedDN, final String diagnosticMessage) {
             if (!resultCode.isExceptional()) {
@@ -210,6 +212,7 @@ public final class PasswordPolicyStateExtendedRequest
                     matchedDN).setDiagnosticMessage(diagnosticMessage);
         }
 
+        @Override
         public PasswordPolicyStateExtendedResult decodeExtendedResult(final ExtendedResult result,
                 final DecodeOptions options) throws DecodeException {
             final ResultCode resultCode = result.getResultCode();
@@ -393,13 +396,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The authentication failure time.
      */
     public void addAuthenticationFailureTime(final Date date) {
-        if (date == null) {
-            operations.add(PasswordPolicyStateOperationType.ADD_AUTHENTICATION_FAILURE_TIMES);
-        } else {
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.ADD_AUTHENTICATION_FAILURE_TIMES, ByteString
-                            .valueOf(formatAsGeneralizedTime(date))));
-        }
+        setDateProperty(ADD_AUTHENTICATION_FAILURE_TIMES, date);
     }
 
     /**
@@ -409,16 +406,11 @@ public final class PasswordPolicyStateExtendedRequest
      *            The grace login use time.
      */
     public void addGraceLoginUseTime(final Date date) {
-        if (date == null) {
-            operations.add(PasswordPolicyStateOperationType.ADD_GRACE_LOGIN_USE_TIME);
-        } else {
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.ADD_GRACE_LOGIN_USE_TIME, ByteString
-                            .valueOf(formatAsGeneralizedTime(date))));
-        }
+        setDateProperty(ADD_GRACE_LOGIN_USE_TIME, date);
     }
 
     /** {@inheritDoc} */
+    @Override
     public void addOperation(final PasswordPolicyStateOperation operation) {
         operations.add(operation);
     }
@@ -500,6 +492,7 @@ public final class PasswordPolicyStateExtendedRequest
     }
 
     /** {@inheritDoc} */
+    @Override
     public Iterable<PasswordPolicyStateOperation> getOperations() {
         return operations;
     }
@@ -511,6 +504,7 @@ public final class PasswordPolicyStateExtendedRequest
     }
 
     /** {@inheritDoc} */
+    @Override
     public String getTargetUser() {
         return targetUser;
     }
@@ -676,9 +670,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The account disabled state.
      */
     public void setAccountDisabledState(final boolean state) {
-        operations.add(new MultiValueOperation(
-                PasswordPolicyStateOperationType.SET_ACCOUNT_DISABLED_STATE, ByteString
-                        .valueOf(String.valueOf(state))));
+        setBooleanProperty(SET_ACCOUNT_DISABLED_STATE, state);
     }
 
     /**
@@ -688,13 +680,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The account expiration time.
      */
     public void setAccountExpirationTime(final Date date) {
-        if (date == null) {
-            operations.add(PasswordPolicyStateOperationType.SET_ACCOUNT_EXPIRATION_TIME);
-        } else {
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.SET_ACCOUNT_EXPIRATION_TIME, ByteString
-                            .valueOf(formatAsGeneralizedTime(date))));
-        }
+        setDateProperty(SET_ACCOUNT_EXPIRATION_TIME, date);
     }
 
     /**
@@ -704,16 +690,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The authentication failure times.
      */
     public void setAuthenticationFailureTimes(final Date... dates) {
-        if (dates == null) {
-            operations.add(PasswordPolicyStateOperationType.SET_AUTHENTICATION_FAILURE_TIMES);
-        } else {
-            final ArrayList<ByteString> times = new ArrayList<ByteString>(dates.length);
-            for (final Date date : dates) {
-                times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
-            }
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.SET_AUTHENTICATION_FAILURE_TIMES, times));
-        }
+        setDateProperties(SET_AUTHENTICATION_FAILURE_TIMES, dates);
     }
 
     /**
@@ -723,16 +700,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The grace login use times.
      */
     public void setGraceLoginUseTimes(final Date... dates) {
-        if (dates == null) {
-            operations.add(PasswordPolicyStateOperationType.SET_GRACE_LOGIN_USE_TIMES);
-        } else {
-            final ArrayList<ByteString> times = new ArrayList<ByteString>(dates.length);
-            for (final Date date : dates) {
-                times.add(ByteString.valueOf(formatAsGeneralizedTime(date)));
-            }
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.SET_GRACE_LOGIN_USE_TIMES, times));
-        }
+        setDateProperties(SET_GRACE_LOGIN_USE_TIMES, dates);
     }
 
     /**
@@ -742,14 +710,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The last login time.
      */
     public void setLastLoginTime(final Date date) {
-        if (date == null) {
-            operations.add(PasswordPolicyStateOperationType.SET_LAST_LOGIN_TIME);
-
-        } else {
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.SET_LAST_LOGIN_TIME, ByteString
-                            .valueOf(formatAsGeneralizedTime(date))));
-        }
+        setDateProperty(SET_LAST_LOGIN_TIME, date);
     }
 
     /**
@@ -759,9 +720,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The password changed by required time.
      */
     public void setPasswordChangedByRequiredTime(final boolean state) {
-        operations.add(new MultiValueOperation(
-                PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_BY_REQUIRED_TIME, ByteString
-                        .valueOf(String.valueOf(state))));
+        setBooleanProperty(SET_PASSWORD_CHANGED_BY_REQUIRED_TIME, state);
     }
 
     /**
@@ -771,13 +730,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The password changed time.
      */
     public void setPasswordChangedTime(final Date date) {
-        if (date == null) {
-            operations.add(PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_TIME);
-        } else {
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.SET_PASSWORD_CHANGED_TIME, ByteString
-                            .valueOf(formatAsGeneralizedTime(date))));
-        }
+        setDateProperty(SET_PASSWORD_CHANGED_TIME, date);
     }
 
     /**
@@ -787,14 +740,7 @@ public final class PasswordPolicyStateExtendedRequest
      *            The password expiration warned time.
      */
     public void setPasswordExpirationWarnedTime(final Date date) {
-        if (date == null) {
-            operations.add(PasswordPolicyStateOperationType.SET_PASSWORD_EXPIRATION_WARNED_TIME);
-
-        } else {
-            operations.add(new MultiValueOperation(
-                    PasswordPolicyStateOperationType.SET_PASSWORD_EXPIRATION_WARNED_TIME,
-                    ByteString.valueOf(formatAsGeneralizedTime(date))));
-        }
+        setDateProperty(SET_PASSWORD_EXPIRATION_WARNED_TIME, date);
     }
 
     /**
@@ -804,9 +750,35 @@ public final class PasswordPolicyStateExtendedRequest
      *            The password reset state.
      */
     public void setPasswordResetState(final boolean state) {
-        operations.add(new MultiValueOperation(
-                PasswordPolicyStateOperationType.SET_PASSWORD_RESET_STATE, ByteString
-                        .valueOf(String.valueOf(state))));
+        setBooleanProperty(SET_PASSWORD_RESET_STATE, state);
+    }
+
+    private void setBooleanProperty(PasswordPolicyStateOperationType property, final boolean state) {
+        operations.add(new MultiValueOperation(property, ByteString.valueOf(String.valueOf(state))));
+    }
+
+    private void setDateProperty(PasswordPolicyStateOperationType property, final Date date) {
+        if (date != null) {
+            operations.add(new MultiValueOperation(property, toByteString(date)));
+        } else {
+            operations.add(property);
+        }
+    }
+
+    private void setDateProperties(PasswordPolicyStateOperationType property, final Date... dates) {
+        if (dates == null) {
+            operations.add(property);
+        } else {
+            final ArrayList<ByteString> times = new ArrayList<ByteString>(dates.length);
+            for (final Date date : dates) {
+                times.add(toByteString(date));
+            }
+            operations.add(new MultiValueOperation(property, times));
+        }
+    }
+
+    private ByteString toByteString(final Date date) {
+        return ByteString.valueOf(formatAsGeneralizedTime(date));
     }
 
     /** {@inheritDoc} */
