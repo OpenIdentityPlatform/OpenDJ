@@ -206,8 +206,10 @@ final class SchemaUtils {
                 // only digits and periods, but not consecutive periods.
                 boolean lastWasPeriod = false;
 
-                while (reader.remaining() > 0 && (c = reader.read()) != ' ' && c != ')'
-                        && !(c == '\'' && enclosingQuote)) {
+                while (reader.remaining() > 0
+                        && (c = reader.read()) != ' '
+                        && c != ')'
+                        && (c != '\'' || !enclosingQuote)) {
                     if (c == '.') {
                         if (lastWasPeriod) {
                             throw DecodeException.error(
@@ -230,10 +232,11 @@ final class SchemaUtils {
                 }
             } else if (isAlpha(c)) {
                 // This must be an attribute description. In this case, we will
-                // only accept alphabetic characters, numeric digits, and the
-                // hyphen.
-                while (reader.remaining() > 0 && (c = reader.read()) != ' ' && c != ')'
-                        && !(c == '\'' && enclosingQuote)) {
+                // only accept alphabetic characters, numeric digits, and the hyphen.
+                while (reader.remaining() > 0
+                        && (c = reader.read()) != ' '
+                        && c != ')'
+                        && (c != '\'' || !enclosingQuote)) {
                     if (length == 0 && !isAlpha(c)) {
                         throw DecodeException.error(
                                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
@@ -303,7 +306,9 @@ final class SchemaUtils {
             }
             if (isDigit(c)) {
                 boolean lastWasPeriod = false;
-                while ((c = reader.read()) != ' ' && c != '{' && !(c == '\'' && enclosingQuote)) {
+                while ((c = reader.read()) != ' '
+                        && c != '{'
+                        && (c != '\'' || !enclosingQuote)) {
                     if (c == '.') {
                         if (lastWasPeriod) {
                             throw DecodeException.error(
@@ -336,10 +341,11 @@ final class SchemaUtils {
                 }
             } else if (isAlpha(c)) {
                 // This must be an attribute description. In this case, we will
-                // only accept alphabetic characters, numeric digits, and the
-                // hyphen.
-                while ((c = reader.read()) != ' ' && c != ')' && c != '{'
-                        && !(c == '\'' && enclosingQuote)) {
+                // only accept alphabetic characters, numeric digits, and the hyphen.
+                while ((c = reader.read()) != ' '
+                        && c != ')'
+                        && c != '{'
+                        && (c != '\'' || !enclosingQuote)) {
                     if (length == 0 && !isAlpha(c)) {
                         throw DecodeException.error(
                                 ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));

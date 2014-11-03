@@ -144,11 +144,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
          *             limit is greater than the upper limit.
          */
         public final void setUpperLimit(String upperLimit) {
-            if (upperLimit == null) {
-                setUpperLimit((Long) null);
-            } else {
-                setUpperLimit(SizeUnit.parseValue(upperLimit, SizeUnit.BYTES));
-            }
+            setUpperLimit(upperLimit != null ? SizeUnit.parseValue(upperLimit, SizeUnit.BYTES) : null);
         }
 
         /**

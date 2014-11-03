@@ -39,10 +39,10 @@ public enum SizeUnit {
     BYTES(1L, "b", "bytes"),
 
     /** A gibi-byte unit. */
-    GIBI_BYTES(1024 * 1024 * 1024, "gib", "gibibytes"),
+    GIBI_BYTES(1024L * 1024 * 1024, "gib", "gibibytes"),
 
     /** A giga-byte unit. */
-    GIGA_BYTES(1000 * 1000 * 1000, "gb", "gigabytes"),
+    GIGA_BYTES(1000L * 1000 * 1000, "gb", "gigabytes"),
 
     /** A kibi-byte unit. */
     KIBI_BYTES(1024L, "kib", "kibibytes"),
@@ -51,10 +51,10 @@ public enum SizeUnit {
     KILO_BYTES(1000L, "kb", "kilobytes"),
 
     /** A mebi-byte unit. */
-    MEBI_BYTES(1024 * 1024, "mib", "mebibytes"),
+    MEBI_BYTES(1024L * 1024, "mib", "mebibytes"),
 
     /** A mega-byte unit. */
-    MEGA_BYTES(1000 * 1000, "mb", "megabytes"),
+    MEGA_BYTES(1000L * 1000, "mb", "megabytes"),
 
     /** A tebi-byte unit. */
     TEBI_BYTES(1024L * 1024 * 1024 * 1024, "tib", "tebibytes"),
