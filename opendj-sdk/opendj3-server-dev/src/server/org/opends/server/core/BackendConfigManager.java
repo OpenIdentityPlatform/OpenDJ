@@ -25,40 +25,40 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
-
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.BackendCfgDefn;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ConfigHandler;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.WritabilityMode;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.meta.BackendCfgDefn;
-
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -79,8 +79,7 @@ public class BackendConfigManager implements
    * The mapping between configuration entry DNs and their corresponding backend
    * implementations.
    */
-  private final ConcurrentHashMap<DN,Backend> registeredBackends;
-
+  private final ConcurrentHashMap<DN, Backend<?>> registeredBackends = new ConcurrentHashMap<DN, Backend<?>>();
   private final ServerContext serverContext;
 
   /**
@@ -92,7 +91,6 @@ public class BackendConfigManager implements
   public BackendConfigManager(ServerContext serverContext)
   {
     this.serverContext = serverContext;
-    registeredBackends = new ConcurrentHashMap<DN,Backend>();
   }
 
   /**
@@ -176,16 +174,13 @@ public class BackendConfigManager implements
         // for the backend implementation.  If it does, then load it and make
         // sure that it's a valid backend implementation.  There is no such
         // attribute, the specified class cannot be loaded, or it does not
-        // contain a valid backend implementation, then log an error and skip
-        // it.
+        // contain a valid backend implementation, then log an error and skip it.
         String className = backendCfg.getJavaClass();
-        Class backendClass;
 
-        Backend backend;
+        Backend<?> backend;
         try
         {
-          backendClass = DirectoryServer.loadClass(className);
-          backend = (Backend) backendClass.newInstance();
+          backend = loadBackendClass(className).newInstance();
         }
         catch (Exception e)
         {
@@ -203,24 +198,7 @@ public class BackendConfigManager implements
           continue;
         }
 
-
-        // See if the entry contains an attribute that specifies the writability
-        // mode.
-        WritabilityMode writabilityMode = WritabilityMode.ENABLED;
-        BackendCfgDefn.WritabilityMode bwm =
-             backendCfg.getWritabilityMode();
-        switch (bwm)
-        {
-          case DISABLED:
-            writabilityMode = WritabilityMode.DISABLED;
-            break;
-          case ENABLED:
-            writabilityMode = WritabilityMode.ENABLED;
-            break;
-          case INTERNAL_ONLY:
-            writabilityMode = WritabilityMode.INTERNAL_ONLY;
-            break;
-        }
+        WritabilityMode writabilityMode = toWritabilityMode(backendCfg.getWritabilityMode());
 
         // Set the backend ID and writability mode for this backend.
         backend.setBackendID(backendID);
@@ -318,9 +296,8 @@ public class BackendConfigManager implements
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
        BackendCfg configEntry,
        List<LocalizableMessage> unacceptableReason)
@@ -332,21 +309,11 @@ public class BackendConfigManager implements
 
     // See if the backend is registered with the server.  If it is, then
     // see what's changed and whether those changes are acceptable.
-    Backend backend = registeredBackends.get(backendDN);
+    Backend<?> backend = registeredBackends.get(backendDN);
     if (backend != null)
     {
-      LinkedHashSet<DN> removedDNs = new LinkedHashSet<DN>();
-      for (DN dn : backend.getBaseDNs())
-      {
-        removedDNs.add(dn);
-      }
-
-      LinkedHashSet<DN> addedDNs = new LinkedHashSet<DN>();
-      for (DN dn : baseDNs)
-      {
-        addedDNs.add(dn);
-      }
-
+      LinkedHashSet<DN> removedDNs = new LinkedHashSet<DN>(Arrays.asList(backend.getBaseDNs()));
+      LinkedHashSet<DN> addedDNs = new LinkedHashSet<DN>(baseDNs);
       Iterator<DN> iterator = removedDNs.iterator();
       while (iterator.hasNext())
       {
@@ -400,14 +367,14 @@ public class BackendConfigManager implements
     String className = configEntry.getJavaClass();
     try
     {
-      Class backendClass = DirectoryServer.loadClass(className);
+      Class<Backend<?>> backendClass = loadBackendClass(className);
       if (! Backend.class.isAssignableFrom(backendClass))
       {
         unacceptableReason.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
         return false;
       }
 
-      Backend b = (Backend) backendClass.newInstance();
+      Backend b = backendClass.newInstance();
       if (! b.isConfigurationAcceptable(configEntry, unacceptableReason))
       {
         return false;
@@ -429,13 +396,12 @@ public class BackendConfigManager implements
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(BackendCfg cfg)
   {
     DN                 backendDN           = cfg.dn();
-    Backend            backend             = registeredBackends.get(backendDN);
+    Backend<?>         backend             = registeredBackends.get(backendDN);
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
     ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
@@ -452,11 +418,7 @@ public class BackendConfigManager implements
         if (backend == null)
         {
           needToEnable = true;
-        }
-        else
-        {
-          // It's already enabled, so we don't need to do anything.
-        }
+        } // else already enabled, no need to do anything.
       }
       else
       {
@@ -495,19 +457,13 @@ public class BackendConfigManager implements
             // FIXME -- Do we need to send an admin alert?
           }
 
-          return new ConfigChangeResult(resultCode, adminActionRequired,
-                                        messages);
-        }
-        else
-        {
-          // It's already disabled, so we don't need to do anything.
-        }
+          return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        } // else already disabled, no need to do anything.
       }
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
 
       messages.add(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(
               backendDN, stackTraceToSingleLineString(e)));
@@ -516,35 +472,8 @@ public class BackendConfigManager implements
     }
 
 
-    // See if the entry contains an attribute that specifies the backend ID for
-    // the backend.
     String backendID = cfg.getBackendId();
-
-    // See if the entry contains an attribute that specifies the writability
-    // mode.
-    WritabilityMode writabilityMode = WritabilityMode.ENABLED;
-    BackendCfgDefn.WritabilityMode bwm =
-         cfg.getWritabilityMode();
-    switch (bwm)
-    {
-      case DISABLED:
-        writabilityMode = WritabilityMode.DISABLED;
-        break;
-      case ENABLED:
-        writabilityMode = WritabilityMode.ENABLED;
-        break;
-      case INTERNAL_ONLY:
-        writabilityMode = WritabilityMode.INTERNAL_ONLY;
-        break;
-    }
-
-
-    // See if the entry contains an attribute that specifies the base DNs for
-    // the backend.
-    Set<DN> baseList = cfg.getBaseDN();
-    DN[] baseDNs = new DN[baseList.size()];
-    baseList.toArray(baseDNs);
-
+    WritabilityMode writabilityMode = toWritabilityMode(cfg.getWritabilityMode());
 
     // See if the entry contains an attribute that specifies the class name
     // for the backend implementation.  If it does, then load it and make sure
@@ -556,43 +485,38 @@ public class BackendConfigManager implements
 
     // See if this backend is currently active and if so if the name of the
     // class is the same.
-    if (backend != null)
+    if (backend != null && !className.equals(backend.getClass().getName()))
     {
-      if (! className.equals(backend.getClass().getName()))
+      // It is not the same.  Try to load it and see if it is a valid backend
+      // implementation.
+      try
       {
-        // It is not the same.  Try to load it and see if it is a valid backend
-        // implementation.
-        try
+        Class<?> backendClass = DirectoryServer.loadClass(className);
+        if (Backend.class.isAssignableFrom(backendClass))
         {
-          Class backendClass = DirectoryServer.loadClass(className);
-          if (Backend.class.isAssignableFrom(backendClass))
-          {
-            // It appears to be a valid backend class.  We'll return that the
-            // change is successful, but indicate that some administrative
-            // action is required.
-
-            messages.add(NOTE_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS.get(
-                backendDN, backend.getClass().getName(), className));
-            adminActionRequired = true;
-            return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-          }
-          else
-          {
-            // It is not a valid backend class.  This is an error.
-            messages.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
-            resultCode = ResultCode.CONSTRAINT_VIOLATION;
-            return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-          }
+          // It appears to be a valid backend class.  We'll return that the
+          // change is successful, but indicate that some administrative
+          // action is required.
+          messages.add(NOTE_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS.get(
+              backendDN, backend.getClass().getName(), className));
+          adminActionRequired = true;
         }
-        catch (Exception e)
+        else
         {
-          logger.traceException(e);
-
-          messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
-                  className, backendDN, stackTraceToSingleLineString(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+          // It is not a valid backend class.  This is an error.
+          messages.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
+          resultCode = ResultCode.CONSTRAINT_VIOLATION;
         }
+        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
+
+        messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+                className, backendDN, stackTraceToSingleLineString(e)));
+        resultCode = DirectoryServer.getServerErrorResultCode();
+        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
       }
     }
 
@@ -601,11 +525,9 @@ public class BackendConfigManager implements
     // backend.  Try to do so.
     if (needToEnable)
     {
-      Class backendClass;
       try
       {
-        backendClass = DirectoryServer.loadClass(className);
-        backend = (Backend) backendClass.newInstance();
+        backend = loadBackendClass(className).newInstance();
       }
       catch (Exception e)
       {
@@ -651,8 +573,7 @@ public class BackendConfigManager implements
         resultCode = ResultCode.CONSTRAINT_VIOLATION;
         adminActionRequired = true;
         messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
+        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
       }
 
 
@@ -687,8 +608,7 @@ public class BackendConfigManager implements
           // FIXME -- Do we need to send an admin alert?
         }
 
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
+        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
       }
 
 
@@ -711,29 +631,20 @@ public class BackendConfigManager implements
 
         LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
                 backendID, getExceptionMessage(e));
+        logger.warn(message);
 
+        // FIXME -- Do we need to send an admin alert?
         resultCode = DirectoryServer.getServerErrorResultCode();
         messages.add(message);
-
-        logger.warn(message);
-        // FIXME -- Do we need to send an admin alert?
-
-        return new ConfigChangeResult(resultCode, adminActionRequired,
-                                      messages);
+        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
       }
 
 
       registeredBackends.put(backendDN, backend);
     }
-    else if ((resultCode == ResultCode.SUCCESS) && (backend != null))
+    else if (resultCode == ResultCode.SUCCESS && backend != null)
     {
-      // The backend is already enabled, so we may need to apply a
-      // configuration change.  Check to see if the writability mode has been
-      // changed.
-      if (writabilityMode != backend.getWritabilityMode())
-      {
-        backend.setWritabilityMode(writabilityMode);
-      }
+      backend.setWritabilityMode(writabilityMode);
     }
 
 
@@ -741,9 +652,8 @@ public class BackendConfigManager implements
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(
        BackendCfg configEntry,
        List<LocalizableMessage> unacceptableReason)
@@ -775,11 +685,10 @@ public class BackendConfigManager implements
     // backend implementation, then log an error and skip it.
     String className = configEntry.getJavaClass();
 
-    Backend backend;
+    Backend<?> backend;
     try
     {
-      Class backendClass = DirectoryServer.loadClass(className);
-      backend = (Backend) backendClass.newInstance();
+      backend = loadBackendClass(className).newInstance();
     }
     catch (Exception e)
     {
@@ -820,9 +729,8 @@ public class BackendConfigManager implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(BackendCfg cfg)
   {
     DN                backendDN           = cfg.dn();
@@ -863,31 +771,7 @@ public class BackendConfigManager implements
     }
 
 
-    // See if the entry contains an attribute that specifies the writability
-    // mode.
-    WritabilityMode writabilityMode = WritabilityMode.ENABLED;
-    BackendCfgDefn.WritabilityMode bwm =
-         cfg.getWritabilityMode();
-    switch (bwm)
-    {
-      case DISABLED:
-        writabilityMode = WritabilityMode.DISABLED;
-        break;
-      case ENABLED:
-        writabilityMode = WritabilityMode.ENABLED;
-        break;
-      case INTERNAL_ONLY:
-        writabilityMode = WritabilityMode.INTERNAL_ONLY;
-        break;
-    }
-
-
-    // See if the entry contains an attribute that specifies the base DNs for
-    // the entry.  If it does not, then skip it.
-    Set<DN> dnList = cfg.getBaseDN();
-    DN[] baseDNs = new DN[dnList.size()];
-    dnList.toArray(baseDNs);
-
+    WritabilityMode writabilityMode = toWritabilityMode(cfg.getWritabilityMode());
 
     // See if the entry contains an attribute that specifies the class name
     // for the backend implementation.  If it does, then load it and make sure
@@ -895,13 +779,11 @@ public class BackendConfigManager implements
     // the specified class cannot be loaded, or it does not contain a valid
     // backend implementation, then log an error and skip it.
     String className = cfg.getJavaClass();
-    Class backendClass;
 
-    Backend backend;
+    Backend<?> backend;
     try
     {
-      backendClass = DirectoryServer.loadClass(className);
-      backend = (Backend) backendClass.newInstance();
+      backend = loadBackendClass(className).newInstance();
     }
     catch (Exception e)
     {
@@ -950,8 +832,7 @@ public class BackendConfigManager implements
       resultCode = ResultCode.CONSTRAINT_VIOLATION;
       adminActionRequired = true;
       messages.add(message);
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-                                    messages);
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
 
@@ -1009,25 +890,42 @@ public class BackendConfigManager implements
 
       LocalizableMessage message = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(
               backendID, getExceptionMessage(e));
-
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(message);
-
       logger.error(message);
-      // FIXME -- Do we need to send an admin alert?
 
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-                                    messages);
+      // FIXME -- Do we need to send an admin alert?
+      messages.add(message);
+      resultCode = DirectoryServer.getServerErrorResultCode();
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
     registeredBackends.put(backendDN, backend);
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
+  @SuppressWarnings("unchecked")
+  private Class<Backend<?>> loadBackendClass(String className) throws Exception
+  {
+    return (Class<Backend<?>>) DirectoryServer.loadClass(className);
+  }
 
-  /**
-   * {@inheritDoc}
-   */
+  private WritabilityMode toWritabilityMode(BackendCfgDefn.WritabilityMode writabilityMode)
+  {
+    switch (writabilityMode)
+    {
+    case DISABLED:
+      return WritabilityMode.DISABLED;
+    case ENABLED:
+      return WritabilityMode.ENABLED;
+    case INTERNAL_ONLY:
+      return WritabilityMode.INTERNAL_ONLY;
+    default:
+      return WritabilityMode.ENABLED;
+    }
+  }
+
+
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
        BackendCfg configEntry,
        List<LocalizableMessage> unacceptableReason)
@@ -1039,7 +937,7 @@ public class BackendConfigManager implements
     // provided DN.  If not, then we don't care if the entry is deleted.  If we
     // do know about it, then that means that it is enabled and we will not
     // allow removing a backend that is enabled.
-    Backend backend = registeredBackends.get(backendDN);
+    Backend<?> backend = registeredBackends.get(backendDN);
     if (backend == null)
     {
       return true;
@@ -1048,23 +946,18 @@ public class BackendConfigManager implements
 
     // See if the backend has any subordinate backends.  If so, then it is not
     // acceptable to remove it.  Otherwise, it should be fine.
-    Backend[] subBackends = backend.getSubordinateBackends();
-    if ((subBackends == null) || (subBackends.length == 0))
+    Backend<?>[] subBackends = backend.getSubordinateBackends();
+    if (subBackends != null && subBackends.length != 0)
     {
-      return true;
-    }
-    else
-    {
-      unacceptableReason.add(
-              NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
+      unacceptableReason.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
       return false;
     }
+    return true;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(BackendCfg configEntry)
   {
     DN                backendDN           = configEntry.dn();
@@ -1075,70 +968,64 @@ public class BackendConfigManager implements
 
     // See if this backend config manager has a backend registered with the
     // provided DN.  If not, then we don't care if the entry is deleted.
-    Backend backend = registeredBackends.get(backendDN);
+    Backend<?> backend = registeredBackends.get(backendDN);
     if (backend == null)
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-                                    messages);
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
-
 
     // See if the backend has any subordinate backends.  If so, then it is not
     // acceptable to remove it.  Otherwise, it should be fine.
-    Backend[] subBackends = backend.getSubordinateBackends();
-    if ((subBackends == null) || (subBackends.length == 0))
-    {
-      registeredBackends.remove(backendDN);
-
-      try
-      {
-        backend.finalizeBackend();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-
-      for (BackendInitializationListener listener :
-           DirectoryServer.getBackendInitializationListeners())
-      {
-        listener.performBackendFinalizationProcessing(backend);
-      }
-
-      DirectoryServer.deregisterBackend(backend);
-      configEntry.removeChangeListener(this);
-
-      // Remove the shared lock for this backend.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend.getBackendID(), failureReason);
-          // FIXME -- Do we need to send an admin alert?
-        }
-      }
-      catch (Exception e2)
-      {
-        logger.traceException(e2);
-        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend
-            .getBackendID(), stackTraceToSingleLineString(e2));
-        // FIXME -- Do we need to send an admin alert?
-      }
-
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-                                    messages);
-    }
-    else
+    Backend<?>[] subBackends = backend.getSubordinateBackends();
+    if (subBackends != null && subBackends.length > 0)
     {
       messages.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
-      resultCode = ResultCode.UNWILLING_TO_PERFORM;
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return new ConfigChangeResult(UNWILLING_TO_PERFORM, adminActionRequired, messages);
     }
+
+    registeredBackends.remove(backendDN);
+
+    try
+    {
+      backend.finalizeBackend();
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+    }
+
+    for (BackendInitializationListener listener :
+         DirectoryServer.getBackendInitializationListeners())
+    {
+      listener.performBackendFinalizationProcessing(backend);
+    }
+
+    DirectoryServer.deregisterBackend(backend);
+    configEntry.removeChangeListener(this);
+
+    // Remove the shared lock for this backend.
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+      if (! LockFileManager.releaseLock(lockFile, failureReason))
+      {
+        logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend.getBackendID(), failureReason);
+        // FIXME -- Do we need to send an admin alert?
+      }
+    }
+    catch (Exception e2)
+    {
+      logger.traceException(e2);
+      logger.warn(WARN_CONFIG_BACKEND_CANNOT_RELEASE_SHARED_LOCK, backend
+          .getBackendID(), stackTraceToSingleLineString(e2));
+      // FIXME -- Do we need to send an admin alert?
+    }
+
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private static void initializeBackend(Backend backend, BackendCfg cfg)
        throws ConfigException, InitializationException
   {
@@ -1147,4 +1034,3 @@ public class BackendConfigManager implements
   }
 
 }
-
