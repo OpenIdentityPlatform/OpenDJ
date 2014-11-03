@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -80,16 +79,16 @@ final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
     }
 
     /**
-     * Exif files (from most digital cameras) start:
+     * JFIF files start:
      * <pre>
-     * 0xff 0xd8 0xff 0xe1 LH LL 0x45 0x78 0x69 0x66 ...
-     * SOI       APP1      len   "Exif"
+     * 0xff 0xd8 0xff 0xe0 LH LL 0x4a 0x46 0x49 0x46 ...
+     * SOI       APP0      len   "JFIF"
      * </pre>
      * So all legal values must be at least 10 bytes long
      */
     private boolean isValidJfif(final ByteSequence value) {
         return value.length() >= 10
-                && value.byteAt(0) == (byte) 0xff || value.byteAt(1) == (byte) 0xd8
+                && value.byteAt(0) == (byte) 0xff && value.byteAt(1) == (byte) 0xd8
                 && value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe0
                 && value.byteAt(6) == 'J' && value.byteAt(7) == 'F'
                 && value.byteAt(8) == 'I' && value.byteAt(9) == 'F';
@@ -105,7 +104,7 @@ final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
      */
     private boolean isValidExif(final ByteSequence value) {
         return value.length() >= 10
-                && value.byteAt(0) == (byte) 0xff || value.byteAt(1) == (byte) 0xd8
+                && value.byteAt(0) == (byte) 0xff && value.byteAt(1) == (byte) 0xd8
                 && value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe1
                 && value.byteAt(6) == 'E' && value.byteAt(7) == 'x'
                 && value.byteAt(8) == 'i' && value.byteAt(9) == 'f';
