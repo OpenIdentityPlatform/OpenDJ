@@ -73,17 +73,14 @@ public class SearchOperationTestCase extends OperationTestCase
     TestCaseUtils.startServer();
     TestCaseUtils.clearJEBackend(true,"userRoot","dc=example,dc=com");
 
-
-    // Add the suffix entry.
     DN suffixDN = DN.valueOf(SUFFIX);
-    if (DirectoryServer.getEntry(suffixDN) == null)
+    if (!DirectoryServer.entryExists(suffixDN))
     {
       processAdd(StaticUtils.createEntry(suffixDN));
     }
 
-    // Add a search base entry.
     DN baseDN = DN.valueOf(BASE);
-    if (DirectoryServer.getEntry(baseDN) == null)
+    if (!DirectoryServer.entryExists(baseDN))
     {
       processAdd(StaticUtils.createEntry(baseDN));
     }

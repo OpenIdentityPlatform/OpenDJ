@@ -34,13 +34,7 @@ import java.util.TreeMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.LocalBackendWorkflowElementCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
@@ -51,15 +45,12 @@ import org.opends.server.types.*;
 import org.opends.server.workflowelement.WorkflowElement;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
 
 /**
  * This class defines a local backend workflow element; e-g an entity that
  * handle the processing of an operation against a local backend.
  */
-public class LocalBackendWorkflowElement extends
-    WorkflowElement<LocalBackendWorkflowElementCfg>
-    implements ConfigurationChangeListener<LocalBackendWorkflowElementCfg>
+public class LocalBackendWorkflowElement extends WorkflowElement
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -124,34 +115,6 @@ public class LocalBackendWorkflowElement extends
     return this.backend != null && this.backend.isPrivateBackend();
   }
 
-  /**
-   * Initializes a new instance of the local backend workflow element.
-   * This method is intended to be called by DirectoryServer when
-   * workflow configuration mode is manual as opposed to
-   * initialize(String,Backend) which is invoked when workflow
-   * configuration mode is auto.
-   *
-   * @param  configuration  The configuration for this local backend
-   *                        workflow element.
-   *
-   * @throws  ConfigException  If there is a problem with the provided
-   *                           configuration.
-   *
-   * @throws  InitializationException  If an error occurs while trying
-   *                                   to initialize this workflow
-   *                                   element that is not related to
-   *                                   the provided configuration.
-   */
-  public void initializeWorkflowElement(
-      LocalBackendWorkflowElementCfg configuration
-      ) throws ConfigException, InitializationException
-  {
-    configuration.addLocalBackendChangeListener(this);
-
-    // Read configuration and apply changes.
-    processWorkflowElementConfig(configuration, true);
-  }
-
   /** {@inheritDoc} */
   @Override
   public void finalizeWorkflowElement()
@@ -159,85 +122,8 @@ public class LocalBackendWorkflowElement extends
     // null all fields so that any use of the finalized object will raise a NPE
     this.workflowElementID = null;
     this.workflowElementTypeInfo = null;
-    backend = null;
+    this.backend = null;
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean isConfigurationChangeAcceptable(
-      LocalBackendWorkflowElementCfg configuration,
-      List<LocalizableMessage>                  unacceptableReasons
-      )
-  {
-    return processWorkflowElementConfig(configuration, false);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public ConfigChangeResult applyConfigurationChange(
-      LocalBackendWorkflowElementCfg configuration
-      )
-  {
-    processWorkflowElementConfig(configuration, true);
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false,
-        new ArrayList<LocalizableMessage>());
-  }
-
-
-  /**
-   * Parses the provided configuration and configure the workflow element.
-   *
-   * @param configuration  The new configuration containing the changes.
-   * @param applyChanges   If true then take into account the new configuration.
-   *
-   * @return  <code>true</code> if the configuration is acceptable.
-   */
-  private boolean processWorkflowElementConfig(
-      LocalBackendWorkflowElementCfg configuration,
-      boolean                        applyChanges
-      )
-  {
-    // returned status
-    boolean isAcceptable = true;
-
-    // If the workflow element is disabled then do nothing. Note that the
-    // configuration manager could have finalized the object right before.
-    if (configuration.isEnabled())
-    {
-      // Read configuration.
-      String newBackendID = configuration.getBackend();
-      Backend<?> newBackend = DirectoryServer.getBackend(newBackendID);
-
-      // If the backend is null (i.e. not found in the list of
-      // registered backends, this is probably because we are looking
-      // for the config backend
-      if (newBackend == null) {
-        ServerManagementContext context = ServerManagementContext.getInstance();
-        RootCfg root = context.getRootConfiguration();
-        try {
-          BackendCfg backendCfg = root.getBackend(newBackendID);
-          if (backendCfg.getBaseDN().contains(DN.valueOf(DN_CONFIG_ROOT))) {
-            newBackend = DirectoryServer.getConfigHandler();
-          }
-        } catch (Exception ex) {
-          // Unable to find the backend
-          newBackend = null;
-        }
-      }
-
-      // Get the new configuration
-      if (applyChanges)
-      {
-        initialize(
-            configuration.dn().rdn().getAttributeValue(0).toString(),
-            newBackend);
-      }
-    }
-
-    return isAcceptable;
-  }
-
 
   /**
    * Creates and registers a local backend with the server.
@@ -707,8 +593,7 @@ public class LocalBackendWorkflowElement extends
    *                               operation
    */
   @SuppressWarnings("unchecked")
-  public static <O extends Operation,L> void
-              attachLocalOperation (O globalOperation, L currentLocalOperation)
+  static <O extends Operation, L> void attachLocalOperation(O globalOperation, L currentLocalOperation)
   {
     List<?> existingAttachment =
       (List<?>) globalOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);

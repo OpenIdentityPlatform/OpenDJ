@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
-import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.InvalidAttributeSyntaxBehavior;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.SingleStructuralObjectclassBehavior;
@@ -152,24 +151,6 @@ public class CoreConfigManager
     setReturnBindErrorMessages(globalConfig.isReturnBindErrorMessages());
     setIdleTimeLimit(globalConfig.getIdleTimeLimit());
     setSaveConfigOnSuccessfulStartup(globalConfig.isSaveConfigOnSuccessfulStartup());
-
-    // If the workflow configuration mode has changed then reconfigure
-    // the workflows-only if the server is running. If the server is not
-    // running (ie. the server is starting up) simply update the workflow
-    // configuration mode as the workflow configuration is processed
-    // elsewhere.
-    WorkflowConfigurationMode oldMode =
-      DirectoryServer.getWorkflowConfigurationMode();
-    WorkflowConfigurationMode newMode =
-      globalConfig.getWorkflowConfigurationMode();
-    if (DirectoryServer.isRunning())
-    {
-      DirectoryServer.reconfigureWorkflows(oldMode, newMode);
-    }
-    else
-    {
-      DirectoryServer.setWorkflowConfigurationMode(newMode);
-    }
 
     setUseNanoTime(globalConfig.getEtimeResolution() == GlobalCfgDefn.EtimeResolution.NANOSECONDS);
     setMaxAllowedConnections(globalConfig.getMaxAllowedClientConnections());
