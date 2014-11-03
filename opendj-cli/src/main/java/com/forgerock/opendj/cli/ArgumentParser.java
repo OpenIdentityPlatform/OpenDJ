@@ -751,10 +751,10 @@ public class ArgumentParser {
 
         if (allowsTrailingArguments) {
             buffer.append(" ");
-            if (trailingArgsDisplayName == null) {
-                buffer.append(INFO_ARGPARSER_USAGE_TRAILINGARGS.get());
-            } else {
+            if (trailingArgsDisplayName != null) {
                 buffer.append(trailingArgsDisplayName);
+            } else {
+                buffer.append(INFO_ARGPARSER_USAGE_TRAILINGARGS.get());
             }
         }
         buffer.append(EOL);
@@ -963,13 +963,6 @@ public class ArgumentParser {
                         // version information.
                         usageOrVersionDisplayed = true;
                         versionPresent = true;
-                        try {
-                            // TODO
-                            // DirectoryServer.printVersion(usageOutputStream);
-                        } catch (final Exception e) {
-                            // Ignored.
-                        }
-
                         return;
                     } else {
                         // There is no such argument registered.
@@ -1046,16 +1039,9 @@ public class ArgumentParser {
                             && !shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION)) {
                         // "-V" will always be interpreted as requesting
                         // version information except if it's already defined
-                        // (e.g
-                        // in ldap tools).
+                        // (e.g in ldap tools).
                         usageOrVersionDisplayed = true;
                         versionPresent = true;
-                        try {
-                            // TODO
-                            // DirectoryServer.printVersion(usageOutputStream);
-                        } catch (final Exception e) {
-                            // Ignored.
-                        }
                         return;
                     } else {
                         // There is no such argument registered.

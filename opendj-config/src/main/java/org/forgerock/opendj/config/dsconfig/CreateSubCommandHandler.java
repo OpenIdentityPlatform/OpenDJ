@@ -177,10 +177,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         @SuppressWarnings("unchecked")
         public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) {
             Collection<T> values = (Collection<T>) properties.get(d);
-            if (values == null) {
-                return Collections.emptySet();
+            if (values != null) {
+                return values;
             }
-            return values;
+            return Collections.emptySet();
         }
 
         /** Add a single property value. */

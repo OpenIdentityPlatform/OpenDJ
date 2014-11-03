@@ -290,10 +290,10 @@ public class ListenerSettings {
      * @return The password linked to this root user DN.
      */
     public String getPassword() {
-        if (password == null) {
-            return null;
+        if (password != null) {
+            return String.valueOf(password);
         }
-        return String.valueOf(password);
+        return null;
     }
 
     /**

@@ -71,10 +71,10 @@ public class OperatingSystemTestCase extends UtilTestCase {
     public void testOperatingSystems(String value) throws Exception {
         String orig = System.getProperty("os.name");
         try {
-            if (value == null) {
-                System.clearProperty("os.name");
-            } else {
+            if (value != null) {
                 System.setProperty("os.name", value);
+            } else {
+                System.clearProperty("os.name");
             }
             run();
         } finally {

@@ -251,10 +251,8 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         Reject.ifNull(value);
 
         // Make sure that we correctly encode negative values as "unlimited".
-        if (allowUnlimited) {
-            if (value < 0) {
-                return UNLIMITED;
-            }
+        if (allowUnlimited && value < 0) {
+            return UNLIMITED;
         }
 
         // Encode the size value using the best-fit unit.
@@ -275,10 +273,8 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         Reject.ifNull(value);
 
         // First check for the special "unlimited" value when necessary.
-        if (allowUnlimited) {
-            if (value.trim().equalsIgnoreCase(UNLIMITED)) {
-                return -1L;
-            }
+        if (allowUnlimited && UNLIMITED.equalsIgnoreCase(value.trim())) {
+            return -1L;
         }
 
         // Decode the value.

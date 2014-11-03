@@ -158,11 +158,10 @@ public final class ManagedObjectDefinitionI18NResource {
         ResourceBundle resource = getResourceBundle(d, locale);
 
         // TODO: use message framework directly
-        if (args == null) {
-            return LocalizableMessage.raw(resource.getString(key));
-        } else {
+        if (args != null) {
             return LocalizableMessage.raw(resource.getString(key), (Object[]) args);
         }
+        return LocalizableMessage.raw(resource.getString(key));
     }
 
     /**

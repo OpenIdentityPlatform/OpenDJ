@@ -586,10 +586,10 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     /** {@inheritDoc} */
     @Override
     public final <P> void setPropertyValue(PropertyDefinition<P> pd, P value) {
-        if (value == null) {
-            setPropertyValues(pd, Collections.<P> emptySet());
-        } else {
+        if (value != null) {
             setPropertyValues(pd, Collections.singleton(value));
+        } else {
+            setPropertyValues(pd, Collections.<P> emptySet());
         }
     }
 

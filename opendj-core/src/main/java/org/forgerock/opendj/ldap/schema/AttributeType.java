@@ -682,14 +682,11 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
                 return false;
             }
 
-            if (superiorType.isCollective() != isCollective()) {
-                if (!isCollective()) {
-                    LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
-                                    getNameOrOID(), superiorType.getNameOrOID());
-                    failValidation(invalidSchemaElements, warnings, message);
-                    return false;
-                }
+            if (superiorType.isCollective() != isCollective() && !isCollective()) {
+                LocalizableMessage message = WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
+                    getNameOrOID(), superiorType.getNameOrOID());
+                failValidation(invalidSchemaElements, warnings, message);
+                return false;
             }
         }
 

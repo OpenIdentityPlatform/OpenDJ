@@ -98,11 +98,10 @@ public final class AdminTestCaseUtils {
             LDAPProfile.Wrapper profile = new LDAPProfile.Wrapper() {
                 @Override
                 public String getRelationRDNSequence(RelationDefinition<?, ?> r) {
-                    if (r.getName().equals(DUMMY_TEST_RELATION)) {
+                    if (DUMMY_TEST_RELATION.equals(r.getName())) {
                         return "cn=dummy configuration,cn=config";
-                    } else {
-                        return null;
                     }
+                    return null;
                 }
 
             };

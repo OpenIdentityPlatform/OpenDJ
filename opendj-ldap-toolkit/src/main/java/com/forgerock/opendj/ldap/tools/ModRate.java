@@ -81,16 +81,16 @@ public final class ModRate extends ConsoleApplication {
                 String formattedString;
                 int colonPos;
                 ModifyRequest mr;
-                if (data == null) {
-                    mr = Requests.newModifyRequest(baseDN);
-                } else {
+                if (data != null) {
                     mr = Requests.newModifyRequest(String.format(baseDN, data));
+                } else {
+                    mr = Requests.newModifyRequest(baseDN);
                 }
                 for (final String modString : modStrings) {
-                    if (data == null) {
-                        formattedString = modString;
-                    } else {
+                    if (data != null) {
                         formattedString = String.format(modString, data);
+                    } else {
+                        formattedString = modString;
                     }
                     colonPos = formattedString.indexOf(':');
                     if (colonPos > 0) {

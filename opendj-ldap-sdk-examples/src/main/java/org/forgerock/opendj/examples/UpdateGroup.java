@@ -118,29 +118,26 @@ public final class UpdateGroup {
                         Requests.newCompareRequest(groupDN, "member", memberDN);
                 CompareResult result = connection.compare(request);
 
-                if (modType == ModificationType.ADD) {
-                    if (result.getResultCode() == ResultCode.COMPARE_FALSE) {
-                        System.out.println("Member does not yet belong to group."
-                                + " Adding it...");
-                        final ModifyRequest addMember =
-                                Requests.newModifyRequest(groupDN)
-                                    .addModification(modType, "member", memberDN);
-                        connection.modify(addMember);
-                    }
+                if (modType == ModificationType.ADD
+                        && result.getResultCode() == ResultCode.COMPARE_FALSE) {
+                    System.out.println("Member does not yet belong to group."
+                            + " Adding it...");
+                    final ModifyRequest addMember =
+                            Requests.newModifyRequest(groupDN)
+                                .addModification(modType, "member", memberDN);
+                    connection.modify(addMember);
                 }
 
-                if (modType == ModificationType.DELETE) {
-                    if (result.getResultCode() == ResultCode.COMPARE_TRUE) {
-                        System.out.println("Member belongs to group."
-                                + " Removing it...");
-                        final ModifyRequest delMember =
-                                Requests.newModifyRequest(groupDN)
-                                    .addModification(modType, "member", memberDN);
-                        connection.modify(delMember);
-                    }
+                if (modType == ModificationType.DELETE
+                        && result.getResultCode() == ResultCode.COMPARE_TRUE) {
+                    System.out.println("Member belongs to group."
+                            + " Removing it...");
+                    final ModifyRequest delMember =
+                            Requests.newModifyRequest(groupDN)
+                                .addModification(modType, "member", memberDN);
+                    connection.modify(delMember);
                 }
                 // --- JCite without permissive ---
-
             }
 
             String op = (modType == ModificationType.ADD) ? "added to" : "deleted from";
@@ -164,7 +161,7 @@ public final class UpdateGroup {
      */
     private static ModificationType getModificationType(String operation) {
         final boolean isAdd = "add".equalsIgnoreCase(operation);
-        if (!(isAdd || "del".equalsIgnoreCase(operation))) {
+        if (!isAdd && !"del".equalsIgnoreCase(operation)) {
             printUsage();
         }
         return isAdd ? ModificationType.ADD : ModificationType.DELETE;

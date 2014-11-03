@@ -1228,11 +1228,11 @@ abstract class TemplateTag {
                 break;
 
             case NUMERIC:
-                long randomValue = ((random.nextLong() & 0x7FFFFFFFFFFFFFFFL) % valueRange) + minValue;
-                if (decimalFormat == null) {
-                    templateValue.append(randomValue);
-                } else {
+                long randomValue = (random.nextLong() & 0x7FFFFFFFFFFFFFFFL) % valueRange + minValue;
+                if (decimalFormat != null) {
                     templateValue.append(decimalFormat.format(randomValue));
+                } else {
+                    templateValue.append(randomValue);
                 }
                 break;
 
@@ -1303,12 +1303,10 @@ abstract class TemplateTag {
         @Override
         TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             DN dn = templateEntry.getDN();
-            if (dn == null || dn.isRootDN()) {
-                return TagResult.SUCCESS;
-            } else {
+            if (dn != null && !dn.isRootDN()) {
                 templateValue.append(dn.rdn());
-                return TagResult.SUCCESS;
             }
+            return TagResult.SUCCESS;
         }
     }
 

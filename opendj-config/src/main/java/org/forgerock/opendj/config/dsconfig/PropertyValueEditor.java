@@ -1117,9 +1117,8 @@ final class PropertyValueEditor {
             builder.setPrompt(INFO_EDITOR_PROMPT_MODIFY_MENU.get(d.getName()));
 
             // First option is for leaving the property unchanged or
-            // applying changes, but only if the state of the property is
-            // valid.
-            if (!(d.hasOption(PropertyOption.MANDATORY) && currentValues.isEmpty())) {
+            // applying changes, but only if the state of the property is valid.
+            if (!d.hasOption(PropertyOption.MANDATORY) || !currentValues.isEmpty()) {
                 MenuResult<Boolean> result;
                 if (!oldValues.equals(currentValues)) {
                     result = MenuResult.success(true);
@@ -1313,10 +1312,10 @@ final class PropertyValueEditor {
                 // properties should apply here.
                 DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
                 LocalizableMessage aliasDescription = query.getAliasDescription();
-                if (aliasDescription == null) {
-                    app.println(INFO_EDITOR_HEADING_READ_ONLY_ALIAS_UNDEFINED.get(pd.getName()));
-                } else {
+                if (aliasDescription != null) {
                     app.println(INFO_EDITOR_HEADING_READ_ONLY_ALIAS.get(pd.getName(), aliasDescription));
+                } else {
+                    app.println(INFO_EDITOR_HEADING_READ_ONLY_ALIAS_UNDEFINED.get(pd.getName()));
                 }
                 break;
             case 1:

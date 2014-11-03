@@ -73,11 +73,10 @@ final class GenericBindRequestImpl extends AbstractBindRequest<GenericBindReques
 
     @Override
     public BindClient createBindClient(final String serverName) throws LdapException {
-        if (bindClient == null) {
-            return new BindClientImpl(this).setNextAuthenticationValue(authenticationValue);
-        } else {
+        if (bindClient != null) {
             return bindClient;
         }
+        return new BindClientImpl(this).setNextAuthenticationValue(authenticationValue);
     }
 
     @Override

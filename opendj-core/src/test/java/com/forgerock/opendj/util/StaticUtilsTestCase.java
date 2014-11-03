@@ -179,10 +179,10 @@ public final class StaticUtilsTestCase extends UtilTestCase {
     @Test(dataProvider = "dataForToLowerCase")
     public void testToLowerCaseString(final String s, final String expected) {
         final String actual = toLowerCase(s);
-        if (expected == null) {
-            Assert.assertSame(actual, s);
-        } else {
+        if (expected != null) {
             Assert.assertEquals(actual, expected);
+        } else {
+            Assert.assertSame(actual, s);
         }
     }
 
@@ -190,10 +190,10 @@ public final class StaticUtilsTestCase extends UtilTestCase {
     public void testToLowerCaseStringBuilder(final String s, final String expected) {
         final StringBuilder builder = new StringBuilder();
         final String actual = toLowerCase(s, builder).toString();
-        if (expected == null) {
-            Assert.assertEquals(actual, s);
-        } else {
+        if (expected != null) {
             Assert.assertEquals(actual, expected);
+        } else {
+            Assert.assertEquals(actual, s);
         }
     }
 

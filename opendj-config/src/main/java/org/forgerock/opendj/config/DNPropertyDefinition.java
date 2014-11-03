@@ -68,13 +68,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
          *             representation.
          */
         public void setBaseDN(String baseDN) {
-            if (baseDN == null) {
-                setBaseDN((DN) null);
-            } else {
-                // TODO: is it correct to replace server DN.decode by SDK
-                // valueOf ?
-                setBaseDN(DN.valueOf(baseDN));
-            }
+            setBaseDN(baseDN != null ? DN.valueOf(baseDN) : null);
         }
 
         /**

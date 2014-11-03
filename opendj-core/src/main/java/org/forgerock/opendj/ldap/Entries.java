@@ -853,11 +853,9 @@ public final class Entries {
                 continue;
             }
 
-            if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL) {
-                if (structuralObjectClass == null
-                        || objectClass.isDescendantOf(structuralObjectClass)) {
-                    structuralObjectClass = objectClass;
-                }
+            if (objectClass.getObjectClassType() == ObjectClassType.STRUCTURAL
+                    && (structuralObjectClass == null || objectClass.isDescendantOf(structuralObjectClass))) {
+                structuralObjectClass = objectClass;
             }
         }
 

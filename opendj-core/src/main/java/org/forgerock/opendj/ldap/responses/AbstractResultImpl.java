@@ -115,23 +115,13 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
 
     @Override
     public final S setDiagnosticMessage(final String message) {
-        if (message == null) {
-            this.diagnosticMessage = "";
-        } else {
-            this.diagnosticMessage = message;
-        }
-
+        this.diagnosticMessage = message != null ? message : "";
         return getThis();
     }
 
     @Override
     public final S setMatchedDN(final String dn) {
-        if (dn == null) {
-            this.matchedDN = "";
-        } else {
-            this.matchedDN = dn;
-        }
-
+        this.matchedDN = dn != null ? dn : "";
         return getThis();
     }
 

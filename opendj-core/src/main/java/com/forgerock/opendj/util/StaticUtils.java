@@ -1785,10 +1785,10 @@ public final class StaticUtils {
     public static <P extends Provider> P getProvider(final Class<P> providerClass, final String requestedProvider,
             final ClassLoader classLoader) {
         ServiceLoader<P> loader = null;
-        if (classLoader == null) {
-            loader = ServiceLoader.load(providerClass);
-        } else {
+        if (classLoader != null) {
             loader = ServiceLoader.load(providerClass, classLoader);
+        } else {
+            loader = ServiceLoader.load(providerClass);
         }
         StringBuilder providersFound = new StringBuilder();
         for (P provider : loader) {
