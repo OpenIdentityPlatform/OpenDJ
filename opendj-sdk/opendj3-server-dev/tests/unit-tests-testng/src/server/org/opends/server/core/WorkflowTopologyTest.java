@@ -26,21 +26,13 @@
  */
 package org.opends.server.core;
 
-
-import static org.opends.messages.CoreMessages.*;
-
-import org.forgerock.i18n.LocalizableMessageBuilder;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertNull;
-
 import java.util.ArrayList;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
 import org.opends.server.workflowelement.WorkflowElement;
@@ -48,6 +40,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.testng.Assert.*;
 
 /**
  * This set of tests checks that workflow topology is properly created.
@@ -424,8 +418,7 @@ public class WorkflowTopologyTest extends UtilTestCase
       new WorkflowImpl (baseDN.toString(), baseDN, null, nullWE);
 
     // Create a worflow with the dit, no pre/post-workflow element.
-    WorkflowTopologyNode workflowNode =
-      new WorkflowTopologyNode (workflow, null, null);
+    WorkflowTopologyNode workflowNode = new WorkflowTopologyNode(workflow);
 
     // The base DN in the workflow should match baseDN parameter
     DN workflowBaseDN = workflowNode.getBaseDN();
@@ -495,14 +488,14 @@ public class WorkflowTopologyTest extends UtilTestCase
     }
 
     // Create a worflow for each dit, no pre/post-workflow element
-    WorkflowTopologyNode w1    = new WorkflowTopologyNode(workflow, null, null);
-    WorkflowTopologyNode w1bis = new WorkflowTopologyNode(workflow, null, null);
-    WorkflowTopologyNode w2    = new WorkflowTopologyNode(subWorkflow, null, null);
+    WorkflowTopologyNode w1    = new WorkflowTopologyNode(workflow);
+    WorkflowTopologyNode w1bis = new WorkflowTopologyNode(workflow);
+    WorkflowTopologyNode w2    = new WorkflowTopologyNode(subWorkflow);
 
     WorkflowTopologyNode w3 = null;
     if (unrelatedWorkflow != null)
     {
-       w3 = new WorkflowTopologyNode (unrelatedWorkflow, null, null);
+      w3 = new WorkflowTopologyNode(unrelatedWorkflow);
     }
 
     // insert status
@@ -636,9 +629,9 @@ public class WorkflowTopologyTest extends UtilTestCase
         workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, nullWE);
       }
 
-      w1 = new WorkflowTopologyNode (workflow1, null, null);
-      w2 = new WorkflowTopologyNode (workflow2, null, null);
-      w3 = new WorkflowTopologyNode (workflow3, null, null);
+      w1 = new WorkflowTopologyNode(workflow1);
+      w2 = new WorkflowTopologyNode(workflow2);
+      w3 = new WorkflowTopologyNode(workflow3);
     }
 
     // insert status
@@ -818,9 +811,9 @@ public class WorkflowTopologyTest extends UtilTestCase
         workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, nullWE);
       }
 
-      w1 = new WorkflowTopologyNode (workflow1, null, null);
-      w2 = new WorkflowTopologyNode (workflow2, null, null);
-      w3 = new WorkflowTopologyNode (workflow3, null, null);
+      w1 = new WorkflowTopologyNode(workflow1);
+      w2 = new WorkflowTopologyNode(workflow2);
+      w3 = new WorkflowTopologyNode(workflow3);
     }
 
     // Put all the workflows in a pool

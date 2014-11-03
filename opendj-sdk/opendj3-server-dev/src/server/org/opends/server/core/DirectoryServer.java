@@ -68,7 +68,6 @@ import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
@@ -128,7 +127,6 @@ import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.opends.server.core.networkgroups.NetworkGroupConfigManager;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
@@ -213,8 +211,6 @@ import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.VersionCompatibilityIssue;
-import org.opends.server.workflowelement.WorkflowElement;
-import org.opends.server.workflowelement.WorkflowElementConfigManager;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 import com.forgerock.opendj.cli.ArgumentConstants;
@@ -227,7 +223,6 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.forgerock.util.Reject.*;
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -838,34 +833,6 @@ public final class DirectoryServer
 
   /** The writability mode for the Directory Server. */
   private WritabilityMode writabilityMode;
-
-  /**
-   * The mappings between the names and WorkflowElements registered with the
-   * Directory Server.
-   */
-  private final ConcurrentMap<String, WorkflowElement> workflowElements =
-          new ConcurrentHashMap<String, WorkflowElement>();
-
-  /** The workflow configuration mode (auto or manual). */
-  private WorkflowConfigurationMode workflowConfigurationMode;
-
-  /**
-   * The network group config manager for the Directory Server. This config
-   * manager is used when the workflow configuration mode is 'manual'.
-   */
-  private NetworkGroupConfigManager networkGroupConfigManager;
-
-  /**
-   * The workflow config manager for the Directory Server. This config manager
-   * is used when the workflow configuration mode is 'manual'.
-   */
-  private WorkflowConfigManager workflowConfigManager;
-
-  /**
-   * The workflow element config manager for the Directory Server. This config
-   * manager is used when the workflow configuration mode is 'manual'.
-   */
-  private WorkflowElementConfigManager workflowElementConfigManager;
 
   /**
    * The maximum size that internal buffers will be allowed to grow to until
@@ -1591,17 +1558,8 @@ public final class DirectoryServer
       // and initialize the workflows when workflow configuration mode is auto.
       initializeBackends();
 
-      // When workflow configuration mode is manual, do configure the
-      // workflows now, else just configure the remaining workflows
-      // (rootDSE and config backend).
-      if (workflowConfigurationModeIsAuto())
-      {
-        createAndRegisterRemainingWorkflows();
-      }
-      else
-      {
-        configureWorkflowsManual();
-      }
+      // configure the remaining workflows (rootDSE and config backend).
+      createAndRegisterRemainingWorkflows();
 
       // Check for and initialize user configured entry cache if any.
       // If not then stick with default entry cache initialized earlier.
@@ -2216,16 +2174,13 @@ public final class DirectoryServer
    *
    * @param baseDN  the DN of the workflow to deregister
    */
-  private static void deregisterWorkflowWithInternalNetworkGroup(
-      DN baseDN
-      )
+  private static void deregisterWorkflowWithInternalNetworkGroup(DN baseDN)
   {
     // Get the internal network group and deregister all the workflows
     // being configured for the backend (there is one workflow per
     // backend base DN).
     NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
-    Workflow workflow = internalNetworkGroup.deregisterWorkflow(baseDN);
-    WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+    WorkflowImpl workflowImpl = (WorkflowImpl) internalNetworkGroup.deregisterWorkflow(baseDN);
     workflowImpl.deregister();
   }
 
@@ -2241,23 +2196,23 @@ public final class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  private static void createAndRegisterWorkflowsWithDefaultNetworkGroup(
-      Backend backend) throws DirectoryException
+  private static void createAndRegisterWorkflowsWithDefaultNetworkGroup(Backend<?> backend) throws DirectoryException
   {
     // Create a workflow for each backend base DN and register the workflow
     // with the default/internal/admin network group.
     for (DN curBaseDN: backend.getBaseDNs())
     {
-      WorkflowImpl workflowImpl = createWorkflow(curBaseDN, backend);
-      registerWorkflowWithAdminNetworkGroup(workflowImpl);
-      registerWorkflowWithInternalNetworkGroup(workflowImpl);
-      // Special case for cn=config
-      // it must not be added to the default ng except in auto mode
-      if (!curBaseDN.equals(DN.valueOf(DN_CONFIG_ROOT))
-          || workflowConfigurationModeIsAuto()) {
-        registerWorkflowWithDefaultNetworkGroup(workflowImpl);
-      }
+      createAndRegisterWorkflowWithDefaultNetworkGroup(curBaseDN, backend);
     }
+  }
+
+  private static void createAndRegisterWorkflowWithDefaultNetworkGroup(DN baseDN, Backend<?> backend)
+      throws DirectoryException
+  {
+    WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
+    NetworkGroup.getAdminNetworkGroup().registerWorkflow(workflowImpl);
+    NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
+    NetworkGroup.getDefaultNetworkGroup().registerWorkflow(workflowImpl);
   }
 
 
@@ -2273,8 +2228,7 @@ public final class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  private static WorkflowImpl createWorkflow(DN baseDN, Backend backend)
-      throws DirectoryException
+  private static WorkflowImpl createWorkflow(DN baseDN, Backend<?> backend) throws DirectoryException
   {
     String backendID = backend.getBackendID();
 
@@ -2304,63 +2258,6 @@ public final class DirectoryServer
 
 
   /**
-   * Registers a workflow with the default network group. This method
-   * is intended to be called when workflow configuration mode is auto.
-   *
-   * @param workflowImpl  The workflow to register with the
-   *                      default network group
-   *
-   * @throws  DirectoryException  If the workflow is already registered with
-   *                              the default network group
-   */
-  private static void registerWorkflowWithDefaultNetworkGroup(
-      WorkflowImpl workflowImpl
-      ) throws DirectoryException
-  {
-    NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-    defaultNetworkGroup.registerWorkflow(workflowImpl);
-  }
-
-
-  /**
-   * Registers a workflow with the admin network group. This method
-   * is intended to be called when workflow configuration mode is auto.
-   *
-   * @param workflowImpl  The workflow to register with the
-   *                      admin network group
-   *
-   * @throws  DirectoryException  If the workflow is already registered with
-   *                              the admin network group
-   */
-  private static void registerWorkflowWithAdminNetworkGroup(
-      WorkflowImpl workflowImpl
-      ) throws DirectoryException
-  {
-    NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
-    adminNetworkGroup.registerWorkflow(workflowImpl);
-  }
-
-
-  /**
-   * Registers a workflow with the internal network group. This method
-   * is intended to be called when workflow configuration mode is auto.
-   *
-   * @param workflowImpl  The workflow to register with the
-   *                      internal network group
-   *
-   * @throws  DirectoryException  If the workflow is already registered with
-   *                              the internal network group
-   */
-  private static void registerWorkflowWithInternalNetworkGroup(
-      WorkflowImpl workflowImpl
-      ) throws DirectoryException
-  {
-    NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
-    internalNetworkGroup.registerWorkflow(workflowImpl);
-  }
-
-
-  /**
    * Creates the missing workflows, one for the config backend and one for
    * the rootDSE backend.
    *
@@ -2383,159 +2280,6 @@ public final class DirectoryServer
     {
       throw new ConfigException(de.getMessageObject());
     }
-  }
-
-
-  /**
-   * Reconfigures the workflows when configuration mode has changed.
-   * This method is invoked when workflows need to be reconfigured
-   * while the server is running. If the reconfiguration is valid
-   * then the method update the workflow configuration mode.
-   *
-   * @param oldMode  the current workflow configuration mode
-   * @param newMode  the new workflow configuration mode
-   */
-  public static void reconfigureWorkflows(
-      WorkflowConfigurationMode oldMode,
-      WorkflowConfigurationMode newMode)
-  {
-    if (oldMode == WorkflowConfigurationMode.AUTO
-        && newMode == WorkflowConfigurationMode.MANUAL)
-    {
-      // move to manual mode
-      try
-      {
-        setWorkflowConfigurationMode(newMode);
-        directoryServer.configureWorkflowsManual();
-      }
-      catch (Exception e)
-      {
-        // rollback to auto mode
-        try
-        {
-           setWorkflowConfigurationMode(oldMode);
-           directoryServer.configureWorkflowsAuto();
-        }
-        catch (Exception ee)
-        {
-          // rollback to auto mode is failing too!!
-          // well, just log an error message and suggest the admin
-          // to restart the server with the last valid config...
-          logger.error(ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_MANUAL);
-        }
-      }
-    }
-    else if (oldMode == WorkflowConfigurationMode.MANUAL
-        && newMode == WorkflowConfigurationMode.AUTO)
-    {
-      // move to auto mode
-      try
-      {
-        setWorkflowConfigurationMode(newMode);
-        directoryServer.configureWorkflowsAuto();
-      }
-      catch (Exception e)
-      {
-        // rollback to manual mode
-        try
-        {
-           setWorkflowConfigurationMode(oldMode);
-           directoryServer.configureWorkflowsManual();
-        }
-        catch (Exception ee)
-        {
-          // rollback to auto mode is failing too!!
-          // well, just log an error message and suggest the admin
-          // to restart the server with the last valid config...
-          logger.error(ERR_CONFIG_WORKFLOW_CANNOT_CONFIGURE_AUTO);
-        }
-      }
-    }
-  }
-
-
-  /**
-   * Configures the workflows when configuration mode is manual.
-   *
-   * @throws  ConfigException  If there is a problem with the Directory Server
-   *                           configuration that prevents a critical component
-   *                           from being instantiated.
-   *
-   * @throws  InitializationException  If some other problem occurs while
-   *                                   attempting to initialize and start the
-   *                                   Directory Server.
-   */
-  private void configureWorkflowsManual()
-      throws ConfigException, InitializationException
-  {
-    // First of all re-initialize the current workflow configuration
-    NetworkGroup.resetConfig();
-    WorkflowImpl.resetConfig();
-    directoryServer.workflowElements.clear();
-
-    // We now need to complete the workflow creation for the
-    // config backend and rootDSE backend.
-    createAndRegisterRemainingWorkflows();
-
-    // Then configure the workflows
-    workflowElementConfigManager = new WorkflowElementConfigManager(serverContext);
-    workflowElementConfigManager.initializeWorkflowElements();
-
-    workflowConfigManager = new WorkflowConfigManager(serverContext);
-    workflowConfigManager.initializeWorkflows();
-
-    if (networkGroupConfigManager == null)
-    {
-      networkGroupConfigManager = new NetworkGroupConfigManager(serverContext);
-      networkGroupConfigManager.initializeNetworkGroups();
-    }
-  }
-
-
-  /**
-   * Configures the workflows when configuration mode is auto.
-   *
-   * @throws  ConfigException  If there is a problem with the Directory Server
-   *                           configuration that prevents a critical component
-   *                           from being instantiated.
-   */
-  private void configureWorkflowsAuto() throws ConfigException
-  {
-    // Make sure that the network group config manager is finalized.
-    if (networkGroupConfigManager != null)
-    {
-      networkGroupConfigManager.finalizeNetworkGroups();
-      networkGroupConfigManager = null;
-    }
-
-    // First of all re-initialize the current workflow configuration
-    NetworkGroup.resetConfig();
-    WorkflowImpl.resetConfig();
-    directoryServer.workflowElements.clear();
-
-    // For each base DN in a backend create a workflow and register
-    // the workflow with the default network group
-    for (Backend<?> backend : getBackends().values())
-    {
-      for (DN baseDN: backend.getBaseDNs())
-      {
-        try
-        {
-          final WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
-          registerWorkflowWithInternalNetworkGroup(workflowImpl);
-          registerWorkflowWithAdminNetworkGroup(workflowImpl);
-          registerWorkflowWithDefaultNetworkGroup(workflowImpl);
-        }
-        catch (DirectoryException e)
-        {
-          throw new ConfigException(e.getMessageObject());
-        }
-      }
-    }
-
-    // We now need to complete the workflow creation for the
-    // config backend and rootDSE backend.
-    createAndRegisterRemainingWorkflows();
   }
 
 
@@ -5612,7 +5356,7 @@ public final class DirectoryServer
    * @return  The backend with the specified backend ID, or {@code null} if
    *          there is none.
    */
-  public static Backend getBackend(String backendID)
+  public static Backend<?> getBackend(String backendID)
   {
     return directoryServer.backends.get(backendID);
   }
@@ -5647,8 +5391,7 @@ public final class DirectoryServer
    *                              conflicts with the backend ID of an existing
    *                              backend.
    */
-  public static void registerBackend(Backend<?> backend)
-         throws DirectoryException
+  public static void registerBackend(Backend<?> backend) throws DirectoryException
   {
     ifNull(backend);
 
@@ -5697,7 +5440,7 @@ public final class DirectoryServer
    * @param  backend  The backend to deregister with the server.  It must not be
    *                  {@code null}.
    */
-  public static void deregisterBackend(Backend backend)
+  public static void deregisterBackend(Backend<?> backend)
   {
     ifNull(backend);
 
@@ -5709,14 +5452,8 @@ public final class DirectoryServer
 
       directoryServer.backends = newBackends;
 
-      // Don't need anymore the local backend workflow element so we
-      // can remove it. We do remove the workflow element only when
-      // the workflow configuration mode is auto because in manual
-      // mode the config manager is doing the job.
-      if (workflowConfigurationModeIsAuto())
-      {
-        LocalBackendWorkflowElement.remove(backend.getBackendID());
-      }
+      // Don't need anymore the local backend workflow element so we can remove it
+      LocalBackendWorkflowElement.remove(backend.getBackendID());
 
 
       BackendMonitor monitor = backend.getBackendMonitor();
@@ -5785,7 +5522,7 @@ public final class DirectoryServer
    * @return  The backend with the specified base DN, or {@code null} if there
    *          is no backend registered with the specified base DN.
    */
-  public static Backend getBackendWithBaseDN(DN baseDN)
+  public static Backend<?> getBackendWithBaseDN(DN baseDN)
   {
     return directoryServer.baseDnRegistry.getBaseDnMap().get(baseDN);
   }
@@ -5803,7 +5540,7 @@ public final class DirectoryServer
    *          specified entry, or {@code null} if no appropriate backend is
    *          registered with the server.
    */
-  public static Backend getBackend(DN entryDN)
+  public static Backend<?> getBackend(DN entryDN)
   {
     if (entryDN.isRootDN())
     {
@@ -5811,7 +5548,7 @@ public final class DirectoryServer
     }
 
     Map<DN,Backend> baseDNs = directoryServer.baseDnRegistry.getBaseDnMap();
-    Backend b = baseDNs.get(entryDN);
+    Backend<?> b = baseDNs.get(entryDN);
     while (b == null)
     {
       entryDN = entryDN.parent();
@@ -5857,8 +5594,7 @@ public final class DirectoryServer
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              register the provided base DN.
    */
-  public static void registerBaseDN(DN baseDN, Backend backend,
-                                    boolean isPrivate)
+  public static void registerBaseDN(DN baseDN, Backend<?> backend, boolean isPrivate)
          throws DirectoryException
   {
     ifNull(baseDN, backend);
@@ -5878,20 +5614,14 @@ public final class DirectoryServer
       }
 
       // When a new baseDN is registered with the server we have to create
-      // a new workflow to handle the base DN. We do not need to create
-      // the workflow in manual mode because in that case the workflows
-      // are created explicitly.
-      if (workflowConfigurationModeIsAuto()
-          && !baseDN.equals(DN.valueOf("cn=config")))
+      // a new workflow to handle the base DN.
+      if (!baseDN.equals(DN.valueOf("cn=config")))
       {
         // Now create a workflow for the registered baseDN and register
         // the workflow with the default network group, but don't register
         // the workflow if the backend happens to be the configuration
         // backend because it's too soon for the config backend.
-        WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
-        registerWorkflowWithInternalNetworkGroup(workflowImpl);
-        registerWorkflowWithAdminNetworkGroup(workflowImpl);
-        registerWorkflowWithDefaultNetworkGroup(workflowImpl);
+        createAndRegisterWorkflowWithDefaultNetworkGroup(baseDN, backend);
       }
     }
   }
@@ -5925,11 +5655,8 @@ public final class DirectoryServer
         }
       }
 
-      // Now we need to deregister the workflow that was associated with
-      // the base DN but we can do it only when the workflow configuration
-      // mode is auto, because in manual mode the deregistration is done
-      // by the workflow config manager.
-      if (workflowConfigurationModeIsAuto())
+      // Now we need to deregister the workflow that was associated with the base DN
+      if (!baseDN.equals(DN.valueOf("cn=config")))
       {
         deregisterWorkflowWithAdminNetworkGroup(baseDN);
         deregisterWorkflowWithDefaultNetworkGroup(baseDN);
@@ -6050,22 +5777,17 @@ public final class DirectoryServer
   public static Entry getEntry(DN entryDN)
          throws DirectoryException
   {
-    // If the entry is the root DSE, then get and return that.
     if (entryDN.isRootDN())
     {
       return directoryServer.rootDSEBackend.getRootDSE();
     }
 
-    // Figure out which backend should be used for the entry.  If it isn't
-    // appropriate for any backend, then return null.
-    Backend backend = getBackend(entryDN);
-    if (backend == null)
+    final Backend<?> backend = getBackend(entryDN);
+    if (backend != null)
     {
-      return null;
+      return backend.getEntry(entryDN);
     }
-
-    // Retrieve the requested entry from the backend.
-    return backend.getEntry(entryDN);
+    return null;
   }
 
 
@@ -6093,7 +5815,7 @@ public final class DirectoryServer
 
     // Ask the appropriate backend if the entry exists.
     // If it is not appropriate for any backend, then return false.
-    Backend backend = getBackend(entryDN);
+    Backend<?> backend = getBackend(entryDN);
     return backend != null && backend.entryExists(entryDN);
   }
 
@@ -7109,7 +6831,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the backup is to be performed.
    * @param  config   The configuration for the backup to be performed.
    */
-  public static void notifyBackupBeginning(Backend backend, BackupConfig config)
+  public static void notifyBackupBeginning(Backend<?> backend, BackupConfig config)
   {
     for (BackupTaskListener listener : directoryServer.backupTaskListeners)
     {
@@ -7134,8 +6856,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the backup that was performed.
    * @param  successful  Indicates whether the backup completed successfully.
    */
-  public static void notifyBackupEnded(Backend backend, BackupConfig config,
-                                       boolean successful)
+  public static void notifyBackupEnded(Backend<?> backend, BackupConfig config, boolean successful)
   {
     for (BackupTaskListener listener : directoryServer.backupTaskListeners)
     {
@@ -7185,8 +6906,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the restore is to be performed.
    * @param  config   The configuration for the restore to be performed.
    */
-  public static void notifyRestoreBeginning(Backend backend,
-                                            RestoreConfig config)
+  public static void notifyRestoreBeginning(Backend<?> backend, RestoreConfig config)
   {
     for (RestoreTaskListener listener : directoryServer.restoreTaskListeners)
     {
@@ -7211,8 +6931,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the restore that was performed.
    * @param  successful  Indicates whether the restore completed successfully.
    */
-  public static void notifyRestoreEnded(Backend backend, RestoreConfig config,
-                                        boolean successful)
+  public static void notifyRestoreEnded(Backend<?> backend, RestoreConfig config, boolean successful)
   {
     for (RestoreTaskListener listener : directoryServer.restoreTaskListeners)
     {
@@ -7263,8 +6982,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the export is to be performed.
    * @param  config   The configuration for the export to be performed.
    */
-  public static void notifyExportBeginning(Backend backend,
-                                           LDIFExportConfig config)
+  public static void notifyExportBeginning(Backend<?> backend, LDIFExportConfig config)
   {
     for (ExportTaskListener listener : directoryServer.exportTaskListeners)
     {
@@ -7289,8 +7007,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the export that was performed.
    * @param  successful  Indicates whether the export completed successfully.
    */
-  public static void notifyExportEnded(Backend backend, LDIFExportConfig config,
-                                       boolean successful)
+  public static void notifyExportEnded(Backend<?> backend, LDIFExportConfig config, boolean successful)
   {
     for (ExportTaskListener listener : directoryServer.exportTaskListeners)
     {
@@ -7341,8 +7058,7 @@ public final class DirectoryServer
    * @param  backend  The backend in which the import is to be performed.
    * @param  config   The configuration for the import to be performed.
    */
-  public static void notifyImportBeginning(Backend backend,
-                                           LDIFImportConfig config)
+  public static void notifyImportBeginning(Backend<?> backend, LDIFImportConfig config)
   {
     for (ImportTaskListener listener : directoryServer.importTaskListeners)
     {
@@ -7367,8 +7083,7 @@ public final class DirectoryServer
    * @param  config      The configuration for the import that was performed.
    * @param  successful  Indicates whether the import completed successfully.
    */
-  public static void notifyImportEnded(Backend backend, LDIFImportConfig config,
-                                       boolean successful)
+  public static void notifyImportEnded(Backend<?> backend, LDIFImportConfig config, boolean successful)
   {
     for (ImportTaskListener listener : directoryServer.importTaskListeners)
     {
@@ -7641,7 +7356,7 @@ public final class DirectoryServer
 
 
     // Shut down the backends.
-    for (Backend backend : directoryServer.backends.values())
+    for (Backend<?> backend : directoryServer.backends.values())
     {
       try
       {
@@ -9080,99 +8795,7 @@ public final class DirectoryServer
     return isRunningAsWindowsService;
   }
 
-
-  /**
-   * Specifies whether the workflows are configured automatically or manually.
-   * In auto configuration mode one workflow is created for each and every
-   * base DN in the local backends. In the auto configuration mode the
-   * workflows are created according to their description in the configuration
-   * file.
-   *
-   * @param  workflowConfigurationMode  Indicates whether the workflows are
-   *                                    configured automatically or manually
-   */
-  public static void setWorkflowConfigurationMode(
-      WorkflowConfigurationMode workflowConfigurationMode)
-  {
-    directoryServer.workflowConfigurationMode = workflowConfigurationMode;
-  }
-
-
-  /**
-   * Indicates whether the workflow configuration mode is 'auto' or not.
-   *
-   * @return the workflow configuration mode
-   */
-  private static boolean workflowConfigurationModeIsAuto()
-  {
-    return directoryServer.workflowConfigurationMode
-        == WorkflowConfigurationMode.AUTO;
-  }
-
-  /**
-   * Retrieves the workflow configuration mode.
-   *
-   * @return the workflow configuration mode
-   */
-  public static WorkflowConfigurationMode getWorkflowConfigurationMode()
-  {
-    return directoryServer.workflowConfigurationMode;
-  }
-
-  /**
-   * Return the WorkflowElement associated with a name.
-   *
-   * @param workflowElementID the name of the requested workflow element
-   * @return the associated workflow element or null
-   */
-  public static WorkflowElement getWorkflowElement(String workflowElementID) {
-    return directoryServer.workflowElements.get(workflowElementID);
-  }
-
-  /**
-   * Registers the provided workflow element from the Directory Server.
-   *
-   * @param  we  The workflow element to register. It must not be
-   *                  {@code null}.
-   * @throws  DirectoryException  If the workflow element ID for the
-   *              provided workflow element conflicts with the ID of
-   *              an existing workflow element.
-   */
-  public static void registerWorkflowElement(WorkflowElement we)
-    throws DirectoryException {
-    ifNull(we);
-
-    String workflowElementID = we.getWorkflowElementID();
-    ifNull(workflowElementID);
-
-    synchronized (directoryServer)
-    {
-      if (directoryServer.workflowElements.containsKey(workflowElementID)) {
-        ERR_REGISTER_WORKFLOW_ELEMENT_ALREADY_EXISTS.get(
-                workflowElementID);
-      } else {
-        directoryServer.workflowElements.put(workflowElementID, we);
-      }
-    }
-  }
-
-  /**
-   * Deregisters the provided workflow element from the Directory Server.
-   *
-   * @param  we  The workflow element to deregister. It must not be
-   *                  {@code null}.
-   */
-  public static void deregisterWorkflowElement(WorkflowElement we) {
-    ifNull(we);
-
-    String workflowElementID = we.getWorkflowElementID();
-    ifNull(workflowElementID);
-
-    synchronized (directoryServer)
-    {
-      directoryServer.workflowElements.remove(workflowElementID);
-    }
-  }
+  // TODO JNR remove error CoreMessages.ERR_REGISTER_WORKFLOW_ELEMENT_ALREADY_EXISTS
 
   /**
    * Print messages for start-ds "-F" option (full version information).

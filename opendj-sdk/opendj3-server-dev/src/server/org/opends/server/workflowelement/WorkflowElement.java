@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.opends.server.admin.std.server.WorkflowElementCfg;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.Operation;
 
@@ -45,11 +44,8 @@ import org.opends.server.types.Operation;
  * case for load balancing and distribution. And workflow element can be used
  * in a virtual environment to transform data (DN and attribute renaming,
  * attribute value renaming...).
- *
- * @param  <T>  The type of configuration handled by this workflow element.
  */
-public abstract class WorkflowElement <T extends WorkflowElementCfg>
-    implements Observer
+public abstract class WorkflowElement implements Observer
 {
 
   /** The observable state of the workflow element. */
@@ -101,11 +97,7 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    * @param observer  the observer to notify when the workflow element state
    *                  has been modified
    */
-  public static void registereForStateUpdate(
-      WorkflowElement<?> we,
-      String weid,
-      Observer observer
-      )
+  public static void registereForStateUpdate(WorkflowElement we, String weid, Observer observer)
   {
     // If the workflow element "we" exists then register the observer with "we"
     // else register the observer with a static list of workflow element
@@ -158,19 +150,14 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
    *                  is useless when <code>we</code> is not <code>null</code>
    * @param observer  the observer to deregister
    */
-  public static void deregistereForStateUpdate(
-      WorkflowElement<?> we,
-      String weid,
-      Observer observer
-      )
+  public static void deregisterForStateUpdate(WorkflowElement we, String weid, Observer observer)
   {
     // If the workflow element "we" exists then deregister the observer
     // with "we" else deregister the observer with a static list of
     // workflow element identifiers
     if (we != null)
     {
-      ObservableWorkflowElementState westate = we.getObservableState();
-      westate.deleteObserver(observer);
+      we.getObservableState().deleteObserver(observer);
     }
 
     if (weid != null)
@@ -189,31 +176,6 @@ public abstract class WorkflowElement <T extends WorkflowElementCfg>
   {
     // By default, do nothing when notification hits the workflow element.
   }
-
-
-  /**
-   * Indicates whether the provided configuration is acceptable for
-   * this workflow element.
-   *
-   * @param  configuration        The workflow element configuration for
-   *                              which to make the determination.
-   * @param  unacceptableReasons  A list that may be used to hold the
-   *                              reasons that the provided
-   *                              configuration is not acceptable.
-   *
-   * @return  {@code true} if the provided configuration is acceptable
-   *          for this workflow element, or {@code false} if not.
-   */
-  public final boolean isConfigurationAcceptable(
-      T configuration,
-      List<String> unacceptableReasons)
-  {
-    // This default implementation does not perform any special
-    // validation.  It should be overridden by workflow element
-    // implementations that wish to perform more detailed validation.
-    return true;
-  }
-
 
   /**
    * Performs any finalization that might be required when this

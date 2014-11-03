@@ -36,12 +36,7 @@ import java.util.Observable;
  */
 public class ObservableWorkflowElementState extends Observable
 {
-  // The "enabled" state of the observed workflow element.
-  // By default, a workflow element is enabled (otherwise this
-  // instance of workflow element state would not exist).
-  private boolean enabled = true;
-  private final WorkflowElement<?> observedWorkflowElement;
-
+  private final WorkflowElement observedWorkflowElement;
 
   /**
    * Creates an instance of an observable object for a given workflow
@@ -50,45 +45,17 @@ public class ObservableWorkflowElementState extends Observable
    * @param  observedWorkflowElement
    *         The workflow element to observe.
    */
-  ObservableWorkflowElementState(WorkflowElement<?> observedWorkflowElement)
+  ObservableWorkflowElementState(WorkflowElement observedWorkflowElement)
   {
     this.observedWorkflowElement = observedWorkflowElement;
   }
-
-
-  /**
-   * Allows the observed workflow element to indicate its new state
-   * (enabled or disabled).
-   *
-   * @param enabled  the new "enabled" state of the observed workflow element
-   */
-  public void setWorkflowElementEnabled(boolean enabled)
-  {
-    if (this.enabled != enabled)
-    {
-      setChanged();
-      this.enabled = enabled;
-    }
-  }
-
-
-  /**
-   * Indicates whether the observed workflow element is enabled or not.
-   *
-   * @return <code>true</code> if the observed workflow element is enabled.
-   */
-  public boolean workflowElementIsEnabled()
-  {
-    return enabled;
-  }
-
 
   /**
    * Gets the observed workflow element.
    *
    * @return the observed workflow element.
    */
-  public WorkflowElement<?> getObservedWorkflowElement()
+  public WorkflowElement getObservedWorkflowElement()
   {
     return observedWorkflowElement;
   }

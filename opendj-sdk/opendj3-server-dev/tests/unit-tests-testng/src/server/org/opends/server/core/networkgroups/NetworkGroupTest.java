@@ -334,22 +334,20 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Register again the network group with the server and catch the
     // expected DirectoryServer exception.
-    boolean exceptionRaised = false;
     try
     {
       networkGroup.register();
+      fail("InitializationException sjhould have been thrown");
     }
     catch (InitializationException e)
     {
-      exceptionRaised = true;
       assertTrue(StaticUtils.hasDescriptor(e.getMessageObject(),
           ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS));
     }
-    assertEquals(exceptionRaised, true);
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowElement<?> nullWE = null;
+    WorkflowElement nullWE = null;
     WorkflowImpl workflow = new WorkflowImpl(
         workflowBaseDN.toString(), workflowBaseDN, null, nullWE);
 
@@ -358,18 +356,16 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Register again the workflow with the network group and catch the
     // expected DirectoryServer exception.
-    exceptionRaised = false;
     try
     {
       networkGroup.registerWorkflow(workflow);
+      fail("DirectoryException sjhould have been thrown");
     }
     catch (DirectoryException de)
     {
-      exceptionRaised = true;
       assertTrue(StaticUtils.hasDescriptor(de.getMessageObject(),
           ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS));
     }
-    assertEquals(exceptionRaised, true);
 
     // Clean the network group
     networkGroup.deregisterWorkflow(workflow.getWorkflowId());
@@ -400,26 +396,21 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     assertNotNull(defaultNG);
 
     // let's check the routing through the network group
-    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null,
-            existsInDefault);
-
+    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null, existsInDefault);
 
     // let's get the admin network group -- it should always exist
     NetworkGroup adminNG = NetworkGroup.getAdminNetworkGroup();
     assertNotNull(adminNG);
 
     // let's check the routing through the network group
-    doCheckNetworkGroup(adminNG, dnToSearch, dnSubordinate, null,
-            existsInAdmin);
-
+    doCheckNetworkGroup(adminNG, dnToSearch, dnSubordinate, null, existsInAdmin);
 
     // let's get the internal network group -- it should always exist
     NetworkGroup internalNG = NetworkGroup.getInternalNetworkGroup();
     assertNotNull(internalNG);
 
     // let's check the routing through the network group
-    doCheckNetworkGroup(internalNG, dnToSearch, dnSubordinate, null,
-            existsInInternal);
+    doCheckNetworkGroup(internalNG, dnToSearch, dnSubordinate, null, existsInInternal);
   }
 
 
@@ -491,12 +482,9 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, false);
 
     // Now create again the workflow 1, 2 and 3...
-    WorkflowImpl w1;
-    WorkflowImpl w2;
-    WorkflowImpl w3;
-    w1 = createAndRegisterWorkflow(networkGroup, dn1);
-    w2 = createAndRegisterWorkflow(networkGroup, dn2);
-    w3 = createAndRegisterWorkflow(networkGroup, dn3);
+    WorkflowImpl w1 = createAndRegisterWorkflow(networkGroup, dn1);
+    WorkflowImpl w2 = createAndRegisterWorkflow(networkGroup, dn2);
+    WorkflowImpl w3 = createAndRegisterWorkflow(networkGroup, dn3);
 
     // ... and deregister the workflows using their workflowID
     // instead of their baseDN
@@ -783,7 +771,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowElement<?> nullWE = null;
+    WorkflowElement nullWE = null;
     WorkflowImpl workflow1 = new WorkflowImpl(
         dn1.toString(), dn1, null, nullWE);
     WorkflowImpl workflow2 = new WorkflowImpl(
@@ -800,11 +788,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // As the network groups define no criteria, the highest priority
     // must be chosen
     NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection);
-    if (prio1 < prio2) {
-      assertEquals(ng, networkGroup1);
-    } else {
-      assertEquals(ng, networkGroup2);
-    }
+    assertEquals(ng, prio1 < prio2 ? networkGroup1 : networkGroup2);
 
     // Clean the network group
     networkGroup1.deregisterWorkflow(workflow1.getWorkflowId());
@@ -1157,9 +1141,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Check that the unrelatedDN is not handled by any workflow
     if (unrelatedDN != null)
     {
-      Workflow unrelatedWorkflow =
-        networkGroup.getWorkflowCandidate(unrelatedDN);
-      assertNull(unrelatedWorkflow);
+      assertNull(networkGroup.getWorkflowCandidate(unrelatedDN));
     }
   }
 
@@ -1188,7 +1170,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow with no task inside. The workflow identifier
     // is the a string representation of the workflow base DN.
-    WorkflowElement<?> rootWE = null;
+    WorkflowElement rootWE = null;
     String workflowId = workflowBaseDN.toString();
     WorkflowImpl workflow = new WorkflowImpl(
         workflowId, workflowBaseDN, null, rootWE);
@@ -1198,15 +1180,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     networkGroup.registerWorkflow(workflow);
 
     return workflow;
-  }
-
-
-  /**
-   * Prints a text to System.out.
-   */
-  private void write(String msg)
-  {
-    System.out.print(msg);
   }
 
 }

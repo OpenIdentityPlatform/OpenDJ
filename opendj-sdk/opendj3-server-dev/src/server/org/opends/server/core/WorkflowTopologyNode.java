@@ -33,7 +33,6 @@ import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
-import org.opends.server.workflowelement.WorkflowElement;
 
 /**
  * This class implements a workflow node. A workflow node is used
@@ -72,16 +71,8 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * elements are not used.
    *
    * @param workflowImpl          the real processing attached to the node
-   * @param preWorkflowElements   the list of tasks to be executed before
-   *                              the real processing
-   * @param postWorkflowElements  the list of tasks to be executed after
-   *                              the real processing
    */
-  public WorkflowTopologyNode(
-      WorkflowImpl workflowImpl,
-      WorkflowElement<?>[] preWorkflowElements,
-      WorkflowElement<?>[] postWorkflowElements
-      )
+  public WorkflowTopologyNode(WorkflowImpl workflowImpl)
   {
     super(workflowImpl);
   }

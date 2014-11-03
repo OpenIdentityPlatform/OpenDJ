@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
-  !      Portions copyright 2013 ForgeRock AS.
+  !      Portions copyright 2013-2014 ForgeRock AS.
   ! -->
 <adm:managed-object name="network-group"
   plural-name="network-groups"
@@ -105,36 +105,6 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-priority</ldap:name>
-      </ldap:attribute>
-    </adm:profile>
-  </adm:property>
-  <adm:property name="workflow" multi-valued="true">
-    <adm:synopsis>
-      Specifies a set of workflows which should be accessible from this
-      <adm:user-friendly-name/>
-      .
-    </adm:synopsis>
-    <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>No workflows will be accessible.</adm:synopsis>
-      </adm:alias>
-    </adm:default-behavior>
-    <adm:syntax>
-      <adm:aggregation relation-name="workflow"
-        parent-path="/">
-        <adm:constraint>
-          <adm:synopsis>
-            The referenced workflows must be enabled.
-          </adm:synopsis>
-          <adm:target-is-enabled-condition>
-            <adm:contains property="enabled" value="true"/>
-          </adm:target-is-enabled-condition>
-        </adm:constraint>
-      </adm:aggregation>
-    </adm:syntax>
-    <adm:profile name="ldap">
-      <ldap:attribute>
-        <ldap:name>ds-cfg-workflow</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>

@@ -68,10 +68,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class WorkflowConfigurationTest extends UtilTestCase
 {
-  // The base DN of the config backend
   private static final String configBaseDN = ConfigConstants.DN_CONFIG_ROOT;
-
-  // The base DN of the rootDSE backend
   private static final String rootDSEBaseDN = "";
 
   // The workflow configuration mode attribute
@@ -79,12 +76,8 @@ public class WorkflowConfigurationTest extends UtilTestCase
       "ds-cfg-workflow-configuration-mode";
 
   // The suffix attribute in a backend
-  private static final String suffixAttributeType =
-      "ds-cfg-base-dn";
-
-  // The auto/manual modes
+  private static final String suffixAttributeType = "ds-cfg-base-dn";
   private static final String workflowConfigModeAuto   = "auto";
-  private static final String workflowConfigModeManual = "manual";
 
 
 
@@ -176,39 +169,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // The test backend should be accessible
     doSearch(baseDN, SearchScope.BASE_OBJECT, ResultCode.NO_SUCH_OBJECT);
   }
-
-
-  /**
-   * Sets the ds-cfg-workflow-configuration-mode attribute to 'auto'
-   */
-  private void setModeAuto() throws Exception
-  {
-    ModifyOperationBasis modifyOperation = getModifyOperation(
-        configBaseDN,
-        ModificationType.REPLACE,
-        workflowModeAttributeType,
-        workflowConfigModeAuto);
-
-    modifyOperation.run();
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
-
-  /**
-   * Sets the ds-cfg-workflow-configuration-mode attribute to 'auto'
-   */
-  private void setModeManual() throws Exception
-  {
-    ModifyOperationBasis modifyOperation = getModifyOperation(
-        configBaseDN,
-        ModificationType.REPLACE,
-        workflowModeAttributeType,
-        workflowConfigModeManual);
-
-    modifyOperation.run();
-    assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
 
   /**
    * Performs a search on a provided base DN.
@@ -316,8 +276,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
     NetworkGroup.getInternalNetworkGroup().deregisterWorkflow(workflowID);
 
     // Deregister the workflow with the server
-    Workflow workflow = WorkflowImpl.getWorkflow(workflowID);
-    WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
+    WorkflowImpl workflowImpl = (WorkflowImpl) WorkflowImpl.getWorkflow(workflowID);
     workflowImpl.deregister();
   }
 
@@ -474,76 +433,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
   //===========================================================================
 
   /**
-   * This test checks the transition from mode 'auto' to 'manual' and
-   * 'manual' back to 'auto'. In this test there is no configuration for
-   * network group, workflow and workflow element.
-   */
-  @Test
-  public void transitionAutoManualAuto() throws Exception
-  {
-    // Settings
-    String testBaseDN = "o=test";
-
-    // The ds-cfg-workflow-configuration-mode attribute value is "auto"
-    // (default value), let's put the same value again. Putting the same
-    // value should have no impact and we should be able to perform a search
-    // on the test backend.
-    setModeAuto();
-    checkBackendIsAccessible(testBaseDN);
-
-    // Change the ds-cfg-workflow-configuration-mode attribute value
-    // to "manual". The workflows should be fully reconfigured. But as
-    // there is no configuration for the workflows, only cn=config and
-    // rootDSE should be accessible.
-    setModeManual();
-    checkBackendIsNotAccessible(testBaseDN);
-
-    // Change the ds-cfg-workflow-configuration-mode attribute value
-    // back to "auto". All the local backends should be accessible again.
-    setModeAuto();
-    checkBackendIsAccessible(testBaseDN);
-  }
-
-
-  /**
-   * This test checks the basic operation routing when configuration
-   * mode is 'manual'. Few workflows are configured for the test.
-   */
-  @Test
-  public void basicRoutingManualMode() throws Exception
-  {
-    // Settings
-    String testBaseDN    = "o=test";
-    String testBackendID = "test";
-
-    // Workflow configuration mode is auto, so test backend should
-    // be accessible
-    setModeAuto();
-    checkBackendIsAccessible(testBaseDN);
-
-    // Set the workflow configuration mode to manual. In this mode
-    // no there is no workflow by default (but the config and rootDSE
-    // workflows) so searches on the test backend should fail.
-    setModeManual();
-    checkBackendIsNotAccessible(testBaseDN);
-
-    // Create a workflow to handle o=test backend then check that test
-    // backend is now accessible
-    createWorkflow(testBaseDN, testBackendID);
-    checkBackendIsAccessible(testBaseDN);
-
-    // Remove the workflow and check that searches are failing.
-    removeWorkflow(testBaseDN, testBackendID);
-    checkBackendIsNotAccessible(testBaseDN);
-
-    // Change workflow configuration mode back to auto and check that
-    // test backend is still accessible
-    setModeAuto();
-    checkBackendIsAccessible(testBaseDN);
-  }
-
-
-  /**
    * This test checks the add/remove of suffix in a backend in manual
    * configuration mode.
    */
@@ -557,7 +446,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
     // make sure we are in auto mode and check that the new suffixes are
     // not already defined on the server.
-    setModeAuto();
     checkBackendIsNotAccessible(testBaseDN2);
     checkBackendIsNotAccessible(testBaseDN3);
 
@@ -571,9 +459,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // more accessible.
     removeSuffix(testBaseDN2, testBackendID2);
     checkBackendIsNotAccessible(testBaseDN2);
-
-    // Now move to the manual mode.
-    setModeManual();
 
     // Add a new suffix and configure a workflow to route operation
     // to this new suffix, then check that the new suffix is accessible.
@@ -591,9 +476,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
     removeWorkflow(testBaseDN3, testBackendID2);
     removeSuffix(testBaseDN3, testBackendID2);
     checkBackendIsNotAccessible(testBaseDN3);
-
-    // Back to the original configuration mode
-    setModeAuto();
   }
 
 
@@ -611,7 +493,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
     String baseDN2    = "o=addRemoveBackendBaseDN_2";
 
     // Make sure we are in auto mode and check the suffix is not accessible
-    setModeAuto();
     checkBackendIsNotAccessible(baseDN1);
 
     // Create a backend and check that the base entry is accessible.
@@ -622,8 +503,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
     dsconfigRemoveMemoryBackend(backendID1);
     checkBackendIsNotAccessible(baseDN1);
 
-    // Now move to the manual mode
-    setModeManual();
     checkBackendIsNotAccessible(baseDN2);
 
     // Create a backend and create a workflow to route operations to that
@@ -637,9 +516,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
     removeWorkflow(baseDN2, backendID2);
     dsconfigRemoveMemoryBackend(backendID2);
     checkBackendIsNotAccessible(baseDN2);
-
-    // Back to the original configuration mode
-    setModeAuto();
   }
 
 
@@ -653,9 +529,6 @@ public class WorkflowConfigurationTest extends UtilTestCase
     // Local settings
     String backendID = "test";
     String baseDN    = "o=test";
-
-    // Move to the manual mode
-    setModeManual();
 
     // Create a route for o=test suffix in the internal network group.
     // Search on o=test should succeed.
@@ -684,8 +557,5 @@ public class WorkflowConfigurationTest extends UtilTestCase
     clientConnection.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-
-    // Back to the original configuration mode
-    setModeAuto();
   }
 }
