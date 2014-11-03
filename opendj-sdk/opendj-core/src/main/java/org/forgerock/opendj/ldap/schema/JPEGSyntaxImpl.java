@@ -27,12 +27,10 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OCTET_STRING_OID;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_OCTET_STRING_OID;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_JPEG_NAME;
-
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 /**
  * This class implements the JPEG attribute syntax. This is actually
@@ -46,6 +44,7 @@ final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_OCTET_STRING_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_JPEG_NAME;
     }
@@ -55,6 +54,7 @@ final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
         return OMR_OCTET_STRING_OID;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return false;
     }
@@ -73,43 +73,41 @@ final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
      * @return <CODE>true</CODE> if the provided value is acceptable for use
      *         with this syntax, or <CODE>false</CODE> if not.
      */
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
+        return schema.allowMalformedJPEGPhotos() || isValidJfif(value) || isValidExif(value);
+    }
 
-        if (!schema.allowMalformedJPEGPhotos()) {
-            /* JFIF files start:
-             * 0xff 0xd8 0xff 0xe0 LH LL 0x4a 0x46 0x49 0x46 ...
-             * SOI       APP0      len   "JFIF"
-             *
-             * Exif files (from most digital cameras) start:
-             * 0xff 0xd8 0xff 0xe1 LH LL 0x45 0x78 0x69 0x66 ...
-             * SOI       APP1      len   "Exif"
-             *
-             * So all legal values must be at least 10 bytes long
-             */
-            if (value.length() < 10) {
-                return false;
-            }
-
-            if (value.byteAt(0) != (byte) 0xff && value.byteAt(1) != (byte) 0xd8) {
-                return false;
-            }
-
-            if (value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe0
+    /**
+     * Exif files (from most digital cameras) start:
+     * <pre>
+     * 0xff 0xd8 0xff 0xe1 LH LL 0x45 0x78 0x69 0x66 ...
+     * SOI       APP1      len   "Exif"
+     * </pre>
+     * So all legal values must be at least 10 bytes long
+     */
+    private boolean isValidJfif(final ByteSequence value) {
+        return value.length() >= 10
+                && value.byteAt(0) == (byte) 0xff || value.byteAt(1) == (byte) 0xd8
+                && value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe0
                 && value.byteAt(6) == 'J' && value.byteAt(7) == 'F'
-                && value.byteAt(8) == 'I' && value.byteAt(9) == 'F') {
-                return true;
-            }
+                && value.byteAt(8) == 'I' && value.byteAt(9) == 'F';
+    }
 
-            if (value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe1
+    /**
+     * Exif files (from most digital cameras) start:
+     * <pre>
+     * 0xff 0xd8 0xff 0xe1 LH LL 0x45 0x78 0x69 0x66 ...
+     * SOI       APP1      len   "Exif"
+     * </pre>
+     * So all legal values must be at least 10 bytes long
+     */
+    private boolean isValidExif(final ByteSequence value) {
+        return value.length() >= 10
+                && value.byteAt(0) == (byte) 0xff || value.byteAt(1) == (byte) 0xd8
+                && value.byteAt(2) == (byte) 0xff && value.byteAt(3) == (byte) 0xe1
                 && value.byteAt(6) == 'E' && value.byteAt(7) == 'x'
-                && value.byteAt(8) == 'i' && value.byteAt(9) == 'f') {
-                return true;
-            }
-
-            // No JFIF or Exif header found
-            return false;
-        }
-        return true;
+                && value.byteAt(8) == 'i' && value.byteAt(9) == 'f';
     }
 }
