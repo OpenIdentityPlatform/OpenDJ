@@ -24,17 +24,17 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.admin;
 
-import static org.testng.Assert.*;
-
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.config.DurationUnit;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * DurationPropertyDefinition Tester.
@@ -69,7 +69,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   @Test
   public void testLowerLimit1() {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
-    builder.setLowerLimit((long) 1);
+    builder.setLowerLimit(1);
     DurationPropertyDefinition spd = buildTestDefinition(builder);
     assertEquals(spd.getLowerLimit(), 1);
   }
@@ -156,7 +156,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
   @Test
   public void testUpperLimit1() {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
-    builder.setLowerLimit((long) 1);
+    builder.setLowerLimit(1);
     DurationPropertyDefinition spd = buildTestDefinition(builder);
     assertEquals(spd.getLowerLimit(), 1);
   }
@@ -334,11 +334,13 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
 
     PropertyDefinitionVisitor<Boolean, Void> v = new PropertyDefinitionVisitor<Boolean, Void>() {
 
+      @Override
       public Boolean visitDuration(DurationPropertyDefinition d,
           Void o) {
         return true;
       }
 
+      @Override
       public Boolean visitUnknown(PropertyDefinition d, Void o)
           throws PropertyException {
         return false;
@@ -390,6 +392,7 @@ public class DurationPropertyDefinitionTest extends DirectoryServerTestCase {
     DurationPropertyDefinition.Builder builder = createTestBuilder();
     builder.setAllowUnlimited(true);
     builder.setDefaultBehaviorProvider(new DefaultBehaviorProvider<Long>() {
+      @Override
       public <R, P> R accept(DefaultBehaviorProviderVisitor<Long, R, P> v, P p) {
         return null;
       }

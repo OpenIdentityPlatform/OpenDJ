@@ -41,7 +41,7 @@ import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.schema.StringPrepProfile.*;
+import static com.forgerock.opendj.util.StringPrepProfile.*;
 import static org.opends.server.util.StaticUtils.*;
 
 

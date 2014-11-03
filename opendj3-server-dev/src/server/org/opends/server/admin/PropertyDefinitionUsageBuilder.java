@@ -26,14 +26,16 @@
  */
 package org.opends.server.admin;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.util.Utils;
-
 import java.text.NumberFormat;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.TreeSet;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.DurationUnit;
+import org.forgerock.opendj.config.SizeUnit;
+import org.forgerock.util.Utils;
 
 /**
  * A property definition visitor which can be used to generate syntax
