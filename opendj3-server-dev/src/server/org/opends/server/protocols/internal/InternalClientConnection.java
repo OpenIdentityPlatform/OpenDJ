@@ -38,7 +38,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.*;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
@@ -248,13 +247,6 @@ public final class InternalClientConnection
          throws DirectoryException
   {
     this(getAuthInfoForDN(userDN));
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public NetworkGroup getNetworkGroup()
-  {
-    return NetworkGroup.getInternalNetworkGroup();
   }
 
   /**

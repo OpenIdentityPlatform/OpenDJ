@@ -2130,61 +2130,6 @@ public final class DirectoryServer
 
 
   /**
-   * Deregisters a workflow with the default network group. This method is
-   * intended to be called when workflow configuration mode is
-   * auto.
-   *
-   * @param baseDN  the DN of the workflow to deregister
-   */
-  private static void deregisterWorkflowWithDefaultNetworkGroup(
-      DN baseDN
-      )
-  {
-    // Get the default network group and deregister all the workflows
-    // being configured for the backend (there is one worklfow per
-    // backend base DN).
-    NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-    defaultNetworkGroup.deregisterWorkflow(baseDN);
-  }
-
-
-  /**
-   * Deregisters a workflow with the admin network group. This method is
-   * intended to be called when workflow configuration mode is
-   * auto.
-   *
-   * @param baseDN  the DN of the workflow to deregister
-   */
-  private static void deregisterWorkflowWithAdminNetworkGroup(
-      DN baseDN
-      )
-  {
-    // Get the admin network group and deregister all the workflows
-    // being configured for the backend (there is one worklfow per
-    // backend base DN).
-    NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
-    adminNetworkGroup.deregisterWorkflow(baseDN);
-  }
-
-  /**
-   * Deregisters a workflow with the internal network group and
-   * deregisters the workflow with the server. This method is
-   * intended to be called when workflow configuration mode is
-   * auto.
-   *
-   * @param baseDN  the DN of the workflow to deregister
-   */
-  private static void deregisterWorkflowWithInternalNetworkGroup(DN baseDN)
-  {
-    // Get the internal network group and deregister all the workflows
-    // being configured for the backend (there is one workflow per
-    // backend base DN).
-    NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
-    WorkflowImpl workflowImpl = (WorkflowImpl) internalNetworkGroup.deregisterWorkflow(baseDN);
-    workflowImpl.deregister();
-  }
-
-  /**
    * Creates a set of workflows for a given backend and registers the
    * workflows with the default network group, the internal network group
    * and he admin network group. There are as many workflows
@@ -2210,8 +2155,6 @@ public final class DirectoryServer
       throws DirectoryException
   {
     WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
-    NetworkGroup.getAdminNetworkGroup().registerWorkflow(workflowImpl);
-    NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
     NetworkGroup.getDefaultNetworkGroup().registerWorkflow(workflowImpl);
   }
 
@@ -5653,9 +5596,8 @@ public final class DirectoryServer
       // Now we need to deregister the workflow that was associated with the base DN
       if (!baseDN.equals(DN.valueOf("cn=config")))
       {
-        deregisterWorkflowWithAdminNetworkGroup(baseDN);
-        deregisterWorkflowWithDefaultNetworkGroup(baseDN);
-        deregisterWorkflowWithInternalNetworkGroup(baseDN);
+        WorkflowImpl workflow = (WorkflowImpl) NetworkGroup.getDefaultNetworkGroup().deregisterWorkflow(baseDN);
+        workflow.deregister();
       }
     }
   }

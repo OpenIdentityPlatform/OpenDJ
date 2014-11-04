@@ -43,7 +43,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
@@ -163,58 +162,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     };
   }
 
-
-  /**
-   * Provides information to create a network group to test the routing
-   * process.
-   *
-   * Each set of DNs contains:
-   * - one base DN for the 1st workflow
-   * - one base DN for the 2nd workflow
-   * - one base DN for the 3rd workflow
-   * - one subordinate DN for the 1st workflow
-   * - one subordinate DN for the 2nd workflow
-   * - one subordinate DN for the 3rd workflow
-   * - one unrelated DN which has no hierarchical relationship with
-   *   any of the above DNs
-
-   */
-  @DataProvider (name = "DNSet_2")
-  public Object[][] initDNSet_2() throws Exception
-  {
-    // Network group definition
-    DN     dn1          = DN.valueOf("o=test1");
-    DN     dn2          = DN.valueOf("o=test2");
-    DN     dn3          = DN.valueOf("o=test3");
-    DN     subordinate1 = DN.valueOf("ou=subtest1,o=test1");
-    DN     subordinate2 = DN.valueOf("ou=subtest2,o=test2");
-    DN     subordinate3 = DN.valueOf("ou=subtest3,o=test3");
-    DN     unrelatedDN  = DN.valueOf("o=dummy");
-
-    // Network group info
-    return new Object[][] {
-        // Test1: one DN for one workflow
-        {
-          dn1, null, null,
-          subordinate1, null, null,
-          unrelatedDN
-        },
-        // Test2: two DNs for two workflows
-        {
-          dn1, dn2, null,
-          subordinate1, subordinate2, null,
-          unrelatedDN
-        },
-        // Test3: three DNs for three workflows
-        {
-          dn1, dn2, dn3,
-          subordinate1, subordinate2, subordinate3,
-          unrelatedDN
-        }
-    };
-  }
-
-
   /**
    * Provides information to create a network group with resource limits.
    */
@@ -298,20 +245,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     // Create and register the network group with the server.
     NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
-    networkGroup.register();
-
-    // Register again the network group with the server and catch the
-    // expected DirectoryServer exception.
-    try
-    {
-      networkGroup.register();
-      fail("InitializationException sjhould have been thrown");
-    }
-    catch (InitializationException e)
-    {
-      assertTrue(StaticUtils.hasDescriptor(e.getMessageObject(),
-          ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS));
-    }
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
@@ -332,10 +265,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       assertTrue(StaticUtils.hasDescriptor(de.getMessageObject(),
           ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS));
     }
-
-    // Clean the network group
-    networkGroup.deregisterWorkflow(workflow.getWorkflowId());
-    networkGroup.deregister();
   }
 
 
@@ -365,123 +294,19 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null, existsInDefault);
 
     // let's get the admin network group -- it should always exist
-    NetworkGroup adminNG = NetworkGroup.getAdminNetworkGroup();
+    NetworkGroup adminNG = NetworkGroup.getDefaultNetworkGroup();
     assertNotNull(adminNG);
 
     // let's check the routing through the network group
     doCheckNetworkGroup(adminNG, dnToSearch, dnSubordinate, null, existsInAdmin);
 
     // let's get the internal network group -- it should always exist
-    NetworkGroup internalNG = NetworkGroup.getInternalNetworkGroup();
+    NetworkGroup internalNG = NetworkGroup.getDefaultNetworkGroup();
     assertNotNull(internalNG);
 
     // let's check the routing through the network group
     doCheckNetworkGroup(internalNG, dnToSearch, dnSubordinate, null, existsInInternal);
   }
-
-
-  /**
-   * Creates a network group with several workflows inside and do some check
-   * on the route processing.
-   *
-   * @param dn1           the DN for the 1st workflow
-   * @param dn2           the DN for the 2nd workflow
-   * @param dn3           the DN for the 3rd workflow
-   * @param subordinate1  the subordinate DN for the 1st workflow
-   * @param subordinate2  the subordinate DN for the 2nd workflow
-   * @param subordinate3  the subordinate DN for the 3rd workflow
-   * @param unrelatedDN   a DN with no hierarchical relationship with
-   *                      any of the DNs above
-   *
-   * @throws  DirectoryException  If the network group ID for a provided
-   *                              network group conflicts with the network
-   *                              group ID of an existing network group.
-   */
-  @Test (dataProvider = "DNSet_2", groups = "virtual")
-  public void createNetworkGroup(
-      DN dn1,
-      DN dn2,
-      DN dn3,
-      DN subordinate1,
-      DN subordinate2,
-      DN subordinate3,
-      DN unrelatedDN
-      ) throws Exception
-  {
-    // The network group identifier is always the same for this test.
-    String networkGroupID = "Network Group for test2";
-
-    // Create the network group
-    NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
-    assertNotNull(networkGroup);
-
-    // Register the network group with the server
-    networkGroup.register();
-
-    // Create and register workflow 1, 2 and 3
-    createAndRegisterWorkflow(networkGroup, dn1);
-    createAndRegisterWorkflow(networkGroup, dn2);
-    createAndRegisterWorkflow(networkGroup, dn3);
-
-    // Check the route through the network group
-    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, true);
-    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
-    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
-
-    // Deregister the workflow1 and check the route again.
-    // Workflow to deregister is identified by its baseDN.
-    networkGroup.deregisterWorkflow(dn1);
-    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
-    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
-    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
-
-    // Deregister the workflow2 and check the route again
-    networkGroup.deregisterWorkflow(dn2);
-    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
-    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
-    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
-
-    // Deregister the workflow3 and check the route again
-    networkGroup.deregisterWorkflow(dn3);
-    doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
-    doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
-    doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, false);
-
-    // Now create again the workflow 1, 2 and 3...
-    WorkflowImpl w1 = createAndRegisterWorkflow(networkGroup, dn1);
-    WorkflowImpl w2 = createAndRegisterWorkflow(networkGroup, dn2);
-    WorkflowImpl w3 = createAndRegisterWorkflow(networkGroup, dn3);
-
-    // ... and deregister the workflows using their workflowID
-    // instead of their baseDN
-    if (w1 != null)
-    {
-      networkGroup.deregisterWorkflow(w1.getWorkflowId());
-      doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
-      doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, true);
-      doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
-    }
-
-    if (w2 != null)
-    {
-      networkGroup.deregisterWorkflow(w2.getWorkflowId());
-      doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
-      doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
-      doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, true);
-    }
-
-    if (w3 != null)
-    {
-      networkGroup.deregisterWorkflow(w3.getWorkflowId());
-      doCheckNetworkGroup(networkGroup, dn1, subordinate1, unrelatedDN, false);
-      doCheckNetworkGroup(networkGroup, dn2, subordinate2, unrelatedDN, false);
-      doCheckNetworkGroup(networkGroup, dn3, subordinate3, unrelatedDN, false);
-    }
-
-    // Deregister the network group
-    networkGroup.deregister();
-  }
-
 
   /**
    * This test checks that network groups are updated as appropriate when
@@ -594,19 +419,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
           "--set", "enabled:true",
           "--set", "priority:" + 123);
 
-      try
-      {
-        // Ensure that the network group was created ok.
-        NetworkGroup networkGroup = NetworkGroup.getNetworkGroup(networkGroupID);
-        assertNotNull(networkGroup, "The network group does not seem to be registered.");
-      }
-      finally
-      {
-        // Remove the network group.
-        TestCaseUtils.dsconfig(
-            "delete-network-group",
-            "--group-name", networkGroupID);
-      }
+      // Remove the network group.
+      TestCaseUtils.dsconfig("delete-network-group", "--group-name", networkGroupID);
     }
     finally
     {
@@ -658,7 +472,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       try
       {
         // Ensure that the network group was created ok.
-        NetworkGroup networkGroup = NetworkGroup.getNetworkGroup(networkGroupID);
+        NetworkGroup networkGroup = NetworkGroup.getDefaultNetworkGroup();
         assertNotNull(networkGroup, "The network group does not seem to be registered.");
 
         TestCaseUtils.dsconfig(
@@ -717,11 +531,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     // Create and register the network group with the server.
     NetworkGroup networkGroup1 = new NetworkGroup(ng1);
-    networkGroup1.register();
-    networkGroup1.setNetworkGroupPriority(prio1);
     NetworkGroup networkGroup2 = new NetworkGroup(ng2);
-    networkGroup2.register();
-    networkGroup2.setNetworkGroupPriority(prio2);
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
@@ -731,12 +541,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Register the workflow with the network group.
     networkGroup1.registerWorkflow(workflow1);
     networkGroup2.registerWorkflow(workflow2);
-
-    // Clean the network group
-    networkGroup1.deregisterWorkflow(workflow1.getWorkflowId());
-    networkGroup1.deregister();
-    networkGroup2.deregisterWorkflow(workflow2.getWorkflowId());
-    networkGroup2.deregister();
   }
 
   /**

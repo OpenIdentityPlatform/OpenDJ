@@ -43,7 +43,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.*;
@@ -107,13 +106,6 @@ public class JmxClientConnection
     // Register the Jmx Notification listener (this)
     jmxConnectionHandler.getRMIConnector().jmxRmiConnectorNoClientCertificate
         .addNotificationListener(this, null, null);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public NetworkGroup getNetworkGroup()
-  {
-    return NetworkGroup.getAdminNetworkGroup();
   }
 
   /** {@inheritDoc} */

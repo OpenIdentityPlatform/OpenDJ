@@ -26,9 +26,6 @@
  */
 package org.opends.server.core.networkgroups;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,7 +37,6 @@ import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
@@ -58,42 +54,15 @@ import static org.opends.messages.CoreMessages.*;
 public class NetworkGroup
 {
 
-  // The admin network group has no criterion, no policy,
-  // and gives access to all the workflows.
-  private static final String ADMIN_NETWORK_GROUP_NAME = "admin";
-
-  private static NetworkGroup adminNetworkGroup =
-      new NetworkGroup(ADMIN_NETWORK_GROUP_NAME);
-
-  // The default network group has no criterion, no policy, and gives
-  // access to all the workflows. The purpose of the default network
-  // group is to allow new clients to perform a first operation before
-  // they can be attached to a specific network group.
+  /**
+   * The default network group has no criterion, no policy, and gives
+   * access to all the workflows. The purpose of the default network
+   * group is to allow new clients to perform a first operation before
+   * they can be attached to a specific network group.
+   */
   private static final String DEFAULT_NETWORK_GROUP_NAME = "default";
-
   private static NetworkGroup defaultNetworkGroup =
       new NetworkGroup(DEFAULT_NETWORK_GROUP_NAME);
-
-  // The internal network group has no criterion, no policy, and gives
-  // access to all the workflows. The purpose of the internal network
-  // group is to allow internal connections to perform operations.
-  private static final String INTERNAL_NETWORK_GROUP_NAME = "internal";
-  private static NetworkGroup internalNetworkGroup =
-      new NetworkGroup(INTERNAL_NETWORK_GROUP_NAME);
-
-  // The ordered list of network groups.
-  private static List<NetworkGroup> orderedNetworkGroups =
-      new ArrayList<NetworkGroup>();
-
-  // The list of all network groups that are registered with the server.
-  // The defaultNetworkGroup is not in the list of registered network
-  // groups.
-  private static TreeMap<String, NetworkGroup> registeredNetworkGroups =
-      new TreeMap<String, NetworkGroup>();
-
-  // A lock to protect concurrent access to the registeredNetworkGroups.
-  private static final Object registeredNetworkGroupsLock = new Object();
-
 
   /**
    * Deregisters all network groups that have been registered. This
@@ -101,39 +70,11 @@ public class NetworkGroup
    */
   public static void deregisterAllOnShutdown()
   {
-    synchronized (registeredNetworkGroupsLock)
-    {
-      // Invalidate all NetworkGroups so they cannot accidentally be
-      // used after a restart.
-      Collection<NetworkGroup> networkGroups =
-          registeredNetworkGroups.values();
-      for (NetworkGroup networkGroup : networkGroups)
-      {
-        networkGroup.invalidate();
-      }
-      defaultNetworkGroup.invalidate();
-      adminNetworkGroup.invalidate();
-      internalNetworkGroup.invalidate();
-
-      registeredNetworkGroups = new TreeMap<String, NetworkGroup>();
-      orderedNetworkGroups = new ArrayList<NetworkGroup>();
-      defaultNetworkGroup = new NetworkGroup("default");
-      adminNetworkGroup = new NetworkGroup("admin");
-      internalNetworkGroup = new NetworkGroup("internal");
-    }
+    // Invalidate all NetworkGroups so they cannot accidentally be
+    // used after a restart.
+    defaultNetworkGroup.invalidate();
+    defaultNetworkGroup = new NetworkGroup("default");
   }
-
-  /**
-   * Returns the admin network group.
-   *
-   * @return the admin network group
-   */
-  public static NetworkGroup getAdminNetworkGroup()
-  {
-    return adminNetworkGroup;
-  }
-
-
 
   /**
    * Returns the default network group. The default network group is
@@ -147,60 +88,31 @@ public class NetworkGroup
     return defaultNetworkGroup;
   }
 
-
-
-  /**
-   * Returns the internal network group.
-   *
-   * @return the internal network group
-   */
-  public static NetworkGroup getInternalNetworkGroup()
-  {
-    return internalNetworkGroup;
-  }
-
-
-
-  /**
-   * Gets the network group having the specified ID.
-   * <p>
-   * This method is for testing only.
-   *
-   * @param networkGroupID
-   *          The network group ID.
-   * @return The network group, of <code>null</code> if no match was found.
-   */
-  static NetworkGroup getNetworkGroup(String networkGroupID)
-  {
-    return registeredNetworkGroups.get(networkGroupID);
-  }
-
-  private final boolean isAdminNetworkGroup;
-  private final boolean isDefaultNetworkGroup;
-  private final boolean isInternalNetworkGroup;
-
-  // List of naming contexts handled by the network group.
+  /** List of naming contexts handled by the network group. */
   private NetworkGroupNamingContexts namingContexts =
       new NetworkGroupNamingContexts();
 
-  // The network group internal identifier.
+  /** The network group internal identifier. */
   private final String networkGroupID;
 
-  // The network group priority.
-  private int priority = 100;
-
-  // Workflow nodes registered with the current network group.
-  // Keys are workflowIDs.
+  /**
+   * Workflow nodes registered with the current network group.
+   * Keys are workflowIDs.
+   */
   private TreeMap<String, WorkflowTopologyNode> registeredWorkflowNodes =
       new TreeMap<String, WorkflowTopologyNode>();
 
-  // A lock to protect concurrent access to the registered Workflow
-  // nodes.
+  /**
+   * A lock to protect concurrent access to the registered Workflow
+   * nodes.
+   */
   private final Object registeredWorkflowNodesLock = new Object();
 
-  // The workflow node for the rootDSE entry. The RootDSE workflow node
-  // is not stored in the list of registered workflow nodes.
-  private RootDseWorkflowTopology rootDSEWorkflowNode = null;
+  /**
+   * The workflow node for the rootDSE entry. The RootDSE workflow node
+   * is not stored in the list of registered workflow nodes.
+   */
+  private RootDseWorkflowTopology rootDSEWorkflowNode;
 
   /**
    * Creates a new system network group using the provided ID.
@@ -208,15 +120,9 @@ public class NetworkGroup
    * @param networkGroupID
    *          The network group internal identifier.
    */
-  public NetworkGroup(String networkGroupID)
+  NetworkGroup(String networkGroupID)
   {
     this.networkGroupID = networkGroupID;
-    this.isInternalNetworkGroup =
-        INTERNAL_NETWORK_GROUP_NAME.equals(networkGroupID);
-    this.isAdminNetworkGroup =
-        ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
-    this.isDefaultNetworkGroup =
-        DEFAULT_NETWORK_GROUP_NAME.equals(networkGroupID);
   }
 
   /**
@@ -268,70 +174,7 @@ public class NetworkGroup
 
     // Now that the workflow node has been deregistered with the network
     // group, update the reference counter of the workflow.
-    if (workflow != null && !isAdminNetworkGroup && !isInternalNetworkGroup && !isDefaultNetworkGroup)
-    {
-      WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
-      workflowImpl.decrementReferenceCounter();
-    }
-
-    return workflow;
-  }
-
-
-
-  /**
-   * Deregisters a workflow with the network group. The workflow to
-   * deregister is identified by its workflow ID.
-   *
-   * @param workflowID
-   *          the workflow identifier of the workflow to deregister
-   * @return the deregistered workflow
-   */
-  public Workflow deregisterWorkflow(String workflowID)
-  {
-    Workflow workflow = null;
-
-    String rootDSEWorkflowID = null;
-    if (rootDSEWorkflowNode != null)
-    {
-      rootDSEWorkflowID =
-          rootDSEWorkflowNode.getWorkflowImpl().getWorkflowId();
-    }
-
-    if (workflowID.equalsIgnoreCase(rootDSEWorkflowID))
-    {
-      // deregister the rootDSE
-      deregisterWorkflow(rootDSEWorkflowNode);
-      workflow = rootDSEWorkflowNode.getWorkflowImpl();
-    }
-    else
-    {
-      // deregister a workflow node
-      synchronized (registeredWorkflowNodesLock)
-      {
-        for (WorkflowTopologyNode node : registeredWorkflowNodes.values())
-        {
-          String curID = node.getWorkflowImpl().getWorkflowId();
-          if (curID.equals(workflowID))
-          {
-            // Call deregisterWorkflow() instead of
-            // deregisterWorkflowNode() because we want the naming
-            // context list to be updated as well.
-            deregisterWorkflow(node);
-            workflow = node.getWorkflowImpl();
-
-            // Only one workflow can match the baseDN, so we can break
-            // the loop here.
-            break;
-          }
-        }
-      }
-    }
-
-    // Now that the workflow node has been deregistered with the network
-    // group, update the reference counter of the workflow.
-    if ((workflow != null) && !isAdminNetworkGroup
-        && !isInternalNetworkGroup && !isDefaultNetworkGroup)
+    if (workflow != null)
     {
       WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
       workflowImpl.decrementReferenceCounter();
@@ -458,130 +301,6 @@ public class NetworkGroup
   }
 
   /**
-   * Deregisters the current network group (this) with the server. The
-   * method also decrements the reference counter of the workflows so
-   * that workflows can be disabled or deleted if needed.
-   * <p>
-   * This methods is package private for testing purposes.
-   */
-  void deregister()
-  {
-    // Finalization specific to user network groups.
-    synchronized (registeredNetworkGroupsLock)
-    {
-      // Deregister this network group.
-      TreeMap<String, NetworkGroup> networkGroups =
-          new TreeMap<String, NetworkGroup>(registeredNetworkGroups);
-      networkGroups.remove(networkGroupID);
-      registeredNetworkGroups = networkGroups;
-      orderedNetworkGroups.remove(this);
-
-      // Decrement the reference counter of the workflows registered
-      // with this network group.
-      synchronized (registeredWorkflowNodesLock)
-      {
-        for (WorkflowTopologyNode workflowNode : registeredWorkflowNodes
-            .values())
-        {
-          WorkflowImpl workflowImpl = workflowNode.getWorkflowImpl();
-          workflowImpl.decrementReferenceCounter();
-        }
-      }
-    }
-  }
-
-  /**
-   * Registers the current network group (this) with the server.
-   * <p>
-   * This methods is package private for testing purposes.
-   *
-   * @throws InitializationException
-   *           If the network group ID for the provided network group
-   *           conflicts with the network group ID of an existing
-   *           network group.
-   */
-  void register() throws InitializationException
-  {
-    ifNull(networkGroupID);
-
-    synchronized (registeredNetworkGroupsLock)
-    {
-      // The network group must not be already registered
-      if (registeredNetworkGroups.containsKey(networkGroupID))
-      {
-        LocalizableMessage message =
-            ERR_REGISTER_NETWORK_GROUP_ALREADY_EXISTS
-                .get(networkGroupID);
-        throw new InitializationException(message);
-      }
-
-      TreeMap<String, NetworkGroup> newRegisteredNetworkGroups =
-          new TreeMap<String, NetworkGroup>(registeredNetworkGroups);
-      newRegisteredNetworkGroups.put(networkGroupID, this);
-      registeredNetworkGroups = newRegisteredNetworkGroups;
-
-      // Insert the network group at the right position in the ordered
-      // list.
-      int index = 0;
-      for (NetworkGroup ng : registeredNetworkGroups.values())
-      {
-        if (ng.equals(this))
-        {
-          continue;
-        }
-        if (this.priority > ng.priority)
-        {
-          index++;
-        }
-      }
-      orderedNetworkGroups.add(index, this);
-    }
-  }
-
-  /**
-   * Sets the network group priority.
-   * <p>
-   * This methods is package private for testing purposes.
-   *
-   * @param prio
-   *          the network group priority
-   */
-  void setNetworkGroupPriority(int prio)
-  {
-    // Check whether the priority has changed
-    if (priority != prio)
-    {
-      synchronized (registeredNetworkGroupsLock)
-      {
-        priority = prio;
-
-        // Nothing to do if the network group is not registered
-        if (registeredNetworkGroups.containsKey(networkGroupID))
-        {
-          // If the network group was already registered, remove it from
-          // the ordered list
-          orderedNetworkGroups.remove(this);
-
-          // Then insert it at the right position in the ordered list
-          int index = 0;
-          for (NetworkGroup ng : registeredNetworkGroups.values())
-          {
-            if (ng.equals(this))
-            {
-              continue;
-            }
-            if (this.priority > ng.priority)
-            {
-              index++;
-            }
-          }
-          orderedNetworkGroups.add(index, this);
-        }
-      }
-    }
-  }
-
-  /**
    * Checks whether the base DN of a new workflow to register is present
    * in a workflow already registered with the network group.
    *
@@ -596,14 +315,6 @@ public class NetworkGroup
   {
     String workflowID = workflowNode.getWorkflowImpl().getWorkflowId();
     ifNull(workflowID);
-
-    // If the network group is the "internal" or the "admin" network group
-    // then bypass the check because the internal network group may contain
-    // duplicates of base DNs.
-    if (isInternalNetworkGroup || isAdminNetworkGroup)
-    {
-      return;
-    }
 
     // The workflow base DN should not be already present in the
     // network group. Bypass the check for the private workflows...
@@ -771,11 +482,7 @@ public class NetworkGroup
       // group, update the reference counter of the workflow, unless
       // the network group is either default, or administration, or
       // internal network group.
-      if (!isAdminNetworkGroup && !isInternalNetworkGroup
-          && !isDefaultNetworkGroup)
-      {
-        workflow.incrementReferenceCounter();
-      }
+      workflow.incrementReferenceCounter();
     }
   }
 
