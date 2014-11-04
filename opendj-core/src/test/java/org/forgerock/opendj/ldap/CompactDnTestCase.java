@@ -25,7 +25,6 @@
  */
 package org.forgerock.opendj.ldap;
 
-import org.forgerock.opendj.ldap.DN.CompactDn;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -91,25 +90,11 @@ public class CompactDnTestCase extends SdkTestCase {
 
     @Test(dataProvider = "equivalentDnRepresentations")
     public void testEquals(String dn, String otherDn) throws Exception {
-        CompactDn compactDn = DN.valueOf(dn).compact();
-        CompactDn compactDnEager = DN.valueOf(dn).compactEagerly();
-        CompactDn compactOtherDn = DN.valueOf(otherDn).compact();
-        CompactDn compactOtherDnEager = DN.valueOf(otherDn).compactEagerly();
-
-        assertThat(compactDn).isEqualTo(compactOtherDn);
-        assertThat(compactDn).isEqualTo(compactOtherDnEager);
-        assertThat(compactDnEager).isEqualTo(compactOtherDn);
+        assertThat(DN.valueOf(dn).compact()).isEqualTo(DN.valueOf(otherDn).compact());
     }
 
     @Test(dataProvider = "equivalentDnRepresentations")
     public void testCompareTo(String dn, String otherDn) throws Exception {
-        CompactDn compactDn = DN.valueOf(dn).compact();
-        CompactDn compactDnEager = DN.valueOf(dn).compactEagerly();
-        CompactDn compactOtherDn = DN.valueOf(otherDn).compact();
-        CompactDn compactOtherDnEager = DN.valueOf(otherDn).compactEagerly();
-
-        assertThat(compactDn.compareTo(compactOtherDn)).isEqualTo(0);
-        assertThat(compactDn.compareTo(compactOtherDnEager)).isEqualTo(0);
-        assertThat(compactDnEager.compareTo(compactOtherDn)).isEqualTo(0);
+        assertThat(DN.valueOf(dn).compact().compareTo(DN.valueOf(otherDn).compact())).isEqualTo(0);
     }
 }
