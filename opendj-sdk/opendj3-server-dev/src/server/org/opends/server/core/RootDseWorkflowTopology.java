@@ -28,10 +28,13 @@ package org.opends.server.core;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.networkgroups.NetworkGroupNamingContexts;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
 
 /**
  * This class implements the workflow node that handles the root DSE entry.
@@ -43,9 +46,11 @@ import org.forgerock.opendj.ldap.ResultCode;
 public class RootDseWorkflowTopology extends WorkflowTopology
 {
 
-  // The naming contexts known by the root DSE. These naming contexts
-  // are defined in the scope of a network group.
-  private NetworkGroupNamingContexts namingContexts = null;
+  /**
+   * The naming contexts known by the root DSE. These naming contexts
+   * are defined in the scope of a network group.
+   */
+  private NetworkGroupNamingContexts namingContexts;
 
 
   /**
@@ -75,19 +80,16 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    * be cancelled.
    */
   @Override
-  public void execute(Operation operation)
-      throws CanceledOperationException {
-    // Execute the operation.
+  public void execute(Operation operation) throws CanceledOperationException
+  {
     OperationType operationType = operation.getOperationType();
-    if (operationType != OperationType.SEARCH)
+    if (operationType == OperationType.SEARCH)
     {
-      // Execute the operation
-      getWorkflowImpl().execute(operation);
+      executeSearch((SearchOperation) operation);
     }
     else
     {
-      // Execute the SEARCH operation
-      executeSearch((SearchOperation) operation);
+      getWorkflowImpl().execute(operation);
     }
   }
 
@@ -175,13 +177,10 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    */
   public StringBuilder toString(String leftMargin)
   {
+    String workflowID = getWorkflowImpl().getWorkflowId();
     StringBuilder sb = new StringBuilder();
-
-    // display the identifier and baseDN
-    String workflowID = this.getWorkflowImpl().getWorkflowId();
-    sb.append(leftMargin + "Workflow ID = " + workflowID + "\n");
-    sb.append(leftMargin + "         baseDN:[ \"\" ]\n");
-
+    sb.append(leftMargin).append("Workflow ID = ").append(workflowID).append("\n");
+    sb.append(leftMargin).append("         baseDN:[ \"\" ]\n");
     return sb;
   }
 

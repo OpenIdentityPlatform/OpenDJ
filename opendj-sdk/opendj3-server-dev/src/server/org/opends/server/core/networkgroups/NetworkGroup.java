@@ -72,7 +72,7 @@ public class NetworkGroup
     // Invalidate all NetworkGroups so they cannot accidentally be
     // used after a restart.
     defaultNetworkGroup.invalidate();
-    defaultNetworkGroup = new NetworkGroup("default");
+    defaultNetworkGroup = new NetworkGroup(DEFAULT_NETWORK_GROUP_NAME);
   }
 
   /**
@@ -101,10 +101,7 @@ public class NetworkGroup
   private TreeMap<String, WorkflowTopologyNode> registeredWorkflowNodes =
       new TreeMap<String, WorkflowTopologyNode>();
 
-  /**
-   * A lock to protect concurrent access to the registered Workflow
-   * nodes.
-   */
+  /** A lock to protect concurrent access to the registered Workflow nodes. */
   private final Object registeredWorkflowNodesLock = new Object();
 
   /**
@@ -134,13 +131,12 @@ public class NetworkGroup
    */
   public Workflow deregisterWorkflow(DN baseDN)
   {
-    Workflow workflow = null;
-
     if (baseDN == null)
     {
-      return workflow;
+      return null;
     }
 
+    Workflow workflow = null;
     if (baseDN.isRootDN())
     {
       // deregister the rootDSE
@@ -175,10 +171,8 @@ public class NetworkGroup
     // group, update the reference counter of the workflow.
     if (workflow != null)
     {
-      WorkflowImpl workflowImpl = (WorkflowImpl) workflow;
-      workflowImpl.decrementReferenceCounter();
+      ((WorkflowImpl) workflow).decrementReferenceCounter();
     }
-
     return workflow;
   }
 
@@ -210,47 +204,33 @@ public class NetworkGroup
 
   private Workflow getWorkflowCandidatePriv(DN baseDN)
   {
-    // the top workflow to return
-    Workflow workflowCandidate = null;
-
-    // get the list of workflow candidates
     if (baseDN.isRootDN())
     {
-      // The rootDSE workflow is the candidate.
-      workflowCandidate = rootDSEWorkflowNode;
+      return rootDSEWorkflowNode;
     }
-    else
+    // Search the highest workflow in the topology that can handle the baseDN.
+    // First search the private workflows
+    // The order is important to ensure that the admin network group
+    // is not broken and can always find cn=config
+    for (WorkflowTopologyNode curWorkflow : namingContexts.getPrivateNamingContexts())
     {
-      // Search the highest workflow in the topology that can handle
-      // the baseDN.
-      //First search the private workflows
-      // The order is important to ensure that the admin network group
-      // is not broken and can always find cn=config
-      for (WorkflowTopologyNode curWorkflow : namingContexts
-          .getPrivateNamingContexts())
+      WorkflowTopologyNode workflowCandidate = curWorkflow.getWorkflowCandidate(baseDN);
+      if (workflowCandidate != null)
       {
-        workflowCandidate = curWorkflow.getWorkflowCandidate(baseDN);
-        if (workflowCandidate != null)
-        {
-          break;
-        }
+        return workflowCandidate;
       }
-      // If not found, search the public
-      if (workflowCandidate == null) {
-        for (WorkflowTopologyNode curWorkflow : namingContexts
-            .getPublicNamingContexts())
-        {
-          workflowCandidate = curWorkflow.getWorkflowCandidate(baseDN);
-          if (workflowCandidate != null)
-          {
-            break;
-          }
-        }
-      }
-
     }
 
-    return workflowCandidate;
+    // Not found, search the public
+    for (WorkflowTopologyNode curWorkflow : namingContexts.getPublicNamingContexts())
+    {
+      WorkflowTopologyNode workflowCandidate = curWorkflow.getWorkflowCandidate(baseDN);
+      if (workflowCandidate != null)
+      {
+        return workflowCandidate;
+      }
+    }
+    return null;
   }
 
   /**
@@ -263,7 +243,7 @@ public class NetworkGroup
    *           If the base DN of the workflow is already present in the
    *           network group
    */
-  private void checkWorkflowBaseDN(WorkflowTopologyNode workflowNode)
+  private void checkNotRegistered(WorkflowTopologyNode workflowNode)
       throws DirectoryException
   {
     String workflowID = workflowNode.getWorkflowImpl().getWorkflowId();
@@ -276,12 +256,9 @@ public class NetworkGroup
       DN nodeBaseDN = node.getBaseDN();
       if (nodeBaseDN.equals(workflowNode.getBaseDN()))
       {
-        // The base DN is already registered in the network group,
-        // we must reject the registration request
-        LocalizableMessage message =
-            ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
-                workflowID, networkGroupID, node.getWorkflowImpl()
-                    .getWorkflowId(), workflowNode.getWorkflowImpl().getBaseDN());
+        LocalizableMessage message = ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
+            workflowID, networkGroupID, node.getWorkflowImpl().getWorkflowId(),
+            workflowNode.getWorkflowImpl().getBaseDN());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -292,36 +269,21 @@ public class NetworkGroup
    *
    * @param workflow
    *          the workflow node to deregister
-   * @return <code>true</code> when the workflow has been successfully
-   *         deregistered
    */
-  private boolean deregisterWorkflow(Workflow workflow)
+  private void deregisterWorkflow(Workflow workflow)
   {
-    // true as soon as the workflow has been deregistered
-    boolean deregistered = false;
-
-    // Is it the rootDSE workflow?
     if (workflow == rootDSEWorkflowNode)
     {
       rootDSEWorkflowNode = null;
-      deregistered = true;
-    }
-    else
-    {
-      // Deregister the workflow with the network group.
-      WorkflowTopologyNode workflowNode = (WorkflowTopologyNode) workflow;
-      deregisterWorkflowNode(workflowNode);
-      deregistered = true;
-
-      // The workflow to deregister is not the root DSE workflow.
-      // Remove it from the workflow topology.
-      workflowNode.remove();
-
-      // Rebuild the list of naming context handled by the network group
-      rebuildNamingContextList();
+      return;
     }
 
-    return deregistered;
+    WorkflowTopologyNode workflowNode = (WorkflowTopologyNode) workflow;
+    deregisterWorkflowNode(workflowNode);
+    // Remove it from the workflow topology.
+    workflowNode.remove();
+
+    rebuildNamingContextList();
   }
 
 
@@ -368,12 +330,12 @@ public class NetworkGroup
     // reset lists of naming contexts
     namingContexts.resetLists();
 
-    // a registered workflow with no parent is a naming context
     for (WorkflowTopologyNode workflowNode : registeredWorkflowNodes.values())
     {
       WorkflowTopologyNode parent = workflowNode.getParent();
       if (parent == null)
       {
+        // a registered workflow with no parent is a naming context
         namingContexts.addNamingContext(workflowNode);
       }
     }
@@ -394,49 +356,35 @@ public class NetworkGroup
    */
   public void registerWorkflow(WorkflowImpl workflow) throws DirectoryException
   {
-    // Is it the rootDSE workflow?
     DN baseDN = workflow.getBaseDN();
     if (baseDN.isRootDN())
     {
-      // NOTE - The rootDSE workflow is stored with the
-      // registeredWorkflows.
-      rootDSEWorkflowNode =
-          new RootDseWorkflowTopology(workflow, namingContexts);
+      // NOTE - The rootDSE workflow is stored with the registeredWorkflows.
+      rootDSEWorkflowNode = new RootDseWorkflowTopology(workflow, namingContexts);
+      return;
     }
-    else
+
+    // Try to insert it in the workflow topology.
+    WorkflowTopologyNode workflowNode = new WorkflowTopologyNode(workflow);
+    registerWorkflowNode(workflowNode);
+
+    // Now add the workflow in the workflow topology...
+    for (WorkflowTopologyNode curNode : registeredWorkflowNodes.values())
     {
-      // This workflow is not the rootDSE workflow. Try to insert it in
-      // the workflow topology.
-      WorkflowTopologyNode workflowNode = new WorkflowTopologyNode(workflow);
-
-      // Register the workflow node with the network group. If the
-      // workflow ID is already existing then an exception is raised.
-      registerWorkflowNode(workflowNode);
-
-      // Now add the workflow in the workflow topology...
-      for (WorkflowTopologyNode curNode : registeredWorkflowNodes
-          .values())
+      if (
+          // Try to insert the new workflow under an existing workflow...
+          curNode.insertSubordinate(workflowNode)
+          // ... or try to insert the existing workflow below the new workflow
+          || workflowNode.insertSubordinate(curNode))
       {
-        if (
-            // Try to insert the new workflow under an existing workflow...
-            curNode.insertSubordinate(workflowNode)
-            // ... or try to insert the existing workflow below the new workflow
-            || workflowNode.insertSubordinate(curNode))
-        {
-          // new workflow has been inserted in the topology
-          continue;
-        }
+        // new workflow has been inserted in the topology
+        continue;
       }
-
-      // Rebuild the list of naming context handled by the network group
-      rebuildNamingContextList();
-
-      // Now that the workflow node has been registered with the network
-      // group, update the reference counter of the workflow, unless
-      // the network group is either default, or administration, or
-      // internal network group.
-      workflow.incrementReferenceCounter();
     }
+
+    rebuildNamingContextList();
+
+    workflow.incrementReferenceCounter();
   }
 
 
@@ -459,19 +407,13 @@ public class NetworkGroup
 
     synchronized (registeredWorkflowNodesLock)
     {
-      // The workflow must not be already registered
       if (registeredWorkflowNodes.containsKey(workflowID))
       {
-        LocalizableMessage message =
-            ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS.get(workflowID,
-                networkGroupID);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            message);
+        LocalizableMessage message = ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS.get(workflowID, networkGroupID);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
-      // The workflow base DN should not be already present in the
-      // network group. Bypass the check for the private workflows...
-      checkWorkflowBaseDN(workflowNode);
+      checkNotRegistered(workflowNode);
 
       // All is fine, let's register the workflow
       TreeMap<String, WorkflowTopologyNode> newRegisteredWorkflowNodes =
