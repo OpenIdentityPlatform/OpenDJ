@@ -39,7 +39,6 @@ import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.WorkflowTopologyNode;
-import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -125,29 +124,6 @@ public class NetworkGroup
     }
   }
 
-
-  /**
-   * Gets the highest priority matching network group.
-   *
-   * @param connection
-   *          the client connection
-   * @return matching network group
-   */
-  static NetworkGroup findMatchingNetworkGroup(
-      ClientConnection connection)
-  {
-    for (NetworkGroup ng : orderedNetworkGroups)
-    {
-      if (ng.match(connection))
-      {
-        return ng;
-      }
-    }
-    return defaultNetworkGroup;
-  }
-
-
-
   /**
    * Returns the admin network group.
    *
@@ -199,9 +175,6 @@ public class NetworkGroup
   {
     return registeredNetworkGroups.get(networkGroupID);
   }
-
-  // The network group connection criteria.
-  private final ConnectionCriteria criteria = ConnectionCriteria.TRUE;
 
   private final boolean isAdminNetworkGroup;
   private final boolean isDefaultNetworkGroup;
@@ -743,60 +716,6 @@ public class NetworkGroup
     rootDSEWorkflowNode = null;
     registeredWorkflowNodes = null;
   }
-
-
-
-  /**
-   * Checks whether the connection matches the network group criteria.
-   *
-   * @param connection
-   *          the client connection
-   * @return a boolean indicating the match
-   */
-  private boolean match(ClientConnection connection)
-  {
-    if (criteria != null)
-    {
-      return criteria.matches(connection);
-    }
-    else
-    {
-      return true;
-    }
-  }
-
-
-
-  /**
-   * Checks whether the client connection matches the criteria after
-   * bind.
-   *
-   * @param connection
-   *          the ClientConnection
-   * @param bindDN
-   *          the DN used to bind
-   * @param authType
-   *          the authentication type
-   * @param isSecure
-   *          a boolean indicating whether the connection is secure
-   * @return a boolean indicating whether the connection matches the
-   *         criteria
-   */
-  private boolean matchAfterBind(ClientConnection connection,
-      DN bindDN, AuthenticationType authType, boolean isSecure)
-  {
-    if (criteria != null)
-    {
-      return criteria.willMatchAfterBind(connection, bindDN, authType,
-          isSecure);
-    }
-    else
-    {
-      return true;
-    }
-  }
-
-
 
   /**
    * Rebuilds the list of naming contexts handled by the network group.

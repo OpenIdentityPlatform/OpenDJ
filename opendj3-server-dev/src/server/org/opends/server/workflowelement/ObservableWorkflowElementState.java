@@ -28,6 +28,8 @@ package org.opends.server.workflowelement;
 
 import java.util.Observable;
 
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
+
 /**
  * This class implements an observable workflow element state.
  * The observable workflow element state notifies observers when the
@@ -36,7 +38,7 @@ import java.util.Observable;
  */
 public class ObservableWorkflowElementState extends Observable
 {
-  private final WorkflowElement observedWorkflowElement;
+  private final LocalBackendWorkflowElement observedWorkflowElement;
 
   /**
    * Creates an instance of an observable object for a given workflow
@@ -45,7 +47,7 @@ public class ObservableWorkflowElementState extends Observable
    * @param  observedWorkflowElement
    *         The workflow element to observe.
    */
-  ObservableWorkflowElementState(WorkflowElement observedWorkflowElement)
+  public ObservableWorkflowElementState(LocalBackendWorkflowElement observedWorkflowElement)
   {
     this.observedWorkflowElement = observedWorkflowElement;
   }
@@ -55,7 +57,7 @@ public class ObservableWorkflowElementState extends Observable
    *
    * @return the observed workflow element.
    */
-  public WorkflowElement getObservedWorkflowElement()
+  public LocalBackendWorkflowElement getObservedWorkflowElement()
   {
     return observedWorkflowElement;
   }

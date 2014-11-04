@@ -33,7 +33,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.Workflow;
@@ -47,7 +46,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -317,9 +315,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowElement nullWE = null;
-    WorkflowImpl workflow = new WorkflowImpl(
-        workflowBaseDN.toString(), workflowBaseDN, null, nullWE);
+    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null, null);
 
     // Register the workflow with the network group.
     networkGroup.registerWorkflow(workflow);
@@ -729,24 +725,12 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowElement nullWE = null;
-    WorkflowImpl workflow1 = new WorkflowImpl(
-        dn1.toString(), dn1, null, nullWE);
-    WorkflowImpl workflow2 = new WorkflowImpl(
-        dn2.toString(), dn2, null, nullWE);
+    WorkflowImpl workflow1 = new WorkflowImpl(dn1.toString(), dn1, null, null);
+    WorkflowImpl workflow2 = new WorkflowImpl(dn2.toString(), dn2, null, null);
 
     // Register the workflow with the network group.
     networkGroup1.registerWorkflow(workflow1);
     networkGroup2.registerWorkflow(workflow2);
-
-    // Create a new ClientConnection
-    ClientConnection connection = new InternalClientConnection(DN.NULL_DN);
-
-    // Find a networkGroup for this connection
-    // As the network groups define no criteria, the highest priority
-    // must be chosen
-    NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection);
-    assertEquals(ng, prio1 < prio2 ? networkGroup1 : networkGroup2);
 
     // Clean the network group
     networkGroup1.deregisterWorkflow(workflow1.getWorkflowId());
@@ -966,10 +950,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow with no task inside. The workflow identifier
     // is the a string representation of the workflow base DN.
-    WorkflowElement rootWE = null;
-    String workflowId = workflowBaseDN.toString();
-    WorkflowImpl workflow = new WorkflowImpl(
-        workflowId, workflowBaseDN, null, rootWE);
+    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null, null);
     assertNotNull(workflow);
 
     // Register the workflow with the network group.
