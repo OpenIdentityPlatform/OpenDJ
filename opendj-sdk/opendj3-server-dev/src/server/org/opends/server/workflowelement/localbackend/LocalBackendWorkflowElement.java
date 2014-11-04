@@ -29,12 +29,7 @@ package org.opends.server.workflowelement.localbackend;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
@@ -47,7 +42,6 @@ import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.opends.server.workflowelement.ObservableWorkflowElementState;
 
 import static org.opends.messages.CoreMessages.*;
 
@@ -66,7 +60,7 @@ import static org.opends.messages.CoreMessages.*;
  * This class defines a local backend workflow element; e-g an entity that
  * handle the processing of an operation against a local backend.
  */
-public class LocalBackendWorkflowElement implements Observer
+public class LocalBackendWorkflowElement
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -83,9 +77,8 @@ public class LocalBackendWorkflowElement implements Observer
   private Backend<?> backend;
 
   /** the set of local backend workflow elements registered with the server. */
-  private static TreeMap<String, LocalBackendWorkflowElement>
-       registeredLocalBackends =
-            new TreeMap<String, LocalBackendWorkflowElement>();
+  private static TreeMap<String, LocalBackendWorkflowElement> registeredLocalBackends =
+      new TreeMap<String, LocalBackendWorkflowElement>();
 
   /**
    * A lock to guarantee safe concurrent access to the registeredLocalBackends
@@ -93,125 +86,8 @@ public class LocalBackendWorkflowElement implements Observer
    */
   private static final Object registeredLocalBackendsLock = new Object();
 
-
   /** A string indicating the type of the workflow element. */
   private static final String BACKEND_WORKFLOW_ELEMENT = "Backend";
-
-
-  /** The observable state of the workflow element. */
-  private ObservableWorkflowElementState observableState = new ObservableWorkflowElementState(this);
-
-  /**
-   * The list of observers who want to be notified when a workflow element
-   * required by the observer is created. The key of the map is a string that
-   * identifies the newly created workflow element.
-   */
-  private static ConcurrentMap<String, List<Observer>> newWorkflowElementNotificationList =
-      new ConcurrentHashMap<String, List<Observer>>();
-
-  /**
-   * Registers with a specific workflow element to be notified when the workflow
-   * element state has changed. This notification system is mainly used to be
-   * warned when a workflow element is enabled or disabled.
-   * <p>
-   * If the workflow element <code>we</code> is not <code>null</code> then the
-   * <code>observer</code> is registered with the list of objects to notify when
-   * <code>we</code> has changed.
-   * <p>
-   * If the workflow element <code>we</code> is <code>null</code> then the
-   * <code>observer</code> is registered with a static list of objects to notify
-   * when a workflow element named <code>weid</code> is created.
-   *
-   * @param we
-   *          the workflow element. If <code>null</code> then observer is
-   *          registered with a list of workflow element identifiers.
-   * @param weid
-   *          the identifier of the workflow element. This parameter is useless
-   *          when <code>we</code> is not <code>null</code>
-   * @param observer
-   *          the observer to notify when the workflow element state has been
-   *          modified
-   */
-  // TODO JNR rename
-  public static void registerForStateUpdate(LocalBackendWorkflowElement we, String weid, Observer observer)
-  {
-    // If the workflow element "we" exists then register the observer with "we"
-    // else register the observer with a static list of workflow element
-    // identifiers
-    if (we != null)
-    {
-      we.observableState.addObserver(observer);
-    }
-    else
-    {
-      if (weid == null)
-      {
-        return;
-      }
-
-      List<Observer> observers = newWorkflowElementNotificationList.get(weid);
-      if (observers == null)
-      {
-        // create the list of observers
-        observers = new CopyOnWriteArrayList<Observer>();
-        observers.add(observer);
-        newWorkflowElementNotificationList.put(weid, observers);
-      }
-      else
-      {
-        // update the observer list
-        observers.add(observer);
-      }
-    }
-  }
-
-  /**
-   * Deregisters an observer that was registered with a specific workflow
-   * element.
-   * <p>
-   * If the workflow element <code>we</code> is not <code>null</code> then the
-   * <code>observer</code> is deregistered with the list of objects to notify
-   * when <code>we</code> has changed.
-   * <p>
-   * If the workflow element <code>we</code> is <code>null</code> then the
-   * <code>observer</code> is deregistered with a static list of objects to
-   * notify when a workflow element named <code>weid</code> is created.
-   *
-   * @param we
-   *          the workflow element. If <code>null</code> then observer is
-   *          deregistered with a list of workflow element identifiers.
-   * @param weid
-   *          the identifier of the workflow element. This parameter is useless
-   *          when <code>we</code> is not <code>null</code>
-   * @param observer
-   *          the observer to deregister
-   */
-  public static void deregisterForStateUpdate(LocalBackendWorkflowElement we, String weid, Observer observer)
-  {
-    // If the workflow element "we" exists then deregister the observer
-    // with "we" else deregister the observer with a static list of
-    // workflow element identifiers
-    if (we != null)
-    {
-      we.observableState.deleteObserver(observer);
-    }
-
-    if (weid != null)
-    {
-      List<Observer> observers = newWorkflowElementNotificationList.get(weid);
-      if (observers != null)
-      {
-        observers.remove(observer);
-      }
-    }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public final void update(Observable o, Object arg)
-  {
-    // By default, do nothing when notification hits the workflow element.
-  }
 
   /**
    * Initializes a new instance of the local backend workflow element.

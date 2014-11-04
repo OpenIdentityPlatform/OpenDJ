@@ -26,8 +26,6 @@
  */
 package org.opends.server.core;
 
-import java.util.Observable;
-import java.util.Observer;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -36,7 +34,6 @@ import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Operation;
-import org.opends.server.workflowelement.ObservableWorkflowElementState;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 import static org.forgerock.util.Reject.*;
@@ -51,16 +48,13 @@ import static org.opends.messages.CoreMessages.*;
  * task in turn will execute its subordinate nodes and synchronizes them
  * as needed.
  */
-public class WorkflowImpl implements Workflow, Observer
+public class WorkflowImpl implements Workflow
 {
   /** The workflow identifier used by the configuration. */
   private final String workflowID;
 
   /** The root of the workflow task tree. */
   private LocalBackendWorkflowElement rootWorkflowElement;
-
-  /** The root workflow element identifier. */
-  private final String rootWorkflowElementID;
 
   /** The base DN of the data handled by the workflow. */
   private final DN baseDN;
@@ -104,14 +98,9 @@ public class WorkflowImpl implements Workflow, Observer
    *
    * @param workflowId          workflow internal identifier
    * @param baseDN              identifies the data handled by the workflow
-   * @param rootWorkflowElementID  the identifier of the root workflow element
    * @param rootWorkflowElement the root node of the workflow task tree
    */
-  public WorkflowImpl(
-      String             workflowId,
-      DN                 baseDN,
-      String             rootWorkflowElementID,
-      LocalBackendWorkflowElement rootWorkflowElement
+  public WorkflowImpl(String workflowId, DN baseDN, LocalBackendWorkflowElement rootWorkflowElement
       )
   {
     this.workflowID = workflowId;
@@ -120,21 +109,10 @@ public class WorkflowImpl implements Workflow, Observer
     if (this.rootWorkflowElement != null)
     {
       this.isPrivate = rootWorkflowElement.isPrivate();
-      this.rootWorkflowElementID = rootWorkflowElementID;
-
-      // The workflow wants to be notified when the workflow element state
-      // is changing from enabled to disabled and vice versa.
-      LocalBackendWorkflowElement.registerForStateUpdate(rootWorkflowElement, null, this);
     }
     else
     {
       this.isPrivate = false;
-      this.rootWorkflowElementID = null;
-
-      // The root workflow element has not been loaded, let's register
-      // the workflow with the list of objects that want to be notify
-      // when the workflow element is created.
-      LocalBackendWorkflowElement.registerForStateUpdate(null, rootWorkflowElementID, this);
     }
   }
 
@@ -209,8 +187,7 @@ public class WorkflowImpl implements Workflow, Observer
    *                              conflicts with the workflow ID of an existing
    *                              workflow.
    */
-  public void register()
-      throws DirectoryException
+  void register() throws DirectoryException
   {
     ifNull(workflowID);
 
@@ -235,13 +212,9 @@ public class WorkflowImpl implements Workflow, Observer
   /**
    * Deregisters the current workflow (this) with the server.
    */
-  public void deregister()
+  void deregister()
   {
     ifNull(workflowID);
-
-    // Deregister the workflow with the list of objects to notify when
-    // a workflow element is created or deleted.
-    LocalBackendWorkflowElement.deregisterForStateUpdate(null, rootWorkflowElementID, this);
 
     // Deregister the workflow with the list of registered workflows.
     synchronized (registeredWorkflowsLock)
@@ -258,12 +231,11 @@ public class WorkflowImpl implements Workflow, Observer
    * Deregisters all Workflows that have been registered.  This should be
    * called when the server is shutting down.
    */
-  public static void deregisterAllOnShutdown()
+  static void deregisterAllOnShutdown()
   {
     synchronized (registeredWorkflowsLock)
     {
-      registeredWorkflows =
-        new TreeMap<String, Workflow>();
+      registeredWorkflows = new TreeMap<String, Workflow>();
     }
   }
 
@@ -274,8 +246,7 @@ public class WorkflowImpl implements Workflow, Observer
    * @param workflowID  the ID of the workflow to get
    * @return the requested workflow
    */
-  public static Workflow getWorkflow(
-      String workflowID)
+  static Workflow getWorkflow(String workflowID)
   {
     return registeredWorkflows.get(workflowID);
   }
@@ -290,19 +261,6 @@ public class WorkflowImpl implements Workflow, Observer
     return rootWorkflowElement;
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public void update(Observable observable, Object arg)
-  {
-    if (observable instanceof ObservableWorkflowElementState)
-    {
-      ObservableWorkflowElementState weState =
-        (ObservableWorkflowElementState) observable;
-      updateRootWorkflowElementState(weState);
-    }
-  }
-
-
   /**
    * Display the workflow object.
    * @return a string identifying the workflow.
@@ -312,45 +270,6 @@ public class WorkflowImpl implements Workflow, Observer
   {
     return "Workflow " + workflowID;
   }
-
-
-  /**
-   * Takes into account an update of the root workflow element.
-   * <p>
-   * This method is called when a workflow element is created or
-   * deleted. If the workflow element is the root workflow element
-   * then the workflow processes it as follow:
-   * <br>
-   * If the workflow element is disabled then the workflow reset
-   * its root workflow element (ie. the workflow has no more workflow
-   * element, hence the workflow cannot process requests anymore).
-   * <br>
-   * If the workflow element is enabled then the workflow adopts the
-   * workflow element as its new root workflow element. The workflow
-   * then can process requests again.
-   *
-   * @param weState  the new state of the root workflow element
-   */
-  private void updateRootWorkflowElementState(
-      ObservableWorkflowElementState weState)
-  {
-    // Check that the workflow element maps the root workflow element.
-    // If not then ignore the workflow element.
-    LocalBackendWorkflowElement we = weState.getObservedWorkflowElement();
-    String newWorkflowElementID = we.getWorkflowElementID();
-    if (! rootWorkflowElementID.equalsIgnoreCase(newWorkflowElementID))
-    {
-      return;
-    }
-
-    // The workflow element maps the root workflow element
-    // don't forget to register the workflow with the list of objects to notify
-    // when the root workflow element is disabled...
-    rootWorkflowElement = weState.getObservedWorkflowElement();
-    LocalBackendWorkflowElement.registerForStateUpdate(rootWorkflowElement, null, this);
-    LocalBackendWorkflowElement.deregisterForStateUpdate(null, rootWorkflowElementID, this);
-  }
-
 
   /**
    * Increments the workflow reference counter.

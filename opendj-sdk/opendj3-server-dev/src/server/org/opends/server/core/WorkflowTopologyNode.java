@@ -59,8 +59,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
 
 
   // The list of subordinate nodes of the current workflow node.
-  private ArrayList<WorkflowTopologyNode> subordinates =
-    new ArrayList<WorkflowTopologyNode>();
+  private final ArrayList<WorkflowTopologyNode> subordinates = new ArrayList<WorkflowTopologyNode>();
 
 
   /**
@@ -220,7 +219,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * @return the base DN which is the parent of the <code>dn</code>,
    *         <code>null</code> if no parent DN was found
    */
-  public DN getParentBaseDN(DN dn)
+  DN getParentBaseDN(DN dn)
   {
     if (dn == null)
     {
@@ -331,9 +330,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
    *
    * @param subordinate  the subordinate to remove from the subordinate list
    */
-  public void removeSubordinate(
-      WorkflowTopologyNode subordinate
-      )
+  private void removeSubordinate(WorkflowTopologyNode subordinate)
   {
     subordinates.remove(subordinate);
   }
