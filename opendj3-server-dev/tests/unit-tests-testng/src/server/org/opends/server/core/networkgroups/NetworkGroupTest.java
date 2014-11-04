@@ -677,15 +677,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
             "--set", "size-limit:" + searchSizeLimit,
             "--set", "time-limit:" + searchTimeLimit + "s");
 
-        // Check that the policy was created.
-        ResourceLimitsPolicy policy = networkGroup.getNetworkGroupQOSPolicy(ResourceLimitsPolicy.class);
-        assertNotNull(policy, "The policy was not registered.");
-
         // Check the resource limits are set properly.
-        assertEquals(policy.getTimeLimit(), searchTimeLimit);
-        assertEquals(policy.getSizeLimit(), searchSizeLimit);
-        assertEquals(policy.getMinSubstring(), minSubstringLength);
-
         assertEquals(networkGroup.getTimeLimit(), searchTimeLimit);
         assertEquals(networkGroup.getSizeLimit(), searchSizeLimit);
         assertEquals(networkGroup.getMinSubstring(), minSubstringLength);
@@ -694,10 +686,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
             "delete-network-group-qos-policy",
             "--group-name", networkGroupID,
             "--policy-type", "resource-limits");
-
-        // Check that the policy was removed.
-        policy = networkGroup.getNetworkGroupQOSPolicy(ResourceLimitsPolicy.class);
-        assertNull(policy, "The policy was not deregistered.");
       }
       finally
       {

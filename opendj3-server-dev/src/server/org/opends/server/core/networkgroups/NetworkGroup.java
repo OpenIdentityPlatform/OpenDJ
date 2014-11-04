@@ -26,24 +26,14 @@
  */
 package org.opends.server.core.networkgroups;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.std.meta.QOSPolicyCfgDefn;
-import org.opends.server.admin.std.server.QOSPolicyCfg;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.QOSPolicy;
-import org.opends.server.api.QOSPolicyFactory;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
@@ -53,12 +43,9 @@ import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.operation.PreParseOperation;
 
 import static org.forgerock.util.Reject.*;
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines the network group. A network group is used to
@@ -108,8 +95,6 @@ public class NetworkGroup
 
   // A lock to protect concurrent access to the registeredNetworkGroups.
   private static final Object registeredNetworkGroupsLock = new Object();
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
 
 
   /**
@@ -139,36 +124,6 @@ public class NetworkGroup
       internalNetworkGroup = new NetworkGroup("internal");
     }
   }
-
-
-
-  /**
-   * Gets the highest priority matching network group for a BIND op.
-   *
-   * @param connection
-   *          the client connection
-   * @param dn
-   *          the operation bindDN
-   * @param authType
-   *          the operation authentication type
-   * @param isSecure
-   *          a boolean indicating whether the operation is secured
-   * @return matching network group
-   */
-  static NetworkGroup findBindMatchingNetworkGroup(
-      ClientConnection connection, DN dn, AuthenticationType authType,
-      boolean isSecure)
-  {
-    for (NetworkGroup ng : orderedNetworkGroups)
-    {
-      if (ng.matchAfterBind(connection, dn, authType, isSecure))
-      {
-        return ng;
-      }
-    }
-    return defaultNetworkGroup;
-  }
-
 
 
   /**
@@ -246,7 +201,7 @@ public class NetworkGroup
   }
 
   // The network group connection criteria.
-  private ConnectionCriteria criteria = ConnectionCriteria.TRUE;
+  private final ConnectionCriteria criteria = ConnectionCriteria.TRUE;
 
   private final boolean isAdminNetworkGroup;
   private final boolean isDefaultNetworkGroup;
@@ -259,10 +214,6 @@ public class NetworkGroup
   // The network group internal identifier.
   private final String networkGroupID;
 
-  // All network group policies mapping factory class name to policy.
-  private final Map<DN, QOSPolicy> policies =
-      new ConcurrentHashMap<DN, QOSPolicy>();
-
   // The network group priority.
   private int priority = 100;
 
@@ -274,12 +225,6 @@ public class NetworkGroup
   // A lock to protect concurrent access to the registered Workflow
   // nodes.
   private final Object registeredWorkflowNodesLock = new Object();
-
-  // The network group request filtering policy.
-  private RequestFilteringPolicy requestFilteringPolicy = null;
-
-  // The network group resource limits policy.
-  private ResourceLimitsPolicy resourceLimitsPolicy = null;
 
   // The workflow node for the rootDSE entry. The RootDSE workflow node
   // is not stored in the list of registered workflow nodes.
@@ -310,68 +255,7 @@ public class NetworkGroup
    */
   public void addConnection(ClientConnection connection)
   {
-    if (resourceLimitsPolicy != null)
-    {
-      resourceLimitsPolicy.addConnection(connection);
-    }
   }
-
-
-
-  /**
-   * Checks the request filtering policy.
-   *
-   * @param operation
-   *          the operation to be checked
-   * @param messages
-   *          the error messages
-   * @return boolean indicating whether the operation conforms to the
-   *         network group request filtering policy
-   */
-  boolean checkRequestFilteringPolicy(
-      PreParseOperation operation, List<LocalizableMessage> messages)
-  {
-    if (requestFilteringPolicy != null)
-    {
-      return requestFilteringPolicy.isAllowed(operation, messages);
-    }
-    else
-    {
-      return true;
-    }
-  }
-
-
-
-  /**
-   * Checks the resource limits policy.
-   *
-   * @param connection
-   *          the client connection
-   * @param operation
-   *          the ongoing operation
-   * @param fullCheck
-   *          a boolean indicating the level of checking: full/partial
-   * @param messages
-   *          the messages indicating the cause of the failure.
-   * @return a boolean indicating whether resource limits are exceeded
-   */
-  boolean checkResourceLimitsPolicy(ClientConnection connection,
-      PreParseOperation operation, boolean fullCheck,
-      List<LocalizableMessage> messages)
-  {
-    if (resourceLimitsPolicy != null)
-    {
-      return resourceLimitsPolicy.isAllowed(connection, operation,
-          fullCheck, messages);
-    }
-    else
-    {
-      return true;
-    }
-  }
-
-
 
   /**
    * Deregisters a workflow with the network group. The workflow to
@@ -494,29 +378,6 @@ public class NetworkGroup
     return workflow;
   }
 
-
-
-  /**
-   * Performs any finalization that might be required when this network
-   * group is unloaded. No action is taken in the default
-   * implementation.
-   */
-  void finalizeNetworkGroup()
-  {
-    // Clean up policies.
-    for (QOSPolicy policy : policies.values())
-    {
-      policy.finalizeQOSPolicy();
-    }
-
-    requestFilteringPolicy = null;
-    resourceLimitsPolicy = null;
-    criteria = ConnectionCriteria.TRUE;
-    policies.clear();
-  }
-
-
-
   /**
    * Retrieves the network group ID.
    *
@@ -537,14 +398,7 @@ public class NetworkGroup
    */
   public int getMinSubstring()
   {
-    if (resourceLimitsPolicy != null)
-    {
-      return resourceLimitsPolicy.getMinSubstring();
-    }
-    else
-    {
-      return 0;
-    }
+    return 0;
   }
 
 
@@ -562,32 +416,6 @@ public class NetworkGroup
 
 
   /**
-   * Returns the QOS policy associated with this network group having
-   * the specified class.
-   *
-   * @param <T>
-   *          The type of QOS policy.
-   * @param clazz
-   *          The class of QOS policy requested.
-   * @return The QOS policy associated with this network group having
-   *         the specified class, or <code>null</code> if none was
-   *         found.
-   */
-  <T extends QOSPolicy> T getNetworkGroupQOSPolicy(Class<T> clazz)
-  {
-    for (QOSPolicy policy : policies.values())
-    {
-      if (clazz.isAssignableFrom(policy.getClass()))
-      {
-        return clazz.cast(policy);
-      }
-    }
-    return null;
-  }
-
-
-
-  /**
    * Gets the search size limit, i.e. the maximum number of entries
    * returned by a search.
    *
@@ -595,14 +423,7 @@ public class NetworkGroup
    */
   public int getSizeLimit()
   {
-    if (resourceLimitsPolicy != null)
-    {
-      return resourceLimitsPolicy.getSizeLimit();
-    }
-    else
-    {
-      return DirectoryServer.getSizeLimit();
-    }
+    return DirectoryServer.getSizeLimit();
   }
 
 
@@ -615,14 +436,7 @@ public class NetworkGroup
    */
   public int getTimeLimit()
   {
-    if (resourceLimitsPolicy != null)
-    {
-      return resourceLimitsPolicy.getTimeLimit();
-    }
-    else
-    {
-      return DirectoryServer.getTimeLimit();
-    }
+    return DirectoryServer.getTimeLimit();
   }
 
 
@@ -691,10 +505,6 @@ public class NetworkGroup
    */
   public void removeConnection(ClientConnection connection)
   {
-    if (resourceLimitsPolicy != null)
-    {
-      resourceLimitsPolicy.removeConnection(connection);
-    }
   }
 
   /**
@@ -777,23 +587,6 @@ public class NetworkGroup
       orderedNetworkGroups.add(index, this);
     }
   }
-
-
-
-  /**
-   * Sets the network group connection criteria.
-   * <p>
-   * This method is intended for testing only.
-   *
-   * @param criteria
-   *          The connection criteria.
-   */
-  void setConnectionCriteria(ConnectionCriteria criteria)
-  {
-    this.criteria = criteria;
-  }
-
-
 
   /**
    * Sets the network group priority.
@@ -879,71 +672,6 @@ public class NetworkGroup
       }
     }
   }
-
-
-
-  // Creates and registers the provided network group policy
-  // configuration.
-  private void createNetworkGroupQOSPolicy(
-      QOSPolicyCfg policyConfiguration) throws ConfigException,
-      InitializationException
-  {
-    String className = policyConfiguration.getJavaClass();
-    QOSPolicyCfgDefn d = QOSPolicyCfgDefn.getInstance();
-    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
-
-    QOSPolicy policy;
-    try
-    {
-      Class<? extends QOSPolicyFactory> theClass =
-          pd.loadClass(className, QOSPolicyFactory.class);
-      QOSPolicyFactory factory = theClass.newInstance();
-
-      policy = factory.createQOSPolicy(policyConfiguration);
-    }
-    catch (Exception e)
-    {
-      if (e instanceof InvocationTargetException)
-      {
-        Throwable t = e.getCause();
-
-        if (t instanceof InitializationException)
-        {
-          throw (InitializationException) t;
-        }
-        else if (t instanceof ConfigException)
-        {
-          throw (ConfigException) t;
-        }
-      }
-
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(
-          className, policyConfiguration.dn(), stackTraceToSingleLineString(e));
-      throw new InitializationException(message, e);
-    }
-
-    // The network group has been successfully initialized - so register it.
-    QOSPolicy oldPolicy =
-        policies.put(policyConfiguration.dn(), policy);
-
-    if (policy instanceof RequestFilteringPolicy)
-    {
-      requestFilteringPolicy = (RequestFilteringPolicy) policy;
-    }
-    else if (policy instanceof ResourceLimitsPolicy)
-    {
-      resourceLimitsPolicy = (ResourceLimitsPolicy) policy;
-    }
-
-    if (oldPolicy != null)
-    {
-      oldPolicy.finalizeQOSPolicy();
-    }
-  }
-
-
 
   /**
    * Deregisters a workflow node with the network group.
