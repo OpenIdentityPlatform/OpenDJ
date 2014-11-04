@@ -1089,11 +1089,9 @@ public class SearchOperationBasis
         return;
       }
 
-
       // Retrieve the network group attached to the client connection
       // and get a workflow to process the operation.
-      NetworkGroup ng = getClientConnection().getNetworkGroup();
-      Workflow workflow = ng.getWorkflowCandidate(baseDN);
+      Workflow workflow = NetworkGroup.getWorkflowCandidate(baseDN);
       if (workflow == null)
       {
         // We have found no workflow for the requested base DN, just return

@@ -46,7 +46,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AuthenticationInfo;
@@ -1584,17 +1583,6 @@ public abstract class ClientConnection
    *                 appended.
    */
   public abstract void toString(StringBuilder buffer);
-
-
-  /**
-   * Returns the network group to which the connection belongs.
-   *
-   * @return the network group attached to the connection
-   */
-  public NetworkGroup getNetworkGroup()
-  {
-    return NetworkGroup.getDefaultNetworkGroup();
-  }
 
   /**
    * Retrieves the length of time in milliseconds that this client

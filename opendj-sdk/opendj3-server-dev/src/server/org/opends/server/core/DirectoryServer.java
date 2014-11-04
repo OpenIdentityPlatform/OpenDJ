@@ -2141,18 +2141,17 @@ public final class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  private static void createAndRegisterWorkflowsWithDefaultNetworkGroup(Backend<?> backend) throws DirectoryException
+  private static void createAndRegisterWorkflows(Backend<?> backend) throws DirectoryException
   {
     // Create a workflow for each backend base DN and register the workflow
     // with the default/internal/admin network group.
     for (DN curBaseDN: backend.getBaseDNs())
     {
-      createAndRegisterWorkflowWithDefaultNetworkGroup(curBaseDN, backend);
+      createAndRegisterWorkflow(curBaseDN, backend);
     }
   }
 
-  private static void createAndRegisterWorkflowWithDefaultNetworkGroup(DN baseDN, Backend<?> backend)
-      throws DirectoryException
+  private static void createAndRegisterWorkflow(DN baseDN, Backend<?> backend) throws DirectoryException
   {
     WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
     NetworkGroup.getDefaultNetworkGroup().registerWorkflow(workflowImpl);
@@ -2211,8 +2210,8 @@ public final class DirectoryServer
   {
     try
     {
-      createAndRegisterWorkflowsWithDefaultNetworkGroup(configHandler);
-      createAndRegisterWorkflowsWithDefaultNetworkGroup(rootDSEBackend);
+      createAndRegisterWorkflows(configHandler);
+      createAndRegisterWorkflows(rootDSEBackend);
     }
     catch (DirectoryException de)
     {
@@ -5559,7 +5558,7 @@ public final class DirectoryServer
         // the workflow with the default network group, but don't register
         // the workflow if the backend happens to be the configuration
         // backend because it's too soon for the config backend.
-        createAndRegisterWorkflowWithDefaultNetworkGroup(baseDN, backend);
+        createAndRegisterWorkflow(baseDN, backend);
       }
     }
   }

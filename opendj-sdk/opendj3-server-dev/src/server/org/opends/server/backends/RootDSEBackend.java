@@ -60,6 +60,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
+import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
@@ -472,7 +473,7 @@ public class RootDSEBackend
     else
     {
       namingContexts = new LinkedList<DN>();
-      for (WorkflowTopologyNode node : connection.getNetworkGroup()
+      for (WorkflowTopologyNode node : NetworkGroup.getDefaultNetworkGroup()
           .getNamingContexts().getPublicNamingContexts())
       {
         namingContexts.add(node.getBaseDN());

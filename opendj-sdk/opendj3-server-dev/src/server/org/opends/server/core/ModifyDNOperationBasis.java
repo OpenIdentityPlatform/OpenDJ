@@ -451,8 +451,7 @@ public class ModifyDNOperationBasis
 
       // Retrieve the network group attached to the client connection
       // and get a workflow to process the operation.
-      NetworkGroup ng = getClientConnection().getNetworkGroup();
-      Workflow workflow = ng.getWorkflowCandidate(entryDN);
+      Workflow workflow = NetworkGroup.getWorkflowCandidate(entryDN);
       if (workflow == null)
       {
         // We have found no workflow for the requested base DN, just return

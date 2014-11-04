@@ -35,16 +35,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendCompareOperation;
 
 /**
  * This class defines an operation that may be used to determine whether a
@@ -466,11 +466,9 @@ public class CompareOperationBasis
         return;
       }
 
-
       // Retrieve the network group registered with the client connection
       // and get a workflow to process the operation.
-      NetworkGroup ng = getClientConnection().getNetworkGroup();
-      Workflow workflow = ng.getWorkflowCandidate(entryDN);
+      Workflow workflow = NetworkGroup.getWorkflowCandidate(entryDN);
       if (workflow == null)
       {
         // We have found no workflow for the requested base DN, just return
