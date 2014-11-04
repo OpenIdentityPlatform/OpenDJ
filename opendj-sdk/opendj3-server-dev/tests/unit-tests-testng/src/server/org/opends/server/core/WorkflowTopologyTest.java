@@ -35,7 +35,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
-import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -352,7 +351,6 @@ public class WorkflowTopologyTest extends UtilTestCase
    * result code.
    *
    * @return set of result codes to test
-   * @throws Exception
    */
   @DataProvider(name = "ResultCodes_1")
   public Object[][] initResultCodes_1()
@@ -412,10 +410,7 @@ public class WorkflowTopologyTest extends UtilTestCase
       DN dummyDN
       )
   {
-    // create a DIT set with the baseDN (no workflow element in the DIT).
-    WorkflowElement nullWE = null;
-    WorkflowImpl workflow =
-      new WorkflowImpl (baseDN.toString(), baseDN, null, nullWE);
+    WorkflowImpl workflow = new WorkflowImpl(baseDN.toString(), baseDN, null, null);
 
     // Create a worflow with the dit, no pre/post-workflow element.
     WorkflowTopologyNode workflowNode = new WorkflowTopologyNode(workflow);
@@ -457,7 +452,7 @@ public class WorkflowTopologyTest extends UtilTestCase
    *
    * There is no worklfow element attached to the DITs.
    *
-   * @param baseDn         base DN for the parent workflow (W1)
+   * @param baseDN         base DN for the parent workflow (W1)
    * @param subordinateDN  base DN for the subordinate workflow (W2)
    * @param unrelatedDN    base DN with no hierarchical relationship with any
    *                       of the two baseDNs; parameter may be null
@@ -476,14 +471,11 @@ public class WorkflowTopologyTest extends UtilTestCase
     WorkflowImpl subWorkflow       = null;
     WorkflowImpl unrelatedWorkflow = null;
     {
-      WorkflowElement nullWE = null;
-      workflow = new WorkflowImpl (baseDN.toString(), baseDN, null, nullWE);
-      subWorkflow = new WorkflowImpl (
-        subordinateDN.toString(), subordinateDN, null, nullWE);
+      workflow = new WorkflowImpl(baseDN.toString(), baseDN, null, null);
+      subWorkflow = new WorkflowImpl(subordinateDN.toString(), subordinateDN, null, null);
       if (unrelatedDN != null)
       {
-        unrelatedWorkflow = new WorkflowImpl (
-          unrelatedDN.toString(), unrelatedDN, null, nullWE);
+        unrelatedWorkflow = new WorkflowImpl(unrelatedDN.toString(), unrelatedDN, null, null);
       }
     }
 
@@ -594,7 +586,7 @@ public class WorkflowTopologyTest extends UtilTestCase
    *
    * There is no worklfow element attached to the DITs.
    *
-   * @param baseDn1         base DN for the top workflow (W1)
+   * @param baseDN1         base DN for the top workflow (W1)
    * @param baseDN2         base DN for the first subordinate workflow (W2)
    * @param baseDN3         base DN for the second subordinate workflow (W3)
    * @param subordinateDN1  subordinate DN of baseDN1
@@ -623,10 +615,9 @@ public class WorkflowTopologyTest extends UtilTestCase
       WorkflowImpl workflow2;
       WorkflowImpl workflow3;
       {
-        WorkflowElement nullWE = null;
-        workflow1 = new WorkflowImpl(baseDN1.toString(), baseDN1, null, nullWE);
-        workflow2 = new WorkflowImpl(baseDN2.toString(), baseDN2, null, nullWE);
-        workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, nullWE);
+        workflow1 = new WorkflowImpl(baseDN1.toString(), baseDN1, null, null);
+        workflow2 = new WorkflowImpl(baseDN2.toString(), baseDN2, null, null);
+        workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, null);
       }
 
       w1 = new WorkflowTopologyNode(workflow1);
@@ -775,7 +766,7 @@ public class WorkflowTopologyTest extends UtilTestCase
    *
    * There is no worklfow element attached to the DITs.
    *
-   * @param baseDn1         base DN for the top workflow (W1)
+   * @param baseDN1         base DN for the top workflow (W1)
    * @param baseDN2         base DN for the first subordinate workflow (W2)
    * @param baseDN3         base DN for the second subordinate workflow (W3)
    * @param subordinateDN1  subordinate DN of baseDN1
@@ -804,11 +795,9 @@ public class WorkflowTopologyTest extends UtilTestCase
       WorkflowImpl workflow2;
       WorkflowImpl workflow3;
       {
-        WorkflowElement nullWE = null;
-
-        workflow1 = new WorkflowImpl(baseDN1.toString(), baseDN1, null, nullWE);
-        workflow2 = new WorkflowImpl(baseDN2.toString(), baseDN2, null, nullWE);
-        workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, nullWE);
+        workflow1 = new WorkflowImpl(baseDN1.toString(), baseDN1, null, null);
+        workflow2 = new WorkflowImpl(baseDN2.toString(), baseDN2, null, null);
+        workflow3 = new WorkflowImpl(baseDN3.toString(), baseDN3, null, null);
       }
 
       w1 = new WorkflowTopologyNode(workflow1);
@@ -929,11 +918,8 @@ public class WorkflowTopologyTest extends UtilTestCase
       )
       throws DirectoryException
   {
-    WorkflowElement nullWE = null;
-
     // Create a workflow to handle the baseDN with no workflow element
-    WorkflowImpl workflow = new WorkflowImpl(
-        baseDN.toString(), baseDN, null, nullWE);
+    WorkflowImpl workflow = new WorkflowImpl(baseDN.toString(), baseDN, null, null);
 
     // Register the workflow with the server. Don't catch the
     // DirectoryException that could be thrown by the register() method.
@@ -941,17 +927,15 @@ public class WorkflowTopologyTest extends UtilTestCase
 
     // Register the same workflow twice and catch the expected
     // DirectoryException.
-    boolean exceptionRaised = false;
     try
     {
       workflow.register();
+      fail("Expected DirectoryException to br thrown");
     }
     catch (DirectoryException e)
     {
-      exceptionRaised = true;
       assertTrue(StaticUtils.hasDescriptor(e.getMessageObject(),
           ERR_REGISTER_WORKFLOW_ALREADY_EXISTS));
     }
-    assertEquals(exceptionRaised, true);
   }
 }
