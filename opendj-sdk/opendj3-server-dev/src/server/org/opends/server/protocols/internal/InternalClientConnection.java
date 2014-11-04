@@ -108,9 +108,6 @@ public final class InternalClientConnection
   {
     super();
 
-
-    this.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
-
     // This connection will be authenticated as a root user so that no
     // access control will be enforced.
     String commonName    = "Internal Client";
@@ -211,8 +208,6 @@ public final class InternalClientConnection
   {
     super();
 
-    this.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
-
     // Don't call super.setAuthenticationInfo() since this will register this
     // connection in the authenticated users table, which is unnecessary and
     // will also cause the connection to be leaked since internal connections
@@ -255,7 +250,12 @@ public final class InternalClientConnection
     this(getAuthInfoForDN(userDN));
   }
 
-
+  /** {@inheritDoc} */
+  @Override
+  public NetworkGroup getNetworkGroup()
+  {
+    return NetworkGroup.getInternalNetworkGroup();
+  }
 
   /**
    * Creates an authentication information object for the user with

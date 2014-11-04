@@ -29,6 +29,7 @@ package org.opends.server.protocols.ldap;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.security.cert.Certificate;
@@ -468,11 +469,6 @@ public final class LDAPClientConnection extends ClientConnection implements
       SocketChannel clientChannel, String protocol) throws DirectoryException
   {
     this.connectionHandler = connectionHandler;
-    if (connectionHandler.isAdminConnectionHandler())
-    {
-      setNetworkGroup(NetworkGroup.getAdminNetworkGroup());
-    }
-
     this.clientChannel = clientChannel;
     timeoutClientChannel = new TimeoutWriteByteChannel();
     opsInProgressLock = new Object();
@@ -486,15 +482,14 @@ public final class LDAPClientConnection extends ClientConnection implements
     keepStats = connectionHandler.keepStats();
     this.protocol = protocol;
     writeSelector = new AtomicReference<Selector>();
-    clientAddress =
-        clientChannel.socket().getInetAddress().getHostAddress();
-    clientPort = clientChannel.socket().getPort();
-    serverAddress =
-        clientChannel.socket().getLocalAddress().getHostAddress();
-    serverPort = clientChannel.socket().getLocalPort();
 
-    statTracker =
-            this.connectionHandler.getStatTracker();
+    final Socket socket = clientChannel.socket();
+    clientAddress = socket.getInetAddress().getHostAddress();
+    clientPort = socket.getPort();
+    serverAddress = socket.getLocalAddress().getHostAddress();
+    serverPort = socket.getLocalPort();
+
+    statTracker = this.connectionHandler.getStatTracker();
 
     if (keepStats)
     {
@@ -517,6 +512,17 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
 
     connectionID = DirectoryServer.newConnectionAccepted(this);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public NetworkGroup getNetworkGroup()
+  {
+    if (connectionHandler.isAdminConnectionHandler())
+    {
+      return NetworkGroup.getAdminNetworkGroup();
+    }
+    return NetworkGroup.getDefaultNetworkGroup();
   }
 
   /**

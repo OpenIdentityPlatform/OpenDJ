@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -514,46 +513,5 @@ public class WorkflowConfigurationTest extends UtilTestCase
     removeWorkflow(baseDN2, backendID2);
     dsconfigRemoveMemoryBackend(backendID2);
     checkBackendIsNotAccessible(baseDN2);
-  }
-
-
-  /**
-   * This test checks the creation and utilization of network group
-   * in the route process.
-   */
-  @Test
-  public void useNetworkGroup() throws Exception
-  {
-    // Local settings
-    String backendID = "test";
-    String baseDN    = "o=test";
-
-    // Create a route for o=test suffix in the internal network group.
-    // Search on o=test should succeed.
-    WorkflowImpl workflowImpl = createWorkflow(baseDN, backendID);
-    InternalSearchOperation searchOperation =
-      doSearch(baseDN, SearchScope.BASE_OBJECT, ResultCode.SUCCESS);
-
-    // Create a network group and store it in the client connection.
-    // As the network group is empty, all searches should fail with a
-    // no such object result code.
-    String networkGroupID = "useNetworkGroupID";
-    NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
-    ClientConnection clientConnection = searchOperation.getClientConnection();
-    clientConnection.setNetworkGroup(networkGroup);
-    searchOperation.run();
-    assertEquals(searchOperation.getResultCode(), ResultCode.NO_SUCH_OBJECT);
-
-    // Now register the o=test workflow and search again. The search
-    // should succeed.
-    networkGroup.registerWorkflow(workflowImpl);
-    searchOperation.run();
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
-
-    // Put back the internal network group in the client connection
-    // and check that searches are still working.
-    clientConnection.setNetworkGroup(NetworkGroup.getInternalNetworkGroup());
-    searchOperation.run();
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }

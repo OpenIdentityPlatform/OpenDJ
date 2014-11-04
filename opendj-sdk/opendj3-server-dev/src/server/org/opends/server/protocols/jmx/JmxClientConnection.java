@@ -27,7 +27,8 @@
 package org.opends.server.protocols.jmx;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -87,8 +88,6 @@ public class JmxClientConnection
   {
     super();
 
-    setNetworkGroup(NetworkGroup.getAdminNetworkGroup());
-
     nextMessageID    = new AtomicInteger(1);
     nextOperationID  = new AtomicLong(0);
 
@@ -110,6 +109,12 @@ public class JmxClientConnection
         .addNotificationListener(this, null, null);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public NetworkGroup getNetworkGroup()
+  {
+    return NetworkGroup.getAdminNetworkGroup();
+  }
 
   /** {@inheritDoc} */
   @Override
