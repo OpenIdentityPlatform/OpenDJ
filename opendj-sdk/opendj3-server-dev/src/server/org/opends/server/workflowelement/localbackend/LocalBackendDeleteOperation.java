@@ -27,6 +27,7 @@
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -145,7 +146,7 @@ public class LocalBackendDeleteOperation
 
     try
     {
-      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      AtomicBoolean executePostOpPlugins = new AtomicBoolean(false);
       processDelete(executePostOpPlugins);
 
       // Invoke the post-operation or post-synchronization delete plugins.
@@ -158,7 +159,7 @@ public class LocalBackendDeleteOperation
           pluginConfigManager.invokePostSynchronizationDeletePlugins(this);
         }
       }
-      else if (executePostOpPlugins.value)
+      else if (executePostOpPlugins.get())
       {
         PluginResult.PostOperation postOpResult =
             pluginConfigManager.invokePostOperationDeletePlugins(this);
@@ -195,7 +196,7 @@ public class LocalBackendDeleteOperation
     }
   }
 
-  private void processDelete(BooleanHolder executePostOpPlugins)
+  private void processDelete(AtomicBoolean executePostOpPlugins)
       throws CanceledOperationException
   {
     // Process the entry DN to convert it from its raw form as provided by the
@@ -272,7 +273,7 @@ public class LocalBackendDeleteOperation
       // invoke the pre-delete plugins.
       if (!isSynchronizationOperation())
       {
-        executePostOpPlugins.value = true;
+        executePostOpPlugins.set(true);
         PluginResult.PreOperation preOpResult =
             DirectoryServer.getPluginConfigManager()
                 .invokePreOperationDeletePlugins(this);

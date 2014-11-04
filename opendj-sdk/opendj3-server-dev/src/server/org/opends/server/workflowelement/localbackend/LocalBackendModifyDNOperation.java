@@ -29,6 +29,7 @@ package org.opends.server.workflowelement.localbackend;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -184,7 +185,7 @@ public class LocalBackendModifyDNOperation
 
     try
     {
-      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      AtomicBoolean executePostOpPlugins = new AtomicBoolean(false);
       processModifyDN(executePostOpPlugins);
 
       // Invoke the post-operation or post-synchronization modify DN plugins.
@@ -197,7 +198,7 @@ public class LocalBackendModifyDNOperation
           pluginConfigManager.invokePostSynchronizationModifyDNPlugins(this);
         }
       }
-      else if (executePostOpPlugins.value)
+      else if (executePostOpPlugins.get())
       {
         PluginResult.PostOperation postOpResult =
             pluginConfigManager.invokePostOperationModifyDNPlugins(this);
@@ -234,7 +235,7 @@ public class LocalBackendModifyDNOperation
     }
   }
 
-  private void processModifyDN(BooleanHolder executePostOpPlugins)
+  private void processModifyDN(AtomicBoolean executePostOpPlugins)
       throws CanceledOperationException
   {
     // Process the entry DN, newRDN, and newSuperior elements from their raw
@@ -423,7 +424,7 @@ public class LocalBackendModifyDNOperation
         // to identify which changes were made after they're done.
         int modCount = modifications.size();
 
-        executePostOpPlugins.value = true;
+        executePostOpPlugins.set(true);
         PluginResult.PreOperation preOpResult =
             DirectoryServer.getPluginConfigManager()
                 .invokePreOperationModifyDNPlugins(this);
