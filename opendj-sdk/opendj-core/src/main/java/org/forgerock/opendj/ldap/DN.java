@@ -37,6 +37,7 @@ import java.util.WeakHashMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
@@ -66,7 +67,7 @@ import static com.forgerock.opendj.util.StaticUtils.*;
  *      Models </a>
  */
 public final class DN implements Iterable<RDN>, Comparable<DN> {
-    private static final DN ROOT_DN = new DN(null, null, "");
+    private static final DN ROOT_DN = new DN(CoreSchema.getInstance(), null, null, "");
 
     /**
      * This is the size of the per-thread per-schema DN cache. We should
@@ -342,7 +343,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             parent = ROOT_DN;
         }
 
-        return new DN(parent, rdn, dnString);
+        return new DN(schema, parent, rdn, dnString);
     }
 
     @SuppressWarnings("serial")
@@ -374,13 +375,17 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     private String stringValue;
 
+    /** The schema used to create this DN. */
+    private final Schema schema;
+
     /** Private constructor. */
-    private DN(final DN parent, final RDN rdn, final String stringValue) {
-        this(parent, rdn, stringValue, parent != null ? parent.size + 1 : 0);
+    private DN(final Schema schema, final DN parent, final RDN rdn, final String stringValue) {
+        this(schema, parent, rdn, stringValue, parent != null ? parent.size + 1 : 0);
     }
 
     /** Private constructor. */
-    private DN(final DN parent, final RDN rdn, final String stringValue, final int size) {
+    private DN(final Schema schema, final DN parent, final RDN rdn, final String stringValue, final int size) {
+        this.schema = schema;
         this.parent = parent;
         this.rdn = rdn;
         this.stringValue = stringValue;
@@ -412,7 +417,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             }
             DN newDN = this;
             for (i = 0; i < rdns.length; i++) {
-                newDN = new DN(newDN, rdns[i], null);
+                newDN = new DN(this.schema, newDN, rdns[i], null);
             }
             return newDN;
         }
@@ -436,7 +441,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     public DN child(final RDN rdn) {
         Reject.ifNull(rdn);
-        return new DN(this, rdn, null);
+        return new DN(this.schema, this, rdn, null);
     }
 
     /**
@@ -792,11 +797,11 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         } else if (index >= size) {
             return this;
         } else {
-            final DN localName = new DN(null, rdn, null, index);
+            final DN localName = new DN(this.schema, null, rdn, null, index);
             DN nextLocalName = localName;
             DN lastDN = parent;
             for (int i = index - 1; i > 0; i--) {
-                nextLocalName.parent = new DN(null, lastDN.rdn, null, i);
+                nextLocalName.parent = new DN(this.schema, null, lastDN.rdn, null, i);
                 nextLocalName = nextLocalName.parent;
                 lastDN = lastDN.parent;
             }
@@ -965,19 +970,21 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
          * Normalized byte string, suitable for equality and comparisons, and providing a natural hierarchical ordering,
          * but not usable as a valid DN.
          */
-        private byte[] normalizedValue;
+        private volatile byte[] normalizedValue;
 
-        private CompactDn(final DN dn, final boolean initializeNormalizedValueEagerly) {
+        private final Schema schema;
+
+        private CompactDn(final DN dn) {
             this.originalValue = dn.stringValue != null ? getBytes(dn.stringValue) : new byte[0];
-            if (initializeNormalizedValueEagerly) {
-                normalizedValue = dn.toIrreversibleNormalizedByteString().toByteArray();
-            }
+            this.schema = dn.schema;
         }
 
         /** {@inheritDoc} */
         @Override
         public int compareTo(final CompactDn other) {
-            return ByteString.wrap(getNormalizedValue()).compareTo(ByteString.wrap(other.getNormalizedValue()));
+            byte[] normValue = getNormalizedValue();
+            byte[] otherNormValue = other.getNormalizedValue();
+            return ByteString.compareTo(normValue, 0, normValue.length, otherNormValue, 0, otherNormValue.length);
         }
 
         /**
@@ -986,7 +993,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
          *  @return the DN
          */
         public DN toDn() {
-            return DN.valueOf(ByteString.wrap(originalValue).toString());
+            return DN.valueOf(ByteString.toString(originalValue, 0, originalValue.length), schema);
         }
 
         /** {@inheritDoc} */
@@ -1011,7 +1018,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
         /** {@inheritDoc} */
         @Override
         public String toString() {
-            return ByteString.wrap(originalValue).toString();
+            return ByteString.toString(originalValue, 0, originalValue.length);
         }
 
         private byte[] getNormalizedValue() {
@@ -1028,16 +1035,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @return the DN compact representation
      */
     public CompactDn compact() {
-        return new CompactDn(this, false);
-    }
-
-    /**
-     * Returns a compact representation of this DN, with eager evaluation of the normalized value.
-     *
-     * @return the DN compact representation
-     */
-    public CompactDn compactEagerly() {
-        return new CompactDn(this, true);
+        return new CompactDn(this);
     }
 
     /**
