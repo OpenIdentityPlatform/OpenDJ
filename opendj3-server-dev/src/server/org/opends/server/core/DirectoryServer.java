@@ -2246,13 +2246,8 @@ public final class DirectoryServer
 
     // Create the workflow for the base DN and register the workflow with
     // the server.
-    WorkflowImpl workflowImpl = new WorkflowImpl(
-        workflowID,
-        baseDN,
-        rootWE.getWorkflowElementID(),
-        rootWE);
+    WorkflowImpl workflowImpl = new WorkflowImpl(workflowID, baseDN, rootWE);
     workflowImpl.register();
-
     return workflowImpl;
   }
 

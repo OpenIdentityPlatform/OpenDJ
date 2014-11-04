@@ -315,7 +315,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null, null);
+    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null);
 
     // Register the workflow with the network group.
     networkGroup.registerWorkflow(workflow);
@@ -725,8 +725,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
-    WorkflowImpl workflow1 = new WorkflowImpl(dn1.toString(), dn1, null, null);
-    WorkflowImpl workflow2 = new WorkflowImpl(dn2.toString(), dn2, null, null);
+    WorkflowImpl workflow1 = new WorkflowImpl(dn1.toString(), dn1, null);
+    WorkflowImpl workflow2 = new WorkflowImpl(dn2.toString(), dn2, null);
 
     // Register the workflow with the network group.
     networkGroup1.registerWorkflow(workflow1);
@@ -950,7 +950,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Create a workflow with no task inside. The workflow identifier
     // is the a string representation of the workflow base DN.
-    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null, null);
+    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null);
     assertNotNull(workflow);
 
     // Register the workflow with the network group.

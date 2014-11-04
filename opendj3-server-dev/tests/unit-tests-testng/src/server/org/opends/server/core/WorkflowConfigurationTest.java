@@ -249,13 +249,11 @@ public class WorkflowConfigurationTest extends UtilTestCase
 
     // Create a workflow and register it with the server
     String workflowID = baseDN + "#" + backendID;
-    WorkflowImpl workflowImpl = new WorkflowImpl(
-        workflowID, DN.valueOf(baseDN), workflowElementID, workflowElement);
+    WorkflowImpl workflowImpl = new WorkflowImpl(workflowID, DN.valueOf(baseDN), workflowElement);
     workflowImpl.register();
 
     // Register the workflow with the internal network group
     NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
-
     return workflowImpl;
   }
 
