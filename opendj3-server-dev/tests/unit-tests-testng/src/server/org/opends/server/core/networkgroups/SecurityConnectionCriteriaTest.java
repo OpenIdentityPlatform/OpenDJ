@@ -30,7 +30,6 @@ package org.opends.server.core.networkgroups;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
@@ -98,9 +97,7 @@ public class SecurityConnectionCriteriaTest extends
       SecurityConnectionCriteria criteria, boolean expectedResult)
       throws Exception
   {
-    ClientConnection client =
-        new MockClientConnection(12345, isSecure, DN.rootDN(),
-            AllowedAuthMethod.ANONYMOUS);
+    ClientConnection client = new MockClientConnection(12345, isSecure, null);
 
     Assert.assertEquals(criteria.matches(client), expectedResult);
   }
@@ -124,9 +121,7 @@ public class SecurityConnectionCriteriaTest extends
       SecurityConnectionCriteria criteria, boolean expectedResult)
       throws Exception
   {
-    ClientConnection client =
-        new MockClientConnection(12345, false, DN.rootDN(),
-            AllowedAuthMethod.ANONYMOUS);
+    ClientConnection client = new MockClientConnection(12345, false, null);
 
     Assert.assertEquals(criteria.willMatchAfterBind(client,
         DN.rootDN(), AuthenticationType.SIMPLE, isSecure),

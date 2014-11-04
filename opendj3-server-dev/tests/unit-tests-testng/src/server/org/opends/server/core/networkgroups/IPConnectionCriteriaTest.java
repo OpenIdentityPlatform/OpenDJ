@@ -34,7 +34,6 @@ import java.util.Collections;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.DN;
@@ -77,9 +76,7 @@ public class IPConnectionCriteriaTest extends DirectoryServerTestCase
   {
     AddressMask matchAnything = AddressMask.valueOf("*.*.*.*");
     AddressMask matchNothing = AddressMask.valueOf("0.0.0.0");
-    ClientConnection client =
-        new MockClientConnection(12345, false, DN.rootDN(),
-            AllowedAuthMethod.ANONYMOUS);
+    ClientConnection client = new MockClientConnection(12345, false, null);
 
     Collection<AddressMask> emptyMasks = Collections.emptySet();
 

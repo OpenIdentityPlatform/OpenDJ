@@ -33,7 +33,6 @@ import java.util.Collections;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.authorization.dseecompat.PatternDN;
 import org.opends.server.types.AuthenticationType;
@@ -112,9 +111,7 @@ public class BindDNConnectionCriteriaTest extends
       Collection<PatternDN> allowedDNPatterns, boolean expectedResult)
       throws Exception
   {
-    ClientConnection client =
-        new MockClientConnection(12345, false, clientBindDN,
-            AllowedAuthMethod.SIMPLE);
+    ClientConnection client = new MockClientConnection(12345, false, clientBindDN);
 
     BindDNConnectionCriteria criteria = new BindDNConnectionCriteria(new ArrayList<PatternDN>(allowedDNPatterns));
     assertEquals(criteria.matches(client), expectedResult);
@@ -139,9 +136,7 @@ public class BindDNConnectionCriteriaTest extends
       Collection<PatternDN> allowedDNPatterns, boolean expectedResult)
       throws Exception
   {
-    ClientConnection client =
-        new MockClientConnection(12345, false, DN.rootDN(),
-            AllowedAuthMethod.ANONYMOUS);
+    ClientConnection client = new MockClientConnection(12345, false, null);
 
     BindDNConnectionCriteria criteria = new BindDNConnectionCriteria(new ArrayList<PatternDN>(allowedDNPatterns));
     assertEquals(criteria.willMatchAfterBind(client, clientBindDN,
