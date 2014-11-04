@@ -26,8 +26,6 @@
  */
 package org.opends.server.api;
 
-
-
 import java.net.InetAddress;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.Selector;
@@ -42,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
@@ -50,7 +49,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -60,11 +58,9 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
@@ -143,13 +139,6 @@ public abstract class ClientConnection
   private final CopyOnWriteArrayList<PersistentSearch>
       persistentSearches;
 
-  /** The network group to which the connection belongs to. */
-  private NetworkGroup networkGroup;
-
-  /** Need to evaluate the network group for the first operation. */
-  protected boolean mustEvaluateNetworkGroup;
-
-
   /**
    * Performs the appropriate initialization generic to all client
    * connections.
@@ -169,11 +158,6 @@ public abstract class ClientConnection
     lookthroughLimit   = DirectoryServer.getLookthroughLimit();
     finalized          = false;
     privileges         = new HashSet<Privilege>();
-    networkGroup       = NetworkGroup.getDefaultNetworkGroup();
-    networkGroup.addConnection(this);
-    mustEvaluateNetworkGroup = true;
-
-    logger.trace(INFO_CHANGE_NETWORK_GROUP, getConnectionID(), null, networkGroup.getID());
   }
 
 
@@ -226,8 +210,6 @@ public abstract class ClientConnection
       DirectoryServer.getAuthenticatedUsers().remove(
            authZEntry.getName(), this);
     }
-
-    networkGroup.removeConnection(this);
   }
 
 
@@ -468,8 +450,6 @@ public abstract class ClientConnection
     return 0L;
   }
 
-
-
   /**
    * Retrieves the total number of operations performed
    * on this connection.
@@ -478,47 +458,6 @@ public abstract class ClientConnection
    * on this connection.
    */
   public abstract long getNumberOfOperations();
-
-  /**
-   * Indicates whether the network group must be evaluated for
-   * the next connection.
-   * @param operation The operation going to be performed. Bind
-   *                  operations imply a network group evaluation.
-   * @return boolean indicating if the network group must be evaluated
-   */
-  public boolean mustEvaluateNetworkGroup(
-          PreParseOperation operation) {
-    //  Connections inside the internal network group MUST NOT
-    // change network group
-    if (this.networkGroup == NetworkGroup.getInternalNetworkGroup()) {
-      return false;
-    }
-    // Connections inside the admin network group MUST NOT
-    // change network group
-    if (this.networkGroup == NetworkGroup.getAdminNetworkGroup()) {
-      return false;
-    }
-
-    // If the operation is a BIND, the network group MUST be evaluated
-    if (operation != null
-        && operation.getOperationType() == OperationType.BIND) {
-      return true;
-    }
-
-    return mustEvaluateNetworkGroup;
-  }
-
-  /**
-   * Indicates that the network group will have to be evaluated
-   * for the next connection.
-   *
-   * @param bool true if the network group must be evaluated
-   */
-  public void mustEvaluateNetworkGroup(boolean bool) {
-      mustEvaluateNetworkGroup = bool;
-  }
-
-
 
   /**
    * Sends a response to the client based on the information in the
@@ -987,8 +926,6 @@ public abstract class ClientConnection
   public void setUnauthenticated()
   {
     setAuthenticationInfo(new AuthenticationInfo());
-    this.sizeLimit = networkGroup.getSizeLimit();
-    this.timeLimit = networkGroup.getTimeLimit();
   }
 
 
@@ -1654,38 +1591,10 @@ public abstract class ClientConnection
    *
    * @return the network group attached to the connection
    */
-  public final NetworkGroup getNetworkGroup()
+  public NetworkGroup getNetworkGroup()
   {
-    return networkGroup;
+    return NetworkGroup.getDefaultNetworkGroup();
   }
-
-  /**
-   * Sets the network group to which the connection belongs.
-   *
-   * @param networkGroup  the network group to which the
-   *                      connections belongs to
-   */
-  public final void setNetworkGroup (NetworkGroup networkGroup)
-  {
-    if (this.networkGroup != networkGroup) {
-      logger.trace(INFO_CHANGE_NETWORK_GROUP, getConnectionID(),
-          this.networkGroup.getID(), networkGroup.getID());
-
-      // If there is a change, first remove this connection
-      // from the current network group
-      this.networkGroup.removeConnection(this);
-      // Then set the new network group
-      this.networkGroup = networkGroup;
-      // And add the connection to the new ng
-      this.networkGroup.addConnection(this);
-
-      // The client connection inherits the resource limits
-      sizeLimit = networkGroup.getSizeLimit();
-      timeLimit = networkGroup.getTimeLimit();
-    }
-  }
-
-
 
   /**
    * Retrieves the length of time in milliseconds that this client

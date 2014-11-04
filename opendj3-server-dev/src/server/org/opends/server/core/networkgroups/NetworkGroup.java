@@ -33,7 +33,6 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
@@ -218,16 +217,6 @@ public class NetworkGroup
         ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
     this.isDefaultNetworkGroup =
         DEFAULT_NETWORK_GROUP_NAME.equals(networkGroupID);
-  }
-
-  /**
-   * Adds a connection to the group.
-   *
-   * @param connection
-   *          the ClientConnection
-   */
-  public void addConnection(ClientConnection connection)
-  {
   }
 
   /**
@@ -466,18 +455,6 @@ public class NetworkGroup
     }
 
     return workflowCandidate;
-  }
-
-
-
-  /**
-   * Removes a connection from the group.
-   *
-   * @param connection
-   *          the ClientConnection
-   */
-  public void removeConnection(ClientConnection connection)
-  {
   }
 
   /**
