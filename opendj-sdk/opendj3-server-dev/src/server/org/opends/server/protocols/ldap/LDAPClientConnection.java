@@ -55,7 +55,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.extensions.ConnectionSecurityProvider;
 import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.extensions.TLSByteChannel;
@@ -512,17 +511,6 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
 
     connectionID = DirectoryServer.newConnectionAccepted(this);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public NetworkGroup getNetworkGroup()
-  {
-    if (connectionHandler.isAdminConnectionHandler())
-    {
-      return NetworkGroup.getAdminNetworkGroup();
-    }
-    return NetworkGroup.getDefaultNetworkGroup();
   }
 
   /**
