@@ -36,15 +36,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
@@ -572,8 +572,7 @@ public class AddOperationBasis
 
       // Retrieve the network group attached to the client connection
       // and get a workflow to process the operation.
-      NetworkGroup ng = getClientConnection().getNetworkGroup();
-      Workflow workflow = ng.getWorkflowCandidate(entryDN);
+      Workflow workflow = NetworkGroup.getWorkflowCandidate(entryDN);
       if (workflow == null)
       {
         // We have found no workflow for the requested base DN, just return

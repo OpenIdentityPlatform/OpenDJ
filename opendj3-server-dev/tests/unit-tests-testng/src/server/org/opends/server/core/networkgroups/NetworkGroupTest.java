@@ -152,51 +152,13 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
 
     // Sets of DNs
     return new Object[][] {
-        { dnRootDSE,  null,                 true,  true,  true },
-        { dnConfig,   dnSubordinateConfig,  true,  true,  true },
-        { dnMonitor,  dnSubordinateMonitor, true,  true,  true },
-        { dnTasks,    dnSubordinateTasks,   true,  true,  true },
-        { dnSchema,   null,                 true,  true,  true },
-        { dnBackups,  null,                 true,  true,  true },
-        { dnDummy,    null,                 false, false, false },
-    };
-  }
-
-  /**
-   * Provides information to create a network group with resource limits.
-   */
-  @DataProvider (name = "DNSet_3")
-  public Object[][] initDNSet_3() throws Exception
-  {
-    // Network group definition
-    String networkGroupID = "networkGroup1";
-    DN  dn = DN.valueOf("o=test1");
-    int prio = 1;
-
-    // Resource limits
-    int maxConnections = 10;
-    int maxConnectionsFromSameClient = 5;
-    int maxOpsPerConn = 4;
-    int maxConcurrentOpsPerConn = 2;
-    int searchTimeLimit = 100;
-    int searchSizeLimit = 50;
-    int minSubstringLength = 4;
-
-    // Network group info
-    return new Object[][] {
-        // Test1: one DN for one workflow
-        {
-          networkGroupID,
-          dn,
-          prio,
-          maxConnections,
-          maxConnectionsFromSameClient,
-          maxOpsPerConn,
-          maxConcurrentOpsPerConn,
-          searchTimeLimit,
-          searchSizeLimit,
-          minSubstringLength
-        }
+        { dnRootDSE,  null,                 true,  },
+        { dnConfig,   dnSubordinateConfig,  true,  },
+        { dnMonitor,  dnSubordinateMonitor, true,  },
+        { dnTasks,    dnSubordinateTasks,   true,  },
+        { dnSchema,   null,                 true,  },
+        { dnBackups,  null,                 true,  },
+        { dnDummy,    null,                 false, },
     };
   }
 
@@ -281,9 +243,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   public void checkDefaultNetworkGroup(
       DN      dnToSearch,
       DN      dnSubordinate,
-      boolean existsInDefault,
-      boolean existsInAdmin,
-      boolean existsInInternal
+      boolean exists
       )
   {
     // let's get the default network group -- it should always exist
@@ -291,21 +251,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     assertNotNull(defaultNG);
 
     // let's check the routing through the network group
-    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null, existsInDefault);
-
-    // let's get the admin network group -- it should always exist
-    NetworkGroup adminNG = NetworkGroup.getDefaultNetworkGroup();
-    assertNotNull(adminNG);
-
-    // let's check the routing through the network group
-    doCheckNetworkGroup(adminNG, dnToSearch, dnSubordinate, null, existsInAdmin);
-
-    // let's get the internal network group -- it should always exist
-    NetworkGroup internalNG = NetworkGroup.getDefaultNetworkGroup();
-    assertNotNull(internalNG);
-
-    // let's check the routing through the network group
-    doCheckNetworkGroup(internalNG, dnToSearch, dnSubordinate, null, existsInInternal);
+    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null, exists);
   }
 
   /**
@@ -429,90 +375,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
           "--set", "workflow-configuration-mode:auto");
     }
   }
-
-
-
-  /**
-   * Tests the network group resource limits
-   * <p>
-   * Disabled because NGs are not supported (issue OPENDJ-335).
-   *
-   * @param networkGroupID   the ID of the network group to register
-   * @param workflowBaseDN1  the base DN of the first workflow node to register
-   *                         in the network group
-   */
-  @Test (dataProvider = "DNSet_3", groups = "virtual", enabled=false)
-  public void testNetworkGroupResourceLimits(
-      String networkGroupID,
-      DN     workflowBaseDN,
-      int    priority,
-      final int    maxConnections,
-      final int    maxConnectionsFromSameClient,
-      final int    maxOpsPerConn,
-      final int    maxConcurrentOpsPerConn,
-      final int    searchTimeLimit,
-      final int    searchSizeLimit,
-      final int    minSubstringLength
-      )
-      throws Exception
-  {
-    // Create and register the network group with the server.
-    TestCaseUtils.dsconfig(
-        "set-global-configuration-prop",
-        "--set", "workflow-configuration-mode:manual");
-
-    try
-    {
-      TestCaseUtils.dsconfig(
-          "create-network-group",
-          "--group-name", networkGroupID,
-          "--set", "enabled:true",
-          "--set", "priority:" + priority);
-
-      try
-      {
-        // Ensure that the network group was created ok.
-        NetworkGroup networkGroup = NetworkGroup.getDefaultNetworkGroup();
-        assertNotNull(networkGroup, "The network group does not seem to be registered.");
-
-        TestCaseUtils.dsconfig(
-            "create-network-group-qos-policy",
-            "--group-name", networkGroupID,
-            "--type", "resource-limits",
-            "--set", "max-concurrent-ops-per-connection:" + maxConcurrentOpsPerConn,
-            "--set", "max-connections:" + maxConnections,
-            "--set", "max-connections-from-same-ip:" + maxConnectionsFromSameClient,
-            "--set", "max-ops-per-connection:" + maxOpsPerConn,
-            "--set", "min-substring-length:" + minSubstringLength,
-            "--set", "size-limit:" + searchSizeLimit,
-            "--set", "time-limit:" + searchTimeLimit + "s");
-
-        // Check the resource limits are set properly.
-        assertEquals(networkGroup.getTimeLimit(), searchTimeLimit);
-        assertEquals(networkGroup.getSizeLimit(), searchSizeLimit);
-        assertEquals(networkGroup.getMinSubstring(), minSubstringLength);
-
-        TestCaseUtils.dsconfig(
-            "delete-network-group-qos-policy",
-            "--group-name", networkGroupID,
-            "--policy-type", "resource-limits");
-      }
-      finally
-      {
-        // The policy will get removed by this as well.
-        TestCaseUtils.dsconfig("delete-network-group", "--group-name",
-            networkGroupID);
-      }
-    }
-    finally
-    {
-      TestCaseUtils.dsconfig(
-          "set-global-configuration-prop",
-          "--set", "workflow-configuration-mode:auto");
-    }
-  }
-
-
 
   /**
    * Tests the mechanism to attribute a network group to a client connection,
@@ -727,40 +589,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     {
       assertNull(networkGroup.getWorkflowCandidate(unrelatedDN));
     }
-  }
-
-
-  /**
-   * Creates a workflow and register it with a network group.
-   *
-   * @param networkGroup     a network group to register the workflow with
-   * @param workflowBaseDN   the base DN of the workflow to register; may be
-   *                         null
-   * @throws  DirectoryException  If the workflow ID for the provided
-   *                              workflow conflicts with the workflow
-   *                              ID of an existing workflow.
-   */
-  private WorkflowImpl createAndRegisterWorkflow(
-      NetworkGroup networkGroup,
-      DN           workflowBaseDN
-      ) throws DirectoryException
-  {
-    assertNotNull(networkGroup);
-
-    if (workflowBaseDN == null)
-    {
-      return null;
-    }
-
-    // Create a workflow with no task inside. The workflow identifier
-    // is the a string representation of the workflow base DN.
-    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null);
-    assertNotNull(workflow);
-
-    // Register the workflow with the network group.
-    networkGroup.registerWorkflow(workflow);
-
-    return workflow;
   }
 
 }

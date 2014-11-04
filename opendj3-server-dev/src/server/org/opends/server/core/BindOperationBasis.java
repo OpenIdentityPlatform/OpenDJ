@@ -33,13 +33,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
 
@@ -716,8 +716,7 @@ public class BindOperationBasis
       } else {
         // Retrieve the network group attached to the client connection
         // and get a workflow to process the operation.
-        NetworkGroup ng = getClientConnection().getNetworkGroup();
-        workflow = ng.getWorkflowCandidate(bindDN);
+        workflow = NetworkGroup.getWorkflowCandidate(bindDN);
       }
       if (workflow == null)
       {

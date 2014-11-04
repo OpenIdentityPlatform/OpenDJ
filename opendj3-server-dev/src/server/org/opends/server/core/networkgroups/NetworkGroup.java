@@ -30,7 +30,6 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
 import org.opends.server.core.WorkflowImpl;
@@ -184,31 +183,6 @@ public class NetworkGroup
   }
 
   /**
-   * Retrieves the network group ID.
-   *
-   * @return a string indicating the network group ID
-   */
-  public String getID()
-  {
-    return networkGroupID;
-  }
-
-
-
-  /**
-   * Gets the minimum string length of a substring filter in a search
-   * operation.
-   *
-   * @return the minimum substring length
-   */
-  public int getMinSubstring()
-  {
-    return 0;
-  }
-
-
-
-  /**
    * Returns the list of naming contexts handled by the network group.
    *
    * @return the list of naming contexts
@@ -216,32 +190,6 @@ public class NetworkGroup
   public NetworkGroupNamingContexts getNamingContexts()
   {
     return namingContexts;
-  }
-
-
-
-  /**
-   * Gets the search size limit, i.e. the maximum number of entries
-   * returned by a search.
-   *
-   * @return the maximum number of entries returned by a search
-   */
-  public int getSizeLimit()
-  {
-    return DirectoryServer.getSizeLimit();
-  }
-
-
-
-  /**
-   * Gets the search duration limit, i.e. the maximum duration of a
-   * search operation.
-   *
-   * @return the maximum duration in ms of a search operation
-   */
-  public int getTimeLimit()
-  {
-    return DirectoryServer.getTimeLimit();
   }
 
 
@@ -255,7 +203,12 @@ public class NetworkGroup
    * @return the highest workflow in the topology that can handle the
    *         base DN, <code>null</code> if none was found
    */
-  public Workflow getWorkflowCandidate(DN baseDN)
+  public static Workflow getWorkflowCandidate(DN baseDN)
+  {
+    return getDefaultNetworkGroup().getWorkflowCandidatePriv(baseDN);
+  }
+
+  private Workflow getWorkflowCandidatePriv(DN baseDN)
   {
     // the top workflow to return
     Workflow workflowCandidate = null;
