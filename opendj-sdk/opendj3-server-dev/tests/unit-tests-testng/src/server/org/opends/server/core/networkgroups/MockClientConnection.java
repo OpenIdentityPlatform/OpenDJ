@@ -31,7 +31,6 @@ import java.net.UnknownHostException;
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
@@ -57,30 +56,21 @@ public final class MockClientConnection extends ClientConnection
    *          Is the client using a secure connection.
    * @param bindDN
    *          The client bind DN.
-   * @param authMethod
-   *          The client authentication method.
    * @throws Exception
    *           If an unexpected exception occurred.
    */
-  public MockClientConnection(int clientPort, boolean isSecure,
-      DN bindDN, AllowedAuthMethod authMethod) throws Exception
+  public MockClientConnection(int clientPort, boolean isSecure, DN bindDN) throws Exception
   {
     this.clientPort = clientPort;
     this.isSecure = isSecure;
-
-    switch (authMethod)
+    if (bindDN != null)
     {
-    case ANONYMOUS:
-      this.authInfo = new AuthenticationInfo();
-      break;
-    case SIMPLE:
       Entry simpleUser = DirectoryServer.getEntry(bindDN);
       this.authInfo = new AuthenticationInfo(simpleUser, bindDN, true);
-      break;
-    default: // SASL
-      Entry saslUser = DirectoryServer.getEntry(bindDN);
-      this.authInfo = new AuthenticationInfo(saslUser, "external", true);
-      break;
+    }
+    else
+    {
+      this.authInfo = new AuthenticationInfo();
     }
   }
 

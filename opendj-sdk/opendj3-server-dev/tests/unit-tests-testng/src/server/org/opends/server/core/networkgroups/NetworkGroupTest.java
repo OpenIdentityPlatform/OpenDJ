@@ -27,19 +27,25 @@
 package org.opends.server.core.networkgroups;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.core.*;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.core.Workflow;
+import org.opends.server.core.WorkflowImpl;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
@@ -272,42 +278,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       }
     };
   }
-
-
-  /** Provides the priorities for 3 network groups. */
-  @DataProvider (name = "PrioritySet_0")
-  public Object[][] initPrioritySet_0()
-  {
-    return new Object[][] {
-      { 1, 2, 3 },
-      { 1, 3, 2 },
-      { 2, 1, 3 },
-      { 2, 3, 1 },
-      { 3, 1, 2 },
-      { 3, 2, 1 }
-    };
-  }
-
-
-  /**
-   * Provides a bind DN filter to build network group criteria
-   * and the expected result (true if the connection with
-   * cn=Directory Manager, cn =Root DNs, cn=config should match the
-   * network group, false if it should go into the default network group).
-   */
-  @DataProvider (name = "BindFilterSet_0")
-  public Object[][] initBindFilterSet_0()
-  {
-    return new Object[][] {
-      { "*, cn=Root DNs, cn=config", true },
-      { "cn=Dir*, cn=Root DNs, cn=config", true },
-      { "cn=*", false },
-      { "uid=*", false },
-      { "**, cn=config", true },
-      { "*, cn=config", false }
-    };
-  }
-
 
   //===========================================================================
   //                        T E S T   C A S E S
@@ -796,168 +766,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     networkGroup2.deregisterWorkflow(workflow2.getWorkflowId());
     networkGroup2.deregister();
   }
-
-
-  /**
-   * Tests the mechanism to attribute a network group to a client connection,
-   * based on the authentication method.
-   */
-  @Test (dataProvider = "PrioritySet_0", groups = "virtual")
-  public void testNetworkGroupAuthenticationMethodCriteria(
-          int prio1,
-          int prio2,
-          int prio3)
-    throws Exception
-  {
-    // Create a AuthMethodCriteria for anonymous connections
-    AuthMethodConnectionCriteria authCriteria1 =
-        new AuthMethodConnectionCriteria(Collections
-            .singleton(AllowedAuthMethod.ANONYMOUS));
-
-    // Create a AuthMethodCriteria for simple bind connections
-    AuthMethodConnectionCriteria authCriteria2 =
-        new AuthMethodConnectionCriteria(Collections
-            .singleton(AllowedAuthMethod.SIMPLE));
-
-    // Create a AuthMethodCriteria for sasl connections
-    AuthMethodConnectionCriteria authCriteria3 =
-        new AuthMethodConnectionCriteria(Collections
-            .singleton(AllowedAuthMethod.SASL));
-
-
-    // Create and register the network group with the server.
-    NetworkGroup networkGroup1 = new NetworkGroup("anonymous_group");
-    networkGroup1.register();
-    networkGroup1.setConnectionCriteria(authCriteria1);
-    networkGroup1.setNetworkGroupPriority(prio1);
-    NetworkGroup networkGroup2 = new NetworkGroup("simplebind_group");
-    networkGroup2.register();
-    networkGroup2.setConnectionCriteria(authCriteria2);
-    networkGroup2.setNetworkGroupPriority(prio2);
-    NetworkGroup networkGroup3 = new NetworkGroup("sasl_group");
-    networkGroup3.register();
-    networkGroup3.setConnectionCriteria(authCriteria3);
-    networkGroup3.setNetworkGroupPriority(prio3);
-
-    // Create a new client connection, with anonymous authentication
-    ClientConnection connection1 = new InternalClientConnection(DN.NULL_DN);
-    NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection1);
-    assertEquals(ng, networkGroup1);
-
-    // Use simple bind on this connection
-    Entry userEntry = DirectoryServer.getEntry(
-            DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config"));
-    ClientConnection connection2 = new InternalClientConnection(
-          new AuthenticationInfo(userEntry, userEntry.getName(), true));
-    ng = NetworkGroup.findMatchingNetworkGroup(connection2);
-    assertEquals(ng, networkGroup2);
-
-    // Use SASL on this connection
-    ClientConnection connection3 = new InternalClientConnection(
-            new AuthenticationInfo(userEntry, "external", true));
-    ng = NetworkGroup.findMatchingNetworkGroup(connection3);
-    assertEquals(ng, networkGroup3);
-
-    // Clean the network group
-    networkGroup1.deregister();
-    networkGroup2.deregister();
-    networkGroup3.deregister();
-  }
-
-
-  /**
-   * Tests the mechanism to attribute a network group to a client connection,
-   * based on the bind dn filter.
-   */
-  @Test (dataProvider = "BindFilterSet_0", groups = "virtual")
-  public void testNetworkGroupBindDnCriteria(
-          String bindDnFilter,
-          boolean match)
-    throws Exception
-  {
-    // Create a BindDnFilterCriteria
-    BindDNConnectionCriteria bindCriteria =
-        BindDNConnectionCriteria.decode(Collections
-            .singleton(bindDnFilter));
-
-    // Create and register the network group with the server.
-    NetworkGroup networkGroup = new NetworkGroup("bindfilter_group");
-    networkGroup.register();
-    networkGroup.setConnectionCriteria(bindCriteria);
-
-    NetworkGroup defaultNg = NetworkGroup.getDefaultNetworkGroup();
-
-    // Create a new client connection, with anonymous authentication
-    // It should match the default network group
-    // as it has no bind information
-    ClientConnection connection1 = new InternalClientConnection(DN.NULL_DN);
-    NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection1);
-    assertEquals(ng, defaultNg);
-
-    // Use simple bind on this connection
-    Entry userEntry = DirectoryServer.getEntry(
-            DN.valueOf("cn=Directory Manager, cn=Root DNs, cn=config"));
-    ClientConnection connection2 = new InternalClientConnection(
-          new AuthenticationInfo(userEntry, userEntry.getName(), true));
-    ng = NetworkGroup.findMatchingNetworkGroup(connection2);
-    if (match) {
-      assertEquals(ng, networkGroup);
-    } else {
-      assertEquals(ng, defaultNg);
-    }
-
-    // Use SASL on this connection
-    ClientConnection connection3 = new InternalClientConnection(
-            new AuthenticationInfo(userEntry, "external", true));
-    ng = NetworkGroup.findMatchingNetworkGroup(connection3);
-    if (match) {
-      assertEquals(ng, networkGroup);
-    } else {
-      assertEquals(ng, defaultNg);
-    }
-
-    // Clean the network group
-    networkGroup.deregister();
-  }
-
-
-  /**
-   * Tests the mechanism to attribute a network group to a client connection,
-   * based on the bind dn filter.
-   */
-  @Test (groups = "virtual")
-  public void testNetworkGroupSecurityCriteria()
-    throws Exception
-  {
-    // Create a SecurityCriteria
-    SecurityConnectionCriteria secCriteria =
-        SecurityConnectionCriteria.SECURITY_REQUIRED;
-
-    // Create and register the network group with the server.
-    NetworkGroup networkGroup = new NetworkGroup("secured_group");
-    networkGroup.register();
-    networkGroup.setConnectionCriteria(secCriteria);
-
-    // Create a new client connection, with anonymous authentication
-    // It should match the secured group as internal connections
-    // are secured
-    ClientConnection connection1 = new InternalClientConnection(DN.NULL_DN);
-    NetworkGroup ng = NetworkGroup.findMatchingNetworkGroup(connection1);
-    assertEquals(ng, networkGroup);
-
-    // now change the criteria (security not mandatory)
-    secCriteria = SecurityConnectionCriteria.SECURITY_NOT_REQUIRED;
-    networkGroup.setConnectionCriteria(secCriteria);
-
-    // connection1 should match the networkGroup, even though it is not
-    // secured
-    ng = NetworkGroup.findMatchingNetworkGroup(connection1);
-    assertEquals(ng, networkGroup);
-
-    // Clean the network group
-    networkGroup.deregister();
-  }
-
 
   /**
    * This test checks that the network group takes into account the

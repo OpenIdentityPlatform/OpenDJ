@@ -29,7 +29,6 @@ package org.opends.server.core.networkgroups;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -40,11 +39,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.meta.QOSPolicyCfgDefn;
-import org.opends.server.admin.std.server.NetworkGroupCfg;
 import org.opends.server.admin.std.server.QOSPolicyCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.QOSPolicy;
@@ -55,7 +50,6 @@ import org.opends.server.core.Workflow;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.types.AuthenticationType;
-import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -78,153 +72,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class NetworkGroup
 {
-  /**
-   * Configuration change listener for user network groups.
-   */
-  private final class ChangeListener implements
-      ConfigurationChangeListener<NetworkGroupCfg>
-  {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ConfigChangeResult applyConfigurationChange(
-        NetworkGroupCfg configuration)
-    {
-      ResultCode resultCode = ResultCode.SUCCESS;
-      boolean adminActionRequired = false;
-      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
-      // Update the priority.
-      setNetworkGroupPriority(configuration.getPriority());
-
-      try
-      {
-        criteria = decodeConnectionCriteriaConfiguration(configuration);
-      }
-      catch (ConfigException e)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(e.getMessageObject());
-      }
-
-      // Update the configuration.
-      NetworkGroup.this.configuration = configuration;
-
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isConfigurationChangeAcceptable(
-        NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
-    {
-      return isConfigurationAcceptable(configuration,
-          unacceptableReasons);
-    }
-
-  }
-
-  /**
-   * Configuration change listener for user network group QOS policies.
-   */
-  private final class QOSPolicyListener implements
-      ConfigurationAddListener<QOSPolicyCfg>,
-      ConfigurationDeleteListener<QOSPolicyCfg>
-  {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ConfigChangeResult applyConfigurationAdd(
-        QOSPolicyCfg configuration)
-    {
-      ResultCode resultCode = ResultCode.SUCCESS;
-      boolean adminActionRequired = false;
-      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
-      try
-      {
-        createNetworkGroupQOSPolicy(configuration);
-      }
-      catch (ConfigException e)
-      {
-        messages.add(e.getMessageObject());
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-      catch (InitializationException e)
-      {
-        messages.add(e.getMessageObject());
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-          messages);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ConfigChangeResult applyConfigurationDelete(
-        QOSPolicyCfg configuration)
-    {
-      QOSPolicy policy = policies.remove(configuration.dn());
-
-      if (policy != null)
-      {
-        if (requestFilteringPolicy == policy)
-        {
-          requestFilteringPolicy = null;
-        }
-        else if (resourceLimitsPolicy == policy)
-        {
-          resourceLimitsPolicy = null;
-        }
-
-        policy.finalizeQOSPolicy();
-      }
-
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isConfigurationAddAcceptable(
-        QOSPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
-    {
-      return isNetworkGroupQOSPolicyConfigurationAcceptable(
-          configuration, unacceptableReasons);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isConfigurationDeleteAcceptable(
-        QOSPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
-    {
-      // Always ok.
-      return true;
-    }
-
-  }
-
-
 
   // The admin network group has no criterion, no policy,
   // and gives access to all the workflows.
@@ -398,264 +245,6 @@ public class NetworkGroup
     return registeredNetworkGroups.get(networkGroupID);
   }
 
-
-
-  /**
-   * Initializes this network group as a user network group using the
-   * provided configuration. The network group will monitor the
-   * configuration and update its configuration when necessary.
-   *
-   * @param configuration
-   *          The network group configuration.
-   * @return The new user network group.
-   * @throws ConfigException
-   *           If an unrecoverable problem arises during initialization
-   *           of the user network group as a result of the server
-   *           configuration.
-   * @throws InitializationException
-   *           If a problem occurs during initialization of the user
-   *           network group that is not related to the server
-   *           configuration.
-   */
-  static NetworkGroup createUserNetworkGroup(
-      NetworkGroupCfg configuration) throws InitializationException,
-      ConfigException
-  {
-    NetworkGroup networkGroup = new NetworkGroup(configuration);
-
-    try
-    {
-      // Set the priority.
-      networkGroup.priority = configuration.getPriority();
-
-      // Initialize the network group criteria.
-      networkGroup.criteria =
-          decodeConnectionCriteriaConfiguration(configuration);
-
-      // Initialize the network group policies.
-      for (String policyName : configuration
-          .listNetworkGroupQOSPolicies())
-      {
-        QOSPolicyCfg policyConfiguration =
-            configuration.getNetworkGroupQOSPolicy(policyName);
-        networkGroup.createNetworkGroupQOSPolicy(policyConfiguration);
-      }
-
-      // Register the root DSE workflow with the network group.
-      WorkflowImpl rootDSEworkflow =
-          (WorkflowImpl) WorkflowImpl.getWorkflow("__root.dse__#");
-      networkGroup.registerWorkflow(rootDSEworkflow);
-
-      // TODO JNR remove CoreMessages.INFO_ERR_WORKFLOW_DOES_NOT_EXIST
-
-      // Register all configuration change listeners.
-      configuration.addChangeListener(networkGroup.changeListener);
-      configuration
-          .addNetworkGroupQOSPolicyAddListener(networkGroup.policyListener);
-      configuration
-          .addNetworkGroupQOSPolicyDeleteListener(networkGroup.policyListener);
-
-      // Register the network group with the server.
-      networkGroup.register();
-    }
-    catch (DirectoryException e)
-    {
-      networkGroup.finalizeNetworkGroup();
-      throw new InitializationException(e.getMessageObject());
-    }
-    catch (InitializationException e)
-    {
-      networkGroup.finalizeNetworkGroup();
-      throw e;
-    }
-    catch (ConfigException e)
-    {
-      networkGroup.finalizeNetworkGroup();
-      throw e;
-    }
-
-    return networkGroup;
-  }
-
-
-
-  /**
-   * Indicates whether the provided network group configuration is
-   * acceptable.
-   *
-   * @param configuration
-   *          The network group configuration.
-   * @param unacceptableReasons
-   *          A list that can be used to hold messages about why the
-   *          provided configuration is not acceptable.
-   * @return Returns <code>true</code> if the provided network group
-   *         configuration is acceptable, or <code>false</code> if it is
-   *         not.
-   */
-  static boolean isConfigurationAcceptable(
-      NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
-  {
-    // The configuration is always acceptable if disabled.
-    if (!configuration.isEnabled())
-    {
-      return true;
-    }
-
-    // Check that all the workflows in the network group have a
-    // different base DN.
-    boolean isAcceptable = true;
-
-    // Validate any policy configurations.
-    for (String policyName : configuration
-        .listNetworkGroupQOSPolicies())
-    {
-      try
-      {
-        QOSPolicyCfg policyCfg =
-            configuration.getNetworkGroupQOSPolicy(policyName);
-        if (!isNetworkGroupQOSPolicyConfigurationAcceptable(policyCfg,
-            unacceptableReasons))
-        {
-          isAcceptable = false;
-        }
-      }
-      catch (ConfigException e)
-      {
-        // This is bad - give up immediately.
-        unacceptableReasons.add(e.getMessageObject());
-        return false;
-      }
-    }
-
-    // The bind DN patterns may be malformed.
-    if (!configuration.getAllowedBindDN().isEmpty())
-    {
-      try
-      {
-        BindDNConnectionCriteria.decode(configuration
-            .getAllowedBindDN());
-      }
-      catch (DirectoryException e)
-      {
-        unacceptableReasons.add(e.getMessageObject());
-        isAcceptable = false;
-      }
-    }
-
-    return isAcceptable;
-  }
-
-
-
-  // Decodes connection criteria configuration.
-  private static ConnectionCriteria decodeConnectionCriteriaConfiguration(
-      NetworkGroupCfg configuration) throws ConfigException
-  {
-    List<ConnectionCriteria> filters =
-        new LinkedList<ConnectionCriteria>();
-
-    if (!configuration.getAllowedAuthMethod().isEmpty())
-    {
-      filters.add(new AuthMethodConnectionCriteria(configuration
-          .getAllowedAuthMethod()));
-    }
-
-    if (!configuration.getAllowedBindDN().isEmpty())
-    {
-      try
-      {
-        filters.add(BindDNConnectionCriteria.decode(configuration
-            .getAllowedBindDN()));
-      }
-      catch (DirectoryException e)
-      {
-        throw new ConfigException(e.getMessageObject());
-      }
-    }
-
-    if (!configuration.getAllowedClient().isEmpty()
-        || !configuration.getDeniedClient().isEmpty())
-    {
-      filters.add(new IPConnectionCriteria(configuration
-          .getAllowedClient(), configuration.getDeniedClient()));
-    }
-
-    if (!configuration.getAllowedProtocol().isEmpty())
-    {
-      filters.add(new ProtocolConnectionCriteria(configuration
-          .getAllowedProtocol()));
-    }
-
-    if (configuration.isIsSecurityMandatory())
-    {
-      filters.add(SecurityConnectionCriteria.SECURITY_REQUIRED);
-    }
-
-    if (filters.isEmpty())
-    {
-      return ConnectionCriteria.TRUE;
-    }
-    else
-    {
-      return new ANDConnectionCriteria(filters);
-    }
-  }
-
-
-
-  /**
-   * Gets the name of the network group configuration.
-   *
-   * @param configuration
-   *          The configuration.
-   * @return The network group name.
-   */
-  private static String getNameFromConfiguration(NetworkGroupCfg configuration)
-  {
-    DN dn = configuration.dn();
-    return dn.rdn().getAttributeValue(0).toString();
-  }
-
-
-
-  // Determines whether or not the new network group configuration's
-  // implementation class is acceptable.
-  private static boolean isNetworkGroupQOSPolicyConfigurationAcceptable(
-      QOSPolicyCfg policyConfiguration,
-      List<LocalizableMessage> unacceptableReasons)
-  {
-    String className = policyConfiguration.getJavaClass();
-    QOSPolicyCfgDefn d = QOSPolicyCfgDefn.getInstance();
-    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
-
-    // Validate the configuration.
-    try
-    {
-      Class<? extends QOSPolicyFactory> theClass =
-          pd.loadClass(className, QOSPolicyFactory.class);
-      QOSPolicyFactory factory = theClass.newInstance();
-
-      return factory.isConfigurationAcceptable(policyConfiguration, unacceptableReasons);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      unacceptableReasons
-          .add(ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(
-              className, policyConfiguration.dn(), stackTraceToSingleLineString(e)));
-      return false;
-    }
-  }
-
-
-
-  // Change listener (active for user network groups).
-  private final ChangeListener changeListener;
-
-  // Current configuration (active for user network groups).
-  private NetworkGroupCfg configuration = null;
-
   // The network group connection criteria.
   private ConnectionCriteria criteria = ConnectionCriteria.TRUE;
 
@@ -673,9 +262,6 @@ public class NetworkGroup
   // All network group policies mapping factory class name to policy.
   private final Map<DN, QOSPolicy> policies =
       new ConcurrentHashMap<DN, QOSPolicy>();
-
-  // Add/delete policy listener (active for user network groups).
-  private final QOSPolicyListener policyListener;
 
   // The network group priority.
   private int priority = 100;
@@ -714,28 +300,7 @@ public class NetworkGroup
         ADMIN_NETWORK_GROUP_NAME.equals(networkGroupID);
     this.isDefaultNetworkGroup =
         DEFAULT_NETWORK_GROUP_NAME.equals(networkGroupID);
-    this.configuration = null;
-    this.changeListener = null;
-    this.policyListener = null;
   }
-
-
-
-  /**
-   * Creates a new user network group using the provided configuration.
-   */
-  private NetworkGroup(NetworkGroupCfg configuration)
-  {
-    this.networkGroupID = getNameFromConfiguration(configuration);
-    this.isInternalNetworkGroup = false;
-    this.isAdminNetworkGroup = false;
-    this.isDefaultNetworkGroup = false;
-    this.configuration = configuration;
-    this.changeListener = new ChangeListener();
-    this.policyListener = new QOSPolicyListener();
-  }
-
-
 
   /**
    * Adds a connection to the group.
@@ -938,21 +503,6 @@ public class NetworkGroup
    */
   void finalizeNetworkGroup()
   {
-    if (configuration != null)
-    {
-      // Finalization specific to user network groups.
-      deregister();
-
-      // Remove all change listeners.
-      configuration.removeChangeListener(changeListener);
-      configuration
-          .removeNetworkGroupQOSPolicyAddListener(policyListener);
-      configuration
-          .removeNetworkGroupQOSPolicyDeleteListener(policyListener);
-
-      configuration = null;
-    }
-
     // Clean up policies.
     for (QOSPolicy policy : policies.values())
     {

@@ -1877,27 +1877,6 @@ ds-cfg-plugin-type: postSynchronizationModifyDN
 ds-cfg-type: uid
 ds-cfg-invoke-for-internal-operations: true
 
-dn: cn=Network Group,cn=Plugins,cn=config
-objectClass: top
-objectClass: ds-cfg-plugin
-objectClass: ds-cfg-network-group-plugin
-cn: Network Group
-ds-cfg-java-class: org.opends.server.core.networkgroups.NetworkGroupPlugin
-ds-cfg-enabled: true
-ds-cfg-invoke-for-internal-operations: false
-ds-cfg-plugin-type: postConnect
-ds-cfg-plugin-type: preParseAdd
-ds-cfg-plugin-type: preParseBind
-ds-cfg-plugin-type: preParseCompare
-ds-cfg-plugin-type: preParseDelete
-ds-cfg-plugin-type: preParseExtended
-ds-cfg-plugin-type: preParseModify
-ds-cfg-plugin-type: preParseModifyDn
-ds-cfg-plugin-type: preParseSearch
-ds-cfg-plugin-type: preParseUnbind
-ds-cfg-plugin-type: postResponseBind
-ds-cfg-plugin-type: postResponseExtended
-
 dn: cn=Change Number Control,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
@@ -2614,19 +2593,3 @@ dn: cn=Extensions,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
 cn: Extensions
-
-dn: cn=Network Groups,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Network Groups
-
-dn: cn=Workflows,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Workflows
-
-dn: cn=Workflow Elements,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Workflow Elements
-
