@@ -28,6 +28,7 @@ package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -132,14 +133,14 @@ public class LocalBackendCompareOperation
 
     try
     {
-      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      AtomicBoolean executePostOpPlugins = new AtomicBoolean(false);
       processCompare(executePostOpPlugins);
 
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
       // Invoke the post-operation compare plugins.
-      if (executePostOpPlugins.value)
+      if (executePostOpPlugins.get())
       {
         PluginResult.PostOperation postOpResult =
             DirectoryServer.getPluginConfigManager()
@@ -159,7 +160,7 @@ public class LocalBackendCompareOperation
     }
   }
 
-  private void processCompare(BooleanHolder executePostOpPlugins)
+  private void processCompare(AtomicBoolean executePostOpPlugins)
       throws CanceledOperationException
   {
     // Process the entry DN to convert it from the raw form to the form
@@ -257,7 +258,7 @@ public class LocalBackendCompareOperation
 
 
       // Invoke the pre-operation compare plugins.
-      executePostOpPlugins.value = true;
+      executePostOpPlugins.set(true);
       PluginResult.PreOperation preOpResult =
           DirectoryServer.getPluginConfigManager()
               .invokePreOperationComparePlugins(this);

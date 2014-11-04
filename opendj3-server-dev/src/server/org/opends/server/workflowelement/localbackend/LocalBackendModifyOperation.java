@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -304,7 +305,7 @@ public class LocalBackendModifyOperation
 
     try
     {
-      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      AtomicBoolean executePostOpPlugins = new AtomicBoolean(false);
       processModify(executePostOpPlugins);
 
       // If the password policy request control was included, then make sure we
@@ -325,7 +326,7 @@ public class LocalBackendModifyOperation
           pluginConfigManager.invokePostSynchronizationModifyPlugins(this);
         }
       }
-      else if (executePostOpPlugins.value)
+      else if (executePostOpPlugins.get())
       {
         // FIXME -- Should this also be done while holding the locks?
         PluginResult.PostOperation postOpResult =
@@ -365,7 +366,7 @@ public class LocalBackendModifyOperation
   }
 
 
-  private void processModify(BooleanHolder executePostOpPlugins)
+  private void processModify(AtomicBoolean executePostOpPlugins)
       throws CanceledOperationException
   {
     entryDN = getEntryDN();
@@ -537,7 +538,7 @@ public class LocalBackendModifyOperation
       // Invoke the pre-operation modify plugins.
       if (!isSynchronizationOperation())
       {
-        executePostOpPlugins.value = true;
+        executePostOpPlugins.set(true);
         PluginResult.PreOperation preOpResult =
             DirectoryServer.getPluginConfigManager()
                 .invokePreOperationModifyPlugins(this);

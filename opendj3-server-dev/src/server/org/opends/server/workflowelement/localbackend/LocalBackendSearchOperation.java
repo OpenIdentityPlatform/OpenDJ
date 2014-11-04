@@ -27,6 +27,7 @@
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.Backend;
@@ -104,14 +105,14 @@ public class LocalBackendSearchOperation
 
     try
     {
-      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      AtomicBoolean executePostOpPlugins = new AtomicBoolean(false);
       processSearch(executePostOpPlugins);
 
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
       // Invoke the post-operation search plugins.
-      if (executePostOpPlugins.value)
+      if (executePostOpPlugins.get())
       {
         PluginResult.PostOperation postOpResult =
             DirectoryServer.getPluginConfigManager()
@@ -131,7 +132,7 @@ public class LocalBackendSearchOperation
     }
   }
 
-  private void processSearch(BooleanHolder executePostOpPlugins) throws CanceledOperationException
+  private void processSearch(AtomicBoolean executePostOpPlugins) throws CanceledOperationException
   {
     // Process the search base and filter to convert them from their raw forms
     // as provided by the client to the forms required for the rest of the
@@ -187,7 +188,7 @@ public class LocalBackendSearchOperation
 
 
     // Invoke the pre-operation search plugins.
-    executePostOpPlugins.value = true;
+    executePostOpPlugins.set(true);
     PluginResult.PreOperation preOpResult =
         DirectoryServer.getPluginConfigManager()
             .invokePreOperationSearchPlugins(this);

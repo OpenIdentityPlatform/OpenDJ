@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -172,7 +173,7 @@ public class LocalBackendAddOperation
 
     try
     {
-      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      AtomicBoolean executePostOpPlugins = new AtomicBoolean(false);
       processAdd(clientConnection, executePostOpPlugins);
 
       PluginConfigManager pluginConfigManager =
@@ -186,7 +187,7 @@ public class LocalBackendAddOperation
           pluginConfigManager.invokePostSynchronizationAddPlugins(this);
         }
       }
-      else if (executePostOpPlugins.value)
+      else if (executePostOpPlugins.get())
       {
         // FIXME -- Should this also be done while holding the locks?
         PluginResult.PostOperation postOpResult =
@@ -225,7 +226,7 @@ public class LocalBackendAddOperation
   }
 
   private void processAdd(ClientConnection clientConnection,
-      BooleanHolder executePostOpPlugins) throws CanceledOperationException
+      AtomicBoolean executePostOpPlugins) throws CanceledOperationException
   {
     // Process the entry DN and set of attributes to convert them from their
     // raw forms as provided by the client to the forms required for the rest
@@ -452,7 +453,7 @@ public class LocalBackendAddOperation
       // Invoke the pre-operation add plugins.
       if (!isSynchronizationOperation())
       {
-        executePostOpPlugins.value = true;
+        executePostOpPlugins.set(true);
         PluginResult.PreOperation preOpResult =
             DirectoryServer.getPluginConfigManager()
                 .invokePreOperationAddPlugins(this);
