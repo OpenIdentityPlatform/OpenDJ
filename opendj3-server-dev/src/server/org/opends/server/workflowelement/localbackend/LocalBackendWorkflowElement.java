@@ -35,6 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.Backend;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
@@ -80,10 +81,7 @@ public class LocalBackendWorkflowElement
   private static TreeMap<String, LocalBackendWorkflowElement> registeredLocalBackends =
       new TreeMap<String, LocalBackendWorkflowElement>();
 
-  /**
-   * A lock to guarantee safe concurrent access to the registeredLocalBackends
-   * variable.
-   */
+  /** A lock to guarantee safe concurrent access to the registeredLocalBackends variable. */
   private static final Object registeredLocalBackendsLock = new Object();
 
   /** A string indicating the type of the workflow element. */
@@ -124,7 +122,6 @@ public class LocalBackendWorkflowElement
    */
   public void finalizeWorkflowElement()
   {
-    // null all fields so that any use of the finalized object will raise a NPE
     this.workflowElementID = null;
     this.workflowElementTypeInfo = null;
     this.backend = null;
@@ -144,18 +141,14 @@ public class LocalBackendWorkflowElement
   public static LocalBackendWorkflowElement createAndRegister(
       String workflowElementID, Backend<?> backend)
   {
-    // If the requested workflow element does not exist then create one.
-    LocalBackendWorkflowElement localBackend =
-        registeredLocalBackends.get(workflowElementID);
+    LocalBackendWorkflowElement localBackend = registeredLocalBackends.get(workflowElementID);
     if (localBackend == null)
     {
       localBackend = new LocalBackendWorkflowElement();
       localBackend.initialize(workflowElementID, backend);
 
-      // store the new local backend in the list of registered backends
       registerLocalBackend(localBackend);
     }
-
     return localBackend;
   }
 
@@ -181,8 +174,7 @@ public class LocalBackendWorkflowElement
   {
     synchronized (registeredLocalBackendsLock)
     {
-      for (LocalBackendWorkflowElement localBackend:
-           registeredLocalBackends.values())
+      for (LocalBackendWorkflowElement localBackend : registeredLocalBackends.values())
       {
         deregisterLocalBackend(localBackend.getWorkflowElementID());
       }
@@ -220,8 +212,7 @@ public class LocalBackendWorkflowElement
       {
         final Control control = iter.next();
 
-        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-            .isAllowed(targetDN, op, control))
+        if (!getAccessControlHandler().isAllowed(targetDN, op, control))
         {
           // As per RFC 4511 4.1.11.
           if (control.isCritical())
@@ -278,14 +269,12 @@ public class LocalBackendWorkflowElement
       Entry entry, DN entryDN, ResultCode resultCode, LocalizableMessage message,
       ResultCode altResultCode, LocalizableMessage altMessage) throws DirectoryException
   {
-    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .canDiscloseInformation(entry, entryDN, operation))
+    if (getAccessControlHandler().canDiscloseInformation(entry, entryDN, operation))
     {
       return new DirectoryException(resultCode, message);
     }
     // replacement reason returned to the user
-    final DirectoryException ex =
-        new DirectoryException(altResultCode, altMessage);
+    final DirectoryException ex = new DirectoryException(altResultCode, altMessage);
     // real underlying reason
     ex.setMaskedResultCode(resultCode);
     ex.setMaskedMessage(message);
@@ -329,8 +318,7 @@ public class LocalBackendWorkflowElement
       Entry entry, DN entryDN, ResultCode resultCode, LocalizableMessage message,
       ResultCode altResultCode, LocalizableMessage altMessage) throws DirectoryException
   {
-    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .canDiscloseInformation(entry, entryDN, operation))
+    if (getAccessControlHandler().canDiscloseInformation(entry, entryDN, operation))
     {
       operation.setResultCode(resultCode);
       operation.appendErrorMessage(message);
@@ -362,8 +350,7 @@ public class LocalBackendWorkflowElement
 
     try
     {
-      if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-          .canDiscloseInformation(null, operation.getMatchedDN(), operation))
+      if (!getAccessControlHandler().canDiscloseInformation(null, operation.getMatchedDN(), operation))
       {
         operation.setMatchedDN(null);
       }
@@ -404,28 +391,19 @@ public class LocalBackendWorkflowElement
      */
     final Entry fullEntry = entry.duplicate(true);
 
-    /*
-     * Even though the associated update succeeded, we should still check
-     * whether or not we should return the entry.
-     */
-    final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(
-        fullEntry, null);
-    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .maySend(operation, unfilteredSearchEntry))
+    // Even though the associated update succeeded,
+    // we should still check whether or not we should return the entry.
+    final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(fullEntry, null);
+    if (getAccessControlHandler().maySend(operation, unfilteredSearchEntry))
     {
       // Filter the entry based on the control's attribute list.
-      final Entry filteredEntry = fullEntry.filterEntry(
-          postReadRequest.getRequestedAttributes(), false, false, false);
-      final SearchResultEntry filteredSearchEntry = new SearchResultEntry(
-          filteredEntry, null);
+      final Entry filteredEntry = fullEntry.filterEntry(postReadRequest.getRequestedAttributes(), false, false, false);
+      final SearchResultEntry filteredSearchEntry = new SearchResultEntry(filteredEntry, null);
 
       // Strip out any attributes which access control denies access to.
-      AccessControlConfigManager.getInstance().getAccessControlHandler()
-          .filterEntry(operation, unfilteredSearchEntry, filteredSearchEntry);
+      getAccessControlHandler().filterEntry(operation, unfilteredSearchEntry, filteredSearchEntry);
 
-      final LDAPPostReadResponseControl responseControl =
-          new LDAPPostReadResponseControl(filteredSearchEntry);
-      operation.addResponseControl(responseControl);
+      operation.addResponseControl(new LDAPPostReadResponseControl(filteredSearchEntry));
     }
   }
 
@@ -449,52 +427,42 @@ public class LocalBackendWorkflowElement
       return;
     }
 
-    /*
-     * Even though the associated update succeeded, we should still check
-     * whether or not we should return the entry.
-     */
-    final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(
-        entry, null);
-    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .maySend(operation, unfilteredSearchEntry))
+    // Even though the associated update succeeded,
+    // we should still check whether or not we should return the entry.
+    final SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(entry, null);
+    if (getAccessControlHandler().maySend(operation, unfilteredSearchEntry))
     {
       // Filter the entry based on the control's attribute list.
-      final Entry filteredEntry = entry.filterEntry(
-          preReadRequest.getRequestedAttributes(), false, false, false);
-      final SearchResultEntry filteredSearchEntry = new SearchResultEntry(
-          filteredEntry, null);
+      final Entry filteredEntry = entry.filterEntry(preReadRequest.getRequestedAttributes(), false, false, false);
+      final SearchResultEntry filteredSearchEntry = new SearchResultEntry(filteredEntry, null);
 
       // Strip out any attributes which access control denies access to.
-      AccessControlConfigManager.getInstance().getAccessControlHandler()
-          .filterEntry(operation, unfilteredSearchEntry, filteredSearchEntry);
+      getAccessControlHandler().filterEntry(operation, unfilteredSearchEntry, filteredSearchEntry);
 
-      final LDAPPreReadResponseControl responseControl =
-          new LDAPPreReadResponseControl(filteredSearchEntry);
-      operation.addResponseControl(responseControl);
+      operation.addResponseControl(new LDAPPreReadResponseControl(filteredSearchEntry));
     }
   }
 
-
+  private static AccessControlHandler<?> getAccessControlHandler()
+  {
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
+  }
 
   /**
    * Registers a local backend with the server.
    *
    * @param localBackend  the local backend to register with the server
    */
-  private static void registerLocalBackend(
-                           LocalBackendWorkflowElement localBackend)
+  private static void registerLocalBackend(LocalBackendWorkflowElement localBackend)
   {
     synchronized (registeredLocalBackendsLock)
     {
       String localBackendID = localBackend.getWorkflowElementID();
-      LocalBackendWorkflowElement existingLocalBackend =
-        registeredLocalBackends.get(localBackendID);
-
+      LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(localBackendID);
       if (existingLocalBackend == null)
       {
         TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
-          new TreeMap
-            <String, LocalBackendWorkflowElement>(registeredLocalBackends);
+            new TreeMap<String, LocalBackendWorkflowElement>(registeredLocalBackends);
         newLocalBackends.put(localBackendID, localBackend);
         registeredLocalBackends = newLocalBackends;
       }
@@ -512,14 +480,11 @@ public class LocalBackendWorkflowElement
   {
     synchronized (registeredLocalBackendsLock)
     {
-      LocalBackendWorkflowElement existingLocalBackend =
-        registeredLocalBackends.get(workflowElementID);
-
+      LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(workflowElementID);
       if (existingLocalBackend != null)
       {
         TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
-             new TreeMap<String, LocalBackendWorkflowElement>(
-                      registeredLocalBackends);
+            new TreeMap<String, LocalBackendWorkflowElement>(registeredLocalBackends);
         newLocalBackends.remove(workflowElementID);
         registeredLocalBackends = newLocalBackends;
       }
@@ -538,45 +503,31 @@ public class LocalBackendWorkflowElement
     switch (operation.getOperationType())
     {
       case BIND:
-        LocalBackendBindOperation bindOperation =
-             new LocalBackendBindOperation((BindOperation) operation);
-        bindOperation.processLocalBind(this);
+        new LocalBackendBindOperation((BindOperation) operation).processLocalBind(this);
         break;
 
       case SEARCH:
-        LocalBackendSearchOperation searchOperation =
-             new LocalBackendSearchOperation((SearchOperation) operation);
-        searchOperation.processLocalSearch(this);
+        new LocalBackendSearchOperation((SearchOperation) operation).processLocalSearch(this);
         break;
 
       case ADD:
-        LocalBackendAddOperation addOperation =
-             new LocalBackendAddOperation((AddOperation) operation);
-        addOperation.processLocalAdd(this);
+        new LocalBackendAddOperation((AddOperation) operation).processLocalAdd(this);
         break;
 
       case DELETE:
-        LocalBackendDeleteOperation deleteOperation =
-             new LocalBackendDeleteOperation((DeleteOperation) operation);
-        deleteOperation.processLocalDelete(this);
+        new LocalBackendDeleteOperation((DeleteOperation) operation).processLocalDelete(this);
         break;
 
       case MODIFY:
-        LocalBackendModifyOperation modifyOperation =
-             new LocalBackendModifyOperation((ModifyOperation) operation);
-        modifyOperation.processLocalModify(this);
+        new LocalBackendModifyOperation((ModifyOperation) operation).processLocalModify(this);
         break;
 
       case MODIFY_DN:
-        LocalBackendModifyDNOperation modifyDNOperation =
-             new LocalBackendModifyDNOperation((ModifyDNOperation) operation);
-        modifyDNOperation.processLocalModifyDN(this);
+        new LocalBackendModifyDNOperation((ModifyDNOperation) operation).processLocalModifyDN(this);
         break;
 
       case COMPARE:
-        LocalBackendCompareOperation compareOperation =
-             new LocalBackendCompareOperation((CompareOperation) operation);
-        compareOperation.processLocalCompare(this);
+        new LocalBackendCompareOperation((CompareOperation) operation).processLocalCompare(this);
         break;
 
       case ABANDON:
@@ -606,9 +557,7 @@ public class LocalBackendWorkflowElement
   @SuppressWarnings("unchecked")
   static <O extends Operation, L> void attachLocalOperation(O globalOperation, L currentLocalOperation)
   {
-    List<?> existingAttachment =
-      (List<?>) globalOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
-
+    List<?> existingAttachment = (List<?>) globalOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
     List<L> newAttachment = new ArrayList<L>();
 
     if (existingAttachment != null)
@@ -619,8 +568,7 @@ public class LocalBackendWorkflowElement
       newAttachment.addAll ((List<L>) existingAttachment);
     }
     newAttachment.add (currentLocalOperation);
-    globalOperation.setAttachment(Operation.LOCALBACKENDOPERATIONS,
-                                  newAttachment);
+    globalOperation.setAttachment(Operation.LOCALBACKENDOPERATIONS, newAttachment);
   }
 
   /**
@@ -672,32 +620,23 @@ public class LocalBackendWorkflowElement
   {
     if (!backend.isPrivateBackend())
     {
-      switch (DirectoryServer.getWritabilityMode())
+      checkIfWritable(DirectoryServer.getWritabilityMode(), op, serverMsg, entryDN);
+      checkIfWritable(backend.getWritabilityMode(), op, backendMsg, entryDN);
+    }
+  }
+
+  private static void checkIfWritable(WritabilityMode writabilityMode, Operation op,
+      LocalizableMessageDescriptor.Arg1<Object> errorMsg, DN entryDN) throws DirectoryException
+  {
+    switch (writabilityMode)
+    {
+    case DISABLED:
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, errorMsg.get(entryDN));
+
+    case INTERNAL_ONLY:
+      if (!(op.isInternalOperation() || op.isSynchronizationOperation()))
       {
-      case DISABLED:
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            serverMsg.get(String.valueOf(entryDN)));
-
-      case INTERNAL_ONLY:
-        if (!(op.isInternalOperation() || op.isSynchronizationOperation()))
-        {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-              serverMsg.get(String.valueOf(entryDN)));
-        }
-      }
-
-      switch (backend.getWritabilityMode())
-      {
-      case DISABLED:
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            backendMsg.get(String.valueOf(entryDN)));
-
-      case INTERNAL_ONLY:
-        if (!(op.isInternalOperation() || op.isSynchronizationOperation()))
-        {
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-              backendMsg.get(String.valueOf(entryDN)));
-        }
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, errorMsg.get(entryDN));
       }
     }
   }

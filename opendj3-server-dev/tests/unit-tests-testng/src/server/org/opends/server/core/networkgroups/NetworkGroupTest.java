@@ -60,15 +60,7 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public class NetworkGroupTest extends DirectoryServerTestCase {
-  //===========================================================================
-  //                      B E F O R E    C L A S S
-  //===========================================================================
 
-  /**
-   * Sets up the environment for performing the tests in this suite.
-   *
-   * @throws Exception if the environment could not be set up.
-   */
   @BeforeClass
   public void setUp() throws Exception
   {
@@ -76,10 +68,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // so we'll start the server.
     TestCaseUtils.startServer();
   }
-
-  //===========================================================================
-  //                      D A T A    P R O V I D E R
-  //===========================================================================
 
   /**
    * Provides information to create a network group with one workflow inside.
@@ -162,35 +150,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     };
   }
 
-
-  /**
-   * Provides information to create 2 network groups with different priorities.
-   */
-  @DataProvider (name = "DNSet_4")
-  public Object[][] initDNSet_4() throws Exception
-  {
-    String networkGroupID1 = "group1";
-    String networkGroupID2 = "group2";
-    DN dn1 = DN.valueOf("o=test1");
-    DN dn2 = DN.valueOf("o=test2");
-
-    return new Object[][] {
-      {
-        networkGroupID1, dn1, 1,
-        networkGroupID2, dn2, 2
-      },
-      {
-        networkGroupID1, dn1, 2,
-        networkGroupID2, dn2, 1
-      }
-    };
-  }
-
-  //===========================================================================
-  //                        T E S T   C A S E S
-  //===========================================================================
-
-
   /**
    * Tests the network group registration.
    *
@@ -199,11 +158,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    *                         in the network group
    */
   @Test (dataProvider = "DNSet_0", groups = "virtual")
-  public void testNetworkGroupRegistration(
-      String networkGroupID,
-      DN     workflowBaseDN
-      )
-      throws Exception
+  public void testNetworkGroupRegistration(String networkGroupID, DN workflowBaseDN) throws Exception
   {
     // Create and register the network group with the server.
     NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
@@ -211,8 +166,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // Create a workflow -- the workflow ID is the string representation
     // of the workflow base DN.
     WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null);
-
-    // Register the workflow with the network group.
     networkGroup.registerWorkflow(workflow);
 
     // Register again the workflow with the network group and catch the
@@ -220,38 +173,13 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     try
     {
       networkGroup.registerWorkflow(workflow);
-      fail("DirectoryException sjhould have been thrown");
+      fail("DirectoryException should have been thrown");
     }
     catch (DirectoryException de)
     {
       assertTrue(StaticUtils.hasDescriptor(de.getMessageObject(),
           ERR_REGISTER_WORKFLOW_NODE_ALREADY_EXISTS));
     }
-  }
-
-
-  /**
-   * Check the route process in the default network group.
-   *
-   *  @param dnToSearch     the DN of a workflow to search in the default
-   *                        network group
-   *  @param dnSubordinate  a subordinate DN of dnToSearch
-   *  @param exists         true if we are supposed to find a workflow for
-   *                        dnToSearch
-   */
-  @Test (dataProvider = "DNSet_1", groups = "virtual")
-  public void checkDefaultNetworkGroup(
-      DN      dnToSearch,
-      DN      dnSubordinate,
-      boolean exists
-      )
-  {
-    // let's get the default network group -- it should always exist
-    NetworkGroup defaultNG = NetworkGroup.getDefaultNetworkGroup();
-    assertNotNull(defaultNG);
-
-    // let's check the routing through the network group
-    doCheckNetworkGroup(defaultNG, dnToSearch, dnSubordinate, null, exists);
   }
 
   /**
@@ -265,8 +193,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    * returned.
    */
   @Test
-  public void testBackendBaseDNModification()
-         throws Exception
+  public void testBackendBaseDNModification() throws Exception
   {
     String suffix  = "dc=example,dc=com";
     String suffix2 = "o=networkgroup suffix";
@@ -276,8 +203,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     TestCaseUtils.clearJEBackend(true, "userRoot", suffix);
 
     // Check that suffix is accessible while suffix2 is not.
-    searchEntry(suffix, true);
-    searchEntry(suffix2, false);
+    searchEntry(suffix, ResultCode.SUCCESS);
+    searchEntry(suffix2, ResultCode.NO_SUCH_OBJECT);
 
     // Add a new suffix in the backend and create a base entry for the
     // new suffix.
@@ -286,111 +213,48 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     addBaseEntry(suffix2, "networkgroup suffix");
 
     // Both old and new suffix should be accessible.
-    searchEntry(suffix, true);
-    searchEntry(suffix2, true);
+    searchEntry(suffix, ResultCode.SUCCESS);
+    searchEntry(suffix2, ResultCode.SUCCESS);
 
     // Remove the new suffix...
     modifyAttribute(backendConfigDN, ModificationType.DELETE, backendBaseDNName, suffix2);
 
     // ...and check that the removed suffix is no more accessible.
-    searchEntry(suffix, true);
-    searchEntry(suffix2, false);
+    searchEntry(suffix, ResultCode.SUCCESS);
+    searchEntry(suffix2, ResultCode.NO_SUCH_OBJECT);
 
     // Replace the suffix with suffix2 in the backend
     modifyAttribute(backendConfigDN, ModificationType.REPLACE, backendBaseDNName, suffix2);
 
     // Now none of the suffixes are accessible: this means the entries
     // under the old suffix are not moved to the new suffix.
-    searchEntry(suffix, false);
-    searchEntry(suffix2, false);
+    searchEntry(suffix, ResultCode.NO_SUCH_OBJECT);
+    searchEntry(suffix2, ResultCode.NO_SUCH_OBJECT);
 
     // Add a base entry for the new suffix
     addBaseEntry(suffix2, "networkgroup suffix");
 
     // The new suffix is accessible while the old one is not.
-    searchEntry(suffix, false);
-    searchEntry(suffix2, true);
+    searchEntry(suffix, ResultCode.NO_SUCH_OBJECT);
+    searchEntry(suffix2, ResultCode.SUCCESS);
 
     // Reset the configuration with previous suffix
     modifyAttribute(backendConfigDN, ModificationType.REPLACE, backendBaseDNName, suffix);
   }
 
-
-
-  /**
-   * Tests that routing mode changes cause the network group config
-   * manager to be initialized, shutdown, and reinitialized correctly.
-   * <p>
-   * Disabled because NGs are not supported (issue OPENDJ-335).
-   *
-   * @see <a
-   *      href="https://opends.dev.java.net/issues/show_bug.cgi?id=3775">Issue 3775</a>
-   * @throws Exception
-   *           If an unexpected error occurred.
-   */
-  @Test(enabled=false)
-  public void testIssue3775() throws Exception
-  {
-    // Switch to and from manual mode twice in order to ensure that the
-    // config manager is initialized twice. Then register a network
-    // group. If the initialization has worked properly the network
-    // group should be added successfully. In the case of issue 3775,
-    // the config add listeners ended up being added twice so adding a
-    // network group failed because the admin framework thought it had
-    // been added twice.
-
-    // Switch to manual mode once.
-    TestCaseUtils.dsconfig(
-        "set-global-configuration-prop",
-        "--set", "workflow-configuration-mode:manual");
-
-    try
-    {
-      // Switch back.
-      TestCaseUtils.dsconfig(
-          "set-global-configuration-prop",
-          "--set", "workflow-configuration-mode:auto");
-
-      // Switch to manual mode twice.
-      TestCaseUtils.dsconfig(
-          "set-global-configuration-prop",
-          "--set", "workflow-configuration-mode:manual");
-
-      // Now add network group.
-      final String networkGroupID = "Network group issue 3775";
-
-      TestCaseUtils.dsconfig(
-          "create-network-group",
-          "--group-name", networkGroupID,
-          "--set", "enabled:true",
-          "--set", "priority:" + 123);
-
-      // Remove the network group.
-      TestCaseUtils.dsconfig("delete-network-group", "--group-name", networkGroupID);
-    }
-    finally
-    {
-      TestCaseUtils.dsconfig(
-          "set-global-configuration-prop",
-          "--set", "workflow-configuration-mode:auto");
-    }
-  }
-
   /**
    * Tests the mechanism to attribute a network group to a client connection,
    * comparing the priority.
+   * Create 2 network groups with different priorities.
    */
-  @Test (dataProvider = "DNSet_4", groups = "virtual")
-  public void testNetworkGroupPriority(
-      String ng1,
-      DN dn1,
-      int prio1,
-      String ng2,
-      DN dn2,
-      int prio2
-      )
-      throws Exception
+  @Test(groups = "virtual")
+  public void testNetworkGroupPriority() throws Exception
   {
+    String ng1 = "group1";
+    String ng2 = "group2";
+    DN dn1 = DN.valueOf("o=test1");
+    DN dn2 = DN.valueOf("o=test2");
+
     // Create and register the network group with the server.
     NetworkGroup networkGroup1 = new NetworkGroup(ng1);
     NetworkGroup networkGroup2 = new NetworkGroup(ng2);
@@ -410,8 +274,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    * subordinate naming context defined in the RootDSEBackend.
    */
   @Test
-  public void testRootDseSubordinateNamingContext()
-         throws Exception
+  public void testRootDseSubordinateNamingContext() throws Exception
   {
     // Backends for the test
     String backend1   = "o=test-rootDSE-subordinate-naming-context-1";
@@ -419,22 +282,17 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     String backendID1 = "test-rootDSE-subordinate-naming-context-1";
     String backendID2 = "test-rootDSE-subordinate-naming-context-2";
 
-    // Clean all the backends.
     TestCaseUtils.clearDataBackends();
-
-    // Create a client connection for the test.
-    InternalClientConnection connection =
-      InternalClientConnection.getRootConnection();
 
     // At this point, the list of subordinate naming context is not defined
     // yet (null): any public backend should be visible. Create a backend
     // with a base entry and check that the test naming context is visible.
     TestCaseUtils.initializeMemoryBackend(backendID1, backend1, true);
-    searchPublicNamingContexts(connection, true,  1);
+    searchPublicNamingContexts(ResultCode.SUCCESS, 1);
 
     // Create another test backend and check that the new backend is visible
     TestCaseUtils.initializeMemoryBackend(backendID2, backend2, true);
-    searchPublicNamingContexts(connection, true,  2);
+    searchPublicNamingContexts(ResultCode.SUCCESS, 2);
 
     // Now put in the list of subordinate naming context the backend1
     // naming context. This white list will prevent the backend2 to be
@@ -442,7 +300,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     TestCaseUtils.dsconfig(
         "set-root-dse-backend-prop",
         "--set", "subordinate-base-dn:" + backend1);
-    searchPublicNamingContexts(connection, true, 1);
+    searchPublicNamingContexts(ResultCode.SUCCESS, 1);
 
     // === Cleaning
 
@@ -451,34 +309,30 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     TestCaseUtils.dsconfig(
         "set-root-dse-backend-prop",
         "--reset", "subordinate-base-dn");
-    searchPublicNamingContexts(connection, true, 2);
+    searchPublicNamingContexts(ResultCode.SUCCESS, 2);
 
     // Clean the test backends. There is no more naming context.
     TestCaseUtils.clearMemoryBackend(backendID1);
     TestCaseUtils.clearMemoryBackend(backendID2);
-    searchPublicNamingContexts(connection, false, 0);
+    searchPublicNamingContexts(ResultCode.NO_SUCH_OBJECT, 0);
   }
 
 
   /**
    * Searches the list of naming contexts.
    *
-   * @param connection    the connection to use for the search request
-   * @param shouldExist   indicates whether at least one NC should be found
+   * @param expectedRC  the expected result code
    * @param expectedNamingContexts  the number of expected naming contexts
    */
-  private void searchPublicNamingContexts(
-      InternalClientConnection connection,
-      boolean shouldExist,
-      int expectedNamingContexts
-      ) throws Exception
+  private void searchPublicNamingContexts(ResultCode expectedRC, int expectedNamingContexts) throws Exception
   {
+    InternalClientConnection conn = InternalClientConnection.getRootConnection();
     SearchRequest request = newSearchRequest(DN.rootDN(), SearchScope.SINGLE_LEVEL);
-    SearchOperation search = connection.processSearch(request);
+    SearchOperation search = conn.processSearch(request);
 
     // Check the number of found naming context
-    assertEquals(search.getResultCode(), shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
-    if (shouldExist)
+    assertEquals(search.getResultCode(), expectedRC);
+    if (expectedRC == ResultCode.SUCCESS)
     {
       assertEquals(search.getEntriesSent(), expectedNamingContexts);
     }
@@ -488,16 +342,14 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   /**
    * Searches an entry on a given connection.
    *
-   * @param baseDN        the request base DN string
-   * @param shouldExist   if true the searched entry is expected to be found
+   * @param baseDN the request base DN string
+   * @param expectedRC the expected result code
    */
-  private void searchEntry(String baseDN, boolean shouldExist) throws Exception
+  private void searchEntry(String baseDN, ResultCode expectedRC) throws Exception
   {
     SearchRequest request = newSearchRequest(DN.valueOf(baseDN), SearchScope.BASE_OBJECT);
     SearchOperation search = getRootConnection().processSearch(request);
-
-    // Compare the result code with the expected one
-    assertEquals(search.getResultCode(), shouldExist ? ResultCode.SUCCESS : ResultCode.NO_SUCH_OBJECT);
+    assertEquals(search.getResultCode(), expectedRC);
   }
 
 
@@ -532,8 +384,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
       ) throws Exception
   {
     ArrayList<Modification> mods = new ArrayList<Modification>();
-    Attribute attributeToModify =
-      Attributes.create(attributeName, attributeValue);
+    Attribute attributeToModify = Attributes.create(attributeName, attributeValue);
     mods.add(new Modification(modType, attributeToModify));
     ModifyOperation modifyOperation = getRootConnection().processModify(DN.valueOf(baseDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -543,7 +394,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   /**
    * Checks the DN routing through a network group.
    *
-   * @param networkGroup    the network group to use for the check
    * @param dnToSearch      the DN of a workflow in the network group; may
    *                        be null
    * @param dnSubordinate   a subordinate of dnToSearch
@@ -552,11 +402,10 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
    * @param shouldExist     true if we are supposed to find a workflow for
    *                        dnToSearch
    */
-  private void doCheckNetworkGroup(
-      NetworkGroup networkGroup,
+  @Test (dataProvider = "DNSet_1", groups = "virtual")
+  public void doCheckNetworkGroup(
       DN           dnToSearch,
       DN           dnSubordinate,
-      DN           unrelatedDN,
       boolean      shouldExist
       )
   {
@@ -566,7 +415,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     }
 
     // Let's retrieve the workflow that maps best the dnToSearch
-    Workflow workflow = networkGroup.getWorkflowCandidate(dnToSearch);
+    Workflow workflow = NetworkGroup.getWorkflowCandidate(dnToSearch);
     if (shouldExist)
     {
       assertNotNull(workflow);
@@ -580,14 +429,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     // it should be the same than the one for dnToSearch
     if (dnSubordinate != null)
     {
-       Workflow workflow2 = networkGroup.getWorkflowCandidate(dnSubordinate);
+       Workflow workflow2 = NetworkGroup.getWorkflowCandidate(dnSubordinate);
        assertEquals(workflow2, workflow);
-    }
-
-    // Check that the unrelatedDN is not handled by any workflow
-    if (unrelatedDN != null)
-    {
-      assertNull(networkGroup.getWorkflowCandidate(unrelatedDN));
     }
   }
 
