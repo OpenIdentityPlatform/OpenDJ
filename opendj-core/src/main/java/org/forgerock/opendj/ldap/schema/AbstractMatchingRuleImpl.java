@@ -39,6 +39,8 @@ import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
+import static org.forgerock.opendj.ldap.Assertion.*;
+
 /**
  * This class implements a default equality or approximate matching rule that
  * matches normalized values in byte order.
@@ -97,28 +99,6 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
             return indexID;
         }
     }
-
-    private static final Assertion UNDEFINED_ASSERTION = new Assertion() {
-        @Override
-        public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
-            return ConditionResult.UNDEFINED;
-        }
-
-        @Override
-        public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-            // Subclassing this class will always work, albeit inefficiently.
-            // This is better than throwing an exception for no good reason.
-            return factory.createMatchAllQuery();
-        }
-    };
-
-    private static final Comparator<ByteSequence> DEFAULT_COMPARATOR =
-            new Comparator<ByteSequence>() {
-                @Override
-                public int compare(final ByteSequence o1, final ByteSequence o2) {
-                    return o1.compareTo(o2);
-                }
-            };
 
     AbstractMatchingRuleImpl() {
         // Nothing to do.
