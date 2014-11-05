@@ -27,8 +27,6 @@
 package org.forgerock.opendj.ldap;
 
 
-import java.util.Comparator;
-
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 
 /**
@@ -48,14 +46,6 @@ public interface Assertion {
             // Subclassing this class will always work, albeit inefficiently.
             // This is better than throwing an exception for no good reason.
             return factory.createMatchAllQuery();
-        }
-    };
-
-    /** A default ByteSequence comparator. */
-    public static final Comparator<ByteSequence> DEFAULT_COMPARATOR = new Comparator<ByteSequence>() {
-        @Override
-        public int compare(final ByteSequence o1, final ByteSequence o2) {
-            return o1.compareTo(o2);
         }
     };
 

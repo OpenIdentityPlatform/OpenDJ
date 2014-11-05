@@ -28,12 +28,21 @@ package org.forgerock.opendj.ldap;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Comparator;
 
 /**
  * A {@code ByteSequence} is a readable sequence of byte values. This interface
  * provides uniform, read-only access to many different kinds of byte sequences.
  */
 public interface ByteSequence extends Comparable<ByteSequence> {
+
+    /** A default ByteSequence comparator. */
+    public static final Comparator<ByteSequence> DEFAULT_COMPARATOR = new Comparator<ByteSequence>() {
+        @Override
+        public int compare(final ByteSequence o1, final ByteSequence o2) {
+            return o1.compareTo(o2);
+        }
+    };
 
     /**
      * Returns a {@link ByteSequenceReader} which can be used to incrementally
