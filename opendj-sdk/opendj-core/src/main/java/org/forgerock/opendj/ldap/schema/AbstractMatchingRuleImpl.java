@@ -106,7 +106,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
 
     @Override
     public Comparator<ByteSequence> comparator(final Schema schema) {
-        return ByteSequence.DEFAULT_COMPARATOR;
+        return ByteSequence.COMPARATOR;
     }
 
     @Override
