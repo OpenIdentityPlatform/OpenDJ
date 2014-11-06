@@ -46,8 +46,8 @@ import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.api.*;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -335,22 +335,7 @@ public final class PasswordPolicyFactory implements
         if (requireChangeBy != null)
         {
           ByteString valueString = ByteString.valueOf(requireChangeBy);
-
-          GeneralizedTimeSyntax syntax = (GeneralizedTimeSyntax)
-              serverContext.getSchema().getSyntax(SYNTAX_GENERALIZED_TIME_OID, false);
-
-          if (syntax == null)
-          {
-            requireChangeByTime = GeneralizedTimeSyntax
-                .decodeGeneralizedTimeValue(valueString);
-          }
-          else
-          {
-            valueString = syntax.getEqualityMatchingRule().normalizeAttributeValue(
-                valueString);
-            requireChangeByTime = GeneralizedTimeSyntax
-                .decodeGeneralizedTimeValue(valueString);
-          }
+          requireChangeByTime = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
         }
       }
       catch (Exception e)

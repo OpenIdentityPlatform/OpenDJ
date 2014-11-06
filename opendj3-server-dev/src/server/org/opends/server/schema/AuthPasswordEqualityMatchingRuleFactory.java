@@ -28,11 +28,15 @@ package org.opends.server.schema;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.api.MatchingRule;
+
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.opends.server.admin.std.server.MatchingRuleCfg;
+import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
+
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for {@link AuthPasswordEqualityMatchingRule}.
@@ -41,9 +45,7 @@ public final class AuthPasswordEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
  //Associated Matching Rule.
-  private MatchingRule matchingRule;
-
-
+  private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;
 
  /**
   * {@inheritDoc}
@@ -52,16 +54,18 @@ public final class AuthPasswordEqualityMatchingRuleFactory
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
  {
-   matchingRule = new AuthPasswordEqualityMatchingRule();
+   matchingRule = new SchemaBuilder(CoreSchema.getInstance()).buildMatchingRule(EMR_AUTH_PASSWORD_OID)
+       .names(EMR_AUTH_PASSWORD_NAME)
+       .syntaxOID(SYNTAX_AUTH_PASSWORD_OID).description(EMR_AUTH_PASSWORD_DESCRIPTION)
+       .implementation(new AuthPasswordEqualityMatchingRule())
+       .addToSchema().toSchema().getMatchingRule(EMR_AUTH_PASSWORD_OID);
  }
-
-
 
  /**
   * {@inheritDoc}
   */
  @Override
- public final Collection<MatchingRule> getMatchingRules()
+ public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
  {
     return Collections.singleton(matchingRule);
  }

@@ -29,11 +29,13 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.std.server.GroupImplementationCfg;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -148,6 +150,8 @@ public abstract class Group<T extends GroupImplementationCfg>
    * default constructor and initialized with the
    * {@code initializeGroupImplementation} method.
    *
+   * @param serverContext
+   *            The server context.
    * @param  groupEntry  The entry containing the definition for the
    *                     group to be created.
    *
@@ -157,7 +161,7 @@ public abstract class Group<T extends GroupImplementationCfg>
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              create the group instance.
    */
-  public abstract Group newInstance(Entry groupEntry)
+  public abstract Group<T> newInstance(ServerContext serverContext, Entry groupEntry)
          throws DirectoryException;
 
 

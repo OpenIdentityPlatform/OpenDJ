@@ -26,125 +26,105 @@
  */
 package org.opends.server.schema;
 
-
-
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.api.ApproximateMatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
 
-import static org.opends.server.schema.SchemaConstants.*;
-
-
+import static java.util.Collections.*;
 
 /**
  * This class implements an extremely simple approximate matching rule that will
- * consider two values approximately equal only if they have the same length.
- * It is intended purely for testing purposes.
+ * consider two values approximately equal only if they have the same length. It
+ * is intended purely for testing purposes.
  */
-class EqualLengthApproximateMatchingRule
-       extends ApproximateMatchingRule
+class EqualLengthApproximateMatchingRule implements MatchingRuleImpl
 {
-  /**
-   * Creates a new instance of this equal length approximate matching rule.
-   */
-  public EqualLengthApproximateMatchingRule()
-  {
-    super();
-  }
+  static final String EQUAL_LENGTH_APPROX_MR_NAME = "equalLengthApproximateMatch";
+  static final String EQUAL_LENGTH_APPROX_MR_OID = "1.3.6.1.4.1.26027.1.999.26";
+  static final String EQUAL_LENGTH_APPROX_MR_SYNTAX_OID = SchemaConstants.SYNTAX_DIRECTORY_STRING_OID;
 
-
-
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public Collection<String> getNames()
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException
   {
-    return Collections.singleton("equalLengthApproximateMatch");
-  }
-
-
-  /**
-   * Retrieves the OID for this matching rule.
-   *
-   * @return  The OID for this matching rule.
-   */
-  @Override
-  public String getOID()
-  {
-    return "1.3.6.1.4.1.26027.1.999.26";
-  }
-
-
-
-  /**
-   * Retrieves the description for this matching rule.
-   *
-   * @return  The description for this matching rule, or <CODE>null</CODE> if
-   *          there is none.
-   */
-  @Override
-  public String getDescription()
-  {
-    return null;
-  }
-
-
-
-  /**
-   * Retrieves the OID of the syntax with which this matching rule is
-   * associated.
-   *
-   * @return  The OID of the syntax with which this matching rule is associated.
-   */
-  @Override
-  public String getSyntaxOID()
-  {
-    return SYNTAX_DIRECTORY_STRING_OID;
-  }
-
-
-
-  /**
-   * Retrieves the normalized form of the provided value, which is best suited
-   * for efficiently performing matching operations on that value.
-   *
-   * @param  value  The value to be normalized.
-   *
-   * @return  The normalized version of the provided value.
-   *
-   * @throws  DecodeException  If the provided value is invalid according to
-   *                              the associated attribute syntax.
-   */
-  @Override
-  public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DecodeException
-  {
-    // Any value is acceptable, so we can just return a copy of the
-    // value.
+    // Any value is acceptable, so we can just return a copy of the value.
     return value.toByteString();
   }
 
-
-
-  /**
-   * Indicates whether the two provided normalized values are approximately
-   * equal to each other.
-   *
-   * @param  value1  The normalized form of the first value to compare.
-   * @param  value2  The normalized form of the second value to compare.
-   *
-   * @return  <CODE>true</CODE> if the provided values are approximately equal,
-   *          or <CODE>false</CODE> if not.
-   */
   @Override
-  public boolean approximatelyMatch(ByteSequence value1, ByteSequence value2)
+  public Comparator<ByteSequence> comparator(final Schema schema)
   {
-    return value1.length() == value2.length();
+    return new Comparator<ByteSequence>()
+    {
+      @Override
+      public int compare(final ByteSequence o1, final ByteSequence o2)
+      {
+        return o1.length() - o2.length();
+      }
+    };
   }
-}
 
+  @Override
+  public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException
+  {
+    final ByteString normAssertion = normalizeAttributeValue(schema, assertionValue);
+    return new Assertion()
+    {
+      @Override
+      public ConditionResult matches(final ByteSequence normalizedAttributeValue)
+      {
+        return ConditionResult.valueOf(normalizedAttributeValue.length() == normAssertion.length());
+      }
+
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException
+      {
+        return factory.createMatchAllQuery();
+      }
+    };
+  }
+
+  @Override
+  public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
+      final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal) throws DecodeException
+  {
+    throw new RuntimeException("Not implemented");
+  }
+
+  @Override
+  public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value) throws DecodeException
+  {
+    throw new RuntimeException("Not implemented");
+  }
+
+  @Override
+  public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value) throws DecodeException
+  {
+    throw new RuntimeException("Not implemented");
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isIndexingSupported()
+  {
+    return false;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Collection<? extends Indexer> getIndexers()
+  {
+    return emptyList();
+  }
+
+}

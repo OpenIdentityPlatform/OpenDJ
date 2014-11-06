@@ -628,7 +628,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
           {
             try
             {
-              Group<?> groupInstance = groupImplementation.newInstance(entry);
+              Group<?> groupInstance = groupImplementation.newInstance(null, entry);
               groupInstances.put(entry.getName(), groupInstance);
               refreshToken++;
             }
@@ -982,7 +982,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       {
         if (groupImplementation.isGroupDefinition(entry))
         {
-          Group<?> groupInstance = groupImplementation.newInstance(entry);
+          Group<?> groupInstance = groupImplementation.newInstance(null, entry);
 
           lock.writeLock().lock();
           try

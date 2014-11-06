@@ -2554,31 +2554,27 @@ public final class DN implements Comparable<DN>, Serializable
     {
       return true;
     }
-
-    if (!(o instanceof DN))
+    if (o instanceof DN)
     {
-      return false;
-    }
-
-    try
-    {
-      return (toNormalizedString().equals(
-          ((DN) o).toNormalizedString()));
-    }
-    catch (Exception e)
-    {
-      // This most likely means that the object was null or wasn't a
-      // DN.  In either case, it's faster to assume that it is and
-      // return false on an exception than to perform the checks to
-      // see if it meets the appropriate
-      // conditions.
-      logger.traceException(e);
-
-      return false;
-    }
+      DN other = (DN) o;
+      if (numComponents == other.numComponents)
+      {
+        if (numComponents == 0)
+        {
+          return true;
+        }
+        for (int i = 0; i < numComponents; i++)
+        {
+          if (!rdnComponents[i].equals(other.rdnComponents[i]))
+          {
+            return false;
+          }
+        }
+        return true;
+      }
+     }
+     return false;
   }
-
-
 
   /**
    * Retrieves the hash code for this DN.  The hash code will be the
@@ -2589,10 +2585,20 @@ public final class DN implements Comparable<DN>, Serializable
   @Override
   public int hashCode()
   {
-    return toNormalizedString().hashCode();
+      if (numComponents == 0) {
+          return 0;
+      }
+      int length = numComponents - 1;
+      int hash = 31 * rdnComponents[length].hashCode();
+      if (numComponents > 1)
+      {
+          for (int i = 0; i < length; i++)
+          {
+            hash += rdnComponents[i].hashCode();
+          }
+      }
+      return hash;
   }
-
-
 
   /**
    * Retrieves a string representation of this DN.
@@ -2723,57 +2729,60 @@ public final class DN implements Comparable<DN>, Serializable
 
 
   /**
-   * Compares this DN with the provided DN based on a natural order.
-   * This order will be first hierarchical (ancestors will come before
-   * descendants) and then alphabetical by attribute name(s) and
-   * value(s).
+   * Compares this DN with the provided DN based on a natural order. This order
+   * will be first hierarchical (ancestors will come before descendants) and
+   * then alphabetical by attribute name(s) and value(s).
    *
-   * @param  dn  The DN against which to compare this DN.
-   *
-   * @return  A negative integer if this DN should come before the
-   *          provided DN, a positive integer if this DN should come
-   *          after the provided DN, or zero if there is no difference
-   *          with regard to ordering.
+   * @param other
+   *          The DN against which to compare this DN.
+   * @return A negative integer if this DN should come before the provided DN, a
+   *         positive integer if this DN should come after the provided DN, or
+   *         zero if there is no difference with regard to ordering.
    */
   @Override
-  public int compareTo(DN dn)
+  public int compareTo(DN other)
   {
-    if (equals(dn))
+    if (isRootDN())
     {
-      return 0;
+      /** root DN always come first. */
+      return other.isRootDN() ? 0 : -1;
     }
-    else if (isRootDN())
-    {
-      return -1;
-    }
-    else if (dn.isRootDN())
-    {
-      return 1;
-    }
-    else if (isAncestorOf(dn))
-    {
-      return -1;
-    }
-    else if (isDescendantOf(dn))
-    {
-      return 1;
-    }
-    else
-    {
-      int minComps = Math.min(numComponents, dn.numComponents);
-      for (int i=0; i < minComps; i++)
-      {
-        RDN r1 = rdnComponents[rdnComponents.length-1-i];
-        RDN r2 = dn.rdnComponents[dn.rdnComponents.length-1-i];
-        int result = r1.compareTo(r2);
-        if (result != 0)
-        {
-          return result;
-        }
-      }
 
-      return 0;
+    if (other.isRootDN())
+    {
+      // this comes after other.
+      return 1;
     }
+
+    int size1 = numComponents - 1;
+    int size2 = other.numComponents - 1;
+    while (size1 >= 0 && size2 >= 0)
+    {
+      RDN rdn1 = getRDN(size1);
+      RDN rdn2 = other.getRDN(size2);
+      size1--;
+      size2--;
+      int result = rdn1.compareTo(rdn2);
+      if (result > 0)
+      {
+        return 1;
+      }
+      else if (result < 0)
+      {
+        return -1;
+      }
+    }
+
+    // Check remaining sizes
+    if (size1 > size2)
+    {
+      return 1;
+    }
+    else if (size1 < size2)
+    {
+      return -1;
+    }
+    return 0;
   }
 }
 

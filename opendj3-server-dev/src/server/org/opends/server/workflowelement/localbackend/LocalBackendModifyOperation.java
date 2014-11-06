@@ -45,7 +45,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;

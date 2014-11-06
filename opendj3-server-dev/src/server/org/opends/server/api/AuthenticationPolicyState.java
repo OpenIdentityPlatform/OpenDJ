@@ -32,9 +32,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 
 import static org.opends.messages.CoreMessages.*;
@@ -200,9 +200,7 @@ public abstract class AuthenticationPolicyState
         final ByteString v = a.iterator().next();
         try
         {
-          MatchingRule rule = attributeType.getEqualityMatchingRule();
-          ByteString normValue = rule.normalizeAttributeValue(v);
-          timeValue = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(normValue);
+          timeValue = GeneralizedTime.valueOf(v.toString()).getTimeInMillis();
         }
         catch (final Exception e)
         {

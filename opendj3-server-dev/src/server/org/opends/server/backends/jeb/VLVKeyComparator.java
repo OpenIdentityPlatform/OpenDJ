@@ -26,16 +26,17 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.io.Serializable;
 import java.util.Comparator;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 
+import com.sleepycat.je.DatabaseComparator;
 import com.sleepycat.je.DatabaseException;
 
 /**
@@ -43,7 +44,7 @@ import com.sleepycat.je.DatabaseException;
  * made up the sort values and the entry ID of the largest entry in the sorted
  * set stored in the data for the key.
  */
-public class VLVKeyComparator implements Comparator<byte[]>, Serializable
+public class VLVKeyComparator implements DatabaseComparator
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -53,7 +54,15 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    */
   static final long serialVersionUID = 1585167927344130604L;
 
-  private MatchingRule[] orderingRules;
+  /** Matching rules are not serializable. */
+  private transient MatchingRule[] orderingRules;
+
+  /**
+   * Only oids of matching rules are recorded for serialization. Oids allow to
+   * retrieve matching rules after deserialization, through
+   * {@code initialize(ClassLoader)} method.
+   */
+  private String[] orderingRuleOids;
 
   private boolean[] ascending;
 
@@ -68,6 +77,11 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
   public VLVKeyComparator(MatchingRule[] orderingRules, boolean[] ascending)
   {
     this.orderingRules = orderingRules;
+    this.orderingRuleOids = new String[orderingRules.length];
+    for (int i = 0; i < orderingRules.length; i++)
+    {
+      orderingRuleOids[i] = orderingRules[i].getOID();
+    }
     this.ascending = ascending;
   }
 
@@ -330,5 +344,19 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
     // If we've gotten here, then we can't tell the difference between the sets
     // of available values and the entry ID is not available. Just return 0.
     return 0;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void initialize(ClassLoader loader)
+  {
+    if (orderingRules == null)
+    {
+      orderingRules = new MatchingRule[orderingRuleOids.length];
+      for (int i = 0; i < orderingRuleOids.length; i++)
+      {
+        orderingRules[i] = DirectoryServer.getSchema().getMatchingRule(orderingRuleOids[i]);
+      }
+    }
   }
 }

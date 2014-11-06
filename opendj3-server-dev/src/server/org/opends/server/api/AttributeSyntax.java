@@ -29,13 +29,14 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
 import java.util.List;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.InitializationException;
 import org.forgerock.opendj.ldap.ByteSequence;
-
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 

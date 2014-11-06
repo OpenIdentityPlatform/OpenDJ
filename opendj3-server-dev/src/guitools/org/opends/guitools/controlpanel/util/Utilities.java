@@ -112,13 +112,9 @@ import org.opends.guitools.controlpanel.ui.renderer.AccessibleTableHeaderRendere
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -2716,7 +2712,7 @@ public class Utilities
    * @return {@code true} if this matching rule is an equality mathing rule.
    */
   public static boolean isEqualityMatchingRule(MatchingRule matchingRule) {
-    return matchingRule instanceof EqualityMatchingRule;
+    return false;
   }
 
   /**
@@ -2727,7 +2723,7 @@ public class Utilities
    * @return {@code true} if this matching rule is an approximate mathing rule.
    */
   public static boolean isApproximateMatchingRule(MatchingRule matchingRule) {
-    return matchingRule instanceof ApproximateMatchingRule;
+    return false;
   }
 
   /**
@@ -2738,7 +2734,7 @@ public class Utilities
    * @return {@code true} if this matching rule is a substring mathing rule.
    */
   public static boolean isSubstringMatchingRule(MatchingRule matchingRule) {
-    return matchingRule instanceof SubstringMatchingRule;
+    return false;
   }
 
   /**
@@ -2749,7 +2745,7 @@ public class Utilities
    * @return {@code true} if this matching rule is an ordering mathing rule.
    */
   public static boolean isOrderingMatchingRule(MatchingRule matchingRule) {
-    return matchingRule instanceof OrderingMatchingRule;
+    return false;
   }
 
 }

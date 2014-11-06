@@ -45,6 +45,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
@@ -494,10 +495,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      SearchResultEntry e = entries.get(0);
-      //An entry must be returned.
-      assertNotNull(e);
-      assertTrue(e.getName().equals(DN.valueOf("cn=test1,o=test")));
+      assertThat(entries).as("expected one entry to be returned").isNotEmpty();
+      assertTrue(entries.get(0).getName().equals(DN.valueOf("cn=test1,o=test")));
     }
     finally
     {

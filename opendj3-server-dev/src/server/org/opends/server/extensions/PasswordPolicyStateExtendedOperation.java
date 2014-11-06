@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1;
@@ -39,6 +40,7 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.PasswordPolicyStateExtendedOperationHandlerCfg;
@@ -49,7 +51,9 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
+
 import static org.opends.server.protocols.internal.Requests.*;
+
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 
@@ -1139,18 +1143,14 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString =
-                ByteString.valueOf(opValues.get(0));
-            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                valueString);
+            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setAccountExpirationTime(time);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
             operation.appendErrorMessage(
-                ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE.get(
-                    opValues.get(0),
-                    de.getMessageObject()));
+                ERR_PWPSTATE_EXTOP_BAD_ACCT_EXP_VALUE.get(opValues.get(0), e.getMessageObject()));
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             return false;
           }
@@ -1188,18 +1188,14 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString =
-                ByteString.valueOf(opValues.get(0));
-            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                valueString);
+            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setPasswordChangedTime(time);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
             operation.appendErrorMessage(
-                ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE.get(
-                    opValues.get(0),
-                    de.getMessageObject()));
+                ERR_PWPSTATE_EXTOP_BAD_PWCHANGETIME_VALUE.get(opValues.get(0), e.getMessageObject()));
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             return false;
           }
@@ -1233,18 +1229,14 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString =
-                ByteString.valueOf(opValues.get(0));
-            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                valueString);
+            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setWarnedTime(time);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
             operation.appendErrorMessage(
-                ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE.get(
-                    opValues.get(0),
-                    de.getMessageObject()));
+                ERR_PWPSTATE_EXTOP_BAD_PWWARNEDTIME_VALUE.get(opValues.get(0), e.getMessageObject()));
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             return false;
           }
@@ -1292,23 +1284,19 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString =
-                ByteString.valueOf(opValues.get(0));
-            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                valueString);
+            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             List<Long> authFailureTimes = pwpState.getAuthFailureTimes();
-            ArrayList<Long> newFailureTimes =
-                new ArrayList<Long>(authFailureTimes.size()+1);
+            ArrayList<Long> newFailureTimes = new ArrayList<Long>(authFailureTimes.size()+1);
             newFailureTimes.addAll(authFailureTimes);
             newFailureTimes.add(time);
             pwpState.setAuthFailureTimes(newFailureTimes);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
-            LocalizableMessage message = ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
-                opValues.get(0),
-                de.getMessageObject());
-            operation.setResultCode(de.getResultCode());
+            LocalizableMessage message =
+                ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(opValues.get(0), e.getMessageObject());
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             operation.appendErrorMessage(message);
             return false;
           }
@@ -1327,21 +1315,17 @@ public class PasswordPolicyStateExtendedOperation
         else
         {
           ArrayList<Long> valueList = new ArrayList<Long>(opValues.size());
-          for (String s : opValues)
+          for (String value : opValues)
           {
             try
             {
-              valueList.add(
-                  GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                      ByteString.valueOf(s)));
+              valueList.add(GeneralizedTime.valueOf(value).getTimeInMillis());
             }
-            catch (DirectoryException de)
+            catch (LocalizedIllegalArgumentException e)
             {
               LocalizableMessage message =
-                  ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(
-                      s,
-                      de.getMessageObject());
-              operation.setResultCode(de.getResultCode());
+                  ERR_PWPSTATE_EXTOP_BAD_AUTH_FAILURE_TIME.get(value, e.getMessageObject());
+              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               operation.appendErrorMessage(message);
               return false;
             }
@@ -1385,18 +1369,14 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString =
-                ByteString.valueOf(opValues.get(0));
-            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                valueString);
+            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setLastLoginTime(time);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
             operation.appendErrorMessage(
-                ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME.get(
-                    opValues.get(0),
-                    de.getMessageObject()));
+                ERR_PWPSTATE_EXTOP_BAD_LAST_LOGIN_TIME.get(opValues.get(0), e.getMessageObject()));
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             return false;
           }
@@ -1485,23 +1465,19 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString =
-                ByteString.valueOf(opValues.get(0));
-            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                valueString);
+            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             List<Long> authFailureTimes = pwpState.getGraceLoginTimes();
-            ArrayList<Long> newGraceTimes =
-                new ArrayList<Long>(authFailureTimes.size()+1);
+            ArrayList<Long> newGraceTimes = new ArrayList<Long>(authFailureTimes.size()+1);
             newGraceTimes.addAll(authFailureTimes);
             newGraceTimes.add(time);
             pwpState.setGraceLoginTimes(newGraceTimes);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
-            LocalizableMessage message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
-                opValues.get(0),
-                de.getMessageObject());
-            operation.setResultCode(de.getResultCode());
+            LocalizableMessage message =
+                ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(opValues.get(0), e.getMessageObject());
+            operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             operation.appendErrorMessage(message);
             return false;
           }
@@ -1524,15 +1500,13 @@ public class PasswordPolicyStateExtendedOperation
           {
             try
             {
-              valueList.add(
-                  GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                      ByteString.valueOf(s)));
+              valueList.add(GeneralizedTime.valueOf(s).getTimeInMillis());
             }
-            catch (DirectoryException de)
+            catch (LocalizedIllegalArgumentException e)
             {
               LocalizableMessage message = ERR_PWPSTATE_EXTOP_BAD_GRACE_LOGIN_TIME.get(
-                  s, de.getMessageObject());
-              operation.setResultCode(de.getResultCode());
+                  s, e.getMessageObject());
+              operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
               operation.appendErrorMessage(message);
               return false;
             }
@@ -1572,18 +1546,16 @@ public class PasswordPolicyStateExtendedOperation
         {
           try
           {
-            ByteString valueString =
-                ByteString.valueOf(opValues.get(0));
-            long time = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                valueString);
+            ByteString valueString = ByteString.valueOf(opValues.get(0));
+            long time = GeneralizedTime.valueOf(valueString.toString()).getTimeInMillis();
             pwpState.setRequiredChangeTime(time);
           }
-          catch (DirectoryException de)
+          catch (LocalizedIllegalArgumentException e)
           {
             operation.appendErrorMessage(
                 ERR_PWPSTATE_EXTOP_BAD_REQUIRED_CHANGE_TIME.get(
                     opValues.get(0),
-                    de.getMessageObject()));
+                    e.getMessageObject()));
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             return false;
           }

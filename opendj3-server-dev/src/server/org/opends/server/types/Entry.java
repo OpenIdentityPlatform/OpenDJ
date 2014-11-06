@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.api.CompressedSchema;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;

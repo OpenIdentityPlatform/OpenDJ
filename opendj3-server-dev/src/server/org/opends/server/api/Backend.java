@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.Configuration;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -284,8 +285,7 @@ public abstract class Backend<C extends Configuration>
    *          matching rule should be considered indexed, or
    *          {@code false} if not.
    */
-  private boolean isIndexed(AttributeType attributeType,
-                           MatchingRule matchingRule)
+  private boolean isIndexed(AttributeType attributeType, MatchingRule matchingRule)
   {
     return false; // FIXME This should be overridden by the JE Backend at least!
   }

@@ -27,23 +27,51 @@
 package org.opends.server.core;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
-import org.opends.server.api.*;
+import org.opends.server.api.AccountStatusNotificationHandler;
+import org.opends.server.api.AuthenticationPolicyState;
+import org.opends.server.api.PasswordGenerator;
+import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.PasswordValidator;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.*;
+import org.opends.server.types.AccountStatusNotification;
+import org.opends.server.types.AccountStatusNotificationProperty;
+import org.opends.server.types.AccountStatusNotificationType;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.RawModification;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -222,15 +250,13 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if (attrList != null)
     {
-      final MatchingRule rule = attributeType.getEqualityMatchingRule();
       for (Attribute a : attrList)
       {
         for (ByteString v : a)
         {
           try
           {
-            ByteString normValue = rule.normalizeAttributeValue(v);
-            timeValues.add(GeneralizedTimeSyntax.decodeGeneralizedTimeValue(normValue));
+            timeValues.add(GeneralizedTime.valueOf(v.toString()).getTimeInMillis());
           }
           catch (Exception e)
           {
@@ -3194,7 +3220,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       for (Attribute a : attrList)
       {
-        boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
         ByteString insecurePassword = null;
         for (ByteString v : a)
         {

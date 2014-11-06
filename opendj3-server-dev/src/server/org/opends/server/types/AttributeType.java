@@ -33,7 +33,7 @@ import java.util.Map;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import static org.forgerock.util.Reject.*;

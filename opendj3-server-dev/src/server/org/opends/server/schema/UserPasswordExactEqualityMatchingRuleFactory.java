@@ -30,10 +30,12 @@ package org.opends.server.schema;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.api.MatchingRule;
+
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.opends.server.admin.std.server.MatchingRuleCfg;
+import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -55,7 +57,7 @@ public final class UserPasswordExactEqualityMatchingRuleFactory
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
  {
-   matchingRule = new UserPasswordExactEqualityMatchingRule();
+   matchingRule = CoreSchema.getInstance().getMatchingRule("1.3.6.1.4.1.26027.1.4.2");
  }
 
 
@@ -64,7 +66,7 @@ public final class UserPasswordExactEqualityMatchingRuleFactory
   * {@inheritDoc}
   */
  @Override
- public final Collection<MatchingRule> getMatchingRules()
+ public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
  {
     return Collections.singleton(matchingRule);
  }

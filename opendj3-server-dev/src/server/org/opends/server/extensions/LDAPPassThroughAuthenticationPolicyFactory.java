@@ -37,23 +37,29 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import javax.net.ssl.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
 import org.opends.server.admin.std.server.LDAPPassThroughAuthenticationPolicyCfg;
-import org.opends.server.api.*;
+import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.AuthenticationPolicyFactory;
+import org.opends.server.api.AuthenticationPolicyState;
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.TrustManagerProvider;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
-import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
@@ -1846,31 +1852,21 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // Ignore any attributes with options.
               if (!attribute.hasOptions())
               {
-                MatchingRule rule =
-                    attribute.getAttributeType().getEqualityMatchingRule();
                 for (ByteString value : attribute)
                 {
                   try
                   {
-                    ByteString normValue = rule.normalizeAttributeValue(value);
-                    long cachedPasswordTime = GeneralizedTimeSyntax
-                            .decodeGeneralizedTimeValue(normValue);
+                    long cachedPasswordTime = GeneralizedTime.valueOf(value.toString()).getTimeInMillis();
                     long currentTime = provider.getCurrentTimeMS();
                     long expiryTime = cachedPasswordTime
                         + (cfg.getCachedPasswordTTL() * 1000);
                     foundValidCachedPasswordTime = (expiryTime > currentTime);
                   }
-                  catch (DecodeException e)
+                  catch (LocalizedIllegalArgumentException e)
                   {
                     // Fall-through and give up immediately.
                     logger.traceException(e);
                   }
-                  catch (DirectoryException e)
-                  {
-                    // Fall-through and give up immediately.
-                    logger.traceException(e);
-                  }
-
                   break foundCachedPasswordTime;
                 }
               }

@@ -27,9 +27,8 @@
 package org.opends.server.schema;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,11 +40,12 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DirectoryException;
@@ -54,8 +54,6 @@ import org.opends.server.types.Schema;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
-import static com.forgerock.opendj.util.StringPrepProfile.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -67,9 +65,6 @@ public class LDAPSyntaxDescriptionSyntax
        extends AttributeSyntax<AttributeSyntaxCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-
 
   // The default equality matching rule for this syntax.
   private MatchingRule defaultEqualityMatchingRule;
@@ -1438,9 +1433,23 @@ public class LDAPSyntaxDescriptionSyntax
     @Override
     public MatchingRule getOrderingMatchingRule()
     {
-      if(orderingMatchingRule == null)
+      if (orderingMatchingRule == null)
       {
-        orderingMatchingRule = new EnumOrderingMatchingRule(this, oid);
+        /*
+         * It is not sufficient to build the enum matching rule alone here, we
+         * need to build enum syntax as well otherwise the schema is not valid. The
+         * enum matching rule is automatically built with the enum syntax by the
+         * builder.
+         */
+        String[] enumerations = new String[entries.size()];
+        Iterator<ByteSequence> it = entries.iterator();
+        for (int i=0; i < entries.size(); i++)
+        {
+          enumerations[i] = it.next().toString();
+        }
+        SchemaBuilder builder = new SchemaBuilder(CoreSchema.getInstance()).addEnumerationSyntax(
+            oid, getDescription(), true, enumerations);
+        orderingMatchingRule = builder.toSchema().getMatchingRule(OMR_OID_GENERIC_ENUM + "." + oid);
         try
         {
           DirectoryServer.registerMatchingRule(orderingMatchingRule, false);
@@ -1496,149 +1505,5 @@ public class LDAPSyntaxDescriptionSyntax
       return approximateMatchingRule;
     }
 
-
-
-    //Returns the associated data structure containing the enum
-    //values.
-    private LinkedList<ByteSequence> getEnumValues()
-    {
-      return entries;
-    }
-
-
-
-    /**
-      * Implementation of an Enum Ordering matching rule.
-      */
-    private final class EnumOrderingMatchingRule
-       extends AbstractOrderingMatchingRule
-    {
-      //The enumeration syntax instance.
-      private EnumSyntax syntax;
-
-
-      //The oid of the matching rule.
-      private String oid;
-
-
-      //The name of the matching rule.
-      private String name;
-
-
-
-      static final long serialVersionUID = -2624642267131703408L;
-
-
-      /**
-       * Creates a new instance.
-       */
-      private EnumOrderingMatchingRule(EnumSyntax syntax,String oid)
-      {
-        super();
-        this.syntax = syntax;
-        this.oid = OMR_OID_GENERIC_ENUM + "." + oid;
-        this.name = OMR_GENERIC_ENUM_NAME + oid;
-      }
-
-
-
-      /**
-      * {@inheritDoc}
-      */
-      @Override
-      public int compare(byte[] arg0, byte[] arg1)
-      {
-        return compareValues(ByteString.wrap(arg0),ByteString.wrap(arg1));
-      }
-
-
-
-      /**
-      * {@inheritDoc}
-      */
-      @Override
-      public int compareValues(ByteSequence value1, ByteSequence value2)
-      {
-        LinkedList<ByteSequence> enumValues = syntax.getEnumValues();
-        return enumValues.indexOf(value1) - enumValues.indexOf(value2);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public Collection<String> getNames()
-      {
-        return Collections.singleton(name);
-      }
-
-
-
-       /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String getOID()
-      {
-        return oid;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String getSyntaxOID()
-      {
-        return SYNTAX_DIRECTORY_STRING_OID;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public ByteString normalizeAttributeValue(ByteSequence value)
-              throws DecodeException
-      {
-        StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, value, TRIM, CASE_FOLD);
-
-        int bufferLength = buffer.length();
-        if (bufferLength == 0)
-        {
-          if (value.length() > 0)
-          {
-            // This should only happen if the value is composed entirely
-            // of spaces. In that case, the normalized value is a single space.
-            return SINGLE_SPACE_VALUE;
-          }
-          else
-          {
-            // The value is empty, so it is already normalized.
-            return ByteString.empty();
-          }
-        }
-
-
-        // Replace any consecutive spaces with a single space.
-        for (int pos = bufferLength-1; pos > 0; pos--)
-        {
-          if (buffer.charAt(pos) == ' ')
-          {
-            if (buffer.charAt(pos-1) == ' ')
-            {
-              buffer.delete(pos, pos+1);
-            }
-          }
-        }
-
-        return ByteString.valueOf(buffer.toString());
-      }
-    }
   }
 }

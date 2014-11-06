@@ -35,14 +35,13 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
 /**
- *This class implements an Indexer for extensible matching rules in JE Backend.
+ * This class implements an Indexer for extensible matching rules in JE Backend.
  */
 public final class JEExtensibleIndexer extends Indexer
 {
@@ -54,15 +53,11 @@ public final class JEExtensibleIndexer extends Indexer
    */
   private final AttributeType attributeType;
 
-
-
   /**
-   * The extensible indexer which will generate the keys
-   * for the associated  extensible matching rule.
+   * The indexer which will generate the keys
+   * for the associated extensible matching rule.
    */
-  private final ExtensibleIndexer extensibleIndexer;
-
-
+  private final org.forgerock.opendj.ldap.spi.Indexer indexer;
 
   /**
    * Creates a new extensible indexer for JE backend.
@@ -71,19 +66,17 @@ public final class JEExtensibleIndexer extends Indexer
    *                                            required.
    * @param extensibleIndexer The extensible indexer to be used.
    */
-  public JEExtensibleIndexer(AttributeType attributeType,
-          ExtensibleIndexer extensibleIndexer)
+  public JEExtensibleIndexer(AttributeType attributeType, org.forgerock.opendj.ldap.spi.Indexer extensibleIndexer)
   {
     this.attributeType = attributeType;
-    this.extensibleIndexer = extensibleIndexer;
+    this.indexer = extensibleIndexer;
   }
 
   /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    return attributeType.getNameOrOID() + "."
-            + extensibleIndexer.getExtensibleIndexID();
+    return attributeType.getNameOrOID() + "." + indexer.getIndexID();
   }
 
   /** {@inheritDoc} */
@@ -142,7 +135,7 @@ public final class JEExtensibleIndexer extends Indexer
         {
           try
           {
-            extensibleIndexer.createKeys(null, value, options, keys);
+            indexer.createKeys(null, value, options, keys);
           }
           catch (DecodeException e)
           {
