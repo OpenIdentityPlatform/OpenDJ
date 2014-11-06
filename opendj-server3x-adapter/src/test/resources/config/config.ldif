@@ -82,7 +82,6 @@ ds-cfg-global-aci: (targetattr="userPassword||authPassword")(version 3.0; acl "S
 ds-cfg-global-aci: (target="ldap:///cn=schema")(targetscope="base")(targetattr="objectClass||attributeTypes||dITContentRules||dITStructureRules||ldapSyntaxes||matchingRules||matchingRuleUse||nameForms||objectClasses")(version 3.0; acl "User-Visible Schema Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (target="ldap:///")(targetscope="base")(targetattr="objectClass||namingContexts||supportedAuthPasswordSchemes||supportedControl||supportedExtension||supportedFeatures||supportedLDAPVersion||supportedSASLMechanisms||supportedTLSCiphers||supportedTLSProtocols||vendorName||vendorVersion")(version 3.0; acl "User-Visible Root DSE Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
 ds-cfg-global-aci: (targetattr="createTimestamp||creatorsName||modifiersName||modifyTimestamp||entryDN||entryUUID||subschemaSubentry||etag||governingStructureRule||structuralObjectClass||hasSubordinates||numSubordinates")(version 3.0; acl "User-Visible Operational Attributes"; allow (read,search,compare) userdn="ldap:///anyone";)
-ds-cfg-global-aci: (target="ldap:///dc=replicationchanges")(targetattr="*")(version 3.0; acl "Replication backend access"; deny (all) userdn="ldap:///anyone";)
 cn: Access Control Handler
 ds-cfg-java-class: org.opends.server.authorization.dseecompat.AciHandler
 ds-cfg-enabled: true
@@ -193,19 +192,19 @@ ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
 ds-cfg-db-run-cleaner: true
 ds-cfg-db-cleaner-min-utilization: 50
-ds-cfg-db-evictor-lru-only: true
+ds-cfg-db-evictor-lru-only: false
 ds-cfg-db-evictor-nodes-per-scan: 10
 ds-cfg-db-evictor-core-threads: 1
 ds-cfg-db-evictor-max-threads: 10
 ds-cfg-db-evictor-keep-alive: 600 seconds
-ds-cfg-db-log-file-max: 10 megabytes
+ds-cfg-db-log-file-max: 100 megabytes
 ds-cfg-db-log-filecache-size: 100
 ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-logging-level: CONFIG
-ds-cfg-db-checkpointer-bytes-interval: 20 megabytes
+ds-cfg-db-checkpointer-bytes-interval: 500 megabytes
 ds-cfg-db-checkpointer-wakeup-interval: 30 seconds
-ds-cfg-disk-full-threshold: 20 megabytes
-ds-cfg-disk-low-threshold: 100 megabytes
+ds-cfg-disk-full-threshold: 100 megabytes
+ds-cfg-disk-low-threshold: 200 megabytes
 
 dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
@@ -1642,6 +1641,14 @@ cn: PBKDF2
 ds-cfg-java-class: org.opends.server.extensions.PBKDF2PasswordStorageScheme
 ds-cfg-enabled: true
 
+dn: cn=PKCS5S2,cn=Password Storage Schemes,cn=config
+objectClass: top
+objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-pkcs5s2-password-storage-scheme
+cn: PKCS5S2
+ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme
+ds-cfg-enabled: true
+
 dn: cn=SHA-1,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
@@ -1875,27 +1882,6 @@ ds-cfg-plugin-type: postSynchronizationModifyDN
 ds-cfg-type: uid
 ds-cfg-invoke-for-internal-operations: true
 
-dn: cn=Network Group,cn=Plugins,cn=config
-objectClass: top
-objectClass: ds-cfg-plugin
-objectClass: ds-cfg-network-group-plugin
-cn: Network Group
-ds-cfg-java-class: org.opends.server.core.networkgroups.NetworkGroupPlugin
-ds-cfg-enabled: true
-ds-cfg-invoke-for-internal-operations: false
-ds-cfg-plugin-type: postConnect
-ds-cfg-plugin-type: preParseAdd
-ds-cfg-plugin-type: preParseBind
-ds-cfg-plugin-type: preParseCompare
-ds-cfg-plugin-type: preParseDelete
-ds-cfg-plugin-type: preParseExtended
-ds-cfg-plugin-type: preParseModify
-ds-cfg-plugin-type: preParseModifyDn
-ds-cfg-plugin-type: preParseSearch
-ds-cfg-plugin-type: preParseUnbind
-ds-cfg-plugin-type: postResponseBind
-ds-cfg-plugin-type: postResponseExtended
-
 dn: cn=Change Number Control,cn=Plugins,cn=config
 objectClass: top
 objectClass: ds-cfg-plugin
@@ -1942,6 +1928,7 @@ ds-cfg-default-root-privilege-name: update-schema
 ds-cfg-default-root-privilege-name: privilege-change
 ds-cfg-default-root-privilege-name: unindexed-search
 ds-cfg-default-root-privilege-name: subentry-write
+ds-cfg-default-root-privilege-name: changelog-read
 
 dn: cn=Directory Manager,cn=Root DNs,cn=config
 objectClass: top
@@ -2612,19 +2599,4 @@ dn: cn=Extensions,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
 cn: Extensions
-
-dn: cn=Network Groups,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Network Groups
-
-dn: cn=Workflows,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Workflows
-
-dn: cn=Workflow Elements,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Workflow Elements
 
