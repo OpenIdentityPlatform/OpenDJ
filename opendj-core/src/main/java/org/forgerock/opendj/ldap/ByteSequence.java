@@ -36,8 +36,8 @@ import java.util.Comparator;
  */
 public interface ByteSequence extends Comparable<ByteSequence> {
 
-    /** A default ByteSequence comparator. */
-    public static final Comparator<ByteSequence> DEFAULT_COMPARATOR = new Comparator<ByteSequence>() {
+    /** A ByteSequence comparator. */
+    public static final Comparator<ByteSequence> COMPARATOR = new Comparator<ByteSequence>() {
         @Override
         public int compare(final ByteSequence o1, final ByteSequence o2) {
             return o1.compareTo(o2);
