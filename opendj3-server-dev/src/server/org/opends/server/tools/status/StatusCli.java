@@ -44,7 +44,6 @@ import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -107,22 +106,18 @@ import com.forgerock.opendj.cli.TextTablePrinter;
  */
 class StatusCli extends ConsoleApplication
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private boolean displayMustAuthenticateLegend;
   private boolean displayMustStartLegend;
 
   /** Prefix for log files. */
   public static final String LOG_FILE_PREFIX = "opendj-status-";
-
   /** Suffix for log files. */
   public static final String LOG_FILE_SUFFIX = ".log";
 
   private ApplicationTrustManager interactiveTrustManager;
-
   private boolean useInteractiveTrustManager;
-
-  /** The Logger. */
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The argument parser. */
   private StatusCliArgumentParser argParser;
@@ -151,7 +146,6 @@ class StatusCli extends ConsoleApplication
   public static void main(String[] args)
   {
     int retCode = mainCLI(args, true, System.out, System.err, System.in);
-
     if(retCode != 0)
     {
       System.exit(retCode);
@@ -206,8 +200,7 @@ class StatusCli extends ConsoleApplication
     }
 
     final StatusCli statusCli = new StatusCli(out, err, inStream);
-
-    return statusCli.execute(args, initializeServer);
+    return statusCli.execute(args);
   }
 
   /**
@@ -216,11 +209,9 @@ class StatusCli extends ConsoleApplication
    *
    * @param args
    *          The command-line arguments provided to this program.
-   * @param initializeServer
-   *          Indicates whether to initialize the server.
    * @return The return code of the process.
    */
-  public int execute(String[] args, boolean initializeServer) {
+  public int execute(String[] args) {
     argParser = new StatusCliArgumentParser(StatusCli.class.getName());
     try {
       argParser.initializeGlobalArguments(getOutputStream());
@@ -265,123 +256,119 @@ class StatusCli extends ConsoleApplication
       println(e.getMessageObject());
       return 1;
     }
-    int v = argParser.validateGlobalOptions(getErrorStream());
 
+    int v = argParser.validateGlobalOptions(getErrorStream());
     if (v != ReturnCode.SUCCESS.get()) {
       println(LocalizableMessage.raw(argParser.getUsage()));
       return v;
-    } else {
-      final ControlPanelInfo controlInfo = ControlPanelInfo.getInstance();
-      controlInfo.setTrustManager(getTrustManager());
-      controlInfo.setConnectTimeout(argParser.getConnectTimeout());
-      controlInfo.regenerateDescriptor();
+    }
 
-      if (controlInfo.getServerDescriptor().getStatus() == ServerDescriptor.ServerStatus.STARTED)
+    final ControlPanelInfo controlInfo = ControlPanelInfo.getInstance();
+    controlInfo.setTrustManager(getTrustManager());
+    controlInfo.setConnectTimeout(argParser.getConnectTimeout());
+    controlInfo.regenerateDescriptor();
+
+    if (controlInfo.getServerDescriptor().getStatus() == ServerDescriptor.ServerStatus.STARTED)
+    {
+      String bindDn = null;
+      String bindPwd = null;
+
+      ManagementContext mContext = null;
+
+      // This is done because we do not need to ask the user about these
+      // parameters. We force their presence in the
+      // LDAPConnectionConsoleInteraction, this done, it will not prompt
+      // the user for them.
+      final SecureConnectionCliArgs secureArgsList = argParser.getSecureArgsList();
+      controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+      int port = CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+      controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+      String ldapUrl = controlInfo.getURLToConnect();
+      try
       {
-        String bindDn = null;
-        String bindPwd = null;
+        final URI uri = new URI(ldapUrl);
+        port = uri.getPort();
+      }
+      catch (Throwable t)
+      {
+        logger.error(LocalizableMessage.raw("Error parsing url: " + ldapUrl));
+      }
+      secureArgsList.hostNameArg.setPresent(true);
+      secureArgsList.portArg.setPresent(true);
+      secureArgsList.hostNameArg.addValue(secureArgsList.hostNameArg.getDefaultValue());
+      secureArgsList.portArg.addValue(Integer.toString(port));
+      try
+      {
+        // We already know if SSL or StartTLS can be used.  If we cannot
+        // use them we will not propose them in the connection parameters
+        // and if none of them can be used we will just not ask for the
+        // protocol to be used.
+        final LDAPConnectionConsoleInteraction ci =
+            new LDAPConnectionConsoleInteraction(this, argParser.getSecureArgsList());
 
-        ManagementContext mContext = null;
-
-        // This is done because we do not need to ask the user about these
-        // parameters. We force their presence in the
-        // LDAPConnectionConsoleInteraction, this done, it will not prompt
-        // the user for them.
-        final SecureConnectionCliArgs secureArgsList =
-            argParser.getSecureArgsList();
-        controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-        int port = CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-        controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
-        String ldapUrl = controlInfo.getURLToConnect();
-        try
+        ci.run(false);
+        if (argParser.isInteractive())
         {
-          final URI uri = new URI(ldapUrl);
-          port = uri.getPort();
+          bindDn = ci.getBindDN();
+          bindPwd = ci.getBindPassword();
         }
-        catch (Throwable t)
+        else
         {
-          logger.error(LocalizableMessage
-              .raw("Error parsing url: " + ldapUrl));
+          bindDn = argParser.getBindDN();
+          bindPwd = argParser.getBindPassword();
         }
-        secureArgsList.hostNameArg.setPresent(true);
-        secureArgsList.portArg.setPresent(true);
-        secureArgsList.hostNameArg.addValue(secureArgsList.hostNameArg
-            .getDefaultValue());
-        secureArgsList.portArg.addValue(Integer.toString(port));
-        try
+        if (bindPwd != null && !bindPwd.isEmpty())
         {
-          // We already know if SSL or StartTLS can be used.  If we cannot
-          // use them we will not propose them in the connection parameters
-          // and if none of them can be used we will just not ask for the
-          // protocol to be used.
-          final LDAPConnectionConsoleInteraction ci =
-              new LDAPConnectionConsoleInteraction(this, argParser
-                  .getSecureArgsList());
-
-          ci.run(false);
-          if (argParser.isInteractive())
-          {
-            bindDn = ci.getBindDN();
-            bindPwd = ci.getBindPassword();
-          }
-          else
-          {
-            bindDn = argParser.getBindDN();
-            bindPwd = argParser.getBindPassword();
-          }
-          if (bindPwd != null && !bindPwd.isEmpty())
-          {
-            mContext = getManagementContextFromConnection(ci);
-            interactiveTrustManager = ci.getTrustManager();
-            controlInfo.setTrustManager(interactiveTrustManager);
-            useInteractiveTrustManager = true;
-          }
-        } catch (ArgumentException e) {
-          println(e.getMessageObject());
-          return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
-        } catch (ClientException e) {
-          println(e.getMessageObject());
-          return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
-        } finally {
-          closeSilently(mContext);
+          mContext = getManagementContextFromConnection(ci);
+          interactiveTrustManager = ci.getTrustManager();
+          controlInfo.setTrustManager(interactiveTrustManager);
+          useInteractiveTrustManager = true;
         }
+      } catch (ArgumentException e) {
+        println(e.getMessageObject());
+        return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
+      } catch (ClientException e) {
+        println(e.getMessageObject());
+        return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
+      } finally {
+        closeSilently(mContext);
+      }
 
-        if (mContext != null)
-        {
-          InitialLdapContext ctx = null;
-          try {
-            ctx = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd);
-            controlInfo.setDirContext(ctx);
-            controlInfo.regenerateDescriptor();
-            writeStatus(controlInfo);
-
-            if (!controlInfo.getServerDescriptor().getExceptions().isEmpty()) {
-              return ReturnCode.ERROR_INITIALIZING_SERVER.get();
-            }
-          } catch (NamingException ne) {
-            // This should not happen but this is useful information to
-            // diagnose the error.
-            println();
-            println(INFO_ERROR_READING_SERVER_CONFIGURATION.get(ne));
-            return ReturnCode.ERROR_INITIALIZING_SERVER.get();
-          } catch (ConfigReadException cre) {
-            // This should not happen but this is useful information to
-            // diagnose the error.
-            println();
-            println(cre.getMessageObject());
-            return ReturnCode.ERROR_INITIALIZING_SERVER.get();
-          } finally {
-            StaticUtils.close(ctx);
-          }
-        } else {
-          // The user did not provide authentication: just display the
-          // information we can get reading the config file.
+      if (mContext != null)
+      {
+        InitialLdapContext ctx = null;
+        try {
+          ctx = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd);
+          controlInfo.setDirContext(ctx);
+          controlInfo.regenerateDescriptor();
           writeStatus(controlInfo);
-          return ReturnCode.ERROR_USER_CANCELLED.get();
+
+          if (!controlInfo.getServerDescriptor().getExceptions().isEmpty()) {
+            return ReturnCode.ERROR_INITIALIZING_SERVER.get();
+          }
+        } catch (NamingException ne) {
+          // This should not happen but this is useful information to
+          // diagnose the error.
+          println();
+          println(INFO_ERROR_READING_SERVER_CONFIGURATION.get(ne));
+          return ReturnCode.ERROR_INITIALIZING_SERVER.get();
+        } catch (ConfigReadException cre) {
+          // This should not happen but this is useful information to
+          // diagnose the error.
+          println();
+          println(cre.getMessageObject());
+          return ReturnCode.ERROR_INITIALIZING_SERVER.get();
+        } finally {
+          StaticUtils.close(ctx);
         }
       } else {
+        // The user did not provide authentication: just display the
+        // information we can get reading the config file.
         writeStatus(controlInfo);
+        return ReturnCode.ERROR_USER_CANCELLED.get();
       }
+    } else {
+      writeStatus(controlInfo);
     }
 
     return ReturnCode.SUCCESS.get();
@@ -410,17 +397,10 @@ class StatusCli extends ConsoleApplication
 
       if (timeToSleep > 0)
       {
-        try
-        {
-          Thread.sleep(timeToSleep);
-        }
-        catch (Throwable t)
-        {
-        }
+        StaticUtils.sleep(timeToSleep);
       }
       println();
-      println(LocalizableMessage.raw(
-      "          ---------------------"));
+      println(LocalizableMessage.raw("          ---------------------"));
       println();
       writeStatus(controlInfo.getServerDescriptor());
       first = false;
@@ -512,41 +492,30 @@ class StatusCli extends ConsoleApplication
    * @param desc
    *          The ServerStatusDescriptor object.
    */
-  private void writeStatusContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeStatusContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    LocalizableMessage status;
+    writeLabelValue(INFO_SERVER_STATUS_LABEL.get(), getStatus(desc), maxLabelWidth);
+  }
+
+  private LocalizableMessage getStatus(ServerDescriptor desc)
+  {
     switch (desc.getStatus())
     {
     case STARTED:
-      status = INFO_SERVER_STARTED_LABEL.get();
-      break;
-
+      return INFO_SERVER_STARTED_LABEL.get();
     case STOPPED:
-      status = INFO_SERVER_STOPPED_LABEL.get();
-      break;
-
+      return INFO_SERVER_STOPPED_LABEL.get();
     case STARTING:
-      status = INFO_SERVER_STARTING_LABEL.get();
-      break;
-
+      return INFO_SERVER_STARTING_LABEL.get();
     case STOPPING:
-      status = INFO_SERVER_STOPPING_LABEL.get();
-      break;
-
+      return INFO_SERVER_STOPPING_LABEL.get();
     case NOT_CONNECTED_TO_REMOTE:
-      status = INFO_SERVER_NOT_CONNECTED_TO_REMOTE_STATUS_LABEL.get();
-      break;
-
+      return INFO_SERVER_NOT_CONNECTED_TO_REMOTE_STATUS_LABEL.get();
     case UNKNOWN:
-      status = INFO_SERVER_UNKNOWN_STATUS_LABEL.get();
-      break;
-
+      return INFO_SERVER_UNKNOWN_STATUS_LABEL.get();
     default:
       throw new IllegalStateException("Unknown status: "+desc.getStatus());
     }
-    writeLabelValue(INFO_SERVER_STATUS_LABEL.get(), status,
-        maxLabelWidth);
   }
 
   /**
@@ -556,35 +525,30 @@ class StatusCli extends ConsoleApplication
    * @param desc
    *          The ServerDescriptor object.
    */
-  private void writeCurrentConnectionContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeCurrentConnectionContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    LocalizableMessage text;
+    writeLabelValue(INFO_CONNECTIONS_LABEL.get(), getNbConnection(desc), maxLabelWidth);
+  }
+
+  private LocalizableMessage getNbConnection(ServerDescriptor desc)
+  {
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
-      int nConn = desc.getOpenConnections();
+      final int nConn = desc.getOpenConnections();
       if (nConn >= 0)
       {
-        text = LocalizableMessage.raw(String.valueOf(nConn));
+        return LocalizableMessage.raw(String.valueOf(nConn));
+      }
+      else if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
+      {
+        return getNotAvailableBecauseAuthenticationIsRequiredText();
       }
       else
       {
-        if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
-        {
-          text = getNotAvailableBecauseAuthenticationIsRequiredText();
-        }
-        else
-        {
-          text = getNotAvailableText();
-        }
+        return getNotAvailableText();
       }
     }
-    else
-    {
-      text = getNotAvailableBecauseServerIsDownText();
-    }
-
-    writeLabelValue(INFO_CONNECTIONS_LABEL.get(), text, maxLabelWidth);
+    return getNotAvailableBecauseServerIsDownText();
   }
 
   /**
@@ -595,11 +559,10 @@ class StatusCli extends ConsoleApplication
    * @param maxLabelWidth
    *          The maximum label width of the left label.
    */
-  private void writeHostnameContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeHostnameContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    writeLabelValue(INFO_HOSTNAME_LABEL.get(), LocalizableMessage.raw(desc
-        .getHostname()), maxLabelWidth);
+    LocalizableMessage text = LocalizableMessage.raw(desc.getHostname());
+    writeLabelValue(INFO_HOSTNAME_LABEL.get(), text, maxLabelWidth);
   }
 
   /**
@@ -611,53 +574,31 @@ class StatusCli extends ConsoleApplication
    * @param maxLabelWidth
    *          The maximum label width of the left label.
    */
-  private void writeAdministrativeUserContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeAdministrativeUserContents(ServerDescriptor desc, int maxLabelWidth)
   {
     Set<DN> administrators = desc.getAdministrativeUsers();
-    LocalizableMessage text;
     if (administrators.size() > 0)
     {
-      TreeSet<DN> ordered = new TreeSet<DN>();
-      ordered.addAll(administrators);
-
-      DN first = ordered.iterator().next();
-      writeLabelValue(
-              INFO_ADMINISTRATIVE_USERS_LABEL.get(),
-              LocalizableMessage.raw(first.toString()),
-              maxLabelWidth);
-
-      Iterator<DN> it = ordered.iterator();
-      // First one already printed
-      it.next();
-      while (it.hasNext())
+      TreeSet<DN> ordered = new TreeSet<DN>(administrators);
+      for (DN dn : ordered)
       {
-        writeLabelValue(
-                INFO_ADMINISTRATIVE_USERS_LABEL.get(),
-                LocalizableMessage.raw(it.next().toString()),
-                maxLabelWidth);
+        writeLabelValue(INFO_ADMINISTRATIVE_USERS_LABEL.get(), LocalizableMessage.raw(dn.toString()), maxLabelWidth);
       }
     }
     else
     {
-      if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
-      {
-        if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
-        {
-          text = getNotAvailableBecauseAuthenticationIsRequiredText();
-        }
-        else
-        {
-          text = getNotAvailableText();
-        }
-      }
-      else
-      {
-        text = getNotAvailableText();
-      }
-      writeLabelValue(INFO_ADMINISTRATIVE_USERS_LABEL.get(), text,
-          maxLabelWidth);
+      writeLabelValue(INFO_ADMINISTRATIVE_USERS_LABEL.get(), getErrorText(desc), maxLabelWidth);
     }
+  }
+
+  private LocalizableMessage getErrorText(ServerDescriptor desc)
+  {
+    if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED
+        && (!desc.isAuthenticated() || !desc.getExceptions().isEmpty()))
+    {
+      return getNotAvailableBecauseAuthenticationIsRequiredText();
+    }
+    return getNotAvailableText();
   }
 
   /**
@@ -669,8 +610,7 @@ class StatusCli extends ConsoleApplication
    * @param maxLabelWidth
    *          The maximum label width of the left label.
    */
-  private void writeInstallPathContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeInstallPathContents(ServerDescriptor desc, int maxLabelWidth)
   {
     writeLabelValue(INFO_INSTALLATION_PATH_LABEL.get(),
             LocalizableMessage.raw(desc.getInstallPath()),
@@ -686,8 +626,7 @@ class StatusCli extends ConsoleApplication
    * @param maxLabelWidth
    *          The maximum label width of the left label.
    */
-  private void writeInstancePathContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeInstancePathContents(ServerDescriptor desc, int maxLabelWidth)
   {
     writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
             LocalizableMessage.raw(desc.getInstancePath()),
@@ -702,8 +641,7 @@ class StatusCli extends ConsoleApplication
    * @param desc
    *          The ServerDescriptor object.
    */
-  private void writeVersionContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeVersionContents(ServerDescriptor desc, int maxLabelWidth)
   {
     String openDSVersion = desc.getOpenDSVersion();
     writeLabelValue(INFO_OPENDS_VERSION_LABEL.get(),
@@ -721,26 +659,22 @@ class StatusCli extends ConsoleApplication
    * @param maxLabelWidth
    *          The maximum label width of the left label.
    */
-  private void writeJavaVersionContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeJavaVersionContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    LocalizableMessage text;
+    writeLabelValue(INFO_JAVA_VERSION_LABEL.get(), getJavaVersion(desc), maxLabelWidth);
+  }
+
+  private LocalizableMessage getJavaVersion(ServerDescriptor desc)
+  {
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
       if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
       {
-        text = getNotAvailableBecauseAuthenticationIsRequiredText();
+        return getNotAvailableBecauseAuthenticationIsRequiredText();
       }
-      else
-      {
-        text = LocalizableMessage.raw(desc.getJavaVersion());
-      }
+      return LocalizableMessage.raw(desc.getJavaVersion());
     }
-    else
-    {
-      text = getNotAvailableBecauseServerIsDownText();
-    }
-    writeLabelValue(INFO_JAVA_VERSION_LABEL.get(), text, maxLabelWidth);
+    return getNotAvailableBecauseServerIsDownText();
   }
 
   /**
@@ -753,16 +687,13 @@ class StatusCli extends ConsoleApplication
    * @param maxLabelWidth
    *          The maximum label width of the left label.
    */
-  private void writeAdminConnectorContents(ServerDescriptor desc,
-      int maxLabelWidth)
+  private void writeAdminConnectorContents(ServerDescriptor desc, int maxLabelWidth)
   {
     ConnectionHandlerDescriptor adminConnector = desc.getAdminConnector();
     if (adminConnector != null)
     {
-      LocalizableMessage text = INFO_CTRL_PANEL_ADMIN_CONNECTOR_DESCRIPTION.get(
-          adminConnector.getPort());
-      writeLabelValue(INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get(), text,
-          maxLabelWidth);
+      LocalizableMessage text = INFO_CTRL_PANEL_ADMIN_CONNECTOR_DESCRIPTION.get(adminConnector.getPort());
+      writeLabelValue(INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get(), text, maxLabelWidth);
     }
     else
     {
@@ -845,8 +776,7 @@ class StatusCli extends ConsoleApplication
       {
         if (!desc.isAuthenticated())
         {
-          println(
-          INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get());
+          println(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get());
         }
         else
         {
@@ -861,8 +791,7 @@ class StatusCli extends ConsoleApplication
     else
     {
       BaseDNTableModel baseDNTableModel = new BaseDNTableModel(true, false);
-      baseDNTableModel.setData(replicas, desc.getStatus(),
-          desc.isAuthenticated());
+      baseDNTableModel.setData(replicas, desc.getStatus(), desc.isAuthenticated());
 
       writeBaseDNTableModel(baseDNTableModel, desc);
     }
@@ -996,8 +925,7 @@ class StatusCli extends ConsoleApplication
     }
   }
 
-  private String[] getHostNames(ConnectionHandlerTableModel tableModel,
-      int row)
+  private String[] getHostNames(ConnectionHandlerTableModel tableModel, int row)
   {
    String v = (String)tableModel.getValueAt(row, 0);
    String htmlTag = "<html>";
@@ -1010,30 +938,26 @@ class StatusCli extends ConsoleApplication
 
   private LocalizableMessage getCellValue(Object v, ServerDescriptor desc)
   {
-    LocalizableMessage s = null;
     if (v != null)
     {
       if (v instanceof String)
       {
-        s = LocalizableMessage.raw((String)v);
+        return LocalizableMessage.raw((String) v);
       }
       else if (v instanceof Integer)
       {
         int nEntries = ((Integer)v).intValue();
         if (nEntries >= 0)
         {
-          s = LocalizableMessage.raw(String.valueOf(nEntries));
+          return LocalizableMessage.raw(String.valueOf(nEntries));
+        }
+        else if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
+        {
+          return getNotAvailableBecauseAuthenticationIsRequiredText();
         }
         else
         {
-          if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
-          {
-            s = getNotAvailableBecauseAuthenticationIsRequiredText();
-          }
-          else
-          {
-            s = getNotAvailableText();
-          }
+          return getNotAvailableText();
         }
       }
       else
@@ -1041,11 +965,7 @@ class StatusCli extends ConsoleApplication
         throw new IllegalStateException("Unknown object type: "+v);
       }
     }
-    else
-    {
-      s = getNotAvailableText();
-    }
-    return s;
+    return getNotAvailableText();
   }
 
   /**
@@ -1057,11 +977,9 @@ class StatusCli extends ConsoleApplication
    * @param desc
    *          The Server Status descriptor.
    */
-  private void writeBaseDNTableModel(BaseDNTableModel tableModel,
-  ServerDescriptor desc)
+  private void writeBaseDNTableModel(BaseDNTableModel tableModel, ServerDescriptor desc)
   {
-    boolean isRunning =
-        desc.getStatus() == ServerDescriptor.ServerStatus.STARTED;
+    boolean isRunning = desc.getStatus() == ServerDescriptor.ServerStatus.STARTED;
 
     int labelWidth = 0;
     int labelWidthWithoutReplicated = 0;
@@ -1091,74 +1009,8 @@ class StatusCli extends ConsoleApplication
       }
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
-        LocalizableMessage value;
         Object v = tableModel.getValueAt(i, j);
-        if (v != null)
-        {
-          if (v == BaseDNTableModel.NOT_AVAILABLE_SERVER_DOWN)
-          {
-            value = getNotAvailableBecauseServerIsDownText();
-          }
-          else if (v == BaseDNTableModel.NOT_AVAILABLE_AUTHENTICATION_REQUIRED)
-          {
-            value = getNotAvailableBecauseAuthenticationIsRequiredText();
-          }
-          else if (v == BaseDNTableModel.NOT_AVAILABLE)
-          {
-            value = getNotAvailableText();
-          }
-          else if (v instanceof String)
-          {
-            value = LocalizableMessage.raw((String)v);
-          }
-          else if (v instanceof LocalizableMessage)
-          {
-            value = (LocalizableMessage)v;
-          }
-          else if (v instanceof Integer)
-          {
-            int nEntries = ((Integer)v).intValue();
-            if (nEntries >= 0)
-            {
-              value = LocalizableMessage.raw(String.valueOf(nEntries));
-            }
-            else
-            {
-              if (!isRunning)
-              {
-                value = getNotAvailableBecauseServerIsDownText();
-              }
-              if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
-              {
-                value = getNotAvailableBecauseAuthenticationIsRequiredText();
-              }
-              else
-              {
-                value = getNotAvailableText();
-              }
-            }
-          }
-          else
-          {
-            throw new IllegalStateException("Unknown object type: "+v);
-          }
-        }
-        else
-        {
-          value = LocalizableMessage.EMPTY;
-        }
-
-        if (value.equals(getNotAvailableText()))
-        {
-          if (!isRunning)
-          {
-            value = getNotAvailableBecauseServerIsDownText();
-          }
-          if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
-          {
-            value = getNotAvailableBecauseAuthenticationIsRequiredText();
-          }
-        }
+        LocalizableMessage value = getValue(desc, isRunning, v);
 
         boolean doWrite = true;
         boolean isReplicated =
@@ -1166,8 +1018,7 @@ class StatusCli extends ConsoleApplication
               String.valueOf(tableModel.getValueAt(i, 3)));
         if (j == 4 || j == 5)
         {
-          // If the suffix is not replicated we do not have to display these
-          // lines.
+          // If the suffix is not replicated we do not have to display these lines
           doWrite = isReplicated;
         }
         if (doWrite)
@@ -1177,6 +1028,60 @@ class StatusCli extends ConsoleApplication
         }
       }
     }
+  }
+
+  private LocalizableMessage getValue(ServerDescriptor desc, boolean isRunning, Object v)
+  {
+    if (v != null)
+    {
+      if (v == BaseDNTableModel.NOT_AVAILABLE_SERVER_DOWN)
+      {
+        return getNotAvailableBecauseServerIsDownText();
+      }
+      else if (v == BaseDNTableModel.NOT_AVAILABLE_AUTHENTICATION_REQUIRED)
+      {
+        return getNotAvailableBecauseAuthenticationIsRequiredText();
+      }
+      else if (v == BaseDNTableModel.NOT_AVAILABLE)
+      {
+        return getNotAvailableText(desc, isRunning);
+      }
+      else if (v instanceof String)
+      {
+        return LocalizableMessage.raw((String) v);
+      }
+      else if (v instanceof LocalizableMessage)
+      {
+        return (LocalizableMessage) v;
+      }
+      else if (v instanceof Integer)
+      {
+        final int nEntries = ((Integer) v).intValue();
+        if (nEntries >= 0)
+        {
+          return LocalizableMessage.raw(String.valueOf(nEntries));
+        }
+        return getNotAvailableText(desc, isRunning);
+      }
+      else
+      {
+        throw new IllegalStateException("Unknown object type: " + v);
+      }
+    }
+    return LocalizableMessage.EMPTY;
+  }
+
+  private LocalizableMessage getNotAvailableText(ServerDescriptor desc, boolean isRunning)
+  {
+    if (!isRunning)
+    {
+      return getNotAvailableBecauseServerIsDownText();
+    }
+    if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
+    {
+      return getNotAvailableBecauseAuthenticationIsRequiredText();
+    }
+    return getNotAvailableText();
   }
 
   private void writeLabelValue(final LocalizableMessage label,
@@ -1190,7 +1095,7 @@ class StatusCli extends ConsoleApplication
     {
       buf.append(" ");
     }
-    buf.append(" ").append(String.valueOf(value));
+    buf.append(" ").append(value);
     println(buf.toMessage());
   }
 
@@ -1238,15 +1143,11 @@ class StatusCli extends ConsoleApplication
     return argParser.isInteractive();
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -1254,15 +1155,11 @@ class StatusCli extends ConsoleApplication
     return false;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return argParser.isScriptFriendly();
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -1270,7 +1167,7 @@ class StatusCli extends ConsoleApplication
     return true;
   }
 
-  // FIXME Common code with DSConfigand tools*. This method needs to be moved.
+  /** FIXME Common code with DSConfigand tools*. This method needs to be moved. */
   private ManagementContext getManagementContextFromConnection(
       final LDAPConnectionConsoleInteraction ci) throws ClientException
   {
@@ -1293,8 +1190,7 @@ class StatusCli extends ConsoleApplication
       try
       {
         final SSLContextBuilder sslBuilder = new SSLContextBuilder();
-        sslBuilder.setTrustManager((trustManager == null ? TrustManagers
-            .trustAll() : trustManager));
+        sslBuilder.setTrustManager(trustManager == null ? TrustManagers.trustAll() : trustManager);
         sslBuilder.setKeyManager(keyManager);
         options.setUseStartTLS(ci.useStartTLS());
         options.setSSLContext(sslBuilder.getSSLContext());
@@ -1359,7 +1255,6 @@ class StatusCli extends ConsoleApplication
       }
     }
 
-    return LDAPManagementContext.newManagementContext(connection, LDAPProfile
-        .getInstance());
+    return LDAPManagementContext.newManagementContext(connection, LDAPProfile.getInstance());
   }
 }
