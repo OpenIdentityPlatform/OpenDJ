@@ -755,6 +755,8 @@ public class ChangelogBackend extends Backend<Configuration>
 
   /**
    * Optimize the search parameters by analyzing the DN and filter.
+   * It also performs validation on some search parameters
+   * for both cookie and change number based changelogs.
    *
    * @param baseDN the provided search baseDN.
    * @param userFilter the provided search filter.
@@ -912,8 +914,7 @@ public class ChangelogBackend extends Backend<Configuration>
           entrySender.cookie, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, entrySender.excludedBaseDNs);
       replicaUpdatesCursor = new ECLMultiDomainDBCursor(domainPredicate, cursor);
 
-      final boolean continueSearch = sendCookieEntriesFromCursor(entrySender, replicaUpdatesCursor);
-      if (continueSearch)
+      if (sendCookieEntriesFromCursor(entrySender, replicaUpdatesCursor))
       {
         entrySender.transitioningToPersistentSearchPhase();
         sendCookieEntriesFromCursor(entrySender, replicaUpdatesCursor);
@@ -985,14 +986,11 @@ public class ChangelogBackend extends Backend<Configuration>
     // Validation must be done during registration for changes only persistent searches.
     // Otherwise, when there is an initial search phase,
     // validation is performed by the search() method.
-    ChangeNumberRange range = null;
     if (pSearch.isChangesOnly())
     {
       checkChangelogReadPrivilege(searchOp);
-      // next line also validates some search parameters
-      range = optimizeSearch(searchOp.getBaseDN(), searchOp.getFilter());
     }
-
+    final ChangeNumberRange range = optimizeSearch(searchOp.getBaseDN(), searchOp.getFilter());
 
     final SearchPhase startPhase = pSearch.isChangesOnly() ? SearchPhase.PERSISTENT : SearchPhase.INITIAL;
     if (isCookieBased(searchOp))
@@ -1071,10 +1069,9 @@ public class ChangelogBackend extends Backend<Configuration>
     try
     {
       cnIndexDBCursor = getCNIndexDBCursor(entrySender.lowestChangeNumber);
-      MultiDomainServerState cookie = new MultiDomainServerState();
-      final boolean continueSearch =
-          sendChangeNumberEntriesFromCursors(entrySender, cnIndexDBCursor, replicaUpdatesCursor, cookie);
-      if (continueSearch)
+      final MultiDomainServerState cookie = new MultiDomainServerState();
+
+      if (sendChangeNumberEntriesFromCursors(entrySender, cnIndexDBCursor, replicaUpdatesCursor, cookie))
       {
         entrySender.transitioningToPersistentSearchPhase();
         sendChangeNumberEntriesFromCursors(entrySender, cnIndexDBCursor, replicaUpdatesCursor, cookie);
