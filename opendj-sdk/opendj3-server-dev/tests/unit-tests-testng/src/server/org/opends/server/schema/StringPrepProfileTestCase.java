@@ -34,7 +34,8 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.SearchResultEntry;
@@ -119,7 +120,7 @@ public final class StringPrepProfileTestCase extends SchemaTestCase
                              String value2, Boolean result) throws Exception
   {
     //Take any caseExact matching rule.
-    MatchingRule rule = new CaseExactIA5EqualityMatchingRule();
+    MatchingRule rule = CoreSchema.getCaseExactIA5MatchingRule();
 
     Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
     ConditionResult condResult = assertion.matches(rule.normalizeAttributeValue(ByteString.valueOf(value1)));
@@ -154,7 +155,8 @@ public final class StringPrepProfileTestCase extends SchemaTestCase
                              String value2, Boolean result) throws Exception
   {
     //Take any caseExact matching rule.
-    MatchingRule rule = new CaseIgnoreEqualityMatchingRule();
+    MatchingRule rule = CoreSchema.getCaseIgnoreMatchingRule();
+
 
     Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
     ConditionResult condResult = assertion.matches(rule.normalizeAttributeValue(ByteString.valueOf(value1)));

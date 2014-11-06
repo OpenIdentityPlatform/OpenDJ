@@ -36,6 +36,7 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;

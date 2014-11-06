@@ -38,6 +38,9 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.core.DirectoryServer;
@@ -86,6 +89,17 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
   }
 
+  private MatchingRule getRule()
+  {
+    String oid = "1.3.6.1.4.1.26027.1.4.4";
+    return new SchemaBuilder(CoreSchema.getInstance())
+        .buildMatchingRule(oid).names("historicalCsnOrderingMatch")
+          .syntaxOID("1.3.6.1.4.1.1466.115.121.1.40")
+          .implementation(new HistoricalCsnOrderingMatchingRuleImpl())
+          .addToSchema()
+        .toSchema().getMatchingRule(oid);
+  }
+
   /**
    * Check the basic comparator on the HistoricalCsnOrderingMatchingRule
    */
@@ -93,14 +107,13 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   public void basicRuleTest() throws Exception
   {
     // Creates a rule
-    HistoricalCsnOrderingMatchingRule rule =
-      new HistoricalCsnOrderingMatchingRule();
+    MatchingRule rule = getRule();
 
     CSN del1 = new CSN(1,  0,  1);
     CSN del2 = new CSN(1,  1,  1);
 
-    ByteString v1 = ByteString.valueOf("a" + ":" + del1);
-    ByteString v2 = ByteString.valueOf("a" + ":" + del2);
+    ByteString v1 = ByteString.valueOf("a:" + del1);
+    ByteString v2 = ByteString.valueOf("a:" + del2);
 
     Assertion assert1 = rule.getAssertion(v2);
     assertEquals(assert1.matches(rule.normalizeAttributeValue(v1)), ConditionResult.TRUE);

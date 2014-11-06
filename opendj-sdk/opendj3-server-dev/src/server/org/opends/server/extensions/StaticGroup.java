@@ -47,6 +47,7 @@ import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
 import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -102,6 +103,8 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   /** Passed to the group manager to see if the nested group list needs to be refreshed. */
   private long nestedGroupRefreshToken = DirectoryServer.getGroupManager().refreshToken();
 
+  private ServerContext serverContext;
+
   /**
    * Creates an uninitialized static group. This is intended for internal use
    * only, to allow {@code GroupManager} to dynamically create a group.
@@ -121,11 +124,13 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
    * @param  memberDNs            The set of the DNs of the members for this
    *                              group.
    */
-  private StaticGroup(DN groupEntryDN, AttributeType memberAttributeType, LinkedHashSet<CompactDn> memberDNs)
+  private StaticGroup(ServerContext serverContext, DN groupEntryDN, AttributeType memberAttributeType,
+      LinkedHashSet<CompactDn> memberDNs)
   {
     super();
     ifNull(groupEntryDN, memberAttributeType, memberDNs);
 
+    this.serverContext       = serverContext;
     this.groupEntryDN        = groupEntryDN;
     this.memberAttributeType = memberAttributeType;
     this.memberDNs           = memberDNs;
@@ -141,7 +146,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
   /** {@inheritDoc} */
   @Override()
-  public StaticGroup newInstance(Entry groupEntry) throws DirectoryException
+  public StaticGroup newInstance(ServerContext serverContext, Entry groupEntry) throws DirectoryException
   {
     ifNull(groupEntry);
 
@@ -200,7 +205,6 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
       }
     }
     LinkedHashSet<CompactDn> someMemberDNs = new LinkedHashSet<CompactDn>(membersCount);
-
     if (memberAttrList != null)
     {
       for (Attribute a : memberAttrList)
@@ -220,7 +224,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
         }
       }
     }
-    return new StaticGroup(groupEntry.getName(), someMemberAttributeType, someMemberDNs);
+    return new StaticGroup(serverContext, groupEntry.getName(), someMemberAttributeType, someMemberDNs);
   }
 
   /** {@inheritDoc} */
@@ -516,8 +520,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
   /** {@inheritDoc} */
   @Override()
-  public void addMember(Entry userEntry)
-         throws UnsupportedOperationException, DirectoryException
+  public void addMember(Entry userEntry) throws UnsupportedOperationException, DirectoryException
   {
     ifNull(userEntry);
 
@@ -614,7 +617,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
    *            The DN
    * @return the compact representation of the DN
    */
-  static CompactDn toCompactDn(DN dn)
+  private CompactDn toCompactDn(DN dn)
   {
     return Converters.from(dn).compact();
   }

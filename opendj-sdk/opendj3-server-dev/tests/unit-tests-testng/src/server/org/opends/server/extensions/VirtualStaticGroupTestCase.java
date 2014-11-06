@@ -299,7 +299,7 @@ public class VirtualStaticGroupTestCase
       "ds-target-group-dn: cn=Static member List,ou=Groups,o=test");
 
     VirtualStaticGroup groupImplementation = new VirtualStaticGroup();
-    VirtualStaticGroup groupInstance = groupImplementation.newInstance(entry);
+    VirtualStaticGroup groupInstance = groupImplementation.newInstance(null, entry);
     assertNotNull(groupInstance);
     groupImplementation.finalizeGroupImplementation();
   }
@@ -362,7 +362,7 @@ public class VirtualStaticGroupTestCase
     VirtualStaticGroup groupImplementation = new VirtualStaticGroup();
     try
     {
-      groupImplementation.newInstance(entry);
+      groupImplementation.newInstance(null, entry);
     }
     finally
     {

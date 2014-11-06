@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.io.IOException;
 
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;

@@ -28,7 +28,7 @@ package org.opends.server.types;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 
 /**
  * This class defines a data structure that may be used as a sort key.

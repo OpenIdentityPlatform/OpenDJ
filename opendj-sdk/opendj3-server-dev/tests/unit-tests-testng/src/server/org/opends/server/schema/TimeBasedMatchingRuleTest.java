@@ -33,8 +33,8 @@ import java.util.TimeZone;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;

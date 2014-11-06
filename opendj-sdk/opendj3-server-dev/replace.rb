@@ -7,10 +7,14 @@ require 'fileutils'
 #
 # To define a new replacement, add a new constant like VALIDATOR.
 #
-# It should be a ruby Hash with three mandatory keys and one optional key:
+# It should be a ruby Hash with three mandatory keys and two optional key.
+#
+# The mandatory keys are:
 #
 #  :dirs => a list of directory to run replacements. All subdirs are processed.
+#
 #  :extensions => a list of file extensions. Only file with these extensions are processed.
+#
 #  :replacements => a list of replacements, lines are processed 2 by 2
 #    - first line gives the pattern to replace, as a ruby regexp (see http://rubular.com/ for help and tool)
 #    - second line gives the replacement string, using \1, \2, ... to insert matching groups. This is a string,
@@ -19,8 +23,16 @@ require 'fileutils'
 #    It is ok to leave a new line to separate each pair of line for readability.
 #    It is ok to use a comment in the array (use # as first non blank character of line).
 #
-# The optional key is :stopwords => a list of stopword. If any word in this list appears in a file name, the file
-#   is not processed. Use it to exclude some files or directory that must not be processed.
+# The optional keys are:
+#
+#   :whitelist => a list of mandatory words. If any word in this list appears in a file name, the file
+#       is processed, otherwise it is ignored. Use it to explicitely indicates files to process.
+#
+#   :stoplist => a list of stop words. If any word in this list appears in a file name, the file
+#       is not processed. Use it to exclude some files or directory that must not be processed.
+#
+#   Note that if you use both whitelist and stoplist, a word in stoplist can prevent processing a file even if it
+#   matches the whitelist content.
 #
 # Once you have define your replacement, add the constant in REPLACEMENTS array. it will be taken into account when
 # running the program (run it at root of project) with command: ./replace.rb
@@ -38,7 +50,7 @@ class Replace
   MRULES_TO_SDK = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
-    :stopwords => ["MatchingRule"],
+    :stoplist => ["MatchingRule"],
     :replacements =>
       [
         /import org.opends.server.api.MatchingRule;/,
@@ -50,7 +62,6 @@ class Replace
   MRULES_FACTORIES = {
     :dirs => ["src/server/org/opends/server/schema"],
     :extensions => ["java"],
-    :stopwords => [],
     :replacements =>
       [
         /import org.opends.server.api.MatchingRule;/,
@@ -71,10 +82,21 @@ class Replace
        ]
   }
 
+  MRULES_API_PACKAGE = {
+    :dirs => ["src/server/org/opends/server/api"],
+    :extensions => ["java"],
+    :stoplist => ["MatchingRule.java"],
+    :replacements =>
+      [
+        /\bMatchingRule\b/,
+        "org.forgerock.opendj.ldap.schema.MatchingRule",
+      ]
+  }
+
   MRULES = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
-    :stopwords => ["MatchingRule"],
+    :stoplist => ["MatchingRule"],
     :replacements =>
       [
 
@@ -91,7 +113,7 @@ class Replace
   SYNTAX = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
-    :stopwords => ["Syntax"],
+    :stoplist => ["Syntax"],
     :replacements =>
       [
 
@@ -116,7 +138,7 @@ class Replace
   ATTRTYPE = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
-    :stopwords => [],
+    :stoplist => [],
     :replacements =>
       [
 
@@ -136,7 +158,7 @@ class Replace
   NEW_CONFIG = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
-    :stopwords => ["org/opends/server/admin", "api/Config", "MatchingRuleConfigManager"],
+    :stoplist => ["org/opends/server/admin", "api/Config", "MatchingRuleConfigManager"],
     :replacements =>
       [
         /import org.opends.server.admin.std.server\.([^;]+);/,
@@ -360,7 +382,7 @@ class Replace
 
   ###############################  List of replacements to run #################################
 
-  REPLACEMENTS = [ MRULES_TO_SDK, MRULES_FACTORIES ]
+  REPLACEMENTS = [ MRULES_TO_SDK, MRULES_FACTORIES, MRULES_API_PACKAGE ]
 
   ################################### Processing methods ########################################
 
@@ -368,20 +390,22 @@ class Replace
   def run
     REPLACEMENTS.each { |repl|
       puts "Replacing " + Replace.constants.find{ |name| Replace.const_get(name)==repl }.to_s
-      stopwords = repl[:stopwords] || ["--nostopword--"]
-      replace_dirs(repl[:replacements], repl[:dirs], stopwords, repl[:extensions])
+      stoplist = repl[:stoplist] || []
+      whitelist = repl[:whitelist] || []
+      replace_dirs(repl[:replacements], repl[:dirs], stoplist, whitelist, repl[:extensions])
     }
   end
 
   # Process replacements on the provided directories
-  def replace_dirs(replacements, dirs, stopwords, extensions)
+  def replace_dirs(replacements, dirs, stoplist, whitelist, extensions)
     count_files = 0
     count_total = 0
     dirs.each { |directory|
       files = files_under_directory(directory, extensions)
       files.each { |file|
-        exclude_file = stopwords.any? { |stopword| file.include?(stopword) }
-        next if exclude_file
+        filename_has_stopword = stoplist.any? { |stopword| file.include?(stopword) }
+        filename_has_whiteword = whitelist.any? { |whiteword| file.include?(whiteword) }
+        next if filename_has_stopword || (!whitelist.empty? && !filename_has_whiteword)
         count = replace_file(file, replacements)
         if count > 0
           count_files += 1
@@ -421,15 +445,15 @@ class Replace
 
   # Process provided directories
   # Expects a processing block accepting a file as argument and returning a count of changes dones
-  def process_dirs(dirs, stopwords, extensions)
+  def process_dirs(dirs, stoplist, whitelist, extensions)
     count_files = 0
     count_total = 0
     dirs.each { |directory|
       files = files_under_directory(directory, extensions)
       files.each { |file|
-        puts file.to_s + "  stopwords:" + stopwords.to_s
-        exclude_file = stopwords.any? { |stopword| file.include?(stopword) }
-        next if exclude_file
+        filename_has_stopword = stoplist.any? { |stopword| file.include?(stopword) }
+        filename_has_whiteword = whitelist.any? { |whiteword| file.include?(whiteword) }
+        next if filename_has_stopword || (!whitelist.empty? && !filename_has_whiteword)
         count = yield file # call the block
         if count > 0
           count_files += 1

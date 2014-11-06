@@ -32,7 +32,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.ServerConstants;

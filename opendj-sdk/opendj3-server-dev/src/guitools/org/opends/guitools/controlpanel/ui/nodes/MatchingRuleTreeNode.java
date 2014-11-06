@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
 
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 
 /**
  * Class of the nodes that represent a matching rule in the 'Manage Schema'

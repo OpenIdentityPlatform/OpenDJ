@@ -34,7 +34,7 @@ import javax.swing.JComboBox;
 import javax.swing.JList;
 
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.CommonSchemaElements;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;

@@ -32,11 +32,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.NumSubordinatesVirtualAttributeCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -115,19 +113,16 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
-    Backend backend = DirectoryServer.getBackend(entry.getName());
-    MatchingRule eqRule = rule.getAttributeType().getEqualityMatchingRule();
-
+    Backend<?> backend = DirectoryServer.getBackend(entry.getName());
     try
     {
-      String nv = eqRule.normalizeAttributeValue(value).toString();
       long count = backend.numSubordinates(entry.getName(), false);
-      return count >= 0 && Long.parseLong(nv) == count;
+      return count >= 0 && Long.parseLong(value.toString()) == count;
     }
-    catch (DecodeException e)
+    catch (NumberFormatException e)
     {
-      logger.traceException(e);
-      return false;
+        logger.traceException(e);
+        return false;
     }
     catch (DirectoryException e)
     {

@@ -37,6 +37,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DynamicGroupImplementationCfg;
 import org.opends.server.api.Group;
+import org.opends.server.core.ServerContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
@@ -132,7 +133,7 @@ public class DynamicGroup
    * {@inheritDoc}
    */
   @Override()
-  public DynamicGroup newInstance(Entry groupEntry)
+  public DynamicGroup newInstance(ServerContext serverContext, Entry groupEntry)
          throws DirectoryException
   {
     ifNull(groupEntry);

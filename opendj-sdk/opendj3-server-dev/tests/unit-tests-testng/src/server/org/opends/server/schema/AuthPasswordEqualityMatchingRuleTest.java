@@ -29,28 +29,28 @@ package org.opends.server.schema;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SaltedMD5PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.SaltedMD5PasswordStorageScheme;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.types.DN;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the AuthPasswordEqualityMatchingRule.
  */
-public class AuthPasswordEqualityMatchingRuleTest extends
-    EqualityMatchingRuleTest
+@SuppressWarnings("javadoc")
+public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
 {
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name="equalitymatchingrules")
   public Object[][] createEqualityMatchingRuleTest()
   {
@@ -59,10 +59,6 @@ public class AuthPasswordEqualityMatchingRuleTest extends
     };
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name="equalityMatchingRuleInvalidValues")
   public Object[][] createEqualityMatchingRuleInvalidValues()
   {
@@ -98,10 +94,6 @@ public class AuthPasswordEqualityMatchingRuleTest extends
          password, true};
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name="valuesMatch")
   public Object[][] createValuesMatch()
   {
@@ -121,13 +113,41 @@ public class AuthPasswordEqualityMatchingRuleTest extends
     }
   }
 
+  @Test(dataProvider= "equalityMatchingRuleInvalidValues", expectedExceptions = { DecodeException.class })
+  public void equalityMatchingRulesInvalidValues(String value) throws Exception
+  {
+    getRule().normalizeAttributeValue(ByteString.valueOf(value));
+  }
+
   /**
-   * {@inheritDoc}
+   * Test the valuesMatch method used for extensible filters.
    */
-  @Override
+  @Test(dataProvider= "valuesMatch")
+  public void testValuesMatch(String value1, String value2, Boolean result) throws Exception
+  {
+    MatchingRule rule = getRule();
+
+    // normalize the 2 provided values and check that they are equals
+    ByteString normalizedValue1 =
+      rule.normalizeAttributeValue(ByteString.valueOf(value1));
+    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+
+    ConditionResult liveResult = assertion.matches(normalizedValue1);
+    assertEquals(liveResult, ConditionResult.valueOf(result));
+  }
+
+
   protected MatchingRule getRule()
   {
-    return new AuthPasswordEqualityMatchingRule();
+    AuthPasswordEqualityMatchingRuleFactory factory = new AuthPasswordEqualityMatchingRuleFactory();
+    try
+    {
+      factory.initializeMatchingRule(null);
+    }
+    catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+    return factory.getMatchingRules().iterator().next();
   }
 }
 

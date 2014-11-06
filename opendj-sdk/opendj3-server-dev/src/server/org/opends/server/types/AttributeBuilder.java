@@ -46,7 +46,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.server.util.StaticUtils.*;

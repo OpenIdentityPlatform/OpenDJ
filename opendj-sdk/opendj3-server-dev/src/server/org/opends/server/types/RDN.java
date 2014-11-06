@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.CoreMessages.*;
@@ -900,17 +900,12 @@ public final class RDN
     {
       return true;
     }
-
-    if (o == null || !(o instanceof RDN))
+    if (o instanceof RDN)
     {
-      return false;
+      return compareTo((RDN) o) == 0;
     }
-
-    RDN rdn = (RDN) o;
-    return toNormalizedString().equals(rdn.toNormalizedString());
+    return false;
   }
-
-
 
   /**
    * Retrieves the hash code for this RDN.  It will be calculated as
@@ -921,7 +916,34 @@ public final class RDN
   @Override
   public int hashCode()
   {
-    return toNormalizedString().hashCode();
+    // Avoid an algorithm that requires the AVAs to be sorted.
+    int hash = 0;
+
+    for (int i = 0; i < attributeNames.length; i++)
+    {
+      hash += attributeTypes[i].hashCode() * 31 + getEqualityNormalizedValue(i).hashCode();
+    }
+    return hash;
+  }
+
+  /** Returns normalized value for attribute at provided position. */
+  private ByteString getEqualityNormalizedValue(int position)
+  {
+    final MatchingRule matchingRule = attributeTypes[position].getEqualityMatchingRule();
+    ByteString attributeValue = attributeValues[position];
+    if (matchingRule != null)
+    {
+      try
+      {
+        attributeValue = matchingRule.normalizeAttributeValue(attributeValue);
+      }
+      catch (final DecodeException de)
+      {
+        // Unable to normalize, use default
+        attributeValue = attributeValues[position];
+      }
+    }
+    return attributeValue;
   }
 
 
@@ -1064,8 +1086,6 @@ public final class RDN
       }
   }
 
-
-
   /**
    * Compares this RDN with the provided RDN based on an alphabetic
    * comparison of the attribute names and values.
@@ -1094,11 +1114,6 @@ public final class RDN
         String name2 = rdn.attributeTypes[0].getNormalizedPrimaryNameOrOID();
         return name1.compareTo(name2);
       }
-    }
-
-    if (equals(rdn))
-    {
-      return 0;
     }
 
     TreeMap<String,AttributeType> typeMap1 =

@@ -30,10 +30,11 @@ package org.opends.server.schema;
 
 import java.util.Collection;
 import java.util.Collections;
-import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.api.MatchingRule;
+
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.opends.server.admin.std.server.MatchingRuleCfg;
+import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
@@ -43,7 +44,7 @@ public final class CaseExactOrderingMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
   //Associated Matching Rule.
-  private MatchingRule matchingRule;
+  private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;
 
 
 
@@ -54,7 +55,7 @@ public final class CaseExactOrderingMatchingRuleFactory
   public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
   {
-    matchingRule =  new CaseExactOrderingMatchingRule();
+    matchingRule = CoreSchema.getCaseExactOrderingMatchingRule();
   }
 
 
@@ -63,7 +64,7 @@ public final class CaseExactOrderingMatchingRuleFactory
    * {@inheritDoc}
    */
   @Override
-  public final Collection<MatchingRule> getMatchingRules()
+  public final Collection<org.forgerock.opendj.ldap.schema.MatchingRule> getMatchingRules()
   {
     return Collections.singleton(matchingRule);
   }

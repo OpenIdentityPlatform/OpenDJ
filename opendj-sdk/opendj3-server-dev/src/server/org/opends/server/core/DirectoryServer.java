@@ -99,14 +99,13 @@ import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.api.Extension;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.PasswordGenerator;
@@ -223,6 +222,7 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -2743,45 +2743,6 @@ public final class DirectoryServer
     return directoryServer.schema.getMatchingRule(lowerName);
   }
 
-
-
-  /**
-   * Registers the provided approximate matching rule with the Directory
-   * Server.
-   *
-   * @param  matchingRule       The matching rule to register with the server.
-   * @param  overwriteExisting  Indicates whether to overwrite an existing
-   *                            mapping if there are any conflicts (i.e.,
-   *                            another matching rule with the same OID or
-   *                            name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag is set to
-   *                              <CODE>false</CODE>
-   */
-  public static void registerApproximateMatchingRule(MatchingRule
-                                                          matchingRule,
-                                                     boolean overwriteExisting)
-         throws DirectoryException
-  {
-    directoryServer.schema.registerMatchingRule(matchingRule, overwriteExisting);
-  }
-
-
-
-  /**
-   * Deregisters the provided approximate matching rule with the Directory
-   * Server.
-   *
-   * @param  matchingRule  The matching rule to deregister with the server.
-   */
-  public static void deregisterApproximateMatchingRule(MatchingRule
-                                                            matchingRule)
-  {
-    directoryServer.schema.deregisterMatchingRule(matchingRule);
-  }
-
-
   /**
    * Retrieves the equality matching rule with the specified name or OID.
    *
@@ -2793,7 +2754,7 @@ public final class DirectoryServer
    */
   public static MatchingRule getEqualityMatchingRule(String lowerName)
   {
-    return directoryServer.schema.getMatchingRule(lowerName);
+    return getMatchingRule(lowerName);
   }
 
   /**
@@ -2807,39 +2768,7 @@ public final class DirectoryServer
    */
   public static MatchingRule getOrderingMatchingRule(String lowerName)
   {
-    return directoryServer.schema.getMatchingRule(lowerName);
-  }
-
-  /**
-   * Registers the provided ordering matching rule with the Directory Server.
-   *
-   * @param  matchingRule       The matching rule to register with the server.
-   * @param  overwriteExisting  Indicates whether to overwrite an existing
-   *                            mapping if there are any conflicts (i.e.,
-   *                            another matching rule with the same OID or
-   *                            name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag is set to
-   *                              <CODE>false</CODE>
-   */
-  public static void registerOrderingMatchingRule(
-      MatchingRule matchingRule, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    directoryServer.schema.registerMatchingRule(matchingRule, overwriteExisting);
-  }
-
-
-  /**
-   * Deregisters the provided ordering matching rule with the Directory Server.
-   *
-   * @param  matchingRule  The matching rule to deregister with the server.
-   */
-  public static void deregisterOrderingMatchingRule(MatchingRule
-                                                    matchingRule)
-  {
-    directoryServer.schema.deregisterMatchingRule(matchingRule);
+    return getMatchingRule(lowerName);
   }
 
   /**
@@ -2853,53 +2782,7 @@ public final class DirectoryServer
    */
   public static MatchingRule getSubstringMatchingRule(String lowerName)
   {
-    return directoryServer.schema.getMatchingRule(lowerName);
-  }
-
-  /**
-   * Registers the provided substring matching rule with the Directory Server.
-   *
-   * @param  matchingRule       The matching rule to register with the server.
-   * @param  overwriteExisting  Indicates whether to overwrite an existing
-   *                            mapping if there are any conflicts (i.e.,
-   *                            another matching rule with the same OID or
-   *                            name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag is set to
-   *                              <CODE>false</CODE>
-   */
-  public static void registerSubstringMatchingRule(
-      MatchingRule matchingRule, boolean overwriteExisting)
-      throws DirectoryException
-  {
-    directoryServer.schema.registerMatchingRule(matchingRule, overwriteExisting);
-  }
-
-  /**
-   * Deregisters the provided substring matching rule with the Directory Server.
-   *
-   * @param  matchingRule  The matching rule to deregister with the server.
-   */
-  public static void deregisterSubstringMatchingRule(MatchingRule
-                                                     matchingRule)
-  {
-    directoryServer.schema.deregisterMatchingRule(matchingRule);
-  }
-
-  /**
-   * Retrieves the extensible matching rule with the specified name or OID.
-   *
-   * @param  lowerName  The lowercase name or OID for the extensible matching
-   *                rule  to retrieve.
-   *
-   * @return  The requested extensible matching rule, or <CODE>null</CODE> if no
-   *          such matching rule has been defined in the server.
-   */
-  public static ExtensibleMatchingRule
-          getExtensibleMatchingRule(String lowerName)
-  {
-    return (ExtensibleMatchingRule) directoryServer.schema.getMatchingRule(lowerName);
+    return getMatchingRule(lowerName);
   }
 
   /**

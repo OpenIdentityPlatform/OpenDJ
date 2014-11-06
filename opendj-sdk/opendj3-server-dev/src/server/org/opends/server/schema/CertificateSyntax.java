@@ -35,7 +35,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;

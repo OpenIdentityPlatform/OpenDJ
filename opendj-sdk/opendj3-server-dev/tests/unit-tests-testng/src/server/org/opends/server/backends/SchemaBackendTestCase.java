@@ -27,24 +27,29 @@
 package org.opends.server.backends;
 
 import java.io.File;
+import java.util.Locale;
 import java.util.Map;
 
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -1087,9 +1092,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddAttributeTypeObsoleteEMR()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddATObsoleteEMRMatch",
-                                    "1.3.6.1.4.1.26027.1.999.20", true);
+    MatchingRule matchingRule = getMatchingRule("testAddATObsoleteEMRMatch", "1.3.6.1.4.1.26027.1.999.20", true);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
 
@@ -1515,9 +1518,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAttributeTypeReferencedByMRU()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testRemoveATRefByMRUMatch",
-                                    "1.3.6.1.4.1.26027.1.999.17");
+    MatchingRule matchingRule = getMatchingRule("testRemoveATRefByMRUMatch", "1.3.6.1.4.1.26027.1.999.17", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
 
@@ -4682,7 +4683,18 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(DirectoryServer.getSchema().hasDITStructureRule(ruleID));
   }
 
-
+  private MatchingRule getMatchingRule(String name, String oid, boolean isObsolete)
+  {
+    Schema schema =
+        new SchemaBuilder(Schema.getCoreSchema())
+          .buildMatchingRule(oid)
+            .syntaxOID(SchemaConstants.SYNTAX_DIRECTORY_STRING_OID)
+            .names(name)
+            .implementation(new SchemaTestMatchingRuleImpl())
+            .obsolete(isObsolete)
+            .addToSchema().toSchema();
+    return schema.getMatchingRule(oid);
+  }
 
   /**
    * Tests the behavior of the schema backend when attempting to add a new
@@ -4694,11 +4706,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseSuccessful()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddMRUSuccessfulMatch",
-                                    "1.3.6.1.4.1.26027.1.999.10");
+    MatchingRule matchingRule = getMatchingRule("testAddMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.10", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -4739,9 +4748,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseToAltSchemaFile()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddMRUToAltSchemaFileMatch",
-                                    "1.3.6.1.4.1.26027.1.999.18");
+    MatchingRule matchingRule = getMatchingRule("testAddMRUToAltSchemaFileMatch", "1.3.6.1.4.1.26027.1.999.18", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
 
@@ -4779,8 +4786,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaFile.exists());
   }
 
-
-
   /**
    * Tests the behavior of the schema backend when attempting to replace an
    * existing matching rule use.
@@ -4791,11 +4796,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testReplaceMatchingRuleUseSuccessful()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testReplaceMRUSuccessfulMatch",
-                                    "1.3.6.1.4.1.26027.1.999.11");
+    MatchingRule matchingRule = getMatchingRule("testReplaceMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.11", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -4843,9 +4845,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveAndAddMatchingRuleUse()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testRemoveAndAddMRUMatch",
-                                    "1.3.6.1.4.1.26027.1.999.12");
+    MatchingRule matchingRule = getMatchingRule("testRemoveAndAddMRUMatch", "1.3.6.1.4.1.26027.1.999.12", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
 
@@ -4888,8 +4888,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(mru.hasName("testremoveandaddmru"));
   }
 
-
-
   /**
    * Tests the behavior of the schema backend when attempting to add a matching
    * rule use that references the same matching rule as another matching rule
@@ -4901,11 +4899,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseMRConflict()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddMRUMRConflictMatch",
-                                    "1.3.6.1.4.1.26027.1.999.14");
+    MatchingRule matchingRule = getMatchingRule("testAddMRUMRConflictMatch", "1.3.6.1.4.1.26027.1.999.14", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -4973,8 +4968,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
-
-
   /**
    * Tests the behavior of the schema backend when attempting to add a new
    * matching rule use that references an undefined attribute type.
@@ -4985,9 +4978,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseAttributeTypeUndefined()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddMRUATUndefinedMatch",
-                                    "1.3.6.1.4.1.26027.1.999.16");
+    MatchingRule matchingRule = getMatchingRule("testAddMRUATUndefinedMatch", "1.3.6.1.4.1.26027.1.999.16", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
 
 
@@ -5026,11 +5017,9 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseAttributeTypeMultipleUndefined()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddMRUATMultipleUndefinedMatch",
-                                    "1.3.6.1.4.1.26027.1.999.19");
+    MatchingRule matchingRule =
+        getMatchingRule("testAddMRUATMultipleUndefinedMatch", "1.3.6.1.4.1.26027.1.999.19", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -5055,8 +5044,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
-
-
   /**
    * Tests the behavior of the schema backend when attempting to add a new
    * matching rule whose matching rule is OBSOLETE.
@@ -5067,11 +5054,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseObsoleteMatchingRule()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddMRUObsoleteMRMatch",
-                                    "1.3.6.1.4.1.26027.1.999.21", true);
+    MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteMRMatch", "1.3.6.1.4.1.26027.1.999.21", true);
     DirectoryServer.registerMatchingRule(matchingRule, false);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -5107,11 +5091,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testAddMatchingRuleUseObsoleteAttributeType()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testAddMRUObsoleteATMatch",
-                                    "1.3.6.1.4.1.26027.1.999.22");
+    MatchingRule matchingRule = getMatchingRule("testAddMRUObsoleteATMatch", "1.3.6.1.4.1.26027.1.999.22", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -5140,8 +5121,6 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertFalse(LDAPModify.mainModify(args, false, null, null) == 0);
   }
 
-
-
   /**
    * Tests the behavior of the schema backend when attempting to remove an
    * existing matching rule use.
@@ -5152,11 +5131,8 @@ public class SchemaBackendTestCase extends BackendTestCase
   public void testRemoveMatchingRuleUseSuccessful()
          throws Exception
   {
-    SchemaTestMatchingRule matchingRule =
-         new SchemaTestMatchingRule("testRemoveMRUSuccessfulMatch",
-                                    "1.3.6.1.4.1.26027.1.999.13");
+    MatchingRule matchingRule = getMatchingRule("testRemoveMRUSuccessfulMatch", "1.3.6.1.4.1.26027.1.999.13", false);
     DirectoryServer.registerMatchingRule(matchingRule, false);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: cn=schema",
@@ -5190,8 +5166,6 @@ public class SchemaBackendTestCase extends BackendTestCase
          DirectoryServer.getSchema().getMatchingRuleUse(matchingRule);
     assertNull(mru);
   }
-
-
 
   /**
    * This test case covers the problem identified in issue #1318.  In that
@@ -5249,8 +5223,6 @@ public class SchemaBackendTestCase extends BackendTestCase
 
     assertEquals(LDAPModify.mainModify(args, false, null, System.err), 0);
   }
-
-
 
   /**
    * Tests the behavior of schema backend when attribute type definitions

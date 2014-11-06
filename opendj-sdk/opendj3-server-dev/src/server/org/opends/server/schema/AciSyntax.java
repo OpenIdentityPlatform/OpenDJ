@@ -29,7 +29,7 @@ package org.opends.server.schema;
 
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -82,7 +82,7 @@ public class AciSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_IA5_OID);
+         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_IA5_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME);

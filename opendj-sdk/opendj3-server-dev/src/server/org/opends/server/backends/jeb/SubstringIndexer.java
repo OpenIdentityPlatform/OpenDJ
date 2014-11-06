@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.types.AttributeType;
 
 /**
@@ -60,14 +60,14 @@ public class SubstringIndexer extends ExtensibleIndexer
   @Override
   public String getIndexID()
   {
-    throw new RuntimeException("Code is not implemented");
+    return "substring";
   }
 
   /** {@inheritDoc} */
   @Override
   public String getExtensibleIndexID()
   {
-    return "substring";
+    throw new RuntimeException("Code is not implemented");
   }
 
   /** {@inheritDoc} */

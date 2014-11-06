@@ -85,7 +85,7 @@ import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;

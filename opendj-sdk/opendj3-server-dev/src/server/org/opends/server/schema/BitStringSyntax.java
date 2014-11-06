@@ -30,7 +30,7 @@ package org.opends.server.schema;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.api.MatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 
 import org.forgerock.opendj.config.server.ConfigException;

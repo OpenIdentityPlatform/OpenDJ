@@ -40,11 +40,12 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.api.*;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Schema;
 
