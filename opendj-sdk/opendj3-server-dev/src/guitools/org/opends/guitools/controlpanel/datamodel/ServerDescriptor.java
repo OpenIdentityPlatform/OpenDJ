@@ -38,17 +38,18 @@ import java.util.Map;
 import java.util.Set;
 
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
-import org.opends.guitools.controlpanel.util.Utilities;
-
 import org.opends.quicksetup.UserData;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
-import com.forgerock.opendj.util.OperatingSystem;
 import org.opends.server.types.Schema;
 
+import com.forgerock.opendj.util.OperatingSystem;
+
+import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
@@ -57,80 +58,54 @@ import static org.opends.server.types.CommonSchemaElements.*;
  */
 public class ServerDescriptor
 {
+  private static String localHostName = UserData.getDefaultHostName();
+
   private ServerStatus status;
   private int openConnections;
   private Set<BackendDescriptor> backends = new HashSet<BackendDescriptor>();
-  private Set<ConnectionHandlerDescriptor> listeners =
-    new HashSet<ConnectionHandlerDescriptor>();
+  private Set<ConnectionHandlerDescriptor> listeners = new HashSet<ConnectionHandlerDescriptor>();
   private ConnectionHandlerDescriptor adminConnector;
   private Set<DN> administrativeUsers = new HashSet<DN>();
   private String installPath;
   private String instancePath;
   private String openDSVersion;
   private String javaVersion;
-  private ArrayList<OpenDsException> exceptions =
-    new ArrayList<OpenDsException>();
+  private ArrayList<OpenDsException> exceptions = new ArrayList<OpenDsException>();
   private boolean isWindowsServiceEnabled;
   private boolean isSchemaEnabled;
   private Schema schema;
 
   private CustomSearchResult rootMonitor;
-
   private CustomSearchResult jvmMemoryUsage;
-
   private CustomSearchResult systemInformation;
-
   private CustomSearchResult entryCaches;
-
   private CustomSearchResult workQueue;
 
   private Set<TaskEntry> taskEntries = new HashSet<TaskEntry>();
 
   private long runningTime = -1;
-
   private boolean isAuthenticated;
-
-  private static String localHostName = UserData.getDefaultHostName();
-
   private String hostName = localHostName;
-
   private boolean isLocal = true;
 
-  /**
-   * Enumeration indicating the status of the server.
-   *
-   */
+  /** Enumeration indicating the status of the server. */
   public enum ServerStatus
   {
-    /**
-     * Server Started.
-     */
+    /** Server Started. */
     STARTED,
-    /**
-     * Server Stopped.
-     */
+    /** Server Stopped. */
     STOPPED,
-    /**
-     * Server Starting.
-     */
+    /** Server Starting. */
     STARTING,
-    /**
-     * Server Stopping.
-     */
+    /** Server Stopping. */
     STOPPING,
-    /**
-     * Not connected to remote.
-     */
+    /** Not connected to remote. */
     NOT_CONNECTED_TO_REMOTE,
-    /**
-     * Status Unknown.
-     */
+    /** Status Unknown. */
     UNKNOWN
   }
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public ServerDescriptor()
   {
   }
@@ -230,7 +205,7 @@ public class ServerDescriptor
       {
         sameInstallAndInstance = instance.equals(install);
         if (!sameInstallAndInstance &&
-            (isLocal() || (OperatingSystem.isWindows())))
+            (isLocal() || OperatingSystem.isWindows()))
         {
           File f1 = new File(instance);
           File f2 = new File(install);
@@ -340,152 +315,44 @@ public class ServerDescriptor
     this.taskEntries = Collections.unmodifiableSet(taskEntries);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean equals(Object o)
   {
-    boolean equals = false;
-    if (this != o)
+    if (this == o)
     {
-      if (o instanceof ServerDescriptor)
-      {
-        ServerDescriptor desc = (ServerDescriptor)o;
-        equals = desc.getStatus() == getStatus();
-
-        if (equals)
-        {
-          equals = desc.isLocal() == isLocal();
-        }
-
-        if (equals)
-        {
-          equals = desc.isAuthenticated() == isAuthenticated();
-        }
-
-        if (equals)
-        {
-          equals = desc.getOpenConnections() == getOpenConnections();
-        }
-
-        if (equals)
-        {
-          if (desc.getInstallPath() == null)
-          {
-            equals = getInstallPath() == null;
-          }
-          else
-          {
-            equals = desc.getInstallPath().equals(getInstallPath());
-          }
-        }
-
-        if (equals)
-        {
-          if (desc.getInstancePath() == null)
-          {
-            equals = getInstancePath() == null;
-          }
-          else
-          {
-            equals = desc.getInstancePath().equals(getInstancePath());
-          }
-        }
-
-        if (equals)
-        {
-          if (desc.getJavaVersion() == null)
-          {
-            equals = getJavaVersion() == null;
-          }
-          else
-          {
-            equals = desc.getJavaVersion().equals(getJavaVersion());
-          }
-        }
-
-        if (equals)
-        {
-          if (desc.getOpenDSVersion() == null)
-          {
-            equals = getOpenDSVersion() == null;
-          }
-          else
-          {
-            equals = desc.getOpenDSVersion().equals(getOpenDSVersion());
-          }
-        }
-
-        if (equals)
-        {
-          equals = desc.getAdministrativeUsers().equals(
-              getAdministrativeUsers());
-        }
-
-        if (equals)
-        {
-          equals = desc.getConnectionHandlers().equals(getConnectionHandlers());
-        }
-
-        if (equals)
-        {
-          equals = desc.getBackends().equals(getBackends());
-        }
-
-        if (equals)
-        {
-          equals = desc.getExceptions().equals(getExceptions());
-        }
-
-        if (equals)
-        {
-          equals = desc.isSchemaEnabled() == isSchemaEnabled();
-        }
-
-        if (equals)
-        {
-          if (desc.getSchema() == null)
-          {
-            equals = getSchema() != null;
-          }
-          else if (getSchema() == null)
-          {
-            equals = false;
-          }
-          else
-          {
-            equals = areSchemasEqual(schema, desc.getSchema());
-          }
-        }
-
-        if (equals && OperatingSystem.isWindows())
-        {
-          equals =
-            desc.isWindowsServiceEnabled() == isWindowsServiceEnabled();
-        }
-
-        if (equals)
-        {
-          desc.getTaskEntries().equals(getTaskEntries());
-        }
-      }
+      return true;
     }
-    else
+    if (!(o instanceof ServerDescriptor))
     {
-      equals = true;
+      return false;
     }
-    return equals;
+
+    ServerDescriptor desc = (ServerDescriptor) o;
+    return desc.getStatus() == getStatus()
+        && desc.isLocal() == isLocal()
+        && desc.isAuthenticated() == isAuthenticated()
+        && desc.getOpenConnections() == getOpenConnections()
+        && areEqual(getInstallPath(), desc.getInstallPath())
+        && areEqual(getInstancePath(), desc.getInstancePath())
+        && areEqual(getJavaVersion(), desc.getJavaVersion())
+        && areEqual(getOpenDSVersion(), desc.getOpenDSVersion())
+        && areEqual(desc.getAdministrativeUsers(), getAdministrativeUsers())
+        && areEqual(desc.getConnectionHandlers(), getConnectionHandlers())
+        && areEqual(desc.getBackends(), getBackends())
+        && areEqual(desc.getExceptions(), getExceptions())
+        && desc.isSchemaEnabled() == isSchemaEnabled()
+        && areSchemasEqual(getSchema(), desc.getSchema())
+        && (!OperatingSystem.isWindows() || desc.isWindowsServiceEnabled() == isWindowsServiceEnabled())
+        && desc.getTaskEntries().equals(getTaskEntries());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public int hashCode()
   {
-    return status.hashCode() + openConnections +
-    (String.valueOf(
-        installPath+openDSVersion+javaVersion+isAuthenticated)).
-        hashCode();
+    String s = installPath + openDSVersion + javaVersion + isAuthenticated;
+    return status.hashCode() + openConnections + s.hashCode();
   }
 
   /**
@@ -651,34 +518,21 @@ public class ServerDescriptor
    */
   public boolean isWindows()
   {
-    boolean isWindows;
     if (isLocal())
     {
-      isWindows = OperatingSystem.isWindows();
+      return OperatingSystem.isWindows();
     }
-    else
+    CustomSearchResult sr = getSystemInformationMonitor();
+    if (sr == null)
     {
-      CustomSearchResult sr = getSystemInformationMonitor();
-      if (sr == null)
-      {
-        isWindows = false;
-      }
-      else
-      {
-        String os =
-          (String)Utilities.getFirstMonitoringValue(sr, "operatingSystem");
-        if (os == null)
-        {
-          isWindows = false;
-        }
-        else
-        {
-          OperatingSystem oSystem = OperatingSystem.forName(os);
-          isWindows = OperatingSystem.WINDOWS == oSystem;
-        }
-      }
+      return false;
     }
-    return isWindows;
+    String os = (String) getFirstMonitoringValue(sr, "operatingSystem");
+    if (os != null)
+    {
+      return OperatingSystem.WINDOWS == OperatingSystem.forName(os);
+    }
+    return false;
   }
 
   /**
@@ -692,69 +546,51 @@ public class ServerDescriptor
    */
   public static boolean areSchemasEqual(Schema schema1, Schema schema2)
   {
-    boolean areEqual = schema1 == schema2;
-
-    if (!areEqual && (schema1 != null) && (schema2 != null))
+    if (schema1 == schema2)
     {
-      areEqual = true;
+      return true;
+    }
+    else if (schema2 == null)
+    {
+      return schema1 != null;
+    }
+    else if (schema1 == null)
+    {
+      return false;
+    }
 
-      // Just compare exhaustively objectclasses and attributes.
-      Map<String, AttributeType> attrs1 = schema1.getAttributeTypes();
-      Map<String, AttributeType> attrs2 = schema2.getAttributeTypes();
-      areEqual = attrs1.size() == attrs2.size();
+    // Just compare exhaustively objectclasses and attributes.
+    Map<String, AttributeType> attrs1 = schema1.getAttributeTypes();
+    Map<String, AttributeType> attrs2 = schema2.getAttributeTypes();
+    if (attrs1.size() == attrs2.size())
+    {
       for (String name : attrs1.keySet())
       {
-        if (!areEqual)
-        {
-          break;
-        }
-
         AttributeType attr1 = attrs1.get(name);
         AttributeType attr2 = attrs2.get(name);
-        if (attr2 != null)
+        if (attr2 == null && !areAttributesEqual(attr1, attr2))
         {
-          areEqual = areAttributesEqual(attr1, attr2);
+          return false;
         }
-        else
-        {
-          areEqual = false;
-        }
-      }
-      if (areEqual)
-      {
-        Map<String, ObjectClass> ocs1 = schema1.getObjectClasses();
-        Map<String, ObjectClass> ocs2 = schema2.getObjectClasses();
-        areEqual = ocs1.size() == ocs2.size();
-        for (String name : ocs1.keySet())
-        {
-          if (!areEqual)
-          {
-            break;
-          }
-
-          ObjectClass oc1 = ocs1.get(name);
-          ObjectClass oc2 = ocs2.get(name);
-          if (oc2 != null)
-          {
-            areEqual = areObjectClassesEqual(oc1, oc2);
-          }
-          else
-          {
-            areEqual = false;
-          }
-        }
-      }
-      if (areEqual)
-      {
-        areEqual = schema1.getMatchingRules().equals(
-            schema2.getMatchingRules());
-      }
-      if (areEqual)
-      {
-        areEqual = schema1.getSyntaxes().equals(schema2.getSyntaxes());
       }
     }
-    return areEqual;
+
+    Map<String, ObjectClass> ocs1 = schema1.getObjectClasses();
+    Map<String, ObjectClass> ocs2 = schema2.getObjectClasses();
+    if (ocs1.size() == ocs2.size())
+    {
+      for (String name : ocs1.keySet())
+      {
+        ObjectClass oc1 = ocs1.get(name);
+        ObjectClass oc2 = ocs2.get(name);
+        if (oc2 == null || !areObjectClassesEqual(oc1, oc2))
+        {
+          return false;
+        }
+      }
+    }
+    return areEqual(schema1.getMatchingRules(), schema2.getMatchingRules())
+        && areEqual(schema1.getSyntaxes(), schema2.getSyntaxes());
   }
 
   /**
@@ -766,63 +602,27 @@ public class ServerDescriptor
    * @return <CODE>true</CODE> if the two schema attributes are equal and
    * <CODE>false</CODE> otherwise.
    */
-  private static final boolean areAttributesEqual(AttributeType attr1,
-      AttributeType attr2)
+  private static final boolean areAttributesEqual(AttributeType attr1, AttributeType attr2)
   {
-    boolean areEqual = attr1.getOID().equals(attr2.getOID()) &&
-    attr1.isCollective() == attr2.isCollective() &&
-    attr1.isNoUserModification() == attr2.isNoUserModification() &&
-    attr1.isObjectClass() == attr2.isObjectClass() &&
-    attr1.isObsolete() == attr2.isObsolete() &&
-    attr1.isOperational() == attr2.isOperational() &&
-    attr1.isSingleValue() == attr2.isSingleValue();
-
-    if (areEqual)
-    {
-      Object[] compareWithEqual = {attr1.getApproximateMatchingRule(),
-          attr2.getApproximateMatchingRule(),
-          getDefinitionWithFileName(attr1), getDefinitionWithFileName(attr2),
-          attr1.getDescription(), attr2.getDescription(),
-          attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule(),
-          attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule(),
-          attr1.getSubstringMatchingRule(), attr2.getSubstringMatchingRule(),
-          attr1.getSuperiorType(), attr2.getSuperiorType(),
-          attr1.getSyntax(), attr2.getSyntax(),
-          attr1.getSyntax().getOID(), attr2.getSyntax().getOID()
-      };
-
-      for (int i=0; i<compareWithEqual.length && areEqual; i++)
-      {
-        areEqual = areEqual(compareWithEqual[i], compareWithEqual[i+1]);
-        i ++;
-      }
-
-
-      if (areEqual)
-      {
-        Iterable<?>[] iterables = {attr1.getExtraProperties().keySet(),
-            attr2.getExtraProperties().keySet(),
-            attr1.getNormalizedNames(), attr2.getNormalizedNames(),
-            attr1.getUserDefinedNames(), attr2.getUserDefinedNames()};
-        for (int i=0; i<iterables.length && areEqual; i++)
-        {
-          Set<Object> set1 = new HashSet<Object>();
-          Set<Object> set2 = new HashSet<Object>();
-          for (Object o : iterables[i])
-          {
-            set1.add(o);
-          }
-          for (Object o : iterables[i+1])
-          {
-            set2.add(o);
-          }
-          areEqual = set1.equals(set2);
-          i ++;
-        }
-      }
-    }
-
-    return areEqual;
+    return attr1.getOID().equals(attr2.getOID())
+        && attr1.isCollective() == attr2.isCollective()
+        && attr1.isNoUserModification() == attr2.isNoUserModification()
+        && attr1.isObjectClass() == attr2.isObjectClass()
+        && attr1.isObsolete() == attr2.isObsolete()
+        && attr1.isOperational() == attr2.isOperational()
+        && attr1.isSingleValue() == attr2.isSingleValue()
+        && areEqual(attr1.getApproximateMatchingRule(), attr2.getApproximateMatchingRule())
+        && areEqual(getDefinitionWithFileName(attr1), getDefinitionWithFileName(attr2))
+        && areEqual(attr1.getDescription(), attr2.getDescription())
+        && areEqual(attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule())
+        && areEqual(attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule())
+        && areEqual(attr1.getSubstringMatchingRule(), attr2.getSubstringMatchingRule())
+        && areEqual(attr1.getSuperiorType(), attr2.getSuperiorType())
+        && areEqual(attr1.getSyntax(), attr2.getSyntax())
+        && areEqual(attr1.getSyntax().getOID(), attr2.getSyntax().getOID())
+        && areEqual(attr1.getExtraProperties().keySet(), attr2.getExtraProperties().keySet())
+        && areEqual(toSet(attr1.getNormalizedNames()), toSet(attr2.getNormalizedNames()))
+        && areEqual(toSet(attr1.getUserDefinedNames()), toSet(attr2.getUserDefinedNames()));
   }
 
   /**
@@ -834,54 +634,29 @@ public class ServerDescriptor
    * @return <CODE>true</CODE> if the two schema objectclasses are equal and
    * <CODE>false</CODE> otherwise.
    */
-  private static final boolean areObjectClassesEqual(ObjectClass oc1,
-      ObjectClass oc2)
+  private static final boolean areObjectClassesEqual(ObjectClass oc1, ObjectClass oc2)
   {
-    boolean areEqual = oc1.getOID().equals(oc2.getOID()) &&
-    oc1.isExtensibleObject() == oc2.isExtensibleObject();
-    if (areEqual)
+    return oc1.getOID().equals(oc2.getOID())
+        && oc1.isExtensibleObject() == oc2.isExtensibleObject()
+        && areEqual(getDefinitionWithFileName(oc1), getDefinitionWithFileName(oc2))
+        && areEqual(oc1.getDescription(), oc2.getDescription())
+        && areEqual(oc1.getObjectClassType(), oc2.getObjectClassType())
+        && areEqual(oc1.getOptionalAttributes(), oc2.getOptionalAttributes())
+        && areEqual(oc1.getRequiredAttributes(), oc2.getRequiredAttributes())
+        && areEqual(oc1.getSuperiorClasses(), oc2.getSuperiorClasses())
+        && areEqual(oc1.getExtraProperties().keySet(), oc2.getExtraProperties().keySet())
+        && areEqual(toSet(oc1.getNormalizedNames()), toSet(oc2.getNormalizedNames()))
+        && areEqual(toSet(oc1.getUserDefinedNames()), toSet(oc2.getUserDefinedNames()));
+  }
+
+  private static Set<Object> toSet(Iterable<?> iterable)
+  {
+    Set<Object> s = new HashSet<Object>();
+    for (Object o : iterable)
     {
-      Object[] compareWithEqual = {
-          getDefinitionWithFileName(oc1), getDefinitionWithFileName(oc2),
-          oc1.getDescription(), oc2.getDescription(),
-          oc1.getObjectClassType(), oc2.getObjectClassType(),
-          oc1.getOptionalAttributes(), oc2.getOptionalAttributes(),
-          oc1.getRequiredAttributes(), oc2.getRequiredAttributes(),
-          oc1.getSuperiorClasses(), oc2.getSuperiorClasses()
-      };
-
-      for (int i=0; i<compareWithEqual.length && areEqual; i++)
-      {
-        areEqual = areEqual(compareWithEqual[i], compareWithEqual[i+1]);
-        i ++;
-      }
+      s.add(o);
     }
-
-    if (areEqual)
-    {
-      Iterable<?>[] iterables = {
-          oc1.getExtraProperties().keySet(), oc2.getExtraProperties().keySet(),
-          oc1.getNormalizedNames(), oc2.getNormalizedNames(),
-          oc1.getUserDefinedNames(), oc2.getUserDefinedNames()};
-      for (int i=0; i<iterables.length && areEqual; i++)
-      {
-        Set<Object> set1 = new HashSet<Object>();
-        Set<Object> set2 = new HashSet<Object>();
-        for (Object o : iterables[i])
-        {
-          set1.add(o);
-        }
-        for (Object o : iterables[i+1])
-        {
-          set2.add(o);
-        }
-        areEqual = set1.equals(set2);
-        i ++;
-      }
-    }
-
-    return areEqual;
-
+    return s;
   }
 
   /**
@@ -895,23 +670,11 @@ public class ServerDescriptor
    */
   private static boolean areEqual(Object o1, Object o2)
   {
-    boolean areEqual = false;
     if (o1 != null)
     {
-      if (o2 != null)
-      {
-        areEqual = o1.equals(o2);
-      }
-      else
-      {
-        areEqual = false;
-      }
+      return o1.equals(o2);
     }
-    else
-    {
-      areEqual = o2 == null;
-    }
-    return areEqual;
+    return o2 == null;
   }
 
   /**
@@ -957,29 +720,27 @@ public class ServerDescriptor
   public void setRootMonitor(CustomSearchResult rootMonitor)
   {
     this.rootMonitor = rootMonitor;
+    runningTime = computeRunningTime(rootMonitor);
+  }
+
+  private long computeRunningTime(CustomSearchResult rootMonitor)
+  {
     if (rootMonitor != null)
     {
       try
       {
-        String start = (String)Utilities.getFirstMonitoringValue(
-            rootMonitor,
-            BasicMonitoringAttributes.START_DATE.getAttributeName());
-        String current = (String)
-        Utilities.getFirstMonitoringValue(rootMonitor,
-            BasicMonitoringAttributes.CURRENT_DATE.getAttributeName());
+        String start = (String) getFirstMonitoringValue(rootMonitor, START_DATE.getAttributeName());
+        String current = (String) getFirstMonitoringValue(rootMonitor, CURRENT_DATE.getAttributeName());
         Date startTime = ConfigFromDirContext.utcParser.parse(start);
         Date currentTime = ConfigFromDirContext.utcParser.parse(current);
-        runningTime = currentTime.getTime() - startTime.getTime();
+        return currentTime.getTime() - startTime.getTime();
       }
       catch (Throwable t)
       {
-        runningTime = -1;
+        return -1;
       }
     }
-    else
-    {
-      runningTime = -1;
-    }
+    return -1;
   }
 
   /**

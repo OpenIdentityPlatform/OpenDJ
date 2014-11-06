@@ -494,7 +494,7 @@ class StatusCli extends ConsoleApplication
    */
   private void writeStatusContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    writeLabelValue(INFO_SERVER_STATUS_LABEL.get(), getStatus(desc), maxLabelWidth);
+    writeLabelValue(INFO_SERVER_STATUS_LABEL.get(), getStatus(desc).toString(), maxLabelWidth);
   }
 
   private LocalizableMessage getStatus(ServerDescriptor desc)
@@ -530,14 +530,14 @@ class StatusCli extends ConsoleApplication
     writeLabelValue(INFO_CONNECTIONS_LABEL.get(), getNbConnection(desc), maxLabelWidth);
   }
 
-  private LocalizableMessage getNbConnection(ServerDescriptor desc)
+  private String getNbConnection(ServerDescriptor desc)
   {
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
       final int nConn = desc.getOpenConnections();
       if (nConn >= 0)
       {
-        return LocalizableMessage.raw(String.valueOf(nConn));
+        return String.valueOf(nConn);
       }
       else if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
       {
@@ -561,8 +561,7 @@ class StatusCli extends ConsoleApplication
    */
   private void writeHostnameContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    LocalizableMessage text = LocalizableMessage.raw(desc.getHostname());
-    writeLabelValue(INFO_HOSTNAME_LABEL.get(), text, maxLabelWidth);
+    writeLabelValue(INFO_HOSTNAME_LABEL.get(), desc.getHostname(), maxLabelWidth);
   }
 
   /**
@@ -582,7 +581,7 @@ class StatusCli extends ConsoleApplication
       TreeSet<DN> ordered = new TreeSet<DN>(administrators);
       for (DN dn : ordered)
       {
-        writeLabelValue(INFO_ADMINISTRATIVE_USERS_LABEL.get(), LocalizableMessage.raw(dn.toString()), maxLabelWidth);
+        writeLabelValue(INFO_ADMINISTRATIVE_USERS_LABEL.get(), dn.toString(), maxLabelWidth);
       }
     }
     else
@@ -591,7 +590,7 @@ class StatusCli extends ConsoleApplication
     }
   }
 
-  private LocalizableMessage getErrorText(ServerDescriptor desc)
+  private String getErrorText(ServerDescriptor desc)
   {
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED
         && (!desc.isAuthenticated() || !desc.getExceptions().isEmpty()))
@@ -612,9 +611,7 @@ class StatusCli extends ConsoleApplication
    */
   private void writeInstallPathContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    writeLabelValue(INFO_INSTALLATION_PATH_LABEL.get(),
-            LocalizableMessage.raw(desc.getInstallPath()),
-            maxLabelWidth);
+    writeLabelValue(INFO_INSTALLATION_PATH_LABEL.get(), desc.getInstallPath(), maxLabelWidth);
   }
 
   /**
@@ -628,9 +625,7 @@ class StatusCli extends ConsoleApplication
    */
   private void writeInstancePathContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(),
-            LocalizableMessage.raw(desc.getInstancePath()),
-            maxLabelWidth);
+    writeLabelValue(INFO_CTRL_PANEL_INSTANCE_PATH_LABEL.get(), desc.getInstancePath(), maxLabelWidth);
   }
 
   /**
@@ -643,10 +638,7 @@ class StatusCli extends ConsoleApplication
    */
   private void writeVersionContents(ServerDescriptor desc, int maxLabelWidth)
   {
-    String openDSVersion = desc.getOpenDSVersion();
-    writeLabelValue(INFO_OPENDS_VERSION_LABEL.get(),
-            LocalizableMessage.raw(openDSVersion),
-            maxLabelWidth);
+    writeLabelValue(INFO_OPENDS_VERSION_LABEL.get(), desc.getOpenDSVersion(), maxLabelWidth);
   }
 
   /**
@@ -664,7 +656,7 @@ class StatusCli extends ConsoleApplication
     writeLabelValue(INFO_JAVA_VERSION_LABEL.get(), getJavaVersion(desc), maxLabelWidth);
   }
 
-  private LocalizableMessage getJavaVersion(ServerDescriptor desc)
+  private String getJavaVersion(ServerDescriptor desc)
   {
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
@@ -672,7 +664,7 @@ class StatusCli extends ConsoleApplication
       {
         return getNotAvailableBecauseAuthenticationIsRequiredText();
       }
-      return LocalizableMessage.raw(desc.getJavaVersion());
+      return desc.getJavaVersion();
     }
     return getNotAvailableBecauseServerIsDownText();
   }
@@ -690,17 +682,10 @@ class StatusCli extends ConsoleApplication
   private void writeAdminConnectorContents(ServerDescriptor desc, int maxLabelWidth)
   {
     ConnectionHandlerDescriptor adminConnector = desc.getAdminConnector();
-    if (adminConnector != null)
-    {
-      LocalizableMessage text = INFO_CTRL_PANEL_ADMIN_CONNECTOR_DESCRIPTION.get(adminConnector.getPort());
-      writeLabelValue(INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get(), text, maxLabelWidth);
-    }
-    else
-    {
-      writeLabelValue(INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get(),
-          INFO_NOT_AVAILABLE_SHORT_LABEL.get(),
-          maxLabelWidth);
-    }
+    LocalizableMessage text = adminConnector != null
+        ? INFO_CTRL_PANEL_ADMIN_CONNECTOR_DESCRIPTION.get(adminConnector.getPort())
+        : INFO_NOT_AVAILABLE_SHORT_LABEL.get();
+    writeLabelValue(INFO_CTRL_PANEL_ADMIN_CONNECTOR_LABEL.get(), text.toString(), maxLabelWidth);
   }
 
   /**
@@ -823,10 +808,10 @@ class StatusCli extends ConsoleApplication
    *
    * @return the text.
    */
-  private LocalizableMessage getNotAvailableBecauseServerIsDownText()
+  private String getNotAvailableBecauseServerIsDownText()
   {
     displayMustStartLegend = true;
-    return INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LABEL.get();
+    return INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LABEL.get().toString();
   }
 
   /**
@@ -835,10 +820,10 @@ class StatusCli extends ConsoleApplication
    *
    * @return the text.
    */
-  private LocalizableMessage getNotAvailableBecauseAuthenticationIsRequiredText()
+  private String getNotAvailableBecauseAuthenticationIsRequiredText()
   {
     displayMustAuthenticateLegend = true;
-    return INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get();
+    return INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get().toString();
   }
 
   /**
@@ -846,9 +831,9 @@ class StatusCli extends ConsoleApplication
    *
    * @return the text.
    */
-  private LocalizableMessage getNotAvailableText()
+  private String getNotAvailableText()
   {
-    return INFO_NOT_AVAILABLE_LABEL.get();
+    return INFO_NOT_AVAILABLE_LABEL.get().toString();
   }
 
   /**
@@ -936,20 +921,20 @@ class StatusCli extends ConsoleApplication
    return v.split("<br>");
   }
 
-  private LocalizableMessage getCellValue(Object v, ServerDescriptor desc)
+  private String getCellValue(Object v, ServerDescriptor desc)
   {
     if (v != null)
     {
       if (v instanceof String)
       {
-        return LocalizableMessage.raw((String) v);
+        return (String) v;
       }
       else if (v instanceof Integer)
       {
         int nEntries = ((Integer)v).intValue();
         if (nEntries >= 0)
         {
-          return LocalizableMessage.raw(String.valueOf(nEntries));
+          return String.valueOf(nEntries);
         }
         else if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
         {
@@ -1010,7 +995,7 @@ class StatusCli extends ConsoleApplication
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
         Object v = tableModel.getValueAt(i, j);
-        LocalizableMessage value = getValue(desc, isRunning, v);
+        String value = getValue(desc, isRunning, v);
 
         boolean doWrite = true;
         boolean isReplicated =
@@ -1030,7 +1015,7 @@ class StatusCli extends ConsoleApplication
     }
   }
 
-  private LocalizableMessage getValue(ServerDescriptor desc, boolean isRunning, Object v)
+  private String getValue(ServerDescriptor desc, boolean isRunning, Object v)
   {
     if (v != null)
     {
@@ -1048,18 +1033,18 @@ class StatusCli extends ConsoleApplication
       }
       else if (v instanceof String)
       {
-        return LocalizableMessage.raw((String) v);
+        return (String) v;
       }
       else if (v instanceof LocalizableMessage)
       {
-        return (LocalizableMessage) v;
+        return ((LocalizableMessage) v).toString();
       }
       else if (v instanceof Integer)
       {
         final int nEntries = ((Integer) v).intValue();
         if (nEntries >= 0)
         {
-          return LocalizableMessage.raw(String.valueOf(nEntries));
+          return String.valueOf(nEntries);
         }
         return getNotAvailableText(desc, isRunning);
       }
@@ -1068,10 +1053,10 @@ class StatusCli extends ConsoleApplication
         throw new IllegalStateException("Unknown object type: " + v);
       }
     }
-    return LocalizableMessage.EMPTY;
+    return "";
   }
 
-  private LocalizableMessage getNotAvailableText(ServerDescriptor desc, boolean isRunning)
+  private String getNotAvailableText(ServerDescriptor desc, boolean isRunning)
   {
     if (!isRunning)
     {
@@ -1084,8 +1069,7 @@ class StatusCli extends ConsoleApplication
     return getNotAvailableText();
   }
 
-  private void writeLabelValue(final LocalizableMessage label,
-      final LocalizableMessage value, final int maxLabelWidth)
+  private void writeLabelValue(final LocalizableMessage label, final String value, final int maxLabelWidth)
   {
     final LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     buf.append(label);

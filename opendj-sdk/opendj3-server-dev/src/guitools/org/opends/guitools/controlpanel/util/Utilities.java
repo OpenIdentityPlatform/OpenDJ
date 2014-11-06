@@ -2509,6 +2509,8 @@ public class Utilities
           }
           catch (Throwable t2)
           {
+            // Cannot convert it, just return it
+            return o;
           }
         }
       }
