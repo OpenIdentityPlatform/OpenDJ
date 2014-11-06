@@ -31,16 +31,16 @@ import java.util.Collection;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.api.ExtensibleIndexer;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.AttributeType;
 
 /**
  * An implementation of an Indexer for attribute approximate matching.
  */
-public class ApproximateIndexer extends ExtensibleIndexer
+public class ApproximateIndexer implements Indexer
 {
 
   /**
@@ -64,13 +64,6 @@ public class ApproximateIndexer extends ExtensibleIndexer
   public String getIndexID()
   {
     return "approximate";
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getExtensibleIndexID()
-  {
-    throw new RuntimeException("Code is not implemented");
   }
 
   /** {@inheritDoc} */

@@ -31,6 +31,7 @@ import java.util.Collection;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
 
 /**
  * This interface defines the set of methods that must be
@@ -51,9 +52,7 @@ public interface ExtensibleMatchingRule extends MatchingRule
    * @return The collection of extensible indexers associated with this matching
    *         rule.
    */
-  Collection<ExtensibleIndexer> getIndexers();
-
-
+  Collection<Indexer> getIndexers();
 
   /**
    * Returns an index query appropriate for the provided attribute
