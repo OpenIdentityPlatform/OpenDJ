@@ -44,7 +44,6 @@ import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
-import org.opends.server.api.ExtensibleIndexer;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
@@ -1094,7 +1093,7 @@ public class AttributeIndex
   }
 
   private void applyChangeToIndex(LocalDBIndexCfg cfg, AttributeType attrType,
-      String name, IndexType indexType, ExtensibleIndexer indexer,
+      String name, IndexType indexType, org.forgerock.opendj.ldap.spi.Indexer indexer,
       AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
   {
     final int indexEntryLimit = cfg.getIndexEntryLimit();
@@ -1142,7 +1141,7 @@ public class AttributeIndex
   }
 
   private Index openNewIndex(String name, AttributeType attrType,
-      int indexEntryLimit, ExtensibleIndexer indexer,
+      int indexEntryLimit, org.forgerock.opendj.ldap.spi.Indexer indexer,
       AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
   {
     final String indexName = name + "." + indexer.getIndexID();
