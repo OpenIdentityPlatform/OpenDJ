@@ -27,7 +27,6 @@
 package org.opends.server.schema;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -48,6 +47,7 @@ import static java.util.Collections.*;
  * consider two values approximately equal only if they have the same length. It
  * is intended purely for testing purposes.
  */
+@SuppressWarnings("javadoc")
 class EqualLengthApproximateMatchingRule implements MatchingRuleImpl
 {
   static final String EQUAL_LENGTH_APPROX_MR_NAME = "equalLengthApproximateMatch";

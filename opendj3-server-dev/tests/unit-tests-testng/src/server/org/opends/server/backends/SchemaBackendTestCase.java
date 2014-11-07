@@ -27,7 +27,6 @@
 package org.opends.server.backends;
 
 import java.io.File;
-import java.util.Locale;
 import java.util.Map;
 
 import org.forgerock.opendj.config.server.ConfigException;
@@ -41,8 +40,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.schema.SchemaConstants;
 import org.opends.server.protocols.internal.SearchRequest;
+import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
