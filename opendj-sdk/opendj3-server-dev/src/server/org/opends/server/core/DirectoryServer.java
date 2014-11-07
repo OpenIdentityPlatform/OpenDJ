@@ -2715,8 +2715,6 @@ public final class DirectoryServer
                                                 overwriteExisting);
   }
 
-
-
   /**
    * Deregisters the provided matching rule with the Directory Server.
    *
@@ -2725,63 +2723,6 @@ public final class DirectoryServer
   public static void deregisterMatchingRule(MatchingRule matchingRule)
   {
     directoryServer.schema.deregisterMatchingRule(matchingRule);
-  }
-
-  /**
-   * Retrieves the approximate matching rule with the specified name or OID.
-   *
-   * @param  lowerName  The lowercase name or OID for the approximate matching
-   *                    rule to retrieve.
-   *
-   * @return  The requested approximate matching rule, or <CODE>null</CODE> if
-   *          no such matching rule has been defined in the server.
-   */
-  public static MatchingRule
-                     getApproximateMatchingRule(String lowerName)
-  {
-    return directoryServer.schema.getMatchingRule(lowerName);
-  }
-
-  /**
-   * Retrieves the equality matching rule with the specified name or OID.
-   *
-   * @param  lowerName  The lowercase name or OID for the equality matching rule
-   *                    to retrieve.
-   *
-   * @return  The requested equality matching rule, or <CODE>null</CODE> if no
-   *          such matching rule has been defined in the server.
-   */
-  public static MatchingRule getEqualityMatchingRule(String lowerName)
-  {
-    return getMatchingRule(lowerName);
-  }
-
-  /**
-   * Retrieves the ordering matching rule with the specified name or OID.
-   *
-   * @param  lowerName  The lowercase name or OID for the ordering matching rule
-   *                    to retrieve.
-   *
-   * @return  The requested ordering matching rule, or <CODE>null</CODE> if no
-   *          such matching rule has been defined in the server.
-   */
-  public static MatchingRule getOrderingMatchingRule(String lowerName)
-  {
-    return getMatchingRule(lowerName);
-  }
-
-  /**
-   * Retrieves the substring matching rule with the specified name or OID.
-   *
-   * @param  lowerName  The lowercase name or OID for the substring matching
-   *                    rule to retrieve.
-   *
-   * @return  The requested substring matching rule, or <CODE>null</CODE> if no
-   *          such matching rule has been defined in the server.
-   */
-  public static MatchingRule getSubstringMatchingRule(String lowerName)
-  {
-    return getMatchingRule(lowerName);
   }
 
   /**

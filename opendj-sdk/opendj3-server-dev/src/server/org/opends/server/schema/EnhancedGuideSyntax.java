@@ -85,7 +85,7 @@ public class EnhancedGuideSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_OCTET_STRING_OID);
+         DirectoryServer.getMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
@@ -93,7 +93,7 @@ public class EnhancedGuideSyntax
     }
 
     defaultOrderingMatchingRule =
-         DirectoryServer.getOrderingMatchingRule(OMR_OCTET_STRING_OID);
+         DirectoryServer.getMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
@@ -101,7 +101,7 @@ public class EnhancedGuideSyntax
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_OCTET_STRING_OID);
+         DirectoryServer.getMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,

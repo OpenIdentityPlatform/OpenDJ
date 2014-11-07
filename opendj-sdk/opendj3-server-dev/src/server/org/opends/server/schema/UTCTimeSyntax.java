@@ -142,21 +142,21 @@ public class UTCTimeSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_GENERALIZED_TIME_OID);
+         DirectoryServer.getMatchingRule(EMR_GENERALIZED_TIME_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_GENERALIZED_TIME_OID, SYNTAX_UTC_TIME_NAME);
     }
 
     defaultOrderingMatchingRule =
-         DirectoryServer.getOrderingMatchingRule(OMR_GENERALIZED_TIME_OID);
+         DirectoryServer.getMatchingRule(OMR_GENERALIZED_TIME_OID);
     if (defaultOrderingMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE, OMR_GENERALIZED_TIME_OID, SYNTAX_UTC_TIME_NAME);
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_CASE_IGNORE_OID, SYNTAX_UTC_TIME_NAME);

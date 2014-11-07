@@ -89,7 +89,7 @@ public class PrintableStringSyntax
          throws ConfigException
   {
     defaultApproximateMatchingRule =
-         DirectoryServer.getApproximateMatchingRule(AMR_DOUBLE_METAPHONE_OID);
+         DirectoryServer.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
     if (defaultApproximateMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_APPROXIMATE_MATCHING_RULE,
@@ -97,7 +97,7 @@ public class PrintableStringSyntax
     }
 
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
@@ -105,7 +105,7 @@ public class PrintableStringSyntax
     }
 
     defaultOrderingMatchingRule =
-         DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
@@ -113,7 +113,7 @@ public class PrintableStringSyntax
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,

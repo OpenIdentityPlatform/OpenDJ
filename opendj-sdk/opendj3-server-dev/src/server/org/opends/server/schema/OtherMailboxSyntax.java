@@ -82,7 +82,7 @@ public class OtherMailboxSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_LIST_OID);
+         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_LIST_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
@@ -90,7 +90,7 @@ public class OtherMailboxSyntax
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_LIST_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_LIST_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,

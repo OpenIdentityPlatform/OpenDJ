@@ -79,7 +79,7 @@ public class BooleanSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_BOOLEAN_OID);
+         DirectoryServer.getMatchingRule(EMR_BOOLEAN_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_BOOLEAN_OID, SYNTAX_BOOLEAN_NAME);

@@ -129,7 +129,7 @@ public class ServerSideSortRequestControl
             String orderingRuleID =
                 toLowerCase(reader.readOctetStringAsString());
             orderingRule =
-                DirectoryServer.getOrderingMatchingRule(orderingRuleID);
+                DirectoryServer.getMatchingRule(orderingRuleID);
             if (orderingRule == null)
             {
               LocalizableMessage message =
@@ -459,8 +459,7 @@ public class ServerSideSortRequestControl
       if(decodedKey[1] != null)
       {
         orderingRule =
-            DirectoryServer.getOrderingMatchingRule(
-                decodedKey[1].toLowerCase());
+            DirectoryServer.getMatchingRule(decodedKey[1].toLowerCase());
         if (orderingRule == null)
         {
           LocalizableMessage message =

@@ -77,22 +77,19 @@ public final class SubtreeSpecificationSyntax
   public void initializeSyntax(AttributeSyntaxCfg configuration)
       throws ConfigException {
 
-    defaultEqualityMatchingRule = DirectoryServer
-        .getEqualityMatchingRule(EMR_OCTET_STRING_OID);
+    defaultEqualityMatchingRule = DirectoryServer.getMatchingRule(EMR_OCTET_STRING_OID);
     if (defaultEqualityMatchingRule == null) {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
           EMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME);
     }
 
-    defaultOrderingMatchingRule = DirectoryServer
-        .getOrderingMatchingRule(OMR_OCTET_STRING_OID);
+    defaultOrderingMatchingRule = DirectoryServer.getMatchingRule(OMR_OCTET_STRING_OID);
     if (defaultOrderingMatchingRule == null) {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE,
           OMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME);
     }
 
-    defaultSubstringMatchingRule = DirectoryServer
-        .getSubstringMatchingRule(SMR_OCTET_STRING_OID);
+    defaultSubstringMatchingRule = DirectoryServer.getMatchingRule(SMR_OCTET_STRING_OID);
     if (defaultSubstringMatchingRule == null) {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,
           SMR_OCTET_STRING_OID, SYNTAX_SUBTREE_SPECIFICATION_NAME);

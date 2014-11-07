@@ -79,7 +79,7 @@ public class BitStringSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_BIT_STRING_OID);
+         DirectoryServer.getMatchingRule(EMR_BIT_STRING_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_BIT_STRING_OID, SYNTAX_BIT_STRING_NAME);

@@ -81,21 +81,21 @@ public class IntegerSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_INTEGER_OID);
+         DirectoryServer.getMatchingRule(EMR_INTEGER_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_INTEGER_OID, SYNTAX_INTEGER_NAME);
     }
 
     defaultOrderingMatchingRule =
-         DirectoryServer.getOrderingMatchingRule(OMR_INTEGER_OID);
+         DirectoryServer.getMatchingRule(OMR_INTEGER_OID);
     if (defaultOrderingMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE, OMR_INTEGER_OID, SYNTAX_INTEGER_NAME);
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_EXACT_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_EXACT_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_CASE_EXACT_OID, SYNTAX_INTEGER_NAME);

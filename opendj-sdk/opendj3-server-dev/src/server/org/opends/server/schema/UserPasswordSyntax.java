@@ -91,7 +91,7 @@ public class UserPasswordSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_USER_PASSWORD_EXACT_OID);
+         DirectoryServer.getMatchingRule(EMR_USER_PASSWORD_EXACT_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,

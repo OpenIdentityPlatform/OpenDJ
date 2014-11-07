@@ -85,7 +85,7 @@ public class NameAndOptionalUIDSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_UNIQUE_MEMBER_OID);
+         DirectoryServer.getMatchingRule(EMR_UNIQUE_MEMBER_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE,
@@ -93,7 +93,7 @@ public class NameAndOptionalUIDSyntax
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE,

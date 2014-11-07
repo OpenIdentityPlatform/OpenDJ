@@ -225,7 +225,7 @@ public final class DirectoryConfig
   public static MatchingRule
        getApproximateMatchingRule(String lowerName)
   {
-    return DirectoryServer.getApproximateMatchingRule(lowerName);
+    return DirectoryServer.getMatchingRule(lowerName);
   }
 
 
@@ -244,7 +244,7 @@ public final class DirectoryConfig
   public static MatchingRule
        getEqualityMatchingRule(String lowerName)
   {
-    return DirectoryServer.getEqualityMatchingRule(lowerName);
+    return DirectoryServer.getMatchingRule(lowerName);
   }
 
 
@@ -263,7 +263,7 @@ public final class DirectoryConfig
   public static MatchingRule
        getOrderingMatchingRule(String lowerName)
   {
-    return DirectoryServer.getOrderingMatchingRule(lowerName);
+    return DirectoryServer.getMatchingRule(lowerName);
   }
 
 
@@ -282,7 +282,7 @@ public final class DirectoryConfig
   public static MatchingRule
        getSubstringMatchingRule(String lowerName)
   {
-    return DirectoryServer.getSubstringMatchingRule(lowerName);
+    return DirectoryServer.getMatchingRule(lowerName);
   }
 
 

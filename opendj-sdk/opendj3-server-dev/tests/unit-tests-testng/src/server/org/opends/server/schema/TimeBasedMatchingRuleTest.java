@@ -265,8 +265,7 @@ public final class TimeBasedMatchingRuleTest
   public void testRelativeTimeMatchingRuleAssertionSyntax(String assertion,boolean isValid)
   {
     MatchingRule relativeTimeLTRule =
-            DirectoryServer.getOrderingMatchingRule(
-            EXT_OMR_RELATIVE_TIME_LT_ALT_NAME.toLowerCase());
+            DirectoryServer.getMatchingRule(EXT_OMR_RELATIVE_TIME_LT_ALT_NAME.toLowerCase());
     try
     {
       relativeTimeLTRule.getAssertion(ByteString.valueOf(assertion));

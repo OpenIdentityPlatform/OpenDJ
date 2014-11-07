@@ -97,7 +97,7 @@ public class ObjectClassSyntax
          throws ConfigException, InitializationException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE.get(
@@ -106,7 +106,7 @@ public class ObjectClassSyntax
     }
 
     defaultOrderingMatchingRule =
-         DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE.get(
@@ -115,7 +115,7 @@ public class ObjectClassSyntax
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
       LocalizableMessage message = ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE.get(
