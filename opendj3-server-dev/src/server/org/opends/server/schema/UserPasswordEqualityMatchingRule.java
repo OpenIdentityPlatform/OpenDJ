@@ -26,102 +26,46 @@
  */
 package org.opends.server.schema;
 
-
-
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.api.EqualityMatchingRule;
+import org.forgerock.opendj.ldap.schema.MatchingRuleImpl;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.schema.SchemaConstants.*;
-
-
+import static org.forgerock.opendj.ldap.Assertion.*;
+import static org.opends.server.core.DirectoryServer.*;
 
 /**
- * This class implements the userPasswordMatch matching rule, which can be used
+ * Implementation of the userPasswordMatch matching rule, which can be used
  * to determine whether a clear-text value matches an encoded password.
+ * <p>
+ * This matching rule serves a similar purpose to the equivalent
+ * AuthPasswordEqualityMatchingRule defined in RFC 3112 (http://tools.ietf.org/html/rfc3112).
  */
-class UserPasswordEqualityMatchingRule
-       extends EqualityMatchingRule
+class UserPasswordEqualityMatchingRule implements MatchingRuleImpl
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  /**
-   * Creates a new instance of this userPasswordMatch matching rule.
-   */
-  public UserPasswordEqualityMatchingRule()
-  {
-    super();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Collection<String> getNames()
-  {
-    return Collections.singleton(EMR_USER_PASSWORD_NAME);
-  }
-
-
-  /**
-   * Retrieves the OID for this matching rule.
-   *
-   * @return  The OID for this matching rule.
-   */
-  @Override
-  public String getOID()
-  {
-    return EMR_USER_PASSWORD_OID;
-  }
-
-
-
-  /**
-   * Retrieves the description for this matching rule.
-   *
-   * @return  The description for this matching rule, or <CODE>null</CODE> if
-   *          there is none.
-   */
-  @Override
-  public String getDescription()
-  {
-    // There is no standard description for this matching rule.
-    return EMR_USER_PASSWORD_DESCRIPTION;
-  }
-
-
-
-  /**
-   * Retrieves the OID of the syntax with which this matching rule is
-   * associated.
-   *
-   * @return  The OID of the syntax with which this matching rule is associated.
-   */
-  @Override
-  public String getSyntaxOID()
-  {
-    return SYNTAX_USER_PASSWORD_OID;
-  }
-
-
+  private static final String EQUALITY_ID = "equality";
 
   /**
    * Retrieves the normalized form of the provided value, which is best suited
    * for efficiently performing matching operations on that value.
    *
-   * @param  value  The value to be normalized.
+   * @param schema The schema.
+   * @param value  The value to be normalized.
    *
    * @return  The normalized version of the provided value.
    *
@@ -129,13 +73,93 @@ class UserPasswordEqualityMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeAttributeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
          throws DecodeException
   {
     // We will not alter the value in any way
     return value.toByteString();
   }
 
+  private final Collection<? extends Indexer> indexers = Collections.singleton(new Indexer()
+  {
+    @Override
+    public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
+        throws DecodeException
+    {
+      keys.add(normalizeAttributeValue(schema, value));
+    }
+
+    @Override
+    public String getIndexID()
+    {
+      return EQUALITY_ID;
+    }
+  });
+
+  /** {@inheritDoc} */
+  @Override
+  public Comparator<ByteSequence> comparator(Schema schema)
+  {
+    return ByteSequence.COMPARATOR;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException
+  {
+    return new Assertion()
+    {
+      final ByteString normalizedAssertionValue = normalizeAttributeValue(schema, assertionValue);
+
+      @Override
+      public ConditionResult matches(final ByteSequence normalizedAttributeValue)
+      {
+        return valuesMatch(normalizedAttributeValue, normalizedAssertionValue);
+      }
+
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException
+      {
+        return factory.createExactMatchQuery(EQUALITY_ID, normalizedAssertionValue);
+      }
+    };
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getSubstringAssertion(Schema schema, ByteSequence subInitial,
+      List<? extends ByteSequence> subAnyElements, ByteSequence subFinal) throws DecodeException
+  {
+    return UNDEFINED_ASSERTION;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException
+  {
+    return UNDEFINED_ASSERTION;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException
+  {
+    return UNDEFINED_ASSERTION;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isIndexingSupported()
+  {
+    return indexers.isEmpty();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Collection<? extends Indexer> getIndexers()
+  {
+    return indexers;
+  }
 
   /**
    * Indicates whether the provided attribute value should be considered a match
@@ -152,30 +176,24 @@ class UserPasswordEqualityMatchingRule
    *          match for the provided assertion value, or <CODE>false</CODE> if
    *          not.
    */
-  @Override
-  public ConditionResult valuesMatch(ByteSequence attributeValue,
-                                     ByteSequence assertionValue)
+  private ConditionResult valuesMatch(ByteSequence attributeValue, ByteSequence assertionValue)
   {
     // We must be able to decode the attribute value using the user password
     // syntax.
     String[] userPWComponents;
     try
     {
-      userPWComponents =
-           UserPasswordSyntax.decodeUserPassword(attributeValue.toString());
+      userPWComponents = UserPasswordSyntax.decodeUserPassword(attributeValue.toString());
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
       return ConditionResult.FALSE;
     }
 
-
-    // The first element of the array will be the scheme.  Make sure that we
-    // support the requested scheme.
-    PasswordStorageScheme storageScheme =
-         DirectoryServer.getPasswordStorageScheme(userPWComponents[0]);
+    // The first element of the array will be the scheme.
+    // Make sure that we support the requested scheme.
+    PasswordStorageScheme<?> storageScheme =  getPasswordStorageScheme(userPWComponents[0]);
     if (storageScheme == null)
     {
       // It's not a scheme that we can support.
@@ -183,34 +201,8 @@ class UserPasswordEqualityMatchingRule
     }
 
     // We support the scheme, so make the determination.
-    return ConditionResult.valueOf(storageScheme.passwordMatches(
-        assertionValue, ByteString.valueOf(userPWComponents[1])));
-  }
-
-
-
-  /**
-   * Generates a hash code for the provided attribute value.  This version of
-   * the method will simply create a hash code from the normalized form of the
-   * attribute value.  For matching rules explicitly designed to work in cases
-   * where byte-for-byte comparisons of normalized values is not sufficient for
-   * determining equality (e.g., if the associated attribute syntax is based on
-   * hashed or encrypted values), then this method must be overridden to provide
-   * an appropriate implementation for that case.
-   *
-   * @param  attributeValue  The attribute value for which to generate the hash
-   *                         code.
-   *
-   * @return  The hash code generated for the provided attribute value.
-   */
-  @Override
-  public int generateHashCode(ByteSequence attributeValue)
-  {
-    // Because of the variable encoding that may be used, we have no way of
-    // comparing two user password values by hash code and therefore we'll
-    // always return the same value so that the valuesMatch method will be
-    // invoked to make the determination.
-    return 1;
+    return ConditionResult.valueOf(
+        storageScheme.passwordMatches(assertionValue, ByteString.valueOf(userPWComponents[1])));
   }
 }
 

@@ -32,26 +32,22 @@ import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.SaltedMD5PasswordStorageScheme;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.types.DN;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
 
-/**
- * Test the AuthPasswordEqualityMatchingRule.
- */
-public class UserPasswordEqualityMatchingRuleTest extends
-    EqualityMatchingRuleTest
+
+@SuppressWarnings("javadoc")
+public class UserPasswordEqualityMatchingRuleTest extends SchemaTestCase
 {
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name="equalitymatchingrules")
   public Object[][] createEqualityMatchingRuleTest()
   {
@@ -60,10 +56,6 @@ public class UserPasswordEqualityMatchingRuleTest extends
     };
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name="equalityMatchingRuleInvalidValues")
   public Object[][] createEqualityMatchingRuleInvalidValues()
   {
@@ -75,41 +67,32 @@ public class UserPasswordEqualityMatchingRuleTest extends
     ByteString bytePassword = ByteString.valueOf(password);
     SaltedMD5PasswordStorageScheme scheme = new SaltedMD5PasswordStorageScheme();
 
-    ConfigEntry configEntry =
-       DirectoryServer.getConfigEntry(
+    ConfigEntry configEntry = DirectoryServer.getConfigEntry(
            DN.valueOf("cn=Salted MD5,cn=Password Storage Schemes,cn=config"));
 
     SaltedMD5PasswordStorageSchemeCfg configuration =
       AdminTestCaseUtils.getConfiguration(
           SaltedMD5PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry()
-          );
+          configEntry.getEntry());
 
     scheme.initializePasswordStorageScheme(configuration);
 
     ByteString encodedAuthPassword =
          scheme.encodePasswordWithScheme(bytePassword);
 
-     return new Object[] {
-         encodedAuthPassword.toString(), password, true};
+     return new Object[] { encodedAuthPassword.toString(), password, true };
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   @DataProvider(name="valuesMatch")
   public Object[][] createValuesMatch()
   {
     try
     {
       return new Object[][] {
-        // TODO : re-enable when matching rule is re-implemented
-        // with SDK
-//        generateValues("password"),
-//        {"password", "something else", false},
-//        {"password", "{wong}password", false},
-//        {"password", "{SMD5}wrong",    false}
+        generateValues("password"),
+        {"password", "something else", false},
+        {"password", "{wong}password", false},
+        {"password", "{SMD5}wrong",    false}
       };
     }
     catch (Exception e)
@@ -118,16 +101,38 @@ public class UserPasswordEqualityMatchingRuleTest extends
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected MatchingRule getRule()
+  @Test(dataProvider= "equalityMatchingRuleInvalidValues", expectedExceptions = { DecodeException.class })
+  public void equalityMatchingRulesInvalidValues(String value) throws Exception
   {
-    // TODO: temporary change to make test pass before
-    // re-implementing matching rule with SDK classes.
-    // new UserPasswordEqualityMatchingRule();
-    return CoreSchema.getInstance().getMatchingRule(SchemaConstants.EMR_USER_PASSWORD_EXACT_OID);
+    getRule().normalizeAttributeValue(ByteString.valueOf(value));
+  }
+
+  /**
+   * Test the valuesMatch method used for extensible filters.
+   */
+  @Test(dataProvider= "valuesMatch")
+  public void testValuesMatch(String value1, String value2, Boolean result) throws Exception
+  {
+    MatchingRule rule = getRule();
+
+    ByteString normalizedValue1 = rule.normalizeAttributeValue(ByteString.valueOf(value1));
+    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+
+    ConditionResult liveResult = assertion.matches(normalizedValue1);
+    assertEquals(liveResult, ConditionResult.valueOf(result));
+  }
+
+  private MatchingRule getRule()
+  {
+    UserPasswordEqualityMatchingRuleFactory factory = new UserPasswordEqualityMatchingRuleFactory();
+    try
+    {
+      factory.initializeMatchingRule(null);
+    }
+    catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+    return factory.getMatchingRules().iterator().next();
   }
 }
 

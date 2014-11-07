@@ -44,7 +44,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 public final class AuthPasswordEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
 {
- //Associated Matching Rule.
   private org.forgerock.opendj.ldap.schema.MatchingRule matchingRule;
 
  /**

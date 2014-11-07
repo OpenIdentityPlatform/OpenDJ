@@ -137,7 +137,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends SchemaTestCase
   }
 
 
-  protected MatchingRule getRule()
+  private MatchingRule getRule()
   {
     AuthPasswordEqualityMatchingRuleFactory factory = new AuthPasswordEqualityMatchingRuleFactory();
     try
