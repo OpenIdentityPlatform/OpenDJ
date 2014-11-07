@@ -39,8 +39,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link UserPasswordExactEqualityMatchingRule}.
+ * This class is a factory class for UserPasswordExactEqualityMatchingRule.
  */
 public final class UserPasswordExactEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

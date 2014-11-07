@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link GeneralizedTimeOrderingMatchingRule}.
+ * This class is a factory class for GeneralizedTimeOrderingMatchingRule.
  */
 public final class GeneralizedTimeOrderingMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

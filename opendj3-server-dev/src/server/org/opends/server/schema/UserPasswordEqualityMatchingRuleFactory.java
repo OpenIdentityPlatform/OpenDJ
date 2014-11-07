@@ -39,8 +39,7 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link UserPasswordExactEqualityMatchingRule}.
+ * This class is a factory class for UserPasswordExactEqualityMatchingRule.
  */
 public final class UserPasswordEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

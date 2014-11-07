@@ -27,6 +27,7 @@
 package org.opends.server.schema;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -43,9 +44,10 @@ import org.forgerock.opendj.ldap.spi.Indexer;
 import static java.util.Collections.*;
 
 /**
- * This class implements an extremely simple approximate matching rule that will
- * consider two values approximately equal only if they have the same length. It
- * is intended purely for testing purposes.
+ * Implementation of an extremely simple approximate matching rule that will
+ * consider two values approximately equal only if they have the same length.
+ *
+ * This class is intended only for testing purposes.
  */
 @SuppressWarnings("javadoc")
 class EqualLengthApproximateMatchingRule implements MatchingRuleImpl
@@ -98,19 +100,19 @@ class EqualLengthApproximateMatchingRule implements MatchingRuleImpl
   public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
       final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal) throws DecodeException
   {
-    throw new RuntimeException("Not implemented");
+    return Assertion.UNDEFINED_ASSERTION;
   }
 
   @Override
   public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value) throws DecodeException
   {
-    throw new RuntimeException("Not implemented");
+    return Assertion.UNDEFINED_ASSERTION;
   }
 
   @Override
   public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value) throws DecodeException
   {
-    throw new RuntimeException("Not implemented");
+    return Assertion.UNDEFINED_ASSERTION;
   }
 
   /** {@inheritDoc} */

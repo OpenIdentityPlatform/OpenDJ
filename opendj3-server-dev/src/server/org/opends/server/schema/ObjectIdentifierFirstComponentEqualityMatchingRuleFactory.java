@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link ObjectIdentifierFirstComponentEqualityMatchingRule}.
+ * This class is a factory class for ObjectIdentifierFirstComponentEqualityMatchingRule.
  */
 public final class ObjectIdentifierFirstComponentEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

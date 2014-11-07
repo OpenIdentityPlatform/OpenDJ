@@ -38,7 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for {@link CaseExactIA5SubstringMatchingRule}.
+ * This class is a factory class for CaseExactIA5SubstringMatchingRule.
  */
 public final class CaseExactIA5SubstringMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
