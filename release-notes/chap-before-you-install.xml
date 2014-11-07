@@ -57,7 +57,7 @@
   SPARC and x86, various Linux distributions, Microsoft Windows,
   and Apple Mac OS X.</para>
   
-  <para>OpenDJ software requires Java 6 or 7, specifically at least the Java
+  <para>OpenDJ software requires Java 6, 7 or 8, specifically at least the Java
   Standard Edition runtime environment. ForgeRock has tested most with Oracle
   Java Platform, Standard Edition.</para>
 
@@ -154,8 +154,10 @@ opendj hard nofile 131072</programlisting>
 
   <para>OpenDJ DSML gateway has been validated on Apache Tomcat 6 and 7.</para>
 
-  <para>OpenDJ REST LDAP gateway has been validated on Apache Tomcat 6 and
-  Jetty 8.</para>
+  <para>
+   OpenDJ REST LDAP gateway has been validated on Apache Tomcat 6 and Jetty 8.
+   Using Jetty 8 is not supported with Java 8.
+  </para>
  </section>
 
  <section xml:id="prerequisites-fqdn">
