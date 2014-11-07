@@ -26,9 +26,6 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.BackendMessages.INFO_MONITOR_UPTIME;
-
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.util.Date;
@@ -36,12 +33,17 @@ import java.util.Date;
 import javax.swing.Box;
 import javax.swing.JLabel;
 
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
+
+import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.BackendMessages.*;
 
 /**
  * The panel displaying the root monitor panel.
@@ -57,18 +59,15 @@ public class RootMonitoringPanel extends GeneralMonitoringPanel
   private JLabel upTime = Utilities.createDefaultLabel();
   private JLabel version = Utilities.createDefaultLabel();
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public RootMonitoringPanel()
   {
     super();
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return openConnections;
@@ -174,19 +173,17 @@ public class RootMonitoringPanel extends GeneralMonitoringPanel
       version.setText(server.getOpenDSVersion());
       try
       {
-        String start = (String)getFirstMonitoringValue(csr,
-            BasicMonitoringAttributes.START_DATE.getAttributeName());
-        String current = (String)getFirstMonitoringValue(csr,
-            BasicMonitoringAttributes.CURRENT_DATE.getAttributeName());
+        String start = getFirstValueAsString(csr, START_DATE.getAttributeName());
+        String current = getFirstValueAsString(csr, CURRENT_DATE.getAttributeName());
         Date startTime = ConfigFromDirContext.utcParser.parse(start);
         Date currentTime = ConfigFromDirContext.utcParser.parse(current);
 
         long upSeconds = (currentTime.getTime() - startTime.getTime()) / 1000;
-        long upDays = (upSeconds / 86400);
+        long upDays = upSeconds / 86400;
         upSeconds %= 86400;
-        long upHours = (upSeconds / 3600);
+        long upHours = upSeconds / 3600;
         upSeconds %= 3600;
-        long upMinutes = (upSeconds / 60);
+        long upMinutes = upSeconds / 60;
         upSeconds %= 60;
         LocalizableMessage upTimeStr =
           INFO_MONITOR_UPTIME.get(upDays, upHours, upMinutes, upSeconds);
