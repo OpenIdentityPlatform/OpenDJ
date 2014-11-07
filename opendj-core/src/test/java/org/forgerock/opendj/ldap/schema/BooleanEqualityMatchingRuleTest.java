@@ -46,11 +46,16 @@ public class BooleanEqualityMatchingRuleTest extends MatchingRuleTest {
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
-        return new Object[][] { { "TRUE", "true", ConditionResult.TRUE },
-            { "YES", "true", ConditionResult.TRUE }, { "ON", "true", ConditionResult.TRUE },
-            { "1", "true", ConditionResult.TRUE }, { "FALSE", "false", ConditionResult.TRUE },
-            { "NO", "false", ConditionResult.TRUE }, { "OFF", "false", ConditionResult.TRUE },
-            { "0", "false", ConditionResult.TRUE }, { "TRUE", "false", ConditionResult.FALSE }, };
+        return new Object[][] {
+            { "TRUE", "true", ConditionResult.TRUE },
+            { "YES", "true", ConditionResult.TRUE },
+            { "ON", "true", ConditionResult.TRUE },
+            { "1", "true", ConditionResult.TRUE },
+            { "FALSE", "false", ConditionResult.TRUE },
+            { "NO", "false", ConditionResult.TRUE },
+            { "OFF", "false", ConditionResult.TRUE },
+            { "0", "false", ConditionResult.TRUE },
+            { "TRUE", "false", ConditionResult.FALSE }, };
     }
 
     /** {@inheritDoc} */

@@ -46,12 +46,14 @@ public class CaseExactEqualityMatchingRuleTest extends MatchingRuleTest {
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
-        return new Object[][] { { "12345678", "12345678", ConditionResult.TRUE },
+        return new Object[][] {
+            { "12345678", "12345678", ConditionResult.TRUE },
             { "12345678\u2163", "12345678\u2163", ConditionResult.TRUE },
             { "ABC45678", "ABC45678", ConditionResult.TRUE },
             { "  ABC45678  ", "ABC45678", ConditionResult.TRUE },
             { "ABC   45678", "ABC 45678", ConditionResult.TRUE },
-            { "   ", " ", ConditionResult.TRUE }, { "", "", ConditionResult.TRUE },
+            { "   ", " ", ConditionResult.TRUE },
+            { "", "", ConditionResult.TRUE },
             { "ABC45678", "abc45678", ConditionResult.FALSE }, };
     }
 

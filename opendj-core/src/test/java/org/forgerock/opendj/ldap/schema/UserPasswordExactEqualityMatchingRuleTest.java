@@ -21,26 +21,25 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CASE_EXACT_IA5_OID;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_USER_PASSWORD_EXACT_OID;
 
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 
 /**
- * Test the CaseExactIA5EqualityMatchingRule.
+ * Test the UserPasswordExactEqualityMatchingRule.
  */
-public class CaseExactIA5EqualityMatchingRuleTest extends MatchingRuleTest {
+public class UserPasswordExactEqualityMatchingRuleTest extends MatchingRuleTest {
 
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] {
-            { "12345678\uFFFD" },
+
         };
     }
 
@@ -49,20 +48,14 @@ public class CaseExactIA5EqualityMatchingRuleTest extends MatchingRuleTest {
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
         return new Object[][] {
-            { "12345678", "12345678", ConditionResult.TRUE },
-            { "ABC45678", "ABC45678", ConditionResult.TRUE },
-            { "ABC45678", "abc45678", ConditionResult.FALSE },
-            { "\u0020foo\u0020bar\u0020\u0020", "foo bar", ConditionResult.TRUE },
-            { "test\u00AD\u200D", "test", ConditionResult.TRUE },
-            { "foo\u000Bbar", "foo\u0020bar", ConditionResult.TRUE },
-            { "foo\u070Fbar", "foobar", ConditionResult.TRUE },
+
         };
     }
 
     /** {@inheritDoc} */
     @Override
     protected MatchingRule getRule() {
-        return Schema.getCoreSchema().getMatchingRule(EMR_CASE_EXACT_IA5_OID);
+        return Schema.getCoreSchema().getMatchingRule(EMR_USER_PASSWORD_EXACT_OID);
     }
 
 }
