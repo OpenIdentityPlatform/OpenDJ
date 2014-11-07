@@ -98,21 +98,21 @@ public class LDAPSyntaxDescriptionSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
     }
 
     defaultOrderingMatchingRule =
-         DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
     if (defaultOrderingMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_ORDERING_MATCHING_RULE, OMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_CASE_IGNORE_OID, SYNTAX_LDAP_SYNTAX_NAME);
@@ -1206,7 +1206,7 @@ public class LDAPSyntaxDescriptionSyntax
       {
         //This has already been verified.
         equalityMatchingRule =
-                DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
+                DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
       }
       return equalityMatchingRule;
     }
@@ -1227,7 +1227,7 @@ public class LDAPSyntaxDescriptionSyntax
       if(orderingMatchingRule == null)
       {
         orderingMatchingRule =
-                DirectoryServer.getOrderingMatchingRule(OMR_CASE_IGNORE_OID);
+                DirectoryServer.getMatchingRule(OMR_CASE_IGNORE_OID);
       }
       return orderingMatchingRule;
     }
@@ -1248,7 +1248,7 @@ public class LDAPSyntaxDescriptionSyntax
       if(substringMatchingRule == null)
       {
         substringMatchingRule =
-                DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+                DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
       }
       return substringMatchingRule;
     }
@@ -1269,8 +1269,7 @@ public class LDAPSyntaxDescriptionSyntax
       if(approximateMatchingRule == null)
       {
         approximateMatchingRule =
-                DirectoryServer.getApproximateMatchingRule(
-                                    AMR_DOUBLE_METAPHONE_OID);
+                DirectoryServer.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
       }
       return approximateMatchingRule;
     }
@@ -1415,7 +1414,7 @@ public class LDAPSyntaxDescriptionSyntax
       {
         //This has already been verified.
         equalityMatchingRule =
-                DirectoryServer.getEqualityMatchingRule(EMR_CASE_IGNORE_OID);
+                DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_OID);
       }
       return equalityMatchingRule;
     }
@@ -1478,7 +1477,7 @@ public class LDAPSyntaxDescriptionSyntax
       if(substringMatchingRule == null)
       {
         substringMatchingRule =
-                DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_OID);
+                DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_OID);
       }
       return substringMatchingRule;
     }
@@ -1499,8 +1498,7 @@ public class LDAPSyntaxDescriptionSyntax
       if(approximateMatchingRule == null)
       {
         approximateMatchingRule =
-                DirectoryServer.getApproximateMatchingRule(
-                                    AMR_DOUBLE_METAPHONE_OID);
+                DirectoryServer.getMatchingRule(AMR_DOUBLE_METAPHONE_OID);
       }
       return approximateMatchingRule;
     }

@@ -89,7 +89,7 @@ public class AciSyntax
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_CASE_IGNORE_IA5_OID);
+         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_IA5_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME);

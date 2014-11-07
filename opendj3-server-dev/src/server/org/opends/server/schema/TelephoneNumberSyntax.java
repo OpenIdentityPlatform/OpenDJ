@@ -101,14 +101,14 @@ public class TelephoneNumberSyntax
          throws ConfigException
   {
     defaultEqualityMatchingRule =
-         DirectoryServer.getEqualityMatchingRule(EMR_TELEPHONE_OID);
+         DirectoryServer.getMatchingRule(EMR_TELEPHONE_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME);
     }
 
     defaultSubstringMatchingRule =
-         DirectoryServer.getSubstringMatchingRule(SMR_TELEPHONE_OID);
+         DirectoryServer.getMatchingRule(SMR_TELEPHONE_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_TELEPHONE_OID, SYNTAX_TELEPHONE_NAME);
