@@ -39,14 +39,17 @@ public class CaseIgnoreIA5EqualityMatchingRuleTest extends MatchingRuleTest {
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
-        return new Object[][] { { "12345678\uFFFD" }, };
+        return new Object[][] {
+            { "12345678\uFFFD" },
+        };
     }
 
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
-        return new Object[][] { { "12345678", "12345678", ConditionResult.TRUE },
+        return new Object[][] {
+            { "12345678", "12345678", ConditionResult.TRUE },
             { "ABC45678", "ABC45678", ConditionResult.TRUE },
             { "ABC45678", "abc45678", ConditionResult.TRUE }, };
     }

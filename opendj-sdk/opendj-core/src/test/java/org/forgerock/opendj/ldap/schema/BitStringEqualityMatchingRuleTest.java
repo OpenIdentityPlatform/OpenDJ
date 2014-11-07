@@ -38,7 +38,11 @@ public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
-        return new Object[][] { { "\'a\'B" }, { "0" }, { "010101" }, { "\'10101" },
+        return new Object[][] {
+            { "\'a\'B" },
+            { "0" },
+            { "010101" },
+            { "\'10101" },
             { "\'1010\'A" }, };
     }
 
@@ -46,7 +50,8 @@ public class BitStringEqualityMatchingRuleTest extends MatchingRuleTest {
     @Override
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
-        return new Object[][] { { "\'0\'B", "\'0\'B", ConditionResult.TRUE },
+        return new Object[][] {
+            { "\'0\'B", "\'0\'B", ConditionResult.TRUE },
             { "\'1\'B", "\'1\'B", ConditionResult.TRUE },
             { "\'0\'B", "\'1\'B", ConditionResult.FALSE }, };
     }

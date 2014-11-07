@@ -45,7 +45,9 @@ public class CaseExactOrderingMatchingRuleTest extends OrderingMatchingRuleTest 
     @Override
     @DataProvider(name = "Orderingmatchingrules")
     public Object[][] createOrderingMatchingRuleTestData() {
-        return new Object[][] { { "12345678", "02345678", 1 }, { "abcdef", "bcdefa", -1 },
+        return new Object[][] {
+            { "12345678", "02345678", 1 },
+            { "abcdef", "bcdefa", -1 },
             { "abcdef", "abcdef", 0 }, };
     }
 
