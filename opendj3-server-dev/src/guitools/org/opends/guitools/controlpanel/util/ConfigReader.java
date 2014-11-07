@@ -24,10 +24,7 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.util;
-
-import static org.opends.messages.AdminToolMessages.*;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -39,13 +36,12 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.ConnectionHandlerDescriptor;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 import org.opends.guitools.controlpanel.task.OfflineUpdateException;
 import org.opends.server.admin.std.meta.AdministrationConnectorCfgDefn;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.DN;
@@ -55,10 +51,11 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 
+import static org.opends.messages.AdminToolMessages.*;
+
 /**
  * An abstract class providing some common interface for the class that read
  * the configuration (and if the server is running, the monitoring information).
- *
  */
 public abstract class ConfigReader
 {
@@ -322,19 +319,19 @@ public abstract class ConfigReader
     if (s != null)
     {
       String[] attrNames = s.split(" ");
-      for (int i=0; i<attrNames.length; i++)
+      for (String attrName : attrNames)
       {
-        if (attrNames[i].startsWith("+"))
+        if (attrName.startsWith("+"))
         {
-          sortOrder.add(new VLVSortOrder(attrNames[i].substring(1), true));
+          sortOrder.add(new VLVSortOrder(attrName.substring(1), true));
         }
-        else if (attrNames[i].startsWith("-"))
+        else if (attrName.startsWith("-"))
         {
-          sortOrder.add(new VLVSortOrder(attrNames[i].substring(1), false));
+          sortOrder.add(new VLVSortOrder(attrName.substring(1), false));
         }
         else
         {
-          sortOrder.add(new VLVSortOrder(attrNames[i], true));
+          sortOrder.add(new VLVSortOrder(attrName, true));
         }
       }
     }

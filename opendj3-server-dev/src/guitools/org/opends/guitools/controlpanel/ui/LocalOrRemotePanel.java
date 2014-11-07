@@ -80,14 +80,18 @@ import org.opends.server.util.StaticUtils;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.server.monitors.VersionMonitorProvider.*;
 
 /**
  * The panel that appears when the user is asked to provide authentication.
  */
 public class LocalOrRemotePanel extends StatusGenericPanel
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final long serialVersionUID = 5051556513294844797L;
 
   private JComboBox combo;
@@ -101,19 +105,11 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   private String usedUrl;
   private JLabel localInstallLabel;
   private JEditorPane localInstall;
-
   private JLabel localNotRunning;
-
   private boolean isLocalServerRunning;
-
   private boolean callOKWhenVisible;
 
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * Default constructor.
-   *
-   */
+  /** Default constructor. */
   public LocalOrRemotePanel()
   {
     super();
@@ -431,13 +427,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         @Override
         public Void processBackgroundTask() throws Throwable
         {
-          try
-          {
-            Thread.sleep(200);
-          }
-          catch (Throwable t)
-          {
-          }
+          StaticUtils.sleep(200);
           File instancePath = Installation.getLocal().getInstanceDirectory();
           isLocalServerRunning = Utilities.isServerRunning(instancePath);
           return null;
@@ -583,7 +573,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             else
             {
               usedUrl = ConnectionUtils.getLDAPUrl(hostName.getText().trim(),
-                  new Integer(port.getText().trim()), true);
+                  Integer.valueOf(port.getText().trim()), true);
               ctx = createLdapsContext(usedUrl, dn.getText(),
                   String.valueOf(pwd.getPassword()),
                   getInfo().getConnectTimeout(), null,
@@ -591,20 +581,13 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               checkVersion(ctx);
             }
 
-            try
-            {
-              Thread.sleep(500);
-            }
-            catch (Throwable t)
-            {
-            }
+            StaticUtils.sleep(500);
             SwingUtilities.invokeLater(new Runnable()
             {
               @Override
               public void run()
               {
-                displayMessage(
-                    INFO_CTRL_PANEL_READING_CONFIGURATION_SUMMARY.get());
+                displayMessage(INFO_CTRL_PANEL_READING_CONFIGURATION_SUMMARY.get());
               }
             });
             closeInfoConnections();
@@ -715,7 +698,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               {
                 String hostPort = ServerDescriptor.getServerRepresentation(
                     hostName.getText().trim(),
-                    new Integer(port.getText().trim()));
+                    Integer.valueOf(port.getText().trim()));
                 NamingException ne = (NamingException)throwable;
                 errors.add(getMessageForException(ne, hostPort));
                 setPrimaryInvalid(portLabel);
@@ -907,13 +890,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       @Override
       public void run()
       {
-        try
-        {
-          Thread.sleep(getInfo().getPoolingPeriod());
-        }
-        catch (Throwable t)
-        {
-        }
+        StaticUtils.sleep(getInfo().getPoolingPeriod());
         getInfo().startPooling();
       }
     });
@@ -925,9 +902,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     LocalizableMessage msg = null;
     try
     {
-      /*
-       * Search for the version on the remote server.
-       */
+      // Search for the version on the remote server.
       SearchControls searchControls = new SearchControls();
       searchControls.setSearchScope(
       SearchControls.OBJECT_SCOPE);
@@ -939,8 +914,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
           VersionMonitorProvider.ATTR_MINOR_VERSION
           });
       NamingEnumeration<SearchResult> en =
-        ctx.search("cn=Version,cn=monitor", "objectclass=*",
-          searchControls);
+        ctx.search("cn=Version,cn=monitor", "objectclass=*", searchControls);
       SearchResult sr = null;
       try
       {
@@ -953,21 +927,16 @@ public class LocalOrRemotePanel extends StatusGenericPanel
       {
         en.close();
       }
-      CustomSearchResult csr =
-        new CustomSearchResult(sr, "cn=Version,cn=monitor");
+
+      CustomSearchResult csr = new CustomSearchResult(sr, "cn=Version,cn=monitor");
 
       String hostName = ConnectionUtils.getHostName(ctx);
 
-      String productName = String.valueOf(Utilities.getFirstMonitoringValue(csr,
-          VersionMonitorProvider.ATTR_PRODUCT_NAME));
-      String major = String.valueOf(Utilities.getFirstMonitoringValue(csr,
-          VersionMonitorProvider.ATTR_MAJOR_VERSION));
-      String point = String.valueOf(Utilities.getFirstMonitoringValue(csr,
-          VersionMonitorProvider.ATTR_POINT_VERSION));
-      String minor = String.valueOf(Utilities.getFirstMonitoringValue(csr,
-          VersionMonitorProvider.ATTR_MINOR_VERSION));
-      // Be strict, control panel is only compatible with exactly the same
-      // version.
+      String productName = String.valueOf(getFirstValueAsString(csr, ATTR_PRODUCT_NAME));
+      String major = String.valueOf(getFirstValueAsString(csr, ATTR_MAJOR_VERSION));
+      String point = String.valueOf(getFirstValueAsString(csr, ATTR_POINT_VERSION));
+      String minor = String.valueOf(getFirstValueAsString(csr, ATTR_MINOR_VERSION));
+      // Be strict, control panel is only compatible with exactly the same version
       if (!productName.equalsIgnoreCase(DynamicConstants.PRODUCT_NAME))
       {
         msg = ERR_NOT_SAME_PRODUCT_IN_REMOTE_SERVER_NOT_FOUND.get(hostName,
@@ -994,7 +963,6 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
   private boolean isVersionException(Throwable t)
   {
-    boolean isVersionException = false;
     if (t instanceof OpenDsException)
     {
       OpenDsException oe = (OpenDsException)t;
@@ -1005,34 +973,15 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             StaticUtils.hasDescriptor(msg, ERR_VERSION_IN_REMOTE_SERVER_NOT_FOUND) ||
             StaticUtils.hasDescriptor(msg, ERR_NOT_SAME_PRODUCT_IN_REMOTE_SERVER_NOT_FOUND))
         {
-          isVersionException = true;
+          return true;
         }
       }
     }
-    return isVersionException;
+    return false;
   }
 
   private void closeInfoConnections()
   {
-    if (getInfo().getDirContext() != null)
-    {
-      try
-      {
-        getInfo().getDirContext().close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-    if (getInfo().getUserDataDirContext() != null)
-    {
-      try
-      {
-        getInfo().getUserDataDirContext().close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    StaticUtils.close(getInfo().getDirContext(), getInfo().getUserDataDirContext());
   }
 }

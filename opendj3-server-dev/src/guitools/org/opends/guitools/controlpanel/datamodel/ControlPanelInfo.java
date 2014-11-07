@@ -69,6 +69,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
+import static org.opends.guitools.controlpanel.util.Utilities.*;
 
 /**
  * This is the classes that is shared among all the different places in the
@@ -343,16 +344,7 @@ public class ControlPanelInfo
   {
     if (userDataCtx != null)
     {
-      if (connectionPool.isConnectionRegistered(userDataCtx))
-      {
-        try
-        {
-          connectionPool.unregisterConnection(userDataCtx);
-        }
-        catch (Throwable t)
-        {
-        }
-      }
+      unregisterConnection(connectionPool, ctx);
     }
     this.userDataCtx = ctx;
     if (ctx != null)
@@ -500,22 +492,7 @@ public class ControlPanelInfo
     }
     ConfigReader reader;
 
-    ServerDescriptor.ServerStatus status = null;
-    for (Task task : getTasks())
-    {
-      if ((task.getType() == Task.Type.START_SERVER) &&
-          (task.getState() == Task.State.RUNNING) &&
-          isRunningOnServer(desc, task))
-      {
-        status = ServerDescriptor.ServerStatus.STARTING;
-      }
-      else if ((task.getType() == Task.Type.STOP_SERVER) &&
-          (task.getState() == Task.State.RUNNING) &&
-          isRunningOnServer(desc, task))
-      {
-        status = ServerDescriptor.ServerStatus.STOPPING;
-      }
-    }
+    ServerDescriptor.ServerStatus status = getStatus(desc);
     if (status != null)
     {
       desc.setStatus(status);
@@ -525,16 +502,7 @@ public class ControlPanelInfo
         this.ctx = null;
         if (userDataCtx != null)
         {
-          if (connectionPool.isConnectionRegistered(userDataCtx))
-          {
-            try
-            {
-              connectionPool.unregisterConnection(userDataCtx);
-            }
-            catch (Throwable t)
-            {
-            }
-          }
+          unregisterConnection(connectionPool, ctx);
           StaticUtils.close(userDataCtx);
           userDataCtx = null;
         }
@@ -616,35 +584,13 @@ public class ControlPanelInfo
             }
             else
             {
-              desc.setStatus(
-                  ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
+              desc.setStatus(ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE);
               reader = null;
             }
-            try
-            {
-              ctx.close();
-            }
-            catch (Throwable t)
-            {
-            }
+            StaticUtils.close(ctx);
             this.ctx = null;
-            if (connectionPool.isConnectionRegistered(userDataCtx))
-            {
-              try
-              {
-                connectionPool.unregisterConnection(userDataCtx);
-              }
-              catch (Throwable t)
-              {
-              }
-            }
-            try
-            {
-              userDataCtx.close();
-            }
-            catch (Throwable t)
-            {
-            }
+            unregisterConnection(connectionPool, ctx);
+            StaticUtils.close(userDataCtx);
             userDataCtx = null;
           }
         }
@@ -663,16 +609,13 @@ public class ControlPanelInfo
           desc.setJvmMemoryUsageMonitor(rCtx.getJvmMemoryUsage());
           desc.setSystemInformationMonitor(rCtx.getSystemInformation());
           desc.setWorkQueueMonitor(rCtx.getWorkQueue());
-          desc.setOpenDSVersion((String)Utilities.getFirstMonitoringValue(
-              rCtx.getVersionMonitor(), "fullVersion"));
-          String installPath = (String)Utilities.getFirstMonitoringValue(
-              rCtx.getSystemInformation(), "installPath");
+          desc.setOpenDSVersion(getFirstValueAsString(rCtx.getVersionMonitor(), "fullVersion"));
+          String installPath = getFirstValueAsString(rCtx.getSystemInformation(), "installPath");
           if (installPath != null)
           {
             desc.setInstallPath(installPath);
           }
-          String instancePath = (String)Utilities.getFirstMonitoringValue(
-              rCtx.getSystemInformation(), "instancePath");
+          String instancePath = getFirstValueAsString(rCtx.getSystemInformation(), "instancePath");
           if (instancePath != null)
           {
             desc.setInstancePath(instancePath);
@@ -708,6 +651,41 @@ public class ControlPanelInfo
       for (ConfigChangeListener listener : configListeners)
       {
         listener.configurationChanged(ev);
+      }
+    }
+  }
+
+  private ServerDescriptor.ServerStatus getStatus(ServerDescriptor desc)
+  {
+    ServerDescriptor.ServerStatus status = null;
+    for (Task task : getTasks())
+    {
+      if ((task.getType() == Task.Type.START_SERVER) &&
+          (task.getState() == Task.State.RUNNING) &&
+          isRunningOnServer(desc, task))
+      {
+        status = ServerDescriptor.ServerStatus.STARTING;
+      }
+      else if ((task.getType() == Task.Type.STOP_SERVER) &&
+          (task.getState() == Task.State.RUNNING) &&
+          isRunningOnServer(desc, task))
+      {
+        status = ServerDescriptor.ServerStatus.STOPPING;
+      }
+    }
+    return status;
+  }
+
+  private void unregisterConnection(LDAPConnectionPool connectionPool, InitialLdapContext userDataCtx)
+  {
+    if (connectionPool.isConnectionRegistered(userDataCtx))
+    {
+      try
+      {
+        connectionPool.unregisterConnection(userDataCtx);
+      }
+      catch (Throwable t)
+      {
       }
     }
   }

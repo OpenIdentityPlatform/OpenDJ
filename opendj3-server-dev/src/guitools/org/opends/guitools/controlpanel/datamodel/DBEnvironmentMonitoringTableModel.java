@@ -26,8 +26,6 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.messages.AdminToolMessages.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -36,8 +34,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * The abstract table model used to display all the network groups.
@@ -48,25 +48,17 @@ implements Comparator<BackendDescriptor>
   private static final long serialVersionUID = 548035716525600536L;
   private Set<BackendDescriptor> data = new HashSet<BackendDescriptor>();
   private ArrayList<String[]> dataArray = new ArrayList<String[]>();
-  private ArrayList<BackendDescriptor> dataSourceArray =
-    new ArrayList<BackendDescriptor>();
+  private ArrayList<BackendDescriptor> dataSourceArray = new ArrayList<BackendDescriptor>();
 
   private String[] columnNames = {};
   private LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
   private LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
-
-  /**
-   * The operations to be displayed.
-   */
+  /** The operations to be displayed. */
   private LinkedHashSet<String> attributes = new LinkedHashSet<String>();
-  /**
-   * The sort column of the table.
-   */
-  private int sortColumn = 0;
-  /**
-   * Whether the sorting is ascending or descending.
-   */
+  /** The sort column of the table. */
+  private int sortColumn;
+  /** Whether the sorting is ascending or descending. */
   private boolean sortAscending = true;
 
   /**
@@ -88,6 +80,7 @@ implements Comparator<BackendDescriptor>
    * Updates the table model contents and sorts its contents depending on the
    * sort options set by the user.
    */
+  @Override
   public void forceResort()
   {
     updateDataArray();
@@ -105,154 +98,45 @@ implements Comparator<BackendDescriptor>
     fireTableDataChanged();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public int getColumnCount()
   {
     return columnNames.length;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getColumnName(int col) {
     return columnNames[col];
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public int compare(BackendDescriptor desc1, BackendDescriptor desc2)
   {
-    int result;
+    CustomSearchResult monitor1 = desc1.getMonitoringEntry();
+    CustomSearchResult monitor2 = desc2.getMonitoringEntry();
+
     ArrayList<Integer> possibleResults = new ArrayList<Integer>();
-
     possibleResults.add(getName(desc1).compareTo(getName(desc2)));
-    for (String attrName : attributes)
-    {
-      int possibleResult;
-      if (desc1.getMonitoringEntry() == null)
-      {
-        if (desc2.getMonitoringEntry() == null)
-        {
-          possibleResult = 0;
-        }
-        else
-        {
-          possibleResult = -1;
-        }
-      }
-      else if (desc2.getMonitoringEntry() == null)
-      {
-        possibleResult = 1;
-      }
-      else
-      {
-        Object v1 = null;
-        Object v2 = null;
+    computeMonitoringPossibleResults(monitor1, monitor2, possibleResults, attributes);
 
-        for (String attr : desc1.getMonitoringEntry().getAttributeNames())
-        {
-          if (attr.equalsIgnoreCase(attrName))
-          {
-            v1 = getFirstMonitoringValue(desc1.getMonitoringEntry(), attrName);
-            break;
-          }
-        }
-        for (String attr : desc2.getMonitoringEntry().getAttributeNames())
-        {
-          if (attr.equalsIgnoreCase(attrName))
-          {
-            v2 = getFirstMonitoringValue(desc2.getMonitoringEntry(), attrName);
-            break;
-          }
-        }
-
-        if (v1 == null)
-        {
-          if (v2 == null)
-          {
-            possibleResult = 0;
-          }
-          else
-          {
-            possibleResult = -1;
-          }
-        }
-        else if (v2 == null)
-        {
-          possibleResult = 1;
-        }
-        else
-        {
-          if (v1 instanceof Number)
-          {
-            if ((v1 instanceof Double) || (v2 instanceof Double))
-            {
-              double n1 = ((Number)v1).doubleValue();
-              double n2 = ((Number)v2).doubleValue();
-              if (n1 > n2)
-              {
-                possibleResult = 1;
-              }
-              else if (n1 < n2)
-              {
-                possibleResult = -1;
-              }
-              else
-              {
-                possibleResult = 0;
-              }
-            }
-            else
-            {
-              long n1 = ((Number)v1).longValue();
-              long n2 = ((Number)v2).longValue();
-              if (n1 > n2)
-              {
-                possibleResult = 1;
-              }
-              else if (n1 < n2)
-              {
-                possibleResult = -1;
-              }
-              else
-              {
-                possibleResult = 0;
-              }
-            }
-          }
-          else if (v2 instanceof Number)
-          {
-            possibleResult = -1;
-          }
-          else
-          {
-            possibleResult = v1.toString().compareTo(v2.toString());
-          }
-        }
-      }
-      possibleResults.add(possibleResult);
-    }
-
-    result = possibleResults.get(getSortColumn());
+    int result = possibleResults.get(getSortColumn());
     if (result == 0)
     {
       for (int i : possibleResults)
@@ -276,6 +160,7 @@ implements Comparator<BackendDescriptor>
    * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
    * otherwise.
    */
+  @Override
   public boolean isSortAscending()
   {
     return sortAscending;
@@ -285,6 +170,7 @@ implements Comparator<BackendDescriptor>
    * Sets whether to sort ascending of descending.
    * @param sortAscending whether to sort ascending or descending.
    */
+  @Override
   public void setSortAscending(boolean sortAscending)
   {
     this.sortAscending = sortAscending;
@@ -294,6 +180,7 @@ implements Comparator<BackendDescriptor>
    * Returns the column index used to sort.
    * @return the column index used to sort.
    */
+  @Override
   public int getSortColumn()
   {
     return sortColumn;
@@ -303,6 +190,7 @@ implements Comparator<BackendDescriptor>
    * Sets the column index used to sort.
    * @param sortColumn column index used to sort..
    */
+  @Override
   public void setSortColumn(int sortColumn)
   {
     this.sortColumn = sortColumn;
@@ -401,14 +289,6 @@ implements Comparator<BackendDescriptor>
   }
 
   /**
-   * {@inheritDoc}
-   */
-  protected String[] getColumnNames()
-  {
-    return columnNames;
-  }
-
-  /**
    * Returns the label to be used for the provided backend.
    * @param backend the backend.
    * @return the label to be used for the provided backend.
@@ -424,8 +304,7 @@ implements Comparator<BackendDescriptor>
    * @return the monitoring entry associated with the provided backend.  Returns
    * <CODE>null</CODE> if there is no monitoring entry associated.
    */
-  protected CustomSearchResult getMonitoringEntry(
-      BackendDescriptor backend)
+  protected CustomSearchResult getMonitoringEntry(BackendDescriptor backend)
   {
     return backend.getMonitoringEntry();
   }
@@ -438,29 +317,18 @@ implements Comparator<BackendDescriptor>
     CustomSearchResult monitoringEntry = getMonitoringEntry(backend);
     for (String attr : attributes)
     {
-      Object o = getFirstMonitoringValue(monitoringEntry, attr);
-      if (o == null)
+      String o = getFirstValueAsString(monitoringEntry, attr);
+      if (o != null)
       {
-        line[i] = NO_VALUE_SET.toString();
+        line[i] = o;
       }
       else
       {
-        line[i] = o.toString();
+        line[i] = NO_VALUE_SET.toString();
       }
       i++;
     }
     return line;
   }
 
-  /**
-   * Returns the first value for a given attribute in the provided entry.
-   * @param sr the entry.
-   * @param attrName the attribute name.
-   * @return the first value for a given attribute in the provided entry.
-   */
-  protected Object getFirstMonitoringValue(CustomSearchResult sr,
-      String attrName)
-  {
-    return Utilities.getFirstMonitoringValue(sr, attrName);
-  }
 }
