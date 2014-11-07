@@ -38,7 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for {@link BitStringEqualityMatchingRule}.
+ * This class is a factory class for BitStringEqualityMatchingRule.
  */
 public final class BitStringEqualityMatchingRuleFactory
                 extends MatchingRuleFactory<MatchingRuleCfg>

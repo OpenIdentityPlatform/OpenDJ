@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link DoubleMetaphoneApproximateMatchingRule}.
+ * This class is a factory class for DoubleMetaphoneApproximateMatchingRule.
  */
 public final class DoubleMetaphoneApproximateMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

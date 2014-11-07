@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link TelephoneNumberEqualityMatchingRule}.
+ * This class is a factory class for TelephoneNumberEqualityMatchingRule.
  */
 public final class TelephoneNumberEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

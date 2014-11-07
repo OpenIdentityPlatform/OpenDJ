@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link OctetStringSubstringMatchingRule}.
+ * This class is a factory class for OctetStringSubstringMatchingRule.
  */
 public final class OctetStringSubstringMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

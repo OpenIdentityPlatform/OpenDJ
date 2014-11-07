@@ -38,8 +38,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link ProtocolInformationEqualityMatchingRule}.
+ * This class is a factory class for ProtocolInformationEqualityMatchingRule.
  */
 public final class ProtocolInformationEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

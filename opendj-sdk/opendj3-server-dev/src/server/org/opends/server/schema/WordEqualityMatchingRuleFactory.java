@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link WordEqualityMatchingRule}.
+ * This class is a factory class for WordEqualityMatchingRule.
  */
 public final class WordEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

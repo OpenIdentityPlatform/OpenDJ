@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link CaseIgnoreSubstringMatchingRule}.
+ * This class is a factory class for CaseIgnoreSubstringMatchingRule.
  */
 public final class CaseIgnoreSubstringMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

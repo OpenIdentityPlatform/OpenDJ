@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link DistinguishedNameEqualityMatchingRule}.
+ * This class is a factory class for DistinguishedNameEqualityMatchingRule.
  */
 public final class DistinguishedNameEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

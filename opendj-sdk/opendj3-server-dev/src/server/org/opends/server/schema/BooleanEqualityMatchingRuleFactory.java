@@ -38,8 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for
- * {@link BooleanEqualityMatchingRule}.
+ * This class is a factory class for BooleanEqualityMatchingRule.
  */
 public final class BooleanEqualityMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>

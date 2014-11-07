@@ -38,7 +38,7 @@ import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.types.InitializationException;
 
 /**
- * This class is a factory class for {@link UUIDOrderingMatchingRule}.
+ * This class is a factory class for UUIDOrderingMatchingRule.
  */
 public final class UUIDOrderingMatchingRuleFactory
         extends MatchingRuleFactory<MatchingRuleCfg>
