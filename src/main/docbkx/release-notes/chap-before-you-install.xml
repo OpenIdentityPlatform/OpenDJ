@@ -34,9 +34,9 @@
  <para>This chapter covers requirements to consider before you run OpenDJ,
  especially before you run OpenDJ in your production environment.</para>
 
- <note xml:id="requirements-not-changed">
+ <note xml:id="requirements-changes">
   <para>
-   These requirements have not changed since OpenDJ ${stableServerVersion}.
+   OpenDJ 2.6.2 adds support for Java 8.
   </para>
  </note>
 
