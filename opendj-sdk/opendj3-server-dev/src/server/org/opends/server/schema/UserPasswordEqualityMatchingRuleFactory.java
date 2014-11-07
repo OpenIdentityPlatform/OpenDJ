@@ -24,8 +24,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
-
 package org.opends.server.schema;
 
 import java.util.Collection;
@@ -36,19 +34,17 @@ import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.opends.server.types.InitializationException;
+
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class is a factory class for UserPasswordExactEqualityMatchingRule.
  */
-public final class UserPasswordEqualityMatchingRuleFactory
-        extends MatchingRuleFactory<MatchingRuleCfg>
+public final class UserPasswordEqualityMatchingRuleFactory extends MatchingRuleFactory<MatchingRuleCfg>
 {
-  //Associated Matching Rule.
   private MatchingRule matchingRule;
-
-
-
 
  /**
   * {@inheritDoc}
@@ -57,13 +53,14 @@ public final class UserPasswordEqualityMatchingRuleFactory
  public final void initializeMatchingRule(MatchingRuleCfg configuration)
          throws ConfigException, InitializationException
  {
-   // TODO: either delete completely UserPasswordEqualityMatchingRule or re-implement it
-   // using SDK classes
-   // Meanwhile, just returning UserPasswordExactEqualityMatchingRule instead
-   matchingRule = CoreSchema.getInstance().getMatchingRule("1.3.6.1.4.1.26027.1.4.2");
+   matchingRule = new SchemaBuilder(CoreSchema.getInstance())
+       .buildMatchingRule(EMR_USER_PASSWORD_OID)
+         .names(EMR_USER_PASSWORD_NAME)
+         .syntaxOID(SYNTAX_USER_PASSWORD_OID).description(EMR_USER_PASSWORD_DESCRIPTION)
+         .implementation(new UserPasswordEqualityMatchingRule())
+         .addToSchema()
+       .toSchema().getMatchingRule(EMR_USER_PASSWORD_OID);
  }
-
-
 
  /**
   * {@inheritDoc}
