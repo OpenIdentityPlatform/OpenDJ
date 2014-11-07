@@ -527,7 +527,7 @@ public class ServerDescriptor
     {
       return false;
     }
-    String os = (String) getFirstMonitoringValue(sr, "operatingSystem");
+    String os = getFirstValueAsString(sr, "operatingSystem");
     if (os != null)
     {
       return OperatingSystem.WINDOWS == OperatingSystem.forName(os);
@@ -729,8 +729,8 @@ public class ServerDescriptor
     {
       try
       {
-        String start = (String) getFirstMonitoringValue(rootMonitor, START_DATE.getAttributeName());
-        String current = (String) getFirstMonitoringValue(rootMonitor, CURRENT_DATE.getAttributeName());
+        String start = getFirstValueAsString(rootMonitor, START_DATE.getAttributeName());
+        String current = getFirstValueAsString(rootMonitor, CURRENT_DATE.getAttributeName());
         Date startTime = ConfigFromDirContext.utcParser.parse(start);
         Date currentTime = ConfigFromDirContext.utcParser.parse(current);
         return currentTime.getTime() - startTime.getTime();

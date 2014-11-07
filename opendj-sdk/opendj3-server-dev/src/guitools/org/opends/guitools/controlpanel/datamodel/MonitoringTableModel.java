@@ -26,63 +26,45 @@
  */
 package org.opends.guitools.controlpanel.datamodel;
 
-import static org.opends.messages.AdminToolMessages.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.guitools.controlpanel.util.Utilities;
+
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * The abstract table model used to display all the network groups.
  * @param <T> the type of the objects passed externally to the table model.
  * @param <P> the type of the objects used internally by the table model.
  */
-public abstract class MonitoringTableModel<T, P> extends SortableTableModel
-implements Comparator<P>
+abstract class MonitoringTableModel<T, P> extends SortableTableModel implements Comparator<P>
 {
   private static final long serialVersionUID = -3974562860632179025L;
-  private Set<P> data = new HashSet<P>();
-  private ArrayList<String[]> dataArray = new ArrayList<String[]>();
-  private ArrayList<P> dataSourceArray = new ArrayList<P>();
+  private final Set<P> data = new HashSet<P>();
+  private final ArrayList<String[]> dataArray = new ArrayList<String[]>();
+  private final ArrayList<P> dataSourceArray = new ArrayList<P>();
   private boolean showAverages;
   private long runningTime;
 
   private String[] columnNames = {};
-  private LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
-  private LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
+  private final LocalizableMessage NO_VALUE_SET = INFO_CTRL_PANEL_NO_MONITORING_VALUE.get();
+  private final LocalizableMessage NOT_IMPLEMENTED = INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
-
-  /**
-   * The attributes to be displayed.
-   */
-  private LinkedHashSet<MonitoringAttributes> attributes =
-    new LinkedHashSet<MonitoringAttributes>();
-  /**
-   * The sort column of the table.
-   */
-  private int sortColumn = 0;
-  /**
-   * Whether the sorting is ascending or descending.
-   */
+  /** The attributes to be displayed. */
+  private final LinkedHashSet<MonitoringAttributes> attributes = new LinkedHashSet<MonitoringAttributes>();
+  /** The sort column of the table. */
+  private int sortColumn;
+  /** Whether the sorting is ascending or descending. */
   private boolean sortAscending = true;
-
-  /**
-   * Indicates whether a total row must be added or not.  The default behavior
-   * is to add it.
-   * @return <CODE>true</CODE> if a total row must be added and
-   * <CODE>false</CODE> otherwise.
-   */
-  protected boolean addTotalRow()
-  {
-    return true;
-  }
 
   /**
    * Sets the data for this table model.
@@ -109,6 +91,7 @@ implements Comparator<P>
    * Updates the table model contents and sorts its contents depending on the
    * sort options set by the user.
    */
+  @Override
   public void forceResort()
   {
     updateDataArray();
@@ -126,33 +109,29 @@ implements Comparator<P>
     fireTableDataChanged();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public int getColumnCount()
   {
     return columnNames.length;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public int getRowCount()
   {
     return dataArray.size();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Object getValueAt(int row, int col)
   {
     return dataArray.get(row)[col];
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getColumnName(int col) {
     return columnNames[col];
   }
@@ -162,6 +141,7 @@ implements Comparator<P>
    * @return <CODE>true</CODE> if the sort is ascending and <CODE>false</CODE>
    * otherwise.
    */
+  @Override
   public boolean isSortAscending()
   {
     return sortAscending;
@@ -171,6 +151,7 @@ implements Comparator<P>
    * Sets whether to sort ascending of descending.
    * @param sortAscending whether to sort ascending or descending.
    */
+  @Override
   public void setSortAscending(boolean sortAscending)
   {
     this.sortAscending = sortAscending;
@@ -180,6 +161,7 @@ implements Comparator<P>
    * Returns the column index used to sort.
    * @return the column index used to sort.
    */
+  @Override
   public int getSortColumn()
   {
     return sortColumn;
@@ -189,6 +171,7 @@ implements Comparator<P>
    * Sets the column index used to sort.
    * @param sortColumn column index used to sort..
    */
+  @Override
   public void setSortColumn(int sortColumn)
   {
     this.sortColumn = sortColumn;
@@ -264,53 +247,42 @@ implements Comparator<P>
     }
 
     // Add the total: always at the end
-    if (addTotalRow())
+    String[] line = new String[columnNames.length];
+    line[0] = "<html><b>" + INFO_CTRL_PANEL_TOTAL_LABEL.get() + "</b>";
+    for (int i = 1; i < line.length; i++)
     {
-      String[] line = new String[columnNames.length];
-      line[0] = "<html><b>" + INFO_CTRL_PANEL_TOTAL_LABEL.get() + "</b>";
-      for (int i=1; i<line.length; i++)
+      boolean valueSet = false;
+      boolean notImplemented = false;
+      long totalValue = 0;
+      for (int j = 0; j < dataArray.size(); j++)
       {
-        boolean valueSet = false;
-        boolean notImplemented = false;
-        long totalValue = 0;
-        for (int j=0; j<dataArray.size(); j++)
+        String[] l = dataArray.get(j);
+        String value = l[i];
+        try
         {
-          String[] l = dataArray.get(j);
-          String value = l[i];
-          try
-          {
-            long v = Long.parseLong(value);
-            totalValue += v;
-            valueSet = true;
-          }
-          catch (Throwable t)
-          {
-            notImplemented = NOT_IMPLEMENTED.toString().equals(value);
-          }
+          long v = Long.parseLong(value);
+          totalValue += v;
+          valueSet = true;
         }
-        if (notImplemented)
+        catch (Throwable t)
         {
-          line[i] = NOT_IMPLEMENTED.toString();
-        }
-        else if (valueSet)
-        {
-          line[i] = String.valueOf(totalValue);
-        }
-        else
-        {
-          line[i] = NO_VALUE_SET.toString();
+          notImplemented = NOT_IMPLEMENTED.toString().equals(value);
         }
       }
-      dataArray.add(line);
+      if (notImplemented)
+      {
+        line[i] = NOT_IMPLEMENTED.toString();
+      }
+      else if (valueSet)
+      {
+        line[i] = String.valueOf(totalValue);
+      }
+      else
+      {
+        line[i] = NO_VALUE_SET.toString();
+      }
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  protected String[] getColumnNames()
-  {
-    return columnNames;
+    dataArray.add(line);
   }
 
   /**
@@ -358,7 +330,7 @@ implements Comparator<P>
             String s = String.valueOf(average);
             int index = s.indexOf(".");
             // Show a maximum of two decimals.
-            if ((index != -1) && ((index + 3) < s.length()))
+            if (index != -1 && index + 3 < s.length())
             {
               s = s.substring(0, index + 3);
             }
@@ -392,18 +364,6 @@ implements Comparator<P>
   }
 
   /**
-   * Returns the first value for a given attribute in the provided entry.
-   * @param sr the entry.
-   * @param attrName the attribute name.
-   * @return the first value for a given attribute in the provided entry.
-   */
-  protected Object getFirstMonitoringValue(CustomSearchResult sr,
-      String attrName)
-  {
-    return Utilities.getFirstMonitoringValue(sr, attrName);
-  }
-
-  /**
    * Returns a list of integer with all the values of two monitoring entries
    * compared.
    * @param monitor1 the first monitoring entry.
@@ -414,120 +374,13 @@ implements Comparator<P>
   protected ArrayList<Integer> getMonitoringPossibleResults(
       CustomSearchResult monitor1, CustomSearchResult monitor2)
   {
-    ArrayList<Integer> possibleResults = new ArrayList<Integer>();
+    final List<String> attrs = new ArrayList<String>();
     for (MonitoringAttributes operation : getAttributes())
     {
-      int possibleResult;
-      if (monitor1 == null)
-      {
-        if (monitor2 == null)
-        {
-          possibleResult = 0;
-        }
-        else
-        {
-          possibleResult = -1;
-        }
-      }
-      else if (monitor2 == null)
-      {
-        possibleResult = 1;
-      }
-      else
-      {
-        Object v1 = null;
-        Object v2 = null;
-
-        for (String attrName : monitor1.getAttributeNames())
-        {
-          if (operation.getAttributeName().equalsIgnoreCase(attrName))
-          {
-            v1 = getFirstMonitoringValue(monitor1, attrName);
-            break;
-          }
-        }
-        for (String attrName : monitor2.getAttributeNames())
-        {
-          if (operation.getAttributeName().equalsIgnoreCase(attrName))
-          {
-            v2 = getFirstMonitoringValue(monitor2, attrName);
-            break;
-          }
-        }
-
-        if (v1 == null)
-        {
-          if (v2 == null)
-          {
-            possibleResult = 0;
-          }
-          else
-          {
-            possibleResult = -1;
-          }
-        }
-        else if (v2 == null)
-        {
-          possibleResult = 1;
-        }
-        else
-        {
-          if (v1 instanceof Number)
-          {
-            if (v2 instanceof Number)
-            {
-              if ((v1 instanceof Double) || (v2 instanceof Double))
-              {
-                double n1 = ((Number)v1).doubleValue();
-                double n2 = ((Number)v2).doubleValue();
-                if (n1 > n2)
-                {
-                  possibleResult = 1;
-                }
-                else if (n1 < n2)
-                {
-                  possibleResult = -1;
-                }
-                else
-                {
-                  possibleResult = 0;
-                }
-              }
-              else
-              {
-                long n1 = ((Number)v1).longValue();
-                long n2 = ((Number)v2).longValue();
-                if (n1 > n2)
-                {
-                  possibleResult = 1;
-                }
-                else if (n1 < n2)
-                {
-                  possibleResult = -1;
-                }
-                else
-                {
-                  possibleResult = 0;
-                }
-              }
-            }
-            else
-            {
-              possibleResult = 1;
-            }
-          }
-          else if (v2 instanceof Number)
-          {
-            possibleResult = -1;
-          }
-          else
-          {
-            possibleResult = v1.toString().compareTo(v2.toString());
-          }
-        }
-      }
-      possibleResults.add(possibleResult);
+      attrs.add(operation.getAttributeName());
     }
+    final ArrayList<Integer> possibleResults = new ArrayList<Integer>();
+    computeMonitoringPossibleResults(monitor1, monitor2, possibleResults, attrs);
     return possibleResults;
   }
 }

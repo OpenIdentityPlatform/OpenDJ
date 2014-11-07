@@ -22,43 +22,38 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
-
-import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.JLabel;
 
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
-import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.Utilities;
+
+import static org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes.*;
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.messages.AdminToolMessages.*;
 /**
  * The panel displaying the entry caches monitor panel.
  */
 public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
 {
   private static final long serialVersionUID = 9031734563700069830L;
-  static List<MonitoringAttributes> ngOperations =
-    new ArrayList<MonitoringAttributes>();
-  {
-    ngOperations.add(BasicMonitoringAttributes.ENTRY_CACHE_TRIES);
-    ngOperations.add(BasicMonitoringAttributes.ENTRY_CACHE_HITS);
-    ngOperations.add(BasicMonitoringAttributes.ENTRY_CACHE_HIT_RATIO);
-    ngOperations.add(BasicMonitoringAttributes.CURRENT_ENTRY_CACHE_SIZE);
-    ngOperations.add(BasicMonitoringAttributes.MAX_ENTRY_CACHE_SIZE);
-    ngOperations.add(BasicMonitoringAttributes.CURRENT_ENTRY_CACHE_COUNT);
-    ngOperations.add(BasicMonitoringAttributes.MAX_ENTRY_CACHE_COUNT);
-  }
-  private ArrayList<JLabel> monitoringLabels =
-    new ArrayList<JLabel>();
+  private static List<MonitoringAttributes> ngOperations = new ArrayList<MonitoringAttributes>(Arrays.asList(
+      ENTRY_CACHE_TRIES, ENTRY_CACHE_HITS, ENTRY_CACHE_HIT_RATIO, CURRENT_ENTRY_CACHE_SIZE, MAX_ENTRY_CACHE_SIZE,
+      CURRENT_ENTRY_CACHE_COUNT, MAX_ENTRY_CACHE_COUNT));
+
+  private ArrayList<JLabel> monitoringLabels = new ArrayList<JLabel>();
   {
     for (int i=0; i<ngOperations.size(); i++)
     {
@@ -85,6 +80,7 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return monitoringLabels.get(0);
@@ -159,8 +155,7 @@ public class EntryCachesMonitoringPanel extends GeneralMonitoringPanel
       int index = 0;
       for (MonitoringAttributes attr : ngOperations)
       {
-        if (Utilities.getFirstMonitoringValue(csr, attr.getAttributeName())
-            == null)
+        if (getFirstValueAsString(csr, attr.getAttributeName()) == null)
         {
           monitoringLabels.get(index).setVisible(false);
           labels.get(index).setVisible(false);

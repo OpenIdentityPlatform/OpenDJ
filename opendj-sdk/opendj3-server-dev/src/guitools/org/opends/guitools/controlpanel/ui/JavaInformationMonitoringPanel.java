@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
-
-import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -46,12 +45,15 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.JTextComponent;
 
-import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.BasicMonitoringAttributes;
+import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.util.ServerConstants;
+
+import static org.opends.guitools.controlpanel.util.Utilities.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * The panel displaying the java monitoring information.
@@ -82,8 +84,8 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
   {
     for (int i=0; i<generalAttributes.size(); i++)
     {
-      if ((generalAttributes.get(i) == BasicMonitoringAttributes.CLASS_PATH) ||
-          (generalAttributes.get(i) == BasicMonitoringAttributes.JVM_ARGUMENTS))
+      if (generalAttributes.get(i) == BasicMonitoringAttributes.CLASS_PATH ||
+          generalAttributes.get(i) == BasicMonitoringAttributes.JVM_ARGUMENTS)
       {
         JEditorPane pane = new JEditorPane();
         pane.setEditable(false);
@@ -112,9 +114,8 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return generalMonitoringComps.get(0);
@@ -175,14 +176,13 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
         gbc.insets.right = 10;
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        add(generalMonitoringComps.get(i), gbc);
       }
       else
       {
         gbc.weightx = 0.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        add(generalMonitoringComps.get(i), gbc);
       }
+      add(generalMonitoringComps.get(i), gbc);
     }
 
     final BasicExpander extraExpander = new BasicExpander(
@@ -249,22 +249,20 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
         gbc1.insets.right = 10;
         gbc1.weightx = 1.0;
         gbc1.fill = GridBagConstraints.BOTH;
-        extraGeneralPanel.add(generalMonitoringComps.get(index), gbc1);
       }
       else
       {
         gbc1.weightx = 1.0;
         gbc1.fill = GridBagConstraints.HORIZONTAL;
-        extraGeneralPanel.add(generalMonitoringComps.get(index), gbc1);
       }
+      extraGeneralPanel.add(generalMonitoringComps.get(index), gbc1);
       gbc1.insets.top = 10;
       gbc1.gridy ++;
     }
     ChangeListener changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent e)
       {
         extraGeneralPanel.setVisible(extraExpander.isSelected());
@@ -274,9 +272,8 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
 
     changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent e)
       {
         memoryPanel.setVisible(memoryExpander.isSelected());
@@ -360,9 +357,8 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
         SortedSet<String> sortedNames = new TreeSet<String>();
         for (String attrName : allNames)
         {
-          if (!attrName.equalsIgnoreCase(
-              ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
-              !attrName.equalsIgnoreCase(ServerConstants.ATTR_COMMON_NAME))
+          if (!OBJECTCLASS_ATTRIBUTE_TYPE_NAME.equalsIgnoreCase(attrName)
+              && !ATTR_COMMON_NAME.equalsIgnoreCase(attrName))
           {
             sortedNames.add(attrName);
           }
@@ -399,12 +395,10 @@ public class JavaInformationMonitoringPanel extends GeneralMonitoringPanel
 
       for (int i=0; i<memoryAttributes.size() ; i++)
       {
-        Object value = Utilities.getFirstMonitoringValue(
-            csrMemory,
-            memoryAttributes.get(i));
+        String value = getFirstValueAsString(csrMemory, memoryAttributes.get(i));
         if (value != null)
         {
-          memoryLabels.get(i).setText(value.toString());
+          memoryLabels.get(i).setText(value);
         }
         else
         {

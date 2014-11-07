@@ -26,8 +26,6 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.messages.AdminToolMessages.*;
-
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -56,9 +54,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
@@ -73,6 +68,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -85,7 +85,10 @@ import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.guitools.controlpanel.datamodel.MonitoringAttributes;
 import org.opends.guitools.controlpanel.datamodel.ScheduleType;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
-import org.opends.guitools.controlpanel.event.*;
+import org.opends.guitools.controlpanel.datamodel.SortableListModel;
+import org.opends.guitools.controlpanel.event.ConfigChangeListener;
+import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.task.RebuildIndexTask;
 import org.opends.guitools.controlpanel.task.RestartServerTask;
 import org.opends.guitools.controlpanel.task.StartServerTask;
@@ -95,14 +98,15 @@ import org.opends.guitools.controlpanel.ui.components.AddRemovePanel;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
+
+import static org.opends.guitools.controlpanel.ui.ControlCenterMainPane.*;
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * An abstract class that contains a number of methods that are shared by all
@@ -124,49 +128,44 @@ implements ConfigChangeListener
   /**
    * The not applicable message.
    */
-  protected final static LocalizableMessage NOT_APPLICABLE =
+  protected static final LocalizableMessage NOT_APPLICABLE =
     INFO_NOT_APPLICABLE_LABEL.get();
 
-  private LocalizableMessage AUTHENTICATE = INFO_AUTHENTICATE_BUTTON_LABEL.get();
-  private LocalizableMessage START = INFO_START_BUTTON_LABEL.get();
+  private final LocalizableMessage AUTHENTICATE = INFO_AUTHENTICATE_BUTTON_LABEL.get();
+  private final LocalizableMessage START = INFO_START_BUTTON_LABEL.get();
 
   private ControlPanelInfo info;
 
-  private boolean enableClose = true;
+  private final boolean enableClose = true;
   private boolean enableCancel = true;
   private boolean enableOK = true;
 
-  private boolean disposeOnClose = false;
+  private boolean disposeOnClose;
 
-  private JPanel cardPanel;
-  private JPanel mainPanel;
-  private JEditorPane message;
+  private final JPanel cardPanel;
+  private final JPanel mainPanel;
+  private final JEditorPane message;
 
-  private CardLayout cardLayout;
+  private final CardLayout cardLayout;
 
   private static final String MAIN_PANEL = "mainPanel";
   private static final String MESSAGE_PANEL = "messagePanel";
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The error pane.
-   */
+  /** The error pane. */
   protected JEditorPane errorPane;
 
-  /**
-   * The last displayed message in the error pane.
-   */
-  protected String lastDisplayedError = null;
+  /** The last displayed message in the error pane. */
+  private String lastDisplayedError;
 
-  private ArrayList<ConfigurationElementCreatedListener> confListeners =
+  private final ArrayList<ConfigurationElementCreatedListener> confListeners =
     new ArrayList<ConfigurationElementCreatedListener>();
 
-  private boolean sizeSet = false;
-  private boolean focusSet = false;
+  private boolean sizeSet;
+  private boolean focusSet;
 
-  private static DateFormat taskDateFormat =
-    new SimpleDateFormat("yyyyMMddHHmmss");
+  private static final DateFormat taskDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
   /**
    * Returns the title that will be used as title of the dialog.
@@ -291,6 +290,7 @@ implements ConfigChangeListener
    * @param comp the Component to be added.
    * @param constraints the constraints.
    */
+  @Override
   public void add(Component comp, Object constraints)
   {
     mainPanel.add(comp, constraints);
@@ -378,6 +378,7 @@ implements ConfigChangeListener
     CustomHTMLEditorKit htmlEditor = new CustomHTMLEditorKit();
     htmlEditor.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         if (AUTHENTICATE.toString().equals(ev.getActionCommand()))
@@ -535,7 +536,7 @@ implements ConfigChangeListener
    * of doing whatever is required (close the dialog, launch a task, etc.).
    *
    */
-  abstract public void okClicked();
+  public abstract void okClicked();
 
   /**
    * Adds a configuration element created listener.
@@ -555,21 +556,6 @@ implements ConfigChangeListener
       ConfigurationElementCreatedListener listener)
   {
     getConfigurationElementCreatedListeners().remove(listener);
-  }
-
-  /**
-   * Notifies the configuration element created listener that a new object has
-   * been created.
-   * @param configObject the created object.
-   */
-  protected void notifyConfigurationElementCreated(Object configObject)
-  {
-    for (ConfigurationElementCreatedListener listener :
-      getConfigurationElementCreatedListeners())
-    {
-      listener.elementCreated(
-          new ConfigurationElementCreatedEvent(this, configObject));
-    }
   }
 
   /**
@@ -668,41 +654,34 @@ implements ConfigChangeListener
     progressDialog.setTaskIsOver(false);
     boolean rebuildIndexes;
     String backendName = index.getBackend().getBackendID();
+    LocalizableMessage summary = INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get();
     if (!isServerRunning())
     {
-      rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog,
-          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
+      rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog, summary,
           INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_OFFLINE_DETAILS.get(
               index.getName(), backendName));
     }
+    else if (isLocal())
+    {
+      rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog, summary,
+          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(
+              index.getName(), backendName, backendName));
+    }
     else
     {
-      if (isLocal())
-      {
-        rebuildIndexes = Utilities.displayConfirmationDialog(progressDialog,
-            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
-            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_ONLINE_DETAILS.get(
-                index.getName(), backendName, backendName));
-      }
-      else
-      {
-        Utilities.displayWarningDialog(progressDialog,
-            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_SUMMARY.get(),
-            INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_REMOTE_DETAILS.get(
-                index.getName(), backendName));
-        rebuildIndexes = false;
-      }
+      Utilities.displayWarningDialog(progressDialog, summary,
+          INFO_CTRL_PANEL_INDEX_REBUILD_REQUIRED_REMOTE_DETAILS.get(
+              index.getName(), backendName));
+      rebuildIndexes = false;
     }
     if (rebuildIndexes)
     {
-      SortedSet<AbstractIndexDescriptor> indexes =
-        new TreeSet<AbstractIndexDescriptor>();
+      SortedSet<AbstractIndexDescriptor> indexes = new TreeSet<AbstractIndexDescriptor>();
       indexes.add(index);
       SortedSet<String> baseDNs = new TreeSet<String>();
       for (BaseDNDescriptor b : index.getBackend().getBaseDns())
       {
-        String baseDN = Utilities.unescapeUtf8(b.getDn().toString());
-        baseDNs.add(baseDN);
+        baseDNs.add(Utilities.unescapeUtf8(b.getDn().toString()));
       }
 
       RebuildIndexTask newTask = new RebuildIndexTask(getInfo(),
@@ -760,7 +739,7 @@ implements ConfigChangeListener
   protected class IgnoreItemListener implements ItemListener
   {
     private Object selectedItem;
-    private JComboBox combo;
+    private final JComboBox combo;
 
     /**
      * Constructor.
@@ -776,9 +755,8 @@ implements ConfigChangeListener
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void itemStateChanged(ItemEvent ev)
     {
       Object o = combo.getSelectedItem();
@@ -790,13 +768,10 @@ implements ConfigChangeListener
           for (int i=0; i<combo.getModel().getSize(); i++)
           {
             Object item = combo.getModel().getElementAt(i);
-            if (item instanceof CategorizedComboBoxElement)
+            if (item instanceof CategorizedComboBoxElement && !isCategory(item))
             {
-              if (!isCategory(item))
-              {
-                selectedItem = item;
-                break;
-              }
+              selectedItem = item;
+              break;
             }
           }
         }
@@ -848,15 +823,14 @@ implements ConfigChangeListener
     {
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(details);
-      mb.append("<br><br>"+getAuthenticateHTML());
+      mb.append("<br><br>").append(getAuthenticateHTML());
       LocalizableMessage title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           errorPane.setVisible(true);
@@ -869,9 +843,8 @@ implements ConfigChangeListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           errorPane.setVisible(false);
@@ -890,19 +863,9 @@ implements ConfigChangeListener
    */
   protected boolean authenticationRequired(ServerDescriptor desc)
   {
-    boolean returnValue;
     ServerDescriptor.ServerStatus status = desc.getStatus();
-    if (((status == ServerDescriptor.ServerStatus.STARTED) &&
-        !desc.isAuthenticated()) ||
-        (status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE))
-    {
-      returnValue = true;
-    }
-    else
-    {
-      returnValue = false;
-    }
-    return returnValue;
+    return (status == ServerDescriptor.ServerStatus.STARTED && !desc.isAuthenticated())
+        || status == ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE;
   }
 
   /**
@@ -919,14 +882,13 @@ implements ConfigChangeListener
       LocalizableMessage title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(details);
-      mb.append("<br><br>"+getAuthenticateHTML());
+      mb.append("<br><br>").append(getAuthenticateHTML());
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           errorPane.setVisible(true);
@@ -938,9 +900,8 @@ implements ConfigChangeListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           errorPane.setVisible(false);
@@ -965,21 +926,20 @@ implements ConfigChangeListener
       LocalizableMessage authRequired)
   {
     ServerDescriptor.ServerStatus status = desc.getStatus();
-    if ((status != ServerDescriptor.ServerStatus.STARTED) &&
-        (status != ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE))
+    if (status != ServerDescriptor.ServerStatus.STARTED &&
+        status != ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
     {
       LocalizableMessage title = INFO_CTRL_PANEL_SERVER_NOT_RUNNING_SUMMARY.get();
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(detailsServerNotRunning);
-      mb.append("<br><br>"+getStartServerHTML());
+      mb.append("<br><br>").append(getStartServerHTML());
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(),
           ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           errorPane.setVisible(true);
@@ -992,14 +952,13 @@ implements ConfigChangeListener
       LocalizableMessage title = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(authRequired);
-      mb.append("<br><br>"+getAuthenticateHTML());
+      mb.append("<br><br>").append(getAuthenticateHTML());
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(), ColorAndFontConstants.defaultFont);
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           errorPane.setVisible(true);
@@ -1011,9 +970,8 @@ implements ConfigChangeListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           errorPane.setVisible(false);
@@ -1041,13 +999,12 @@ implements ConfigChangeListener
    */
   protected boolean isCategory(Object o)
   {
-    boolean isCategory = false;
     if (o instanceof CategorizedComboBoxElement)
     {
       CategorizedComboBoxElement desc = (CategorizedComboBoxElement)o;
-      isCategory = desc.getType() == CategorizedComboBoxElement.Type.CATEGORY;
+      return desc.getType() == CategorizedComboBoxElement.Type.CATEGORY;
     }
-    return isCategory;
+    return false;
   }
 
   /**
@@ -1086,15 +1043,10 @@ implements ConfigChangeListener
         // Do it outside the event thread if the panel requires it.
         BackgroundTask<Void> worker = new BackgroundTask<Void>()
         {
+          @Override
           public Void processBackgroundTask() throws Throwable
           {
-            try
-            {
-              Thread.sleep(1000);
-            }
-            catch (Throwable t)
-            {
-            }
+            StaticUtils.sleep(1000);
             configurationChanged(new ConfigurationChangeEvent(
                 StatusGenericPanel.this.info,
                 StatusGenericPanel.this.info.getServerDescriptor()));
@@ -1102,6 +1054,7 @@ implements ConfigChangeListener
           }
 
 
+          @Override
           public void backgroundTaskCompleted(Void returnValue,
               Throwable t)
           {
@@ -1129,22 +1082,10 @@ implements ConfigChangeListener
     }
   }
 
-  /**
-   * Displays the main panel.
-   *
-   */
+  /** Displays the main panel. */
   protected void displayMainPanel()
   {
     cardLayout.show(cardPanel, MAIN_PANEL);
-  }
-
-  /**
-   * Returns whether the main panel is visible or not.
-   * @return whether the main panel is visible or not.
-   */
-  protected boolean isMainPanelVisible()
-  {
-    return mainPanel.isVisible();
   }
 
   /**
@@ -1173,15 +1114,6 @@ implements ConfigChangeListener
   }
 
   /**
-   * Returns whether the message is visible or not.
-   * @return whether the message is visible or not.
-   */
-  protected boolean isMessageVisible()
-  {
-    return message.isVisible();
-  }
-
-  /**
    * Updates the contents of an editor pane using the error format.
    * @param pane the editor pane to be updated.
    * @param title the title.
@@ -1196,20 +1128,6 @@ implements ConfigChangeListener
   }
 
   /**
-   * Updates the contents of an editor pane using the warning format.
-   * @param pane the editor pane to be updated.
-   * @param title the title.
-   * @param titleFont the font to be used for the title.
-   * @param details the details message.
-   * @param detailsFont the font to be used for the details.
-   */
-  protected void updateWarningPane(JEditorPane pane, LocalizableMessage title,
-      Font titleFont, LocalizableMessage details, Font detailsFont)
-  {
-    updatePane(pane, title, titleFont, details, detailsFont, PanelType.WARNING);
-  }
-
-  /**
    * Updates the contents of an editor pane using the confirmation format.
    * @param pane the editor pane to be updated.
    * @param title the title.
@@ -1220,33 +1138,21 @@ implements ConfigChangeListener
   protected void updateConfirmationPane(JEditorPane pane, LocalizableMessage title,
       Font titleFont, LocalizableMessage details, Font detailsFont)
   {
-    updatePane(pane, title, titleFont, details, detailsFont,
-        PanelType.CONFIRMATION);
+    updatePane(pane, title, titleFont, details, detailsFont, PanelType.CONFIRMATION);
   }
 
-  /**
-   * The different types of error panels that are handled.
-   *
-   */
-  protected enum PanelType
+  /** The different types of error panels that are handled. */
+  private enum PanelType
   {
-    /**
-     * The message in the panel is an error.
-     */
+    /** The message in the panel is an error. */
     ERROR,
-    /**
-     * The message in the panel is a confirmation.
-     */
+    /** The message in the panel is a confirmation. */
     CONFIRMATION,
-    /**
-     * The message in the panel is an information message.
-     */
+    /** The message in the panel is an information message. */
     INFORMATION,
-    /**
-     * The message in the panel is a warning message.
-     */
+    /** The message in the panel is a warning message. */
     WARNING
-  };
+  }
 
   /**
    * Updates the contents of an editor pane using the provided format.
@@ -1312,9 +1218,8 @@ implements ConfigChangeListener
     {
       SwingUtilities.invokeLater(new Runnable()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void run()
         {
           pane.invalidate();
@@ -1350,6 +1255,7 @@ implements ConfigChangeListener
     updateComboBoxModel(newElements, model);
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         combo.setVisible(newElements.size() > 0);
@@ -1380,8 +1286,7 @@ implements ConfigChangeListener
   {
     LinkedHashSet<CategorizedComboBoxElement> newElements =
       new LinkedHashSet<CategorizedComboBoxElement>();
-    SortedSet<String> backendIDs =
-      new TreeSet<String>(new LowerCaseComparator());
+    SortedSet<String> backendIDs = new TreeSet<String>(new LowerCaseComparator());
     HashMap<String, SortedSet<String>> hmBaseDNs =
       new HashMap<String, SortedSet<String>>();
 
@@ -1391,8 +1296,7 @@ implements ConfigChangeListener
       {
         String backendID = backend.getBackendID();
         backendIDs.add(backendID);
-        SortedSet<String> baseDNs =
-          new TreeSet<String>(new LowerCaseComparator());
+        SortedSet<String> baseDNs = new TreeSet<String>(new LowerCaseComparator());
         for (BaseDNDescriptor baseDN : backend.getBaseDns())
         {
           try
@@ -1441,12 +1345,13 @@ implements ConfigChangeListener
    * @param comparator the object that will be used to compare the objects in
    * the model.  If <CODE>null</CODE>, the equals method will be used.
    */
-  protected void updateComboBoxModel(final Collection<?> newElements,
+  private void updateComboBoxModel(final Collection<?> newElements,
       final DefaultComboBoxModel model,
       final Comparator<Object> comparator)
   {
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         Utilities.updateComboBoxModel(newElements, model, comparator);
@@ -1483,8 +1388,7 @@ implements ConfigChangeListener
             }
             dns.add(dn);
             SortedSet<AbstractIndexDescriptor> indexes =
-              new TreeSet<AbstractIndexDescriptor>();
-            indexes.addAll(backend.getIndexes());
+              new TreeSet<AbstractIndexDescriptor>(backend.getIndexes());
             indexes.addAll(backend.getVLVIndexes());
             SortedSet<AbstractIndexDescriptor> currentIndexes =
               hmIndexes.get(dn);
@@ -1542,10 +1446,10 @@ implements ConfigChangeListener
         {
           boolean availableChanged = false;
           boolean selectedChanged = false;
-          SortedSet<AbstractIndexDescriptor> availableIndexes =
-            addRemove.getAvailableListModel().getData();
-          SortedSet<AbstractIndexDescriptor> selectedIndexes =
-            addRemove.getSelectedListModel().getData();
+          SortableListModel<AbstractIndexDescriptor> availableListModel = addRemove.getAvailableListModel();
+          SortableListModel<AbstractIndexDescriptor> selectedListModel = addRemove.getSelectedListModel();
+          SortedSet<AbstractIndexDescriptor> availableIndexes = availableListModel.getData();
+          SortedSet<AbstractIndexDescriptor> selectedIndexes = selectedListModel.getData();
           availableChanged = availableIndexes.retainAll(indexes);
           selectedChanged = selectedIndexes.retainAll(indexes);
 
@@ -1560,19 +1464,19 @@ implements ConfigChangeListener
           }
           if (availableChanged)
           {
-            addRemove.getAvailableListModel().clear();
-            addRemove.getAvailableListModel().addAll(availableIndexes);
-            addRemove.getAvailableListModel().fireContentsChanged(
-                addRemove.getAvailableListModel(), 0,
-                addRemove.getAvailableListModel().getSize());
+            availableListModel.clear();
+            availableListModel.addAll(availableIndexes);
+            availableListModel.fireContentsChanged(
+                availableListModel, 0,
+                availableListModel.getSize());
           }
           if (selectedChanged)
           {
-            addRemove.getSelectedListModel().clear();
-            addRemove.getSelectedListModel().addAll(selectedIndexes);
-            addRemove.getSelectedListModel().fireContentsChanged(
-                addRemove.getSelectedListModel(), 0,
-                addRemove.getSelectedListModel().getSize());
+            selectedListModel.clear();
+            selectedListModel.addAll(selectedIndexes);
+            selectedListModel.fireContentsChanged(
+                selectedListModel, 0,
+                selectedListModel.getSize());
           }
         }
       }
@@ -1686,7 +1590,7 @@ implements ConfigChangeListener
    * @param resetLogs whether the contents of the progress dialog should be
    * reset or not.
    */
-  protected void launchOperation(final Task task, LocalizableMessage initialSummary,
+  private void launchOperation(final Task task, LocalizableMessage initialSummary,
       final LocalizableMessage successSummary, final LocalizableMessage successDetail,
       final LocalizableMessage errorSummary,
       final LocalizableMessage errorDetail,
@@ -1730,8 +1634,7 @@ implements ConfigChangeListener
   {
     dialog.setTaskIsOver(false);
     dialog.getProgressBar().setIndeterminate(true);
-    dialog.addPrintStreamListeners(task.getOutPrintStream(),
-        task.getErrorPrintStream());
+    dialog.addPrintStreamListeners(task.getOutPrintStream(), task.getErrorPrintStream());
     if (resetLogs)
     {
       dialog.resetProgressLogs();
@@ -1751,9 +1654,8 @@ implements ConfigChangeListener
     dialog.getProgressBar().setVisible(true);
     BackgroundTask<Task> worker = new BackgroundTask<Task>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public Task processBackgroundTask() throws Throwable
       {
         task.runTask();
@@ -1764,9 +1666,8 @@ implements ConfigChangeListener
         return task;
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void backgroundTaskCompleted(Task returnValue, Throwable t)
       {
         String summaryMsg;
@@ -1786,29 +1687,24 @@ implements ConfigChangeListener
           if (t != null)
           {
             logger.warn(LocalizableMessage.raw("Error occurred running task: "+t, t));
-            if ((task.getReturnCode() != null) &&
-                (errorDetailCode != null))
+            if (task.getReturnCode() != null && errorDetailCode != null)
             {
               String sThrowable;
               if (t instanceof OpenDsException)
               {
                 sThrowable = ((OpenDsException)t).getMessageObject().toString();
               }
+              else if (t.getMessage() != null)
+              {
+                sThrowable = t.getMessage();
+              }
               else
               {
-                if (t.getMessage() != null)
-                {
-                  sThrowable = t.getMessage();
-                }
-                else
-                {
-                  sThrowable = t.toString();
-                }
+                sThrowable = t.toString();
               }
               LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
               mb.append(errorDetailCode.get(task.getReturnCode()));
-              mb.append(
-                  "  "+INFO_CTRL_PANEL_DETAILS_THROWABLE.get(sThrowable));
+              mb.append("  ").append(INFO_CTRL_PANEL_DETAILS_THROWABLE.get(sThrowable));
               summaryMsg = Utilities.getFormattedError(errorSummary,
                   ColorAndFontConstants.errorTitleFont,
                   mb.toMessage(), ColorAndFontConstants.defaultFont);
@@ -1827,8 +1723,7 @@ implements ConfigChangeListener
               summaryMsg = null;
             }
           }
-          else if ((task.getReturnCode() != null) &&
-              (errorDetailCode != null))
+          else if (task.getReturnCode() != null && errorDetailCode != null)
           {
             summaryMsg = Utilities.getFormattedError(errorSummary,
                 ColorAndFontConstants.errorTitleFont,
@@ -1879,7 +1774,7 @@ implements ConfigChangeListener
     try
     {
       int n = Integer.parseInt(stringValue);
-      if ((n > maxValue) || (n < minValue))
+      if (n > maxValue || n < minValue)
       {
         throw new RuntimeException("Invalid value");
       }
@@ -1894,7 +1789,6 @@ implements ConfigChangeListener
    * Starts the server.  This method will launch a task and open a progress
    * dialog that will start the server.  This method must be called from the
    * event thread.
-   *
    */
   protected void startServer()
   {
@@ -1951,7 +1845,7 @@ implements ConfigChangeListener
           INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
           INFO_CTRL_PANEL_CONFIRM_STOP_SERVER_DETAILS.get());
     }
-    if ((errors.size() == 0) && confirmed)
+    if (errors.size() == 0 && confirmed)
     {
       launchOperation(newTask,
           INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get(),
@@ -1982,8 +1876,7 @@ implements ConfigChangeListener
         Utilities.createFrame(),
         Utilities.getParentDialog(this),
         INFO_CTRL_PANEL_RESTART_SERVER_PROGRESS_DLG_TITLE.get(), getInfo());
-    RestartServerTask newTask = new RestartServerTask(getInfo(),
-        progressDialog);
+    RestartServerTask newTask = new RestartServerTask(getInfo(), progressDialog);
     for (Task task : getInfo().getTasks())
     {
       task.canLaunch(newTask, errors);
@@ -1995,7 +1888,7 @@ implements ConfigChangeListener
           INFO_CTRL_PANEL_CONFIRMATION_REQUIRED_SUMMARY.get(),
           INFO_CTRL_PANEL_CONFIRM_RESTART_SERVER_DETAILS.get());
     }
-    if ((errors.size() == 0) && confirmed)
+    if (errors.size() == 0 && confirmed)
     {
       launchOperation(newTask,
           INFO_CTRL_PANEL_STOPPING_SERVER_SUMMARY.get(),
@@ -2016,9 +1909,8 @@ implements ConfigChangeListener
   /**
    * Displays a dialog asking for authentication. This method must be called
    * from the event thread.
-   *
    */
-  protected void authenticate()
+  private void authenticate()
   {
     if (!getLoginDialog().isVisible())
     {
@@ -2035,22 +1927,12 @@ implements ConfigChangeListener
    */
   protected GenericDialog getLoginDialog()
   {
-    if (isLocal())
-    {
-      GenericDialog loginDialog =
-        ControlCenterMainPane.getLocalServerLoginDialog(getInfo());
-      Utilities.centerGoldenMean(loginDialog, Utilities.getFrame(this));
-      loginDialog.setModal(true);
-      return loginDialog;
-    }
-    else
-    {
-      GenericDialog localOrRemoteDialog =
-        ControlCenterMainPane.getLocalOrRemoteDialog(getInfo());
-      Utilities.centerGoldenMean(localOrRemoteDialog, Utilities.getFrame(this));
-      localOrRemoteDialog.setModal(true);
-      return localOrRemoteDialog;
-    }
+    GenericDialog dialog = isLocal()
+        ? getLocalServerLoginDialog(getInfo())
+        : getLocalOrRemoteDialog(getInfo());
+    Utilities.centerGoldenMean(dialog, Utilities.getFrame(this));
+    dialog.setModal(true);
+    return dialog;
   }
 
   /**
@@ -2191,18 +2073,6 @@ implements ConfigChangeListener
       JLabel l = monitoringLabels.get(i);
       l.setText(value);
     }
-  }
-
-  /**
-   * Returns the first value for a given attribute in the provided entry.
-   * @param sr the entry.  It may be <CODE>null</CODE>.
-   * @param attrName the attribute name.
-   * @return the first value for a given attribute in the provided entry.
-   */
-  protected Object getFirstMonitoringValue(CustomSearchResult sr,
-      String attrName)
-  {
-    return Utilities.getFirstMonitoringValue(sr, attrName);
   }
 
   /**

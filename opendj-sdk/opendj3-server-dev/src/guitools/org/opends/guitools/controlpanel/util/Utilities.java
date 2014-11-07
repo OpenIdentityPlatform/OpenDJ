@@ -93,6 +93,7 @@ import javax.swing.table.TableColumnModel;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.guitools.controlpanel.ControlPanel;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.CategorizedComboBoxElement;
@@ -114,12 +115,17 @@ import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.ConfigHandler;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.CommonSchemaElements;
+import org.opends.server.types.DN;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.types.RDN;
+import org.opends.server.types.Schema;
+import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -2480,16 +2486,7 @@ public class Utilities
     }
   }
 
-
-
-  /**
-   * Returns the first value for a given attribute in the provided entry.
-   * @param sr the entry.  It may be <CODE>null</CODE>.
-   * @param attrName the attribute name.
-   * @return the first value for a given attribute in the provided entry.
-   */
-  public static Object getFirstMonitoringValue(CustomSearchResult sr,
-      String attrName)
+  private static Object getFirstMonitoringValue(CustomSearchResult sr, String attrName)
   {
     if (sr != null)
     {
@@ -2519,6 +2516,34 @@ public class Utilities
   }
 
   /**
+   * Returns the first value as a String for a given attribute in the provided
+   * entry.
+   *
+   * @param sr
+   *          the entry. It may be <CODE>null</CODE>.
+   * @param attrName
+   *          the attribute name.
+   * @return the first value as a String for a given attribute in the provided
+   *         entry.
+   */
+  public static String getFirstValueAsString(CustomSearchResult sr, String attrName)
+  {
+    if (sr != null)
+    {
+      final List<Object> values = sr.getAttributeValues(attrName);
+      if (values != null && !values.isEmpty())
+      {
+        final Object o = values.get(0);
+        if (o != null)
+        {
+          return String.valueOf(o);
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * Returns the monitoring value in a String form to be displayed to the user.
    * @param attr the attribute to analyze.
    * @param monitoringEntry the monitoring entry.
@@ -2527,9 +2552,7 @@ public class Utilities
   public static String getMonitoringValue(MonitoringAttributes attr,
       CustomSearchResult monitoringEntry)
   {
-    Object monitoringValue =
-      Utilities.getFirstMonitoringValue(monitoringEntry,
-        attr.getAttributeName());
+    String monitoringValue = getFirstValueAsString(monitoringEntry, attr.getAttributeName());
     if (monitoringValue == null)
     {
       return NO_VALUE_SET.toString();
@@ -2540,46 +2563,42 @@ public class Utilities
     }
     else if (attr.isNumericDate())
     {
-      if("0".equals(monitoringValue.toString()))
+      if ("0".equals(monitoringValue))
       {
         return NO_VALUE_SET.toString();
       }
-      else
-      {
-        Long l = Long.parseLong(monitoringValue.toString());
-        Date date = new Date(l);
-        return ConfigFromDirContext.formatter.format(date);
-      }
+      Long l = Long.parseLong(monitoringValue);
+      Date date = new Date(l);
+      return ConfigFromDirContext.formatter.format(date);
     }
     else if (attr.isTime())
     {
-      if("-1".equals(monitoringValue.toString()))
+      if ("-1".equals(monitoringValue))
       {
         return NO_VALUE_SET.toString();
       }
-      return monitoringValue.toString();
+      return monitoringValue;
     }
     else if (attr.isGMTDate())
     {
       try
       {
-        Date date = ConfigFromDirContext.utcParser.parse(
-            monitoringValue.toString());
+        Date date = ConfigFromDirContext.utcParser.parse(monitoringValue);
         return ConfigFromDirContext.formatter.format(date);
       }
       catch (Throwable t)
       {
-        return monitoringValue.toString();
+        return monitoringValue;
       }
     }
     else if (attr.isValueInBytes())
     {
-      Long l = Long.parseLong(monitoringValue.toString());
+      Long l = Long.parseLong(monitoringValue);
       long mb = l / (1024 * 1024);
       long kbs = (l - mb * 1024 * 1024) / 1024;
       return INFO_CTRL_PANEL_MEMORY_VALUE.get(mb, kbs).toString();
     }
-    return monitoringValue.toString();
+    return monitoringValue;
   }
 
   /**
@@ -2593,13 +2612,12 @@ public class Utilities
   public static boolean isNotImplemented(MonitoringAttributes attr,
       CustomSearchResult monitoringEntry)
   {
-    Object monitoringValue = Utilities.getFirstMonitoringValue(
-        monitoringEntry, attr.getAttributeName());
+    String monitoringValue = getFirstValueAsString(monitoringEntry, attr.getAttributeName());
     if (attr.isNumeric() && monitoringValue != null)
     {
       try
       {
-        Long.parseLong(String.valueOf(monitoringValue));
+        Long.parseLong(monitoringValue);
         return false;
       }
       catch (Throwable t)
@@ -2748,6 +2766,127 @@ public class Utilities
    */
   public static boolean isOrderingMatchingRule(MatchingRule matchingRule) {
     return false;
+  }
+
+  /**
+   * Computes the possible comparison results for monitoring information.
+   *
+   * @param monitor1
+   *          the first monitor to compare
+   * @param monitor2
+   *          the second monitor to compare
+   * @param possibleResults
+   *          where possible results are output
+   * @param attrNames
+   *          the names for which to compute possible comparison results
+   */
+  public static void computeMonitoringPossibleResults(CustomSearchResult monitor1, CustomSearchResult monitor2,
+      ArrayList<Integer> possibleResults, Collection<String> attrNames)
+  {
+    for (String attrName : attrNames)
+    {
+      int possibleResult;
+      if (monitor1 == null)
+      {
+        if (monitor2 == null)
+        {
+          possibleResult = 0;
+        }
+        else
+        {
+          possibleResult = -1;
+        }
+      }
+      else if (monitor2 == null)
+      {
+        possibleResult = 1;
+      }
+      else
+      {
+        Object v1 = getFirstValue(monitor1, attrName);
+        Object v2 = getFirstValue(monitor2, attrName);
+        if (v1 == null)
+        {
+          if (v2 == null)
+          {
+            possibleResult = 0;
+          }
+          else
+          {
+            possibleResult = -1;
+          }
+        }
+        else if (v2 == null)
+        {
+          possibleResult = 1;
+        }
+        else if (v1 instanceof Number)
+        {
+          if (v2 instanceof Number)
+          {
+            if ((v1 instanceof Double) || (v2 instanceof Double))
+            {
+              double n1 = ((Number) v1).doubleValue();
+              double n2 = ((Number) v2).doubleValue();
+              if (n1 > n2)
+              {
+                possibleResult = 1;
+              }
+              else if (n1 < n2)
+              {
+                possibleResult = -1;
+              }
+              else
+              {
+                possibleResult = 0;
+              }
+            }
+            else
+            {
+              long n1 = ((Number) v1).longValue();
+              long n2 = ((Number) v2).longValue();
+              if (n1 > n2)
+              {
+                possibleResult = 1;
+              }
+              else if (n1 < n2)
+              {
+                possibleResult = -1;
+              }
+              else
+              {
+                possibleResult = 0;
+              }
+            }
+          }
+          else
+          {
+            possibleResult = 1;
+          }
+        }
+        else if (v2 instanceof Number)
+        {
+          possibleResult = -1;
+        }
+        else
+        {
+          possibleResult = v1.toString().compareTo(v2.toString());
+        }
+      }
+      possibleResults.add(possibleResult);
+    }
+  }
+
+  private static Object getFirstValue(CustomSearchResult monitor, String attrName)
+  {
+    for (String attr : monitor.getAttributeNames())
+    {
+      if (attr.equalsIgnoreCase(attrName))
+      {
+        return getFirstMonitoringValue(monitor, attrName);
+      }
+    }
+    return null;
   }
 
 }
