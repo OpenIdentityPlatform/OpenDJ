@@ -26,9 +26,18 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
-import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -42,13 +51,17 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import org.opends.server.types.*;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.Control;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -57,6 +70,8 @@ import org.testng.annotations.Test;
 
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.LockMode;
+
+import static java.util.Collections.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ConditionResult.*;
@@ -636,20 +651,19 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = "testAdd")
   public void testSearchIndex() throws Exception {
-    InternalClientConnection conn = InternalClientConnection.getRootConnection();
     Set<String> attribs = new LinkedHashSet<String>();
     String debugString;
     List<SearchResultEntry> result;
 
     // search 1
-    result = doSubtreeSearch(conn, "(&(cn=Aaccf Amar)(cn=Ardyth Bainton))", attribs);
+    result = doSubtreeSearch("(&(cn=Aaccf Amar)(cn=Ardyth Bainton))", attribs);
     assertEquals(result.size(), 0);
 
     // Adding a debug search attribute for next searches
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
     // search 2
-    result = doSubtreeSearch(conn, "(&(cn=Aaccf Amar)(employeeNumber=222))", attribs);
+    result = doSubtreeSearch("(&(cn=Aaccf Amar)(employeeNumber=222))", attribs);
 
     // Only one index should be used because it is below the FILTER_CANDIDATE
     debugString = getDebugString(result);
@@ -657,33 +671,32 @@ public class TestBackendImpl extends JebTestCase {
     assertResultsCountIs(1, debugString);
 
     // search 3
-    result = doSubtreeSearch(conn, "(|(cn=Aaccf Amar)(cn=Ardyth Bainton))", attribs);
+    result = doSubtreeSearch("(|(cn=Aaccf Amar)(cn=Ardyth Bainton))", attribs);
 
     debugString = getDebugString(result);
-    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertThat(debugString).doesNotContain("NOT-INDEXED");
     assertResultsCountIs(2, debugString);
 
     // search 4
-    result = doSubtreeSearch(conn, "(&(employeeNumber=*)(cn=A*)(employeeNumber>=0)(employeeNumber<=z))", attribs);
+    result = doSubtreeSearch("(&(employeeNumber=*)(cn=A*)(employeeNumber>=0)(employeeNumber<=z))", attribs);
 
     debugString = getDebugString(result);
-    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertThat(debugString).doesNotContain("NOT-INDEXED");
     assertResultsCountIs(12, debugString);
 
     // search 5
-    result = doSubtreeSearch(conn,
-        "(&(employeeNumber<=z)(cn<=Abbey Abbie)(cn>=0)(|(cn>=Abahri Abazari)(employeeNumber<=9)))", attribs);
-
+    result = doSubtreeSearch("(&(employeeNumber<=z)(cn<=Abbey Abbie)(cn>=0)(|(cn>=Abahri Abazari)(employeeNumber<=9)))",
+        attribs);
 
     debugString = getDebugString(result);
-    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertThat(debugString).doesNotContain("NOT-INDEXED");
     assertResultsCountIs(11, debugString);
 
     // search 6
-    result = doSubtreeSearch(conn, "(cn~=Aartjan)", attribs);
+    result = doSubtreeSearch("(cn~=Aartjan)", attribs);
 
     debugString = getDebugString(result);
-    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertThat(debugString).doesNotContain("NOT-INDEXED");
     assertResultsCountIs(1, debugString);
   }
 
@@ -702,12 +715,11 @@ public class TestBackendImpl extends JebTestCase {
   }
 
   /** Returns the results of subtree search on provided connection with provided filter. */
-  private List<SearchResultEntry> doSubtreeSearch(InternalClientConnection conn, String filter,
-      Set<String> attribs) throws Exception
+  private List<SearchResultEntry> doSubtreeSearch(String filter, Set<String> attribs) throws Exception
   {
     final SearchRequest request =
         newSearchRequest("dc=test,dc=com", SearchScope.WHOLE_SUBTREE, filter).addAttribute(attribs);
-    InternalSearchOperation search = conn.processSearch(request);
+    InternalSearchOperation search = getRootConnection().processSearch(request);
     return search.getSearchEntries();
   }
 
@@ -717,14 +729,10 @@ public class TestBackendImpl extends JebTestCase {
       "testNumSubordinatesIndexEntryLimitExceeded"})
   public void testDeleteSubtree() throws Exception {
     Control control = new SubtreeDeleteControl(false);
-    List<Control> deleteSubTreeControl = new ArrayList<Control>();
-    deleteSubTreeControl.add(control);
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    List<Control> deleteSubTreeControl = Collections.singletonList(control);
 
-    DeleteOperationBasis delete = new DeleteOperationBasis(conn,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
+    DeleteOperationBasis delete = new DeleteOperationBasis(
+        getRootConnection(), nextOperationID(), nextMessageID(),
         deleteSubTreeControl,
         DN.valueOf("dc=test1,dc=com"));
 
@@ -748,9 +756,6 @@ public class TestBackendImpl extends JebTestCase {
       "testSearchScope", "testMatchedDN"})
   public void testDeleteEntry() throws Exception {
     List<Control> noControls = new ArrayList<Control>(0);
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-
     EntryContainer ec =
         backend.getRootContainer().getEntryContainer(DN.valueOf("ou=People,dc=test,dc=com"));
 
@@ -762,16 +767,11 @@ public class TestBackendImpl extends JebTestCase {
       EntryID entryID = ec.getDN2ID().get(null,
           DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
-      DeleteOperationBasis delete = new DeleteOperationBasis(conn,
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
-        noControls,
-
+      DeleteOperationBasis delete = new DeleteOperationBasis(
+          getRootConnection(), nextOperationID(), nextMessageID(),
+          noControls,
           DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"));
-
-
-      backend.deleteEntry(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"),
-          delete);
+      backend.deleteEntry(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com"), delete);
 
 
       assertFalse(ec.entryExists(DN.valueOf("uid=user.539,ou=People,dc=test,dc=com")));
@@ -780,21 +780,22 @@ public class TestBackendImpl extends JebTestCase {
       assertFalse(ec.getDN2URI().delete(null,
           DN.valueOf("uid=user.539,ou=People,dc=test,dc=com")));
 
-      AttributeType attribute =
-          entries.get(0).getAttribute("cn").get(0).getAttributeType();
+      AttributeType attribute = entries.get(0).getAttribute("cn").get(0).getAttributeType();
       AttributeIndex index = ec.getAttributeIndex(attribute);
+      AttributeType attrType = index.getAttributeType();
 
-      Indexer presenceIndexer = new PresenceIndexer(index.getAttributeType());
-      assertIndexContainsID(presenceIndexer, entry, index.getPresenceIndex(), entryID, FALSE);
+      List<? extends Indexer> indexers;
+      indexers = singletonList(new PresenceIndexer(index.getAttributeType()));
+      assertIndexContainsID(indexers, entry, index.getPresenceIndex(), entryID, FALSE);
 
-      Indexer equalityIndexer = newEqualityIndexer(index);
-      assertIndexContainsID(equalityIndexer, entry, index.getEqualityIndex(), entryID, FALSE);
+      indexers = newJEExtensibleIndexers(attrType, attrType.getEqualityMatchingRule());
+      assertIndexContainsID(indexers, entry, index.getEqualityIndex(), entryID, FALSE);
 
-      Indexer substringIndexer = newSubstringIndexer(index);
-      assertIndexContainsID(substringIndexer, entry, index.getSubstringIndex(), entryID, FALSE);
+      indexers = newJEExtensibleIndexers(attrType, attrType.getSubstringMatchingRule());
+      assertIndexContainsID(indexers, entry, index.getSubstringIndex(), entryID, FALSE);
 
-      Indexer orderingIndexer = newOrderingIndexer(index);
-      assertIndexContainsID(orderingIndexer, entry, index.getOrderingIndex(), entryID, FALSE);
+      indexers = newJEExtensibleIndexers(attrType, attrType.getOrderingMatchingRule());
+      assertIndexContainsID(indexers, entry, index.getOrderingIndex(), entryID, FALSE);
     }
     finally
     {
@@ -802,30 +803,14 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
-  private Indexer newOrderingIndexer(AttributeIndex index)
+  private List<JEExtensibleIndexer> newJEExtensibleIndexers(AttributeType attrType, MatchingRule matchingRule)
   {
-    AttributeType attrType = index.getAttributeType();
-    return new JEExtensibleIndexer(attrType, new OrderingIndexer(attrType));
-  }
-
-  private Indexer newEqualityIndexer(AttributeIndex index)
-  {
-    AttributeType attrType = index.getAttributeType();
-    return new JEExtensibleIndexer(attrType, new EqualityIndexer(attrType));
-  }
-
-  private Indexer newSubstringIndexer(AttributeIndex index)
-  {
-    AttributeType attrType = index.getAttributeType();
-    return new JEExtensibleIndexer(attrType, new SubstringIndexer(attrType));
-  }
-
-  private IndexingOptions getOptions(AttributeIndex index)
-  {
-    final IndexingOptions options = mock(IndexingOptions.class);
-    when(options.substringKeySize()).thenReturn(
-        index.getConfiguration().getSubstringLength());
-    return options;
+    List<JEExtensibleIndexer> extIndexers = new ArrayList<JEExtensibleIndexer>();
+    for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
+    {
+      extIndexers.add(new JEExtensibleIndexer(attrType, indexer));
+    }
+    return extIndexers;
   }
 
   private IndexingOptions getOptions()
@@ -835,27 +820,32 @@ public class TestBackendImpl extends JebTestCase {
     return options;
   }
 
-  private void assertIndexContainsID(Indexer indexer, Entry entry, Index index,
-      EntryID entryID)
+  private void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry, Index index, EntryID entryID)
   {
-    Set<ByteString> addKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, addKeys, getOptions());
-
-    DatabaseEntry key = new DatabaseEntry();
-    for (ByteString keyBytes : addKeys)
+    for (Indexer indexer : indexers)
     {
-      key.setData(keyBytes.toByteArray());
-      assertEquals(index.containsID(null, key, entryID), TRUE);
+      Set<ByteString> addKeys = new HashSet<ByteString>();
+      indexer.indexEntry(entry, addKeys, getOptions());
+
+      DatabaseEntry key = new DatabaseEntry();
+      for (ByteString keyBytes : addKeys)
+      {
+        key.setData(keyBytes.toByteArray());
+        assertEquals(index.containsID(null, key, entryID), TRUE);
+      }
     }
   }
 
-  private void assertIndexContainsID(Indexer indexer, Entry entry,
+  private void assertIndexContainsID(List<? extends Indexer> indexers, Entry entry,
       Index index, EntryID entryID, ConditionResult expected)
   {
-    Set<ByteString> addKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, addKeys, getOptions());
+    for (Indexer indexer : indexers)
+    {
+      Set<ByteString> addKeys = new HashSet<ByteString>();
+      indexer.indexEntry(entry, addKeys, getOptions());
 
-    assertIndexContainsID(addKeys, index, entryID, expected);
+      assertIndexContainsID(addKeys, index, entryID, expected);
+    }
   }
 
   private void assertIndexContainsID(Set<ByteString> addKeys, Index index,
@@ -900,21 +890,22 @@ public class TestBackendImpl extends JebTestCase {
         assertEquals(value.toString(), "777");
       }
 
-      AttributeType attribute =
-          entry.getAttribute("cn").get(0).getAttributeType();
+      AttributeType attribute = entry.getAttribute("cn").get(0).getAttributeType();
       AttributeIndex index = ec.getAttributeIndex(attribute);
+      AttributeType attrType = index.getAttributeType();
 
-      Indexer orderingIndexer = newOrderingIndexer(index);
-      assertIndexContainsID(orderingIndexer, entry, index.getOrderingIndex(), entryID, TRUE);
-      assertIndexContainsID(orderingIndexer, oldEntry, index.getOrderingIndex(), entryID, FALSE);
+      List<? extends Indexer> indexers;
+      indexers = newJEExtensibleIndexers(attrType, attrType.getOrderingMatchingRule());
+      assertIndexContainsID(indexers, entry, index.getOrderingIndex(), entryID, TRUE);
+      assertIndexContainsID(indexers, oldEntry, index.getOrderingIndex(), entryID, FALSE);
 
-      Indexer substringIndexer = newSubstringIndexer(index);
-      assertIndexContainsID(substringIndexer, entry, index.getSubstringIndex(), entryID, TRUE);
-      assertIndexContainsID(substringIndexer, oldEntry, index.getSubstringIndex(), entryID, FALSE);
+      indexers = newJEExtensibleIndexers(attrType, attrType.getSubstringMatchingRule());
+      assertIndexContainsID(indexers, entry, index.getSubstringIndex(), entryID, TRUE);
+      assertIndexContainsID(indexers, oldEntry, index.getSubstringIndex(), entryID, FALSE);
 
-      Indexer equalityIndexer = newEqualityIndexer(index);
-      assertIndexContainsID(equalityIndexer, entry, index.getEqualityIndex(), entryID, TRUE);
-      assertIndexContainsID(equalityIndexer, oldEntry, index.getEqualityIndex(), entryID, FALSE);
+      indexers = newJEExtensibleIndexers(attrType, attrType.getEqualityMatchingRule());
+      assertIndexContainsID(indexers, entry, index.getEqualityIndex(), entryID, TRUE);
+      assertIndexContainsID(indexers, oldEntry, index.getEqualityIndex(), entryID, FALSE);
     }
     finally
     {
@@ -934,10 +925,7 @@ public class TestBackendImpl extends JebTestCase {
     AttributeIndex titleIndex;
     AttributeIndex nameIndex;
     Set<ByteString> addKeys;
-    Indexer presenceIndexer;
-    Indexer equalityIndexer;
-    Indexer substringIndexer;
-    Indexer orderingIndexer;
+    List<? extends Indexer> indexers;
 
     EntryContainer ec = backend.getRootContainer().getEntryContainer(
         DN.valueOf("dc=test,dc=com"));
@@ -996,11 +984,8 @@ public class TestBackendImpl extends JebTestCase {
       assertIndexContainsID(addKeys, nameIndex.getPresenceIndex(), entryID, TRUE);
 
       List<Control> noControls = new ArrayList<Control>(0);
-      InternalClientConnection conn = InternalClientConnection.getRootConnection();
-
-      ModifyOperationBasis modifyOp = new ModifyOperationBasis(conn, InternalClientConnection
-          .nextOperationID(), InternalClientConnection.nextMessageID(), noControls, DN
-          .valueOf("uid=user.1,ou=People,dc=test,dc=com"), modifications);
+      ModifyOperationBasis modifyOp = new ModifyOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
+          noControls, DN.valueOf("uid=user.1,ou=People,dc=test,dc=com"), modifications);
 
       backend.replaceEntry(entry, newEntry, modifyOp);
 
@@ -1031,29 +1016,28 @@ public class TestBackendImpl extends JebTestCase {
       assertFalse(entry.getAttribute("employeenumber").contains(
           Attributes.create("employeenumber", "1")));
 
-      presenceIndexer = new PresenceIndexer(titleIndex.getAttributeType());
-      assertIndexContainsID(presenceIndexer, entry, titleIndex.getPresenceIndex(), entryID);
+      AttributeType titleIndexAttrType = titleIndex.getAttributeType();
+      AttributeType nameIndexAttrType = nameIndex.getAttributeType();
 
-      presenceIndexer = new PresenceIndexer(nameIndex.getAttributeType());
-      assertIndexContainsID(presenceIndexer, entry, nameIndex.getPresenceIndex(), entryID);
+      indexers = singletonList(new PresenceIndexer(titleIndexAttrType));
+      assertIndexContainsID(indexers, entry, titleIndex.getPresenceIndex(), entryID);
+      indexers = singletonList(new PresenceIndexer(nameIndexAttrType));
+      assertIndexContainsID(indexers, entry, nameIndex.getPresenceIndex(), entryID);
 
-      orderingIndexer = newOrderingIndexer(titleIndex);
-      assertIndexContainsID(orderingIndexer, entry, titleIndex.getOrderingIndex(), entryID);
+      indexers = newJEExtensibleIndexers(titleIndexAttrType, titleIndexAttrType.getOrderingMatchingRule());
+      assertIndexContainsID(indexers, entry, titleIndex.getOrderingIndex(), entryID);
+      indexers = newJEExtensibleIndexers(nameIndexAttrType, nameIndexAttrType.getOrderingMatchingRule());
+      assertIndexContainsID(indexers, entry, nameIndex.getOrderingIndex(), entryID);
 
-      orderingIndexer = newOrderingIndexer(nameIndex);
-      assertIndexContainsID(orderingIndexer, entry, nameIndex.getOrderingIndex(), entryID);
+      indexers = newJEExtensibleIndexers(titleIndexAttrType, titleIndexAttrType.getEqualityMatchingRule());
+      assertIndexContainsID(indexers, entry, titleIndex.getEqualityIndex(), entryID);
+      indexers = newJEExtensibleIndexers(nameIndexAttrType, nameIndexAttrType.getEqualityMatchingRule());
+      assertIndexContainsID(indexers, entry, nameIndex.getEqualityIndex(), entryID);
 
-      equalityIndexer = newEqualityIndexer(titleIndex);
-      assertIndexContainsID(equalityIndexer, entry, titleIndex.getEqualityIndex(), entryID);
-
-      equalityIndexer = newEqualityIndexer(nameIndex);
-      assertIndexContainsID(equalityIndexer, entry, nameIndex.getEqualityIndex(), entryID);
-
-      substringIndexer = newSubstringIndexer(titleIndex);
-      assertIndexContainsID(substringIndexer, entry, titleIndex.getSubstringIndex(), entryID);
-
-      substringIndexer = newSubstringIndexer(nameIndex);
-      assertIndexContainsID(substringIndexer, entry, nameIndex.getSubstringIndex(), entryID);
+      indexers = newJEExtensibleIndexers(titleIndexAttrType, titleIndexAttrType.getSubstringMatchingRule());
+      assertIndexContainsID(indexers, entry, titleIndex.getSubstringIndex(), entryID);
+      indexers = newJEExtensibleIndexers(nameIndexAttrType, nameIndexAttrType.getSubstringMatchingRule());
+      assertIndexContainsID(indexers, entry, nameIndex.getSubstringIndex(), entryID);
     }
     finally
     {
@@ -1069,21 +1053,18 @@ public class TestBackendImpl extends JebTestCase {
     ec.sharedLock.lock();
     try
     {
-      Entry entry =
-          ec.getEntry(DN.valueOf("uid=user.2,ou=People,dc=test,dc=com"));
-      entry.setDN(DN.valueOf("cn=Abbey Abbie,ou=People,dc=test,dc=com"));
+      DN user2Dn = DN.valueOf("uid=user.2,ou=People,dc=test,dc=com");
+      DN abbieDn = DN.valueOf("cn=Abbey Abbie,ou=People,dc=test,dc=com");
+      Entry entry = ec.getEntry(user2Dn);
+      entry.setDN(abbieDn);
 
+      backend.renameEntry(user2Dn, entry, null);
 
-      backend.renameEntry(DN.valueOf("uid=user.2,ou=People,dc=test,dc=com"),
-          entry, null);
+      assertNotNull(backend.getEntry(abbieDn));
+      assertNotNull(ec.getDN2ID().get(null, abbieDn, LockMode.DEFAULT));
 
-      assertNotNull(backend.getEntry(DN.valueOf("cn=Abbey Abbie,ou=People,dc=test,dc=com")));
-      assertNotNull(ec.getDN2ID().get(null, DN.valueOf("cn=Abbey Abbie,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
-
-
-      assertNull(backend.getEntry(DN.valueOf("uid=user.2,ou=People,dc=test,dc=com")));
-      assertNull(ec.getDN2ID().get(null,
-          DN.valueOf("uid=user.2,ou=People,dc=test,dc=com"), LockMode.DEFAULT));
+      assertNull(backend.getEntry(user2Dn));
+      assertNull(ec.getDN2ID().get(null, user2Dn, LockMode.DEFAULT));
     }
     finally
     {
@@ -1111,12 +1092,8 @@ public class TestBackendImpl extends JebTestCase {
       assertTrue(newSuperiorID.compareTo(oldID) > 0);
 
       List<Control> noControls = new ArrayList<Control>(0);
-      InternalClientConnection conn =
-          InternalClientConnection.getRootConnection();
-
-      ModifyDNOperationBasis modifyDN = new ModifyDNOperationBasis(conn,
-          InternalClientConnection.nextOperationID(),
-          InternalClientConnection.nextMessageID(),
+      ModifyDNOperationBasis modifyDN = new ModifyDNOperationBasis(
+          getRootConnection(), nextOperationID(), nextMessageID(),
           noControls,
           DN.valueOf("ou=People,dc=test,dc=com"),
           RDN.decode("ou=Good People"),
@@ -1199,8 +1176,8 @@ public class TestBackendImpl extends JebTestCase {
     RootContainer rootContainer = backend.getRootContainer();
     EntryContainer ec = rootContainer.getEntryContainer(DN.valueOf("dc=test,dc=com"));
 
-    AttributeIndex attributeIndex =
-        ec.getAttributeIndex(DirectoryServer.getAttributeType("givenname"));
+    AttributeType givennameAttr = DirectoryServer.getAttributeType("givenname");
+    AttributeIndex attributeIndex = ec.getAttributeIndex(givennameAttr);
     assertNull(attributeIndex.getEqualityIndex());
     assertNull(attributeIndex.getPresenceIndex());
     assertNull(attributeIndex.getSubstringIndex());
@@ -1208,44 +1185,15 @@ public class TestBackendImpl extends JebTestCase {
     assertNotNull(attributeIndex.getApproximateIndex());
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     ec.listDatabases(databases);
-    boolean eqfound = false;
-    boolean prfound = false;
-    boolean subfound = false;
-    boolean orfound = false;
-    boolean apfound = false;
-    for(DatabaseContainer dc : databases)
-    {
-      if(dc.getName().toLowerCase().contains("givenname.approximate"))
-      {
-        apfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.presence"))
-      {
-        prfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.substring"))
-      {
-        subfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.ordering"))
-      {
-        orfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.equality"))
-      {
-        eqfound = true;
-      }
-    }
-    assertFalse(eqfound);
-    assertFalse(prfound);
-    assertFalse(subfound);
-    assertFalse(orfound);
-    assertTrue(apfound);
+    assertFalse(findContainer(databases, "givenname.equality"));
+    assertFalse(findContainer(databases, "givenname.presence"));
+    assertFalse(findContainer(databases, "givenname.substring"));
+    assertFalse(findContainer(databases, "givenname.ordering"));
+    assertTrue(findContainer(databases, "givenname.approximate"));
 
     final SearchRequest request = newSearchRequest("dc=test,dc=com", SearchScope.SUBORDINATES, "(givenName~=Aaccf)")
         .addAttribute(ATTR_DEBUG_SEARCH_INDEX);
     InternalSearchOperation search = getRootConnection().processSearch(request);
-
     List<SearchResultEntry> result = search.getSearchEntries();
 
     //No indexes should be used.
@@ -1272,39 +1220,11 @@ public class TestBackendImpl extends JebTestCase {
     assertNull(attributeIndex.getApproximateIndex());
     databases = new ArrayList<DatabaseContainer>();
     ec.listDatabases(databases);
-    eqfound = false;
-    prfound = false;
-    subfound = false;
-    orfound = false;
-    apfound = false;
-    for(DatabaseContainer dc : databases)
-    {
-      if(dc.getName().toLowerCase().contains("givenname.approximate"))
-      {
-        apfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.presence"))
-      {
-        prfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.substring"))
-      {
-        subfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.ordering"))
-      {
-        orfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.equality"))
-      {
-        eqfound = true;
-      }
-    }
-    assertTrue(eqfound);
-    assertTrue(prfound);
-    assertTrue(subfound);
-    assertTrue(orfound);
-    assertFalse(apfound);
+    assertTrue(findContainer(databases, "givenname.equality"));
+    assertTrue(findContainer(databases, "givenname.presence"));
+    assertTrue(findContainer(databases, "givenname.substring"));
+    assertTrue(findContainer(databases, "givenname.ordering"));
+    assertFalse(findContainer(databases, "givenname.approximate"));
 
     // Delete the entries attribute index.
     resultCode = TestCaseUtils.applyModifications(true,
@@ -1314,8 +1234,7 @@ public class TestBackendImpl extends JebTestCase {
 
     assertEquals(resultCode, 0);
 
-    assertNull(ec.getAttributeIndex(
-        DirectoryServer.getAttributeType("givenname")));
+    assertNull(ec.getAttributeIndex(givennameAttr));
     databases = new ArrayList<DatabaseContainer>();
     ec.listDatabases(databases);
     for(DatabaseContainer dc : databases)
@@ -1338,43 +1257,14 @@ public class TestBackendImpl extends JebTestCase {
 
     assertEquals(resultCode, 0);
 
-    assertNotNull(ec.getAttributeIndex(
-        DirectoryServer.getAttributeType("givenname")));
+    assertNotNull(ec.getAttributeIndex(givennameAttr));
     databases = new ArrayList<DatabaseContainer>();
     ec.listDatabases(databases);
-    eqfound = false;
-    prfound = false;
-    subfound = false;
-    orfound = false;
-    apfound = false;
-    for(DatabaseContainer dc : databases)
-    {
-      if(dc.getName().toLowerCase().contains("givenname.approximate"))
-      {
-        apfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.presence"))
-      {
-        prfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.substring"))
-      {
-        subfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.ordering"))
-      {
-        orfound = true;
-      }
-      if(dc.getName().toLowerCase().contains("givenname.equality"))
-      {
-        eqfound = true;
-      }
-    }
-    assertTrue(eqfound);
-    assertTrue(prfound);
-    assertTrue(subfound);
-    assertTrue(orfound);
-    assertFalse(apfound);
+    assertTrue(findContainer(databases, "givenname.equality"));
+    assertTrue(findContainer(databases, "givenname.presence"));
+    assertTrue(findContainer(databases, "givenname.substring"));
+    assertTrue(findContainer(databases, "givenname.ordering"));
+    assertFalse(findContainer(databases, "givenname.approximate"));
 
     // Make sure changing the index entry limit on an index where the limit
     // is already exceeded causes warnings.
@@ -1396,6 +1286,18 @@ public class TestBackendImpl extends JebTestCase {
         "delete: ds-cfg-index-entry-limit");
 
     assertEquals(resultCode, 0);
+  }
+
+  private boolean findContainer(List<DatabaseContainer> databases, String lowercaseName)
+  {
+    for (DatabaseContainer dc : databases)
+    {
+      if (dc.getName().toLowerCase().contains(lowercaseName))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Test(dependsOnMethods = {"testDeleteEntry", "testSearchScope",
@@ -1486,14 +1388,11 @@ public class TestBackendImpl extends JebTestCase {
     ResultCode expectedResultCode
     ) throws Exception
   {
-    InternalClientConnection conn = getRootConnection();
-    SearchFilter filter = SearchFilter.objectClassPresent();
-
     // Test is performed with each and every scope
     for (SearchScope scope: SearchScope.values())
     {
-      final SearchRequest request = newSearchRequest(searchBaseDN, scope, filter);
-      InternalSearchOperation searchOperation = conn.processSearch(request);
+      final SearchRequest request = newSearchRequest(searchBaseDN, scope);
+      InternalSearchOperation searchOperation = getRootConnection().processSearch(request);
 
       assertEquals(searchOperation.getResultCode(), expectedResultCode);
       assertEquals(searchOperation.getMatchedDN(), expectedMatchedDN);

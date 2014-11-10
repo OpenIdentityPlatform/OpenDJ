@@ -27,6 +27,11 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.opends.server.backends.jeb.AttributeIndex.IndexFilterType;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.AttributeType;
@@ -34,10 +39,6 @@ import org.opends.server.types.FilterType;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.messages.JebMessages.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * An index filter is used to apply a search operation to a set of indexes
@@ -114,7 +115,20 @@ public class IndexFilter
    */
   private EntryIDSet evaluateFilter(SearchFilter filter)
   {
-    EntryIDSet candidates;
+    EntryIDSet candidates = pp(filter);
+    if (buffer != null)
+    {
+      candidates.toString(buffer);
+    }
+    return candidates;
+  }
+
+  /**
+   * @param filter
+   * @return
+   */
+  private EntryIDSet pp(SearchFilter filter)
+  {
     switch (filter.getFilterType())
     {
       case AND:
@@ -122,80 +136,49 @@ public class IndexFilter
         {
           buffer.append("(&");
         }
-        candidates = evaluateLogicalAndFilter(filter);
+        final EntryIDSet res1 = evaluateLogicalAndFilter(filter);
         if (buffer != null)
         {
           buffer.append(")");
         }
-        break;
+        return res1;
 
       case OR:
         if (buffer != null)
         {
           buffer.append("(|");
         }
-        candidates = evaluateLogicalOrFilter(filter);
+        final EntryIDSet res2 = evaluateLogicalOrFilter(filter);
         if (buffer != null)
         {
           buffer.append(")");
         }
-        break;
+        return res2;
 
       case EQUALITY:
-        if (buffer != null)
-        {
-          filter.toString(buffer);
-        }
-        candidates = evaluateEqualityFilter(filter);
-        break;
+        return evaluateFilterWithDiagnostic(IndexFilterType.EQUALITY, filter);
 
       case GREATER_OR_EQUAL:
-        if (buffer != null)
-        {
-          filter.toString(buffer);
-        }
-        candidates = evaluateGreaterOrEqualFilter(filter);
-        break;
+        return evaluateFilterWithDiagnostic(IndexFilterType.GREATER_OR_EQUAL, filter);
 
       case SUBSTRING:
-        if (buffer != null)
-        {
-          filter.toString(buffer);
-        }
-        candidates = evaluateSubstringFilter(filter);
-        break;
+        return evaluateFilterWithDiagnostic(IndexFilterType.SUBSTRING, filter);
 
       case LESS_OR_EQUAL:
-        if (buffer != null)
-        {
-          filter.toString(buffer);
-        }
-        candidates = evaluateLessOrEqualFilter(filter);
-        break;
+        return evaluateFilterWithDiagnostic(IndexFilterType.LESS_OR_EQUAL, filter);
 
       case PRESENT:
-        if (buffer != null)
-        {
-          filter.toString(buffer);
-        }
-        candidates = evaluatePresenceFilter(filter);
-        break;
+        return evaluateFilterWithDiagnostic(IndexFilterType.PRESENCE, filter);
 
       case APPROXIMATE_MATCH:
-        if (buffer != null)
-        {
-          filter.toString(buffer);
-        }
-        candidates = evaluateApproximateFilter(filter);
-        break;
+        return evaluateFilterWithDiagnostic(IndexFilterType.APPROXIMATE, filter);
 
       case EXTENSIBLE_MATCH:
-         if (buffer!= null)
+        if (buffer!= null)
         {
           filter.toString(buffer);
         }
-        candidates = evaluateExtensibleFilter(filter);
-        break;
+        return evaluateExtensibleFilter(filter);
 
       case NOT:
       default:
@@ -204,15 +187,8 @@ public class IndexFilter
           filter.toString(buffer);
         }
         //NYI
-        candidates = new EntryIDSet();
-        break;
+        return new EntryIDSet();
     }
-
-    if (buffer != null)
-    {
-      candidates.toString(buffer);
-    }
-    return candidates;
   }
 
   /**
@@ -266,7 +242,6 @@ public class IndexFilter
     for (SearchFilter filter : fastComps)
     {
       EntryIDSet set = evaluateFilter(filter);
-
       if (retainAll(results, set))
       {
         return results;
@@ -277,7 +252,6 @@ public class IndexFilter
     for (SearchFilter filter : otherComps)
     {
       EntryIDSet set = evaluateFilter(filter);
-
       if (retainAll(results, set))
       {
         return results;
@@ -292,8 +266,7 @@ public class IndexFilter
     }
 
     ArrayList<SearchFilter> remainComps = new ArrayList<SearchFilter>();
-    for (Map.Entry<AttributeType, ArrayList<SearchFilter>> rangeEntry :
-         rangeComps.entrySet())
+    for (Map.Entry<AttributeType, ArrayList<SearchFilter>> rangeEntry : rangeComps.entrySet())
     {
       ArrayList<SearchFilter> rangeList = rangeEntry.getValue();
       if (rangeList.size() == 2)
@@ -359,8 +332,7 @@ public class IndexFilter
     a.retainAll(b);
 
     // We may have reached the point of diminishing returns where
-    // it is quicker to stop now and process the current small number of
-    // candidates.
+    // it is quicker to stop now and process the current small number of candidates.
     return a.isDefined() && a.size() <= FILTER_CANDIDATE_THRESHOLD;
 
   }
@@ -389,179 +361,29 @@ public class IndexFilter
     return EntryIDSet.unionOfSets(candidateSets, false);
   }
 
-  /**
-   * Evaluate an equality filter against the indexes.
-   *
-   * @param equalityFilter The equality filter to be evaluated.
-   * @return A set of entry IDs representing candidate entries.
-   */
-  private EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter)
+  private EntryIDSet evaluateFilterWithDiagnostic(IndexFilterType indexFilterType, SearchFilter filter)
   {
-    EntryIDSet candidates;
-    AttributeIndex attributeIndex =
-         entryContainer.getAttributeIndex(equalityFilter.getAttributeType());
-    if (attributeIndex == null)
+    if (buffer != null)
     {
-      if(monitor.isFilterUseEnabled())
-      {
-        monitor.updateStats(equalityFilter,
-            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("equality",
-                equalityFilter.getAttributeType().getNameOrOID()));
-      }
-      candidates = new EntryIDSet();
+      filter.toString(buffer);
     }
-    else
-    {
-      candidates = attributeIndex.evaluateEqualityFilter(equalityFilter,
-          buffer, monitor);
-    }
-    return candidates;
+    return evaluateFilter(indexFilterType, filter);
   }
 
-  /**
-   * Evaluate a presence filter against the indexes.
-   *
-   * @param filter The presence filter to be evaluated.
-   * @return A set of entry IDs representing candidate entries.
-   */
-  private EntryIDSet evaluatePresenceFilter(SearchFilter filter)
+  private EntryIDSet evaluateFilter(IndexFilterType indexFilterType, SearchFilter filter)
   {
-    EntryIDSet candidates;
-    AttributeIndex attributeIndex =
-         entryContainer.getAttributeIndex(filter.getAttributeType());
-    if (attributeIndex == null)
+    AttributeIndex attributeIndex = entryContainer.getAttributeIndex(filter.getAttributeType());
+    if (attributeIndex != null)
     {
-      if(monitor.isFilterUseEnabled())
-      {
-        monitor.updateStats(filter,
-            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("presence",
-                filter.getAttributeType().getNameOrOID()));
-      }
-      candidates = new EntryIDSet();
+      return attributeIndex.evaluateFilter(indexFilterType, filter, buffer, monitor);
     }
-    else
-    {
-      candidates = attributeIndex.evaluatePresenceFilter(filter, buffer,
-          monitor);
-    }
-    return candidates;
-  }
 
-  /**
-   * Evaluate a greater-or-equal filter against the indexes.
-   *
-   * @param filter The greater-or-equal filter to be evaluated.
-   * @return A set of entry IDs representing candidate entries.
-   */
-  private EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter)
-  {
-    EntryIDSet candidates;
-    AttributeIndex attributeIndex =
-         entryContainer.getAttributeIndex(filter.getAttributeType());
-    if (attributeIndex == null)
+    if (monitor.isFilterUseEnabled())
     {
-      if(monitor.isFilterUseEnabled())
-      {
-        monitor.updateStats(filter,
-            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
-                filter.getAttributeType().getNameOrOID()));
-      }
-      candidates = new EntryIDSet();
+      monitor.updateStats(filter, INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
+          indexFilterType.toString(), filter.getAttributeType().getNameOrOID()));
     }
-    else
-    {
-      candidates = attributeIndex.evaluateGreaterOrEqualFilter(filter,
-          buffer, monitor);
-    }
-    return candidates;
-  }
-
-  /**
-   * Evaluate a less-or-equal filter against the indexes.
-   *
-   * @param filter The less-or-equal filter to be evaluated.
-   * @return A set of entry IDs representing candidate entries.
-   */
-  private EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter)
-  {
-    EntryIDSet candidates;
-    AttributeIndex attributeIndex =
-         entryContainer.getAttributeIndex(filter.getAttributeType());
-    if (attributeIndex == null)
-    {
-      if(monitor.isFilterUseEnabled())
-      {
-        monitor.updateStats(filter,
-            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
-                filter.getAttributeType().getNameOrOID()));
-      }
-      candidates = new EntryIDSet();
-    }
-    else
-    {
-      candidates = attributeIndex.evaluateLessOrEqualFilter(filter, buffer,
-          monitor);
-    }
-    return candidates;
-  }
-
-  /**
-   * Evaluate a substring filter against the indexes.
-   *
-   * @param filter The substring filter to be evaluated.
-   * @return A set of entry IDs representing candidate entries.
-   */
-  private EntryIDSet evaluateSubstringFilter(SearchFilter filter)
-  {
-    EntryIDSet candidates;
-    AttributeIndex attributeIndex =
-         entryContainer.getAttributeIndex(filter.getAttributeType());
-    if (attributeIndex == null)
-    {
-      if(monitor.isFilterUseEnabled())
-      {
-        monitor.updateStats(filter,
-            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(
-                "substring or equality",
-                filter.getAttributeType().getNameOrOID()));
-      }
-      candidates = new EntryIDSet();
-    }
-    else
-    {
-      candidates = attributeIndex.evaluateSubstringFilter(filter,
-          buffer, monitor);
-    }
-    return candidates;
-  }
-
-  /**
-   * Evaluate an approximate filter against the indexes.
-   *
-   * @param approximateFilter The approximate filter to be evaluated.
-   * @return A set of entry IDs representing candidate entries.
-   */
-  private EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter)
-  {
-    EntryIDSet candidates;
-    AttributeIndex attributeIndex =
-         entryContainer.getAttributeIndex(approximateFilter.getAttributeType());
-    if (attributeIndex == null)
-    {
-      if(monitor.isFilterUseEnabled())
-      {
-        monitor.updateStats(approximateFilter,
-            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("approximate",
-                approximateFilter.getAttributeType().getNameOrOID()));
-      }
-      candidates = new EntryIDSet();
-    }
-    else
-    {
-      candidates = attributeIndex.evaluateApproximateFilter(approximateFilter,
-          buffer, monitor);
-    }
-    return candidates;
+    return new EntryIDSet();
   }
 
   /**
@@ -572,29 +394,19 @@ public class IndexFilter
    */
   private EntryIDSet evaluateExtensibleFilter(SearchFilter extensibleFilter)
   {
-    EntryIDSet candidates;
-
     if (extensibleFilter.getDNAttributes())
     {
       // This will always be unindexed since the filter potentially matches
       // entries containing the specified attribute type as well as any entry
       // containing the attribute in its DN as part of a superior RDN.
-      candidates = IndexQuery.createNullIndexQuery().evaluate(null);
+      return IndexQuery.createNullIndexQuery().evaluate(null);
     }
-    else
+
+    AttributeIndex attributeIndex = entryContainer.getAttributeIndex(extensibleFilter.getAttributeType());
+    if (attributeIndex != null)
     {
-      AttributeIndex attributeIndex = entryContainer
-          .getAttributeIndex(extensibleFilter.getAttributeType());
-      if (attributeIndex == null)
-      {
-        candidates = IndexQuery.createNullIndexQuery().evaluate(null);
-      }
-      else
-      {
-        candidates = attributeIndex.evaluateExtensibleFilter(extensibleFilter,
-            buffer, monitor);
-      }
+      return attributeIndex.evaluateExtensibleFilter(extensibleFilter, buffer, monitor);
     }
-    return candidates;
+    return IndexQuery.createNullIndexQuery().evaluate(null);
   }
 }
