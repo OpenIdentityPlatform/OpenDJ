@@ -206,8 +206,8 @@ public class AttributeIndex
           if (!nameToIndexes.containsKey(indexId))
           {
             //There is no index available for this index id. Create a new index.
-            final Index extIndex = newExtensibleIndex(attrType, name, indexEntryLimit, indexer);
-            nameToIndexes.put(indexId, extIndex);
+            final Index index = newAttributeIndex(attrType, name, indexEntryLimit, indexer);
+            nameToIndexes.put(indexId, index);
           }
         }
       }
@@ -236,7 +236,7 @@ public class AttributeIndex
 
       for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
       {
-        final Index index = newExtensibleIndex(attrType, name, cfg.getIndexEntryLimit(), indexer);
+        final Index index = newAttributeIndex(attrType, name, cfg.getIndexEntryLimit(), indexer);
         nameToIndexes.put(indexID, index);
       }
     }
@@ -259,12 +259,12 @@ public class AttributeIndex
     }
   }
 
-  private Index newExtensibleIndex(AttributeType attrType, String name, final int indexEntryLimit,
+  private Index newAttributeIndex(AttributeType attrType, String name, final int indexEntryLimit,
       org.forgerock.opendj.ldap.spi.Indexer indexer)
   {
     final String indexName = name + "." + indexer.getIndexID();
-    final JEExtensibleIndexer extIndexer = new JEExtensibleIndexer(attrType, indexer);
-    return newIndex(indexName, indexEntryLimit, extIndexer);
+    final AttributeIndexer attrIndexer = new AttributeIndexer(attrType, indexer);
+    return newIndex(indexName, indexEntryLimit, attrIndexer);
   }
 
   /**
@@ -918,21 +918,21 @@ public class AttributeIndex
         validIndexIds.add(indexId);
         if (!nameToIndexes.containsKey(indexId))
         {
-          Index extIndex = newExtensibleIndex(attrType, name, indexEntryLimit, indexer);
-          openIndex(extIndex, adminActionRequired, messages);
-          nameToIndexes.put(indexId, extIndex);
+          Index index = newAttributeIndex(attrType, name, indexEntryLimit, indexer);
+          openIndex(index, adminActionRequired, messages);
+          nameToIndexes.put(indexId, index);
         }
         else
         {
-          Index extensibleIndex = nameToIndexes.get(indexId);
-          if (extensibleIndex.setIndexEntryLimit(indexEntryLimit))
+          Index index = nameToIndexes.get(indexId);
+          if (index.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired.set(true);
-            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(extensibleIndex.getName()));
+            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
           }
           if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
           {
-            extensibleIndex.setIndexer(new JEExtensibleIndexer(attrType, indexer));
+            index.setIndexer(new AttributeIndexer(attrType, indexer));
           }
         }
       }
@@ -1011,7 +1011,7 @@ public class AttributeIndex
       final MatchingRule matchingRule = getMatchingRule(indexType, attrType);
       for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
       {
-        index = newExtensibleIndex(attrType, name, indexEntryLimit, indexer);
+        index = newAttributeIndex(attrType, name, indexEntryLimit, indexer);
         openIndex(index, adminActionRequired, messages);
         nameToIndexes.put(indexId, index);
       }
