@@ -85,7 +85,7 @@ class AuthPasswordEqualityMatchingRule implements MatchingRuleImpl
    * for efficiently performing matching operations on that value.
    *
    * @param schema The schema.
-   * @param  value  The value to be normalized.
+   * @param value  The value to be normalized.
    *
    * @return  The normalized version of the provided value.
    *
@@ -95,19 +95,17 @@ class AuthPasswordEqualityMatchingRule implements MatchingRuleImpl
   @Override
   public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException
   {
-    // We will not alter the value in any way.
+    // We will not alter the value in any way
     return value.toByteString();
   }
-
 
   /** {@inheritDoc} */
   @Override
   public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException
   {
+    final ByteString normalizedAssertionValue = normalizeAttributeValue(schema, assertionValue);
     return new Assertion()
     {
-      final ByteString normalizedAssertionValue = normalizeAttributeValue(schema, assertionValue);
-
       @Override
       public ConditionResult matches(final ByteSequence normalizedAttributeValue)
       {
@@ -151,7 +149,6 @@ class AuthPasswordEqualityMatchingRule implements MatchingRuleImpl
     return indexers;
   }
 
-
   /** {@inheritDoc} */
   @Override
   public boolean isIndexingSupported()
@@ -174,8 +171,8 @@ class AuthPasswordEqualityMatchingRule implements MatchingRuleImpl
       return ConditionResult.FALSE;
     }
 
-    // The first element of the array will be the scheme.  Make sure that we
-    // support the requested scheme.
+    // The first element of the array will be the scheme.
+    // Make sure that we support the requested scheme.
     PasswordStorageScheme<?> storageScheme = getAuthPasswordStorageScheme(authPWComponents[0].toString());
     if (storageScheme == null)
     {
@@ -191,4 +188,3 @@ class AuthPasswordEqualityMatchingRule implements MatchingRuleImpl
   }
 
 }
-
