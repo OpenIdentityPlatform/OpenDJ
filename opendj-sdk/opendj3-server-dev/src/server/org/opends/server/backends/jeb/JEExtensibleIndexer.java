@@ -34,6 +34,7 @@ import java.util.Set;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -135,7 +136,7 @@ public final class JEExtensibleIndexer extends Indexer
         {
           try
           {
-            indexer.createKeys(null, value, options, keys);
+            indexer.createKeys(Schema.getDefaultSchema(), value, options, keys);
           }
           catch (DecodeException e)
           {

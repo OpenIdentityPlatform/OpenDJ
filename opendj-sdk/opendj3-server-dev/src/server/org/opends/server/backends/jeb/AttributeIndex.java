@@ -38,13 +38,13 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.*;
@@ -76,16 +76,41 @@ public class AttributeIndex
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** Type of the index filter. */
+  static enum IndexFilterType
+  {
+    /** Equality. */
+    EQUALITY(IndexType.EQUALITY),
+    /** Presence. */
+    PRESENCE(IndexType.PRESENCE),
+    /** Ordering. */
+    GREATER_OR_EQUAL(IndexType.ORDERING),
+    /** Ordering. */
+    LESS_OR_EQUAL(IndexType.ORDERING),
+    /** Substring. */
+    SUBSTRING(IndexType.SUBSTRING),
+    /** Approximate. */
+    APPROXIMATE(IndexType.APPROXIMATE);
+
+    private final IndexType indexType;
+
+    private IndexFilterType(IndexType indexType)
+    {
+      this.indexType = indexType;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+      return indexType.toString();
+    }
+  }
+
   /*
    * FIXME Matthew Swift: Once the matching rules have been migrated we should
-   * revisit this class. IMO the core indexes (equality, etc) should all be
-   * treated in the same way as extensible indexes. In other words, there should
-   * be one table mapping index ID to index and one IndexQueryFactory. Matching
-   * rules should then be able to select which indexes they need to use when
-   * evaluating searches, and all index queries should be processed using the
-   * IndexQueryFactory implementation. Moreover, all of the evaluateXXX methods
-   * should go (the Matcher class in the SDK could implement the logic, I hope).
-   * That's the theory at least...
+   * revisit this class. All of the evaluateXXX methods should go (the Matcher
+   * class in the SDK could implement the logic, I hope).
    */
 
   /**
@@ -142,41 +167,17 @@ public class AttributeIndex
     final int indexEntryLimit = indexConfig.getIndexEntryLimit();
     final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
 
-    if (indexConfig.getIndexType().contains(IndexType.EQUALITY))
-    {
-      Index equalityIndex = buildExtIndex(name, attrType, indexEntryLimit,
-          attrType.getEqualityMatchingRule(), new EqualityIndexer(attrType));
-      nameToIndexes.put(IndexType.EQUALITY.toString(), equalityIndex);
-    }
-
     if (indexConfig.getIndexType().contains(IndexType.PRESENCE))
     {
-      Index presenceIndex = newIndex(name + "." + IndexType.PRESENCE.toString(),
-          indexEntryLimit, new PresenceIndexer(attrType));
-      nameToIndexes.put(IndexType.PRESENCE.toString(), presenceIndex);
+      String indexID = IndexType.PRESENCE.toString();
+      String indexName = name + "." + indexID;
+      Index presenceIndex = newIndex(indexName, indexEntryLimit, new PresenceIndexer(attrType));
+      nameToIndexes.put(indexID, presenceIndex);
     }
-
-    if (indexConfig.getIndexType().contains(IndexType.SUBSTRING))
-    {
-      Index substringIndex = buildExtIndex(name, attrType, indexEntryLimit,
-          attrType.getSubstringMatchingRule(), new SubstringIndexer(attrType));
-      nameToIndexes.put(IndexType.SUBSTRING.toString(), substringIndex);
-    }
-
-    if (indexConfig.getIndexType().contains(IndexType.ORDERING))
-    {
-      Index orderingIndex = buildExtIndex(name, attrType, indexEntryLimit,
-          attrType.getOrderingMatchingRule(), new OrderingIndexer(attrType));
-      nameToIndexes.put(IndexType.ORDERING.toString(), orderingIndex);
-    }
-
-    if (indexConfig.getIndexType().contains(IndexType.APPROXIMATE))
-    {
-      Index approximateIndex = buildExtIndex(name, attrType, indexEntryLimit,
-          attrType.getApproximateMatchingRule(), new ApproximateIndexer(attrType));
-      nameToIndexes.put(IndexType.APPROXIMATE.toString(), approximateIndex);
-    }
-
+    buildIndexes(indexConfig, attrType, name, IndexType.EQUALITY);
+    buildIndexes(indexConfig, attrType, name, IndexType.SUBSTRING);
+    buildIndexes(indexConfig, attrType, name, IndexType.ORDERING);
+    buildIndexes(indexConfig, attrType, name, IndexType.APPROXIMATE);
 
     if (indexConfig.getIndexType().contains(IndexType.EXTENSIBLE))
     {
@@ -205,8 +206,7 @@ public class AttributeIndex
           if (!nameToIndexes.containsKey(indexId))
           {
             //There is no index available for this index id. Create a new index.
-            final String indexName = name + "." + indexId;
-            final Index extIndex = newExtensibleIndex(indexName, attrType, indexEntryLimit, indexer);
+            final Index extIndex = newExtensibleIndex(attrType, name, indexEntryLimit, indexer);
             nameToIndexes.put(indexId, extIndex);
           }
         }
@@ -219,28 +219,52 @@ public class AttributeIndex
 
   private Index newIndex(String indexName, int indexEntryLimit, Indexer indexer)
   {
-    return new Index(indexName, indexer, state, indexEntryLimit,
-        cursorEntryLimit, false, env, entryContainer);
+    return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, env, entryContainer);
   }
 
-  private Index buildExtIndex(String name, AttributeType attrType,
-      int indexEntryLimit, MatchingRule rule, org.forgerock.opendj.ldap.spi.Indexer extIndexer) throws ConfigException
+  private void buildIndexes(LocalDBIndexCfg cfg, AttributeType attrType, String name, IndexType indexType)
+      throws ConfigException
   {
-    if (rule == null)
+    if (cfg.getIndexType().contains(indexType))
     {
-      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
-          attrType, extIndexer.getIndexID()));
-    }
+      final String indexID = indexType.toString();
+      final MatchingRule rule = getMatchingRule(indexType, attrType);
+      if (rule == null)
+      {
+        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexID));
+      }
 
-    final String indexName = name + "." + extIndexer.getIndexID();
-    return newExtensibleIndex(indexName, attrType, indexEntryLimit, extIndexer);
+      for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+      {
+        final Index index = newExtensibleIndex(attrType, name, cfg.getIndexEntryLimit(), indexer);
+        nameToIndexes.put(indexID, index);
+      }
+    }
   }
 
-  private Index newExtensibleIndex(String indexName, AttributeType attrType,
-      int indexEntryLimit, org.forgerock.opendj.ldap.spi.Indexer extIndexer)
+  private MatchingRule getMatchingRule(IndexType indexType, AttributeType attrType)
   {
-    JEExtensibleIndexer indexer = new JEExtensibleIndexer(attrType, extIndexer);
-    return newIndex(indexName, indexEntryLimit, indexer);
+    switch (indexType)
+    {
+    case APPROXIMATE:
+      return attrType.getApproximateMatchingRule();
+    case EQUALITY:
+      return attrType.getEqualityMatchingRule();
+    case ORDERING:
+      return attrType.getOrderingMatchingRule();
+    case SUBSTRING:
+      return attrType.getSubstringMatchingRule();
+    default:
+      throw new IllegalArgumentException("Not implemented for index type " + indexType);
+    }
+  }
+
+  private Index newExtensibleIndex(AttributeType attrType, String name, final int indexEntryLimit,
+      org.forgerock.opendj.ldap.spi.Indexer indexer)
+  {
+    final String indexName = name + "." + indexer.getIndexID();
+    final JEExtensibleIndexer extIndexer = new JEExtensibleIndexer(attrType, indexer);
+    return newIndex(indexName, indexEntryLimit, extIndexer);
   }
 
   /**
@@ -540,138 +564,6 @@ public class AttributeIndex
   }
 
   /**
-   * Retrieve the entry IDs that might match an equality filter.
-   *
-   * @param equalityFilter The equality filter.
-   * @param debugBuffer If not null, a diagnostic string will be written
-   *                     which will help determine how the indexes contributed
-   *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
-   *                index filter usage statistics.
-   * @return The candidate entry IDs that might contain the filter
-   *         assertion value.
-   */
-  public EntryIDSet evaluateEqualityFilter(SearchFilter equalityFilter, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
-  {
-    try {
-      final MatchingRule matchRule = equalityFilter.getAttributeType().getEqualityMatchingRule();
-      final IndexQuery indexQuery = matchRule.getAssertion(equalityFilter.getAssertionValue())
-          .createIndexQuery(indexQueryFactory);
-      return evaluateIndexQuery(indexQuery, "equality", equalityFilter, debugBuffer, monitor);
-    }
-    catch (DecodeException e)
-    {
-      logger.traceException(e);
-      return new EntryIDSet();
-    }
-  }
-
-  /**
-   * Retrieve the entry IDs that might match a presence filter.
-   *
-   * @param filter The presence filter.
-   * @param debugBuffer If not null, a diagnostic string will be written
-   *                     which will help determine how the indexes contributed
-   *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
-   *                index filter usage statistics.
-   * @return The candidate entry IDs that might contain one or more
-   *         values of the attribute type in the filter.
-   */
-  public EntryIDSet evaluatePresenceFilter(SearchFilter filter, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
-  {
-    final IndexQuery indexQuery = indexQueryFactory.createMatchAllQuery();
-    return evaluateIndexQuery(indexQuery, "presence", filter, debugBuffer, monitor);
-  }
-
-  /**
-   * Retrieve the entry IDs that might match a greater-or-equal filter.
-   *
-   * @param filter The greater-or-equal filter.
-   * @param debugBuffer If not null, a diagnostic string will be written
-   *                     which will help determine how the indexes contributed
-   *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
-   *                index filter usage statistics.
-   * @return The candidate entry IDs that might contain a value
-   *         greater than or equal to the filter assertion value.
-   */
-  public EntryIDSet evaluateGreaterOrEqualFilter(SearchFilter filter, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
-  {
-    return evaluateOrderingFilter(filter, true, debugBuffer, monitor);
-  }
-
-
-  /**
-   * Retrieve the entry IDs that might match a less-or-equal filter.
-   *
-   * @param filter The less-or-equal filter.
-   * @param debugBuffer If not null, a diagnostic string will be written
-   *                     which will help determine how the indexes contributed
-   *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
-   *                index filter usage statistics.
-   * @return The candidate entry IDs that might contain a value
-   *         less than or equal to the filter assertion value.
-   */
-  public EntryIDSet evaluateLessOrEqualFilter(SearchFilter filter, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
-  {
-    return evaluateOrderingFilter(filter, false, debugBuffer, monitor);
-  }
-
-  private EntryIDSet evaluateOrderingFilter(SearchFilter filter, boolean greater, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
-  {
-    try {
-      final MatchingRule matchRule = filter.getAttributeType().getOrderingMatchingRule();
-      final Assertion assertion = greater ?
-          matchRule.getGreaterOrEqualAssertion(filter.getAssertionValue()) :
-          matchRule.getLessOrEqualAssertion(filter.getAssertionValue());
-      final IndexQuery indexQuery = assertion.createIndexQuery(indexQueryFactory);
-      return evaluateIndexQuery(indexQuery, "ordering", filter, debugBuffer, monitor);
-    }
-    catch (DecodeException e)
-    {
-      logger.traceException(e);
-      return new EntryIDSet();
-    }
-  }
-
-  /**
-   * Retrieve the entry IDs that might match a substring filter.
-   *
-   * @param filter The substring filter.
-   * @param debugBuffer If not null, a diagnostic string will be written
-   *                     which will help determine how the indexes contributed
-   *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
-   *                index filter usage statistics.
-   * @return The candidate entry IDs that might contain a value
-   *         that matches the filter substrings.
-   */
-  public EntryIDSet evaluateSubstringFilter(SearchFilter filter,
-                                            StringBuilder debugBuffer,
-                                            DatabaseEnvironmentMonitor monitor)
-  {
-    try {
-      final MatchingRule matchRule = filter.getAttributeType().getSubstringMatchingRule();
-      final IndexQuery indexQuery = matchRule.getSubstringAssertion(
-          filter.getSubInitialElement(), filter.getSubAnyElements(), filter.getSubFinalElement())
-          .createIndexQuery(indexQueryFactory);
-      return evaluateIndexQuery(indexQuery, "substring", filter, debugBuffer, monitor);
-    }
-    catch (DecodeException e)
-    {
-      logger.traceException(e);
-      return new EntryIDSet();
-    }
-  }
-
-  /**
    * Retrieve the entry IDs that might match two filters that restrict a value
    * to both a lower bound and an upper bound.
    *
@@ -695,18 +587,89 @@ public class AttributeIndex
   {
     // TODO : this implementation is not optimal
     // as it implies two separate evaluations instead of a single one,
-    // thus defeating the purpose of the optimisation done
+    // thus defeating the purpose of the optimization done
     // in IndexFilter#evaluateLogicalAndFilter method.
     // One solution could be to implement a boundedRangeAssertion that combine
     // the two operations in one.
-    EntryIDSet results = filter1.getFilterType() == FilterType.LESS_OR_EQUAL ?
-        evaluateLessOrEqualFilter(filter1, debugBuffer, monitor) :
-        evaluateGreaterOrEqualFilter(filter1, debugBuffer, monitor);
-    EntryIDSet results2 = filter2.getFilterType() == FilterType.LESS_OR_EQUAL ?
-        evaluateLessOrEqualFilter(filter2, debugBuffer, monitor) :
-        evaluateGreaterOrEqualFilter(filter2, debugBuffer, monitor);
+    EntryIDSet results = evaluate(filter1, debugBuffer, monitor);
+    EntryIDSet results2 = evaluate(filter2, debugBuffer, monitor);
     results.retainAll(results2);
     return results;
+  }
+
+  private EntryIDSet evaluate(SearchFilter filter, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
+  {
+    boolean isLessOrEqual = filter.getFilterType() == FilterType.LESS_OR_EQUAL;
+    IndexFilterType indexFilterType = isLessOrEqual ? IndexFilterType.LESS_OR_EQUAL : IndexFilterType.GREATER_OR_EQUAL;
+    return evaluateFilter(indexFilterType, filter, debugBuffer, monitor);
+  }
+
+  /**
+   * Retrieve the entry IDs that might match a filter.
+   *
+   * @param indexFilterType the index type filter
+   * @param filter The filter.
+   * @param debugBuffer If not null, a diagnostic string will be written
+   *                     which will help determine how the indexes contributed
+   *                     to this search.
+   * @param monitor The database environment monitor provider that will keep
+   *                index filter usage statistics.
+   * @return The candidate entry IDs that might contain a value
+   *         that matches the filter type.
+   */
+  public EntryIDSet evaluateFilter(IndexFilterType indexFilterType, SearchFilter filter, StringBuilder debugBuffer,
+      DatabaseEnvironmentMonitor monitor)
+  {
+    try
+    {
+      final IndexQuery indexQuery = getIndexQuery(indexFilterType, filter);
+      return evaluateIndexQuery(indexQuery, indexFilterType.toString(), filter, debugBuffer, monitor);
+    }
+    catch (DecodeException e)
+    {
+      logger.traceException(e);
+      return new EntryIDSet();
+    }
+  }
+
+  private IndexQuery getIndexQuery(IndexFilterType indexFilterType, SearchFilter filter) throws DecodeException
+  {
+    MatchingRule rule;
+    Assertion assertion;
+    switch (indexFilterType)
+    {
+    case EQUALITY:
+      rule = filter.getAttributeType().getEqualityMatchingRule();
+      assertion = rule.getAssertion(filter.getAssertionValue());
+      return assertion.createIndexQuery(indexQueryFactory);
+
+    case PRESENCE:
+      return indexQueryFactory.createMatchAllQuery();
+
+    case GREATER_OR_EQUAL:
+      rule = filter.getAttributeType().getOrderingMatchingRule();
+      assertion = rule.getGreaterOrEqualAssertion(filter.getAssertionValue());
+      return assertion.createIndexQuery(indexQueryFactory);
+
+    case LESS_OR_EQUAL:
+      rule = filter.getAttributeType().getOrderingMatchingRule();
+      assertion = rule.getLessOrEqualAssertion(filter.getAssertionValue());
+      return assertion.createIndexQuery(indexQueryFactory);
+
+    case SUBSTRING:
+      rule = filter.getAttributeType().getSubstringMatchingRule();
+      assertion = rule.getSubstringAssertion(
+          filter.getSubInitialElement(), filter.getSubAnyElements(), filter.getSubFinalElement());
+      return assertion.createIndexQuery(indexQueryFactory);
+
+    case APPROXIMATE:
+      rule = filter.getAttributeType().getApproximateMatchingRule();
+      assertion = rule.getAssertion(filter.getAssertionValue());
+      return assertion.createIndexQuery(indexQueryFactory);
+
+    default:
+      return null;
+    }
   }
 
   /**
@@ -804,34 +767,6 @@ public class AttributeIndex
   }
 
   /**
-   * Retrieve the entry IDs that might match an approximate filter.
-   *
-   * @param approximateFilter The approximate filter.
-   * @param debugBuffer If not null, a diagnostic string will be written
-   *                     which will help determine how the indexes contributed
-   *                     to this search.
-   * @param monitor The database environment monitor provider that will keep
-   *                index filter usage statistics.
-   * @return The candidate entry IDs that might contain the filter
-   *         assertion value.
-   */
-  public EntryIDSet evaluateApproximateFilter(SearchFilter approximateFilter, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
-  {
-    try {
-      MatchingRule matchRule = approximateFilter.getAttributeType().getApproximateMatchingRule();
-      IndexQuery indexQuery = matchRule.getAssertion(approximateFilter.getAssertionValue())
-          .createIndexQuery(indexQueryFactory);
-      return evaluateIndexQuery(indexQuery, "approximate", approximateFilter, debugBuffer, monitor);
-    }
-    catch (DecodeException e)
-    {
-      logger.traceException(e);
-      return new EntryIDSet();
-    }
-  }
-
-  /**
    * Close cursors related to the attribute indexes.
    *
    * @throws DatabaseException If a database error occurs.
@@ -884,36 +819,15 @@ public class AttributeIndex
   public synchronized boolean isConfigurationChangeAcceptable(
       LocalDBIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    AttributeType attrType = cfg.getAttribute();
+    if (!isIndexAcceptable(cfg, IndexType.EQUALITY, unacceptableReasons)
+        || !isIndexAcceptable(cfg, IndexType.SUBSTRING, unacceptableReasons)
+        || !isIndexAcceptable(cfg, IndexType.ORDERING, unacceptableReasons)
+        || !isIndexAcceptable(cfg, IndexType.APPROXIMATE, unacceptableReasons))
+    {
+      return false;
+    }
 
-    if (cfg.getIndexType().contains(IndexType.EQUALITY)
-        && nameToIndexes.get(IndexType.EQUALITY.toString()) == null
-        && attrType.getEqualityMatchingRule() == null)
-    {
-      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "equality"));
-      return false;
-    }
-    if (cfg.getIndexType().contains(IndexType.SUBSTRING)
-        && nameToIndexes.get(IndexType.SUBSTRING.toString()) == null
-        && attrType.getSubstringMatchingRule() == null)
-    {
-      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "substring"));
-      return false;
-    }
-    if (cfg.getIndexType().contains(IndexType.ORDERING)
-        && nameToIndexes.get(IndexType.ORDERING.toString()) == null
-        && attrType.getOrderingMatchingRule() == null)
-    {
-      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "ordering"));
-      return false;
-    }
-    if (cfg.getIndexType().contains(IndexType.APPROXIMATE)
-        && nameToIndexes.get(IndexType.APPROXIMATE.toString()) == null
-        && attrType.getApproximateMatchingRule() == null)
-    {
-      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "approximate"));
-      return false;
-    }
+    AttributeType attrType = cfg.getAttribute();
     if (cfg.getIndexType().contains(IndexType.EXTENSIBLE))
     {
       Set<String> newRules = cfg.getIndexExtensibleMatchingRule();
@@ -923,14 +837,27 @@ public class AttributeIndex
         return false;
       }
     }
+    return true;
+  }
 
+  private boolean isIndexAcceptable(LocalDBIndexCfg cfg, IndexType indexType,
+      List<LocalizableMessage> unacceptableReasons)
+  {
+    final String indexId = indexType.toString();
+    final AttributeType attrType = cfg.getAttribute();
+    if (cfg.getIndexType().contains(indexType)
+        && nameToIndexes.get(indexId) == null
+        && getMatchingRule(indexType, attrType) == null)
+    {
+      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexId));
+      return false;
+    }
     return true;
   }
 
   /** {@inheritDoc} */
   @Override
-  public synchronized ConfigChangeResult applyConfigurationChange(
-      LocalDBIndexCfg cfg)
+  public synchronized ConfigChangeResult applyConfigurationChange(LocalDBIndexCfg cfg)
   {
     // this method is not perf sensitive, using an AtomicBoolean will not hurt
     AtomicBoolean adminActionRequired = new AtomicBoolean(false);
@@ -939,91 +866,13 @@ public class AttributeIndex
     {
       AttributeType attrType = cfg.getAttribute();
       String name = entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
-      final int indexEntryLimit = cfg.getIndexEntryLimit();
 
-      Index presenceIndex = nameToIndexes.get(IndexType.PRESENCE.toString());
-      if (cfg.getIndexType().contains(IndexType.PRESENCE))
-      {
-        if (presenceIndex == null)
-        {
-          Indexer presenceIndexer = new PresenceIndexer(attrType);
-          presenceIndex = newIndex(name + ".presence", indexEntryLimit, presenceIndexer);
-          openIndex(presenceIndex, adminActionRequired, messages);
-          nameToIndexes.put(IndexType.PRESENCE.toString(), presenceIndex);
-        }
-        else
-        {
-          // already exists. Just update index entry limit.
-          if (presenceIndex.setIndexEntryLimit(indexEntryLimit))
-          {
-            adminActionRequired.set(true);
-            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(presenceIndex.getName()));
-          }
-        }
-      }
-      else
-      {
-        removeIndex(presenceIndex, IndexType.PRESENCE);
-      }
-
-      applyChangeToIndex(cfg, attrType, name, IndexType.EQUALITY,
-          new EqualityIndexer(attrType), adminActionRequired, messages);
-      applyChangeToIndex(cfg, attrType, name, IndexType.SUBSTRING,
-          new SubstringIndexer(attrType), adminActionRequired, messages);
-      applyChangeToIndex(cfg, attrType, name, IndexType.ORDERING,
-          new OrderingIndexer(attrType), adminActionRequired, messages);
-      applyChangeToIndex(cfg, attrType, name, IndexType.APPROXIMATE,
-          new ApproximateIndexer(attrType), adminActionRequired, messages);
-
-      if (cfg.getIndexType().contains(IndexType.EXTENSIBLE))
-      {
-        final Set<String> extensibleRules = cfg.getIndexExtensibleMatchingRule();
-        final Set<MatchingRule> validRules = new HashSet<MatchingRule>();
-        final Set<String> validIndexIds = new HashSet<String>();
-
-        for (String ruleName: extensibleRules)
-        {
-          MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-          if (rule == null)
-          {
-            logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
-            continue;
-          }
-          validRules.add(rule);
-          for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
-          {
-            String indexId = indexer.getIndexID();
-            validIndexIds.add(indexId);
-            if (!nameToIndexes.containsKey(indexId))
-            {
-              String indexName =  name + "." + indexId;
-              Index extIndex = newExtensibleIndex(indexName, attrType, indexEntryLimit, indexer);
-              nameToIndexes.put(indexId, extIndex);
-              openIndex(extIndex, adminActionRequired, messages);
-            }
-            else
-            {
-              Index extensibleIndex = nameToIndexes.get(indexId);
-              if (extensibleIndex.setIndexEntryLimit(indexEntryLimit))
-              {
-                adminActionRequired.set(true);
-                messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(extensibleIndex.getName()));
-              }
-              if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
-              {
-                extensibleIndex.setIndexer(new JEExtensibleIndexer(attrType, indexer));
-              }
-            }
-          }
-        }
-        removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
-      }
-      else
-      {
-        final Set<MatchingRule> validRules = Collections.emptySet();
-        final Set<String> validIndexIds = Collections.emptySet();
-        removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
-      }
+      applyChangeToPresenceIndex(cfg, attrType, name, adminActionRequired, messages);
+      applyChangeToIndex(cfg, attrType, name, IndexType.EQUALITY, adminActionRequired, messages);
+      applyChangeToIndex(cfg, attrType, name, IndexType.SUBSTRING, adminActionRequired, messages);
+      applyChangeToIndex(cfg, attrType, name, IndexType.ORDERING, adminActionRequired, messages);
+      applyChangeToIndex(cfg, attrType, name, IndexType.APPROXIMATE, adminActionRequired, messages);
+      applyChangeToExtensibleIndexes(cfg, attrType, name, adminActionRequired, messages);
 
       extensibleIndexesMapping = computeExtensibleIndexesMapping();
       indexConfig = cfg;
@@ -1036,6 +885,59 @@ public class AttributeIndex
       return new ConfigChangeResult(
           DirectoryServer.getServerErrorResultCode(), adminActionRequired.get(), messages);
     }
+  }
+
+  private void applyChangeToExtensibleIndexes(LocalDBIndexCfg cfg, AttributeType attrType,
+      String name, AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  {
+    if (!cfg.getIndexType().contains(IndexType.EXTENSIBLE))
+    {
+      final Set<MatchingRule> validRules = Collections.emptySet();
+      final Set<String> validIndexIds = Collections.emptySet();
+      removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
+      return;
+    }
+
+    final Set<String> extensibleRules = cfg.getIndexExtensibleMatchingRule();
+    final Set<MatchingRule> validRules = new HashSet<MatchingRule>();
+    final Set<String> validIndexIds = new HashSet<String>();
+    final int indexEntryLimit = cfg.getIndexEntryLimit();
+
+    for (String ruleName : extensibleRules)
+    {
+      MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
+      if (rule == null)
+      {
+        logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
+        continue;
+      }
+      validRules.add(rule);
+      for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
+      {
+        String indexId = indexer.getIndexID();
+        validIndexIds.add(indexId);
+        if (!nameToIndexes.containsKey(indexId))
+        {
+          Index extIndex = newExtensibleIndex(attrType, name, indexEntryLimit, indexer);
+          openIndex(extIndex, adminActionRequired, messages);
+          nameToIndexes.put(indexId, extIndex);
+        }
+        else
+        {
+          Index extensibleIndex = nameToIndexes.get(indexId);
+          if (extensibleIndex.setIndexEntryLimit(indexEntryLimit))
+          {
+            adminActionRequired.set(true);
+            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(extensibleIndex.getName()));
+          }
+          if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
+          {
+            extensibleIndex.setIndexer(new JEExtensibleIndexer(attrType, indexer));
+          }
+        }
+      }
+    }
+    removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
   }
 
   /** Remove indexes which do not correspond to valid rules. */
@@ -1092,34 +994,67 @@ public class AttributeIndex
     return rules;
   }
 
-  private void applyChangeToIndex(LocalDBIndexCfg cfg, AttributeType attrType,
-      String name, IndexType indexType, org.forgerock.opendj.ldap.spi.Indexer indexer,
+  private void applyChangeToIndex(LocalDBIndexCfg cfg, AttributeType attrType, String name, IndexType indexType,
       AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
   {
-    final int indexEntryLimit = cfg.getIndexEntryLimit();
-
-    Index index = nameToIndexes.get(indexType.toString());
-    if (cfg.getIndexType().contains(indexType))
+    String indexId = indexType.toString();
+    Index index = nameToIndexes.get(indexId);
+    if (!cfg.getIndexType().contains(indexType))
     {
-      if (index == null)
+      removeIndex(index, indexType);
+      return;
+    }
+
+    final int indexEntryLimit = cfg.getIndexEntryLimit();
+    if (index == null)
+    {
+      final MatchingRule matchingRule = getMatchingRule(indexType, attrType);
+      for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
       {
-        index = openNewIndex(name, attrType, indexEntryLimit,
-            indexer, adminActionRequired, messages);
-        nameToIndexes.put(indexType.toString(), index);
-      }
-      else
-      {
-        // already exists. Just update index entry limit.
-        if(index.setIndexEntryLimit(indexEntryLimit))
-        {
-          adminActionRequired.set(true);
-          messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
-        }
+        index = newExtensibleIndex(attrType, name, indexEntryLimit, indexer);
+        openIndex(index, adminActionRequired, messages);
+        nameToIndexes.put(indexId, index);
       }
     }
     else
     {
+      // already exists. Just update index entry limit.
+      if (index.setIndexEntryLimit(indexEntryLimit))
+      {
+        adminActionRequired.set(true);
+        messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+      }
+    }
+  }
+
+  private void applyChangeToPresenceIndex(LocalDBIndexCfg cfg, AttributeType attrType, String name,
+      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  {
+    IndexType indexType = IndexType.PRESENCE;
+    String indexId = indexType.toString();
+    Index index = nameToIndexes.get(indexId);
+    if (!cfg.getIndexType().contains(indexType))
+    {
       removeIndex(index, indexType);
+      return;
+    }
+
+    final int indexEntryLimit = cfg.getIndexEntryLimit();
+    if (index == null)
+    {
+      Indexer presenceIndexer = new PresenceIndexer(attrType);
+      index = newIndex(name + ".presence", indexEntryLimit, presenceIndexer);
+      openIndex(index, adminActionRequired, messages);
+      nameToIndexes.put(indexId, index);
+    }
+    else
+    {
+      // already exists. Just update index entry limit.
+      if (index.setIndexEntryLimit(indexEntryLimit))
+      {
+        adminActionRequired.set(true);
+        messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+      }
     }
   }
 
@@ -1140,17 +1075,7 @@ public class AttributeIndex
     }
   }
 
-  private Index openNewIndex(String name, AttributeType attrType,
-      int indexEntryLimit, org.forgerock.opendj.ldap.spi.Indexer indexer,
-      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
-  {
-    final String indexName = name + "." + indexer.getIndexID();
-    Index index = newExtensibleIndex(indexName, attrType, indexEntryLimit, indexer);
-    return openIndex(index, adminActionRequired, messages);
-  }
-
-  private Index openIndex(Index index, AtomicBoolean adminActionRequired,
-      ArrayList<LocalizableMessage> messages)
+  private void openIndex(Index index, AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
   {
     index.open();
 
@@ -1159,7 +1084,6 @@ public class AttributeIndex
       adminActionRequired.set(true);
       messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
-    return index;
   }
 
   /**
@@ -1347,7 +1271,7 @@ public class AttributeIndex
         || matchRuleOID.equalsIgnoreCase(eqRule.getNameOrOID()))
     {
       //No matching rule is defined; use the default equality matching rule.
-      return evaluateEqualityFilter(filter, debugBuffer, monitor);
+      return evaluateFilter(IndexFilterType.EQUALITY, filter, debugBuffer, monitor);
     }
 
     MatchingRule rule = DirectoryServer.getMatchingRule(matchRuleOID);
@@ -1401,16 +1325,14 @@ public class AttributeIndex
 
   private boolean ruleHasAtLeasOneIndex(MatchingRule rule)
   {
-    boolean ruleHasAtLeastOneIndex = false;
     for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
     {
       if (nameToIndexes.containsKey(indexer.getIndexID()))
       {
-        ruleHasAtLeastOneIndex = true;
-        break;
+        return true;
       }
     }
-    return ruleHasAtLeastOneIndex;
+    return false;
   }
 
   /**
