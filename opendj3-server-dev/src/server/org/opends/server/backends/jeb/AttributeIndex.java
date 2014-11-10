@@ -164,38 +164,54 @@ public class AttributeIndex
 
     AttributeType attrType = indexConfig.getAttribute();
     String name = entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
-    final int indexEntryLimit = indexConfig.getIndexEntryLimit();
-    final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
 
-    if (indexConfig.getIndexType().contains(IndexType.PRESENCE))
+    buildPresenceIndex(indexConfig, name);
+    buildIndexes(IndexType.EQUALITY, indexConfig, name);
+    buildIndexes(IndexType.SUBSTRING, indexConfig, name);
+    buildIndexes(IndexType.ORDERING, indexConfig, name);
+    buildIndexes(IndexType.APPROXIMATE, indexConfig, name);
+    buildExtensibleIndexes(indexConfig, name);
+
+    final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
+    indexQueryFactory = new IndexQueryFactoryImpl(nameToIndexes, config);
+    extensibleIndexesMapping = computeExtensibleIndexesMapping();
+  }
+
+  private void buildPresenceIndex(LocalDBIndexCfg indexConfig, String name)
+  {
+    IndexType indexType = IndexType.PRESENCE;
+    if (indexConfig.getIndexType().contains(indexType))
     {
-      String indexID = IndexType.PRESENCE.toString();
+      final AttributeType attrType = indexConfig.getAttribute();
+      final int indexEntryLimit = indexConfig.getIndexEntryLimit();
+      String indexID = indexType.toString();
       String indexName = name + "." + indexID;
       Index presenceIndex = newIndex(indexName, indexEntryLimit, new PresenceIndexer(attrType));
       nameToIndexes.put(indexID, presenceIndex);
     }
-    buildIndexes(indexConfig, attrType, name, IndexType.EQUALITY);
-    buildIndexes(indexConfig, attrType, name, IndexType.SUBSTRING);
-    buildIndexes(indexConfig, attrType, name, IndexType.ORDERING);
-    buildIndexes(indexConfig, attrType, name, IndexType.APPROXIMATE);
+  }
 
-    if (indexConfig.getIndexType().contains(IndexType.EXTENSIBLE))
+  private void buildExtensibleIndexes(LocalDBIndexCfg indexConfig, String name) throws ConfigException
+  {
+    final IndexType indexType = IndexType.EXTENSIBLE;
+    if (indexConfig.getIndexType().contains(indexType))
     {
+      final AttributeType attrType = indexConfig.getAttribute();
       Set<String> extensibleRules = indexConfig.getIndexExtensibleMatchingRule();
-      if(extensibleRules == null || extensibleRules.isEmpty())
+      if (extensibleRules == null || extensibleRules.isEmpty())
       {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "extensible"));
+        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, indexType.toString()));
       }
 
       // Iterate through the Set and create the index only if necessary.
-      // Collation equality and Ordering matching rules share the same
-      // indexer and index.
+      // Collation equality and Ordering matching rules share the same indexer and index
       // A Collation substring matching rule is treated differently
       // as it uses a separate indexer and index.
+      final int indexEntryLimit = indexConfig.getIndexEntryLimit();
       for (final String ruleName : extensibleRules)
       {
         MatchingRule rule = DirectoryServer.getMatchingRule(toLowerCase(ruleName));
-        if(rule == null)
+        if (rule == null)
         {
           logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
           continue;
@@ -205,16 +221,13 @@ public class AttributeIndex
           final String indexId = indexer.getIndexID();
           if (!nameToIndexes.containsKey(indexId))
           {
-            //There is no index available for this index id. Create a new index.
+            // There is no index available for this index id. Create a new index
             final Index index = newAttributeIndex(attrType, name, indexEntryLimit, indexer);
             nameToIndexes.put(indexId, index);
           }
         }
       }
     }
-
-    indexQueryFactory = new IndexQueryFactoryImpl(nameToIndexes, config);
-    extensibleIndexesMapping = computeExtensibleIndexesMapping();
   }
 
   private Index newIndex(String indexName, int indexEntryLimit, Indexer indexer)
@@ -222,11 +235,11 @@ public class AttributeIndex
     return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, env, entryContainer);
   }
 
-  private void buildIndexes(LocalDBIndexCfg cfg, AttributeType attrType, String name, IndexType indexType)
-      throws ConfigException
+  private void buildIndexes(IndexType indexType, LocalDBIndexCfg cfg, String name) throws ConfigException
   {
     if (cfg.getIndexType().contains(indexType))
     {
+      final AttributeType attrType = indexConfig.getAttribute();
       final String indexID = indexType.toString();
       final MatchingRule rule = getMatchingRule(indexType, attrType);
       if (rule == null)
@@ -867,11 +880,11 @@ public class AttributeIndex
       AttributeType attrType = cfg.getAttribute();
       String name = entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
 
-      applyChangeToPresenceIndex(cfg, attrType, name, adminActionRequired, messages);
-      applyChangeToIndex(cfg, attrType, name, IndexType.EQUALITY, adminActionRequired, messages);
-      applyChangeToIndex(cfg, attrType, name, IndexType.SUBSTRING, adminActionRequired, messages);
-      applyChangeToIndex(cfg, attrType, name, IndexType.ORDERING, adminActionRequired, messages);
-      applyChangeToIndex(cfg, attrType, name, IndexType.APPROXIMATE, adminActionRequired, messages);
+      applyChangeToPresenceIndex(cfg, name, adminActionRequired, messages);
+      applyChangeToIndex(IndexType.EQUALITY, cfg, name, adminActionRequired, messages);
+      applyChangeToIndex(IndexType.SUBSTRING, cfg, name, adminActionRequired, messages);
+      applyChangeToIndex(IndexType.ORDERING, cfg, name, adminActionRequired, messages);
+      applyChangeToIndex(IndexType.APPROXIMATE, cfg, name, adminActionRequired, messages);
       applyChangeToExtensibleIndexes(cfg, attrType, name, adminActionRequired, messages);
 
       extensibleIndexesMapping = computeExtensibleIndexesMapping();
@@ -994,7 +1007,7 @@ public class AttributeIndex
     return rules;
   }
 
-  private void applyChangeToIndex(LocalDBIndexCfg cfg, AttributeType attrType, String name, IndexType indexType,
+  private void applyChangeToIndex(IndexType indexType, LocalDBIndexCfg cfg, String name,
       AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
   {
     String indexId = indexType.toString();
@@ -1005,6 +1018,7 @@ public class AttributeIndex
       return;
     }
 
+    final AttributeType attrType = cfg.getAttribute();
     final int indexEntryLimit = cfg.getIndexEntryLimit();
     if (index == null)
     {
@@ -1027,8 +1041,8 @@ public class AttributeIndex
     }
   }
 
-  private void applyChangeToPresenceIndex(LocalDBIndexCfg cfg, AttributeType attrType, String name,
-      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private void applyChangeToPresenceIndex(LocalDBIndexCfg cfg, String name, AtomicBoolean adminActionRequired,
+      ArrayList<LocalizableMessage> messages)
   {
     IndexType indexType = IndexType.PRESENCE;
     String indexId = indexType.toString();
@@ -1039,11 +1053,11 @@ public class AttributeIndex
       return;
     }
 
+    final AttributeType attrType = cfg.getAttribute();
     final int indexEntryLimit = cfg.getIndexEntryLimit();
     if (index == null)
     {
-      Indexer presenceIndexer = new PresenceIndexer(attrType);
-      index = newIndex(name + ".presence", indexEntryLimit, presenceIndexer);
+      index = newIndex(name + "." + indexType, indexEntryLimit, new PresenceIndexer(attrType));
       openIndex(index, adminActionRequired, messages);
       nameToIndexes.put(indexId, index);
     }
