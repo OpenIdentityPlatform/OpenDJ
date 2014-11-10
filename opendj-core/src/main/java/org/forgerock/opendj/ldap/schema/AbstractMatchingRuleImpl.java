@@ -137,7 +137,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
     /** {@inheritDoc} */
     @Override
     public boolean isIndexingSupported() {
-        return getIndexers().isEmpty();
+        return !getIndexers().isEmpty();
     }
 
 }
