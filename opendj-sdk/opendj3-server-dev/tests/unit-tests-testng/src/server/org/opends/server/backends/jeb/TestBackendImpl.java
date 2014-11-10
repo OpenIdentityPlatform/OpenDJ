@@ -788,13 +788,13 @@ public class TestBackendImpl extends JebTestCase {
       indexers = singletonList(new PresenceIndexer(index.getAttributeType()));
       assertIndexContainsID(indexers, entry, index.getPresenceIndex(), entryID, FALSE);
 
-      indexers = newJEExtensibleIndexers(attrType, attrType.getEqualityMatchingRule());
+      indexers = newAttributeIndexers(attrType, attrType.getEqualityMatchingRule());
       assertIndexContainsID(indexers, entry, index.getEqualityIndex(), entryID, FALSE);
 
-      indexers = newJEExtensibleIndexers(attrType, attrType.getSubstringMatchingRule());
+      indexers = newAttributeIndexers(attrType, attrType.getSubstringMatchingRule());
       assertIndexContainsID(indexers, entry, index.getSubstringIndex(), entryID, FALSE);
 
-      indexers = newJEExtensibleIndexers(attrType, attrType.getOrderingMatchingRule());
+      indexers = newAttributeIndexers(attrType, attrType.getOrderingMatchingRule());
       assertIndexContainsID(indexers, entry, index.getOrderingIndex(), entryID, FALSE);
     }
     finally
@@ -803,14 +803,14 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
-  private List<JEExtensibleIndexer> newJEExtensibleIndexers(AttributeType attrType, MatchingRule matchingRule)
+  private List<AttributeIndexer> newAttributeIndexers(AttributeType attrType, MatchingRule matchingRule)
   {
-    List<JEExtensibleIndexer> extIndexers = new ArrayList<JEExtensibleIndexer>();
+    List<AttributeIndexer> indexers = new ArrayList<AttributeIndexer>();
     for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
     {
-      extIndexers.add(new JEExtensibleIndexer(attrType, indexer));
+      indexers.add(new AttributeIndexer(attrType, indexer));
     }
-    return extIndexers;
+    return indexers;
   }
 
   private IndexingOptions getOptions()
@@ -895,15 +895,15 @@ public class TestBackendImpl extends JebTestCase {
       AttributeType attrType = index.getAttributeType();
 
       List<? extends Indexer> indexers;
-      indexers = newJEExtensibleIndexers(attrType, attrType.getOrderingMatchingRule());
+      indexers = newAttributeIndexers(attrType, attrType.getOrderingMatchingRule());
       assertIndexContainsID(indexers, entry, index.getOrderingIndex(), entryID, TRUE);
       assertIndexContainsID(indexers, oldEntry, index.getOrderingIndex(), entryID, FALSE);
 
-      indexers = newJEExtensibleIndexers(attrType, attrType.getSubstringMatchingRule());
+      indexers = newAttributeIndexers(attrType, attrType.getSubstringMatchingRule());
       assertIndexContainsID(indexers, entry, index.getSubstringIndex(), entryID, TRUE);
       assertIndexContainsID(indexers, oldEntry, index.getSubstringIndex(), entryID, FALSE);
 
-      indexers = newJEExtensibleIndexers(attrType, attrType.getEqualityMatchingRule());
+      indexers = newAttributeIndexers(attrType, attrType.getEqualityMatchingRule());
       assertIndexContainsID(indexers, entry, index.getEqualityIndex(), entryID, TRUE);
       assertIndexContainsID(indexers, oldEntry, index.getEqualityIndex(), entryID, FALSE);
     }
@@ -1024,19 +1024,19 @@ public class TestBackendImpl extends JebTestCase {
       indexers = singletonList(new PresenceIndexer(nameIndexAttrType));
       assertIndexContainsID(indexers, entry, nameIndex.getPresenceIndex(), entryID);
 
-      indexers = newJEExtensibleIndexers(titleIndexAttrType, titleIndexAttrType.getOrderingMatchingRule());
+      indexers = newAttributeIndexers(titleIndexAttrType, titleIndexAttrType.getOrderingMatchingRule());
       assertIndexContainsID(indexers, entry, titleIndex.getOrderingIndex(), entryID);
-      indexers = newJEExtensibleIndexers(nameIndexAttrType, nameIndexAttrType.getOrderingMatchingRule());
+      indexers = newAttributeIndexers(nameIndexAttrType, nameIndexAttrType.getOrderingMatchingRule());
       assertIndexContainsID(indexers, entry, nameIndex.getOrderingIndex(), entryID);
 
-      indexers = newJEExtensibleIndexers(titleIndexAttrType, titleIndexAttrType.getEqualityMatchingRule());
+      indexers = newAttributeIndexers(titleIndexAttrType, titleIndexAttrType.getEqualityMatchingRule());
       assertIndexContainsID(indexers, entry, titleIndex.getEqualityIndex(), entryID);
-      indexers = newJEExtensibleIndexers(nameIndexAttrType, nameIndexAttrType.getEqualityMatchingRule());
+      indexers = newAttributeIndexers(nameIndexAttrType, nameIndexAttrType.getEqualityMatchingRule());
       assertIndexContainsID(indexers, entry, nameIndex.getEqualityIndex(), entryID);
 
-      indexers = newJEExtensibleIndexers(titleIndexAttrType, titleIndexAttrType.getSubstringMatchingRule());
+      indexers = newAttributeIndexers(titleIndexAttrType, titleIndexAttrType.getSubstringMatchingRule());
       assertIndexContainsID(indexers, entry, titleIndex.getSubstringIndex(), entryID);
-      indexers = newJEExtensibleIndexers(nameIndexAttrType, nameIndexAttrType.getSubstringMatchingRule());
+      indexers = newAttributeIndexers(nameIndexAttrType, nameIndexAttrType.getSubstringMatchingRule());
       assertIndexContainsID(indexers, entry, nameIndex.getSubstringIndex(), entryID);
     }
     finally

@@ -42,16 +42,13 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
 /**
- * This class implements an Indexer for extensible matching rules in JE Backend.
+ * This class implements an attribute indexer for matching rules in JE Backend.
  */
-public final class JEExtensibleIndexer extends Indexer
+public final class AttributeIndexer extends Indexer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The attribute type for which this instance will
-   * generate index keys.
-   */
+  /** The attribute type for which this instance will generate index keys. */
   private final AttributeType attributeType;
 
   /**
@@ -67,7 +64,7 @@ public final class JEExtensibleIndexer extends Indexer
    *                                            required.
    * @param extensibleIndexer The extensible indexer to be used.
    */
-  public JEExtensibleIndexer(AttributeType attributeType, org.forgerock.opendj.ldap.spi.Indexer extensibleIndexer)
+  public AttributeIndexer(AttributeType attributeType, org.forgerock.opendj.ldap.spi.Indexer extensibleIndexer)
   {
     this.attributeType = attributeType;
     this.indexer = extensibleIndexer;
@@ -126,7 +123,10 @@ public final class JEExtensibleIndexer extends Indexer
   private void indexAttribute(List<Attribute> attrList, Set<ByteString> keys,
       IndexingOptions options)
   {
-    if (attrList == null) return;
+    if (attrList == null)
+    {
+      return;
+    }
 
     for (Attribute attr : attrList)
     {
@@ -147,8 +147,6 @@ public final class JEExtensibleIndexer extends Indexer
     }
   }
 
-
-
   /**
    * Generates the set of index keys for an attribute.
    * @param attrList The attribute to be indexed.
@@ -161,7 +159,10 @@ public final class JEExtensibleIndexer extends Indexer
       Map<ByteString, Boolean> modifiedKeys, Boolean insert,
       IndexingOptions options)
   {
-    if (attrList == null) return;
+    if (attrList != null)
+    {
+      return;
+    }
 
     final Set<ByteString> keys = new HashSet<ByteString>();
     indexAttribute(attrList, keys, options);
