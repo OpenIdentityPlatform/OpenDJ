@@ -60,26 +60,6 @@ class UserPasswordEqualityMatchingRule implements MatchingRuleImpl
 
   private static final String EQUALITY_ID = "equality";
 
-  /**
-   * Retrieves the normalized form of the provided value, which is best suited
-   * for efficiently performing matching operations on that value.
-   *
-   * @param schema The schema.
-   * @param value  The value to be normalized.
-   *
-   * @return  The normalized version of the provided value.
-   *
-   * @throws  DecodeException  If the provided value is invalid according to
-   *                              the associated attribute syntax.
-   */
-  @Override
-  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
-         throws DecodeException
-  {
-    // We will not alter the value in any way
-    return value.toByteString();
-  }
-
   private final Collection<? extends Indexer> indexers = Collections.singleton(new Indexer()
   {
     @Override
@@ -103,14 +83,32 @@ class UserPasswordEqualityMatchingRule implements MatchingRuleImpl
     return ByteSequence.COMPARATOR;
   }
 
+  /**
+   * Retrieves the normalized form of the provided value, which is best suited
+   * for efficiently performing matching operations on that value.
+   *
+   * @param schema The schema.
+   * @param value  The value to be normalized.
+   *
+   * @return  The normalized version of the provided value.
+   *
+   * @throws  DecodeException  If the provided value is invalid according to
+   *                              the associated attribute syntax.
+   */
+  @Override
+  public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException
+  {
+    // We will not alter the value in any way
+    return value.toByteString();
+  }
+
   /** {@inheritDoc} */
   @Override
   public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) throws DecodeException
   {
+    final ByteString normalizedAssertionValue = normalizeAttributeValue(schema, assertionValue);
     return new Assertion()
     {
-      final ByteString normalizedAssertionValue = normalizeAttributeValue(schema, assertionValue);
-
       @Override
       public ConditionResult matches(final ByteSequence normalizedAttributeValue)
       {
@@ -149,16 +147,16 @@ class UserPasswordEqualityMatchingRule implements MatchingRuleImpl
 
   /** {@inheritDoc} */
   @Override
-  public boolean isIndexingSupported()
+  public Collection<? extends Indexer> getIndexers()
   {
-    return indexers.isEmpty();
+    return indexers;
   }
 
   /** {@inheritDoc} */
   @Override
-  public Collection<? extends Indexer> getIndexers()
+  public boolean isIndexingSupported()
   {
-    return indexers;
+    return indexers.isEmpty();
   }
 
   /**
@@ -193,7 +191,7 @@ class UserPasswordEqualityMatchingRule implements MatchingRuleImpl
 
     // The first element of the array will be the scheme.
     // Make sure that we support the requested scheme.
-    PasswordStorageScheme<?> storageScheme =  getPasswordStorageScheme(userPWComponents[0]);
+    PasswordStorageScheme<?> storageScheme = getPasswordStorageScheme(userPWComponents[0]);
     if (storageScheme == null)
     {
       // It's not a scheme that we can support.
@@ -204,5 +202,5 @@ class UserPasswordEqualityMatchingRule implements MatchingRuleImpl
     return ConditionResult.valueOf(
         storageScheme.passwordMatches(assertionValue, ByteString.valueOf(userPWComponents[1])));
   }
-}
 
+}
