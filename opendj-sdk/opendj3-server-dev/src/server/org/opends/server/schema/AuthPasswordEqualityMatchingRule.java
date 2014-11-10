@@ -153,7 +153,7 @@ class AuthPasswordEqualityMatchingRule implements MatchingRuleImpl
   @Override
   public boolean isIndexingSupported()
   {
-    return indexers.isEmpty();
+    return !indexers.isEmpty();
   }
 
   private ConditionResult valuesMatch(ByteSequence attributeValue, ByteSequence assertionValue)

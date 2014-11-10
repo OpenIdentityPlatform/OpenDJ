@@ -156,7 +156,7 @@ class UserPasswordEqualityMatchingRule implements MatchingRuleImpl
   @Override
   public boolean isIndexingSupported()
   {
-    return indexers.isEmpty();
+    return !indexers.isEmpty();
   }
 
   /**
