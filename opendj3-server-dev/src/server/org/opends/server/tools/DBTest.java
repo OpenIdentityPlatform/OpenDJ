@@ -26,27 +26,28 @@
  */
 package org.opends.server.tools;
 
-import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.jeb.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.SortKey;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
 
@@ -60,13 +61,18 @@ import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
+import com.sleepycat.je.Cursor;
+import com.sleepycat.je.CursorConfig;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.LockMode;
+import com.sleepycat.je.OperationStatus;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.*;
-
-import com.sleepycat.je.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This program provides a utility that may be used to debug a JE backend. This
@@ -87,7 +93,7 @@ public class DBTest
    * Flag indicating whether or not the global arguments have already been
    * initialized.
    */
-  private boolean globalArgumentsInitialized = false;
+  private boolean globalArgumentsInitialized;
 
   /** The command-line argument parser. */
   private final SubCommandArgumentParser parser;
@@ -105,7 +111,7 @@ public class DBTest
    * Flag indicating whether or not the sub-commands have already been
    * initialized.
    */
-  private boolean subCommandsInitialized = false;
+  private boolean subCommandsInitialized;
 
 
 
@@ -170,7 +176,7 @@ public class DBTest
                                                toolDescription, false);
   }
 
-  // Displays the provided message followed by a help usage reference.
+  /** Displays the provided message followed by a help usage reference. */
   private void displayMessageAndUsageReference(LocalizableMessage message) {
     printMessage(message);
     printMessage(LocalizableMessage.EMPTY);
@@ -529,20 +535,20 @@ public class DBTest
     // Retrieve the sub-command implementation and run it.
     SubCommand subCommand = parser.getSubCommand();
     try {
-      if(subCommand.getName().equals("list-root-containers"))
+      if("list-root-containers".equals(subCommand.getName()))
       {
         return listRootContainers();
       }
-      else if(subCommand.getName().equals("list-entry-containers"))
+      else if("list-entry-containers".equals(subCommand.getName()))
       {
         return listEntryContainers(subCommand.getArgument("backendid"));
       }
-      else if(subCommand.getName().equals("list-database-containers"))
+      else if("list-database-containers".equals(subCommand.getName()))
       {
         return listDatabaseContainers(subCommand.getArgument("backendid"),
                                       subCommand.getArgument("basedn"));
       }
-      else if(subCommand.getName().equals("dump-database-container"))
+      else if("dump-database-container".equals(subCommand.getName()))
       {
         return dumpDatabaseContainer(subCommand.getArgument("backendid"),
                                      subCommand.getArgument("basedn"),
@@ -554,14 +560,12 @@ public class DBTest
                                      subCommand.getArgument("maxdatasize"),
                                      subCommand.getArgument("mindatasize"));
       }
-      else if(subCommand.getName().equals("list-index-status"))
+      else if("list-index-status".equals(subCommand.getName()))
       {
         return listIndexStatus(subCommand.getArgument("backendid"),
                                       subCommand.getArgument("basedn"));
       }
-      {
-        return 0;
-      }
+      return 0;
     } catch (Exception e) {
       printMessage(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
@@ -597,18 +601,7 @@ public class DBTest
 
   private int listEntryContainers(Argument backendID)
   {
-    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
-    BackendImpl backend = null;
-
-    for(BackendImpl b : jeBackends.values())
-    {
-      if(b.getBackendID().equalsIgnoreCase(backendID.getValue()))
-      {
-        backend = b;
-        break;
-      }
-    }
-
+    BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
       printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
@@ -669,8 +662,6 @@ public class DBTest
       out.format("%nTotal: %d%n", count);
 
       return 0;
-
-
     }
     catch(DatabaseException de)
     {
@@ -680,55 +671,21 @@ public class DBTest
     }
     finally
     {
-      try
-      {
-        // Close the root container
-        rc.close();
-      }
-      catch(DatabaseException de)
-      {
-        // Ignore.
-      }
-
-      // Release the shared lock on the backend.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
-        }
-      }
-      catch (Exception e)
-      {
-        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
-      }
+      close(rc);
+      releaseSharedLock(backend);
     }
   }
 
-  private int listDatabaseContainers(Argument backendID,
-                                     Argument baseDN)
+  private int listDatabaseContainers(Argument backendID, Argument baseDN)
   {
-    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
-    BackendImpl backend = null;
-    DN base = null;
-
-    for(BackendImpl b : jeBackends.values())
-    {
-      if(b.getBackendID().equalsIgnoreCase(backendID.getValue()))
-      {
-        backend = b;
-        break;
-      }
-    }
-
+    BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
       printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
       return 1;
     }
 
+    DN base = null;
     if(baseDN.isPresent())
     {
       try
@@ -788,7 +745,6 @@ public class DBTest
       if(base != null)
       {
         EntryContainer ec = rc.getEntryContainer(base);
-
         if(ec == null)
         {
           printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
@@ -796,48 +752,23 @@ public class DBTest
           return 1;
         }
 
-        ArrayList<DatabaseContainer> databaseContainers =
-            new ArrayList<DatabaseContainer>();
-        ec.listDatabases(databaseContainers);
-        for(DatabaseContainer dc : databaseContainers)
-        {
-          builder.startRow();
-          builder.appendCell(dc.getName().replace(ec.getDatabasePrefix()+"_",
-                                                  ""));
-          builder.appendCell(dc.getClass().getSimpleName());
-          builder.appendCell(dc.getName());
-          builder.appendCell(dc.getRecordCount());
-          count++;
-        }
+        count = appendDatabaseContainerRows(builder, ec, count);
       }
       else
       {
         for(EntryContainer ec : rc.getEntryContainers())
         {
           builder.startRow();
-          ArrayList<DatabaseContainer> databaseContainers =
-              new ArrayList<DatabaseContainer>();
-          ec.listDatabases(databaseContainers);
-          builder.appendCell("Base DN: " +
-              ec.getBaseDN().toNormalizedString());
-          for(DatabaseContainer dc : databaseContainers)
-          {
-            builder.startRow();
-            builder.appendCell(dc.getName().replace(
-                ec.getDatabasePrefix()+"_",""));
-            builder.appendCell(dc.getClass().getSimpleName());
-            builder.appendCell(dc.getName());
-            builder.appendCell(dc.getRecordCount());
-            count++;
-          }
+          builder.appendCell("Base DN: " + ec.getBaseDN().toNormalizedString());
+          count = appendDatabaseContainerRows(builder, ec, count);
         }
       }
 
       TextTablePrinter printer = new TextTablePrinter(out);
       builder.print(printer);
       out.format("%nTotal: %d%n", count);
-      return 0;
 
+      return 0;
     }
     catch(DatabaseException de)
     {
@@ -847,55 +778,81 @@ public class DBTest
     }
     finally
     {
-      try
-      {
-        // Close the root container
-        rc.close();
-      }
-      catch(DatabaseException de)
-      {
-        // Ignore.
-      }
-
-      // Release the shared lock on the backend.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
-        }
-      }
-      catch (Exception e)
-      {
-        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
-      }
+      close(rc);
+      releaseSharedLock(backend);
     }
   }
 
-  private int listIndexStatus(Argument backendID,
-                              Argument baseDN)
+  private int appendDatabaseContainerRows(TableBuilder builder, EntryContainer ec, int count)
   {
-    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
-    BackendImpl backend = null;
-    DN base = null;
-
-    for(BackendImpl b : jeBackends.values())
+    ArrayList<DatabaseContainer> databaseContainers = new ArrayList<DatabaseContainer>();
+    ec.listDatabases(databaseContainers);
+    String toReplace = ec.getDatabasePrefix() + "_";
+    for(DatabaseContainer dc : databaseContainers)
     {
-      if(b.getBackendID().equalsIgnoreCase(backendID.getValue()))
+      builder.startRow();
+      builder.appendCell(dc.getName().replace(toReplace, ""));
+      builder.appendCell(dc.getClass().getSimpleName());
+      builder.appendCell(dc.getName());
+      builder.appendCell(dc.getRecordCount());
+      count++;
+    }
+    return count;
+  }
+
+  private void close(RootContainer rc)
+  {
+    try
+    {
+      rc.close();
+    }
+    catch(DatabaseException ignored)
+    {
+      // Ignore.
+    }
+  }
+
+  private void releaseSharedLock(BackendImpl backend)
+  {
+    try
+    {
+      String lockFile = LockFileManager.getBackendLockFileName(backend);
+      StringBuilder failureReason = new StringBuilder();
+      if (!LockFileManager.releaseLock(lockFile, failureReason))
       {
-        backend = b;
-        break;
+        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
       }
     }
+    catch (Exception e)
+    {
+      printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
+    }
+  }
 
+  private BackendImpl getBackendById(Argument backendId)
+  {
+    Collection<BackendImpl> backends = getJEBackends().values();
+    String backendID = backendId.getValue();
+    for (BackendImpl b : backends)
+    {
+      if (b.getBackendID().equalsIgnoreCase(backendID))
+      {
+        return b;
+      }
+    }
+    return null;
+  }
+
+  private int listIndexStatus(Argument backendID, Argument baseDN)
+  {
+    BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
       printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
       return 1;
     }
 
+    DN base = null;
     if(baseDN.isPresent())
     {
       try
@@ -960,7 +917,6 @@ public class DBTest
 
 
       EntryContainer ec = rc.getEntryContainer(base);
-
       if(ec == null)
       {
         printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
@@ -973,24 +929,22 @@ public class DBTest
       Map<Index, StringBuilder> undefinedKeys =
           new HashMap<Index, StringBuilder>();
       ec.listDatabases(databaseContainers);
+      String toReplace = ec.getDatabasePrefix() + "_";
       for(DatabaseContainer dc : databaseContainers)
       {
         if(dc instanceof Index || dc instanceof VLVIndex)
         {
           builder.startRow();
-          builder.appendCell(dc.getName().replace(ec.getDatabasePrefix()+"_",
-                                                  ""));
+          builder.appendCell(dc.getName().replace(toReplace, ""));
           builder.appendCell(dc.getClass().getSimpleName());
           builder.appendCell(dc.getName());
           if(dc instanceof Index)
           {
-            builder.appendCell(ec.getState().getIndexTrustState(null,
-                                                                (dc)));
+            builder.appendCell(ec.getState().getIndexTrustState(null, dc));
           }
           else if(dc instanceof VLVIndex)
           {
-            builder.appendCell(ec.getState().getIndexTrustState(null,
-                                                               (dc)));
+            builder.appendCell(ec.getState().getIndexTrustState(null, dc));
           }
           builder.appendCell(dc.getRecordCount());
 
@@ -1008,7 +962,7 @@ public class DBTest
             while(status == OperationStatus.SUCCESS)
             {
               byte[] bytes = data.getData();
-              if (bytes.length == 0 || ((bytes[0] & 0x80) == 0x80))
+              if (bytes.length == 0 || (bytes[0] & 0x80) == 0x80)
               {
                 // Entry limit has exceeded and there is no encoded
                 //  undefined set size.
@@ -1081,8 +1035,7 @@ public class DBTest
       out.format("%nTotal: %d%n", count);
       for(Map.Entry<Index, StringBuilder> e : undefinedKeys.entrySet())
       {
-        out.format("%nIndex: %s%n",
-            e.getKey().getName().replace(ec.getDatabasePrefix()+"_", ""));
+        out.format("%nIndex: %s%n", e.getKey().getName().replace(toReplace, ""));
         out.format("Undefined keys: %s%n", e.getValue().toString());
       }
       return 0;
@@ -1095,30 +1048,8 @@ public class DBTest
     }
     finally
     {
-      try
-      {
-        // Close the root container
-        rc.close();
-      }
-      catch(DatabaseException de)
-      {
-        // Ignore.
-      }
-
-      // Release the shared lock on the backend.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
-        }
-      }
-      catch (Exception e)
-      {
-        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
-      }
+      close(rc);
+      releaseSharedLock(backend);
     }
   }
 
@@ -1128,25 +1059,14 @@ public class DBTest
                                     Argument maxKeyValue, Argument minKeyValue,
                                     Argument maxDataSize, Argument minDataSize)
   {
-    Map<LocalDBBackendCfg, BackendImpl> jeBackends = getJEBackends();
-    BackendImpl backend = null;
-    DN base = null;
-
-    for(BackendImpl b : jeBackends.values())
-    {
-      if(b.getBackendID().equalsIgnoreCase(backendID.getValue()))
-      {
-        backend = b;
-        break;
-      }
-    }
-
+    BackendImpl backend = getBackendById(backendID);
     if(backend == null)
     {
       printMessage(ERR_DBTEST_NO_BACKENDS_FOR_ID.get(backendID.getValue()));
       return 1;
     }
 
+    DN base = null;
     try
     {
       base = DN.valueOf(baseDN.getValue());
@@ -1191,7 +1111,6 @@ public class DBTest
     try
     {
       EntryContainer ec = rc.getEntryContainer(base);
-
       if(ec == null)
       {
         printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
@@ -1203,10 +1122,10 @@ public class DBTest
       ArrayList<DatabaseContainer> databaseContainers =
           new ArrayList<DatabaseContainer>();
       ec.listDatabases(databaseContainers);
+      String toReplace = ec.getDatabasePrefix() + "_";
       for(DatabaseContainer dc : databaseContainers)
       {
-        if(dc.getName().replace(ec.getDatabasePrefix()+"_","").
-            equalsIgnoreCase(databaseName.getValue()))
+        if(dc.getName().replace(toReplace, "").equalsIgnoreCase(databaseName.getValue()))
         {
           databaseContainer = dc;
           break;
@@ -1226,9 +1145,7 @@ public class DBTest
       long totalDataSize = 0;
       int indent = 4;
 
-      Cursor cursor =
-          databaseContainer.openCursor(null, CursorConfig.DEFAULT);
-
+      Cursor cursor = databaseContainer.openCursor(null, CursorConfig.DEFAULT);
       try
       {
         DatabaseEntry key = new DatabaseEntry();
@@ -1277,9 +1194,7 @@ public class DBTest
           {
             if(minKeyValue.getValue().startsWith("0x"))
             {
-              start =
-                  StaticUtils.hexStringToByteArray(minKeyValue.getValue().
-                      substring(2));
+              start = hexStringToByteArray(minKeyValue.getValue().substring(2));
             }
             else
             {
@@ -1326,9 +1241,7 @@ public class DBTest
           {
             if(maxKeyValue.getValue().startsWith("0x"))
             {
-              end =
-                  StaticUtils.hexStringToByteArray(maxKeyValue.getValue().
-                      substring(2));
+              end = hexStringToByteArray(maxKeyValue.getValue().substring(2));
             }
             else
             {
@@ -1379,6 +1292,7 @@ public class DBTest
           status = cursor.getFirst(key, data, lockMode);
         }
 
+        final String lineSep = System.getProperty("line.separator");
         while(status == OperationStatus.SUCCESS)
         {
           // Make sure this record is within the value size params
@@ -1424,8 +1338,7 @@ public class DBTest
             }
             else
             {
-              if(defaultComparator.compare(key.getData(),
-                                           end) > 0)
+              if (defaultComparator.compare(key.getData(), end) > 0)
               {
                 break;
               }
@@ -1468,11 +1381,10 @@ public class DBTest
                 keyLabel = INFO_LABEL_DBTEST_ENTRY_ID.get();
                 try
                 {
-                  formatedData = System.getProperty("line.separator") +
+                  formatedData = lineSep +
                       ID2Entry.entryFromDatabase(
                         ByteString.wrap(data.getData()),
-                        ec.getRootContainer().getCompressedSchema()).
-                              toLDIFString();
+                        ec.getRootContainer().getCompressedSchema()).toLDIFString();
                   dataLabel = INFO_LABEL_DBTEST_ENTRY.get();
                 }
                 catch(Exception e)
@@ -1503,20 +1415,18 @@ public class DBTest
                 formatedKey = new String(key.getData());
                 keyLabel = INFO_LABEL_DBTEST_INDEX_VALUE.get();
 
-                EntryIDSet idSet = new EntryIDSet(key.getData(),
-                                                data.getData());
+                EntryIDSet idSet = new EntryIDSet(key.getData(), data.getData());
                 if(idSet.isDefined())
                 {
                   int lineCount = 0;
                   StringBuilder builder = new StringBuilder();
 
-                  Iterator<EntryID> i = idSet.iterator();
-                  while(i.hasNext())
+                  for (EntryID entryID : idSet)
                   {
-                    builder.append(i.next());
+                    builder.append(entryID);
                     if(lineCount == 10)
                     {
-                      builder.append(System.getProperty("line.separator"));
+                      builder.append(lineSep);
                       lineCount = 0;
                     }
                     else
@@ -1581,8 +1491,7 @@ public class DBTest
                                    entryIDBytes.length);
                   long entryID = JebFormat.entryIDFromDatabase(entryIDBytes);
 
-                  formatedKey = System.getProperty("line.separator") +
-                      String.valueOf(entryID) + ": " + builder.toString();
+                  formatedKey = lineSep + entryID + ": " + builder;
                 }
                 else
                 {
@@ -1599,7 +1508,7 @@ public class DBTest
                   long[] entryIDs = svs.getEntryIDs();
                   for(int i = 0; i < entryIDs.length; i++)
                   {
-                    builder.append(String.valueOf(entryIDs[i]));
+                    builder.append(entryIDs[i]);
                     builder.append(": ");
                     for(int j = 0; j < sortKeys.length; j++)
                     {
@@ -1617,14 +1526,13 @@ public class DBTest
                       }
                       else
                       {
-                        builder.append(value.toString());
+                        builder.append(value);
                       }
                       builder.append(" ");
                     }
-                    builder.append(System.getProperty("line.separator"));
+                    builder.append(lineSep);
                   }
-                  formatedData = System.getProperty("line.separator") +
-                        builder.toString();
+                  formatedData = lineSep + builder;
                   dataLabel = INFO_LABEL_DBTEST_INDEX_ENTRY_ID_LIST.get();
                 }
                 catch(Exception e)
@@ -1639,18 +1547,14 @@ public class DBTest
             if(formatedKey == null)
             {
               StringBuilder keyBuilder = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(keyBuilder, key.getData(),
-                                                  indent);
-              formatedKey = System.getProperty("line.separator") +
-                  keyBuilder.toString();
+              StaticUtils.byteArrayToHexPlusAscii(keyBuilder, key.getData(), indent);
+              formatedKey = lineSep + keyBuilder;
             }
             if(formatedData == null)
             {
               StringBuilder dataBuilder = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(dataBuilder, data.getData(),
-                                                  indent);
-              formatedData = System.getProperty("line.separator") +
-                  dataBuilder.toString();
+              StaticUtils.byteArrayToHexPlusAscii(dataBuilder, data.getData(), indent);
+              formatedData = lineSep + dataBuilder;
             }
 
             out.format("%s (%d bytes): %s%n", keyLabel,
@@ -1686,37 +1590,15 @@ public class DBTest
     }
     finally
     {
-      try
-      {
-        // Close the root container
-        rc.close();
-      }
-      catch(DatabaseException de)
-      {
-        // Ignore.
-      }
-
-      // Release the shared lock on the backend.
-      try
-      {
-        String lockFile = LockFileManager.getBackendLockFileName(backend);
-        StringBuilder failureReason = new StringBuilder();
-        if (! LockFileManager.releaseLock(lockFile, failureReason))
-        {
-          printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), failureReason));
-        }
-      }
-      catch (Exception e)
-      {
-        printMessage(WARN_DBTEST_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(), getExceptionMessage(e)));
-      }
+      close(rc);
+      releaseSharedLock(backend);
     }
   }
 
   private Map<LocalDBBackendCfg, BackendImpl> getJEBackends()
   {
     ArrayList<Backend> backendList = new ArrayList<Backend>();
-    ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
+    ArrayList<BackendCfg> entryList = new ArrayList<BackendCfg>();
     ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
     BackendToolUtils.getBackends(backendList, entryList, dnList);
 
@@ -1724,14 +1606,13 @@ public class DBTest
         new LinkedHashMap<LocalDBBackendCfg, BackendImpl>();
     for(int i = 0; i < backendList.size(); i++)
     {
-      Backend backend = backendList.get(i);
+      Backend<?> backend = backendList.get(i);
       if(backend instanceof BackendImpl)
       {
         jeBackends.put((LocalDBBackendCfg)entryList.get(i),
                        (BackendImpl)backend);
       }
     }
-
     return jeBackends;
   }
 

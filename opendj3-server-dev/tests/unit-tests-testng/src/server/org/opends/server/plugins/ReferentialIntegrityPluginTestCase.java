@@ -48,16 +48,20 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RDN;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
 import static org.testng.Assert.*;
 
 /**
@@ -66,7 +70,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
-  //Config DNs and attributes.
+  /** Config DNs and attributes. */
   private DN configDN;
   private String dsConfigAttrType="ds-cfg-attribute-type";
   private String dsConfigBaseDN="ds-cfg-base-dn";
@@ -77,46 +81,45 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     "ds-cfg-check-references-filter-criteria";
   private String dsConfigPluginType = "ds-cfg-plugin-type";
 
-  //Suffixes to use for non-public naming context tests.
+  /** Suffixes to use for non-public naming context tests. */
   private String exSuffix="dc=example,dc=com";
   private String testSuffix="o=test";
 
-  //dc=example,dc=com entries.
+  /** Dc=example,dc=com entries. */
   private String user1="uid=user.1, ou=People, ou=dept," + exSuffix;
   private String user2="uid=user.2, ou=People, ou=dept," + exSuffix;
   private String user3="uid=user.3, ou=People, ou=dept," + exSuffix;
 
-  //Test entry to use for rename tests.
+  /** Test entry to use for rename tests. */
   private String tuser1="uid=user.1, ou=People, ou=dept," + testSuffix;
 
-  //Old superior, new superior and new RDN for move tree tests.
+  /** Old superior, new superior and new RDN for move tree tests. */
   private String newSuperior="ou=moved dept," + exSuffix;
   private String oldSuperior="ou=people, ou=dept," + exSuffix;
   private String newRdn="ou=moved people";
 
-  //DNs to verfiy that the moved tree test worked.
+  /** DNs to verfiy that the moved tree test worked. */
   private String user1_moved= "uid=user.1," + newRdn + ',' +newSuperior;
   private String user2_moved= "uid=user.2," + newRdn + ',' + newSuperior;
   private String user3_moved= "uid=user.3," + newRdn + ',' + newSuperior;
 
-  //DN to test that the rename test worked.
+  /** DN to test that the rename test worked. */
   private String tuser1_rename=
                               "cn=new user.1, ou=People, ou=dept," + testSuffix;
   private String tuser1_rdn="cn=new user.1";
 
-  //Test DNs to add to various groups.
+  /** Test DNs to add to various groups. */
   private String tuser2="uid=user.2, ou=People, ou=dept," + testSuffix;
   private String tuser3="uid=user.3, ou=People, ou=dept," + testSuffix;
 
-  //Groups to use for member and uniquemember attrbutes in dc=example, dc=com
-  //suffix.
+  /** Groups to use for member and uniquemember attributes in dc=example, dc=com suffix. */
   private String group = "cn=group, ou=groups," + exSuffix;
   private String ugroup = "cn=group, ou=unique groups," + exSuffix;
 
-  //DN to use for seeAlso attrbutes.
+  /** DN to use for seeAlso attributes. */
   private String spPerson = "cn=special person, ou=Special People," + exSuffix;
 
-  //Same as above but for o=test suffix.
+  /** Same as above but for o=test suffix. */
   private String tgroup = "cn=group, ou=groups," + testSuffix;
   private String tugroup = "cn=group, ou=unique groups," + testSuffix;
   private String tspPerson =
@@ -128,9 +131,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * the correct suffixes.
    *
    * @throws Exception If an unexpected result is returned.
-   *
    */
-  @Test()
+  @Test
   public void testModDNMoveTree() throws Exception {
     //Add attributes interested in: member, uniquemember, seealso.
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
@@ -165,9 +167,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * under the correct suffixes.
    *
    * @throws Exception If an unexpected result is returned.
-   *
    */
-  @Test()
+  @Test
   public void testReferentialDeleteTree() throws Exception {
     // Add attributes interested in: member, uniquemember, seealso.
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
@@ -208,15 +209,13 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     isAttributeValueEntry(spPerson, true, "seealso", user1, user2, user3);
   }
 
-   /**
+  /**
    * Test that a rename  changes the correct entries under
    * the correct suffixes.
    *
    * @throws Exception If an unexpected result is returned.
-    *
    */
-
-  @Test()
+  @Test
   public void testModDNMoveEntry() throws Exception {
     //Add attributes interested in: member, uniquemember, seealso.
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
@@ -247,9 +246,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * Test a delete using public naming contexts as base DNs.
    *
    * @throws Exception If an unexpected result is returned.
-   *
    */
-  @Test()
+  @Test
   public void testReferentialDelete() throws Exception {
    replaceAttrEntry(configDN, dsConfigAttrType,"member");
    addAttrEntry(DN.valueOf(tgroup), "member", tuser1, tuser2, tuser3);
@@ -260,13 +258,12 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
   /**
    * Test that delete using public naming context works in both background
-   * processing (set interval to 1 and wait 2 seconds) and forground. The
-   * changes are made without restarting the server.
+   * processing (set interval to 1 and wait 2 seconds) and foreground.
+   * The changes are made without restarting the server.
    *
    * @throws Exception If an unexpected result happens.
-   *
    */
-  @Test()
+  @Test
    public void testReferentialDeleteBackGround() throws Exception {
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
     //Set interval to 1 second, this should start the background thread
@@ -277,8 +274,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     //Wait two seconds and then check the group.
     Thread.sleep(2000);
     isMember(tgroup, false, tuser1, tuser2, tuser3);
-    //Change the interval to zero seconds, this should stop the background
-    //thread.
+    //Change the interval to zero seconds, this should stop the background thread
     replaceAttrEntry(configDN, dsConfigUpdateInterval,"0 seconds");
     addEntries(tuser1, tuser2, tuser3);
     addAttrEntry(DN.valueOf(tgroup), "member", tuser1, tuser2, tuser3);
@@ -291,9 +287,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * Test delete using multiple attribute types and public naming contexts.
    *
    * @throws Exception If an unexpected result happened.
-   *
    */
-  @Test()
+  @Test
    public void testReferentialDeleteAttrs() throws Exception {
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
     addAttrEntry(configDN, dsConfigAttrType,"uniquemember", "seealso");
@@ -302,19 +297,16 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     addAttrEntry(DN.valueOf(tspPerson), "seealso", tuser1, tuser2, tuser3);
     deleteEntries(tuser1, tuser2, tuser3);
     isMember(tgroup, false, tuser1, tuser2, tuser3);
-    isAttributeValueEntry(tugroup, false, "uniquemember",
-                          tuser1, tuser2, tuser3);
-    isAttributeValueEntry(tspPerson, false,"seealso",
-                          tuser1, tuser2, tuser3);
+    isAttributeValueEntry(tugroup, false, "uniquemember", tuser1, tuser2, tuser3);
+    isAttributeValueEntry(tspPerson, false,"seealso", tuser1, tuser2, tuser3);
    }
 
   /**
    * Check delete with multiple attribute types and multiple suffixes.
    *
    * @throws Exception If an unexpected result happened.
-   *
    */
-  @Test()
+  @Test
    public void testReferentialDeleteAttrsSuffix() throws Exception {
     replaceAttrEntry(configDN, dsConfigAttrType,"member");
     addAttrEntry(configDN, dsConfigAttrType,"uniquemember", "seealso");
@@ -810,9 +802,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-          throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
     configDN= DN.valueOf("cn=Referential Integrity ,cn=Plugins,cn=config");
@@ -823,7 +814,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * entries.
    *
    * @throws Exception If an unexpected problem occurs.
-   *
    */
   @BeforeMethod
   public void clearConfigEntries() throws Exception {
@@ -1106,18 +1096,19 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    *
    */
   private AttributeType getAttrType(String attrTypeString) {
-    AttributeType attrType =
-            DirectoryServer.getAttributeType(attrTypeString);
+    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeString);
     if (attrType == null)
+    {
       attrType = DirectoryServer.getDefaultAttributeType(attrTypeString);
+    }
     return attrType;
   }
 
   private void deleteEntries(String... dns) throws Exception{
     InternalClientConnection conn = getRootConnection();
     for(String dn : dns) {
-         DeleteOperation op=conn.processDelete(DN.valueOf(dn));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+      DeleteOperation op = conn.processDelete(DN.valueOf(dn));
+      assertEquals(op.getResultCode(), ResultCode.SUCCESS);
     }
   }
 
@@ -1153,12 +1144,13 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * @throws Exception If an unexpected membership occurs.
    *
    */
-  private void isMember(String group, boolean expected, String... dns)
-  throws Exception {
+  private void isMember(String group, boolean expected, String... dns) throws Exception {
    GroupManager groupManager=DirectoryServer.getGroupManager();
    Group<?> instance=groupManager.getGroupInstance(DN.valueOf(group));
    for(String dn : dns)
+   {
      assertEquals(instance.isMember(DN.valueOf(dn)), expected);
+   }
   }
 
   private void isAttributeValueEntry(String entryDN, boolean expected,
@@ -1214,29 +1206,29 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   /**
    * Perform modify DN operation.
    *
-   * @param dn  The DN to renmame or move.
-   *
+   * @param dn  The DN to rename or move.
    * @param rdn RDN value.
-   *
    * @param newSuperior New superior to move to.
-   *
    * @throws Exception If the operation can't be performed.
-   *
    */
-  private void
-  doModDN(String dn, String rdn, String newSuperior) throws Exception {
+  private void doModDN(String dn, String rdn, String newSuperior) throws Exception
+  {
     InternalClientConnection conn = getRootConnection();
     ModifyDNOperation modDNop;
     if(newSuperior != null)
+    {
         modDNop = conn.processModifyDN(DN.valueOf(dn), RDN.decode(rdn), true,
                                        DN.valueOf(newSuperior));
+    }
     else
+    {
         modDNop = conn.processModifyDN(DN.valueOf(dn), RDN.decode(rdn),
                                        false, null);
+    }
     assertEquals(modDNop.getResultCode(), ResultCode.SUCCESS);
   }
 
-    /**
+  /**
    * Test case:
    * - integrity is enforced on the attribute 'manager'
    * - value of the 'manager' attribute should match the filter:
@@ -1247,9 +1239,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - SUCCESS
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddUserWitManagerFilterNoNC()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddUserWitManagerFilterNoNC() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1292,9 +1283,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - SUCCESS
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddUserWitManagerFilter()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddUserWitManagerFilter() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1326,7 +1316,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "manager: uid=manager,ou=people,ou=dept,dc=example,dc=com");
   }
 
-    /**
+  /**
    * Test case:
    * - integrity is enforced on the attribute 'manager'
    * - value of the 'manager' attribute should match the filter:
@@ -1336,9 +1326,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - CONSTRAINT VIOLATION
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddUserWithMissingManagerEntry()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddUserWithMissingManagerEntry() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1368,11 +1357,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "manager: uid=bad,ou=people,ou=dept,dc=example,dc=com");
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
-    assertEquals(addOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
-    /**
+  /**
    * Test case:
    * - integrity is enforced on the attribute 'manager'
    * - value of the 'manager' attribute should match the filter:
@@ -1384,9 +1372,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - CONSTRAINT VIOLATION
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddUserWitManagerFilterMismatch()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddUserWitManagerFilterMismatch() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1418,11 +1405,10 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       "manager: uid=manager,ou=people,ou=dept,dc=example,dc=com");
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
-    assertEquals(addOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
-    /**
+  /**
    * Test case:
    * - integrity is enforced on the attribute 'manager'
    * - value of the 'manager' attribute should match the filter:
@@ -1433,9 +1419,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - SUCCESS
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddUserWithManagerNC()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddUserWithManagerNC() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1479,9 +1464,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - SUCCESS
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddGroupWithFilter()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddGroupWithFilter() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1521,9 +1505,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - CONSTRAINT VIOLATION
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddGroupWithMissingMember()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddGroupWithMissingMember() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1553,8 +1536,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       );
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
-    assertEquals(addOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1568,9 +1550,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - CONSTRAINT VIOLATION
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddGroupMemberFilterMismatch()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddGroupMemberFilterMismatch() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1600,8 +1581,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       );
 
     AddOperation addOperation = getRootConnection().processAdd(entry);
-    assertEquals(addOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1615,9 +1595,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - SUCCESS
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityAddGroupMemberNC()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityAddGroupMemberNC() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1656,9 +1635,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - add 'manager' attribute to the manager entry
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityModifyUserAddManagerFilter()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyUserAddManagerFilter() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1691,9 +1669,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - modify 'manager' attribute to the 'user.2' entry
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityModifyUserModifyManagerFilter()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyUserModifyManagerFilter() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1730,9 +1707,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - constraint violation
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityModifyUserAddManagerFilterMismatch()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyUserAddManagerFilterMismatch() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1753,8 +1729,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
-    assertEquals(modOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(modOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -1766,9 +1741,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - SUCCESS
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityModifyUserAddManagerNC()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyUserAddManagerNC() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1791,8 +1765,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,o=test");
-    assertEquals(modOperation.getResultCode(),
-                 ResultCode.SUCCESS);
+    assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
   /**
@@ -1803,9 +1776,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * - constraint violation
    * @throws Exception
    */
-  @Test()
-  public void testEnforceIntegrityModifyUserAddManagerMissing()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyUserAddManagerMissing() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1824,13 +1796,11 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(user1),
      "manager", "uid=manager,ou=people,ou=dept,dc=example,dc=com");
-    assertEquals(modOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(modOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
-  @Test()
-  public void testEnforceIntegrityModifyGroupAddMember()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyGroupAddMember() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1853,9 +1823,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
     assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
-  @Test()
-  public void testEnforceIntegrityModifyGroupAddMissingMember()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyGroupAddMissingMember() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1874,13 +1843,11 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
       "member", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
-    assertEquals(modOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(modOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
-  @Test()
-  public void testEnforceIntegrityModifyGroupAddMemberFilterMismatch()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyGroupAddMemberFilterMismatch() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1899,13 +1866,11 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
       "member", "uid=user.100,ou=people,ou=dept,dc=example,dc=com");
-    assertEquals(modOperation.getResultCode(),
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(modOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
-  @Test()
-  public void testEnforceIntegrityModifyGroupAddMemberNC()
-    throws Exception
+  @Test
+  public void testEnforceIntegrityModifyGroupAddMemberNC() throws Exception
   {
     replaceAttrEntry(configDN, "ds-cfg-enabled", "false");
     replaceAttrEntry(configDN, dsConfigPluginType,
@@ -1926,7 +1891,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     ModifyOperation modOperation = addAttrEntry(DN.valueOf(group),
       "member", "uid=user.1,ou=people,ou=dept,o=test");
-    assertEquals(modOperation.getResultCode(),
-                 ResultCode.SUCCESS);
+    assertEquals(modOperation.getResultCode(), ResultCode.SUCCESS);
   }
 }
