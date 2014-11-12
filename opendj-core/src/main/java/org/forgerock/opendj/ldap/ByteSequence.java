@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -117,6 +117,7 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      *         whether this byte sequence is less than, equal to, or greater
      *         than the specified object.
      */
+    @Override
     int compareTo(ByteSequence o);
 
     /**
@@ -235,6 +236,7 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      *         content is equal to that of this byte sequence, or {@code false}
      *         if not.
      */
+    @Override
     boolean equals(Object o);
 
     /**
@@ -243,6 +245,7 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      *
      * @return A hash code for this byte sequence.
      */
+    @Override
     int hashCode();
 
     /**
@@ -325,5 +328,6 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      *
      * @return The string representation of this byte sequence.
      */
+    @Override
     String toString();
 }
