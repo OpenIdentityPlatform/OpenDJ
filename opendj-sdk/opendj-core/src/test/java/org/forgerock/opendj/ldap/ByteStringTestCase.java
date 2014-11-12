@@ -22,12 +22,9 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap;
-
-import static org.fest.assertions.Assertions.*;
 
 import java.util.Arrays;
 
@@ -37,6 +34,8 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
 
 /**
  * This class defines a set of tests for the ByteString class.
@@ -229,11 +228,28 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
                         + "8PHy8/T19vf4+fr7/P3+/w==" }, };
     }
 
+    @DataProvider
+    public Object[][] comparatorTest() throws Exception {
+        final Object[][] array = byteSequenceProvider();
+        int len = array.length;
+        final Object[][] result = new Object[len + 4][];
+        for (int i = 0; i < array.length; i++) {
+            final Object[] original = array[i];
+            final Object[] copy = Arrays.copyOf(original, original.length + 1);
+            copy[original.length] = 0;
+            result[i] = copy;
+        }
+        result[len++] = new Object[] { ByteString.empty(), new byte[0], 0 };
+        result[len++] = new Object[] { ByteString.empty(), "bla".getBytes("UTF8"), -3 };
+        result[len++] = new Object[] { ByteString.valueOf("bla"), new byte[0], 3 };
+        result[len++] = new Object[] { ByteString.valueOf("bla"), "bla".getBytes("UTF8"), 0 };
+        return result;
+    }
+
     @Test(dataProvider = "invalidBase64Data",
             expectedExceptions = { LocalizedIllegalArgumentException.class })
     public void testValueOfBase64ThrowsLIAE(final String invalidBase64) throws Exception {
-        Assert.fail("Expected exception but got result: "
-                + Arrays.toString(new ByteString[] { ByteString.valueOfBase64(invalidBase64) }));
+        ByteString.valueOfBase64(invalidBase64);
     }
 
     @Test(dataProvider = "validBase64Data")
@@ -270,5 +286,16 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
     @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testValueOfInvalidHex() {
         ByteString.valueOfHex("636E3D746573x7476616C7565");
+    }
+
+    @Test(dataProvider = "comparatorTest")
+    public void testComparator(final ByteSequence bs, final byte[] ba, final int expectedCmp) throws Exception {
+        assertThat(ByteSequence.COMPARATOR.compare(bs, ByteString.wrap(ba))).isEqualTo(expectedCmp);
+    }
+
+    @Test(dataProvider = "comparatorTest")
+    public void testByteArrayComparator(final ByteSequence bs, final byte[] ba, final int expectedCmp)
+            throws Exception {
+        assertThat(ByteSequence.BYTE_ARRAY_COMPARATOR.compare(bs.toByteArray(), ba)).isEqualTo(expectedCmp);
     }
 }

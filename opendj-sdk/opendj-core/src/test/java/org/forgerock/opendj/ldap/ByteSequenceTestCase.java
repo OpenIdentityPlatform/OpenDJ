@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
@@ -158,14 +157,8 @@ public abstract class ByteSequenceTestCase extends SdkTestCase {
     }
 
     @Test(dataProvider = "byteSequenceProvider")
-    public void testToString(final ByteSequence bs, final byte[] ba) {
-        String str;
-        try {
-            str = new String(ba, "UTF-8");
-        } catch (final UnsupportedEncodingException uee) {
-            str = new String(ba);
-        }
-
+    public void testToString(final ByteSequence bs, final byte[] ba) throws Exception {
+        String str = new String(ba, "UTF-8");
         Assert.assertTrue(bs.toString().equals(str));
     }
 
