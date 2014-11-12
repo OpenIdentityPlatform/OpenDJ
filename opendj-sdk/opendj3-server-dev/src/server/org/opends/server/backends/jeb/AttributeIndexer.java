@@ -159,7 +159,7 @@ public final class AttributeIndexer extends Indexer
       Map<ByteString, Boolean> modifiedKeys, Boolean insert,
       IndexingOptions options)
   {
-    if (attrList != null)
+    if (attrList == null)
     {
       return;
     }
