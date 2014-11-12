@@ -41,6 +41,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 final class CoreSchemaImpl {
     private static final Map<String, List<String>> X500_ORIGIN = Collections.singletonMap(
@@ -891,7 +892,7 @@ final class CoreSchemaImpl {
      */
     private static void addCollationMatchingRules(final SchemaBuilder builder) {
         // Build an intermediate map to ensure each locale name appears only once
-        final Map<String, Locale> localesCache = new HashMap<String, Locale>();
+        final Map<String, Locale> localesCache = new TreeMap<String, Locale>();
         for (Locale locale : Locale.getAvailableLocales()) {
             localesCache.put(localeName(locale), locale);
         }
