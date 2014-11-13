@@ -174,8 +174,7 @@ public final class AttributeFilter {
                  */
                 return new Iterable<Attribute>() {
                     private boolean hasNextMustIterate = true;
-                    private final Iterator<Attribute> iterator = entry.getAllAttributes()
-                            .iterator();
+                    private final Iterator<Attribute> iterator = entry.getAllAttributes().iterator();
                     private Attribute next = null;
 
                     @Override
@@ -187,11 +186,9 @@ public final class AttributeFilter {
                                     hasNextMustIterate = false;
                                     while (iterator.hasNext()) {
                                         final Attribute attribute = iterator.next();
-                                        final AttributeDescription ad =
-                                                attribute.getAttributeDescription();
+                                        final AttributeDescription ad = attribute.getAttributeDescription();
                                         final AttributeType at = ad.getAttributeType();
-                                        final AttributeDescription requestedAd =
-                                                requestedAttributes.get(ad);
+                                        final AttributeDescription requestedAd = requestedAttributes.get(ad);
                                         if (requestedAd != null) {
                                             next = renameAttribute(attribute, requestedAd);
                                             return true;
@@ -371,32 +368,29 @@ public final class AttributeFilter {
 
     @Override
     public String toString() {
-        if (!includeAllOperationalAttributes && !includeAllUserAttributes
+        if (!includeAllOperationalAttributes
+                && !includeAllUserAttributes
                 && requestedAttributes.isEmpty()) {
             return "1.1";
-        } else {
-            boolean isFirst = true;
-            final StringBuilder builder = new StringBuilder();
-            if (includeAllUserAttributes) {
-                builder.append('*');
-                isFirst = false;
-            }
-            if (includeAllOperationalAttributes) {
-                if (!isFirst) {
-                    builder.append(", ");
-                }
-                builder.append('+');
-                isFirst = false;
-            }
-            for (final AttributeDescription requestedAttribute : requestedAttributes.keySet()) {
-                if (!isFirst) {
-                    builder.append(", ");
-                }
-                builder.append(requestedAttribute.toString());
-                isFirst = false;
-            }
-            return builder.toString();
         }
+
+        final StringBuilder builder = new StringBuilder();
+        if (includeAllUserAttributes) {
+            builder.append('*');
+        }
+        if (includeAllOperationalAttributes) {
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append('+');
+        }
+        for (final AttributeDescription requestedAttribute : requestedAttributes.keySet()) {
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append(requestedAttribute);
+        }
+        return builder.toString();
     }
 
     /**

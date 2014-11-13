@@ -228,7 +228,7 @@ public final class PropertySet {
         for (Map.Entry<PropertyDefinition<?>, MyProperty<?>> entry : properties.entrySet()) {
             builder.append(entry.getKey().getName());
             builder.append('=');
-            builder.append(entry.getValue().toString());
+            builder.append(entry.getValue());
             builder.append(' ');
         }
         builder.append('}');

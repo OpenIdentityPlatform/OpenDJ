@@ -408,7 +408,7 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
         StringBuilder builder = new StringBuilder();
         builder.append(value);
         builder.append(' ');
-        builder.append(baseUnit.toString());
+        builder.append(baseUnit);
         return builder.toString();
     }
 
