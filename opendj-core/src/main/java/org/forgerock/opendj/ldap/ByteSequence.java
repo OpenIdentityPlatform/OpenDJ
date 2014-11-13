@@ -37,7 +37,7 @@ import java.util.Comparator;
 public interface ByteSequence extends Comparable<ByteSequence> {
 
     /** A byte array comparator. */
-    public static final Comparator<byte[]> BYTE_ARRAY_COMPARATOR = new Comparator<byte[]>() {
+    Comparator<byte[]> BYTE_ARRAY_COMPARATOR = new Comparator<byte[]>() {
         @Override
         public int compare(final byte[] b1, final byte[] b2) {
             return ByteString.compareTo(b1, 0, b1.length, b2, 0, b2.length);
@@ -45,7 +45,7 @@ public interface ByteSequence extends Comparable<ByteSequence> {
     };
 
     /** A ByteSequence comparator. */
-    public static final Comparator<ByteSequence> COMPARATOR = new Comparator<ByteSequence>() {
+    Comparator<ByteSequence> COMPARATOR = new Comparator<ByteSequence>() {
         @Override
         public int compare(final ByteSequence o1, final ByteSequence o2) {
             return o1.compareTo(o2);
