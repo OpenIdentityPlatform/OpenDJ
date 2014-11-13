@@ -1686,7 +1686,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     while (suffixes.isEmpty())
     {
-      if (!noSchemaOrAds(availableSuffixes))
+      if (containsSchemaOrAdminSuffix(availableSuffixes))
       {
         // In interactive mode we do not propose to manage the
         // administration suffix.
@@ -1706,11 +1706,11 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
-  private boolean noSchemaOrAds(Collection<String> suffixes)
+  private boolean containsSchemaOrAdminSuffix(Collection<String> suffixes)
   {
     for (String suffix : suffixes)
     {
-      if (isNotSchemaOrAds(suffix))
+      if (isSchemaOrAdminSuffix(suffix))
       {
         return true;
       }
@@ -1718,10 +1718,10 @@ public class ReplicationCliMain extends ConsoleApplication
     return false;
   }
 
-  private boolean isNotSchemaOrAds(String suffix)
+  private boolean isSchemaOrAdminSuffix(String suffix)
   {
-    return !areDnsEqual(suffix, ADSContext.getAdministrationSuffixDN())
-        && !areDnsEqual(suffix, Constants.SCHEMA_DN);
+    return areDnsEqual(suffix, ADSContext.getAdministrationSuffixDN())
+        || areDnsEqual(suffix, Constants.SCHEMA_DN);
   }
 
   /**
@@ -4687,7 +4687,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         while (suffixes.isEmpty())
         {
-          if (!noSchemaOrAds(availableSuffixes))
+          if (containsSchemaOrAdminSuffix(availableSuffixes))
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
@@ -4725,7 +4725,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     for (String dn : availableSuffixes)
     {
-      if (isNotSchemaOrAds(dn))
+      if (!isSchemaOrAdminSuffix(dn))
       {
         try
         {
@@ -4843,19 +4843,16 @@ public class ReplicationCliMain extends ConsoleApplication
         while (suffixes.isEmpty())
         {
           println();
-          if (!noSchemaOrAds(availableSuffixes))
+          if (containsSchemaOrAdminSuffix(availableSuffixes))
           {
-            // In interactive mode we do not propose to manage the
-            // administration suffix.
+            // In interactive mode we do not propose to manage the administration suffix.
             if (argParser.isInitializeAllReplicationSubcommand())
             {
-              println(
-                ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
+              println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_ALL_REPLICATION.get());
             }
             else
             {
-              println(
-               ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
+              println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_LOCAL_REPLICATION.get());
             }
             break;
           }
@@ -4876,7 +4873,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
             for (String dn : availableSuffixes)
             {
-              if (isNotSchemaOrAds(dn))
+              if (!isSchemaOrAdminSuffix(dn))
               {
                 boolean addSuffix;
                 try
@@ -5160,16 +5157,13 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           // They are already replicated: nothing to do in terms of ADS
           // initialization or ADS update data
-          adsAlreadyReplicated = isBaseDNReplicated(server1, server2,
-              ADSContext.getAdministrationSuffixDN());
+          adsAlreadyReplicated = isBaseDNReplicated(server1, server2, ADSContext.getAdministrationSuffixDN());
 
           if (!adsAlreadyReplicated)
           {
             // Try to merge if both are replicated
-            boolean isADS1Replicated = isBaseDNReplicated(server1,
-                ADSContext.getAdministrationSuffixDN());
-            boolean isADS2Replicated = isBaseDNReplicated(server2,
-                ADSContext.getAdministrationSuffixDN());
+            boolean isADS1Replicated = isBaseDNReplicated(server1, ADSContext.getAdministrationSuffixDN());
+            boolean isADS2Replicated = isBaseDNReplicated(server2, ADSContext.getAdministrationSuffixDN());
             if (isADS1Replicated && isADS2Replicated)
             {
               // Merge
@@ -5489,8 +5483,8 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<Integer> usedIds = hmUsedReplicationDomainIds.get(baseDN);
       Set<String> alreadyConfiguredServers = new HashSet<String>();
 
-      if (uData.configureReplicationDomain1() ||
-          areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
+      if (uData.configureReplicationDomain1()
+          || areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
       {
         try
         {
@@ -5505,8 +5499,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       alreadyConfiguredServers.add(server1.getId());
 
-      if (uData.configureReplicationDomain2() ||
-          areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
+      if (uData.configureReplicationDomain2()
+          || areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
       {
         try
         {
@@ -5546,8 +5540,7 @@ public class ReplicationCliMain extends ConsoleApplication
       pointAdder.start();
       try
       {
-        initializeAllSuffix(ADSContext.getAdministrationSuffixDN(),
-          ctxSource, false);
+        initializeAllSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource, false);
       }
       finally
       {
@@ -5563,8 +5556,7 @@ public class ReplicationCliMain extends ConsoleApplication
           INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
               getHostPort(ctxDestination), getHostPort(ctxSource))));
 
-      initializeSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource,
-          ctxDestination, false);
+      initializeSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource, ctxDestination, false);
       print(formatter.getFormattedDone());
       println();
     }
@@ -5725,9 +5717,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       for (SuffixDescriptor suffix : cache.getSuffixes())
       {
-        if (areDnsEqual(suffix.getDN(),
-            ADSContext.getAdministrationSuffixDN()) ||
-            areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
+        if (isSchemaOrAdminSuffix(suffix.getDN()))
         {
           // Do not display these suffixes.
           continue;
@@ -5754,9 +5744,7 @@ public class ReplicationCliMain extends ConsoleApplication
         Set<String> baseDNs = new LinkedHashSet<String>();
         for (SuffixDescriptor suffix : beforeLastRepServer)
         {
-          if (!areDnsEqual(suffix.getDN(),
-              ADSContext.getAdministrationSuffixDN()) &&
-              !areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
+          if (!isSchemaOrAdminSuffix(suffix.getDN()))
           {
             // Do not display these suffixes.
             baseDNs.add(suffix.getDN());
@@ -5789,14 +5777,8 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean baseDNSpecified = false;
           for (String baseDN : uData.getBaseDNs())
           {
-            if (areDnsEqual(baseDN,
-                ADSContext.getAdministrationSuffixDN()) ||
-                areDnsEqual(baseDN, Constants.SCHEMA_DN))
-            {
-              // Do not display these suffixes.
-              continue;
-            }
-            if (areDnsEqual(baseDN, suffix.getDN()))
+            if (!isSchemaOrAdminSuffix(baseDN)
+                && areDnsEqual(baseDN, suffix.getDN()))
             {
               baseDNSpecified = true;
               break;
@@ -6130,17 +6112,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
       // If no base DNs where specified display all the base DNs but the schema
       // and cn=admin data.
-      boolean found;
-      if (userBaseDNs.isEmpty())
-      {
-        found = containsDN(userBaseDNs, dn);
-      }
-      else
-      {
-        found = displayAll
-            && !areDnsEqual(dn, ADSContext.getAdministrationSuffixDN())
-            && !areDnsEqual(dn, Constants.SCHEMA_DN);
-      }
+      boolean found = containsDN(userBaseDNs, dn)
+          || (displayAll && !isSchemaOrAdminSuffix(dn));
       if (found)
       {
         boolean replicated = false;
@@ -6964,8 +6937,8 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       userSpecifiedAdminBaseDN = containsDN(l, ADSContext.getAdministrationSuffixDN());
     }
-    if (!userSpecifiedAdminBaseDN && areDnsEqual(baseDN,
-        ADSContext.getAdministrationSuffixDN()))
+    if (!userSpecifiedAdminBaseDN
+        && areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
     {
       print(formatter.getFormattedWithPoints(
           INFO_REPLICATION_ENABLE_CONFIGURING_ADS.get(getHostPort(ctx))));
