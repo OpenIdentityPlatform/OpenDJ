@@ -36,65 +36,48 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * This class represents a single bind rule of an ACI permission-bind rule
- * pair.
+ * This class represents a single bind rule of an ACI permission-bind rule pair.
  */
 public class BindRule {
 
     /** This hash table holds the keyword bind rule mapping. */
-    private final HashMap<String, KeywordBindRule> keywordRuleMap =
-                                    new HashMap<String, KeywordBindRule>();
+    private final HashMap<String, KeywordBindRule> keywordRuleMap = new HashMap<String, KeywordBindRule>();
 
     /** True is a boolean "not" was seen. */
-    private boolean negate=false;
+    private boolean negate;
 
     /** Complex bind rules have left and right values. */
-    private BindRule left = null;
-    private BindRule right = null;
+    private BindRule left;
+    private BindRule right;
 
-    /**
-     * Enumeration of the boolean type of the complex bind rule ("and" or "or").
-     */
-    private EnumBooleanTypes booleanType = null;
-
+    /** Enumeration of the boolean type of the complex bind rule ("and" or "or"). */
+    private EnumBooleanTypes booleanType;
     /** The keyword of a simple bind rule. */
-    private EnumBindRuleKeyword keyword = null;
+    private EnumBindRuleKeyword keyword;
 
     /** Regular expression group position of a bind rule keyword. */
     private static final int keywordPos = 1;
-
     /** Regular expression group position of a bind rule operation. */
     private static final int opPos = 2;
-
     /** Regular expression group position of a bind rule expression. */
     private static final int expressionPos = 3;
-
-    /**
-     * Regular expression group position of the remainder part of an operand.
-     */
+    /** Regular expression group position of the remainder part of an operand. */
     private static final int remainingOperandPos = 1;
-
     /** Regular expression group position of the remainder of the bind rule. */
     private static final int remainingBindrulePos = 2;
 
     /** Regular expression for valid bind rule operator group. */
     private static final String opRegGroup = "([!=<>]+)";
 
-    /**
-     * Regular expression for the expression part of a partially parsed
-     * bind rule.
-     */
-    private static final String expressionRegex =
-                                  "\"([^\"]+)\"" + ZERO_OR_MORE_WHITESPACE;
+    /** Regular expression for the expression part of a partially parsed bind rule. */
+    private static final String expressionRegex = "\"([^\"]+)\"" + ZERO_OR_MORE_WHITESPACE;
 
     /** Regular expression for a single bind rule. */
     private static final String bindruleRegex =
         WORD_GROUP_START_PATTERN + ZERO_OR_MORE_WHITESPACE +
         opRegGroup + ZERO_OR_MORE_WHITESPACE + expressionRegex;
 
-    /**
-     * Regular expression of the remainder part of a partially parsed bind rule.
-     */
+    /** Regular expression of the remainder part of a partially parsed bind rule. */
     private static final String remainingBindruleRegex =
         ZERO_OR_MORE_WHITESPACE_START_PATTERN + WORD_GROUP +
         ZERO_OR_MORE_WHITESPACE + "(.*)$";
@@ -152,8 +135,7 @@ public class BindRule {
      * @param right The right bind rule.
      * @param booleanType The boolean type enumeration ("and" or "or").
      */
-    private BindRule(BindRule left, BindRule right,
-            EnumBooleanTypes booleanType) {
+    private BindRule(BindRule left, BindRule right, EnumBooleanTypes booleanType) {
         this.booleanType = booleanType;
         this.left = left;
         this.right = right;
@@ -172,9 +154,8 @@ public class BindRule {
      * @return A BindRule class representing the bind rule.
      * @throws AciException If the string is an invalid bind rule.
      */
-    public static BindRule decode (String input)
-    throws AciException {
-        if ((input == null) || (input.length() == 0))
+    public static BindRule decode (String input) throws AciException {
+        if (input == null || input.length() == 0)
         {
           return null;
         }
@@ -202,8 +183,7 @@ public class BindRule {
             }
             if (numClose == numOpen)
             {
-              //We found the associated closed parenthesis
-              //the parenthesis are removed
+              // We found the associated closed parenthesis the parenthesis are removed
               String bindruleStr1 = bindruleStr.substring(1, currentPos);
               bindrule_1 = BindRule.decode(bindruleStr1);
               break;
@@ -215,33 +195,26 @@ public class BindRule {
            * Raise an exception otherwise.
            */
           if (numOpen > numClose) {
-              LocalizableMessage message =
-                  ERR_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN.get(input);
-              throw new AciException(message);
+              throw new AciException(WARN_ACI_SYNTAX_BIND_RULE_MISSING_CLOSE_PAREN.get(input));
           }
           /*
-           * If there are remaining chars => there MUST be an
-           * operand (AND / OR)
+           * If there are remaining chars => there MUST be an operand (AND / OR)
            * otherwise there is a syntax error
            */
-          if (currentPos < (bindruleArray.length - 1))
+          if (currentPos < bindruleArray.length - 1)
           {
             String remainingBindruleStr =
                 bindruleStr.substring(currentPos + 1);
             return createBindRule(bindrule_1, remainingBindruleStr);
           }
-          else
-          {
-            return bindrule_1;
-          }
+          return bindrule_1;
         }
         else
         {
           StringBuilder b=new StringBuilder(bindruleStr);
           /*
            * TODO Verify by unit test that this negation
-           * is correct. This code handles a simple bind rule negation such
-           * as:
+           * is correct. This code handles a simple bind rule negation such as:
            *
            *  not userdn="ldap:///anyone"
            */
@@ -257,8 +230,7 @@ public class BindRule {
             bindrule_1.setNegate(negate);
             if (bindruleEndIndex < bindruleStr.length())
             {
-              String remainingBindruleStr =
-                  bindruleStr.substring(bindruleEndIndex);
+              String remainingBindruleStr = bindruleStr.substring(bindruleEndIndex);
               return createBindRule(bindrule_1, remainingBindruleStr);
             }
             else {
@@ -266,9 +238,7 @@ public class BindRule {
             }
           }
           else {
-              LocalizableMessage message =
-                  ERR_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input);
-              throw new AciException(message);
+              throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(input));
           }
         }
     }
@@ -281,36 +251,27 @@ public class BindRule {
      * @return A BindRule determined by the matcher.
      * @throws AciException If the bind rule matcher found errors.
      */
-    private static BindRule parseAndCreateBindrule(Matcher bindruleMatcher)
-    throws AciException {
+    private static BindRule parseAndCreateBindrule(Matcher bindruleMatcher) throws AciException {
         String keywordStr = bindruleMatcher.group(keywordPos);
         String operatorStr = bindruleMatcher.group(opPos);
         String expression = bindruleMatcher.group(expressionPos);
-        EnumBindRuleKeyword keyword;
-        EnumBindRuleType operator;
 
         // Get the Keyword
-        keyword = EnumBindRuleKeyword.createBindRuleKeyword(keywordStr);
+        final EnumBindRuleKeyword keyword = EnumBindRuleKeyword.createBindRuleKeyword(keywordStr);
         if (keyword == null)
         {
-            LocalizableMessage message =
-                WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(keywordStr);
-            throw new AciException(message);
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(keywordStr));
         }
 
         // Get the operator
-        operator = EnumBindRuleType.createBindruleOperand(operatorStr);
+        final EnumBindRuleType operator = EnumBindRuleType.createBindruleOperand(operatorStr);
         if (operator == null) {
-            LocalizableMessage message =
-                WARN_ACI_SYNTAX_INVALID_BIND_RULE_OPERATOR.get(operatorStr);
-            throw new AciException(message);
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_OPERATOR.get(operatorStr));
         }
 
         //expression can't be null
         if (expression == null) {
-            LocalizableMessage message =
-                WARN_ACI_SYNTAX_MISSING_BIND_RULE_EXPRESSION.get(operatorStr);
-            throw new AciException(message);
+            throw new AciException(WARN_ACI_SYNTAX_MISSING_BIND_RULE_EXPRESSION.get(operatorStr));
         }
         validateOperation(keyword, operator);
         KeywordBindRule rule = decode(expression, keyword, operator);
@@ -330,23 +291,17 @@ public class BindRule {
      */
     private static BindRule createBindRule(BindRule bindrule,
             String remainingBindruleStr) throws AciException {
-        Pattern remainingBindrulePattern =
-            Pattern.compile(remainingBindruleRegex);
-        Matcher remainingBindruleMatcher =
-            remainingBindrulePattern.matcher(remainingBindruleStr);
+        Pattern remainingBindrulePattern = Pattern.compile(remainingBindruleRegex);
+        Matcher remainingBindruleMatcher = remainingBindrulePattern.matcher(remainingBindruleStr);
         if (remainingBindruleMatcher.find()) {
-            String remainingOperand =
-                remainingBindruleMatcher.group(remainingOperandPos);
-            String remainingBindrule =
-                remainingBindruleMatcher.group(remainingBindrulePos);
-            EnumBooleanTypes operand =
-                EnumBooleanTypes.createBindruleOperand(remainingOperand);
-            if ((operand == null)
-                    || ((operand != EnumBooleanTypes.AND_BOOLEAN_TYPE) &&
-                            (operand != EnumBooleanTypes.OR_BOOLEAN_TYPE))) {
+            String remainingOperand = remainingBindruleMatcher.group(remainingOperandPos);
+            String remainingBindrule = remainingBindruleMatcher.group(remainingBindrulePos);
+            EnumBooleanTypes operand = EnumBooleanTypes.createBindruleOperand(remainingOperand);
+            if (operand == null
+                    || (operand != EnumBooleanTypes.AND_BOOLEAN_TYPE
+                            && operand != EnumBooleanTypes.OR_BOOLEAN_TYPE)) {
                 LocalizableMessage message =
-                        WARN_ACI_SYNTAX_INVALID_BIND_RULE_BOOLEAN_OPERATOR
-                                .get(remainingOperand);
+                        WARN_ACI_SYNTAX_INVALID_BIND_RULE_BOOLEAN_OPERATOR.get(remainingOperand);
                 throw new AciException(message);
             }
             StringBuilder ruleExpr=new StringBuilder(remainingBindrule);
@@ -358,15 +313,11 @@ public class BindRule {
              */
             boolean negate=determineNegation(ruleExpr);
             remainingBindrule=ruleExpr.toString();
-            BindRule bindrule_2 =
-                BindRule.decode(remainingBindrule);
+            BindRule bindrule_2 = BindRule.decode(remainingBindrule);
             bindrule_2.setNegate(negate);
             return new BindRule(bindrule, bindrule_2, operand);
-        } else {
-            LocalizableMessage message = ERR_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(
-                remainingBindruleStr);
-            throw new AciException(message);
         }
+        throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_SYNTAX.get(remainingBindruleStr));
     }
 
     /**
@@ -430,8 +381,8 @@ public class BindRule {
         case DNS:
         case AUTHMETHOD:
         case DAYOFWEEK:
-            if ((op != EnumBindRuleType.EQUAL_BINDRULE_TYPE)
-                    && (op != EnumBindRuleType.NOT_EQUAL_BINDRULE_TYPE)) {
+            if (op != EnumBindRuleType.EQUAL_BINDRULE_TYPE
+                    && op != EnumBindRuleType.NOT_EQUAL_BINDRULE_TYPE) {
                 throw new AciException(
                     WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD_OPERATOR_COMBO.get(keyword, op));
             }
@@ -459,70 +410,34 @@ public class BindRule {
      * @throws AciException If the expr string contains a invalid
      * bind rule.
      */
-    private static KeywordBindRule decode(String expr,
-                                          EnumBindRuleKeyword keyword,
-                                          EnumBindRuleType op)
+    private static KeywordBindRule decode(String expr, EnumBindRuleKeyword keyword, EnumBindRuleType op)
             throws AciException  {
-        KeywordBindRule rule ;
         switch (keyword) {
-            case USERDN:
-            {
-                rule = UserDN.decode(expr, op);
-                break;
-            }
-            case ROLEDN:
-            {
-                //The roledn keyword is not supported. Throw an exception with
-                //a message if it is seen in the ACI.
-                LocalizableMessage message =
-                    WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expr);
-                throw new AciException(message);
-            }
-            case GROUPDN:
-            {
-                rule = GroupDN.decode(expr, op);
-                break;
-            }
-            case IP:
-            {
-                rule=IP.decode(expr, op);
-                break;
-            }
-            case DNS:
-            {
-                rule = DNS.decode(expr, op);
-                break;
-            }
-            case DAYOFWEEK:
-            {
-                rule = DayOfWeek.decode(expr, op);
-                break;
-            }
-            case TIMEOFDAY:
-            {
-                rule=TimeOfDay.decode(expr, op);
-                break;
-            }
-            case AUTHMETHOD:
-            {
-                rule = AuthMethod.decode(expr, op);
-                break;
-            }
-            case USERATTR:
-            {
-                rule = UserAttr.decode(expr, op);
-                break;
-            }
-            case SSF:
-            {
-                rule = SSF.decode(expr, op);
-                break;
-            }
-            default:  {
-                throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(keyword));
-            }
+        case USERDN:
+            return UserDN.decode(expr, op);
+        case ROLEDN:
+            //The roledn keyword is not supported. Throw an exception with
+            //a message if it is seen in the ACI.
+            throw new AciException(WARN_ACI_SYNTAX_ROLEDN_NOT_SUPPORTED.get(expr));
+        case GROUPDN:
+            return GroupDN.decode(expr, op);
+        case IP:
+            return IP.decode(expr, op);
+        case DNS:
+            return DNS.decode(expr, op);
+        case DAYOFWEEK:
+            return DayOfWeek.decode(expr, op);
+        case TIMEOFDAY:
+            return TimeOfDay.decode(expr, op);
+        case AUTHMETHOD:
+            return AuthMethod.decode(expr, op);
+        case USERATTR:
+            return UserAttr.decode(expr, op);
+        case SSF:
+            return SSF.decode(expr, op);
+        default:
+            throw new AciException(WARN_ACI_SYNTAX_INVALID_BIND_RULE_KEYWORD.get(keyword));
         }
-        return rule;
     }
 
     /**
@@ -534,16 +449,15 @@ public class BindRule {
      * @param right The right bind result to evaluate.
      * @return The result of the complex evaluation.
      */
-    private EnumEvalResult evalComplex(EnumEvalResult left,
-                                       EnumEvalResult right) {
-        EnumEvalResult ret=EnumEvalResult.FALSE;
-        if(booleanType == EnumBooleanTypes.AND_BOOLEAN_TYPE) {
-           if((left == EnumEvalResult.TRUE) && (right == EnumEvalResult.TRUE))
-                ret=EnumEvalResult.TRUE;
-        } else if((left == EnumEvalResult.TRUE) ||
-                  (right == EnumEvalResult.TRUE))
-            ret=EnumEvalResult.TRUE;
-       return ret;
+    private EnumEvalResult evalComplex(EnumEvalResult left, EnumEvalResult right) {
+        if (booleanType == EnumBooleanTypes.AND_BOOLEAN_TYPE) {
+          if (left == EnumEvalResult.TRUE && right == EnumEvalResult.TRUE) {
+            return EnumEvalResult.TRUE;
+          }
+        } else if (left == EnumEvalResult.TRUE || right == EnumEvalResult.TRUE) {
+          return EnumEvalResult.TRUE;
+        }
+       return EnumEvalResult.FALSE;
     }
 
     /**
@@ -561,8 +475,9 @@ public class BindRule {
         if(this.booleanType == null) {
             KeywordBindRule rule=keywordRuleMap.get(keyword.toString());
             ret = rule.evaluate(evalCtx);
-        }  else
-            ret=evalComplex(left.evaluate(evalCtx),right.evaluate(evalCtx));
+        } else {
+            ret = evalComplex(left.evaluate(evalCtx),right.evaluate(evalCtx));
+        }
         return EnumEvalResult.negateIfNeeded(ret, negate);
     }
 
