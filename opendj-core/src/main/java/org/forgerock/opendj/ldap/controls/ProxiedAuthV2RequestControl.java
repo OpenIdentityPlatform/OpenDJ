@@ -173,7 +173,7 @@ public final class ProxiedAuthV2RequestControl implements Control {
      * @throws NullPointerException
      *             If {@code authorizationName} was {@code null}.
      */
-    public static final ProxiedAuthV2RequestControl newControl(final String authorizationID) {
+    public static ProxiedAuthV2RequestControl newControl(final String authorizationID) {
         if (authorizationID.length() == 0) {
             // Anonymous.
             return ANONYMOUS;

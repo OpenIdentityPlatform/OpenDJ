@@ -53,7 +53,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      *
      * @return an Entry with pre-defined attributes
      */
-    private static final Entry getStandardEntry() {
+    private static Entry getStandardEntry() {
         final Entry entry = new LinkedHashMapEntry("cn=John Doe,ou=people,dc=example,dc=com");
         entry.addAttribute("objectClass", "top", "person", "inetOrgPerson");
         entry.addAttribute("cn", "John Doe");

@@ -306,7 +306,7 @@ public final class SortKey {
      * @throws NullPointerException
      *             If {@code sortKey} was {@code null}.
      */
-    public static final SortKey valueOf(String sortKey) {
+    public static SortKey valueOf(String sortKey) {
         Reject.ifNull(sortKey);
 
         boolean reverseOrder = false;

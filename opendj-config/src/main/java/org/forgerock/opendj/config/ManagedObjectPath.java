@@ -241,7 +241,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         Element<C, S> {
 
         /** Factory method. */
-        private static final <C extends ConfigurationClient, S extends Configuration> InstantiableElement<C, S> create(
+        private static <C extends ConfigurationClient, S extends Configuration> InstantiableElement<C, S> create(
             InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
             String name) {
             return new InstantiableElement<C, S>(r, d, name);
@@ -287,7 +287,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         Element<C, S> {
 
         /** Factory method. */
-        private static final <C extends ConfigurationClient, S extends Configuration> OptionalElement<C, S> create(
+        private static <C extends ConfigurationClient, S extends Configuration> OptionalElement<C, S> create(
             OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             return new OptionalElement<C, S>(r, d);
         }
@@ -322,7 +322,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         Element<C, S> {
 
         /** Factory method. */
-        private static final <C extends ConfigurationClient, S extends Configuration> SetElement<C, S> create(
+        private static <C extends ConfigurationClient, S extends Configuration> SetElement<C, S> create(
             SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             return new SetElement<C, S>(r, d);
         }
@@ -356,7 +356,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient, S extends Co
         Element<C, S> {
 
         /** Factory method. */
-        private static final <C extends ConfigurationClient, S extends Configuration> SingletonElement<C, S> create(
+        private static <C extends ConfigurationClient, S extends Configuration> SingletonElement<C, S> create(
             SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
             return new SingletonElement<C, S>(r, d);
         }

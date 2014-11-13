@@ -455,7 +455,7 @@ public final class Attributes {
      * @throws NullPointerException
      *             If {@code attributeDescription} was {@code null}.
      */
-    public static final Attribute emptyAttribute(final AttributeDescription attributeDescription) {
+    public static Attribute emptyAttribute(final AttributeDescription attributeDescription) {
         return new EmptyAttribute(attributeDescription);
     }
 
@@ -475,7 +475,7 @@ public final class Attributes {
      * @throws NullPointerException
      *             If {@code attributeDescription} was {@code null}.
      */
-    public static final Attribute emptyAttribute(final String attributeDescription) {
+    public static Attribute emptyAttribute(final String attributeDescription) {
         return emptyAttribute(AttributeDescription.valueOf(attributeDescription));
     }
 
@@ -493,7 +493,7 @@ public final class Attributes {
      *             If {@code attribute} or {@code attributeDescription} was
      *             {@code null}.
      */
-    public static final Attribute renameAttribute(final Attribute attribute,
+    public static Attribute renameAttribute(final Attribute attribute,
             final AttributeDescription attributeDescription) {
         Reject.ifNull(attribute, attributeDescription);
 
@@ -523,8 +523,7 @@ public final class Attributes {
      *             If {@code attribute} or {@code attributeDescription} was
      *             {@code null}.
      */
-    public static final Attribute renameAttribute(final Attribute attribute,
-            final String attributeDescription) {
+    public static Attribute renameAttribute(final Attribute attribute, final String attributeDescription) {
         Reject.ifNull(attribute, attributeDescription);
         return renameAttribute(attribute, AttributeDescription.valueOf(attributeDescription));
     }
@@ -547,8 +546,7 @@ public final class Attributes {
      *             If {@code attributeDescription} or {@code value} was
      *             {@code null}.
      */
-    public static final Attribute singletonAttribute(
-            final AttributeDescription attributeDescription, final Object value) {
+    public static Attribute singletonAttribute(final AttributeDescription attributeDescription, final Object value) {
         return new SingletonAttribute(attributeDescription, value);
     }
 
@@ -574,8 +572,7 @@ public final class Attributes {
      *             If {@code attributeDescription} or {@code value} was
      *             {@code null}.
      */
-    public static final Attribute singletonAttribute(final String attributeDescription,
-            final Object value) {
+    public static Attribute singletonAttribute(final String attributeDescription, final Object value) {
         return singletonAttribute(AttributeDescription.valueOf(attributeDescription), value);
     }
 
@@ -591,12 +588,11 @@ public final class Attributes {
      * @throws NullPointerException
      *             If {@code attribute} was {@code null}.
      */
-    public static final Attribute unmodifiableAttribute(final Attribute attribute) {
+    public static Attribute unmodifiableAttribute(final Attribute attribute) {
         if (attribute instanceof UnmodifiableAttribute) {
             return attribute;
-        } else {
-            return new UnmodifiableAttribute(attribute);
         }
+        return new UnmodifiableAttribute(attribute);
     }
 
     /** Prevent instantiation. */
