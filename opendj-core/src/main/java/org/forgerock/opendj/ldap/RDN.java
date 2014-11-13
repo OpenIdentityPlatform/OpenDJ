@@ -406,6 +406,6 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     }
 
     StringBuilder toString(final StringBuilder builder) {
-        return builder.append(toString());
+        return builder.append(this);
     }
 }

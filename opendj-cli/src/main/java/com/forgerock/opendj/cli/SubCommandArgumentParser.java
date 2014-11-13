@@ -978,7 +978,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     if (lineLength > MAX_LINE_WIDTH) {
                         buffer.append(EOL);
                     }
-                    buffer.append(newBuffer.toString());
+                    buffer.append(newBuffer);
                 }
 
                 buffer.append(EOL);

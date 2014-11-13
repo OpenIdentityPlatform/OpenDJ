@@ -1481,7 +1481,7 @@ public class ArgumentParser {
 
         if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
             buffer.append(INDENT);
-            buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()).toString());
+            buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()));
             buffer.append(EOL);
         }
     }

@@ -347,7 +347,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
         builder.append(", criticality=");
         builder.append(isCritical());
         builder.append(", changeType=");
-        builder.append(changeType.toString());
+        builder.append(changeType);
         builder.append(", previousDN=\"");
         builder.append(previousName);
         builder.append("\"");

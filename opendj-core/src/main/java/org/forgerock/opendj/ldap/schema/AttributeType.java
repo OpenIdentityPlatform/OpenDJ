@@ -627,7 +627,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
 
         if (attributeUsage != null) {
             buffer.append(" USAGE ");
-            buffer.append(attributeUsage.toString());
+            buffer.append(attributeUsage);
         }
 
         if (approximateMatchingRuleOID != null) {

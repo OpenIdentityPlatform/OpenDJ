@@ -415,7 +415,7 @@ public final class ObjectClass extends SchemaElement {
 
         if (objectClassType != null) {
             buffer.append(" ");
-            buffer.append(objectClassType.toString());
+            buffer.append(objectClassType);
         }
 
         if (!requiredAttributeOIDs.isEmpty()) {

@@ -200,7 +200,7 @@ public final class AssertionRequestControl implements Control {
         builder.append(", criticality=");
         builder.append(isCritical());
         builder.append(", filter=\"");
-        builder.append(filter.toString());
+        builder.append(filter);
         builder.append("\")");
         return builder.toString();
     }

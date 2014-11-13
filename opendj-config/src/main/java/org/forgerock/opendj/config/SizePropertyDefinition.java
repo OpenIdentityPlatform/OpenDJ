@@ -259,7 +259,7 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
         // anyway as the best-fit unit should result in an exact conversion).
         builder.append((long) unit.fromBytes(value));
         builder.append(' ');
-        builder.append(unit.toString());
+        builder.append(unit);
         return builder.toString();
     }
 

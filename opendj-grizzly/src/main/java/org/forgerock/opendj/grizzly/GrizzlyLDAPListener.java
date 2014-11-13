@@ -147,7 +147,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LDAPListener(");
-        builder.append(getSocketAddress().toString());
+        builder.append(getSocketAddress());
         builder.append(')');
         return builder.toString();
     }

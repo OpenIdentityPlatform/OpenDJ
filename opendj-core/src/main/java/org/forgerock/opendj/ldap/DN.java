@@ -912,7 +912,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
             rdn.toString(builder);
             if (!parent.isRootDN()) {
                 builder.append(',');
-                builder.append(parent.toString());
+                builder.append(parent);
             }
             stringValue = builder.toString();
         }

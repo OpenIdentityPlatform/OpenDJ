@@ -173,7 +173,7 @@ public final class ConfigChangeResult {
      */
     public void toString(StringBuilder buffer) {
         buffer.append("ConfigChangeResult(result=");
-        buffer.append(resultCode.toString());
+        buffer.append(resultCode);
         buffer.append(", adminActionRequired=");
         buffer.append(adminActionRequired);
         buffer.append(", messages={");
