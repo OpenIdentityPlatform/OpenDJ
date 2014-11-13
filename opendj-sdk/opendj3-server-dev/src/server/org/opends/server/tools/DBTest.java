@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.admin.std.server.BackendCfg;
@@ -1152,8 +1153,7 @@ public class DBTest
         DatabaseEntry data = new DatabaseEntry();
         LockMode lockMode = LockMode.DEFAULT;
         OperationStatus status;
-        Comparator<byte[]> defaultComparator =
-            new AttributeIndex.KeyComparator();
+        Comparator<byte[]> defaultComparator = ByteSequence.BYTE_ARRAY_COMPARATOR;
         byte[] start = null;
         byte[] end = null;
         int minSize = -1;
