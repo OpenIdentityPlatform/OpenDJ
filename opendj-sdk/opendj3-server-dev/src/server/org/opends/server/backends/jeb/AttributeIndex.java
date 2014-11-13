@@ -707,26 +707,6 @@ public class AttributeIndex
   }
 
   /**
-   * Delegator to {@link ByteSequence#COMPARATOR}.
-   * <p>
-   * This intermediate class is necessary to satisfy JE's requirements for a btree comparator.
-   *
-   * @see com.sleepycat.je.DatabaseConfig#setBtreeComparator(Comparator)
-   */
-  public static class BSKeyComparator implements Comparator<ByteSequence>
-  {
-    /** The instance. */
-    public static final BSKeyComparator INSTANCE = new BSKeyComparator();
-
-    /** {@inheritDoc} */
-    @Override
-    public int compare(ByteSequence a, ByteSequence b)
-    {
-      return ByteSequence.COMPARATOR.compare(a, b);
-    }
-  }
-
-  /**
    * Close cursors related to the attribute indexes.
    *
    * @throws DatabaseException If a database error occurs.
