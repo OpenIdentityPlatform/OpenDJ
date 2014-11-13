@@ -34,7 +34,6 @@ import java.util.Set;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.backends.jeb.AttributeIndex.BSKeyComparator;
 import org.opends.server.backends.jeb.AttributeIndex.KeyComparator;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -64,7 +63,7 @@ public abstract class Indexer
    */
   public final Comparator<ByteSequence> getBSComparator()
   {
-    return BSKeyComparator.INSTANCE;
+    return ByteSequence.COMPARATOR;
   }
 
   /**
