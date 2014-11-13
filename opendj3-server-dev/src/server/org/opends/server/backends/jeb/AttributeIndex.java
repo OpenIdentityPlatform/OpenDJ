@@ -35,6 +35,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Assertion;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -686,96 +687,42 @@ public class AttributeIndex
   }
 
   /**
-   * The default lexicographic byte array comparator.
-   * Is there one available in the Java platform?
+   * Delegator to {@link ByteSequence#BYTE_ARRAY_COMPARATOR}.
+   * <p>
+   * This intermediate class is necessary to satisfy JE's requirements for a btree comparator.
+   *
+   * @see com.sleepycat.je.DatabaseConfig#setBtreeComparator(Comparator)
    */
   public static class KeyComparator implements Comparator<byte[]>
   {
-    /**
-     * Compares its two arguments for order.  Returns a negative integer,
-     * zero, or a positive integer as the first argument is less than, equal
-     * to, or greater than the second.
-     *
-     * @param a the first object to be compared.
-     * @param b the second object to be compared.
-     * @return a negative integer, zero, or a positive integer as the
-     *         first argument is less than, equal to, or greater than the
-     *         second.
-     */
+    /** The instance. */
+    public static final KeyComparator INSTANCE = new KeyComparator();
+
+    /** {@inheritDoc} */
     @Override
     public int compare(byte[] a, byte[] b)
     {
-      int i;
-      for (i = 0; i < a.length && i < b.length; i++)
-      {
-        if (a[i] > b[i])
-        {
-          return 1;
-        }
-        else if (a[i] < b[i])
-        {
-          return -1;
-        }
-      }
-      if (a.length == b.length)
-      {
-        return 0;
-      }
-      if (a.length > b.length)
-      {
-        return 1;
-      }
-      return -1;
+      return ByteSequence.BYTE_ARRAY_COMPARATOR.compare(a, b);
     }
   }
 
   /**
-   * Byte string key comparator. The default lexicographic byte string
-   * comparator.
+   * Delegator to {@link ByteSequence#COMPARATOR}.
    * <p>
-   * This is the byte string equivalent of {@link KeyComparator}.
-   * <p>
-   * Note: Matt reckons we could simply use ByteString.compareTo(),
-   * but I am using this for now as an intermediate step.
+   * This intermediate class is necessary to satisfy JE's requirements for a btree comparator.
+   *
+   * @see com.sleepycat.je.DatabaseConfig#setBtreeComparator(Comparator)
    */
-  public static class BSKeyComparator implements Comparator<ByteString>
+  public static class BSKeyComparator implements Comparator<ByteSequence>
   {
-    /**
-     * Compares its two arguments for order. Returns a negative integer, zero,
-     * or a positive integer as the first argument is less than, equal to, or
-     * greater than the second.
-     *
-     * @param a
-     *          the first object to be compared.
-     * @param b
-     *          the second object to be compared.
-     * @return a negative integer, zero, or a positive integer as the first
-     *         argument is less than, equal to, or greater than the second.
-     */
+    /** The instance. */
+    public static final BSKeyComparator INSTANCE = new BSKeyComparator();
+
+    /** {@inheritDoc} */
     @Override
-    public int compare(ByteString a, ByteString b)
+    public int compare(ByteSequence a, ByteSequence b)
     {
-      int i;
-      for (i = 0; i < a.length() && i < b.length(); i++)
-      {
-        if (a.byteAt(i) > b.byteAt(i))
-        {
-          return 1;
-        }
-        else if (a.byteAt(i) < b.byteAt(i))
-        {
-          return -1;
-        }
-      }
-      if (a.length() == b.length())
-      {
-        return 0;
-      }
-      if (a.length() > b.length())
-      {
-        return 1;
-      }
-      return -1;
+      return ByteSequence.COMPARATOR.compare(a, b);
     }
   }
 

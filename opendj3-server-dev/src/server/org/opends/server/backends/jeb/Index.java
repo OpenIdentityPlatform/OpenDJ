@@ -29,6 +29,7 @@ package org.opends.server.backends.jeb;
 import java.util.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -65,7 +66,7 @@ public class Index extends DatabaseContainer
   /**
    * The comparator for index keys.
    */
-  private final Comparator<ByteString> bsComparator;
+  private final Comparator<ByteSequence> bsComparator;
 
   /**
    * The limit on the number of entry IDs that may be indexed by one key.
