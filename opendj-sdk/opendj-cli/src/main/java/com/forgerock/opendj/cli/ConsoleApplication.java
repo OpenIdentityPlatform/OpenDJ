@@ -544,7 +544,7 @@ public abstract class ConsoleApplication {
      * @throws ClientException
      *             If an error occurs when reading the password.
      */
-    public static final char[] readPassword() throws ClientException {
+    public static char[] readPassword() throws ClientException {
         try {
             return System.console().readPassword();
         } catch (IOError e) {

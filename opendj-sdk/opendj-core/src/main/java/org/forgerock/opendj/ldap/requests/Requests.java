@@ -929,7 +929,7 @@ public final class Requests {
      *             If {@code fromEntry} or {@code toEntry} were {@code null}.
      * @see Entries#diffEntries(Entry, Entry)
      */
-    public static final ModifyRequest newModifyRequest(final Entry fromEntry, final Entry toEntry) {
+    public static ModifyRequest newModifyRequest(final Entry fromEntry, final Entry toEntry) {
         return Entries.diffEntries(fromEntry, toEntry);
     }
 

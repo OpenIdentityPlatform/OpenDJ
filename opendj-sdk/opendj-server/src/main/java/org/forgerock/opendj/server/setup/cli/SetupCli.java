@@ -70,7 +70,7 @@ public final class SetupCli extends ConsoleApplication {
      *
      * @return The installation path.
      */
-    static final String getInstallationPath() {
+    static String getInstallationPath() {
         return "/home/violette/OpenDJ-3.0.0/";
     }
 
@@ -79,7 +79,7 @@ public final class SetupCli extends ConsoleApplication {
      *
      * @return The instance path.
      */
-    static final String getInstancePath() {
+    static String getInstancePath() {
         return "/home/violette/OpenDJ-3.0.0/";
     }
 

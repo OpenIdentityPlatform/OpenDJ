@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 public interface Assertion {
 
     /** An assertion that always return UNDEFINED for matches and that creates a match all query. */
-    public static final Assertion UNDEFINED_ASSERTION = new Assertion() {
+    Assertion UNDEFINED_ASSERTION = new Assertion() {
         @Override
         public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
             return ConditionResult.UNDEFINED;
