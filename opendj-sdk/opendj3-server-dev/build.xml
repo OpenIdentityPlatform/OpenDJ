@@ -2894,7 +2894,7 @@ Please:
              See https://ant.apache.org/manual/Types/mapper.html -->
         <regexpmapper from="(.*/(source|javadoc)/.*)" to="\1" handledirsep="true"/>
         <!-- Separate test and compile jars ala Maven -->
-        <regexpmapper from="(.*)/(jar|bundle)/(.*(?:assertj-core|hamcrest-core|mockito-core|objenesis)\.jar)" to="\1/test/\3" handledirsep="true"/>
+        <regexpmapper from="(.*)/(jar|bundle)/(.*(?:assertj-core|hamcrest-core|junit|mockito-core|objenesis)\.jar)" to="\1/test/\3" handledirsep="true"/>
         <regexpmapper from="(.*)/(jar|bundle)/(.*)" to="\1/compile/\3" handledirsep="true"/>
       </firstmatchmapper>
     </ivy:retrieve>
