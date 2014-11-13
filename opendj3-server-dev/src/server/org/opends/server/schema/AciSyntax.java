@@ -26,25 +26,20 @@
  */
 package org.opends.server.schema;
 
-
-
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-
-
-import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ByteSequence;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.server.schema.SchemaConstants.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.authorization.dseecompat.Aci;
 import org.opends.server.authorization.dseecompat.AciException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DN;
 
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class implements the access control information (aci) attribute syntax.
@@ -54,13 +49,11 @@ public class AciSyntax
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private MatchingRule defaultSubstringMatchingRule;
-
-
 
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
@@ -73,66 +66,55 @@ public class AciSyntax
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void initializeSyntax(AttributeSyntaxCfg configuration)
-         throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void initializeSyntax(AttributeSyntaxCfg configuration) throws ConfigException
   {
-    defaultEqualityMatchingRule =
-         DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_IA5_OID);
+    defaultEqualityMatchingRule = DirectoryServer.getMatchingRule(EMR_CASE_IGNORE_IA5_OID);
     if (defaultEqualityMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_EQUALITY_MATCHING_RULE, EMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME);
     }
 
-    defaultSubstringMatchingRule =
-         DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_IA5_OID);
+    defaultSubstringMatchingRule = DirectoryServer.getMatchingRule(SMR_CASE_IGNORE_IA5_OID);
     if (defaultSubstringMatchingRule == null)
     {
       logger.error(ERR_ATTR_SYNTAX_UNKNOWN_SUBSTRING_MATCHING_RULE, SMR_CASE_IGNORE_IA5_OID, SYNTAX_ACI_NAME);
     }
   }
 
-
-
   /**
    * Retrieves the common name for this attribute syntax.
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getName()
   {
     return SYNTAX_ACI_NAME;
   }
-
-
 
   /**
    * Retrieves the OID for this attribute syntax.
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_ACI_OID;
   }
-
-
 
   /**
    * Retrieves a description for this attribute syntax.
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_ACI_DESCRIPTION;
   }
-
-
 
   /**
    * Retrieves the default equality matching rule that will be used for
@@ -142,12 +124,11 @@ public class AciSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default ordering matching rule that will be used for
@@ -157,13 +138,12 @@ public class AciSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public MatchingRule getOrderingMatchingRule()
   {
     // We don't have an orderingMatchingRule
     return null;
   }
-
-
 
   /**
    * Retrieves the default substring matching rule that will be used for
@@ -173,12 +153,11 @@ public class AciSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public MatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
   }
-
-
 
   /**
    * Retrieves the default approximate matching rule that will be used for
@@ -188,13 +167,12 @@ public class AciSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public MatchingRule getApproximateMatchingRule()
   {
     // we don't have an approximateMatchingRule
     return null;
   }
-
-
 
   /**
    * Indicates whether the provided value is acceptable for use in an attribute
@@ -208,39 +186,33 @@ public class AciSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(ByteSequence value,
-                                   LocalizableMessageBuilder invalidReason)
+  @Override
+  public boolean valueIsAcceptable(ByteSequence value, LocalizableMessageBuilder invalidReason)
   {
     try
     {
       Aci.decode(value, DN.rootDN());
+      return true;
     }
     catch (AciException e)
     {
       logger.traceException(e);
 
-      logger.error(e.getMessageObject());
+      logger.warn(e.getMessageObject());
       invalidReason.append(e.getMessageObject());
       return false;
     }
-    return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isBEREncodingRequired()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isHumanReadable()
   {
     return true;

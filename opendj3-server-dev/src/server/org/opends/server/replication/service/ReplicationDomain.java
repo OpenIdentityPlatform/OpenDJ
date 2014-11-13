@@ -39,11 +39,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.task.Task;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.tasks.InitializeTargetTask;
@@ -51,7 +52,6 @@ import org.opends.server.tasks.InitializeTask;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.AssuredMode.*;
@@ -2239,18 +2239,15 @@ public abstract class ReplicationDomain
    *                          task has initially been created (this server,
    *                          or the remote server).
    */
-  private void initialize(InitializeTargetMsg initTargetMsgReceived,
-      int requesterServerId)
+  private void initialize(InitializeTargetMsg initTargetMsgReceived, int requesterServerId)
   {
-    InitializeTask initFromTask = null;
-
     if (logger.isTraceEnabled())
     {
       logger.trace("[IE] Entering initialize - domain=" + this);
     }
 
+    InitializeTask initFromTask = null;
     int source = initTargetMsgReceived.getSenderID();
-
     ImportExportContext ieCtx = importExportContext.get();
     try
     {
@@ -2265,8 +2262,7 @@ public abstract class ReplicationDomain
       if (initTargetMsgReceived.getInitiatorID() != getServerId())
       {
         /*
-        The initTargetMsgReceived is for an import initiated by the remote
-        server.
+        The initTargetMsgReceived is for an import initiated by the remote server.
         Test and set if no import already in progress
         */
         ieCtx = acquireIEContext(true);
@@ -2281,7 +2277,6 @@ public abstract class ReplicationDomain
 
       // Launch the import
       importBackend(new ReplInputStream(this));
-
     }
     catch (DirectoryException e)
     {
@@ -2389,7 +2384,7 @@ public abstract class ReplicationDomain
       }
       finally
       {
-        logger.error(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END,
+        logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END,
             getBaseDNString(), initTargetMsgReceived.getSenderID(), getServerId(),
             (ieCtx.getException() != null ? ieCtx.getException().getLocalizedMessage() : ""));
         releaseIEContext();

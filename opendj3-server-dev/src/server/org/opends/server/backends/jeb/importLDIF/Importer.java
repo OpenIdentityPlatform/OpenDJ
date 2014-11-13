@@ -1874,7 +1874,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           }
           if (!isCanceled)
           {
-            logger.error(NOTE_JEB_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
+            logger.info(NOTE_JEB_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
           }
         }
         else
@@ -2960,26 +2960,22 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       totalEntries = suffix.getID2Entry().getRecordCount();
 
-      LocalizableMessage message = null;
       switch (rebuildConfig.getRebuildMode())
       {
       case ALL:
-        message = NOTE_JEB_REBUILD_ALL_START.get(totalEntries);
+        logger.info(NOTE_JEB_REBUILD_ALL_START, totalEntries);
         break;
       case DEGRADED:
-        message = NOTE_JEB_REBUILD_DEGRADED_START.get(totalEntries);
+        logger.info(NOTE_JEB_REBUILD_DEGRADED_START, totalEntries);
         break;
       default:
-        if (!rebuildConfig.isClearDegradedState())
+        if (!rebuildConfig.isClearDegradedState()
+            && logger.isInfoEnabled())
         {
           String indexes = Utils.joinAsString(", ", rebuildConfig.getRebuildList());
-          message = NOTE_JEB_REBUILD_START.get(indexes, totalEntries);
+          logger.info(NOTE_JEB_REBUILD_START, indexes, totalEntries);
         }
         break;
-      }
-      if ( message != null )
-      {
-        logger.info(message);
       }
     }
 
@@ -3716,16 +3712,14 @@ public final class Importer implements DiskSpaceMonitorHandler
         long freeMemory = runtime.freeMemory() / MB;
         EnvironmentStats envStats =
             rootContainer.getEnvironmentStats(new StatsConfig());
-        long nCacheMiss =
-            envStats.getNCacheMiss() - prevEnvStats.getNCacheMiss();
+        long nCacheMiss = envStats.getNCacheMiss() - prevEnvStats.getNCacheMiss();
 
         float cacheMissRate = 0;
         if (deltaCount > 0)
         {
           cacheMissRate = nCacheMiss / (float) deltaCount;
         }
-        logger.info(NOTE_JEB_REBUILD_CACHE_AND_MEMORY_REPORT, freeMemory,
-                cacheMissRate);
+        logger.info(NOTE_JEB_REBUILD_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
         prevEnvStats = envStats;
       }
       catch (DatabaseException e)
@@ -3826,8 +3820,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           cacheMissRate = nCacheMiss / (float) deltaCount;
         }
-        logger.info(NOTE_JEB_IMPORT_CACHE_AND_MEMORY_REPORT, freeMemory,
-                cacheMissRate);
+        logger.info(NOTE_JEB_IMPORT_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
         long evictPasses = environmentStats.getNEvictPasses();
         long evictNodes = environmentStats.getNNodesExplicitlyEvicted();
         long evictBinsStrip = environmentStats.getNBINsStripped();
@@ -3941,8 +3934,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           cacheMissRate = nCacheMiss / (float) deltaCount;
         }
-        logger.info(NOTE_JEB_IMPORT_CACHE_AND_MEMORY_REPORT, freeMemory,
-                cacheMissRate);
+        logger.info(NOTE_JEB_IMPORT_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
         long evictPasses = environmentStats.getNEvictPasses();
         long evictNodes = environmentStats.getNNodesExplicitlyEvicted();
         long evictBinsStrip = environmentStats.getNBINsStripped();
