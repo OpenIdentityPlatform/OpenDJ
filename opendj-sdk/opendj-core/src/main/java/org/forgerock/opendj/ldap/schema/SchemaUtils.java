@@ -87,7 +87,7 @@ final class SchemaUtils {
                 values = Collections.singletonList(reader.read(length));
                 reader.read();
             } else if (c == '(') {
-                // Skip over any leading spaces;
+                // Skip over any leading spaces
                 reader.skipWhitespaces();
                 reader.mark();
 
@@ -135,7 +135,7 @@ final class SchemaUtils {
                 values = Collections.singletonList(readQuotedDescriptor(reader, allowCompatChars));
                 reader.read();
             } else if (c == '(') {
-                // Skip over any leading spaces;
+                // Skip over any leading spaces
                 reader.skipWhitespaces();
                 reader.mark();
 
@@ -408,7 +408,7 @@ final class SchemaUtils {
                 do {
                     values.add(readOID(reader, allowCompatChars));
 
-                    // Skip over any trailing spaces;
+                    // Skip over any trailing spaces
                     reader.skipWhitespaces();
                 } while (reader.read() != ')');
                 values = Collections.unmodifiableSet(values);
@@ -519,7 +519,7 @@ final class SchemaUtils {
                 do {
                     values.add(readRuleID(reader));
 
-                    // Skip over any trailing spaces;
+                    // Skip over any trailing spaces
                     reader.skipWhitespaces();
                 } while (reader.read() != ')');
                 values = Collections.unmodifiableSet(values);
