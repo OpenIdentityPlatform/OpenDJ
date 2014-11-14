@@ -64,7 +64,7 @@
 
     <!-- Test libs -->
     <!--dependency org="org.testng"            name="testng"                   rev="6.8.1" /-->
-    <dependency org="org.assertj"           name="assertj-core"             rev="1.6.0" />
+    <dependency org="org.assertj"           name="assertj-core"             rev="1.7.0" />
     <dependency org="org.mockito"           name="mockito-core"             rev="1.9.5" />
 
     <!-- Force download of the source jars -->
@@ -74,11 +74,11 @@
     <dependency org="org.glassfish.grizzly" name="grizzly-framework"        rev="&grizzly.version;"    conf="default->master,sources"/>
     <dependency org="org.glassfish.grizzly" name="grizzly-http"             rev="&grizzly.version;"    conf="default->master,sources"/>
     <dependency org="org.glassfish.grizzly" name="grizzly-http-server"      rev="&grizzly.version;"    conf="default->master,sources"/>
-    <dependency org="org.forgerock.commons" name="i18n-core"                rev="1.4.0"                conf="default->master,sources"/>
+    <dependency org="org.forgerock.commons" name="i18n-core"                rev="1.4.2-SNAPSHOT"       conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="json-fluent"              rev="&crest.version;"      conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="json-resource"            rev="&crest.version;"      conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="json-resource-servlet"    rev="&crest.version;"      conf="default->master,sources"/>
-    <dependency org="org.forgerock.commons" name="org.forgerock.util"       rev="1.0.0"                conf="default->master,sources"/>
+    <dependency org="org.forgerock.commons" name="forgerock-util"           rev="1.3.5-SNAPSHOT"       conf="default->master,sources"/>
     <dependency org="org.forgerock.opendj"  name="opendj-core"              rev="&opendj.sdk.version;" conf="default->master,sources"/>
     <dependency org="org.forgerock.opendj"  name="opendj-ldap-sdk"          rev="&opendj.sdk.version;" conf="default->master,sources"/>
     <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap"         rev="&opendj.sdk.version;" conf="default->master,sources"/>
