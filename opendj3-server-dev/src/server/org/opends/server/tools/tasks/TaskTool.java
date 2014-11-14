@@ -39,6 +39,7 @@ import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
 
@@ -59,6 +60,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Level;
 import java.io.IOException;
 
 /**
@@ -181,6 +183,8 @@ public abstract class TaskTool implements TaskScheduleInformation {
     }
     else
     {
+      // server is offline => output logs to the console
+      JDKLogging.enableConsoleLoggingForOpenDJ(Level.FINE);
       taskScheduleArgs.validateArgsIfOffline();
     }
   }
