@@ -65,10 +65,7 @@ public class TextErrorLogPublisher
     implements ConfigurationChangeListener<FileBasedErrorLogPublisherCfg>
 {
   private TextWriter writer;
-
   private FileBasedErrorLogPublisherCfg currentConfig;
-
-
 
   /**
    * Returns a new text error log publisher which will print all messages to the
@@ -79,8 +76,7 @@ public class TextErrorLogPublisher
    * @return A new text error log publisher which will print all messages to the
    *         provided writer.
    */
-  public static TextErrorLogPublisher getToolStartupTextErrorPublisher(
-      TextWriter writer)
+  public static TextErrorLogPublisher getToolStartupTextErrorPublisher(TextWriter writer)
   {
     TextErrorLogPublisher startupPublisher = new TextErrorLogPublisher();
     startupPublisher.writer = writer;
@@ -184,50 +180,43 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          LocalizableMessage msg =
-              WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity);
-          throw new ConfigException(msg);
-        } else
+          throw new ConfigException(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
+        }
+
+        String category = overrideSeverity.substring(0, equalPos);
+        category = category.replace("-", "_").toUpperCase();
+        try
         {
-          String category = overrideSeverity.substring(0, equalPos);
-          category = category.replace("-", "_").toUpperCase();
-          try
+          Set<Severity> severities = new HashSet<Severity>();
+          StringTokenizer sevTokenizer = new StringTokenizer(overrideSeverity.substring(equalPos + 1), ",");
+          while (sevTokenizer.hasMoreElements())
           {
-            Set<Severity> severities = new HashSet<Severity>();
-            StringTokenizer sevTokenizer =
-              new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
-            while (sevTokenizer.hasMoreElements())
+            String severityName = sevTokenizer.nextToken();
+            severityName = severityName.replace("-", "_").toUpperCase();
+            if (LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
             {
-              String severityName = sevTokenizer.nextToken();
-              severityName = severityName.replace("-", "_").toUpperCase();
-              if(LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
+              severities.add(Severity.ERROR);
+              severities.add(Severity.WARNING);
+              severities.add(Severity.NOTICE);
+              severities.add(Severity.INFORMATION);
+            }
+            else
+            {
+              try
               {
-                severities.add(Severity.ERROR);
-                severities.add(Severity.WARNING);
-                severities.add(Severity.NOTICE);
-                severities.add(Severity.INFORMATION);
+                severities.add(Severity.parseString(severityName));
               }
-              else
+              catch (Exception e)
               {
-                try
-                {
-                  severities.add(Severity.parseString(severityName));
-                }
-                catch(Exception e)
-                {
-                  LocalizableMessage msg =
-                      WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
-                  throw new ConfigException(msg);
-                }
+                throw new ConfigException(WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName));
               }
             }
-            definedSeverities.put(category, severities);
           }
-          catch(Exception e)
-          {
-            LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category);
-            throw new ConfigException(msg);
-          }
+          definedSeverities.put(category, severities);
+        }
+        catch (Exception e)
+        {
+          throw new ConfigException(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
         }
       }
     }
@@ -240,7 +229,7 @@ public class TextErrorLogPublisher
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
       FileBasedErrorLogPublisherCfg config, List<LocalizableMessage> unacceptableReasons)
   {
@@ -255,13 +244,10 @@ public class TextErrorLogPublisher
     // Make sure the permission is valid.
     try
     {
-      FilePermission filePerm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      FilePermission filePerm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
       if(!filePerm.isOwnerWritable())
       {
-        LocalizableMessage message = ERR_CONFIG_LOGGING_INSANE_MODE.get(
-            config.getLogFilePermissions());
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_CONFIG_LOGGING_INSANE_MODE.get(config.getLogFilePermissions()));
         return false;
       }
     }
@@ -278,34 +264,26 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(
-                  overrideSeverity);
-          unacceptableReasons.add(msg);
+          unacceptableReasons.add(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
           return false;
+        }
 
-        } else
+        // No check on category because it can be any value
+        StringTokenizer sevTokenizer = new StringTokenizer(overrideSeverity.substring(equalPos + 1), ",");
+        while (sevTokenizer.hasMoreElements())
         {
-          // No check on category because it can be any value
-
-          StringTokenizer sevTokenizer =
-              new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
-          while (sevTokenizer.hasMoreElements())
+          String severityName = sevTokenizer.nextToken();
+          severityName = severityName.replace("-", "_").toUpperCase();
+          if (!LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
           {
-            String severityName = sevTokenizer.nextToken();
-            severityName = severityName.replace("-", "_").toUpperCase();
-            if(!LOG_SEVERITY_ALL.equalsIgnoreCase(severityName))
+            try
             {
-              try
-              {
-                Severity.parseString(severityName);
-              }
-              catch(Exception e)
-              {
-                LocalizableMessage msg =
-                    WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
-                unacceptableReasons.add(msg);
-                return false;
-              }
+              Severity.parseString(severityName);
+            }
+            catch (Exception e)
+            {
+              unacceptableReasons.add(WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName));
+              return false;
             }
           }
         }
@@ -316,10 +294,8 @@ public class TextErrorLogPublisher
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      FileBasedErrorLogPublisherCfg config)
+  public ConfigChangeResult applyConfigurationChange(FileBasedErrorLogPublisherCfg config)
   {
-    // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
     List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
@@ -334,10 +310,8 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(
-                  overrideSeverity);
           resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(msg);
+          messages.add(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
         } else
         {
           String category = overrideSeverity.substring(0, equalPos);
@@ -366,9 +340,7 @@ public class TextErrorLogPublisher
                 }
                 catch(Exception e)
                 {
-                  LocalizableMessage msg =
-                      WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName);
-                  throw new ConfigException(msg);
+                  throw new ConfigException(WARN_ERROR_LOGGER_INVALID_SEVERITY.get(severityName));
                 }
               }
             }
@@ -376,9 +348,8 @@ public class TextErrorLogPublisher
           }
           catch(Exception e)
           {
-            LocalizableMessage msg = WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category);
             resultCode = DirectoryServer.getServerErrorResultCode();
-            messages.add(msg);
+            messages.add(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
           }
         }
       }
@@ -386,11 +357,9 @@ public class TextErrorLogPublisher
 
     File logFile = getFileForPath(config.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
-
     try
     {
-      FilePermission perm =
-          FilePermission.decodeUNIXMode(config.getLogFilePermissions());
+      FilePermission perm = FilePermission.decodeUNIXMode(config.getLogFilePermissions());
 
       boolean writerAutoFlush =
           config.isAutoFlush() && !config.isAsynchronous();
@@ -439,8 +408,7 @@ public class TextErrorLogPublisher
           asyncWriter.shutdown(false);
         }
 
-        if(!(writer instanceof AsynchronousTextWriter) &&
-            config.isAsynchronous())
+        if (!(writer instanceof AsynchronousTextWriter) && config.isAsynchronous())
         {
           // The asynchronous setting is being turned on.
           writer = new AsynchronousTextWriter("Asynchronous Text Writer for " + config.dn(),
@@ -519,13 +487,7 @@ public class TextErrorLogPublisher
   @Override
   public void log(String category, Severity severity, LocalizableMessage message, Throwable exception)
   {
-    Set<Severity> severities = definedSeverities.get(category);
-    if(severities == null)
-    {
-      severities = defaultSeverities;
-    }
-
-    if(severities.contains(severity))
+    if (isEnabledFor(category, severity))
     {
       StringBuilder sb = new StringBuilder();
       sb.append("[");
