@@ -36,7 +36,9 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.Indexer;
 
 /**
@@ -129,9 +131,9 @@ final class CollationMatchingRulesImpl {
      * Defines the base for collation matching rules.
      */
     private static abstract class AbstractCollationMatchingRuleImpl extends AbstractMatchingRuleImpl {
-
         private final Locale locale;
         final Collator collator;
+        final String indexName;
         final Indexer indexer;
 
         /**
@@ -143,7 +145,8 @@ final class CollationMatchingRulesImpl {
         AbstractCollationMatchingRuleImpl(Locale locale) {
             this.locale = locale;
             this.collator = createCollator(locale);
-            this.indexer = new DefaultIndexer(getSharedIndexName());
+            this.indexName = getPrefixIndexName() + "." + INDEX_ID_SHARED;
+            this.indexer = new DefaultIndexer(indexName);
         }
 
         private Collator createCollator(Locale locale) {
@@ -176,10 +179,6 @@ final class CollationMatchingRulesImpl {
                 builder.append(variant);
             }
             return builder.toString();
-        }
-
-        String getSharedIndexName() {
-            return getPrefixIndexName() + "." + INDEX_ID_SHARED;
         }
 
         /** {@inheritDoc} */
@@ -220,7 +219,7 @@ final class CollationMatchingRulesImpl {
         @Override
         public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
                 throws DecodeException {
-            return DefaultAssertion.named(getSharedIndexName(), normalizeAttributeValue(schema, assertionValue));
+            return DefaultAssertion.named(indexName, normalizeAttributeValue(schema, assertionValue));
         }
 
     }
@@ -242,7 +241,7 @@ final class CollationMatchingRulesImpl {
         CollationSubstringMatchingRuleImpl(Locale locale) {
             super(locale);
             substringMatchingRule = new AbstractSubstringMatchingRuleImpl(
-                getPrefixIndexName() + "." + INDEX_ID_SUBSTRING, getSharedIndexName()) {
+                    getPrefixIndexName() + "." + INDEX_ID_SUBSTRING, indexName) {
                 @Override
                 public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
                         throws DecodeException {
@@ -288,7 +287,7 @@ final class CollationMatchingRulesImpl {
         CollationOrderingMatchingRuleImpl(Locale locale) {
             super(locale);
 
-            orderingMatchingRule = new AbstractOrderingMatchingRuleImpl(getSharedIndexName()) {
+            orderingMatchingRule = new AbstractOrderingMatchingRuleImpl(indexName) {
                 @Override
                 public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException {
                     return CollationOrderingMatchingRuleImpl.this.normalizeAttributeValue(schema, value);
@@ -340,8 +339,21 @@ final class CollationMatchingRulesImpl {
 
         /** {@inheritDoc} */
         @Override
-        public Assertion getAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException {
-            return orderingMatchingRule.getGreaterThanAssertion(schema, assertionValue);
+        public Assertion getAssertion(Schema schema, ByteSequence assertionValue)
+                throws DecodeException {
+            final ByteString normAssertion = normalizeAttributeValue(schema, assertionValue);
+            return new Assertion() {
+                @Override
+                public ConditionResult matches(final ByteSequence attributeValue) {
+                    return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) > 0);
+                }
+
+                @Override
+                public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+                    return factory.createRangeMatchQuery(indexName, normAssertion,
+                            ByteString.empty(), false, false);
+                }
+            };
         }
     }
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -32,14 +33,25 @@ import org.testng.annotations.DataProvider;
 /**
  * Test the IntegerOrderingMatchingRule.
  */
-//TODO: fix matching rule so that commented data in data providers pass
 public class IntegerOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
 
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "OrderingMatchingRuleInvalidValues")
     public Object[][] createOrderingMatchingRuleInvalidValues() {
+        /*
+         * The JDK8 BigInteger parser is quite tolerant and allows leading zeros
+         * and + characters. It's ok if the matching rule is more tolerant than
+         * the syntax itself (see commented data).
+         */
         return new Object[][] {
+            //{"01"},
+            //{"00"},
+            //{"-01"},
+            { "1-2" },
+            { "b2" },
+            { "-" },
+            { "" },
             {" 63 "},
             {"- 63"},
             //{"+63" },
@@ -56,11 +68,14 @@ public class IntegerOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
             {"1",   "0",   1},
             {"1",   "1",   0},
             {"45",  "54", -1},
-            //{"-63", "63", -1},
-            //{"-63", "0",  -1},
+            {"-63", "63", -1},
+            {"-63", "0",  -1},
             {"63",  "0",   1},
-            //{"0",   "-63", 1},
-            //{"987654321987654321987654321", "987654321987654321987654322", -1},
+            {"0",   "-63", 1},
+            // Values which are greater than 64 bits.
+            { "-987654321987654321987654321", "-987654321987654321987654322", 1 },
+            {"987654321987654321987654321", "987654321987654321987654322", -1},
+            { "987654321987654321987654321", "987654321987654321987654321", 0 },
         };
     }
 
