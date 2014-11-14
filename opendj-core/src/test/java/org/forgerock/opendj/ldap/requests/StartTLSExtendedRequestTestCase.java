@@ -54,7 +54,7 @@ public class StartTLSExtendedRequestTestCase extends RequestsTestCase {
         try {
             return new StartTLSExtendedRequest[] { Requests.newStartTLSExtendedRequest(SSLContext.getDefault()) };
         } catch (NoSuchAlgorithmException e) {
-            // nothing to do;
+            // nothing to do
         }
         return null;
     }

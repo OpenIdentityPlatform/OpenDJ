@@ -382,7 +382,6 @@ public final class AVA implements Comparable<AVA> {
                 // It is definitely not a delimiter at this point.
                 appendHexChars(reader, valueBuffer, hexBuffer);
                 valueBuffer.append(c);
-                // reader.mark();
             }
             reader.mark();
         }
