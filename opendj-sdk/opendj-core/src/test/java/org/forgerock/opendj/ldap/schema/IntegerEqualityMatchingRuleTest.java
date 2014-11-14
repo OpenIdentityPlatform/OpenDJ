@@ -33,13 +33,17 @@ import org.testng.annotations.DataProvider;
 /**
  * Test the IntegerEqualityMatchingRule.
  */
-//TODO: fix matching rule so that commented data in data providers pass
 public class IntegerEqualityMatchingRuleTest extends MatchingRuleTest {
 
     /** {@inheritDoc} */
     @Override
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
+        /*
+         * The JDK8 BigInteger parser is quite tolerant and allows leading zeros
+         * and + characters. It's ok if the matching rule is more tolerant than
+         * the syntax itself (see commented data).
+         */
         return new Object[][] {
             //{"01"},
             //{"00"},
@@ -48,6 +52,11 @@ public class IntegerEqualityMatchingRuleTest extends MatchingRuleTest {
             {"b2"},
             {"-"},
             {""},
+            {" 63 "},
+            {"- 63"},
+            //{"+63" },
+            {"AB"  },
+            {"0xAB"},
         };
     }
 
@@ -58,8 +67,12 @@ public class IntegerEqualityMatchingRuleTest extends MatchingRuleTest {
         return new Object[][] {
             {"1234567890",  "1234567890",   ConditionResult.TRUE},
             {"-1",          "-1",           ConditionResult.TRUE},
-            //{"-9876543210", "-9876543210",  ConditionResult.TRUE},
+            {"-9876543210", "-9876543210",  ConditionResult.TRUE},
             {"1",           "-1",           ConditionResult.FALSE},
+            // Values which are greater than 64 bits.
+            { "-987654321987654321987654321", "-987654321987654321987654322", ConditionResult.FALSE },
+            {"987654321987654321987654321", "987654321987654321987654322", ConditionResult.FALSE },
+            { "987654321987654321987654321", "987654321987654321987654321", ConditionResult.TRUE },
         };
     }
 

@@ -46,9 +46,7 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  * this assumption does not hold true.
  */
 abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl {
-
     private final Collection<? extends Indexer> indexers;
-
     private final String indexId;
 
     /** Constructor for default matching rules. */
@@ -97,35 +95,6 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         };
     }
 
-    /**
-     * Retrieves the normalized form of the provided assertion value, which is
-     * best suited for efficiently performing greater than matching
-     * operations on that value. The assertion value is guaranteed to be valid
-     * against this matching rule's assertion syntax.
-     *
-     * @param schema
-     *            The schema in which this matching rule is defined.
-     * @param assertionValue
-     *            The syntax checked assertion value to be normalized.
-     * @return The normalized version of the provided assertion value.
-     * @throws DecodeException
-     *             if an syntax error occurred while parsing the value.
-     */
-    public Assertion getGreaterThanAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException {
-        final ByteString normAssertion = normalizeAttributeValue(schema, assertionValue);
-        return new Assertion() {
-            @Override
-            public ConditionResult matches(final ByteSequence attributeValue) {
-                return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) > 0);
-            }
-
-            @Override
-            public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
-                return factory.createRangeMatchQuery(indexId, normAssertion, ByteString.empty(), false, false);
-            }
-        };
-    }
-
     /** {@inheritDoc} */
     @Override
     public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
@@ -148,5 +117,9 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
     @Override
     public Collection<? extends Indexer> getIndexers() {
         return indexers;
+    }
+
+    final String getIndexId() {
+        return indexId;
     }
 }

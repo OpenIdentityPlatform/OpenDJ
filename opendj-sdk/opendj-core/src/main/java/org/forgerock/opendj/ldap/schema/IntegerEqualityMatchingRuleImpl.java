@@ -26,30 +26,30 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static org.forgerock.opendj.ldap.schema.IntegerOrderingMatchingRuleImpl.*;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import java.util.Comparator;
+
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
 /**
  * This class defines the integerMatch matching rule defined in X.520 and
- * referenced in RFC 2252.
+ * referenced in RFC 2252. The implementation of this matching rule is
+ * intentionally aligned with the ordering matching rule so that they could
+ * potentially share the same index.
  */
 final class IntegerEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
 
-    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+    @Override
+    public Comparator<ByteSequence> comparator(final Schema schema) {
+        return COMPARATOR;
+    }
 
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
-        try {
-            return ByteString.valueOf(Integer.parseInt(value.toString()));
-        } catch (final Exception e) {
-            logger.debug(LocalizableMessage.raw("%s", e));
-            throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value));
-        }
+        return normalizeValueAndEncode(value);
     }
 }

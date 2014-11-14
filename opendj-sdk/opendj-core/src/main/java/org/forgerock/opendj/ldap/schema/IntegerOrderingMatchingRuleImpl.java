@@ -26,30 +26,122 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import java.math.BigInteger;
+import java.util.Comparator;
+
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 
 /**
  * This class defines the integerOrderingMatch matching rule defined in X.520
- * and referenced in RFC 4519.
+ * and referenced in RFC 4519. The implementation of this matching rule is
+ * intentionally aligned with the ordering matching rule so that they could
+ * potentially share the same index.
  */
 final class IntegerOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImpl {
+    static final Comparator<ByteSequence> COMPARATOR = new Comparator<ByteSequence>() {
+        @Override
+        public int compare(final ByteSequence o1, final ByteSequence o2) {
+            final BigInteger i1 = decodeNormalizedValue(o1);
+            final BigInteger i2 = decodeNormalizedValue(o2);
+            return i1.compareTo(i2);
+        }
+    };
 
-    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+    static ByteString normalizeValueAndEncode(final ByteSequence value) throws DecodeException {
+        return encodeNormalizedValue(normalizeValue(value));
+    }
+
+    private static BigInteger normalizeValue(final ByteSequence value) throws DecodeException {
+        try {
+            return new BigInteger(value.toString());
+        } catch (final Exception e) {
+            throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value));
+        }
+    }
+
+    private static BigInteger decodeNormalizedValue(final ByteSequence normalizedValue) {
+        return new BigInteger(normalizedValue.toByteArray());
+    }
+
+    private static ByteString encodeNormalizedValue(final BigInteger normalizedValue) {
+        return ByteString.wrap(normalizedValue.toByteArray());
+    }
+
+    @Override
+    public Comparator<ByteSequence> comparator(final Schema schema) {
+        return COMPARATOR;
+    }
+
+    @Override
+    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+            throws DecodeException {
+        final BigInteger normAssertion = normalizeValue(value);
+        return new Assertion() {
+            @Override
+            public <T> T createIndexQuery(final IndexQueryFactory<T> factory)
+                    throws DecodeException {
+                return factory.createRangeMatchQuery(getIndexId(), ByteString.empty(),
+                        encodeNormalizedValue(normAssertion), false, false);
+            }
+
+            @Override
+            public ConditionResult matches(final ByteSequence normValue) {
+                return ConditionResult.valueOf(decodeNormalizedValue(normValue).compareTo(
+                        normAssertion) < 0);
+            }
+        };
+    }
+
+    @Override
+    public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value)
+            throws DecodeException {
+        final BigInteger normAssertion = normalizeValue(value);
+        return new Assertion() {
+            @Override
+            public <T> T createIndexQuery(final IndexQueryFactory<T> factory)
+                    throws DecodeException {
+                return factory.createRangeMatchQuery(getIndexId(), encodeNormalizedValue(normAssertion), ByteString
+                        .empty(), true, false);
+            }
+
+            @Override
+            public ConditionResult matches(final ByteSequence normValue) {
+                return ConditionResult.valueOf(decodeNormalizedValue(normValue).compareTo(
+                        normAssertion) >= 0);
+            }
+        };
+    }
+
+    @Override
+    public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
+            throws DecodeException {
+        final BigInteger normAssertion = normalizeValue(value);
+        return new Assertion() {
+            @Override
+            public <T> T createIndexQuery(final IndexQueryFactory<T> factory)
+                    throws DecodeException {
+                return factory.createRangeMatchQuery(getIndexId(), ByteString.empty(),
+                        encodeNormalizedValue(normAssertion), false, true);
+            }
+
+            @Override
+            public ConditionResult matches(final ByteSequence normValue) {
+                return ConditionResult.valueOf(decodeNormalizedValue(normValue).compareTo(
+                        normAssertion) <= 0);
+            }
+        };
+    }
 
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
-        try {
-            return ByteString.valueOf(Integer.parseInt(value.toString()));
-        } catch (final Exception e) {
-            logger.debug(LocalizableMessage.raw("%s", e));
-            throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value));
-        }
+        return normalizeValueAndEncode(value);
     }
 }
