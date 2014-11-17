@@ -84,6 +84,16 @@ final class CoreSchemaImpl {
      * value.
      */
     private static final Map<String, String> LOCALE_NAMES_TO_OIDS = new HashMap<String, String>();
+    /**
+     * Same as {@link CoreSchemaImpl#LOCALE_NAMES_TO_OIDS}, but it contains the old locale names
+     * that will be used for the registration of collation matching rules.
+     * It is automatically populated on static initialization of current class.
+     * It allows the initialization process to complete when newer locales are referenced by config.ldif,
+     * but the JVM only works with the old locale names.
+     *
+     * @see CoreSchemaImpl#LOCALE_NAMES_TO_OIDS
+     */
+    private static final Map<String, String> JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS = new HashMap<String, String>();
 
     static {
         LOCALE_NAMES_TO_OIDS.put("af", "1.3.6.1.4.1.42.2.27.9.4.1.1");
@@ -245,6 +255,34 @@ final class CoreSchemaImpl {
         LOCALE_NAMES_TO_OIDS.put("zh-MO", "1.3.6.1.4.1.42.2.27.9.4.146.1");
         LOCALE_NAMES_TO_OIDS.put("zh-SG", "1.3.6.1.4.1.42.2.27.9.4.147.1");
         LOCALE_NAMES_TO_OIDS.put("zh-TW", "1.3.6.1.4.1.42.2.27.9.4.148.1");
+
+        initializeJvmSupportedLocaleNamesToOids();
+    }
+
+    private static void initializeJvmSupportedLocaleNamesToOids() {
+        for (Entry<String, String> entry : LOCALE_NAMES_TO_OIDS.entrySet()) {
+            final String localeName = entry.getKey();
+            final String oid = entry.getValue();
+            final String oldLocaleName = new Locale(localeName).toString();
+
+            final int idx = oldLocaleName.indexOf('-');
+            if (idx == -1) {
+                // no dash, oldLocaleName is lowercase, which is correct for the language tag
+                JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS.put(oldLocaleName, oid);
+            } else if (oldLocaleName.equalsIgnoreCase(localeName)) {
+                // fast path to avoid the string computation in the else clause
+                JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS.put(localeName, oid);
+            } else {
+                // Old locale is different from locale and there are country, and/or variants.
+                // Ensure the country and variants are uppercase as in LOCALE_NAMES_TO_OIDS
+                // to avoid problems during matching rules initialization.
+                // e.g. locale name "zh-SG" is converted to "zh-sg" in old locale name
+                final StringBuilder sb = new StringBuilder();
+                sb.append(oldLocaleName, 0, idx + 1)
+                    .append(oldLocaleName.substring(idx + 1, oldLocaleName.length()).toUpperCase(Locale.ENGLISH));
+                JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS.put(sb.toString(), oid);
+            }
+        }
     }
 
     static {
@@ -896,11 +934,12 @@ final class CoreSchemaImpl {
         for (Locale locale : Locale.getAvailableLocales()) {
             localesCache.put(localeName(locale), locale);
         }
+
         // Build a intermediate map to list all available oids with their locale names
         // An oid can be associated to multiple locale names
         final Map<String, List<String>> oidsCache = new HashMap<String, List<String>>();
         for (final String localeName: localesCache.keySet()) {
-            String oid = LOCALE_NAMES_TO_OIDS.get(localeName);
+            String oid = JVM_SUPPORTED_LOCALE_NAMES_TO_OIDS.get(localeName);
             if (oid != null) {
                 List<String> names = oidsCache.get(oid);
                 if (names == null) {
