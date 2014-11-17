@@ -23,7 +23,6 @@
  *
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
-
 package org.opends.server.tools.upgrade;
 
 import java.io.File;
@@ -34,7 +33,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -47,6 +45,8 @@ import org.opends.server.util.ChangeOperationType;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
+import static javax.security.auth.callback.ConfirmationCallback.*;
+
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FileManager.*;
 import static org.opends.server.tools.upgrade.Installation.*;
@@ -57,30 +57,20 @@ import static org.opends.server.tools.upgrade.UpgradeUtils.*;
  */
 public final class UpgradeTasks
 {
-  /**
-   * An errors counter in case of ignore errors mode.
-   */
-  static int countErrors = 0;
-
-  /**
-   * Logger for the upgrade.
-   */
+  /** Logger for the upgrade. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The indexes list to rebuild are united here.
-   */
-  static Set<String> indexesListToRebuild = new HashSet<String>();
+  /** An errors counter in case of ignore errors mode. */
+  static int countErrors;
 
-  /**
-   * A flag to avoid rebuild single indexes if 'rebuild all' is selected.
-   */
-  static boolean isRebuildAllIndexesIsPresent = false;
+  /** Contains all the indexes to rebuild. */
+  static Set<String> indexesToRebuild = new HashSet<String>();
 
-  /**
-   * A flag for marking 'rebuild all' task accepted by user.
-   */
-  static boolean isRebuildAllIndexesTaskAccepted = false;
+  /** A flag to avoid rebuild single indexes if 'rebuild all' is selected. */
+  static boolean isRebuildAllIndexesIsPresent;
+
+  /** A flag for marking 'rebuild all' task accepted by user. */
+  static boolean isRebuildAllIndexesTaskAccepted;
 
   /**
    * Returns a new upgrade task which adds a config entry to the underlying
@@ -511,15 +501,13 @@ public final class UpgradeTasks
       {
         Upgrade.setHasPostUpgradeTask(true);
         // Requires answer from the user.
-        final int answer = context.confirmYN(summary, ConfirmationCallback.NO);
-        isATaskToPerform = (answer == ConfirmationCallback.YES);
+        isATaskToPerform = context.confirmYN(summary, NO) == YES;
         isRebuildAllIndexesIsPresent = true;
         isRebuildAllIndexesTaskAccepted = isATaskToPerform;
       }
 
       @Override
-      public void postUpgrade(final UpgradeContext context)
-          throws ClientException
+      public void postUpgrade(final UpgradeContext context) throws ClientException
       {
         if (!isATaskToPerform)
         {
@@ -528,11 +516,9 @@ public final class UpgradeTasks
       }
 
       @Override
-      public void postponePostUpgrade(UpgradeContext context)
-          throws ClientException
+      public void postponePostUpgrade(UpgradeContext context) throws ClientException
       {
-        context.notify(INFO_UPGRADE_ALL_REBUILD_INDEX_DECLINED.get(),
-            TextOutputCallback.WARNING);
+        context.notify(INFO_UPGRADE_ALL_REBUILD_INDEX_DECLINED.get(), TextOutputCallback.WARNING);
       }
     };
   }
@@ -567,17 +553,15 @@ public final class UpgradeTasks
       {
         Upgrade.setHasPostUpgradeTask(true);
         // Requires answer from the user.
-        final int answer = context.confirmYN(summary, ConfirmationCallback.NO);
-        isATaskToPerform = (answer == ConfirmationCallback.YES);
+        isATaskToPerform = context.confirmYN(summary, NO) == YES;
       }
 
       @Override
-      public void postUpgrade(final UpgradeContext context)
-          throws ClientException
+      public void postUpgrade(final UpgradeContext context) throws ClientException
       {
         if (isATaskToPerform)
         {
-          indexesListToRebuild.add(index);
+          indexesToRebuild.add(index);
         }
         else
         {
@@ -586,13 +570,11 @@ public final class UpgradeTasks
       }
 
       @Override
-      public void postponePostUpgrade(UpgradeContext context)
-          throws ClientException
+      public void postponePostUpgrade(UpgradeContext context) throws ClientException
       {
         if (!isRebuildAllIndexesIsPresent)
         {
-          context.notify(INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(index),
-              TextOutputCallback.WARNING);
+          context.notify(INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(index), TextOutputCallback.WARNING);
         }
       }
     };
@@ -610,8 +592,7 @@ public final class UpgradeTasks
     return new AbstractUpgradeTask()
     {
       @Override
-      public void postUpgrade(final UpgradeContext context)
-          throws ClientException
+      public void postUpgrade(final UpgradeContext context) throws ClientException
       {
         LocalizableMessage message = null;
         final List<String> args = new LinkedList<String>();
@@ -621,15 +602,13 @@ public final class UpgradeTasks
           args.add("--rebuildAll");
           message = INFO_UPGRADE_REBUILD_ALL.get();
         }
-        else if (!indexesListToRebuild.isEmpty()
+        else if (!indexesToRebuild.isEmpty()
             && !isRebuildAllIndexesTaskAccepted)
         {
-          message =
-              INFO_UPGRADE_REBUILD_INDEX_STARTS.get(Arrays
-                  .toString(indexesListToRebuild.toArray()));
+          message = INFO_UPGRADE_REBUILD_INDEX_STARTS.get(indexesToRebuild);
 
           // Adding all requested indexes.
-          for (final String indexToRebuild : indexesListToRebuild)
+          for (final String indexToRebuild : indexesToRebuild)
           {
             args.add("-i");
             args.add(indexToRebuild);
@@ -648,8 +627,7 @@ public final class UpgradeTasks
         // Sets the arguments like the rebuild index command line.
         args.addAll(Arrays.asList(
             "-f",
-            new File(configDirectory, CURRENT_CONFIG_FILE_NAME)
-              .getAbsolutePath()));
+            new File(configDirectory, CURRENT_CONFIG_FILE_NAME).getAbsolutePath()));
 
         /*
          * Index(es) could be contained in several backends or none, If none,
@@ -665,19 +643,17 @@ public final class UpgradeTasks
             args.add(be);
           }
 
-          final String[] commandLineArgs =
-              args.toArray(new String[args.size()]);
           // Displays info about command line args for log only.
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, Arrays.toString(commandLineArgs));
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS, args);
 
           /*
            * The rebuild-index process just display a status ok / fails. The
            * logger stream contains all the log linked to this process. The
            * complete process is not displayed in the upgrade console.
            */
-          final int result =
-              new RebuildIndex().rebuildIndexesWithinMultipleBackends(true,
-                  UpgradeLog.getPrintStream(), commandLineArgs);
+          final String[] commandLineArgs = args.toArray(new String[args.size()]);
+          final int result = new RebuildIndex().rebuildIndexesWithinMultipleBackends(
+              true, UpgradeLog.getPrintStream(), commandLineArgs);
 
           if (result == 0)
           {
@@ -694,7 +670,7 @@ public final class UpgradeTasks
         else
         {
           logger.debug(INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND);
-          logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED, indexesListToRebuild);
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED, indexesToRebuild);
           context.notifyProgress(pnc.setProgress(100));
         }
       }
@@ -720,21 +696,19 @@ public final class UpgradeTasks
         final LocalizableMessage msg = INFO_UPGRADE_TASK_REFRESH_UPGRADE_DIRECTORY.get();
         logger.debug(msg);
 
-        final ProgressNotificationCallback pnc =
-            new ProgressNotificationCallback(0, msg, 20);
+        final ProgressNotificationCallback pnc = new ProgressNotificationCallback(0, msg, 20);
         context.notifyProgress(pnc);
 
         try
         {
-          updateConfigUpgradeSchemaFile(configSchemaDirectory, String
-              .valueOf(context.getToVersion().getRevisionNumber()));
+          String toRevision = String.valueOf(context.getToVersion().getRevisionNumber());
+          updateConfigUpgradeSchemaFile(configSchemaDirectory, toRevision);
 
           context.notifyProgress(pnc.setProgress(100));
         }
         catch (final Exception ex)
         {
-          manageTaskException(context, ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER
-              .get(ex.getMessage()), pnc);
+          manageTaskException(context, ERR_UPGRADE_CONFIG_ERROR_UPGRADE_FOLDER.get(ex.getMessage()), pnc);
         }
       }
     };
@@ -761,24 +735,20 @@ public final class UpgradeTasks
          * order to make sure the process will still work after upgrade, we need
          * to rename it - only if it exists.
          */
-        if (UpgradeUtils.configSnmpSecurityDirectory.exists())
+        final File snmpDir = UpgradeUtils.configSnmpSecurityDirectory;
+        if (snmpDir.exists())
         {
           ProgressNotificationCallback pnc =
               new ProgressNotificationCallback(0, summary, 0);
           try
           {
-            final File oldSnmpConfig =
-                new File(UpgradeUtils.configSnmpSecurityDirectory,
-                    "opends-snmp.security");
+            final File oldSnmpConfig = new File(snmpDir, "opends-snmp.security");
             if (oldSnmpConfig.exists())
             {
               context.notifyProgress(pnc.setProgress(20));
               logger.debug(summary);
 
-              final File snmpConfig =
-                  new File(UpgradeUtils.configSnmpSecurityDirectory,
-                      "opendj-snmp.security");
-
+              final File snmpConfig = new File(snmpDir, "opendj-snmp.security");
               FileManager.rename(oldSnmpConfig, snmpConfig);
 
               context.notifyProgress(pnc.setProgress(100));
@@ -786,9 +756,8 @@ public final class UpgradeTasks
           }
           catch (final Exception ex)
           {
-            manageTaskException(context,
-                ERR_UPGRADE_RENAME_SNMP_SECURITY_CONFIG_FILE.get(ex
-                    .getMessage()), pnc);
+            LocalizableMessage msg = ERR_UPGRADE_RENAME_SNMP_SECURITY_CONFIG_FILE.get(ex.getMessage());
+            manageTaskException(context, msg, pnc);
           }
         }
       }
@@ -808,15 +777,11 @@ public final class UpgradeTasks
       {
         if (needsUserConfirmation)
         {
-          // Process needs to have user's response to perform the current
-          // modification.
-          final int answer =
-              context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM
-                  .get(description), ConfirmationCallback.YES);
-
-          // The user refuses to perform this task.
-          if (answer == ConfirmationCallback.NO)
+          // Process needs to have user's response to perform the current modification.
+          LocalizableMessage msg = INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(description);
+          if (context.confirmYN(msg, YES) == NO)
           {
+            // The user refuses to perform this task.
             userConfirmation = false;
           }
         }
@@ -886,15 +851,11 @@ public final class UpgradeTasks
       {
         if (needsUserConfirmation)
         {
-          // Process needs to have user's response to perform the current
-          // modification.
-          final int answer =
-              context.confirmYN(INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM
-                  .get(description), ConfirmationCallback.YES);
-
-          // The user refuses to perform this task.
-          if (answer == ConfirmationCallback.NO)
+          // Process needs to have user's response to perform the current modification
+          LocalizableMessage msg = INFO_UPGRADE_TASK_NEEDS_USER_CONFIRM.get(description);
+          if (context.confirmYN(msg, YES) == NO)
           {
+            // The user refuses to perform this task.
             userConfirmation = false;
           }
         }
@@ -930,9 +891,8 @@ public final class UpgradeTasks
           new File(configDirectory, Installation.CURRENT_CONFIG_FILE_NAME);
 
       final Filter filterVal = filter != null ? Filter.valueOf(filter) : null;
-      final int changeCount =
-          updateConfigFile(configFile.getPath(), filterVal,
-              changeOperationType, ldif);
+      final int changeCount = updateConfigFile(
+          configFile.getPath(), filterVal, changeOperationType, ldif);
 
       displayChangeCount(configFile.getPath(), changeCount);
 
@@ -944,7 +904,7 @@ public final class UpgradeTasks
     }
   }
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private UpgradeTasks()
   {
     // Do nothing.
