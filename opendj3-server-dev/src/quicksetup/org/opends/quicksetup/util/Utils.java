@@ -66,6 +66,7 @@ import static com.forgerock.opendj.util.OperatingSystem.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.Installation.*;
 import static org.opends.server.util.DynamicConstants.*;
 
 /**
@@ -831,7 +832,8 @@ public class Utils
     for (String classPath : classPaths)
     {
       final String normPath = classPath.replace(File.separatorChar, '/');
-      if (normPath.endsWith(Installation.OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
+      if (normPath.endsWith(OPENDJ_BOOTSTRAP_CLIENT_JAR_RELATIVE_PATH)
+          || normPath.endsWith(OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
       {
         return classPath;
       }

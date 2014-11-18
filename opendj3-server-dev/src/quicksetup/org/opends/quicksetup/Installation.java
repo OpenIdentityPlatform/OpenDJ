@@ -54,8 +54,9 @@ public final class Installation
 {
 
   /** Relative path to bootstrap OpenDJ jar file. */
-  public static final String OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH =
-      "lib/bootstrap-client.jar";
+  public static final String OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH = "lib/bootstrap.jar";
+  /** Relative path to bootstrap-client OpenDJ jar file. */
+  public static final String OPENDJ_BOOTSTRAP_CLIENT_JAR_RELATIVE_PATH = "lib/bootstrap-client.jar";
 
   /**
    * The relative path where all the Windows binaries (batch files) are.
