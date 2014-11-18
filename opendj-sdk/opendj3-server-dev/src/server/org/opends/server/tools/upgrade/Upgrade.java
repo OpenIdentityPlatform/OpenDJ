@@ -23,14 +23,7 @@
  *
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
-
 package org.opends.server.tools.upgrade;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
-import static org.opends.server.tools.upgrade.UpgradeTasks.*;
-import static org.opends.server.tools.upgrade.LicenseFile.*;
-import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -41,18 +34,24 @@ import java.util.List;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.security.auth.callback.ConfirmationCallback;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.util.BuildVersion;
+import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
-import org.opends.server.util.BuildVersion;
-import org.opends.server.util.StaticUtils;
+import static com.forgerock.opendj.cli.Utils.*;
+import static javax.security.auth.callback.TextOutputCallback.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
+import static org.opends.server.tools.upgrade.LicenseFile.*;
+import static org.opends.server.tools.upgrade.UpgradeTasks.*;
 
 /**
  * This class contains the table of upgrade tasks that need performing when
@@ -60,25 +59,15 @@ import org.opends.server.util.StaticUtils;
  */
 public final class Upgrade
 {
-  /**
-   * Upgrade's logger.
-   */
-  private final static LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  /** Upgrade's logger. */
+  private static LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Upgrade supports version from 2.4.5.
-   */
-  private final static BuildVersion UPGRADESUPPORTSVERSIONFROM = BuildVersion
-      .valueOf("2.4.5.0000");
+  /** Upgrade supports version from 2.4.5. */
+  private static BuildVersion UPGRADESUPPORTSVERSIONFROM = BuildVersion.valueOf("2.4.5.0000");
 
-  /**
-   * The success exit code value.
-   */
+  /** The success exit code value. */
   static final int EXIT_CODE_SUCCESS = 0;
-
-  /**
-   * The error exit code value.
-   */
+  /** The error exit code value. */
   static final int EXIT_CODE_ERROR = 1;
 
   /**
@@ -87,14 +76,10 @@ public final class Upgrade
    */
   static final int EXIT_CODE_MANUAL_INTERVENTION = 2;
 
-  /**
-   * If the upgrade contains some post upgrade tasks to do.
-   */
-  static boolean hasPostUpgradeTask = false;
+  /** If the upgrade contains some post upgrade tasks to do. */
+  static boolean hasPostUpgradeTask;
 
-  /**
-   * Developers should register upgrade tasks below.
-   */
+  /** Developers should register upgrade tasks below. */
   private static final NavigableMap<BuildVersion, List<UpgradeTask>> TASKS =
       new TreeMap<BuildVersion, List<UpgradeTask>>();
   private static final List<UpgradeTask> MANDATORY_TASKS =
@@ -385,6 +370,18 @@ public final class Upgrade
             "ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme",
             "ds-cfg-enabled: true"));
 
+    /** See OPENDJ-1545 */
+    register("3.0.0.11237",
+        deleteConfigEntry(INFO_UPGRADE_TASK_11237_1_SUMMARY.get(),
+            "dn: cn=Network Groups,cn=config"),
+        deleteConfigEntry(INFO_UPGRADE_TASK_11237_2_SUMMARY.get(),
+            "dn: cn=Workflows,cn=config"),
+        deleteConfigEntry(INFO_UPGRADE_TASK_11237_3_SUMMARY.get(),
+            "dn: cn=Workflow Elements,cn=config"));
+    register("3.0.0.11239",
+        deleteConfigEntry(INFO_UPGRADE_TASK_11239_1_SUMMARY.get(),
+            "dn: cn=Network Group,cn=Plugins,cn=config"));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
@@ -483,9 +480,7 @@ public final class Upgrade
     }
 
     // Starts upgrade
-    final int userResponse =
-        context.confirmYN(INFO_UPGRADE_DISPLAY_CONFIRM_START.get(),
-            ConfirmationCallback.YES);
+    final int userResponse = context.confirmYN(INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), ConfirmationCallback.YES);
     if (userResponse == ConfirmationCallback.NO)
     {
       final LocalizableMessage message = INFO_UPGRADE_ABORTED_BY_USER.get();
@@ -524,7 +519,7 @@ public final class Upgrade
       /*
        * Performs the post upgrade tasks.
        */
-      if (hasPostUpgradeTask && (UpgradeTasks.countErrors == 0))
+      if (hasPostUpgradeTask && UpgradeTasks.countErrors == 0)
       {
         context
             .notify(INFO_UPGRADE_PERFORMING_POST_TASKS.get(), TITLE_CALLBACK);
@@ -545,8 +540,7 @@ public final class Upgrade
     }
     finally
     {
-      context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils
-          .getInstallationPath()
+      context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils.getInstallationPath()
           + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
       logger.info(INFO_UPGRADE_PROCESS_END);
     }
@@ -584,7 +578,8 @@ public final class Upgrade
     List<UpgradeTask> taskList = TASKS.get(version);
     if (taskList == null)
     {
-      TASKS.put(version, (taskList = new LinkedList<UpgradeTask>()));
+      taskList = new LinkedList<UpgradeTask>();
+      TASKS.put(version, taskList);
     }
     taskList.addAll(Arrays.asList(tasks));
   }
@@ -600,8 +595,7 @@ public final class Upgrade
    * @throws ClientException
    *           An exception is thrown if the server is currently running.
    */
-  private final static void checkIfServerIsRunning(final UpgradeContext context)
-      throws ClientException
+  private static void checkIfServerIsRunning(final UpgradeContext context) throws ClientException
   {
     final String lockFile = LockFileManager.getServerLockFileName();
 
@@ -698,48 +692,43 @@ public final class Upgrade
       throws ClientException
   {
     // Check license
-    if (!LicenseFile.isAlreadyApproved())
+    if (LicenseFile.exists() && !LicenseFile.isAlreadyApproved())
     {
-      if (LicenseFile.exists())
+      context.notify(LocalizableMessage.raw(LINE_SEPARATOR + LicenseFile.getText()));
+      context.notify(INFO_LICENSE_DETAILS_CLI_LABEL.get());
+      if (!context.isAcceptLicenseMode())
       {
-        context.notify(LocalizableMessage.raw(LINE_SEPARATOR + LicenseFile.getText()));
-        context.notify(INFO_LICENSE_DETAILS_CLI_LABEL.get());
-        if (!context.isAcceptLicenseMode())
+        final int answer;
+
+        // The force cannot answer yes to the license's question,
+        // which is not a task even if it requires a user interaction OR
+        // -an accept license mode to continue the process.
+        if (context.isForceUpgradeMode())
         {
-          final int answer;
-
-          // The force cannot answer yes to the license's question,
-          // which is not a task even if it requires a user interaction OR
-          // -an accept license mode to continue the process.
-          if (context.isForceUpgradeMode())
-          {
-            answer = ConfirmationCallback.NO;
-            context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
-                + INFO_PROMPT_NO_COMPLETE_ANSWER.get()));
-          }
-          else
-          {
-            answer =
-                context.confirmYN(INFO_LICENSE_ACCEPT.get(),
-                    ConfirmationCallback.NO);
-          }
-
-          if (answer == ConfirmationCallback.NO)
-          {
-            System.exit(EXIT_CODE_SUCCESS);
-          }
-          else if (answer == ConfirmationCallback.YES)
-          {
-            LicenseFile.setApproval(true);
-          }
+          answer = ConfirmationCallback.NO;
+          context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
+              + INFO_PROMPT_NO_COMPLETE_ANSWER.get()));
         }
         else
         {
-          // We automatically accept the license with this option.
-          context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
-              + INFO_PROMPT_YES_COMPLETE_ANSWER.get()));
+          answer = context.confirmYN(INFO_LICENSE_ACCEPT.get(), ConfirmationCallback.NO);
+        }
+
+        if (answer == ConfirmationCallback.NO)
+        {
+          System.exit(EXIT_CODE_SUCCESS);
+        }
+        else if (answer == ConfirmationCallback.YES)
+        {
           LicenseFile.setApproval(true);
         }
+      }
+      else
+      {
+        // We automatically accept the license with this option.
+        context.notify(LocalizableMessage.raw(INFO_LICENSE_ACCEPT.get() + " "
+            + INFO_PROMPT_YES_COMPLETE_ANSWER.get()));
+        LicenseFile.setApproval(true);
       }
     }
   }
@@ -755,13 +744,13 @@ public final class Upgrade
   {
     try
     {
-      final File backup =
-          new File(UpgradeUtils.getInstancePath(), "classes.disabled");
-      if (backup.exists() && backup.listFiles() != null
-          && backup.listFiles().length > 0)
-      {
-        logger.warn(INFO_UPGRADE_CLASSES_FOLDER_RENAMED.get(backup
-            .getAbsoluteFile()));
+      final File backup = new File(UpgradeUtils.getInstancePath(), "classes.disabled");
+      if (backup.exists()) {
+        final File[] files = backup.listFiles();
+        if (files != null && files.length > 0)
+        {
+          logger.warn(INFO_UPGRADE_CLASSES_FOLDER_RENAMED, backup.getAbsoluteFile());
+        }
       }
     }
     catch (SecurityException se)
@@ -791,7 +780,7 @@ public final class Upgrade
     Upgrade.hasPostUpgradeTask = hasPostUpgradeTask;
   }
 
-  // Prevent instantiation.
+  /** Prevent instantiation. */
   private Upgrade()
   {
     // Nothing to do.
