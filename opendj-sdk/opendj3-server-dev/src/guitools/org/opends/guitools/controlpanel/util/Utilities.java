@@ -134,6 +134,7 @@ import static com.forgerock.opendj.util.OperatingSystem.*;
 
 import static org.opends.admin.ads.util.ConnectionUtils.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.quicksetup.Installation.*;
 import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
@@ -1918,8 +1919,9 @@ public class Utilities
   {
     for (String classPath : classPaths)
     {
-      String normPath = classPath.replace(File.separatorChar, '/');
-      if (normPath.endsWith(Installation.OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
+      final String normPath = classPath.replace(File.separatorChar, '/');
+      if (normPath.endsWith(OPENDJ_BOOTSTRAP_CLIENT_JAR_RELATIVE_PATH)
+          || normPath.endsWith(OPENDJ_BOOTSTRAP_JAR_RELATIVE_PATH))
       {
         return classPath;
       }
