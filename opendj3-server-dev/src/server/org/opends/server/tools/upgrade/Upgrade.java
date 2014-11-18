@@ -382,6 +382,10 @@ public final class Upgrade
         deleteConfigEntry(INFO_UPGRADE_TASK_11239_1_SUMMARY.get(),
             "dn: cn=Network Group,cn=Plugins,cn=config"));
 
+    /** See OPENDJ-1637 */
+    register("3.0.0.11260",
+        rebuildAllIndexes(INFO_UPGRADE_TASK_11260_SUMMARY.get()));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
