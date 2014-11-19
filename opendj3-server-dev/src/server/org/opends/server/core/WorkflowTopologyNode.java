@@ -33,6 +33,7 @@ import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 /**
  * This class implements a workflow node. A workflow node is used
@@ -54,28 +55,30 @@ import org.opends.server.types.OperationType;
  */
 public class WorkflowTopologyNode extends WorkflowTopology
 {
-  // Parent node of the current workflow node.
-  private WorkflowTopologyNode parent = null;
+  /** Parent node of the current workflow node. */
+  private WorkflowTopologyNode parent;
 
-
-  // The list of subordinate nodes of the current workflow node.
+  /** The list of subordinate nodes of the current workflow node. */
   private final ArrayList<WorkflowTopologyNode> subordinates = new ArrayList<WorkflowTopologyNode>();
-
 
   /**
    * Creates a new node for a workflow topology. The new node is initialized
-   * with a WorkflowImpl which contains the real processing. Optionally,
-   * the node may have tasks to be executed before and/or after the real
-   * processing. In the current implementation, such pre and post workflow
-   * elements are not used.
+   * with a WorkflowImpl which contains the real processing. Optionally, the
+   * node may have tasks to be executed before and/or after the real processing.
+   * In the current implementation, such pre and post workflow elements are not
+   * used.
    *
-   * @param workflowImpl          the real processing attached to the node
+   * @param backendId
+   *          the backendId
+   * @param baseDN
+   *          identifies the data handled by the workflow
+   * @param rootWorkflowElement
+   *          the root node of the task tree
    */
-  public WorkflowTopologyNode(WorkflowImpl workflowImpl)
+  public WorkflowTopologyNode(String backendId, DN baseDN, LocalBackendWorkflowElement rootWorkflowElement)
   {
-    super(workflowImpl);
+    super(backendId, baseDN, rootWorkflowElement);
   }
-
 
   /**
    * Executes an operation on a set of data being identified by the
@@ -87,13 +90,11 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * be canceled.
    */
   @Override
-  public void execute(Operation operation)
-      throws CanceledOperationException {
-    // Execute the operation
-    getWorkflowImpl().execute(operation);
+  public void execute(Operation operation) throws CanceledOperationException
+  {
+    super.execute(operation);
 
-    // For subtree search operation we need to go through the subordinate
-    // nodes.
+    // For subtree search operation we need to go through the subordinate nodes.
     if (operation.getOperationType() == OperationType.SEARCH)
     {
       executeSearchOnSubordinates((SearchOperation) operation);
@@ -138,7 +139,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
 
       // If the new search scope is 'base' and the search base DN does not
       // map the subordinate workflow then skip the subordinate workflow.
-      if ((newScope == SearchScope.BASE_OBJECT)
+      if (newScope == SearchScope.BASE_OBJECT
           && !subordinateDN.parent().equals(originalBaseDN))
       {
         continue;
@@ -207,7 +208,8 @@ public class WorkflowTopologyNode extends WorkflowTopology
    */
   public boolean isPrivate()
   {
-    return getWorkflowImpl().isPrivate();
+    LocalBackendWorkflowElement rwe = getRootWorkflowElement();
+    return rwe != null && rwe.isPrivate();
   }
 
 
@@ -231,29 +233,26 @@ public class WorkflowTopologyNode extends WorkflowTopology
 
     // Is the dn a subordinate of the current base DN?
     DN curBaseDN = getBaseDN();
-    if (curBaseDN != null)
+    if (curBaseDN != null && dn.isDescendantOf(curBaseDN))
     {
-      if (dn.isDescendantOf(curBaseDN))
+      // The dn may be handled by the current workflow.
+      // Now we have to check whether the dn is handled by
+      // a subordinate.
+      for (WorkflowTopologyNode subordinate: getSubordinates())
       {
-        // The dn may be handled by the current workflow.
-        // Now we have to check whether the dn is handled by
-        // a subordinate.
-        for (WorkflowTopologyNode subordinate: getSubordinates())
+        parentBaseDN = subordinate.getParentBaseDN(dn);
+        if (parentBaseDN != null)
         {
-          parentBaseDN = subordinate.getParentBaseDN(dn);
-          if (parentBaseDN != null)
-          {
-            // the dn is handled by a subordinate
-            break;
-          }
+          // the dn is handled by a subordinate
+          break;
         }
+      }
 
-        // If the dn is not handled by any subordinate, then it is
-        // handled by the current workflow.
-        if (parentBaseDN == null)
-        {
-          parentBaseDN = curBaseDN;
-        }
+      // If the dn is not handled by any subordinate, then it is
+      // handled by the current workflow.
+      if (parentBaseDN == null)
+      {
+        parentBaseDN = curBaseDN;
       }
     }
 
@@ -499,46 +498,25 @@ public class WorkflowTopologyNode extends WorkflowTopology
    */
   public StringBuilder toString(String leftMargin)
   {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
+    sb.append(leftMargin).append("Workflow ID = ").append(getWorkflowId()).append("\n");
+    sb.append(leftMargin).append("         baseDN:[").append(" \"").append(getBaseDN()).append("\" ]\n");
+    sb.append(leftMargin).append("         Root Workflow Element: ").append(getRootWorkflowElement()).append("\n");
+    sb.append(leftMargin).append("         Parent: ").append(getParent()).append("\n");
 
-    // display the baseDN
-    DN baseDN = getBaseDN();
-    String workflowID = this.getWorkflowImpl().getWorkflowId();
-    sb.append(leftMargin + "Workflow ID = " + workflowID + "\n");
-    sb.append(leftMargin + "         baseDN:[");
-    if (baseDN.isRootDN())
-    {
-      sb.append(" \"\"");
-    }
-    else
-    {
-      sb.append(" \"" + baseDN.toString() + "\"");
-    }
-    sb.append(" ]\n");
-
-    // display the root workflow element
-    sb.append(leftMargin
-        + "         Root Workflow Element: "
-        + getWorkflowImpl().getRootWorkflowElement() + "\n");
-
-    // display parent workflow
-    sb.append(leftMargin + "         Parent: " + getParent() + "\n");
-
-    // dump each subordinate
-    sb.append(leftMargin + "         List of subordinates:\n");
+    sb.append(leftMargin).append("         List of subordinates:\n");
     ArrayList<WorkflowTopologyNode> subordinates = getSubordinates();
-    if (subordinates.isEmpty())
-    {
-      sb.append(leftMargin + "            NONE\n");
-    }
-    else
+    if (!subordinates.isEmpty())
     {
       for (WorkflowTopologyNode subordinate: getSubordinates())
       {
         sb.append(subordinate.toString(leftMargin + "            "));
       }
     }
-
+    else
+    {
+      sb.append(leftMargin).append("            NONE\n");
+    }
     return sb;
   }
 

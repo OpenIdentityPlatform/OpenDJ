@@ -229,6 +229,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -2146,52 +2147,28 @@ public final class DirectoryServer
     // with the default/internal/admin network group.
     for (DN curBaseDN: backend.getBaseDNs())
     {
-      createAndRegisterWorkflow(curBaseDN, backend);
+      createWorkflow(curBaseDN, backend);
     }
   }
-
-  private static void createAndRegisterWorkflow(DN baseDN, Backend<?> backend) throws DirectoryException
-  {
-    WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
-    NetworkGroup.getDefaultNetworkGroup().registerWorkflow(workflowImpl);
-  }
-
 
   /**
    * Creates one workflow for a given base DN in a backend.
    *
    * @param baseDN   the base DN of the workflow to create
    * @param backend  the backend handled by the workflow
-   *
-   * @return the newly created workflow
-   *
    * @throws  DirectoryException  If the workflow ID for the provided
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  private static WorkflowImpl createWorkflow(DN baseDN, Backend<?> backend) throws DirectoryException
+  private static void createWorkflow(DN baseDN, Backend<?> backend) throws DirectoryException
   {
-    String backendID = backend.getBackendID();
-
     // Create a root workflow element to encapsulate the backend
-    LocalBackendWorkflowElement rootWE =
-        LocalBackendWorkflowElement.createAndRegister(backendID, backend);
+    final String backendID = backend.getBackendID();
+    LocalBackendWorkflowElement rootWE = createAndRegister(backendID, backend);
 
-    // The workflow ID is "backendID + baseDN".
-    // We cannot use backendID as workflow identifier because a backend
-    // may handle several base DNs. We cannot use baseDN either because
-    // we might want to configure several workflows handling the same
-    // baseDN through different network groups. So a mix of both
-    // backendID and baseDN should be ok.
-    String workflowID = backend.getBackendID() + "#" + baseDN;
-
-    // Create the workflow for the base DN and register the workflow with
-    // the server.
-    WorkflowImpl workflowImpl = new WorkflowImpl(workflowID, baseDN, rootWE);
-    workflowImpl.register();
-    return workflowImpl;
+    // Create the workflow for the base DN and register the workflow with the server
+    NetworkGroup.getDefaultNetworkGroup().registerWorkflow(backendID, baseDN, rootWE);
   }
-
 
   /**
    * Creates the missing workflows, one for the config backend and one for
@@ -5367,10 +5344,8 @@ public final class DirectoryServer
 
       // Since we've committed the changes we need to log any issues
       // that this registration has caused
-      if (warnings != null) {
-        for (LocalizableMessage warning : warnings) {
-          logger.error(warning);
-        }
+      for (LocalizableMessage warning : warnings) {
+        logger.error(warning);
       }
 
       // When a new baseDN is registered with the server we have to create
@@ -5381,7 +5356,7 @@ public final class DirectoryServer
         // the workflow with the default network group, but don't register
         // the workflow if the backend happens to be the configuration
         // backend because it's too soon for the config backend.
-        createAndRegisterWorkflow(baseDN, backend);
+        createWorkflow(baseDN, backend);
       }
     }
   }
@@ -5409,17 +5384,14 @@ public final class DirectoryServer
 
       // Since we've committed the changes we need to log any issues
       // that this registration has caused
-      if (warnings != null) {
-        for (LocalizableMessage error : warnings) {
-          logger.error(error);
-        }
+      for (LocalizableMessage error : warnings) {
+        logger.error(error);
       }
 
       // Now we need to deregister the workflow that was associated with the base DN
       if (!baseDN.equals(DN.valueOf("cn=config")))
       {
-        WorkflowImpl workflow = (WorkflowImpl) NetworkGroup.getDefaultNetworkGroup().deregisterWorkflow(baseDN);
-        workflow.deregister();
+        NetworkGroup.getDefaultNetworkGroup().deregisterWorkflow(baseDN);
       }
     }
   }
@@ -7175,10 +7147,7 @@ public final class DirectoryServer
         logger.traceException(e);
     }
 
-    // Deregister all workflows.
-    WorkflowImpl.deregisterAllOnShutdown();
-
-    // Deregister all network group configuration.
+    // Deregister all workflows and network group configuration.
     NetworkGroup.deregisterAllOnShutdown();
 
     // Force a new InternalClientConnection to be created on restart.

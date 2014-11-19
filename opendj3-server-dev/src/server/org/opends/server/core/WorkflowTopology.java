@@ -26,8 +26,12 @@
  */
 package org.opends.server.core;
 
-import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Reject;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.DN;
+import org.opends.server.types.Operation;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 /**
  * This class is the base class used to build the workflow topology.
@@ -39,35 +43,40 @@ import org.forgerock.opendj.ldap.SearchScope;
  * nodes in the workflow topology (WorkflowTopologyNode) and the second
  * one is used to implement the root DSE node (RootDseWorkflowTopology).
  */
-public abstract class WorkflowTopology implements Workflow
+abstract class WorkflowTopology implements Workflow
 {
-  /** The workflow implementation containing the task tree (ie. the processing). */
-  private WorkflowImpl workflowImpl;
+  /** The workflow identifier used by the configuration. */
+  private final String workflowId;
+
+  /** The root of the workflow task tree. */
+  private final LocalBackendWorkflowElement rootWorkflowElement;
+
+  /** The base DN of the data handled by the workflow. */
+  private final DN baseDN;
 
   /**
    * Create a new instance of the workflow topology base class.
-   * The instance is initialized with the workflow implementation which
-   * contains the task tree (ie. the processing).
    *
-   * @param workflowImpl the workflow which contains the processing
+   * @param backendId
+   *          the backendId
+   * @param baseDN
+   *          identifies the data handled by the workflow
+   * @param rootWorkflowElement
+   *          the root node of the task tree
    */
-  protected WorkflowTopology(WorkflowImpl workflowImpl)
+  protected WorkflowTopology(String backendId, DN baseDN, LocalBackendWorkflowElement rootWorkflowElement)
   {
-    this.workflowImpl = workflowImpl;
+    Reject.ifNull(rootWorkflowElement);
+    // The workflow ID is "backendID + baseDN".
+    // We cannot use backendID as workflow identifier because a backend
+    // may handle several base DNs. We cannot use baseDN either because
+    // we might want to configure several workflows handling the same
+    // baseDN through different network groups.
+    // So a mix of both backendID and baseDN should be ok.
+    this.workflowId = backendId + "#" + baseDN;
+    this.baseDN = baseDN;
+    this.rootWorkflowElement = rootWorkflowElement;
   }
-
-
-  /**
-   * Returns the workflow implementation which contains the task tree
-   * (ie. the processing).
-   *
-   * @return the workflow implementation which contains the processing
-   */
-  public WorkflowImpl getWorkflowImpl()
-  {
-    return workflowImpl;
-  }
-
 
   /**
    * Gets the base DN of the workflow node. The base DN of the workflow
@@ -79,9 +88,43 @@ public abstract class WorkflowTopology implements Workflow
   @Override
   public DN getBaseDN()
   {
-    return getWorkflowImpl().getBaseDN();
+    return this.baseDN;
   }
 
+  /**
+   * Gets the root workflow element for test purpose only.
+   *
+   * @return the root workflow element.
+   */
+  LocalBackendWorkflowElement getRootWorkflowElement()
+  {
+    return rootWorkflowElement;
+  }
+
+  /**
+   * Gets the workflow internal identifier.
+   *
+   * @return the workflow internal identifier
+   */
+  public String getWorkflowId()
+  {
+    return workflowId;
+  }
+
+  /**
+   * Executes all the tasks defined by the workflow task tree for a given
+   * operation.
+   *
+   * @param operation
+   *          the operation to execute
+   * @throws CanceledOperationException
+   *           if this operation should be canceled.
+   */
+  @Override
+  public void execute(Operation operation) throws CanceledOperationException
+  {
+    rootWorkflowElement.execute(operation);
+  }
 
   /**
    * Elaborates a new search scope according to the current search scope.
@@ -112,7 +155,7 @@ public abstract class WorkflowTopology implements Workflow
   @Override
   public String toString()
   {
-    return getClass().getSimpleName() + " " + workflowImpl;
+    return getClass().getSimpleName() + " workflow=" + workflowId;
   }
 
 }

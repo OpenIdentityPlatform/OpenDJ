@@ -32,10 +32,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
-import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.messages.CoreMessages.*;
@@ -127,21 +127,18 @@ public class NetworkGroup
    *
    * @param baseDN
    *          the baseDN of the workflow to deregister, may be null
-   * @return the deregistered workflow
    */
-  public Workflow deregisterWorkflow(DN baseDN)
+  public void deregisterWorkflow(DN baseDN)
   {
     if (baseDN == null)
     {
-      return null;
+      return;
     }
 
-    Workflow workflow = null;
     if (baseDN.isRootDN())
     {
       // deregister the rootDSE
       deregisterWorkflow(rootDSEWorkflowNode);
-      workflow = rootDSEWorkflowNode.getWorkflowImpl();
     }
     else
     {
@@ -157,7 +154,6 @@ public class NetworkGroup
             // deregisterWorkflowNode() because we want the naming
             // context list to be updated as well.
             deregisterWorkflow(node);
-            workflow = node.getWorkflowImpl();
 
             // Only one workflow can match the baseDN, so we can break
             // the loop here.
@@ -166,14 +162,6 @@ public class NetworkGroup
         }
       }
     }
-
-    // Now that the workflow node has been deregistered with the network
-    // group, update the reference counter of the workflow.
-    if (workflow != null)
-    {
-      ((WorkflowImpl) workflow).decrementReferenceCounter();
-    }
-    return workflow;
   }
 
   /**
@@ -185,8 +173,6 @@ public class NetworkGroup
   {
     return namingContexts;
   }
-
-
 
   /**
    * Gets the highest workflow in the topology that can handle the
@@ -246,7 +232,7 @@ public class NetworkGroup
   private void checkNotRegistered(WorkflowTopologyNode workflowNode)
       throws DirectoryException
   {
-    String workflowID = workflowNode.getWorkflowImpl().getWorkflowId();
+    String workflowID = workflowNode.getWorkflowId();
     ifNull(workflowID);
 
     // The workflow base DN should not be already present in the
@@ -257,8 +243,7 @@ public class NetworkGroup
       if (nodeBaseDN.equals(workflowNode.getBaseDN()))
       {
         LocalizableMessage message = ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
-            workflowID, networkGroupID, node.getWorkflowImpl().getWorkflowId(),
-            workflowNode.getWorkflowImpl().getBaseDN());
+            workflowID, networkGroupID, workflowID, workflowNode.getBaseDN());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -300,7 +285,7 @@ public class NetworkGroup
     {
       TreeMap<String, WorkflowTopologyNode> newWorkflowNodes =
           new TreeMap<String, WorkflowTopologyNode>(registeredWorkflowNodes);
-      newWorkflowNodes.remove(workflowNode.getWorkflowImpl().getWorkflowId());
+      newWorkflowNodes.remove(workflowNode.getWorkflowId());
       registeredWorkflowNodes = newWorkflowNodes;
     }
   }
@@ -346,26 +331,30 @@ public class NetworkGroup
   /**
    * Registers a workflow with the network group.
    *
-   * @param workflow
-   *          the workflow to register
+   * @param backendId
+   *          the workflow backendId
+   * @param baseDN
+   *          identifies the data handled by the workflow
+   * @param rootWorkflowElement
+   *          the root node of the task tree
    * @throws DirectoryException
    *           If the workflow ID for the provided workflow conflicts
    *           with the workflow ID of an existing workflow or if the
    *           base DN of the workflow is the same than the base DN of
    *           another workflow already registered
    */
-  public void registerWorkflow(WorkflowImpl workflow) throws DirectoryException
+  public void registerWorkflow(String backendId, DN baseDN, LocalBackendWorkflowElement rootWorkflowElement)
+      throws DirectoryException
   {
-    DN baseDN = workflow.getBaseDN();
     if (baseDN.isRootDN())
     {
       // NOTE - The rootDSE workflow is stored with the registeredWorkflows.
-      rootDSEWorkflowNode = new RootDseWorkflowTopology(workflow, namingContexts);
+      rootDSEWorkflowNode = new RootDseWorkflowTopology(backendId, baseDN, rootWorkflowElement, namingContexts);
       return;
     }
 
     // Try to insert it in the workflow topology.
-    WorkflowTopologyNode workflowNode = new WorkflowTopologyNode(workflow);
+    WorkflowTopologyNode workflowNode = new WorkflowTopologyNode(backendId, baseDN, rootWorkflowElement);
     registerWorkflowNode(workflowNode);
 
     // Now add the workflow in the workflow topology...
@@ -383,11 +372,7 @@ public class NetworkGroup
     }
 
     rebuildNamingContextList();
-
-    workflow.incrementReferenceCounter();
   }
-
-
 
   /**
    * Registers a workflow node with the network group.
@@ -402,7 +387,7 @@ public class NetworkGroup
   private void registerWorkflowNode(WorkflowTopologyNode workflowNode)
       throws DirectoryException
   {
-    String workflowID = workflowNode.getWorkflowImpl().getWorkflowId();
+    String workflowID = workflowNode.getWorkflowId();
     ifNull(workflowID);
 
     synchronized (registeredWorkflowNodesLock)
@@ -423,5 +408,4 @@ public class NetworkGroup
       registeredWorkflowNodes = newRegisteredWorkflowNodes;
     }
   }
-
 }
