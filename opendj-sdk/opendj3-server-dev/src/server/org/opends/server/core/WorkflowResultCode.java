@@ -34,14 +34,13 @@ import org.forgerock.opendj.ldap.ResultCode;
  * This class implements the workflow result code. The workflow result code
  * contains an LDAP result code along with an LDAP error message.
  */
-public class WorkflowResultCode
+class WorkflowResultCode
 {
-  // The global result code.
+  /** The global result code. */
   private ResultCode resultCode = ResultCode.UNDEFINED;
 
-  // The global error message.
+  /** The global error message. */
   private LocalizableMessageBuilder errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
-
 
   /**
    * Creates a new instance of a workflow result. By default the result code
@@ -52,7 +51,6 @@ public class WorkflowResultCode
     // Nothing to implement.
   }
 
-
   /**
    * Creates a new instance of a workflow result code and initializes it
    * with a result code and an error message.
@@ -60,10 +58,7 @@ public class WorkflowResultCode
    * @param resultCode    the initial value for the result code
    * @param errorMessage  the initial value for the error message
    */
-  public WorkflowResultCode(
-      ResultCode     resultCode,
-      LocalizableMessageBuilder errorMessage
-      )
+  WorkflowResultCode(ResultCode resultCode, LocalizableMessageBuilder errorMessage)
   {
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -76,8 +71,8 @@ public class WorkflowResultCode
    * has to take into account all the subordinate result codes to elaborate
    * a global result code.
    *
-   * Sometimes, a referral result code has to be turned into a reference
-   * entry. When such case is occurring the elaborateGlobalResultCode method
+   * Sometimes, a referral result code has to be turned into a reference entry.
+   * When such case is occurring the elaborateGlobalResultCode method
    * will return true.
    *
    * The global result code is elaborated as follows:
@@ -108,131 +103,95 @@ public class WorkflowResultCode
    * </PRE>
    *
    * @param newResultCode    the new result code to take into account
-   * @param newErrorMessage  the new error message associated to the new
-   *                         error code
-   * @return <code>true</code> if a referral result code must be turned
-   *         into a reference entry
+   * @param newErrorMessage  the new error message associated to the new error code
+   * @return <code>true</code> if a referral result code must be turned into a reference entry
    */
-  public boolean elaborateGlobalResultCode(
-      ResultCode     newResultCode,
-      LocalizableMessageBuilder newErrorMessage
-      )
+  boolean elaborateGlobalResultCode(ResultCode newResultCode, LocalizableMessageBuilder newErrorMessage)
   {
-    // Returned value
-    boolean sendReferenceEntry = false;
-
     // if global result code has not been set yet then just take the new
     // result code as is
     if (resultCode == ResultCode.UNDEFINED)
     {
       resultCode   = newResultCode;
       errorMessage = new LocalizableMessageBuilder (newErrorMessage);
+      return false;
     }
-    else
-    {
-      // Elaborate the new result code (see table in the description header).
 
-      switch (newResultCode.asEnum())
+
+    // Elaborate the new result code (see table in the description header).
+    switch (newResultCode.asEnum())
+    {
+    case SUCCESS:
+      switch (resultCode.asEnum())
       {
-      case SUCCESS:
-        //
-        // Received SUCCESS
-        // ----------------
-        //
-        switch (resultCode.asEnum())
-        {
-          case NO_SUCH_OBJECT:
-            resultCode = ResultCode.SUCCESS;
-            errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
-            break;
-          case REFERRAL:
-            resultCode = ResultCode.SUCCESS;
-            errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
-            sendReferenceEntry = true;
-            break;
-          default:
-            // global resultCode remains the same
-            break;
-        }
-        break;
-      case NO_SUCH_OBJECT:
-        //
-        // Received NO SUCH OBJECT
-        // -----------------------
-        //
-        // global resultCode remains the same
-        break;
-      case REFERRAL:
-        //
-        // Received REFERRAL
-        // -----------------
-        //
-        switch (resultCode.asEnum())
-        {
-          case REFERRAL:
-            resultCode = ResultCode.SUCCESS;
-            errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
-            sendReferenceEntry = true;
-            break;
-          case NO_SUCH_OBJECT:
-            resultCode = ResultCode.REFERRAL;
-            errorMessage = new LocalizableMessageBuilder (LocalizableMessage.EMPTY);
-            break;
-          default:
-            // global resultCode remains the same
-            sendReferenceEntry = true;
-            break;
-        }
-        break;
-      default:
-        //
-        // Received other result codes
-        // ---------------------------
-        //
-        switch (resultCode.asEnum())
-        {
-          case REFERRAL:
-            resultCode = newResultCode;
-            errorMessage = new LocalizableMessageBuilder (newErrorMessage);
-            sendReferenceEntry = true;
-            break;
-          case SUCCESS:
-            resultCode = newResultCode;
-            errorMessage = new LocalizableMessageBuilder (newErrorMessage);
-            break;
-          case NO_SUCH_OBJECT:
-            resultCode = newResultCode;
-            errorMessage = new LocalizableMessageBuilder (newErrorMessage);
-            break;
-          default:
-            // Do nothing (we don't want to override the first error)
-            break;
-        }
-        break;
+        case NO_SUCH_OBJECT:
+          resultCode = ResultCode.SUCCESS;
+          errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+          return false;
+        case REFERRAL:
+          resultCode = ResultCode.SUCCESS;
+          errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+          return true;
+        default:
+          // global resultCode remains the same
+          return false;
+      }
+
+    case NO_SUCH_OBJECT:
+      // global resultCode remains the same
+      return false;
+
+    case REFERRAL:
+      switch (resultCode.asEnum())
+      {
+        case REFERRAL:
+          resultCode = ResultCode.SUCCESS;
+          errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+          return true;
+        case NO_SUCH_OBJECT:
+          resultCode = ResultCode.REFERRAL;
+          errorMessage = new LocalizableMessageBuilder (LocalizableMessage.EMPTY);
+          return false;
+        default:
+          // global resultCode remains the same
+          return true;
+      }
+
+    default:
+      switch (resultCode.asEnum())
+      {
+        case REFERRAL:
+          resultCode = newResultCode;
+          errorMessage = new LocalizableMessageBuilder (newErrorMessage);
+          return true;
+        case SUCCESS:
+        case NO_SUCH_OBJECT:
+          resultCode = newResultCode;
+          errorMessage = new LocalizableMessageBuilder (newErrorMessage);
+          return false;
+        default:
+          // Do nothing (we don't want to override the first error)
+          return false;
       }
     }
-
-    return sendReferenceEntry;
   }
-
 
   /**
    * Returns the global result code.
    *
    * @return the global result code.
    */
-  public ResultCode resultCode()
+  ResultCode resultCode()
   {
     return resultCode;
   }
-
 
   /**
    * Returns the global error message.
    *
    * @return the global error message.
    */
-  public LocalizableMessageBuilder errorMessage()
+  LocalizableMessageBuilder errorMessage()
   {
     return errorMessage;
   }

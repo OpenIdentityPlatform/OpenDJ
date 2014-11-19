@@ -22,57 +22,40 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
-
-import org.opends.server.core.*;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.opends.server.core.WorkflowTopologyNode;
 
 /**
  * This classes defines a list of naming contexts for a network group.
  */
 public class NetworkGroupNamingContexts
 {
-  // List of naming contexts.
-  private List<WorkflowTopologyNode> namingContexts;
-  // If list of naming contexts is returned, ensure it is immutable
-  private List<WorkflowTopologyNode> _namingContexts;
+  /** List of naming contexts. */
+  private final List<WorkflowTopologyNode> namingContexts = new CopyOnWriteArrayList<WorkflowTopologyNode>();
+  /** If list of naming contexts is returned, ensure it is immutable. */
+  private final List<WorkflowTopologyNode> _namingContexts = Collections.unmodifiableList(namingContexts);
 
-  // List of public naming contexts.
-  private List<WorkflowTopologyNode> publicNamingContexts;
-  // If list of public naming contexts is returned, ensure it is immutable
-  private List<WorkflowTopologyNode> _publicNamingContexts;
+  /** List of public naming contexts. */
+  private final List<WorkflowTopologyNode> publicNamingContexts = new CopyOnWriteArrayList<WorkflowTopologyNode>();
+  /** If list of public naming contexts is returned, ensure it is immutable. */
+  private final List<WorkflowTopologyNode> _publicNamingContexts = Collections.unmodifiableList(publicNamingContexts);
 
-  // List of private naming contexts.
-  private List<WorkflowTopologyNode> privateNamingContexts;
-  // If list of private naming contexts is returned, ensure it is immutable
-  private List<WorkflowTopologyNode> _privateNamingContexts;
-
-  /**
-   * Create a list of naming contexts for a network group.
-   */
-  public NetworkGroupNamingContexts()
-  {
-    namingContexts  = new CopyOnWriteArrayList<WorkflowTopologyNode>();
-    _namingContexts = Collections.unmodifiableList(namingContexts);
-
-    privateNamingContexts  = new CopyOnWriteArrayList<WorkflowTopologyNode>();
-    _privateNamingContexts =
-                            Collections.unmodifiableList(privateNamingContexts);
-
-    publicNamingContexts  = new CopyOnWriteArrayList<WorkflowTopologyNode>();
-    _publicNamingContexts = Collections.unmodifiableList(publicNamingContexts);
-  }
-
+  /** List of private naming contexts. */
+  private final List<WorkflowTopologyNode> privateNamingContexts = new CopyOnWriteArrayList<WorkflowTopologyNode>();
+  /** If list of private naming contexts is returned, ensure it is immutable. */
+  private final List<WorkflowTopologyNode> _privateNamingContexts = Collections.unmodifiableList(privateNamingContexts);
 
   /**
    * Reset the list of naming contexts.
    */
-  public void resetLists()
+  void resetLists()
   {
     namingContexts.clear();
     privateNamingContexts.clear();
@@ -85,9 +68,7 @@ public class NetworkGroupNamingContexts
    *
    * @param workflow  the workflow to add in the list of naming contexts
    */
-  public void addNamingContext (
-      WorkflowTopologyNode workflow
-      )
+  void addNamingContext(WorkflowTopologyNode workflow)
   {
     // add the workflow to the list of naming context
     namingContexts.add (workflow);
@@ -147,7 +128,7 @@ public class NetworkGroupNamingContexts
 
 
   /**
-   * Dumps info from the current networkk group for debug purpose.
+   * Dumps info from the current network group for debug purpose.
    *
    * @param  leftMargin  white spaces used to indent traces
    * @return a string buffer that contains trace information
@@ -157,19 +138,19 @@ public class NetworkGroupNamingContexts
     StringBuilder sb = new StringBuilder();
     String newMargin = leftMargin + "   ";
 
-    sb.append (leftMargin + "List of naming contexts:\n");
+    sb.append(leftMargin).append("List of naming contexts:\n");
     for (WorkflowTopologyNode w: namingContexts)
     {
       sb.append (w.toString (newMargin));
     }
 
-    sb.append (leftMargin + "List of PRIVATE naming contexts:\n");
+    sb.append(leftMargin).append("List of PRIVATE naming contexts:\n");
     for (WorkflowTopologyNode w: privateNamingContexts)
     {
       sb.append (w.toString (newMargin));
     }
 
-    sb.append (leftMargin + "List of PUBLIC naming contexts:\n");
+    sb.append(leftMargin).append("List of PUBLIC naming contexts:\n");
     for (WorkflowTopologyNode w: publicNamingContexts)
     {
       sb.append (w.toString (newMargin));
