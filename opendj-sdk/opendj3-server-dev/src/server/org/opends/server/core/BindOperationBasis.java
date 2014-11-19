@@ -42,7 +42,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
 
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
 
 /**
@@ -501,19 +501,16 @@ public class BindOperationBasis
   @Override
   public final void run()
   {
-    setResultCode(ResultCode.UNDEFINED);
-
     // Start the processing timer and initially set the result to indicate that
     // the result is unknown.
+    setResultCode(ResultCode.UNDEFINED);
     setProcessingStartTime();
 
-    // Log the bind request message.
     logBindRequest(this);
-
-    ClientConnection clientConnection = getClientConnection();
 
     // Wipe out any existing authentication for the client connection and create
     // a placeholder that will be used if the bind is successful.
+    ClientConnection clientConnection = getClientConnection();
     clientConnection.setUnauthenticated();
 
     // Abandon any operations that may be in progress for the client.
@@ -522,20 +519,13 @@ public class BindOperationBasis
     clientConnection.cancelAllOperationsExcept(cancelRequest, getMessageID());
 
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-        DirectoryServer.getPluginConfigManager();
-
-
     // This flag is set to true as soon as a workflow has been executed.
     boolean workflowExecuted = false;
-
-
     try
     {
       // Invoke the pre-parse bind plugins.
       PluginResult.PreParse preParseResult =
-          pluginConfigManager.invokePreParseBindPlugins(this);
+          getPluginConfigManager().invokePreParseBindPlugins(this);
       if (!preParseResult.continueProcessing())
       {
         setResultCode(preParseResult.getResultCode());
@@ -567,30 +557,7 @@ public class BindOperationBasis
           }
       }
 
-
-      // Special case to manage RootDNs
-      // RootDNs are stored in cn=config but this workflow is not
-      // available through non-admin network groups.
-      // So if the bind DN is in cn=config, we directly retrieve
-      // the workflow handling cn=config
-      // FIXME: it would be better to store RootDNs in a separate backend.
-      // Issue #3502 has been logged to track this request.
-      boolean isInConfig;
-      try {
-        isInConfig = bindDN.isDescendantOf(DN.valueOf(DN_CONFIG_ROOT));
-      } catch (DirectoryException ex) {
-        // can not happen
-        isInConfig = false;
-      }
-
-      Workflow workflow;
-      if (isInConfig) {
-        workflow = WorkflowImpl.getWorkflow("__config.ldif__#cn=config");
-      } else {
-        // Retrieve the network group attached to the client connection
-        // and get a workflow to process the operation.
-        workflow = NetworkGroup.getWorkflowCandidate(bindDN);
-      }
+      Workflow workflow = NetworkGroup.getWorkflowCandidate(bindDN);
       if (workflow == null)
       {
         // We have found no workflow for the requested base DN, just return
@@ -612,10 +579,7 @@ public class BindOperationBasis
     }
     finally
     {
-      // Stop the processing timer.
       setProcessingStopTime();
-
-      // Log the bind response.
       logBindResponse(this);
 
       // Send the bind response to the client.
@@ -627,14 +591,11 @@ public class BindOperationBasis
       {
         clientConnection.finishSaslBind();
       }
-
       clientConnection.finishBindOrStartTLS();
 
-      // Invoke the post-response bind plugins.
       invokePostResponsePlugins(workflowExecuted);
     }
   }
-
 
   /**
    * Invokes the post response plugins. If a workflow has been executed
@@ -642,8 +603,7 @@ public class BindOperationBasis
    * elements of the workflow, otherwise invoke the post response plugins
    * that have been registered with the current operation.
    *
-   * @param workflowExecuted <code>true</code> if a workflow has been
-   *                         executed
+   * @param workflowExecuted <code>true</code> if a workflow has been executed
    */
   private void invokePostResponsePlugins(boolean workflowExecuted)
   {

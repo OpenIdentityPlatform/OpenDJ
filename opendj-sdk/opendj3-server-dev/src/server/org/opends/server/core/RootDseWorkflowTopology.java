@@ -35,6 +35,7 @@ import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 /**
  * This class implements the workflow node that handles the root DSE entry.
@@ -52,21 +53,23 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    */
   private NetworkGroupNamingContexts namingContexts;
 
-
   /**
    * Creates a workflow node to handle the root DSE entry.
    *
-   * @param workflowImpl    the workflow which contains the processing for
-   *                        the root DSE backend
-   * @param namingContexts  the list of naming contexts being registered
-   *                        with the network group the root DSE belongs to
+   * @param backendId
+   *          the backendId
+   * @param baseDN
+   *          identifies the data handled by the workflow
+   * @param rootWorkflowElement
+   *          the root node of the task tree
+   * @param namingContexts
+   *          the list of naming contexts being registered with the network
+   *          group the root DSE belongs to
    */
-  public RootDseWorkflowTopology(
-      WorkflowImpl               workflowImpl,
-      NetworkGroupNamingContexts namingContexts
-      )
+  public RootDseWorkflowTopology(String backendId, DN baseDN, LocalBackendWorkflowElement rootWorkflowElement,
+      NetworkGroupNamingContexts namingContexts)
   {
-    super(workflowImpl);
+    super(backendId, baseDN, rootWorkflowElement);
     this.namingContexts = namingContexts;
   }
 
@@ -89,7 +92,7 @@ public class RootDseWorkflowTopology extends WorkflowTopology
     }
     else
     {
-      getWorkflowImpl().execute(operation);
+      super.execute(operation);
     }
   }
 
@@ -113,7 +116,7 @@ public class RootDseWorkflowTopology extends WorkflowTopology
     // is a search base on the null suffix.
     if (originalScope == SearchScope.BASE_OBJECT)
     {
-      getWorkflowImpl().execute(searchOp);
+      super.execute(searchOp);
       return;
     }
 
@@ -177,9 +180,8 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    */
   public StringBuilder toString(String leftMargin)
   {
-    String workflowID = getWorkflowImpl().getWorkflowId();
     StringBuilder sb = new StringBuilder();
-    sb.append(leftMargin).append("Workflow ID = ").append(workflowID).append("\n");
+    sb.append(leftMargin).append("Workflow ID = ").append(getWorkflowId()).append("\n");
     sb.append(leftMargin).append("         baseDN:[ \"\" ]\n");
     return sb;
   }

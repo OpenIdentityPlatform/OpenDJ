@@ -36,7 +36,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.Workflow;
-import org.opends.server.core.WorkflowImpl;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.SearchRequest;
 import org.opends.server.types.Attribute;
@@ -53,6 +52,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 import static org.testng.Assert.*;
 
 /**
@@ -160,20 +160,13 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   @Test (dataProvider = "DNSet_0", groups = "virtual")
   public void testNetworkGroupRegistration(String networkGroupID, DN workflowBaseDN) throws Exception
   {
-    // Create and register the network group with the server.
     NetworkGroup networkGroup = new NetworkGroup(networkGroupID);
+    registerWorkflow(networkGroup, workflowBaseDN);
 
-    // Create a workflow -- the workflow ID is the string representation
-    // of the workflow base DN.
-    WorkflowImpl workflow = new WorkflowImpl(workflowBaseDN.toString(), workflowBaseDN, null);
-    networkGroup.registerWorkflow(workflow);
-
-    // Register again the workflow with the network group and catch the
-    // expected DirectoryServer exception.
     try
     {
-      networkGroup.registerWorkflow(workflow);
-      fail("DirectoryException should have been thrown");
+      registerWorkflow(networkGroup, workflowBaseDN);
+      fail("DirectoryException should have been thrown on double registration");
     }
     catch (DirectoryException de)
     {
@@ -259,14 +252,15 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     NetworkGroup networkGroup1 = new NetworkGroup(ng1);
     NetworkGroup networkGroup2 = new NetworkGroup(ng2);
 
-    // Create a workflow -- the workflow ID is the string representation
-    // of the workflow base DN.
-    WorkflowImpl workflow1 = new WorkflowImpl(dn1.toString(), dn1, null);
-    WorkflowImpl workflow2 = new WorkflowImpl(dn2.toString(), dn2, null);
-
     // Register the workflow with the network group.
-    networkGroup1.registerWorkflow(workflow1);
-    networkGroup2.registerWorkflow(workflow2);
+    registerWorkflow(networkGroup1, dn1);
+    registerWorkflow(networkGroup2, dn2);
+  }
+
+  private void registerWorkflow(NetworkGroup networkGroup, DN dn) throws DirectoryException
+  {
+    String workflowId = dn.toString();
+    networkGroup.registerWorkflow(workflowId, dn, createAndRegister(workflowId, null));
   }
 
   /**
@@ -294,9 +288,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     TestCaseUtils.initializeMemoryBackend(backendID2, backend2, true);
     searchPublicNamingContexts(ResultCode.SUCCESS, 2);
 
-    // Now put in the list of subordinate naming context the backend1
-    // naming context. This white list will prevent the backend2 to be
-    // visible.
+    // Now put in the list of subordinate naming context the backend1 naming context.
+    // This white list will prevent the backend2 to be visible.
     TestCaseUtils.dsconfig(
         "set-root-dse-backend-prop",
         "--set", "subordinate-base-dn:" + backend1);
