@@ -60,8 +60,7 @@ public class NetworkGroup
    * they can be attached to a specific network group.
    */
   private static final String DEFAULT_NETWORK_GROUP_NAME = "default";
-  private static NetworkGroup defaultNetworkGroup =
-      new NetworkGroup(DEFAULT_NETWORK_GROUP_NAME);
+  private static NetworkGroup defaultNetworkGroup = new NetworkGroup(DEFAULT_NETWORK_GROUP_NAME);
 
   /**
    * Deregisters all network groups that have been registered. This
@@ -88,8 +87,7 @@ public class NetworkGroup
   }
 
   /** List of naming contexts handled by the network group. */
-  private NetworkGroupNamingContexts namingContexts =
-      new NetworkGroupNamingContexts();
+  private NetworkGroupNamingContexts namingContexts = new NetworkGroupNamingContexts();
 
   /** The network group internal identifier. */
   private final String networkGroupID;
@@ -137,30 +135,32 @@ public class NetworkGroup
 
     if (baseDN.isRootDN())
     {
-      // deregister the rootDSE
       deregisterWorkflow(rootDSEWorkflowNode);
     }
     else
     {
-      // deregister a workflow node
-      synchronized (registeredWorkflowNodesLock)
+      WorkflowTopologyNode node = findWorkflowNode(baseDN);
+      if (node != null)
       {
-        for (WorkflowTopologyNode node : registeredWorkflowNodes.values())
-        {
-          DN curDN = node.getBaseDN();
-          if (curDN.equals(baseDN))
-          {
-            // Call deregisterWorkflow() instead of
-            // deregisterWorkflowNode() because we want the naming
-            // context list to be updated as well.
-            deregisterWorkflow(node);
+        // Call deregisterWorkflow() instead of deregisterWorkflowNode()
+        // because we want the naming context list to be updated as well.
+        deregisterWorkflow(node);
+      }
+    }
+  }
 
-            // Only one workflow can match the baseDN, so we can break
-            // the loop here.
-            break;
-          }
+  private WorkflowTopologyNode findWorkflowNode(DN baseDN)
+  {
+    synchronized (registeredWorkflowNodesLock)
+    {
+      for (WorkflowTopologyNode node : registeredWorkflowNodes.values())
+      {
+        if (node.getBaseDN().equals(baseDN))
+        {
+          return node;
         }
       }
+      return null;
     }
   }
 
@@ -237,15 +237,12 @@ public class NetworkGroup
 
     // The workflow base DN should not be already present in the
     // network group. Bypass the check for the private workflows...
-    for (WorkflowTopologyNode node : registeredWorkflowNodes.values())
+    WorkflowTopologyNode node = findWorkflowNode(workflowNode.getBaseDN());
+    if (node != null)
     {
-      DN nodeBaseDN = node.getBaseDN();
-      if (nodeBaseDN.equals(workflowNode.getBaseDN()))
-      {
-        LocalizableMessage message = ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
-            workflowID, networkGroupID, workflowID, workflowNode.getBaseDN());
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-      }
+      LocalizableMessage message = ERR_REGISTER_WORKFLOW_BASE_DN_ALREADY_EXISTS.get(
+          workflowID, networkGroupID, node.getWorkflowId(), workflowNode.getBaseDN());
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
   }
 
@@ -257,13 +254,13 @@ public class NetworkGroup
    */
   private void deregisterWorkflow(Workflow workflow)
   {
-    if (workflow == rootDSEWorkflowNode)
+    if (rootDSEWorkflowNode == workflow)
     {
       rootDSEWorkflowNode = null;
       return;
     }
 
-    WorkflowTopologyNode workflowNode = (WorkflowTopologyNode) workflow;
+    final WorkflowTopologyNode workflowNode = (WorkflowTopologyNode) workflow;
     deregisterWorkflowNode(workflowNode);
     // Remove it from the workflow topology.
     workflowNode.remove();
@@ -312,7 +309,6 @@ public class NetworkGroup
    */
   private void rebuildNamingContextList()
   {
-    // reset lists of naming contexts
     namingContexts.resetLists();
 
     for (WorkflowTopologyNode workflowNode : registeredWorkflowNodes.values())
@@ -360,14 +356,11 @@ public class NetworkGroup
     // Now add the workflow in the workflow topology...
     for (WorkflowTopologyNode curNode : registeredWorkflowNodes.values())
     {
-      if (
-          // Try to insert the new workflow under an existing workflow...
-          curNode.insertSubordinate(workflowNode)
-          // ... or try to insert the existing workflow below the new workflow
-          || workflowNode.insertSubordinate(curNode))
+      // Try to insert the new workflow under an existing workflow...
+      if (!curNode.insertSubordinate(workflowNode))
       {
-        // new workflow has been inserted in the topology
-        continue;
+        // ... or try to insert the existing workflow below the new workflow
+        workflowNode.insertSubordinate(curNode);
       }
     }
 
@@ -402,8 +395,7 @@ public class NetworkGroup
 
       // All is fine, let's register the workflow
       TreeMap<String, WorkflowTopologyNode> newRegisteredWorkflowNodes =
-          new TreeMap<String, WorkflowTopologyNode>(
-              registeredWorkflowNodes);
+          new TreeMap<String, WorkflowTopologyNode>(registeredWorkflowNodes);
       newRegisteredWorkflowNodes.put(workflowID, workflowNode);
       registeredWorkflowNodes = newRegisteredWorkflowNodes;
     }
