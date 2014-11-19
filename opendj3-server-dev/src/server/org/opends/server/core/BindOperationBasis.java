@@ -26,9 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,12 +40,17 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.AccessLogger.*;
+
 /**
  * This class defines an operation that may be used to authenticate a user to
  * the Directory Server.  Note that for security restrictions, response messages
  * that may be returned to the client must be carefully cleaned to ensure that
  * they do not provide a malicious client with information that may be useful in
- * an attack.  This does impact the debugability of the server, but that can
+ * an attack.  This does impact the debuggability of the server, but that can
  * be addressed by calling the <CODE>setAuthFailureReason</CODE> method, which
  * can provide a reason for a failure in a form that will not be returned to the
  * client but may be written to a log file.
@@ -66,7 +68,7 @@ public class BindOperationBasis
   private ByteString serverSASLCredentials;
 
   /** The authentication info for this bind operation. */
-  private AuthenticationInfo authInfo = null;
+  private AuthenticationInfo authInfo;
 
   /** The authentication type used for this bind operation. */
   private AuthenticationType authType;
@@ -91,7 +93,7 @@ public class BindOperationBasis
   private Entry saslAuthUserEntry;
 
   /** The set of response controls for this bind operation. */
-  private List<Control> responseControls;
+  private final List<Control> responseControls = new ArrayList<Control>(0);
 
   /** A message explaining the reason for the authentication failure. */
   private LocalizableMessage authFailureReason;
@@ -127,38 +129,12 @@ public class BindOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.protocolVersion = protocolVersion;
-    this.authType        = AuthenticationType.SIMPLE;
-    this.saslMechanism   = null;
-    this.saslCredentials = null;
 
-    if (rawBindDN == null)
-    {
-      this.rawBindDN = ByteString.empty();
-    }
-    else
-    {
-      this.rawBindDN = rawBindDN;
-    }
+    setRawBindDN(rawBindDN);
+    setSimplePassword(simplePassword);
 
-    if (simplePassword == null)
-    {
-      this.simplePassword = ByteString.empty();
-    }
-    else
-    {
-      this.simplePassword = simplePassword;
-    }
-
-    bindDN                   = null;
-    userEntryDN              = null;
-    responseControls         = new ArrayList<Control>(0);
-    authFailureReason        = null;
-    saslAuthUserEntry        = null;
-
-    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
-        ERR_CANNOT_CANCEL_BIND.get());
+    cancelResult = getBindCancelResult();
   }
 
 
@@ -187,33 +163,15 @@ public class BindOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.protocolVersion = protocolVersion;
     this.authType        = AuthenticationType.SASL;
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
-    this.simplePassword  = null;
 
-    if (rawBindDN == null)
-    {
-      this.rawBindDN = ByteString.empty();
-    }
-    else
-    {
-      this.rawBindDN = rawBindDN;
-    }
+    setRawBindDN(rawBindDN);
 
-    bindDN                 = null;
-    userEntryDN            = null;
-    responseControls       = new ArrayList<Control>(0);
-    authFailureReason      = null;
-    saslAuthUserEntry      = null;
-
-    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
-        ERR_CANNOT_CANCEL_BIND.get());
+    cancelResult = getBindCancelResult();
   }
-
-
 
   /**
    * Creates a new simple bind operation with the provided information.
@@ -237,38 +195,14 @@ public class BindOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.protocolVersion = protocolVersion;
-    this.authType        = AuthenticationType.SIMPLE;
     this.bindDN          = bindDN;
-    this.saslMechanism   = null;
-    this.saslCredentials = null;
 
-    if (bindDN == null)
-    {
-      rawBindDN = ByteString.empty();
-    }
-    else
-    {
-      rawBindDN = ByteString.valueOf(bindDN.toString());
-    }
+    rawBindDN = computeRawBindDN(bindDN);
 
-    if (simplePassword == null)
-    {
-      this.simplePassword = ByteString.empty();
-    }
-    else
-    {
-      this.simplePassword = simplePassword;
-    }
+    setSimplePassword(simplePassword);
 
-    responseControls         = new ArrayList<Control>(0);
-    authFailureReason        = null;
-    saslAuthUserEntry        = null;
-    userEntryDN              = null;
-
-    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
-        ERR_CANNOT_CANCEL_BIND.get());
+    cancelResult = getBindCancelResult();
   }
 
 
@@ -296,74 +230,62 @@ public class BindOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.protocolVersion = protocolVersion;
     this.authType        = AuthenticationType.SASL;
     this.bindDN          = bindDN;
     this.saslMechanism   = saslMechanism;
     this.saslCredentials = saslCredentials;
-    this.simplePassword  = null;
 
-    if (bindDN == null)
-    {
-      rawBindDN = ByteString.empty();
-    }
-    else
-    {
-      rawBindDN = ByteString.valueOf(bindDN.toString());
-    }
+    rawBindDN = computeRawBindDN(bindDN);
 
-    responseControls       = new ArrayList<Control>(0);
-    authFailureReason      = null;
-    saslAuthUserEntry      = null;
-    userEntryDN            = null;
-
-    cancelResult = new CancelResult(ResultCode.CANNOT_CANCEL,
-        ERR_CANNOT_CANCEL_BIND.get());
+    cancelResult = getBindCancelResult();
   }
 
+  private ByteString computeRawBindDN(DN bindDN)
+  {
+    if (bindDN != null)
+    {
+      return ByteString.valueOf(bindDN.toString());
+    }
+    return ByteString.empty();
+  }
 
-  /**
-   * {@inheritDoc}
-   */
+  private CancelResult getBindCancelResult()
+  {
+    return new CancelResult(CANNOT_CANCEL, ERR_CANNOT_CANCEL_BIND.get());
+  }
+
+  /** {@inheritDoc} */
   @Override
   public final AuthenticationType getAuthenticationType()
   {
     return authType;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawBindDN()
   {
     return rawBindDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawBindDN(ByteString rawBindDN)
   {
-    if (rawBindDN == null)
+    if (rawBindDN != null)
     {
-      this.rawBindDN = ByteString.empty();
+      this.rawBindDN = rawBindDN;
     }
     else
     {
-      this.rawBindDN = rawBindDN;
+      this.rawBindDN = ByteString.empty();
     }
 
     bindDN = null;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getBindDN()
   {
@@ -384,28 +306,24 @@ public class BindOperationBasis
     return bindDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getSimplePassword()
   {
     return simplePassword;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setSimplePassword(ByteString simplePassword)
   {
-    if (simplePassword == null)
+    if (simplePassword != null)
     {
-      this.simplePassword = ByteString.empty();
+      this.simplePassword = simplePassword;
     }
     else
     {
-      this.simplePassword = simplePassword;
+      this.simplePassword = ByteString.empty();
     }
 
     authType        = AuthenticationType.SIMPLE;
@@ -413,27 +331,21 @@ public class BindOperationBasis
     saslCredentials = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String getSASLMechanism()
   {
-    return  saslMechanism;
+    return saslMechanism;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getSASLCredentials()
   {
     return saslCredentials;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setSASLCredentials(String saslMechanism,
                                        ByteString saslCredentials)
@@ -445,55 +357,42 @@ public class BindOperationBasis
     simplePassword = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getServerSASLCredentials()
   {
     return serverSASLCredentials;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public final void setServerSASLCredentials(ByteString
-                                                  serverSASLCredentials)
+  public final void setServerSASLCredentials(ByteString serverSASLCredentials)
   {
     this.serverSASLCredentials = serverSASLCredentials;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Entry getSASLAuthUserEntry()
   {
     return saslAuthUserEntry;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setSASLAuthUserEntry(Entry saslAuthUserEntry)
   {
     this.saslAuthUserEntry = saslAuthUserEntry;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final LocalizableMessage getAuthFailureReason()
   {
     return authFailureReason;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setAuthFailureReason(LocalizableMessage message)
   {
@@ -507,77 +406,59 @@ public class BindOperationBasis
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getUserEntryDN()
   {
     return userEntryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final AuthenticationInfo getAuthenticationInfo()
   {
     return authInfo;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setAuthenticationInfo(AuthenticationInfo authInfo)
   {
     this.authInfo = authInfo;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
-
     return OperationType.BIND;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("BindOperation(connID=");
@@ -595,36 +476,28 @@ public class BindOperationBasis
     buffer.append(")");
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setUserEntryDN(DN userEntryDN)
   {
     this.userEntryDN = userEntryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getProtocolVersion()
   {
     return protocolVersion;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProtocolVersion(String protocolVersion)
   {
     this.protocolVersion = protocolVersion;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void run()
   {
@@ -681,7 +554,7 @@ public class BindOperationBasis
       }
 
       // If this is a simple bind
-      // Then check wether the bind DN is actually one of the alternate root DNs
+      // Then check whether the bind DN is actually one of the alternate root DNs
       // defined in the server.  If so, then replace it with the actual DN
       // for that user.
       switch (getAuthenticationType())
@@ -727,7 +600,6 @@ public class BindOperationBasis
       }
       workflow.execute(this);
       workflowExecuted = true;
-
     }
     catch(CanceledOperationException coe)
     {
@@ -767,7 +639,7 @@ public class BindOperationBasis
   /**
    * Invokes the post response plugins. If a workflow has been executed
    * then invoke the post response plugins provided by the workflow
-   * elements of the worklfow, otherwise invoke the post reponse plugins
+   * elements of the workflow, otherwise invoke the post response plugins
    * that have been registered with the current operation.
    *
    * @param workflowExecuted <code>true</code> if a workflow has been
@@ -817,6 +689,4 @@ public class BindOperationBasis
     setResultCode(ResultCode.INVALID_CREDENTIALS);
     setAuthFailureReason(message);
   }
-
 }
-
