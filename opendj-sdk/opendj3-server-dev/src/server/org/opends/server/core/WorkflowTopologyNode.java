@@ -146,7 +146,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
       }
 
       // If the request base DN is not a subordinate of the subordinate
-      // workflow base DN then don't search in the subordinate workflow.
+      // workflow base DN then do not search in the subordinate workflow.
       if (! originalBaseDN.isAncestorOf(subordinateDN))
       {
         continue;
@@ -228,37 +228,27 @@ public class WorkflowTopologyNode extends WorkflowTopology
       return null;
     }
 
-    // parent base DN to return
-    DN parentBaseDN = null;
-
     // Is the dn a subordinate of the current base DN?
     DN curBaseDN = getBaseDN();
     if (curBaseDN != null && dn.isDescendantOf(curBaseDN))
     {
       // The dn may be handled by the current workflow.
-      // Now we have to check whether the dn is handled by
-      // a subordinate.
+      // Now we have to check whether the dn is handled by a subordinate.
       for (WorkflowTopologyNode subordinate: getSubordinates())
       {
-        parentBaseDN = subordinate.getParentBaseDN(dn);
+        final DN parentBaseDN = subordinate.getParentBaseDN(dn);
         if (parentBaseDN != null)
         {
           // the dn is handled by a subordinate
-          break;
+          return parentBaseDN;
         }
       }
 
-      // If the dn is not handled by any subordinate, then it is
-      // handled by the current workflow.
-      if (parentBaseDN == null)
-      {
-        parentBaseDN = curBaseDN;
-      }
+      // no subordinate handle the DN, then it is handled by the current workflow
+      return curBaseDN;
     }
-
-    return parentBaseDN;
+    return null;
   }
-
 
   /**
    * Adds a workflow to the list of workflow subordinates without
@@ -267,10 +257,7 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * @param newWorkflow     the workflow to add to the subordinate list
    * @param parentWorkflow  the parent workflow of the new workflow
    */
-  private void addSubordinateNoCheck(
-      WorkflowTopologyNode newWorkflow,
-      WorkflowTopologyNode parentWorkflow
-      )
+  private void addSubordinateNoCheck(WorkflowTopologyNode newWorkflow, WorkflowTopologyNode parentWorkflow)
   {
     subordinates.add(newWorkflow);
     newWorkflow.setParent(parentWorkflow);
@@ -286,13 +273,11 @@ public class WorkflowTopologyNode extends WorkflowTopology
    *
    * @param newWorkflow  the workflow to add in the subordinate list
    */
-  private void addSubordinate(
-      WorkflowTopologyNode newWorkflow
-      )
+  private void addSubordinate(WorkflowTopologyNode newWorkflow)
   {
-    // Don't try to add the workflow to itself.
     if (newWorkflow == this)
     {
+      // Do not try to add the workflow to itself.
       return;
     }
 
@@ -306,9 +291,8 @@ public class WorkflowTopologyNode extends WorkflowTopology
       DN newDN = newWorkflow.getBaseDN();
       DN subordinateDN = curSubordinate.getBaseDN();
 
-      // Don't try to add workflow when baseDNs are
-      // the same on both workflows.
       if (newDN.equals(subordinateDN)) {
+        // Do not try to add workflow when baseDNs are the same on both workflows.
         return;
       }
 
@@ -344,54 +328,30 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * @return <code>true</code> if the new workflow has been inserted
    *         in any subordinate list
    */
-  public boolean insertSubordinate(
-      WorkflowTopologyNode newWorkflow
-      )
+  public boolean insertSubordinate(WorkflowTopologyNode newWorkflow)
   {
-    // don't try to insert the workflow in itself!
-    if (newWorkflow == this)
-    {
-      return false;
-    }
-
-    // the returned status
-    boolean insertDone = false;
-
     DN parentBaseDN = getBaseDN();
-    DN newBaseDN    = newWorkflow.getBaseDN();
-
-    // don't try to insert workflows when baseDNs are the same on both
-    // workflows
-    if (parentBaseDN.equals(newBaseDN))
+    DN newBaseDN = newWorkflow.getBaseDN();
+    if (newWorkflow == this
+        || parentBaseDN.equals(newBaseDN)
+        || !newBaseDN.isDescendantOf(parentBaseDN))
     {
       return false;
     }
 
-    // try to insert the new workflow
-    if (newBaseDN.isDescendantOf(parentBaseDN))
+    // the new workflow is a subordinate for this parent DN
+    for (WorkflowTopologyNode subordinate : getSubordinates())
     {
-      // the new workflow is a subordinate for this parent DN, let's
-      // insert the new workflow in the list of subordinates
-      for (WorkflowTopologyNode subordinate: getSubordinates())
+      if (subordinate.insertSubordinate(newWorkflow))
       {
-        insertDone = subordinate.insertSubordinate(newWorkflow);
-        if (insertDone)
-        {
-          // the newBaseDN is handled by a subordinate
-          break;
-        }
-      }
-
-      // if the newBaseDN is not handled by a subordinate then the workflow
-      // is inserted it in the current workflow subordinate list
-      if (! insertDone)
-      {
-        addSubordinate(newWorkflow);
-        insertDone = true;
+        // the newBaseDN is handled by a subordinate
+        return true;
       }
     }
 
-    return insertDone;
+    // no subordinate handle the newBaseDN, then it is handled by the current workflow
+    addSubordinate(newWorkflow);
+    return true;
   }
 
 
@@ -452,41 +412,28 @@ public class WorkflowTopologyNode extends WorkflowTopology
    * @return the highest workflow that can handle the requestDN
    *         <code>null</code> if none was found
    */
-  public WorkflowTopologyNode getWorkflowCandidate(
-      DN requestDN
-      )
+  public WorkflowTopologyNode getWorkflowCandidate(DN requestDN)
   {
-    // the returned workflow
-    WorkflowTopologyNode workflowCandidate = null;
-
-    // does the current workflow handle the request baseDN?
     DN baseDN = getParentBaseDN(requestDN);
     if (baseDN == null)
     {
-      // the current workflow does not handle the requestDN,
-      // let's return null
+      // the current workflow does not handle the requestDN
+      return null;
     }
-    else
+
+    // is there any subordinate that can handle the requestDN?
+    for (WorkflowTopologyNode subordinate : getSubordinates())
     {
-      // is there any subordinate that can handle the requestDN?
-      for (WorkflowTopologyNode subordinate: getSubordinates())
+      WorkflowTopologyNode candidate = subordinate.getWorkflowCandidate(requestDN);
+      if (candidate != null)
       {
-        workflowCandidate = subordinate.getWorkflowCandidate(requestDN);
-        if (workflowCandidate != null)
-        {
-          break;
-        }
-      }
-
-      // none of the subordinates can handle the requestDN, so the current
-      // workflow is the best root workflow candidate
-      if (workflowCandidate == null)
-      {
-        workflowCandidate = this;
+        return candidate;
       }
     }
 
-    return workflowCandidate;
+    // none of the subordinates can handle the requestDN, so the current
+    // workflow is the best root workflow candidate
+    return this;
   }
 
 

@@ -22,35 +22,25 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-
 
 import org.opends.server.types.DN;
 import org.opends.server.types.Operation;
 import org.opends.server.types.CanceledOperationException;
 
-
 /**
- * This class defines the workflow interface. There can be two
- * implementations for the workflows.
+ * This class defines the workflow interface.
  *
- * In the first workflow implementation a workflow is a list of
- * structured tasks (aka workflow element). Each task is working
- * on a set of data being identified by a base DN. The order of the
- * tasks and their synchronization are defined statically by a task
- * tree.
- *
- * In the second workflow implementation each workflow is a node
- * in a workflow tree (aka worflow topology). Each node in the tree
- * is linked to a workflow object of the first implementation and the
- * base DN of the node is the base DN of the attached workflow object.
- * The relationship of the nodes in the tree is based on the base DNs
- * of the nodes. A workflow node is a subordinate of another workflow
- * node when the base DN of the former is a superior of the base DN of
- * the latter. Workflow topology are useful, for example, in subtree
- * searches: search is performed on a node as well as on all the
- * subordinate nodes.
+ * Each workflow is a node in a workflow tree (aka workflow topology).
+ * Each node in the tree is linked to a workflow object of the first implementation
+ * and the base DN of the node is the base DN of the attached workflow object.
+ * The relationship of the nodes in the tree is based on the base DNs of the nodes.
+ * A workflow node is a subordinate of another workflow node when the base DN
+ * of the former is a superior of the base DN of the latter.
+ * Workflow topology are useful, for example, in subtree searches:
+ * search is performed on a node as well as on all the subordinate nodes.
  */
 public interface Workflow
 {
