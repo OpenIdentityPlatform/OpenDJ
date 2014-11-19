@@ -51,7 +51,7 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    * The naming contexts known by the root DSE. These naming contexts
    * are defined in the scope of a network group.
    */
-  private NetworkGroupNamingContexts namingContexts;
+  private final NetworkGroupNamingContexts namingContexts;
 
   /**
    * Creates a workflow node to handle the root DSE entry.
