@@ -24,7 +24,6 @@
  *      Copyright 2007-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.core;
 
 import java.util.LinkedList;
@@ -461,21 +460,9 @@ public class BaseDnRegistry {
    * Clear and nullify this registry's internal state.
    */
   void clear() {
-
-    if (baseDNs != null)
-    {
-      baseDNs.clear();
-    }
-
-    if (privateNamingContexts != null)
-    {
-      privateNamingContexts.clear();
-    }
-
-    if (publicNamingContexts != null)
-    {
-      publicNamingContexts.clear();
-    }
+    baseDNs.clear();
+    privateNamingContexts.clear();
+    publicNamingContexts.clear();
   }
 
 }
