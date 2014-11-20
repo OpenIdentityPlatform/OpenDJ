@@ -32,12 +32,12 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.mockito.ArgumentCaptor;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.EntityTagVirtualAttributeCfgDefn.ChecksumAlgorithm;
@@ -54,7 +54,6 @@ import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.SearchOperationWrapper;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.Requests;
@@ -76,6 +75,7 @@ import org.testng.annotations.Test;
 
 import static java.util.Collections.*;
 
+import static org.mockito.Mockito.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.testng.Assert.*;
@@ -83,22 +83,19 @@ import static org.testng.Assert.*;
 /**
  * A set of test cases for the entity tag virtual attribute provider.
  */
-public class EntityTagVirtualAttributeProviderTestCase extends
-    ExtensionsTestCase
+public class EntityTagVirtualAttributeProviderTestCase extends ExtensionsTestCase
 {
   private static final String DESCRIPTION = "description";
   private static final String ETAG = "etag";
 
   private final ByteString dummyValue = ByteString.valueOf("dummy");
   private final EntityTagVirtualAttributeProvider provider = new EntityTagVirtualAttributeProvider();
-  private boolean changeListenerRemoved = false;
-  private boolean changeListenerAdded = false;
+  private boolean changeListenerRemoved;
+  private boolean changeListenerAdded;
 
   private final EntityTagVirtualAttributeCfg config = new EntityTagVirtualAttributeCfg()
   {
     private final TreeSet<AttributeType> excludedAttributes = new TreeSet<AttributeType>();
-
-
 
     @Override
     public void addChangeListener(
@@ -108,16 +105,12 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       throw new IllegalStateException();
     }
 
-
-
     @Override
     public void addEntityTagChangeListener(
         final ConfigurationChangeListener<EntityTagVirtualAttributeCfg> listener)
     {
       changeListenerAdded = true;
     }
-
-
 
     @Override
     public Class<? extends EntityTagVirtualAttributeCfg> configurationClass()
@@ -126,16 +119,12 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       return null;
     }
 
-
-
     @Override
     public DN dn()
     {
       // Not needed.
       return null;
     }
-
-
 
     @Override
     public AttributeType getAttributeType()
@@ -144,8 +133,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       return null;
     }
 
-
-
     @Override
     public SortedSet<DN> getBaseDN()
     {
@@ -153,15 +140,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       return null;
     }
 
-
-
     @Override
     public ChecksumAlgorithm getChecksumAlgorithm()
     {
       return ChecksumAlgorithm.ADLER_32;
     }
-
-
 
     @Override
     public ConflictBehavior getConflictBehavior()
@@ -170,15 +153,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       return null;
     }
 
-
-
     @Override
     public SortedSet<AttributeType> getExcludedAttribute()
     {
       return excludedAttributes;
     }
-
-
 
     @Override
     public SortedSet<String> getFilter()
@@ -187,16 +166,12 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       return null;
     }
 
-
-
     @Override
     public SortedSet<DN> getGroupDN()
     {
       // Not needed.
       return null;
     }
-
-
 
     @Override
     public String getJavaClass()
@@ -205,8 +180,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       return null;
     }
 
-
-
     @Override
     public Scope getScope()
     {
@@ -214,15 +187,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       return null;
     }
 
-
-
     @Override
     public boolean isEnabled()
     {
       return true;
     }
-
-
 
     @Override
     public void removeChangeListener(
@@ -232,8 +201,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       throw new IllegalStateException();
     }
 
-
-
     @Override
     public void removeEntityTagChangeListener(
         final ConfigurationChangeListener<EntityTagVirtualAttributeCfg> listener)
@@ -242,26 +209,21 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     }
   };
 
-
-
   /**
    * Ensures that the Directory Server is running.
    *
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
 
     // Initialize the provider.
-    config.getExcludedAttribute().add(
-        DirectoryServer.getAttributeType("modifytimestamp"));
+    config.getExcludedAttribute().add(DirectoryServer.getAttributeType("modifytimestamp"));
     provider.initializeVirtualAttributeProvider(config);
   }
-
-
 
   /**
    * Tests that approximate matching is not supported.
@@ -269,11 +231,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   @Test
   public void testApproximatelyEqualTo()
   {
-    assertEquals(provider.approximatelyEqualTo(null, null, null),
-        ConditionResult.UNDEFINED);
+    assertEquals(provider.approximatelyEqualTo(null, null, null), ConditionResult.UNDEFINED);
   }
-
-
 
   /**
    * Tests that finalization removes the change listener.
@@ -284,8 +243,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     provider.finalizeVirtualAttributeProvider();
     assertTrue(changeListenerRemoved);
   }
-
-
 
   /**
    * Tests the getValues method returns an ETag whose value represents a 64-bit
@@ -301,8 +258,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
         "objectClass: top", "objectClass: domain", "dc: example");
     getEntityTag(e, getRule());
   }
-
-
 
   /**
    * Tests the getValues method returns a different value for entries which are
@@ -322,8 +277,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertFalse(getEntityTag(e1, rule).equals(getEntityTag(e2, rule)));
   }
 
-
-
   /**
    * Tests the getValues method ignores excluded attributes.
    *
@@ -341,8 +294,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     VirtualAttributeRule rule = getRule();
     assertEquals(getEntityTag(e1, rule), getEntityTag(e2, rule));
   }
-
-
 
   /**
    * Tests the getValues method returns the same value for entries having the
@@ -364,8 +315,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertEquals(getEntityTag(e1, rule), getEntityTag(e2, rule));
   }
 
-
-
   /**
    * Tests the getValues method returns the same value for different instances
    * of the same entry.
@@ -384,19 +333,14 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertEquals(getEntityTag(e1, rule), getEntityTag(e2, rule));
   }
 
-
-
   /**
    * Tests that ordering matching is not supported.
    */
   @Test
   public void testGreaterThanOrEqualTo()
   {
-    assertEquals(provider.greaterThanOrEqualTo(null, null, null),
-        ConditionResult.UNDEFINED);
+    assertEquals(provider.greaterThanOrEqualTo(null, null, null), ConditionResult.UNDEFINED);
   }
-
-
 
   /**
    * Tests hasAllValues() membership.
@@ -417,8 +361,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertFalse(provider.hasAllValues(e, rule, Arrays.asList(value, dummyValue)));
   }
 
-
-
   /**
    * Tests that the etags are always present.
    */
@@ -427,8 +369,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   {
     assertTrue(provider.hasValue(null, null));
   }
-
-
 
   /**
    * Tests testHasValue membership.
@@ -447,8 +387,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertFalse(provider.hasValue(e, rule, dummyValue));
   }
 
-
-
   /**
    * Tests that initialization adds the change listener.
    */
@@ -460,8 +398,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertTrue(changeListenerAdded);
   }
 
-
-
   /**
    * Tests that isConfigurationAcceptable always returns true.
    */
@@ -471,8 +407,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertTrue(provider.isConfigurationAcceptable(config, null));
   }
 
-
-
   /**
    * Tests that the etags are single-valued.
    */
@@ -481,8 +415,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   {
     assertFalse(provider.isMultiValued());
   }
-
-
 
   /**
    * Tests that searching based on etag filters is not supported.
@@ -494,19 +426,14 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertFalse(provider.isSearchable(null, null, true));
   }
 
-
-
   /**
    * Tests that ordering matching is not supported.
    */
   @Test
   public void testLessThanOrEqualTo()
   {
-    assertEquals(provider.lessThanOrEqualTo(null, null, null),
-        ConditionResult.UNDEFINED);
+    assertEquals(provider.lessThanOrEqualTo(null, null, null), ConditionResult.UNDEFINED);
   }
-
-
 
   /**
    * Tests that substring matching is not supported.
@@ -514,11 +441,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   @Test
   public void testMatchesSubstring()
   {
-    assertEquals(provider.matchesSubstring(null, null, null, null, null),
-        ConditionResult.UNDEFINED);
+    assertEquals(provider.matchesSubstring(null, null, null, null, null), ConditionResult.UNDEFINED);
   }
-
-
 
   /**
    * Tests that searching based on etag filters is not supported.
@@ -526,68 +450,23 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   @Test
   public void testProcessSearch()
   {
-    final SearchOperation search = new SearchOperationWrapper(null)
-    {
-      ResultCode resultCode = null;
-      LocalizableMessageBuilder message = null;
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void appendErrorMessage(final LocalizableMessage message)
-      {
-        this.message = new LocalizableMessageBuilder(message);
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public LocalizableMessageBuilder getErrorMessage()
-      {
-        return message;
-      }
-
-
-
-      /**
-       * @return the resultCode
-       */
-      @Override
-      public ResultCode getResultCode()
-      {
-        return resultCode;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public void setResultCode(final ResultCode resultCode)
-      {
-        this.resultCode = resultCode;
-      }
-
-    };
+    final SearchOperation searchOp = mock(SearchOperation.class);
 
     VirtualAttributeRule rule = new VirtualAttributeRule(
         DirectoryServer.getAttributeType(ETAG), provider,
         Collections.<DN> emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN> emptySet(), Collections.<SearchFilter> emptySet(),
         VirtualAttributeCfgDefn.ConflictBehavior.REAL_OVERRIDES_VIRTUAL);
-    provider.processSearch(rule, search);
-    assertEquals(search.getResultCode(), ResultCode.UNWILLING_TO_PERFORM);
-    assertNotNull(search.getErrorMessage());
+    provider.processSearch(rule, searchOp);
+
+    final ArgumentCaptor<ResultCode> resultCode = ArgumentCaptor.forClass(ResultCode.class);
+    verify(searchOp).setResultCode(resultCode.capture());
+    assertEquals(resultCode.getValue(), ResultCode.UNWILLING_TO_PERFORM);
+
+    final ArgumentCaptor<LocalizableMessage> errorMsg = ArgumentCaptor.forClass(LocalizableMessage.class);
+    verify(searchOp).appendErrorMessage(errorMsg.capture());
+    assertNotNull(errorMsg.getValue());
   }
-
-
 
   /**
    * Simulates the main use case for entity tag support: optimistic concurrency.
@@ -636,9 +515,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     // Apply a change using the assertion control for optimistic concurrency.
     Attribute attr = Attributes.create(DESCRIPTION, "first modify");
     List<Modification> mods = newArrayList(new Modification(ModificationType.REPLACE, attr));
-    List<Control> ctrls = Collections
-        .<Control> singletonList(new LDAPAssertionRequestControl(true,
-            LDAPFilter.createEqualityFilter(ETAG, ByteString.valueOf(etag1))));
+    Control c = new LDAPAssertionRequestControl(true, LDAPFilter.createEqualityFilter(ETAG, ByteString.valueOf(etag1)));
+    List<Control> ctrls = Collections.singletonList(c);
     ModifyOperation modifyOperation = conn.processModify(userDN, mods, ctrls);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
@@ -671,8 +549,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertNotNull(description3);
     assertEquals(description3, description2);
   }
-
-
 
   /**
    * Tests that the etag returned with a pre-read control after a modify
@@ -735,22 +611,10 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     assertEquals(description2, "modified value");
 
     // Now check that the pre-read is the same as the initial etag.
-    LDAPPreReadResponseControl preReadControl = null;
-    for (Control control : modifyOperation.getResponseControls())
-    {
-      if (control instanceof LDAPPreReadResponseControl)
-      {
-        preReadControl = (LDAPPreReadResponseControl) control;
-        break;
-      }
-    }
-    assertNotNull(preReadControl);
-    String etagPreRead =
-        preReadControl.getSearchEntry().parseAttribute(ETAG).asString();
+    LDAPPreReadResponseControl preReadControl = getLDAPPreReadResponseControl(modifyOperation);
+    String etagPreRead = preReadControl.getSearchEntry().parseAttribute(ETAG).asString();
     assertEquals(etagPreRead, etag1);
   }
-
-
 
   /**
    * Tests that the etag returned with a post-read control after a modify
@@ -814,8 +678,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
     // Now check that the post-read is the same as the initial etag.
     LDAPPostReadResponseControl postReadControl = getLDAPPostReadResponseControl(modifyOperation);
-    String etagPostRead =
-        postReadControl.getSearchEntry().parseAttribute(ETAG).asString();
+    String etagPostRead = postReadControl.getSearchEntry().parseAttribute(ETAG).asString();
     assertEquals(etagPostRead, etag2);
   }
 
@@ -832,6 +695,19 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     return null;
   }
 
+  private LDAPPreReadResponseControl getLDAPPreReadResponseControl(ModifyOperation modifyOperation)
+  {
+    for (Control control : modifyOperation.getResponseControls())
+    {
+      if (control instanceof LDAPPreReadResponseControl)
+      {
+        return (LDAPPreReadResponseControl) control;
+      }
+    }
+    fail("Expected the ModifyOperation to have a LDAPPreReadResponseControl");
+    return null;
+  }
+
   private Entry readEntry(DN userDN) throws DirectoryException
   {
     SearchRequest request = Requests.newSearchRequest(userDN, SearchScope.BASE_OBJECT).addAttribute("*", ETAG);
@@ -843,30 +719,27 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     return e;
   }
 
-
-
   private ByteString getEntityTag(final Entry e, VirtualAttributeRule rule)
   {
     final Attribute values = provider.getValues(e, rule);
     assertEquals(values.size(), 1);
     final ByteString value = values.iterator().next();
     assertEquals(value.length(), 16);
-    boolean gotNonZeroByte = false;
     for (int i = 0; i < 16; i++)
     {
       assertTrue(StaticUtils.isHexDigit(value.byteAt(i)));
       if (value.byteAt(i) != 0x30)
       {
-        gotNonZeroByte = true;
+        return value;
       }
     }
-    assertTrue(gotNonZeroByte);
-    return value;
+    fail("Expected to find a non zero byte");
+    return null;
   }
 
   private VirtualAttributeRule getRule()
   {
-    AttributeType type = DirectoryServer.getAttributeType("etag", false);
+    AttributeType type = DirectoryServer.getAttributeType("etag");
     return new VirtualAttributeRule(type, provider,
         Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
         Collections.<DN>emptySet(),
