@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -35,30 +36,16 @@ import com.sleepycat.je.DatabaseEntry;
  */
 public class EntryID implements Comparable<EntryID>
 {
-  /**
-   * The identifier integer value.
-   */
-  private final Long id;
-
-  /**
-   * The value in database format, created when necessary.
-   */
-  private DatabaseEntry data = null;
+  /** The identifier integer value. */
+  private final long id;
+  /** The value in database format, created when necessary. */
+  private DatabaseEntry data;
 
   /**
    * Create a new entry ID object from a given long value.
    * @param id The long value of the ID.
    */
   public EntryID(long id)
-  {
-    this.id = id;
-  }
-
-  /**
-   * Create a new entry ID object from a given Long value.
-   * @param id the Long value of the ID.
-   */
-  public EntryID(Long id)
   {
     this.id = id;
   }
@@ -108,9 +95,19 @@ public class EntryID implements Comparable<EntryID>
    * @throws ClassCastException if the specified object's type prevents it
    *                            from being compared to this Object.
    */
+  @Override
   public int compareTo(EntryID that) throws ClassCastException
   {
-    return this.id.compareTo(that.id);
+    final long result = this.id - that.id;
+    if (result < 0)
+    {
+      return -1;
+    }
+    else if (result > 0)
+    {
+      return 1;
+    }
+    return 0;
   }
 
   /**
@@ -122,12 +119,9 @@ public class EntryID implements Comparable<EntryID>
    * @see     #hashCode()
    * @see     java.util.Hashtable
    */
-  @Override public boolean equals(Object that)
+  @Override
+  public boolean equals(Object that)
   {
-    if (that == null)
-    {
-      return false;
-    }
     if (this == that)
     {
       return true;
@@ -136,7 +130,7 @@ public class EntryID implements Comparable<EntryID>
     {
       return false;
     }
-    return this.id.equals(((EntryID)that).id);
+    return this.id == ((EntryID) that).id;
   }
 
   /**
@@ -148,17 +142,19 @@ public class EntryID implements Comparable<EntryID>
    * @see     java.lang.Object#equals(java.lang.Object)
    * @see     java.util.Hashtable
    */
-  @Override public int hashCode()
+  @Override
+  public int hashCode()
   {
-    return (int)id.longValue();
+    return (int) id;
   }
 
   /**
    * Get a string representation of this object.
    * @return A string representation of this object.
    */
+  @Override
   public String toString()
   {
-    return id.toString();
+    return Long.toString(id);
   }
 }

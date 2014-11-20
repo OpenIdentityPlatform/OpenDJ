@@ -54,22 +54,16 @@ import static org.opends.server.core.DirectoryServer.*;
 /**
  * Represents the database containing the LDAP entries. The database key is
  * the entry ID and the value is the entry contents.
- *
  */
 public class ID2Entry extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * Parameters for compression and encryption.
-   */
+  /** Parameters for compression and encryption. */
   private DataConfig dataConfig;
 
-  /**
-   * Cached encoding buffers.
-   */
-  private static final ThreadLocal<EntryCodec> ENTRY_CODEC_CACHE =
-      new ThreadLocal<EntryCodec>()
+  /** Cached encoding buffers. */
+  private static final ThreadLocal<EntryCodec> ENTRY_CODEC_CACHE = new ThreadLocal<EntryCodec>()
   {
     @Override
     protected EntryCodec initialValue()
@@ -100,8 +94,7 @@ public class ID2Entry extends DatabaseContainer
 
     private final ByteStringBuilder encodedBuffer = new ByteStringBuilder();
     private final ByteStringBuilder entryBuffer = new ByteStringBuilder();
-    private final ByteStringBuilder compressedEntryBuffer =
-        new ByteStringBuilder();
+    private final ByteStringBuilder compressedEntryBuffer = new ByteStringBuilder();
     private final ASN1Writer writer;
     private final int maxBufferSize;
 
@@ -177,12 +170,10 @@ public class ID2Entry extends DatabaseContainer
         throws DirectoryException
     {
       encodeVolatile(entry, dataConfig);
-      return new DatabaseEntry(encodedBuffer.getBackingArray(), 0,
-          encodedBuffer.length());
+      return new DatabaseEntry(encodedBuffer.getBackingArray(), 0, encodedBuffer.length());
     }
 
-    private void encodeVolatile(Entry entry, DataConfig dataConfig)
-        throws DirectoryException
+    private void encodeVolatile(Entry entry, DataConfig dataConfig) throws DirectoryException
     {
       // Encode the entry for later use.
       entry.encode(entryBuffer, dataConfig.getEntryEncodeConfig());
@@ -199,8 +190,7 @@ public class ID2Entry extends DatabaseContainer
         {
           OutputStream compressor = null;
           try {
-            compressor = new DeflaterOutputStream(
-                compressedEntryBuffer.asOutputStream());
+            compressor = new DeflaterOutputStream(compressedEntryBuffer.asOutputStream());
             entryBuffer.copyTo(compressor);
           }
           finally {
@@ -238,8 +228,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws DatabaseException If an error occurs in the JE database.
    *
    */
-  ID2Entry(String name, DataConfig dataConfig,
-           Environment env, EntryContainer entryContainer)
+  ID2Entry(String name, DataConfig dataConfig, Environment env, EntryContainer entryContainer)
       throws DatabaseException
   {
     super(name, env, entryContainer);
@@ -365,7 +354,7 @@ public class ID2Entry extends DatabaseContainer
     {
       DatabaseEntry data = codec.encodeInternal(entry, dataConfig);
       OperationStatus status = insert(txn, key, data);
-      return (status == OperationStatus.SUCCESS);
+      return status == OperationStatus.SUCCESS;
     }
     finally
     {
@@ -393,7 +382,7 @@ public class ID2Entry extends DatabaseContainer
     {
       DatabaseEntry data = codec.encodeInternal(entry, dataConfig);
       OperationStatus status = put(txn, key, data);
-      return (status == OperationStatus.SUCCESS);
+      return status == OperationStatus.SUCCESS;
     }
     finally
     {
@@ -411,8 +400,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   @Override
-  public OperationStatus put(Transaction txn, DatabaseEntry key,
-                             DatabaseEntry data)
+  public OperationStatus put(Transaction txn, DatabaseEntry key, DatabaseEntry data)
        throws DatabaseException
   {
     return super.put(txn, key, data);
@@ -426,17 +414,11 @@ public class ID2Entry extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean remove(Transaction txn, EntryID id)
-       throws DatabaseException
+  public boolean remove(Transaction txn, EntryID id) throws DatabaseException
   {
     DatabaseEntry key = id.getDatabaseEntry();
-
     OperationStatus status = delete(txn, key);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return status == OperationStatus.SUCCESS;
   }
 
   /**

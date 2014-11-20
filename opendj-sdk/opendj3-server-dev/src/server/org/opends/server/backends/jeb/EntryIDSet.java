@@ -43,7 +43,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * The IDs are stored here in an array in ascending order.
    * A null array implies not defined, rather than zero IDs.
    */
-  private long[] values = null;
+  private long[] values;
 
   /**
    * The size of the set when it is not defined. This value is only maintained
@@ -55,15 +55,13 @@ public class EntryIDSet implements Iterable<EntryID>
    * The database key containing this set, if the set was constructed
    * directly from the database.
    */
-  private ByteString keyBytes;
+  private final ByteString keyBytes;
 
-  /**
-   * Create a new undefined set.
-   */
+  /** Create a new undefined set. */
   public EntryIDSet()
   {
-    values = null;
-    undefinedSize = Long.MAX_VALUE;
+    this.keyBytes = null;
+    this.undefinedSize = Long.MAX_VALUE;
   }
 
   /**
@@ -73,8 +71,8 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   public EntryIDSet(long size)
   {
-    values = null;
-    undefinedSize = size;
+    this.keyBytes = null;
+    this.undefinedSize = size;
   }
 
   /**
@@ -110,13 +108,11 @@ public class EntryIDSet implements Iterable<EntryID>
     if (bytes.length() == 0)
     {
       // Entry limit has exceeded and there is no encoded undefined set size.
-      values = null;
       undefinedSize = Long.MAX_VALUE;
     }
     else if ((bytes.byteAt(0) & 0x80) == 0x80)
     {
       // Entry limit has exceeded and there is an encoded undefined set size.
-      values = null;
       undefinedSize =
           JebFormat.entryIDUndefinedSizeFromDatabase(bytes.toByteArray());
     }
@@ -137,6 +133,7 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   EntryIDSet(long[] values, int pos, int len)
   {
+    this.keyBytes = null;
     this.values = new long[len];
     System.arraycopy(values, pos, this.values, 0, len);
   }
@@ -427,12 +424,10 @@ public class EntryIDSet implements Iterable<EntryID>
       return true;
     }
 
-    long id = entryID.longValue();
-    if (values.length == 0 || id > values[values.length - 1])
-    {
-      return false;
-    }
-    return Arrays.binarySearch(values, id) >= 0;
+    final long id = entryID.longValue();
+    return values.length != 0
+        && id <= values[values.length - 1]
+        && Arrays.binarySearch(values, id) >= 0;
   }
 
   /**
@@ -443,7 +438,7 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   public void retainAll(EntryIDSet that)
   {
-    if (!this.isDefined())
+    if (!isDefined())
     {
       this.values = that.values;
       this.undefinedSize = that.undefinedSize;
@@ -504,7 +499,7 @@ public class EntryIDSet implements Iterable<EntryID>
       return;
     }
 
-    if (!this.isDefined())
+    if (!isDefined())
     {
       // Assume there are no overlap between IDs in that set with this set
       if(undefinedSize != Long.MAX_VALUE)
@@ -611,7 +606,7 @@ public class EntryIDSet implements Iterable<EntryID>
       return;
     }
 
-    if (!this.isDefined())
+    if (!isDefined())
     {
       // Assume all IDs in the given set exists in this set.
       if(undefinedSize != Long.MAX_VALUE)
@@ -680,15 +675,15 @@ public class EntryIDSet implements Iterable<EntryID>
   @Override
   public Iterator<EntryID> iterator()
   {
-    if (values == null)
-    {
-      // The set is not defined.
-      return new IDSetIterator(new long[0]);
-    }
-    else
+    if (values != null)
     {
       // The set is defined.
       return new IDSetIterator(values);
+    }
+    else
+    {
+      // The set is not defined.
+      return new IDSetIterator(new long[0]);
     }
   }
 
@@ -702,15 +697,15 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   public Iterator<EntryID> iterator(EntryID begin)
   {
-    if (values == null)
-    {
-      // The set is not defined.
-      return new IDSetIterator(new long[0]);
-    }
-    else
+    if (values != null)
     {
       // The set is defined.
       return new IDSetIterator(values, begin);
+    }
+    else
+    {
+      // The set is not defined.
+      return new IDSetIterator(new long[0]);
     }
   }
 

@@ -26,22 +26,19 @@
  */
 package org.opends.server.backends.jeb;
 
-
-
-import static org.opends.messages.JebMessages.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.CompressedSchema;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.api.CompressedSchema;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
@@ -53,10 +50,12 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.LockConflictException;
-import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
+import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.OperationStatus.*;
 
+import static org.opends.messages.JebMessages.*;
 
 /**
  * This class provides a compressed schema implementation whose definitions are
@@ -64,36 +63,24 @@ import com.sleepycat.je.OperationStatus;
  */
 public final class JECompressedSchema extends CompressedSchema
 {
-  /**
-   * The name of the database used to store compressed attribute description
-   * definitions.
-   */
-  private static final String DB_NAME_AD = "compressed_attributes";
-
-  /**
-   * The name of the database used to store compressed object class set
-   * definitions.
-   */
-  private static final String DB_NAME_OC = "compressed_object_classes";
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /** The name of the database used to store compressed attribute description definitions. */
+  private static final String DB_NAME_AD = "compressed_attributes";
+  /** The name of the database used to store compressed object class set definitions. */
+  private static final String DB_NAME_OC = "compressed_object_classes";
 
   /** The compressed attribute description schema database. */
   private Database adDatabase;
-
   /** The environment in which the databases are held. */
   private Environment environment;
-
   /** The compressed object class set schema database. */
   private Database ocDatabase;
 
-  private final ByteStringBuilder storeAttributeWriterBuffer =
-      new ByteStringBuilder();
-  private final ASN1Writer storeAttributeWriter = ASN1
-      .getWriter(storeAttributeWriterBuffer);
-  private final ByteStringBuilder storeObjectClassesWriterBuffer =
-      new ByteStringBuilder();
-  private final ASN1Writer storeObjectClassesWriter = ASN1
-      .getWriter(storeObjectClassesWriterBuffer);
+  private final ByteStringBuilder storeAttributeWriterBuffer = new ByteStringBuilder();
+  private final ASN1Writer storeAttributeWriter = ASN1.getWriter(storeAttributeWriterBuffer);
+  private final ByteStringBuilder storeObjectClassesWriterBuffer = new ByteStringBuilder();
+  private final ASN1Writer storeObjectClassesWriter = ASN1.getWriter(storeObjectClassesWriterBuffer);
 
 
 
@@ -125,38 +112,30 @@ public final class JECompressedSchema extends CompressedSchema
    */
   public void close()
   {
-    try
-    {
-      adDatabase.sync();
-    }
-    catch (final Exception e)
-    {
-      // Ignore.
-    }
-
-    StaticUtils.close(adDatabase);
-
-    try
-    {
-      ocDatabase.sync();
-    }
-    catch (final Exception e)
-    {
-      // Ignore.
-    }
-
-    StaticUtils.close(ocDatabase);
+    close0(adDatabase);
+    close0(ocDatabase);
 
     adDatabase = null;
     ocDatabase = null;
     environment = null;
   }
 
+  private void close0(Database database)
+  {
+    try
+    {
+      database.sync();
+    }
+    catch (final Exception e)
+    {
+      // Ignore.
+    }
+    StaticUtils.close(database);
+  }
 
 
-  /**
-   * {@inheritDoc}
-   */
+
+  /** {@inheritDoc} */
   @Override
   protected void storeAttribute(final byte[] encodedAttribute,
       final String attributeName, final Collection<String> attributeOptions)
@@ -182,9 +161,7 @@ public final class JECompressedSchema extends CompressedSchema
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected void storeObjectClasses(final byte[] encodedObjectClasses,
       final Collection<String> objectClassNames) throws DirectoryException
@@ -250,9 +227,8 @@ public final class JECompressedSchema extends CompressedSchema
     {
       final DatabaseEntry keyEntry = new DatabaseEntry();
       final DatabaseEntry valueEntry = new DatabaseEntry();
-      OperationStatus status = ocCursor.getFirst(keyEntry, valueEntry,
-          LockMode.READ_UNCOMMITTED);
-      while (status == OperationStatus.SUCCESS)
+      OperationStatus status = ocCursor.getFirst(keyEntry, valueEntry, READ_UNCOMMITTED);
+      while (status == SUCCESS)
       {
         final byte[] encodedObjectClasses = keyEntry.getData();
         final ASN1Reader reader = ASN1.getReader(valueEntry.getData());
@@ -264,8 +240,7 @@ public final class JECompressedSchema extends CompressedSchema
         }
         reader.readEndSequence();
         loadObjectClasses(encodedObjectClasses, objectClassNames);
-        status = ocCursor.getNext(keyEntry, valueEntry,
-            LockMode.READ_UNCOMMITTED);
+        status = ocCursor.getNext(keyEntry, valueEntry, READ_UNCOMMITTED);
       }
     }
     catch (final IOException e)
@@ -286,9 +261,8 @@ public final class JECompressedSchema extends CompressedSchema
     {
       final DatabaseEntry keyEntry = new DatabaseEntry();
       final DatabaseEntry valueEntry = new DatabaseEntry();
-      OperationStatus status = adCursor.getFirst(keyEntry, valueEntry,
-          LockMode.READ_UNCOMMITTED);
-      while (status == OperationStatus.SUCCESS)
+      OperationStatus status = adCursor.getFirst(keyEntry, valueEntry, READ_UNCOMMITTED);
+      while (status == SUCCESS)
       {
         final byte[] encodedAttribute = keyEntry.getData();
         final ASN1Reader reader = ASN1.getReader(valueEntry.getData());
@@ -301,8 +275,7 @@ public final class JECompressedSchema extends CompressedSchema
         }
         reader.readEndSequence();
         loadAttribute(encodedAttribute, attributeName, attributeOptions);
-        status = adCursor.getNext(keyEntry, valueEntry,
-            LockMode.READ_UNCOMMITTED);
+        status = adCursor.getNext(keyEntry, valueEntry, READ_UNCOMMITTED);
       }
     }
     catch (final IOException e)
@@ -319,29 +292,31 @@ public final class JECompressedSchema extends CompressedSchema
 
 
 
-  private void store(final Database database, final byte[] key,
-      final ByteStringBuilder value) throws DirectoryException
+  private void store(final Database database, final byte[] key, final ByteStringBuilder value) throws DirectoryException
   {
-    boolean successful = false;
+    if (!putNoOverwrite(database, key, value))
+    {
+      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_MULTIPLE_FAILURES.get();
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
+    }
+  }
+
+  private boolean putNoOverwrite(final Database database, final byte[] key, final ByteStringBuilder value)
+      throws DirectoryException
+  {
     final DatabaseEntry keyEntry = new DatabaseEntry(key);
-    final DatabaseEntry valueEntry = new DatabaseEntry(value.getBackingArray(),
-        0, value.length());
+    final DatabaseEntry valueEntry = new DatabaseEntry(value.getBackingArray(), 0, value.length());
     for (int i = 0; i < 3; i++)
     {
       try
       {
-        final OperationStatus status = database.putNoOverwrite(null, keyEntry,
-            valueEntry);
-        if (status == OperationStatus.SUCCESS)
-        {
-          successful = true;
-          break;
-        }
-        else
+        final OperationStatus status = database.putNoOverwrite(null, keyEntry, valueEntry);
+        if (status != SUCCESS)
         {
           final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(status);
           throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
         }
+        return true;
       }
       catch (final LockConflictException ce)
       {
@@ -349,19 +324,11 @@ public final class JECompressedSchema extends CompressedSchema
       }
       catch (final DatabaseException de)
       {
-        final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(de
-            .getMessage());
-        throw new DirectoryException(
-            DirectoryServer.getServerErrorResultCode(), m, de);
+        final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(de.getMessage());
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, de);
       }
     }
-
-    if (!successful)
-    {
-      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_MULTIPLE_FAILURES.get();
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          m);
-    }
+    return false;
   }
 
 }
