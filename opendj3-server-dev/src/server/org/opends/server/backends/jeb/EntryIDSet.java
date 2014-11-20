@@ -161,10 +161,7 @@ public class EntryIDSet implements Iterable<EntryID>
         {
           return new EntryIDSet();
         }
-        else
-        {
-          undefined = true;
-        }
+        undefined = true;
       }
       count += l.size();
     }
@@ -331,15 +328,13 @@ public class EntryIDSet implements Iterable<EntryID>
     long id = entryID.longValue();
     if (values.length == 0)
     {
-      values = new long[1];
-      values[0] = id;
+      values = new long[] { id };
       return true;
     }
 
     if (id > values[values.length-1])
     {
-      long[] updatedValues = new long[values.length+1];
-      System.arraycopy(values, 0, updatedValues, 0, values.length);
+      long[] updatedValues = Arrays.copyOf(values, values.length + 1);
       updatedValues[values.length] = id;
       values = updatedValues;
     }
@@ -390,16 +385,10 @@ public class EntryIDSet implements Iterable<EntryID>
       return false;
     }
 
-    long id = entryID.longValue();
-
     // Binary search to locate the ID.
+    long id = entryID.longValue();
     int pos = Arrays.binarySearch(values, id);
-    if (pos < 0)
-    {
-      // Not found.
-      return false;
-    }
-    else
+    if (pos >= 0)
     {
       // Found it.
       long[] updatedValues = new long[values.length-1];
@@ -408,6 +397,8 @@ public class EntryIDSet implements Iterable<EntryID>
       values = updatedValues;
       return true;
     }
+    // Not found.
+    return false;
   }
 
   /**
@@ -477,9 +468,7 @@ public class EntryIDSet implements Iterable<EntryID>
     }
     if (ci < c.length)
     {
-      long[] results = new long[ci];
-      System.arraycopy(c, 0, results, 0, ci);
-      values = results;
+      values = Arrays.copyOf(c, ci);
     }
     else
     {
@@ -584,9 +573,7 @@ public class EntryIDSet implements Iterable<EntryID>
 
     if (ni < n.length)
     {
-      long[] results = new long[ni];
-      System.arraycopy(n, 0, results, 0, ni);
-      values = results;
+      values = Arrays.copyOf(n, ni);
     }
     else
     {
@@ -619,25 +606,15 @@ public class EntryIDSet implements Iterable<EntryID>
     long[] a = this.values;
     long[] b = that.values;
 
-    if (a.length == 0 || b.length == 0)
+    if (a.length == 0 || b.length == 0
+        // Optimize for cases where the two sets are sure to have no overlap.
+        || b[0] > a[a.length-1]
+        || a[0] > b[b.length-1])
     {
       return;
     }
 
-    // Optimize for case where the two sets are sure to have no overlap.
-    if (b[0] > a[a.length-1])
-    {
-      return;
-    }
-
-    if (a[0] > b[b.length-1])
-    {
-      return;
-    }
-
-    long[] n;
-
-    n = new long[a.length];
+    long[] n = new long[a.length];
 
     int ai, bi, ni;
     for ( ni = 0, ai = 0, bi = 0; ai < a.length && bi < b.length; ) {
@@ -656,9 +633,7 @@ public class EntryIDSet implements Iterable<EntryID>
 
     if (ni < a.length)
     {
-      long[] results = new long[ni];
-      System.arraycopy(n, 0, results, 0, ni);
-      values = results;
+      values = Arrays.copyOf(n, ni);
     }
     else
     {
@@ -675,16 +650,7 @@ public class EntryIDSet implements Iterable<EntryID>
   @Override
   public Iterator<EntryID> iterator()
   {
-    if (values != null)
-    {
-      // The set is defined.
-      return new IDSetIterator(values);
-    }
-    else
-    {
-      // The set is not defined.
-      return new IDSetIterator(new long[0]);
-    }
+    return iterator(null);
   }
 
   /**
@@ -702,11 +668,8 @@ public class EntryIDSet implements Iterable<EntryID>
       // The set is defined.
       return new IDSetIterator(values, begin);
     }
-    else
-    {
-      // The set is not defined.
-      return new IDSetIterator(new long[0]);
-    }
+    // The set is not defined.
+    return new IDSetIterator(new long[0]);
   }
 
 }
