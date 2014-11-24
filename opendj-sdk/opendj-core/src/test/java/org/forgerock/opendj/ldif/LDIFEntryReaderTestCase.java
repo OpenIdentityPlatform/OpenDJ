@@ -136,9 +136,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeBranchWithMatch() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setExcludeBranch(DN.valueOf("dc=example,dc=org"));
         final Entry entry = reader.readEntry();
@@ -166,9 +165,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllUserAttributesFalse() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setExcludeAllUserAttributes(false);
         final Entry entry = reader.readEntry();
@@ -186,12 +184,11 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllUserAttributesTrue() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
-
         reader.setExcludeAllUserAttributes(true);
+
         final Entry entry = reader.readEntry();
         reader.close();
 
@@ -213,9 +210,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAttributeWithNoMatch() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setExcludeAttribute(AttributeDescription.valueOf("vip"));
 
@@ -234,9 +230,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAttributeWithMatch() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
 
         reader.setExcludeAttribute(AttributeDescription.valueOf("cn"));
@@ -276,9 +271,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllOperationalAttributesFalse() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
 
         reader.setExcludeAllOperationalAttributes(false);
@@ -298,9 +292,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllOperationalAttributesTrue() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
 
         reader.setExcludeAllOperationalAttributes(true);
@@ -337,9 +330,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeFilterWithMatch() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         final Filter filter = Filter.equality("objectclass", "vip");
         final Matcher excludeFilter = filter.matcher();
@@ -381,7 +373,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetIncludeAttributeWithMatch() throws Exception {
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setIncludeAttribute(AttributeDescription.valueOf("cn"));
@@ -406,7 +398,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetIncludeAttributeWithNoMatch() throws Exception {
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setIncludeAttribute(AttributeDescription.valueOf("manager"));
@@ -458,9 +450,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetIncludeBranchWithMatch() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setIncludeBranch(DN.valueOf("dc=example,dc=com"));
         final Entry entry = reader.readEntry();
@@ -514,9 +505,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetIncludeFilterWithMatch() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         final Filter filter = Filter.equality("objectclass", "person");
         final Matcher includeFilter = filter.matcher();
@@ -550,7 +540,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedLDIFListenerMalformedFirstRecord() throws Exception {
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
@@ -576,7 +566,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedLDIFListenerMalformedSecondRecord() throws Exception {
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
@@ -616,7 +606,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedRecordListenerRejectsBadSchemaRecord() throws Exception {
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
@@ -651,9 +641,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedLDIFListenerWarnsBadSchemaRecord() throws Exception {
-
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
         LDIFEntryReader reader =
@@ -684,9 +673,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testRejectedLDIFListenerSkipsRecord() throws Exception {
-
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
         LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
@@ -704,9 +692,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetRejectedLDIFListenerDoesAllowNull() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(getStandardEntry());
         reader.setRejectedLDIFListener(null);
         Entry entry = reader.readEntry();
@@ -750,9 +737,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetSchemaValidationPolicyDefaultAllowsEntry() throws Exception {
-
         // @formatter:off
         String[] strEntry = {
             "dn: uid=user.0,ou=People,dc=example,dc=com", "objectClass: person",
@@ -799,10 +785,9 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetSchemaSetSchemaValidationPolicyDefaultAllowsEntryWithNewAttribute()
             throws Exception {
-
         // @formatter:off
         final String[] strEntry = {
             "dn: uid=user.0,ou=People,dc=example,dc=com",
@@ -924,7 +909,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testReadEntryWithNoSpaces() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -961,7 +946,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     /**
      * Test to read an entry containing spaces before the attribute.
      */
-    @Test()
+    @Test
     public void testReadEntryWithAttributesSpacesAtStart() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -1102,9 +1087,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testLDIFEntryReaderFullEntry() throws Exception {
-
         // @formatter:off
         final String[] strEntry = {
             "version: 1",
@@ -1304,9 +1288,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testValueOfLDIFEntryReadEntryContainingURL() throws Exception {
-
         final File file = File.createTempFile("sdk", ".jpeg");
         final String url = file.toURI().toURL().toString();
 
@@ -1440,9 +1423,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testReadEntryBase64Encoded() throws Exception {
-
         // @formatter:off
         final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
             "version: 1",
@@ -1488,9 +1470,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testReadEntryBase64EncodedDN() throws Exception {
-
         // @formatter:off
         final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(
             "dn::  dWlkPXJvZ2FzYXdhcmEsb3U95Za25qWt6YOoLG89QWlyaXVz", // adding space before ok, after : ko
@@ -1549,9 +1530,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testLDIFEntryReaderEntryAsArray() throws Exception {
-
         final LDIFEntryReader reader = new LDIFEntryReader(Arrays.asList(getStandardEntry()));
 
         try {
@@ -1653,7 +1633,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testValueOfLDIFEntryWellFormedEntry() throws Exception {
         // @formatter:off
         final Entry entry = LDIFEntryReader.valueOfLDIFEntry(
@@ -1675,9 +1655,8 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testValueOfLDIFEntryReadStandardEntry() throws Exception {
-
         final Entry entry = LDIFEntryReader.valueOfLDIFEntry(getStandardEntry());
 
         assertThat(entry).isNotNull();

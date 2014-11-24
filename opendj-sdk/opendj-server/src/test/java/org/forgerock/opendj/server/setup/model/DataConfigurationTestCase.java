@@ -43,7 +43,7 @@ public class DataConfigurationTestCase extends AbstractSetupTestCase {
     /**
      * Creates a default data configuration.
      */
-    @Test()
+    @Test
     public void testGetDefaultDataConfiguration() {
         final DataConfiguration data = new DataConfiguration();
         assertThat(data.getDirectoryBaseDN()).isEqualTo(DataConfiguration.DEFAULT_DIRECTORY_BASE_DN);
@@ -61,7 +61,7 @@ public class DataConfigurationTestCase extends AbstractSetupTestCase {
      *
      * @throws IOException
      */
-    @Test()
+    @Test
     public void testCustomDataConfiguration() throws IOException {
         final DataConfiguration data = new DataConfiguration();
         final int userEntries = 300;
@@ -94,7 +94,7 @@ public class DataConfigurationTestCase extends AbstractSetupTestCase {
     /**
      * Tests the type of the data configuration to make sure the boolean types are correctly assigned.
      */
-    @Test()
+    @Test
     public void testDataConfigurationType() {
         final DataConfiguration data = new DataConfiguration();
         assertTrue(data.isAutomaticallyImportGenerated());

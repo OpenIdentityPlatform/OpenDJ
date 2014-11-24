@@ -58,7 +58,8 @@ public class UnbindRequestTestCase extends RequestsTestCase {
     protected Request unmodifiableOf(Request original) {
         return Requests.unmodifiableUnbindRequest((UnbindRequest) original);
     }
-    @Test()
+
+    @Test
     public void testModifiableRequest() {
         final UnbindRequest copy = (UnbindRequest) copyOf(Requests.newUnbindRequest());
         assertThat(copy.toString()).isEqualTo("UnbindRequest(controls=[])");

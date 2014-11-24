@@ -50,7 +50,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class AccountUsabilityResponseControlTestCase extends ControlsTestCase {
-    @Test()
+    @Test
     public void testInvalidResponseControl() throws Exception {
         // Don't send the request control and hence there
         // shouldn't be response.
@@ -67,7 +67,7 @@ public class AccountUsabilityResponseControlTestCase extends ControlsTestCase {
         assertNull(aurctrl);
     }
 
-    @Test()
+    @Test
     public void testValidResponseControl() throws Exception {
         // Send this control with a search request and see that you get
         // a valid response.

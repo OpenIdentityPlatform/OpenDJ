@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class MatchingRuleTestCase extends AbstractSchemaTestCase {
 
-    @Test()
+    @Test
     public final void testCreatesBasicMatchingRule() {
 
         // @formatter:off
@@ -72,7 +72,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
         assertThat(mr.isObsolete()).isFalse();
     }
 
-    @Test()
+    @Test
     public final void testCreatesOverrideBasicMatchingRule() {
 
         // @formatter:off
@@ -149,7 +149,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Matching rule name is optional.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsEmptyName() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -176,7 +176,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Multiple names can be set to the matching rule.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsMultipleNames() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -208,7 +208,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Name in optional for a matching rule. (RFC 4512)
      */
-    @Test()
+    @Test
     public final void testBuilderRemoveNames() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -239,7 +239,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows to remove selected name.
      */
-    @Test()
+    @Test
     public final void testBuilderRemoveSelectedName() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -271,7 +271,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows a missing description.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNoDescription() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -298,7 +298,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows empty description.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsEmptyDescription() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -325,7 +325,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Extra properties is not a mandatory field.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNoExtraProperties() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -367,7 +367,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Removes all the extra properties.
      */
-    @Test()
+    @Test
     public final void testBuilderRemoveExtraProperties() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -395,7 +395,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * If the implementation is not set, the schema will use the default matching rule for this one.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNoImplementation() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -419,7 +419,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * If the implementation is null, the schema will use the default matching rule for this one.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNullImplementation() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -446,7 +446,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Sets a matching rule using a string definition.
      */
-    @Test()
+    @Test
     public final void testAddingAMatchingRuleDefinitionStringNoOverride() {
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
@@ -471,7 +471,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Sets a matching rule using a string definition.
      */
-    @Test()
+    @Test
     public final void testAddingAMatchingRuleDefinitionStringOverride() {
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
@@ -494,7 +494,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Duplicates an existing matching rule.
      */
-    @Test()
+    @Test
     public final void testDuplicatesExistingMatchingRule() {
 
         final SchemaBuilder sb = new SchemaBuilder();
@@ -540,7 +540,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between matching rules.
      */
-    @Test()
+    @Test
     public final void testMatchingRuleEqualsTrue() {
 
         // @formatter:off
@@ -576,7 +576,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between matching rules fails.
      */
-    @Test()
+    @Test
     public final void testMatchingRuleEqualsFalse() {
 
         // @formatter:off
@@ -612,7 +612,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Verifies the builder definition.
      */
-    @Test()
+    @Test
     public final void testVerifyMatchingRuleDefinition() {
 
         final SchemaBuilder sb = new SchemaBuilder();
@@ -645,7 +645,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between builder and definition.
      */
-    @Test()
+    @Test
     public final void testMatchingRuleEqualityReturnsTrueBetweenBuilderAndDefinition() {
 
         // @formatter:off
@@ -678,7 +678,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between builder and definition fails.
      */
-    @Test()
+    @Test
     public final void testMatchingRuleEqualityReturnsTrueBetweenBuilderAndDefinitionFails() {
 
         // @formatter:off
@@ -711,7 +711,7 @@ public class MatchingRuleTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows to create chained matching rules.
      */
-    @Test()
+    @Test
     public final void testCreatesMatchingRulesUsingChainingMethods() {
         final Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
         final List<String> extra = new ArrayList<String>();

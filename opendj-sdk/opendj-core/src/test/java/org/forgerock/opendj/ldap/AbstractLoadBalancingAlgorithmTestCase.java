@@ -75,7 +75,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
     /**
      * Disables logging before the tests.
      */
-    @BeforeClass()
+    @BeforeClass
     public void disableLogging() {
         TestCaseUtils.setDefaultLogLevel(Level.SEVERE);
     }
@@ -83,7 +83,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
     /**
      * Re-enable logging after the tests.
      */
-    @AfterClass()
+    @AfterClass
     public void enableLogging() {
         TestCaseUtils.setDefaultLogLevel(Level.INFO);
     }

@@ -388,7 +388,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryWithCoreSchema() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -476,7 +476,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddLdapSyntax() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -517,7 +517,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddMalformedLdapSyntax() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -556,7 +556,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddMatchingRuleUse() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -598,7 +598,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddMalformedMatchingRuleUse() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -637,7 +637,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddMatchingRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -680,7 +680,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddMalformedMatchingRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -720,7 +720,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddDITContentRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -763,7 +763,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddMalformedDITContentRule() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -803,7 +803,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddObjectClass() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -844,7 +844,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderWithEntryAddMalformedObjectClass() throws Exception {
         // @formatter:off
         final String[] strEntry = {
@@ -885,7 +885,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAddAttributeWithEntryContainingDescriptionWithCoreSchema()
             throws Exception {
         // @formatter:off
@@ -940,7 +940,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAddAttributeContainingDescriptionWithCoreSchema()
             throws Exception {
 
@@ -1065,7 +1065,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderCompareAddAttributeTypesSucceed() throws Exception {
 
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
@@ -1148,7 +1148,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     /**
      * Rewrite an existing object class.
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAddObjectClass() throws Exception {
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
         Set<String> attrs = new HashSet<String>();
@@ -1201,9 +1201,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAllowsConflictingAttributesOverwriteTrue() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder();
 
         //@formatter:off
@@ -1281,7 +1280,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAllowsConflictingDITStructureRuleOverwriteTrue()
             throws Exception {
         // @formatter:off
@@ -1329,7 +1328,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAddDITContentRuleBuilder() throws Exception {
         // @formatter:off
         final Schema schema =
@@ -1389,7 +1388,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAllowsConflictingDITContentRuleOverwriteTrue()
             throws Exception {
         // @formatter:off
@@ -1446,7 +1445,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAllowsConflictingMatchingRuleOverwriteTrue()
             throws Exception {
         // @formatter:off
@@ -1492,7 +1491,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAllowsConflictingMatchingRuleUseOverwriteTrue()
             throws Exception {
         // @formatter:off
@@ -1550,7 +1549,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAllowsConflictingNameFormOverwriteTrue() throws Exception {
         // @formatter:off
         final Schema schema =
@@ -1612,9 +1611,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantAttributeType() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeAttributeType("wrongName");
         assertThat(isRemoved).isFalse();
@@ -1625,9 +1623,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantSyntax() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeSyntax("1.3.6.1.4.1.14aa");
         assertThat(isRemoved).isFalse();
@@ -1655,9 +1652,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveDitContentRule() throws Exception {
-
         // @formatter:off
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         scBuild.addObjectClass("( 2.16.840.1.113730.3.2.2 NAME 'myCustomObjClass"
@@ -1682,9 +1678,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantDitContentRule() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeDITContentRule("badDITContentRule");
         assertThat(isRemoved).isFalse();
@@ -1732,9 +1727,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantDitStructureRule() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeDITStructureRule(999014);
         assertThat(isRemoved).isFalse();
@@ -1766,9 +1760,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantMatchingRule() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeMatchingRule("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1798,9 +1791,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantMatchingRuleUse() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeMatchingRuleUse("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1831,9 +1823,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantNameForm() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeNameForm("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1863,9 +1854,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderRemoveInexistantObjectClass() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
         boolean isRemoved = scBuild.removeObjectClass("bitStringMatchZ");
         assertThat(isRemoved).isFalse();
@@ -1923,7 +1913,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAddSchemaForEntryMockConnection() throws Exception {
         Connection connection = mock(Connection.class);
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
@@ -1973,7 +1963,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testSchemaBuilderAddSchemaForEntryAsyncMockConnection() throws Exception {
         Connection connection = mock(Connection.class);
         final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());

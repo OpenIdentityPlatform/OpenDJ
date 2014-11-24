@@ -105,7 +105,7 @@ class RuntimeOptions {
     }
 
     /** {@inheritDoc} */
-    @Override()
+    @Override
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -128,7 +128,7 @@ class RuntimeOptions {
     }
 
     /** {@inheritDoc} */
-    @Override()
+    @Override
     public int hashCode() {
         int hashCode = 44 + initialMemory + maximumMemory;
         for (String arg : additionalArguments) {
@@ -138,7 +138,7 @@ class RuntimeOptions {
     }
 
     /** {@inheritDoc} */
-    @Override()
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("Initial Memory: ").append(initialMemory).append("  Max Memory: ").append(maximumMemory);

@@ -78,7 +78,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testCreateAndDecodeUTCTimeValue() throws Exception {
         final Date d = new Date();
         final String timeValue = UTCTimeSyntaxImpl.createUTCTimeValue(d);
@@ -97,7 +97,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testDecode50to99() throws Exception {
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
@@ -119,7 +119,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testDecode00to49() throws Exception {
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
@@ -141,7 +141,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testCreate50to99() throws Exception {
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
@@ -163,7 +163,7 @@ public class UTCTimeSyntaxTest extends AbstractSyntaxTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testCreate00to49() throws Exception {
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 

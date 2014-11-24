@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
  */
 public class RuntimeOptionsTestCase  extends AbstractSetupTestCase {
 
-    @Test()
+    @Test
     public void testGetDefault() {
         final RuntimeOptions options = RuntimeOptions.getDefault();
         assertThat(options.getInitialMemory()).isEqualTo(INITIAL_MEMORY);
@@ -52,7 +52,7 @@ public class RuntimeOptionsTestCase  extends AbstractSetupTestCase {
         options.setAdditionalArguments((String[]) null);
     }
 
-    @Test()
+    @Test
     public void testEqualitySucceed() {
         final RuntimeOptions options = RuntimeOptions.getDefault();
         assertThat(options.getInitialMemory()).isEqualTo(INITIAL_MEMORY);
@@ -67,7 +67,7 @@ public class RuntimeOptionsTestCase  extends AbstractSetupTestCase {
         assertThat(options).isEqualTo(options2);
     }
 
-    @Test()
+    @Test
     public void testEqualityFails() {
         final RuntimeOptions options = RuntimeOptions.getDefault();
         assertThat(options.getInitialMemory()).isEqualTo(INITIAL_MEMORY);
@@ -82,7 +82,7 @@ public class RuntimeOptionsTestCase  extends AbstractSetupTestCase {
         assertThat(options).isNotEqualTo(options2);
     }
 
-    @Test()
+    @Test
     public void testRuntimeOptionsToString() {
 
         final RuntimeOptions options = new RuntimeOptions();

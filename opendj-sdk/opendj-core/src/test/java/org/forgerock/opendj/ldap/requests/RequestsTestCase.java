@@ -72,7 +72,7 @@ public abstract class RequestsTestCase extends ForgeRockTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @BeforeClass()
+    @BeforeClass
     public void startServer() throws Exception {
         TestCaseUtils.startServer();
     }

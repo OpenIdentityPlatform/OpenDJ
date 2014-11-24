@@ -47,7 +47,7 @@ public class GSERParserTestCase extends SdkTestCase {
     /**
      * Test the <CODE>hasNext</CODE> method.
      */
-    @Test()
+    @Test
     public void testHasNext() throws Exception {
         GSERParser parser = new GSERParser("0");
         assertTrue(parser.hasNext());
@@ -58,7 +58,7 @@ public class GSERParserTestCase extends SdkTestCase {
     /**
      * Test the <CODE>skipSP</CODE> method.
      */
-    @Test()
+    @Test
     public void testSkipSP() throws Exception {
         String[] values = {" 42", "  42", "42"};
         for (String value : values) {
@@ -71,7 +71,7 @@ public class GSERParserTestCase extends SdkTestCase {
     /**
      * Test the <CODE>skipMSP</CODE> method.
      */
-    @Test()
+    @Test
     public void testSkipMSP() throws Exception {
         String[] values = {" 42", "  42", "           42"};
         for (String value : values) {

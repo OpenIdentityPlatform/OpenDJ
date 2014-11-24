@@ -608,9 +608,8 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public void testWriteCommentUsingTheWrapFunction() throws Exception {
-
         final CharSequence comment = "Lorem ipsum dolor sit amet, consectetur adipisicing elit";
 
         final List<String> actual = new ArrayList<String>();
@@ -636,9 +635,8 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public void testWriteCommentUsingTheWrapFunctionShortComment() throws Exception {
-
         final CharSequence comment = "Lorem ipsum dolor";
 
         final List<String> actual = new ArrayList<String>();
@@ -663,9 +661,8 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public void testWriteCommentUsingTheWrapFunctionNoEmptySpace() throws Exception {
-
         final CharSequence comment = "Lorem ipsumdolorsitamet,consecteturadipisicingelit";
 
         final List<String> actual = new ArrayList<String>();
@@ -690,9 +687,8 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public void testWriteComment() throws Exception {
-
         final CharSequence comment1 = "This is a new comment";
         final CharSequence comment2 = "Another one";
 
@@ -734,9 +730,8 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public void testWriteEntryUsingStandardEntry() throws Exception {
-
         final List<String> actual = new ArrayList<String>();
         final LDIFEntryWriter writer = new LDIFEntryWriter(actual);
         final int wrapColumn = 15;
@@ -765,7 +760,7 @@ public final class LDIFEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public void testWriteEntry() throws Exception {
         final Entry entry = new LinkedHashMapEntry("cn=John Doe,ou=people,dc=example,dc=com");
         entry.addAttribute("objectClass", "top", "person", "inetOrgPerson");

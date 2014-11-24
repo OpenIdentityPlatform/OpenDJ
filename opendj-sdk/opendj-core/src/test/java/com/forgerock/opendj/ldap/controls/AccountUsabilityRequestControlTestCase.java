@@ -47,7 +47,7 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public class AccountUsabilityRequestControlTestCase extends ControlsTestCase {
-    @Test()
+    @Test
     public void testControl() throws Exception {
         // Send this control with a search request and see that you get
         // a valid response.

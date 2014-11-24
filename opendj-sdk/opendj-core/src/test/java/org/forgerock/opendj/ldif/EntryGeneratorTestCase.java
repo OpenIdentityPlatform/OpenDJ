@@ -370,7 +370,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
      * Test to show that reporting an error about an uninitialized variable when
      * generating templates reports the correct line.
      */
-    @Test()
+    @Test
     public void testMissingVariableErrorReport() throws Exception {
         String[] lines = {
         /* 0 */"template: template",

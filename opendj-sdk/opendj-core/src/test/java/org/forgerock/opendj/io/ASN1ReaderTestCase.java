@@ -102,7 +102,7 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testDecodeExtendedZeroLengthArrayAsNull() throws Exception {
         final byte[] b = new byte[] { 0x05, (byte) 0x81, 0x00 };
         getReader(b, 0).readNull();
@@ -651,7 +651,7 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testDecodeZeroLengthArrayAsNull() throws Exception {
         final byte[] b = new byte[] { 0x05, 0x00 };
         getReader(b, 0).readNull();
@@ -757,7 +757,7 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
     /**
      * Tests the <CODE>skipElement</CODE> method providing a specific type.
      */
-    @Test()
+    @Test
     public void testSkipElementWithType() throws Exception {
         final byte[] b =
                 new byte[] { 0x30, 0x09, 0x02, 0x01, 0x00, 0x02, 0x01, 0x01, 0x02, 0x01, 0x02 };

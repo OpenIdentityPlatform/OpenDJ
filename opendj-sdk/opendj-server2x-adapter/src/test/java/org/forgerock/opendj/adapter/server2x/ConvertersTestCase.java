@@ -91,7 +91,7 @@ import org.testng.annotations.Test;
  * </pre>
  */
 @SuppressWarnings("javadoc")
-@Test()
+@Test
 public class ConvertersTestCase extends ForgeRockTestCase {
 
     /**
@@ -118,7 +118,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      * Converts a SDK {@link SearchResultEntry} to an LDAP Server
      * {@link SearchResultEntry}.
      */
-    @Test()
+    @Test
     public final void testToSearchResultEntry() throws Exception {
         org.forgerock.opendj.ldap.responses.SearchResultEntry entry =
             Responses.newSearchResultEntry(org.forgerock.opendj.ldap.DN
@@ -166,7 +166,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      *
      * @throws DirectoryException
      */
-    @Test()
+    @Test
     public final void testToByteString() throws DirectoryException {
         org.forgerock.opendj.ldap.ByteString sdkByteString = ByteString.valueOf("This is a test");
 
@@ -179,7 +179,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      *
      * @throws DirectoryException
      */
-    @Test()
+    @Test
     public final void testToDeferencePolicy() {
         org.forgerock.opendj.ldap.DereferenceAliasesPolicy sdkDeferenceAliasesPolicy =
                 org.forgerock.opendj.ldap.DereferenceAliasesPolicy.ALWAYS;
@@ -194,9 +194,8 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      *
      * @throws DirectoryException
      */
-    @Test()
+    @Test
     public final void testToControl() throws DirectoryException {
-
         final PersistentSearchRequestControl control =
                 PersistentSearchRequestControl.newControl(false, true,
                         true, // isCritical, changesOnly, returnECs
@@ -228,7 +227,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      *
      * @throws DirectoryException
      */
-    @Test()
+    @Test
     public final void testToListOfControl() throws DirectoryException {
         List<org.forgerock.opendj.ldap.controls.Control> mySDKControlsList =
             generateSdkControlsList();
@@ -272,7 +271,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * Converts an SDK attribute to an LDAP server attribute.
      */
-    @Test()
+    @Test
     public final void testToRawAttribute() throws DirectoryException {
         org.forgerock.opendj.ldap.Attribute attribute = new LinkedAttribute("test", "value1");
 
@@ -368,7 +367,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * Converts a SDK modification to an LDAP server raw modification.
      */
-    @Test()
+    @Test
     public final void testToRawModification() {
         org.forgerock.opendj.ldap.Attribute attribute =
                 new LinkedAttribute("test", ByteString.valueOf("value1"), ByteString
@@ -407,7 +406,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * Converts a SDK filter to an LDAP server filter.
      */
-    @Test()
+    @Test
     public final void testToFilter() throws LDAPException {
         Filter filter = Filter.valueOf("!(description=*)");
         org.opends.server.protocols.ldap.LDAPFilter srvFilter =
@@ -427,7 +426,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      * Converts a SDK search result reference to a LDAP server search result
      * reference.
      */
-    @Test()
+    @Test
     public final void testToSearchResultReference() throws LDAPException {
         String uri = "ldap://hostb/OU=People,O=MNN,C=WW??sub";
         final org.forgerock.opendj.ldap.responses.SearchResultReference sdkSearchResultReference =
@@ -447,7 +446,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      */
     @Test(groups = { "needRunningServer" })
     public final void testFromAttribute() throws DirectoryException {
-
         final org.opends.server.types.Attribute srvAttribute = Attributes.create("CN", "JOHN DOE");
         final org.forgerock.opendj.ldap.Attribute sdkAttribute = from(srvAttribute);
 
@@ -461,7 +459,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      */
     @Test(groups = { "needRunningServer" })
     public final void testFromAttributeUsingBinary() throws DirectoryException {
-
         byte[] data = { 0x00, 0x01, 0x02, (byte) 0xff };
 
         AttributeValue value = AttributeValues.create(org.opends.server.types.ByteString.wrap(data),
@@ -473,7 +470,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * Converts an LDAP byte string to an SDK byte string.
      */
-    @Test()
+    @Test
     public final void testFromByteString() throws LDAPException {
         String str = "This is a test";
         org.opends.server.types.ByteString srvByteString =
@@ -487,7 +484,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * Converts an LDAP control to an SDK control.
      */
-    @Test()
+    @Test
     public static void testFromLDAPControl() {
         org.opends.server.protocols.ldap.LDAPControl ldapControl =
                 new LDAPControl("1.2.3.4", false, to("myData"));
@@ -502,7 +499,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     /**
      * Converts a server control to an SDK control.
      */
-    @Test()
+    @Test
     public static void testFromControl() {
         final org.opends.server.types.Control control =
                 new LDAPControl("1.2.3.4", false, to("myData"));
