@@ -85,7 +85,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testWriteChangeRecordAddRequest() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
@@ -122,7 +122,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testWriteChangeRecordContainingAddRequest() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
@@ -143,7 +143,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testWriteChangeRecordContainingDeleteRequest() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
@@ -287,7 +287,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testWriteChangeRecordDeleteRequest() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
@@ -324,7 +324,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testWriteChangeRecordModifyDNRequest() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
@@ -365,7 +365,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testWriteChangeRecordModifyRequest() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
@@ -410,7 +410,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testWriteCommentDoNotSupportComment() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
@@ -465,7 +465,7 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public final void testConnectionChangeRecordWriterClose() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;

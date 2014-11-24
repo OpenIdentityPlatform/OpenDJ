@@ -117,9 +117,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithMatch() throws Exception {
-
         final EntryReader reader = new LDIFEntryReader(getStandardEntry());
         final SearchRequest sr =
                 Requests.newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
@@ -140,9 +139,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithNoMatch() throws Exception {
-
         final EntryReader reader = new LDIFEntryReader(getStandardEntry());
         final SearchRequest sr =
                 Requests.newSearchRequest("dc=example,dc=org", SearchScope.WHOLE_SUBTREE,
@@ -204,9 +202,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithSchemaMatchNoAttributeDescription() throws Exception {
-
         // @formatter:off
         final EntryReader reader = new LDIFEntryReader(
             "dn: uid=user.0,ou=People,dc=example,dc=com",
@@ -238,10 +235,9 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithSchemaMatchNoAttributeDescriptionTypeOnly()
             throws Exception {
-
         // @formatter:off
         final EntryReader reader = new LDIFEntryReader(
             "dn: uid=user.0,ou=People,dc=example,dc=com",
@@ -273,7 +269,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithSchemaMatchFullAttributes() throws Exception {
 
         // @formatter:off
@@ -346,7 +342,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithSchemaMatchOnlyOperationalAttributes() throws Exception {
 
         // @formatter:off
@@ -387,7 +383,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithSchemaMatchOnlyOperationalAttributesTypeOnly()
             throws Exception {
 
@@ -427,7 +423,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithSchemaMatchSpecifiedAttribute() throws Exception {
 
         // @formatter:off
@@ -492,7 +488,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifSearchWithSchemaNoMatchSpecifiedAttribute() throws Exception {
 
         // @formatter:off
@@ -649,7 +645,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifNewEntryCollectionReader() throws Exception {
 
         // @formatter:off
@@ -702,7 +698,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifNewEntryIteratorReader() throws Exception {
 
         // @formatter:off
@@ -757,7 +753,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifCopyToChangeRecord() throws Exception {
 
         // @formatter:off
@@ -831,7 +827,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifCopyToEntryWriter() throws Exception {
 
         // @formatter:off
@@ -898,7 +894,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *      -1 result”>Admin Guide</a>
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifDiffEntriesModsOnSameDN() throws Exception {
 
         // @formatter:off
@@ -973,7 +969,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifDiffEntriesEntryInSourceNotInTarget() throws Exception {
 
         // @formatter:off
@@ -1021,7 +1017,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifDiffEntriesEntryInTargetNotInSource() throws Exception {
 
         // @formatter:off
@@ -1070,7 +1066,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifDiffEntriesNoDiff() throws Exception {
 
         // @formatter:off
@@ -1100,7 +1096,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifDiffEntriesShortExamples() throws Exception {
 
         // @formatter:off
@@ -1293,7 +1289,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifDiffEntriesNoDiffBase64() throws Exception {
 
         // @formatter:off
@@ -1349,7 +1345,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchAddNoDiff() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1384,7 +1380,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchAddDiff() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1421,7 +1417,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchAddDiffNewEntry() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1475,7 +1471,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchAddModifyNonExistantEntryDoNothing() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1508,7 +1504,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchDeleteEntry() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1537,7 +1533,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchDeleteEntryAmongSeveral() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1598,7 +1594,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchDeleteAttributesEntry() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1644,7 +1640,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchModifyEntry() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1678,7 +1674,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchModifyDNEntryUppercaseUid() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1726,7 +1722,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchModifyDNEntryUpperCaseDnNameSurname() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1775,7 +1771,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchModifyDNEntry() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1819,7 +1815,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         reader.close();
     }
 
-    @Test()
+    @Test
     public final void testLdifPatchModifyDnEntry2() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1887,7 +1883,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchModifyDnEntryBranch() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -1983,7 +1979,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchModifyDnEntryBranchKeepsOldRdn() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -2078,7 +2074,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchModifyDnEntryNewSuperior() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -2135,7 +2131,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchAddReplace() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -2174,7 +2170,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchAddReplaceLanguageTagExample() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -2216,7 +2212,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchVariousChanges() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -2327,7 +2323,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testLdifPatchContainingChanges() throws Exception {
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -2510,9 +2506,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testOverwritePatchOnModifyRequestSucceedsEvenIfWrongDN() throws Exception {
-
         final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -2593,7 +2588,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testOverwritePatchOnModifyDNRequestSucceedsEvenWithWrongDN() throws Exception {
         final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
         // @formatter:off
@@ -2685,7 +2680,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testOverwritePatchOnModifyDNRequestSucceedsEvenWithDuplicateEntry() throws Exception {
         final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
         // @formatter:off

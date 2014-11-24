@@ -192,14 +192,14 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
     }
 
-    @Test()
+    @Test
     public void testAddRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final AddRequest addRequest = newAddRequest("cn=test");
         assertThat(mockConnection.add(addRequest).getResultCode()).isEqualTo(ResultCode.SUCCESS);
     }
 
-    @Test()
+    @Test
     public void testAddRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final AddRequest addRequest = newAddRequest("cn=test");
@@ -211,14 +211,14 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testBindRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final BindRequest bindRequest = newSimpleBindRequest();
         assertThat(mockConnection.bind(bindRequest).getResultCode()).isEqualTo(ResultCode.SUCCESS);
     }
 
-    @Test()
+    @Test
     public void testBindRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final BindRequest bindRequest = newSimpleBindRequest();
@@ -230,7 +230,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testCompareRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final CompareRequest compareRequest = newCompareRequest("cn=test", "cn", "test");
@@ -238,7 +238,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 ResultCode.SUCCESS);
     }
 
-    @Test()
+    @Test
     public void testCompareRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final CompareRequest compareRequest = newCompareRequest("cn=test", "cn", "test");
@@ -250,7 +250,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testDeleteRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final DeleteRequest deleteRequest = newDeleteRequest("cn=test");
@@ -258,7 +258,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 ResultCode.SUCCESS);
     }
 
-    @Test()
+    @Test
     public void testDeleteRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final DeleteRequest deleteRequest = newDeleteRequest("cn=test");
@@ -270,7 +270,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testExtendedRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final GenericExtendedRequest extendedRequest = newGenericExtendedRequest("test");
@@ -278,7 +278,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 ResultCode.SUCCESS);
     }
 
-    @Test()
+    @Test
     public void testExtendedRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final GenericExtendedRequest extendedRequest = newGenericExtendedRequest("test");
@@ -290,7 +290,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testModifyRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final ModifyRequest modifyRequest = newModifyRequest("cn=test");
@@ -298,7 +298,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 ResultCode.SUCCESS);
     }
 
-    @Test()
+    @Test
     public void testModifyRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final ModifyRequest modifyRequest = newModifyRequest("cn=test");
@@ -310,7 +310,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testModifyDNRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final ModifyDNRequest modifyDNRequest = newModifyDNRequest("cn=test", "cn=newrdn");
@@ -318,7 +318,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 ResultCode.SUCCESS);
     }
 
-    @Test()
+    @Test
     public void testModifyDNRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final ModifyDNRequest modifyDNRequest = newModifyDNRequest("cn=test", "cn=newrdn");
@@ -330,7 +330,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testSearchRequestSuccess() throws Exception {
         final SearchResultEntry entry = newSearchResultEntry("cn=test");
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
@@ -343,7 +343,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         assertThat(entries.iterator().next()).isSameAs(entry);
     }
 
-    @Test()
+    @Test
     public void testSearchRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest searchRequest =
@@ -358,7 +358,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testSingleEntrySearchRequestSuccess() throws Exception {
         final SearchResultEntry entry = newSearchResultEntry("cn=test");
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
@@ -368,7 +368,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     }
 
     @SuppressWarnings("unchecked")
-    @Test()
+    @Test
     public void testSingleEntrySearchAsyncRequestSuccess() throws Exception {
         final SearchResultEntry entry = newSearchResultEntry("cn=test");
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
@@ -380,7 +380,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         verify(successHandler).handleResult(any(SearchResultEntry.class));
     }
 
-    @Test()
+    @Test
     public void testSingleEntrySearchRequestNoEntryReturned() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final SearchRequest request =
@@ -393,7 +393,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testSingleEntrySearchRequestMultipleEntriesToReturn() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SIZE_LIMIT_EXCEEDED,
                 newSearchResultEntry("cn=test"));
@@ -407,7 +407,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testSingleEntrySearchRequestMultipleEntriesReturnedByServer() throws Exception {
         // could happen if server does not enforce size limit
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, newSearchResultEntry("cn=test"),
@@ -423,7 +423,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     }
 
     @SuppressWarnings("unchecked")
-    @Test()
+    @Test
     public void testSingleEntrySearchAsyncRequestMultipleEntriesToReturn() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SIZE_LIMIT_EXCEEDED,
                 newSearchResultEntry("cn=test"));
@@ -440,7 +440,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testSingleEntrySearchAsyncRequestMultipleEntriesReturnedByServer() throws Exception {
         // could happen if server does not enfore size limit
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, newSearchResultEntry("cn=test"),
@@ -458,7 +458,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testSingleEntrySearchRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest request =
@@ -471,7 +471,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testSingleEntrySearchAsyncRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest request =

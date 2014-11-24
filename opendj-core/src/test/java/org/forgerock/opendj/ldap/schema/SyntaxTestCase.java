@@ -38,9 +38,8 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class SyntaxTestCase extends AbstractSchemaTestCase {
 
-    @Test()
+    @Test
     public final void testCreatesANewSyntax() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildSyntax("1.9.1.2.3")
@@ -89,7 +88,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      * Tests that unrecognized syntaxes are automatically substituted with the
      * default syntax and matching rule.
      */
-    @Test()
+    @Test
     public final void testDefaultSyntaxSubstitution() {
         final Syntax syntax = Schema.getCoreSchema().getSyntax("1.2.3.4.5");
         assertThat(syntax).isNotNull();
@@ -137,7 +136,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * When syntax is missing, the default one is set. Actual default is OctetString.(case match)
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNullSyntax() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -166,7 +165,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * When syntax is missing, the default one is set. Actual default is OctetString.(case match)
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNoSyntax() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -195,9 +194,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
      * When syntax is missing, the default one is set. Actual default is set to directory string
      * (1.3.6.1.4.1.1466.115.121.1.15) - matchingRules of caseIgnoreMatch and caseIgnoreSubstringsMatch.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNoSyntaxCaseWhereDefaultSyntaxIsChanged() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .defaultSyntax("1.3.6.1.4.1.1466.115.121.1.15")
@@ -225,7 +223,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows a missing description.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNoDescription() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -250,7 +248,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows a missing description.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNullDescription() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -276,7 +274,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows a missing description.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsEmptyDescription() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -302,7 +300,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Extra properties is not a mandatory field.
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsNoExtraProperties() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -343,7 +341,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Removes all the extra properties.
      */
-    @Test()
+    @Test
     public final void testBuilderRemoveExtraProperties() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -370,7 +368,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Removes specified extra properties.
      */
-    @Test()
+    @Test
     public final void testBuilderRemoveSpecifiedExtraProperties() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -401,7 +399,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Sets a syntax using a string definition.
      */
-    @Test()
+    @Test
     public final void testAddingBERSyntaxDefinition() {
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
@@ -427,7 +425,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Sets a syntax using a string definition.
      */
-    @Test()
+    @Test
     public final void testAddingASyntaxDefinitionStringOverride() {
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
@@ -453,7 +451,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Sets a syntax using a string definition.
      */
-    @Test()
+    @Test
     public final void testAddingUnknownSyntaxDefinitionString() {
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
@@ -479,9 +477,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Duplicates a syntax.
      */
-    @Test()
+    @Test
     public final void testBuilderDuplicatesExistingSyntax() {
-
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
 
@@ -522,9 +519,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Another duplicated syntax example.
      */
-    @Test()
+    @Test
     public final void testBuilderDuplicatesSyntax() {
-
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
         // @formatter:off
@@ -561,9 +557,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between syntaxes.
      */
-    @Test()
+    @Test
     public final void testBuilderSyntaxesEqualsTrue() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
                 .buildSyntax("1.9.1.2.3")
@@ -593,9 +588,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between syntaxes.
      */
-    @Test()
+    @Test
     public final void testBuilderSyntaxesEqualsFalse() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
                 .buildSyntax("1.9.1.2.3")
@@ -625,9 +619,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between builder and definition.
      */
-    @Test()
+    @Test
     public final void testBuilderEqualityReturnsTrueBetweenBuilderAndDefinition() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildSyntax("1.9.1.2.3")
@@ -655,9 +648,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Equality between builder and definition fails.
      */
-    @Test()
+    @Test
     public final void testBuilderEqualityReturnsFalseBetweenBuilderAndDefinition() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildSyntax("1.9.1.2.3")
@@ -685,9 +677,8 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * The builder allows to create chained syntaxes.
      */
-    @Test()
+    @Test
     public final void testBuilderCreatesSyntaxesUsingChainingMethods() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildSyntax("1.9.1.2.3")

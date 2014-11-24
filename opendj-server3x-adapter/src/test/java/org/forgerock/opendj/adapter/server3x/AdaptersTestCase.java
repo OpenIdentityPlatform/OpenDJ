@@ -82,7 +82,7 @@ import static org.forgerock.opendj.adapter.server3x.EmbeddedServerTestCaseUtils.
  * This class defines a set of tests for the Adapters.class.
  */
 @SuppressWarnings("javadoc")
-@Test()
+@Test
 public class AdaptersTestCase extends ForgeRockTestCase {
 
     /**
@@ -211,7 +211,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws LdapException
      */
-    @Test()
+    @Test
     public void testSimpleLDAPConnectionFactorySimpleBind() throws LdapException {
         final LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost",
@@ -236,7 +236,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * @throws GeneralSecurityException
      * @throws LdapException
      */
-    @Test()
+    @Test
     public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException, LdapException {
         LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost",
@@ -260,7 +260,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws LdapException
      */
-    @Test()
+    @Test
     public void testAdapterConnectionSASLBindRequest() throws LdapException,
             GeneralSecurityException {
         final Connection connection = Adapters.newRootConnection();
@@ -297,9 +297,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testAdapterConnectionSimpleBindAsRoot() throws Exception {
-
         final Connection connection = Adapters.newRootConnection();
         final BindResult result = connection.bind("cn=Directory Manager", "password".toCharArray());
         assertThat(connection.isValid()).isTrue();
@@ -312,7 +311,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testAdapterConnectionSimpleBindAsAUser() throws Exception {
         // user
         final Connection connection =
@@ -346,7 +345,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testAdapterConnectionSimpleBind() throws Exception {
         // Anonymous
         final Connection connection = Adapters.newAnonymousConnection();
@@ -360,7 +359,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testAdapterAddRequest() throws Exception {
         final Connection connection = Adapters.newRootConnection();
         // @formatter:off
@@ -419,9 +418,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testAdapterSearchRequest() throws Exception {
-
         final Connection connection = Adapters.newRootConnection();
 
         final SearchRequest request =
@@ -612,9 +610,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws LdapException
      */
-    @Test()
+    @Test
     public void testAdapterDeleteRequest() throws LdapException {
-
         final Connection connection = Adapters.newRootConnection();
         // Checks if the entry exists.
         SearchResultEntry sre =
@@ -645,9 +642,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * @throws LdapException
      * @throws DecodeException
      */
-    @Test()
+    @Test
     public void testAdapterModifyRequest() throws LdapException, DecodeException {
-
         final ModifyRequest changeRequest =
                 Requests.newModifyRequest("uid=user.2, dc=example,dc=org").addControl(
                         PreReadRequestControl.newControl(true, "mail")).addModification(
@@ -979,7 +975,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * @throws LdapException
      * @throws SearchResultReferenceIOException
      */
-    @Test()
+    @Test
     public void testLDAPConnectionAndAdapterComparison() throws LdapException, SearchResultReferenceIOException {
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(

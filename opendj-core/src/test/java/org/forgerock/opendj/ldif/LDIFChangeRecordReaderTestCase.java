@@ -97,9 +97,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllOperationalAttributesFalse() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
 
@@ -124,9 +123,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllOperationalAttributesTrue() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
 
@@ -153,9 +151,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllUserAttributesFalse() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
 
@@ -181,9 +178,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeAllUserAttributesTrue() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
 
@@ -281,9 +277,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetIncludeAttributeWithMatch() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
 
@@ -311,9 +306,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetIncludeAttributeWithNoMatch() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
 
@@ -353,9 +347,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetIncludeBranchWithMatch() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
         reader.setIncludeBranch(DN.valueOf("dc=example,dc=com"));
@@ -413,9 +406,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetExcludeBranchWithMatch() throws Exception {
-
         final LDIFChangeRecordReader reader =
                 new LDIFChangeRecordReader(getStandardLDIFChangeRecord());
         reader.setExcludeBranch(DN.valueOf("dc=example,dc=org"));
@@ -523,9 +515,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testSetSchemaValidationPolicyDefaultAllowsEntry() throws Exception {
-
         // @formatter:off
         final String[] strChangeRecord = {
             "dn: uid=user.0,ou=People,dc=example,dc=com",
@@ -605,7 +596,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testReadAddRecordWithChangeType() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -635,7 +626,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testReadAddRecordWithoutChangeType() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -663,7 +654,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testReadModifyRecord() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -766,7 +757,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testReadModdnRecordWithoutNewSuperior() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -794,7 +785,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testReadModdnRecordWithNewSuperior() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -823,9 +814,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedRecordListenerMalformedFirstRecord() throws Exception {
-
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
         // @formatter:off
@@ -854,9 +844,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedRecordListenerMalformedSecondRecord() throws Exception {
-
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
         // @formatter:off
@@ -892,7 +881,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedRecordListenerSkipsRecord() throws Exception {
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
@@ -923,7 +912,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedRecordListenerRejectsBadSchemaRecord() throws Exception {
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
@@ -959,7 +948,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testRejectedRecordListenerWarnsBadSchemaRecord() throws Exception {
         RejectedLDIFListener listener = mock(RejectedLDIFListener.class);
 
@@ -1037,7 +1026,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testReadFileContainingSerieOfChanges() throws Exception {
         final File file = File.createTempFile("sdk", ".png");
         final String url = file.toURI().toURL().toString();
@@ -1123,7 +1112,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithDeleteControl() throws Exception {
 
         // @formatter:off
@@ -1156,7 +1145,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControl() throws Exception {
 
         // @formatter:off
@@ -1214,7 +1203,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControlWithoutSpacesBetweenCriticalityValue()
             throws Exception {
 
@@ -1247,7 +1236,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControlContainingWhiteSpaces() throws Exception {
 
         // @formatter:off
@@ -1279,7 +1268,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControlContainingBase64Value() throws Exception {
 
         // @formatter:off
@@ -1333,7 +1322,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControlContainingURL() throws Exception {
         final File file = File.createTempFile("sdk", ".png");
         final String url = file.toURI().toURL().toString();
@@ -1391,7 +1380,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControlWithoutValue() throws Exception {
 
         // @formatter:off
@@ -1423,7 +1412,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControlWithoutCriticality() throws Exception {
 
         // @formatter:off
@@ -1455,7 +1444,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithAddControlProvidedByChangeRecordWriter()
             throws Exception {
 
@@ -1487,7 +1476,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseChangeRecordEntryWithMultipleControls() throws Exception {
 
         // @formatter:off
@@ -1604,7 +1593,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             if an unexpected error occurred.
      */
-    @Test()
+    @Test
     public void testParseDeleteChangeRecordEntry() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1651,7 +1640,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyChangeRecordEntryDeleteMultipleValuableAttributes() throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -1718,7 +1707,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyChangeRecordBEREncodingRequired() throws Exception {
         // @formatter:off
         String validcert1 = // a valid certificate but wrong can be used => no errors
@@ -1798,7 +1787,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyChangeRecordEntryReplaceOk() throws Exception {
 
         // @formatter:off
@@ -1960,7 +1949,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyChangeRecordEntryIncrement() throws Exception {
         // @formatter:off
         final ChangeRecord cr = LDIFChangeRecordReader.valueOfLDIFChangeRecord(
@@ -1987,7 +1976,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyDNChangeRecordEntryRecordBase64NewRDN() throws Exception {
 
         // @formatter:off
@@ -2016,7 +2005,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyDNChangeRecordEntry() throws Exception {
         // @formatter:off
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -2191,7 +2180,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyRecordEntryDeleteOldRDNFalse() throws Exception {
 
         // @formatter:off
@@ -2222,7 +2211,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testParseModifyRecordEntryNewSuperior() throws Exception {
         // @formatter:off
         LDIFChangeRecordReader reader = new LDIFChangeRecordReader(
@@ -2321,7 +2310,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testChangeRecordReaderUseListConstructor() throws Exception {
         // @formatter:off
         List<String> cr = Arrays.asList(
@@ -2508,9 +2497,8 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testValueOfLDIFChangeRecordStandardLDIF() throws Exception {
-
         // @formatter:off
         final ChangeRecord cr =
                 LDIFChangeRecordReader.valueOfLDIFChangeRecord(getStandardLDIFChangeRecord());

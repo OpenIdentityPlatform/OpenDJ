@@ -47,12 +47,12 @@ public class UtilsTestCase extends CliTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testValidJavaVersion() throws ClientException {
         Utils.checkJavaVersion();
     }
 
-    @Test()
+    @Test
     public void testCanWriteOnNewFile() throws ClientException, IOException {
         final File f = File.createTempFile("tempFile", ".txt");
         f.deleteOnExit();
@@ -60,7 +60,7 @@ public class UtilsTestCase extends CliTestCase {
         assertTrue(Utils.canWrite(f.getPath()));
     }
 
-    @Test()
+    @Test
     public void testCannotWriteOnNewFile() throws ClientException, IOException {
         final File f = File.createTempFile("tempFile", ".txt");
         f.setReadOnly();
@@ -69,7 +69,7 @@ public class UtilsTestCase extends CliTestCase {
         assertFalse(Utils.canWrite(f.getPath()));
     }
 
-    @Test()
+    @Test
     public void testGetHostNameForLdapUrl() {
         assertEquals(Utils.getHostNameForLdapUrl("2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx"),
                 "[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]");
@@ -82,7 +82,7 @@ public class UtilsTestCase extends CliTestCase {
                 "[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]");
     }
 
-    @Test()
+    @Test
     public void isDN() {
         assertTrue(Utils.isDN("cn=Jensen,ou=people,dc=example,dc=com"));
         assertTrue(Utils.isDN("cn=John Doe,dc=example,dc=org"));

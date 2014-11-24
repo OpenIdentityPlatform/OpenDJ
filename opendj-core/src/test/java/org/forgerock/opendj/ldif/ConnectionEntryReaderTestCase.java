@@ -81,7 +81,7 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         }
     }
 
-    @Test()
+    @Test
     public final void testReadEntry() throws Exception {
         final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
         try {
@@ -138,7 +138,7 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         }
     }
 
-    @Test()
+    @Test
     public final void testReadMultipleResults() throws Exception {
         final ConnectionEntryReader reader = newReader(ENTRY1, ENTRY2, REF, ENTRY3, SUCCESS);
         try {
@@ -157,7 +157,7 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         }
     }
 
-    @Test()
+    @Test
     public final void testReadReference() throws Exception {
         final ConnectionEntryReader reader = newReader(REF, SUCCESS);
         try {
@@ -172,7 +172,7 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         }
     }
 
-    @Test()
+    @Test
     public final void testReadReferenceWhenEntry() throws Exception {
         final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
         try {

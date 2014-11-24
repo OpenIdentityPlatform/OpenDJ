@@ -48,9 +48,8 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      * Creates a new form using the required parameters only (oid, structural
      * OID and required attributes).
      */
-    @Test()
+    @Test
     public final void testCreatesANewFormWithOnlyRequiredParameters() {
-
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
                 .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
                     .structuralObjectClassOID("person")
@@ -72,7 +71,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
     /**
      * Creates a new form with a name.
      */
-    @Test()
+    @Test
     public final void testCreatesANewFormWithAName() {
 
         // @formatter:off
@@ -102,7 +101,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
     /**
      * Creates a new form with optional attributes OID.
      */
-    @Test()
+    @Test
     public final void testCreatesANewFormWithOptionalAttributesOid() {
 
         final SchemaBuilder sb = new SchemaBuilder();
@@ -135,7 +134,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
     /**
      * Creates a new form with ExtraProperties.
      */
-    @Test()
+    @Test
     public final void testCreatesANewNameFormWithExtraProperties() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
@@ -275,9 +274,8 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testBuilderAllowsEmptyOptionalAttributes() {
-
         // @formatter:off
         new SchemaBuilder(Schema.getCoreSchema())
             .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
@@ -297,9 +295,8 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testBuilderAllowRemovingNonexistentAttributes() {
-
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
             .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
@@ -328,7 +325,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      * Verifying the schema builder allows to add directly a definition. The
      * name form is created as well.
      */
-    @Test()
+    @Test
     public final void testNameFormDefinition() {
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
@@ -392,9 +389,8 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testDuplicatesTheNameForm() {
-
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
         // @formatter:off
@@ -438,9 +434,8 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testDuplicatesTheNameFormFails() {
-
         final SchemaBuilder sb = new SchemaBuilder();
         sb.addSchema(Schema.getCoreSchema(), false);
         // @formatter:off
@@ -473,7 +468,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
     /**
      * Compare two same name forms using the equal function.
      */
-    @Test()
+    @Test
     public final void testNameFormEqualsTrue() {
 
         // @formatter:off
@@ -506,7 +501,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
     /**
      * Equals between two name forms fails.
      */
-    @Test()
+    @Test
     public final void testNameFormEqualsFalse() {
 
         // @formatter:off
@@ -546,7 +541,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testCreateFormUsingDefinitionAndSchemaBuilder() {
         final SchemaBuilder sb = new SchemaBuilder();
 
@@ -577,7 +572,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      * name form builder, the other by the schema builder directly using the
      * definition.
      */
-    @Test()
+    @Test
     public final void testNameFormEqualityReturnsTrueBetweenBuilderAndDefinition() {
 
         // @formatter:off
@@ -618,7 +613,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      * name form builder, the other by the schema builder directly using the
      * definition with different OID.
      */
-    @Test()
+    @Test
     public final void testNameFormEqualityReturnsFalseBetweenBuilderAndDefinition() {
 
         // @formatter:off
@@ -660,7 +655,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testNameFormValidateDoesntAllowAbstractObjectClass() {
 
         // @formatter:off
@@ -689,7 +684,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testNameFormValidateAllowsStructuralObjectClass() {
 
         // @formatter:off
@@ -718,7 +713,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testBuildsANewFormWithMultipleAttributes() {
 
         // @formatter:off
@@ -784,7 +779,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testCreatesANewFormUsingChainingMethods() {
         final Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
         final List<String> extra = new ArrayList<String>();
@@ -833,7 +828,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testCreatesNewFormAndRemovesAttributes() {
 
         // @formatter:off
@@ -876,7 +871,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testDuplicatesNameFormAndRemovesAttributes() {
 
         // @formatter:off
@@ -942,7 +937,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testDuplicatesNameFormAndClears() {
 
         final SchemaBuilder sb = new SchemaBuilder();
@@ -1002,7 +997,7 @@ public class NameFormTestCase extends AbstractSchemaTestCase {
      *
      * @throws SchemaException
      */
-    @Test()
+    @Test
     public final void testAddsSeveralFormsToSchemaBuilder() {
 
         // @formatter:off

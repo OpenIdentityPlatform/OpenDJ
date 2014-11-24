@@ -82,7 +82,7 @@ public class OperatingSystemTestCase extends UtilTestCase {
         }
     }
 
-    @Test()
+    @Test
     private void run() {
         final OperatingSystem os = OperatingSystem.getOperatingSystem();
 

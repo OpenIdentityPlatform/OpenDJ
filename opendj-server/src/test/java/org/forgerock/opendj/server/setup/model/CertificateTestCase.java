@@ -39,7 +39,7 @@ public class CertificateTestCase extends AbstractSetupTestCase {
     /**
      * Default is a self-signed certificate.
      */
-    @Test()
+    @Test
     public void testGetDefault() {
         final Certificate cert = new Certificate();
         assertThat(cert.getType()).isEqualTo(CertificateType.SELF_SIGNED);
@@ -47,7 +47,7 @@ public class CertificateTestCase extends AbstractSetupTestCase {
         assertThat(cert.getKeyStorePin()).isEmpty();
     }
 
-    @Test()
+    @Test
     public void testValidateDefaultCertificate() throws ConfigException {
         final Certificate cert = new Certificate();
         cert.validate();
@@ -111,7 +111,7 @@ public class CertificateTestCase extends AbstractSetupTestCase {
      * @throws IOException
      *             If an exception occurs when creating the temp keystore.
      */
-    @Test()
+    @Test
     public void testValidateJKSCertificate() throws ConfigException, IOException {
         final Certificate cert = new Certificate();
         cert.setType(CertificateType.JKS);

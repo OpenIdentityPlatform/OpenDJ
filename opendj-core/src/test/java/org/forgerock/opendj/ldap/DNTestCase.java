@@ -331,7 +331,7 @@ public class DNTestCase extends SdkTestCase {
             { "dc=opendj,dc=org", "dc=opendj,dc=com", false }, };
     }
 
-    @Test()
+    @Test
     public void testAdminData() {
         DN.valueOf("cn=cn\\=admin data");
         final DN theDN = DN.valueOf("cn=my dn");
@@ -604,7 +604,7 @@ public class DNTestCase extends SdkTestCase {
     /**
      * Tests the parent method that require iteration.
      */
-    @Test()
+    @Test
     public void testIterableParent() {
         final String str = "ou=people,dc=example,dc=com";
         final DN dn = DN.valueOf(str);

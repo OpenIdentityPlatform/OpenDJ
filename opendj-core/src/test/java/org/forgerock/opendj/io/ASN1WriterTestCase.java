@@ -475,7 +475,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testNegativeIntEncoding() throws Exception {
         // Some negative integers of interest
         // to test specific ranges/boundaries.
@@ -539,7 +539,7 @@ public abstract class ASN1WriterTestCase extends ForgeRockTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @Test()
+    @Test
     public void testNegativeLongEncoding() throws Exception {
         // Some negative integers of interest
         // to test specific ranges/boundaries.

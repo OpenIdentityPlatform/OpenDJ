@@ -112,7 +112,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         }
     }
 
-    @Test()
+    @Test
     public void testWriteLineInOutputStream() throws UnsupportedEncodingException {
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.print(msg);
@@ -120,7 +120,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         assertThat(ca.getErr()).isEmpty();
     }
 
-    @Test()
+    @Test
     public void testWriteLineInErrorStream() throws UnsupportedEncodingException {
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.errPrintln(msg);
@@ -128,7 +128,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         assertThat(ca.getErr()).contains(msg.toString());
     }
 
-    @Test()
+    @Test
     public void testWriteOutputStreamVerbose() throws UnsupportedEncodingException {
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.printVerboseMessage(msg);
@@ -142,7 +142,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         assertThat(ca.getErr()).isEmpty();
     }
 
-    @Test()
+    @Test
     public void testWriteErrorStreamVerbose() throws UnsupportedEncodingException {
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.errPrintVerboseMessage(msg);
@@ -162,7 +162,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
      *
      * @throws UnsupportedEncodingException
      */
-    @Test()
+    @Test
     public void testNonInteractiveApplicationShouldNotStdoutErrors() throws UnsupportedEncodingException {
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
 
@@ -180,7 +180,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
      *
      * @throws UnsupportedEncodingException
      */
-    @Test()
+    @Test
     public void testInteractiveApplicationShouldStdoutErrors() throws UnsupportedEncodingException {
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
 
@@ -199,7 +199,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
      * In quiet mode, only the stderr should contain lines.
      * @throws UnsupportedEncodingException
      */
-    @Test()
+    @Test
     public void testQuietMode() throws UnsupportedEncodingException {
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.setQuiet(true);

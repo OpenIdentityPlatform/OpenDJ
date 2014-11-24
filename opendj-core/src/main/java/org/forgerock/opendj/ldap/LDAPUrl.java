@@ -628,7 +628,7 @@ public final class LDAPUrl {
     }
 
     /** {@inheritDoc} */
-    @Override()
+    @Override
     public boolean equals(final Object o) {
         if (o == this) {
             return true;

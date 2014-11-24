@@ -51,7 +51,7 @@ public class ModelTestCase extends AbstractSetupTestCase {
      *
      * @throws ConfigException
      */
-    @Test()
+    @Test
     public void testCreateDefaultDS() throws ConfigException {
         final Model ds = new DataStoreModel();
 
@@ -170,7 +170,7 @@ public class ModelTestCase extends AbstractSetupTestCase {
      * @throws IOException
      *             If an error occurred when the temporary file is created.
      */
-    @Test()
+    @Test
     public void testIsValidDSAllowsPasswordFile() throws ConfigException, IOException {
         final Model ds = new DataStoreModel();
         File passwordFile = null;
@@ -189,14 +189,14 @@ public class ModelTestCase extends AbstractSetupTestCase {
         ds.validate();
     }
 
-    @Test()
+    @Test
     public void testCreateDSAllowsNullCertificate() throws ConfigException {
         final Model ds = new DataStoreModel();
         ds.getListenerSettings().setCertificate(null);
         assertFalse(ds.isSecure());
     }
 
-    @Test()
+    @Test
     public void testCreateSecureDS() throws ConfigException {
         final Model ds = new DataStoreModel();
         final Certificate cert = new Certificate();
@@ -361,7 +361,7 @@ public class ModelTestCase extends AbstractSetupTestCase {
      * @throws ConfigException
      *             If a configuration exception occurs.
      */
-    @Test()
+    @Test
     public void testCreateDSFirstInTopology() throws ConfigException {
         final Model ds = new DataStoreModel();
         ds.getListenerSettings().setPassword("password");
@@ -388,7 +388,7 @@ public class ModelTestCase extends AbstractSetupTestCase {
      * @throws ConfigException
      *             If a configuration exception occurs.
      */
-    @Test()
+    @Test
     public void testCreateDefaultDSWithLicense() throws ConfigException {
         final Model ds = new DataStoreModel();
         final String license = "This is a CDDL License";

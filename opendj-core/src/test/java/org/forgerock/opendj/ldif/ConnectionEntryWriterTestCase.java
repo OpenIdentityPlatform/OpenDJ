@@ -53,7 +53,7 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testConnectionEntryWriterWritesEntry() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionEntryWriter writer = null;
@@ -125,7 +125,7 @@ public class ConnectionEntryWriterTestCase extends AbstractLDIFTestCase {
      * @throws Exception
      *             If the test failed unexpectedly.
      */
-    @Test()
+    @Test
     public final void testConnectionEntryWriterClose() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionEntryWriter writer = null;

@@ -41,7 +41,7 @@ public class ListenerSettingsTestCase extends AbstractSetupTestCase {
     /**
      * Retrieves default settings.
      */
-    @Test()
+    @Test
     public void testGetDefault() {
         final ListenerSettings dsSettings = new ListenerSettings();
         assertThat(dsSettings.getAdminPort()).isEqualTo(DEFAULT_ADMIN_PORT);
@@ -68,7 +68,7 @@ public class ListenerSettingsTestCase extends AbstractSetupTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testGetFreePort() throws Exception {
         // Finds a free socket
         final InetSocketAddress isa = TestCaseUtils.findFreeSocketAddress();

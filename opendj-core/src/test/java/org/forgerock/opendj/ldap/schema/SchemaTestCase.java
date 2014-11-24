@@ -65,7 +65,7 @@ public class SchemaTestCase extends AbstractSchemaTestCase {
      *
      * @throws Exception
      */
-    @Test()
+    @Test
     public final void testReadSchemaAsyncMethodsMockConnection() throws Exception {
         Connection connection = mock(Connection.class);
 
