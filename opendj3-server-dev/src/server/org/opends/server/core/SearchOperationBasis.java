@@ -46,7 +46,6 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AccountUsableResponseControl;
 import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.AbstractOperation;
 import org.opends.server.types.Attribute;
@@ -74,6 +73,7 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation that may be used to locate entries in the
@@ -889,9 +889,9 @@ public class SearchOperationBasis
     buffer.append(", baseDN=");
     buffer.append(rawBaseDN);
     buffer.append(", scope=");
-    buffer.append(scope.toString());
+    buffer.append(scope);
     buffer.append(", filter=");
-    buffer.append(rawFilter.toString());
+    buffer.append(rawFilter);
     buffer.append(")");
   }
 
@@ -1089,17 +1089,7 @@ public class SearchOperationBasis
         return;
       }
 
-      // Retrieve the network group attached to the client connection
-      // and get a workflow to process the operation.
-      Workflow workflow = NetworkGroup.getWorkflowCandidate(baseDN);
-      if (workflow == null)
-      {
-        // We have found no workflow for the requested base DN, just return
-        // a no such entry result code and stop the processing.
-        updateOperationErrMsgAndResCode();
-        return;
-      }
-      workflow.execute(this);
+      execute(this, baseDN);
     }
     catch(CanceledOperationException coe)
     {
@@ -1162,14 +1152,9 @@ public class SearchOperationBasis
     pluginConfigManager.invokePostResponseSearchPlugins(this);
   }
 
-
-  /**
-   * Updates the error message and the result code of the operation.
-   *
-   * This method is called because no workflows were found to process
-   * the operation.
-   */
-  private void updateOperationErrMsgAndResCode()
+  /** {@inheritDoc} */
+  @Override
+  public void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
     appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(getBaseDN()));

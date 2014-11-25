@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ResultCode;
  * This class implements the workflow result code. The workflow result code
  * contains an LDAP result code along with an LDAP error message.
  */
-class WorkflowResultCode
+public class WorkflowResultCode
 {
   /** The global result code. */
   private ResultCode resultCode = ResultCode.UNDEFINED;
@@ -58,7 +58,7 @@ class WorkflowResultCode
    * @param resultCode    the initial value for the result code
    * @param errorMessage  the initial value for the error message
    */
-  WorkflowResultCode(ResultCode resultCode, LocalizableMessageBuilder errorMessage)
+  public WorkflowResultCode(ResultCode resultCode, LocalizableMessageBuilder errorMessage)
   {
     this.resultCode   = resultCode;
     this.errorMessage = errorMessage;
@@ -106,7 +106,7 @@ class WorkflowResultCode
    * @param newErrorMessage  the new error message associated to the new error code
    * @return <code>true</code> if a referral result code must be turned into a reference entry
    */
-  boolean elaborateGlobalResultCode(ResultCode newResultCode, LocalizableMessageBuilder newErrorMessage)
+  public boolean elaborateGlobalResultCode(ResultCode newResultCode, LocalizableMessageBuilder newErrorMessage)
   {
     // if global result code has not been set yet then just take the new
     // result code as is
@@ -181,7 +181,7 @@ class WorkflowResultCode
    *
    * @return the global result code.
    */
-  ResultCode resultCode()
+  public ResultCode resultCode()
   {
     return resultCode;
   }
@@ -191,7 +191,7 @@ class WorkflowResultCode
    *
    * @return the global error message.
    */
-  LocalizableMessageBuilder errorMessage()
+  public LocalizableMessageBuilder errorMessage()
   {
     return errorMessage;
   }

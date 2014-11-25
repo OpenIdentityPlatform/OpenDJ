@@ -26,10 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -40,11 +36,15 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendCompareOperation;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation that may be used to determine whether a
@@ -156,22 +156,14 @@ public class CompareOperationBasis
     attributeOptions       = new HashSet<String>();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -180,11 +172,7 @@ public class CompareOperationBasis
     entryDN = null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -204,22 +192,14 @@ public class CompareOperationBasis
     return entryDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final String getRawAttributeType()
   {
     return rawAttributeType;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawAttributeType(String rawAttributeType)
   {
@@ -228,8 +208,6 @@ public class CompareOperationBasis
     attributeType = null;
     attributeOptions = null;
   }
-
-
 
   private void getAttributeTypeAndOptions() {
     String baseName;
@@ -257,9 +235,7 @@ public class CompareOperationBasis
     attributeType = DirectoryServer.getAttributeType(baseName, true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final AttributeType getAttributeType()
   {
@@ -269,22 +245,14 @@ public class CompareOperationBasis
     return attributeType;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAttributeType(AttributeType attributeType)
   {
     this.attributeType = attributeType;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getAttributeOptions()
   {
@@ -294,43 +262,29 @@ public class CompareOperationBasis
     return attributeOptions;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAttributeOptions(Set<String> attributeOptions)
   {
     this.attributeOptions = attributeOptions;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getAssertionValue()
   {
     return assertionValue;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setAssertionValue(ByteString assertionValue)
   {
     this.assertionValue = assertionValue;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -354,45 +308,29 @@ public class CompareOperationBasis
     return proxiedAuthorizationDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
@@ -466,19 +404,7 @@ public class CompareOperationBasis
         return;
       }
 
-      // Retrieve the network group registered with the client connection
-      // and get a workflow to process the operation.
-      Workflow workflow = NetworkGroup.getWorkflowCandidate(entryDN);
-      if (workflow == null)
-      {
-        // We have found no workflow for the requested base DN, just return
-        // a no such entry result code and stop the processing.
-        updateOperationErrMsgAndResCode();
-        return;
-      }
-      workflow.execute(this);
-      workflowExecuted = true;
-
+      workflowExecuted = execute(this, entryDN);
     }
     catch(CanceledOperationException coe)
     {
@@ -520,11 +446,10 @@ public class CompareOperationBasis
   /**
    * Invokes the post response plugins. If a workflow has been executed
    * then invoke the post response plugins provided by the workflow
-   * elements of the worklfow, otherwise invoke the post reponse plugins
+   * elements of the workflow, otherwise invoke the post response plugins
    * that have been registered with the current operation.
    *
-   * @param workflowExecuted <code>true</code> if a workflow has been
-   *                         executed
+   * @param workflowExecuted <code>true</code> if a workflow has been executed
    */
   private void invokePostResponsePlugins(boolean workflowExecuted)
   {
@@ -563,18 +488,15 @@ public class CompareOperationBasis
    * This method is called because no workflow was found to process
    * the operation.
    */
-  private void updateOperationErrMsgAndResCode()
+  @Override
+  public void updateOperationErrMsgAndResCode()
   {
     setResultCode(ResultCode.NO_SUCH_OBJECT);
     appendErrorMessage(ERR_COMPARE_NO_SUCH_ENTRY.get(getEntryDN()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("CompareOperation(connID=");
