@@ -125,7 +125,6 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
@@ -229,7 +228,6 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -2162,12 +2160,7 @@ public final class DirectoryServer
    */
   private static void createWorkflow(DN baseDN, Backend<?> backend) throws DirectoryException
   {
-    // Create a root workflow element to encapsulate the backend
-    final String backendID = backend.getBackendID();
-    LocalBackendWorkflowElement rootWE = createAndRegister(backendID, backend);
-
-    // Create the workflow for the base DN and register the workflow with the server
-    NetworkGroup.getDefaultNetworkGroup().registerWorkflow(backendID, baseDN, rootWE);
+    LocalBackendWorkflowElement.createAndRegister(baseDN, backend);
   }
 
   /**
@@ -5190,7 +5183,10 @@ public final class DirectoryServer
       directoryServer.backends = newBackends;
 
       // Don't need anymore the local backend workflow element so we can remove it
-      LocalBackendWorkflowElement.remove(backend.getBackendID());
+      for (DN baseDN : backend.getBaseDNs())
+      {
+        LocalBackendWorkflowElement.remove(baseDN);
+      }
 
 
       BackendMonitor monitor = backend.getBackendMonitor();
@@ -5391,7 +5387,7 @@ public final class DirectoryServer
       // Now we need to deregister the workflow that was associated with the base DN
       if (!baseDN.equals(DN.valueOf("cn=config")))
       {
-        NetworkGroup.getDefaultNetworkGroup().deregisterWorkflow(baseDN);
+        LocalBackendWorkflowElement.remove(baseDN);
       }
     }
   }
@@ -7146,9 +7142,6 @@ public final class DirectoryServer
     } catch (Exception e) {
         logger.traceException(e);
     }
-
-    // Deregister all workflows and network group configuration.
-    NetworkGroup.deregisterAllOnShutdown();
 
     // Force a new InternalClientConnection to be created on restart.
     InternalConnectionHandler.clearRootClientConnectionAtShutdown();

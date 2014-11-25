@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,8 +58,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.core.WorkflowTopologyNode;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
@@ -459,29 +456,13 @@ public class RootDSEBackend
   {
     HashMap<AttributeType,List<Attribute>> dseUserAttrs =
          new HashMap<AttributeType,List<Attribute>>();
-
     HashMap<AttributeType,List<Attribute>> dseOperationalAttrs =
          new HashMap<AttributeType,List<Attribute>>();
 
 
-    // Add the "namingContexts" attribute.
-    final Collection<DN> namingContexts;
-    if (connection == null)
-    {
-      namingContexts = DirectoryServer.getPublicNamingContexts().keySet();
-    }
-    else
-    {
-      namingContexts = new LinkedList<DN>();
-      for (WorkflowTopologyNode node : NetworkGroup.getDefaultNetworkGroup()
-          .getNamingContexts().getPublicNamingContexts())
-      {
-        namingContexts.add(node.getBaseDN());
-      }
-    }
-
-    Attribute publicNamingContextAttr = createDNAttribute(ATTR_NAMING_CONTEXTS,
-        ATTR_NAMING_CONTEXTS_LC, namingContexts);
+    Attribute publicNamingContextAttr = createDNAttribute(
+        ATTR_NAMING_CONTEXTS, ATTR_NAMING_CONTEXTS_LC,
+        DirectoryServer.getPublicNamingContexts().keySet());
     addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
 
@@ -678,45 +659,6 @@ public class RootDSEBackend
       }
     }
   }
-
-  /**
-   * Determines the workflow nodes which handle subordinate naming contexts.
-   * A workflow node is handling a subordinate naming context if the workflow
-   * base DN is in the list of the RootDSE subordinate naming contexts.
-   *
-   * @param   nodes
-   *          The list from which we search the workflow nodes which
-   *          are handling subordinate naming contexts
-   *
-   * @return  The list of workflow nodes that are handling subordinate
-   *          naming contexts
-   */
-  public Iterable<WorkflowTopologyNode> getSubordinateNamingContexts(
-      Iterable<WorkflowTopologyNode> nodes)
-  {
-    // If the list of subordinate naming contexts is null
-    // then return the whole list of workflow nodes.
-    if (subordinateBaseDNs == null)
-    {
-      return nodes;
-    }
-
-    // The returned list of subordinate naming contexts
-    List<WorkflowTopologyNode> subNC = new ArrayList<WorkflowTopologyNode>();
-
-    // Determine which workflow node is handling a subordinate naming context.
-    for (WorkflowTopologyNode node : nodes)
-    {
-      DN dn = node.getBaseDN();
-      if (subordinateBaseDNs.containsKey(dn))
-      {
-        subNC.add(node);
-      }
-    }
-
-    return subNC;
-  }
-
 
   /**
    * Creates an attribute for the root DSE meant to hold a set of DNs.
@@ -945,8 +887,13 @@ public class RootDSEBackend
     }
   }
 
+  /**
+   * Returns the subordinate base DNs of the root DSE.
+   *
+   * @return the subordinate base DNs of the root DSE
+   */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  private Map<DN, Backend<?>> getSubordinateBaseDNs()
+  public Map<DN, Backend<?>> getSubordinateBaseDNs()
   {
     if (subordinateBaseDNs != null)
     {

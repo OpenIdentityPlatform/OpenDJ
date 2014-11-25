@@ -27,16 +27,20 @@
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.Backend;
+import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
@@ -47,17 +51,6 @@ import org.opends.server.types.*;
 import static org.opends.messages.CoreMessages.*;
 
 /**
- * This class defines a workflow element, i.e. a task in a workflow.
- *
- * [outdated]
- * A workflow element can wrap a physical
- * repository such as a local backend, a remote LDAP server or a local LDIF
- * file. A workflow element can also be used to route operations.
- * This is the case for load balancing and distribution.
- * And workflow element can be used in a virtual environment to transform data
- * (DN and attribute renaming, attribute value renaming...).
- * [/outdated]
- *
  * This class defines a local backend workflow element; e-g an entity that
  * handle the processing of an operation against a local backend.
  */
@@ -65,42 +58,30 @@ public class LocalBackendWorkflowElement
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * An information indicating the type of the current workflow element. This
-   * information is for debug and tooling purpose only.
-   */
-  private String workflowElementTypeInfo = "not defined";
-
-  /** The workflow element identifier. */
-  private String workflowElementID;
+  /** The backend's baseDN mapped by this object. */
+  private DN baseDN;
 
   /** the backend associated with the local workflow element. */
   private Backend<?> backend;
 
   /** the set of local backend workflow elements registered with the server. */
-  private static TreeMap<String, LocalBackendWorkflowElement> registeredLocalBackends =
-      new TreeMap<String, LocalBackendWorkflowElement>();
+  private static TreeMap<DN, LocalBackendWorkflowElement> registeredLocalBackends =
+      new TreeMap<DN, LocalBackendWorkflowElement>();
 
   /** A lock to guarantee safe concurrent access to the registeredLocalBackends variable. */
   private static final Object registeredLocalBackendsLock = new Object();
 
-  /** A string indicating the type of the workflow element. */
-  private static final String BACKEND_WORKFLOW_ELEMENT = "Backend";
-
   /**
    * Initializes a new instance of the local backend workflow element.
-   * This method is intended to be called by DirectoryServer when
-   * workflow configuration mode is auto as opposed to
-   * initializeWorkflowElement which is invoked when workflow
-   * configuration mode is manual.
    *
-   * @param workflowElementID  the workflow element identifier
-   * @param backend  the backend associated to that workflow element
+   * @param baseDN
+   *          the backend's baseDN mapped by this object
+   * @param backend
+   *          the backend associated to that workflow element
    */
-  private void initialize(String workflowElementID, Backend<?> backend)
+  private void initialize(DN baseDN, Backend<?> backend)
   {
-    this.workflowElementID = workflowElementID;
-    this.workflowElementTypeInfo = BACKEND_WORKFLOW_ELEMENT;
+    this.baseDN = baseDN;
     this.backend  = backend;
   }
 
@@ -122,30 +103,27 @@ public class LocalBackendWorkflowElement
    */
   public void finalizeWorkflowElement()
   {
-    this.workflowElementID = null;
-    this.workflowElementTypeInfo = null;
+    this.baseDN = null;
     this.backend = null;
   }
 
   /**
    * Creates and registers a local backend with the server.
    *
-   * @param workflowElementID  the identifier of the workflow element to create
-   * @param backend            the backend to associate with the local backend
-   *                           workflow element
-   *
-   * @return the existing local backend workflow element if it was
-   *         already created or a newly created local backend workflow
-   *         element.
+   * @param baseDN
+   *          the backend's baseDN mapped by this object
+   * @param backend
+   *          the backend to associate with the local backend workflow element
+   * @return the existing local backend workflow element if it was already
+   *         created or a newly created local backend workflow element.
    */
-  public static LocalBackendWorkflowElement createAndRegister(
-      String workflowElementID, Backend<?> backend)
+  public static LocalBackendWorkflowElement createAndRegister(DN baseDN, Backend<?> backend)
   {
-    LocalBackendWorkflowElement localBackend = registeredLocalBackends.get(workflowElementID);
+    LocalBackendWorkflowElement localBackend = registeredLocalBackends.get(baseDN);
     if (localBackend == null)
     {
       localBackend = new LocalBackendWorkflowElement();
-      localBackend.initialize(workflowElementID, backend);
+      localBackend.initialize(baseDN, backend);
 
       registerLocalBackend(localBackend);
     }
@@ -157,11 +135,12 @@ public class LocalBackendWorkflowElement
   /**
    * Removes a local backend that was registered with the server.
    *
-   * @param workflowElementID  the identifier of the workflow element to remove
+   * @param baseDN
+   *          the identifier of the workflow to remove
    */
-  public static void remove(String workflowElementID)
+  public static void remove(DN baseDN)
   {
-    deregisterLocalBackend(workflowElementID);
+    deregisterLocalBackend(baseDN);
   }
 
 
@@ -176,7 +155,7 @@ public class LocalBackendWorkflowElement
     {
       for (LocalBackendWorkflowElement localBackend : registeredLocalBackends.values())
       {
-        deregisterLocalBackend(localBackend.getWorkflowElementID());
+        deregisterLocalBackend(localBackend.getBaseDN());
       }
     }
   }
@@ -457,13 +436,13 @@ public class LocalBackendWorkflowElement
   {
     synchronized (registeredLocalBackendsLock)
     {
-      String localBackendID = localBackend.getWorkflowElementID();
-      LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(localBackendID);
+      DN baseDN = localBackend.getBaseDN();
+      LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(baseDN);
       if (existingLocalBackend == null)
       {
-        TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
-            new TreeMap<String, LocalBackendWorkflowElement>(registeredLocalBackends);
-        newLocalBackends.put(localBackendID, localBackend);
+        TreeMap<DN, LocalBackendWorkflowElement> newLocalBackends =
+            new TreeMap<DN, LocalBackendWorkflowElement>(registeredLocalBackends);
+        newLocalBackends.put(baseDN, localBackend);
         registeredLocalBackends = newLocalBackends;
       }
     }
@@ -474,25 +453,26 @@ public class LocalBackendWorkflowElement
   /**
    * Deregisters a local backend with the server.
    *
-   * @param workflowElementID  the identifier of the workflow element to remove
+   * @param baseDN
+   *          the identifier of the local backend to remove
    */
-  private static void deregisterLocalBackend(String workflowElementID)
+  private static void deregisterLocalBackend(DN baseDN)
   {
     synchronized (registeredLocalBackendsLock)
     {
-      LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(workflowElementID);
+      LocalBackendWorkflowElement existingLocalBackend = registeredLocalBackends.get(baseDN);
       if (existingLocalBackend != null)
       {
-        TreeMap<String, LocalBackendWorkflowElement> newLocalBackends =
-            new TreeMap<String, LocalBackendWorkflowElement>(registeredLocalBackends);
-        newLocalBackends.remove(workflowElementID);
+        TreeMap<DN, LocalBackendWorkflowElement> newLocalBackends =
+            new TreeMap<DN, LocalBackendWorkflowElement>(registeredLocalBackends);
+        newLocalBackends.remove(baseDN);
         registeredLocalBackends = newLocalBackends;
       }
     }
   }
 
   /**
-   * Executes the workflow element for an operation.
+   * Executes the workflow for an operation.
    *
    * @param operation
    *          the operation to execute
@@ -576,9 +556,9 @@ public class LocalBackendWorkflowElement
    *
    * @return the workflow element identifier
    */
-  public String getWorkflowElementID()
+  public DN getBaseDN()
   {
-    return workflowElementID;
+    return baseDN;
   }
 
   /**
@@ -641,13 +621,299 @@ public class LocalBackendWorkflowElement
     }
   }
 
+  /**
+   * Executes the supplied operation.
+   *
+   * @param operation
+   *          the operation to execute
+   * @param entryDN
+   *          the entry DN whose backend will be used
+   * @return true if the operation successfully executed, false otherwise
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled.
+   */
+  public static boolean execute(Operation operation, DN entryDN) throws CanceledOperationException
+  {
+    LocalBackendWorkflowElement workflow = getLocalBackendWorkflowElement(entryDN);
+    if (workflow == null)
+    {
+      // We have found no backend for the requested base DN,
+      // just return a no such entry result code and stop the processing.
+      if (operation instanceof AbstractOperation)
+      {
+        ((AbstractOperation) operation).updateOperationErrMsgAndResCode();
+      }
+      return false;
+    }
+
+    if (workflow.getBaseDN().isRootDN())
+    {
+      executeOnRootDSE(operation, workflow);
+    }
+    else
+    {
+      executeOnNonRootDSE(operation, workflow);
+    }
+    return true;
+  }
+
+  private static LocalBackendWorkflowElement getLocalBackendWorkflowElement(DN entryDN)
+  {
+    while (entryDN != null)
+    {
+      final LocalBackendWorkflowElement workflow = registeredLocalBackends.get(entryDN);
+      if (workflow != null)
+      {
+        return workflow;
+      }
+      entryDN = entryDN.parent();
+    }
+    return null;
+  }
+
+  /**
+   * Executes an operation on the root DSE entry.
+   *
+   * @param operation
+   *          the operation to execute
+   * @param workflow
+   *          the workflow where to execute the operation
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled.
+   */
+  private static void executeOnRootDSE(Operation operation, LocalBackendWorkflowElement workflow)
+      throws CanceledOperationException
+  {
+    OperationType operationType = operation.getOperationType();
+    if (operationType == OperationType.SEARCH)
+    {
+      executeSearch((SearchOperation) operation, workflow);
+    }
+    else
+    {
+      workflow.execute(operation);
+    }
+  }
+
+  /**
+   * Executes a search operation on the the root DSE entry.
+   *
+   * @param searchOp
+   *          the operation to execute
+   * @param workflow
+   *          the workflow where to execute the operation
+   * @throws CanceledOperationException
+   *           if this operation should be cancelled.
+   */
+  private static void executeSearch(SearchOperation searchOp, LocalBackendWorkflowElement workflow)
+      throws CanceledOperationException
+  {
+    // Keep a the original search scope because we will alter it in the operation
+    SearchScope originalScope = searchOp.getScope();
+
+    // Search base?
+    // The root DSE entry itself is never returned unless the operation
+    // is a search base on the null suffix.
+    if (originalScope == SearchScope.BASE_OBJECT)
+    {
+      workflow.execute(searchOp);
+      return;
+    }
+
+    // Create a workflow result code in case we need to perform search in
+    // subordinate workflows.
+    WorkflowResultCode workflowResultCode =
+        new WorkflowResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
+
+    // The search scope is not 'base', so let's do a search on all the public
+    // naming contexts with appropriate new search scope and new base DN.
+    SearchScope newScope = elaborateScopeForSearchInSubordinates(originalScope);
+    searchOp.setScope(newScope);
+    DN originalBaseDN = searchOp.getBaseDN();
+
+    for (LocalBackendWorkflowElement subordinate : getRootDSESubordinates())
+    {
+      // We have to change the operation request base DN to match the
+      // subordinate workflow base DN. Otherwise the workflow will
+      // return a no such entry result code as the operation request
+      // base DN is a superior of the workflow base DN!
+      DN ncDN = subordinate.getBaseDN();
+
+      // Set the new request base DN then do execute the operation
+      // in the naming context workflow.
+      searchOp.setBaseDN(ncDN);
+      execute(searchOp, ncDN);
+      boolean sendReferenceEntry = workflowResultCode.elaborateGlobalResultCode(
+          searchOp.getResultCode(), searchOp.getErrorMessage());
+      if (sendReferenceEntry)
+      {
+        // TODO jdemendi - turn a referral result code into a reference entry
+        // and send the reference entry to the client application
+      }
+    }
+
+    // Now restore the original request base DN and original search scope
+    searchOp.setBaseDN(originalBaseDN);
+    searchOp.setScope(originalScope);
+
+    // If the result code is still uninitialized (ie no naming context),
+    // we should return NO_SUCH_OBJECT
+    workflowResultCode.elaborateGlobalResultCode(
+        ResultCode.NO_SUCH_OBJECT, new LocalizableMessageBuilder(LocalizableMessage.EMPTY));
+
+    // Set the operation result code and error message
+    searchOp.setResultCode(workflowResultCode.resultCode());
+    searchOp.setErrorMessage(workflowResultCode.errorMessage());
+  }
+
+  private static Collection<LocalBackendWorkflowElement> getRootDSESubordinates()
+  {
+    final RootDSEBackend rootDSEBackend = DirectoryServer.getRootDSEBackend();
+
+    final List<LocalBackendWorkflowElement> results = new ArrayList<LocalBackendWorkflowElement>();
+    for (DN subordinateBaseDN : rootDSEBackend.getSubordinateBaseDNs().keySet())
+    {
+      results.add(registeredLocalBackends.get(subordinateBaseDN));
+    }
+    return results;
+  }
+
+  private static void executeOnNonRootDSE(Operation operation, LocalBackendWorkflowElement workflow)
+      throws CanceledOperationException
+  {
+    workflow.execute(operation);
+
+    // For subtree search operation we need to go through the subordinate nodes.
+    if (operation.getOperationType() == OperationType.SEARCH)
+    {
+      executeSearchOnSubordinates((SearchOperation) operation, workflow);
+    }
+  }
+
+  /**
+   * Executes a search operation on the subordinate workflows.
+   *
+   * @param searchOp
+   *          the search operation to execute
+   * @param workflow
+   *          the workflow element
+   * @throws CanceledOperationException
+   *           if this operation should be canceled.
+   */
+  private static void executeSearchOnSubordinates(SearchOperation searchOp, LocalBackendWorkflowElement workflow)
+      throws CanceledOperationException {
+    // If the scope of the search is 'base' then it's useless to search
+    // in the subordinate workflows.
+    SearchScope originalScope = searchOp.getScope();
+    if (originalScope == SearchScope.BASE_OBJECT)
+    {
+      return;
+    }
+
+    // Elaborate the new search scope before executing the search operation
+    // in the subordinate workflows.
+    SearchScope newScope = elaborateScopeForSearchInSubordinates(originalScope);
+    searchOp.setScope(newScope);
+
+    // Let's search in the subordinate workflows.
+    WorkflowResultCode workflowResultCode = new WorkflowResultCode(
+        searchOp.getResultCode(), searchOp.getErrorMessage());
+    DN originalBaseDN = searchOp.getBaseDN();
+    for (LocalBackendWorkflowElement subordinate : getSubordinates(workflow))
+    {
+      // We have to change the operation request base DN to match the
+      // subordinate workflow base DN. Otherwise the workflow will
+      // return a no such entry result code as the operation request
+      // base DN is a superior of the subordinate workflow base DN.
+      DN subordinateDN = subordinate.getBaseDN();
+
+      // If the new search scope is 'base' and the search base DN does not
+      // map the subordinate workflow then skip the subordinate workflow.
+      if (newScope == SearchScope.BASE_OBJECT && !subordinateDN.parent().equals(originalBaseDN))
+      {
+        continue;
+      }
+
+      // If the request base DN is not a subordinate of the subordinate
+      // workflow base DN then do not search in the subordinate workflow.
+      if (!originalBaseDN.isAncestorOf(subordinateDN))
+      {
+        continue;
+      }
+
+      // Set the new request base DN and do execute the
+      // operation in the subordinate workflow.
+      searchOp.setBaseDN(subordinateDN);
+      execute(searchOp, subordinateDN);
+      boolean sendReferenceEntry =
+          workflowResultCode.elaborateGlobalResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
+      if (sendReferenceEntry)
+      {
+        // TODO jdemendi - turn a referral result code into a reference entry
+        // and send the reference entry to the client application
+      }
+    }
+
+    // Now we are done with the operation, let's restore the original
+    // base DN and search scope in the operation.
+    searchOp.setBaseDN(originalBaseDN);
+    searchOp.setScope(originalScope);
+
+    // Update the operation result code and error message
+    searchOp.setResultCode(workflowResultCode.resultCode());
+    searchOp.setErrorMessage(workflowResultCode.errorMessage());
+  }
+
+  private static Collection<LocalBackendWorkflowElement> getSubordinates(LocalBackendWorkflowElement workflow)
+  {
+    final DN baseDN = workflow.getBaseDN();
+    final Backend<?> backend = workflow.getBackend();
+
+    final ArrayList<LocalBackendWorkflowElement> results = new ArrayList<LocalBackendWorkflowElement>();
+    for (Backend<?> subordinate : backend.getSubordinateBackends())
+    {
+      for (DN subordinateDN : subordinate.getBaseDNs())
+      {
+        if (subordinateDN.isDescendantOf(baseDN))
+        {
+          results.add(registeredLocalBackends.get(subordinateDN));
+        }
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Elaborates a new search scope according to the current search scope. The
+   * new scope is intended to be used for searches on subordinate workflows.
+   *
+   * @param currentScope
+   *          the current search scope
+   * @return the new scope to use for searches on subordinate workflows,
+   *         <code>null</code> when current scope is 'base'
+   */
+  private static SearchScope elaborateScopeForSearchInSubordinates(SearchScope currentScope)
+  {
+    switch (currentScope.asEnum())
+    {
+    case BASE_OBJECT:
+      return null;
+    case SINGLE_LEVEL:
+      return SearchScope.BASE_OBJECT;
+    case SUBORDINATES:
+    case WHOLE_SUBTREE:
+      return SearchScope.WHOLE_SUBTREE;
+    default:
+      return currentScope;
+    }
+  }
+
   /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getClass().getSimpleName()
-        + " backend=" + backend
-        + " workflowElementID=" + this.workflowElementID
-        + " workflowElementTypeInfo=" + this.workflowElementTypeInfo;
+        + " backend=" + this.backend
+        + " baseDN=" + this.baseDN;
   }
 }

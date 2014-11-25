@@ -26,11 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,13 +36,18 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation that may be used to add a new entry to the
@@ -570,19 +570,7 @@ public class AddOperationBasis
         return;
       }
 
-      // Retrieve the network group attached to the client connection
-      // and get a workflow to process the operation.
-      Workflow workflow = NetworkGroup.getWorkflowCandidate(entryDN);
-      if (workflow == null)
-      {
-        // We have found no workflow for the requested base DN, just return
-        // a no such entry result code and stop the processing.
-        updateOperationErrMsgAndResCode();
-        return;
-      }
-      workflow.execute(this);
-      workflowExecuted = true;
-
+      workflowExecuted = execute(this, entryDN);
     }
     catch(CanceledOperationException coe)
     {
@@ -633,8 +621,7 @@ public class AddOperationBasis
    * elements of the workflow, otherwise invoke the post response plugins
    * that have been registered with the current operation.
    *
-   * @param workflowExecuted <code>true</code> if a workflow has been
-   *                         executed
+   * @param workflowExecuted <code>true</code> if a workflow has been executed
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
   private void invokePostResponsePlugins(boolean workflowExecuted)
@@ -667,15 +654,9 @@ public class AddOperationBasis
     }
   }
 
-
-
-  /**
-   * Updates the error message and the result code of the operation.
-   *
-   * This method is called because no workflows were found to process
-   * the operation.
-   */
-  private void updateOperationErrMsgAndResCode()
+  /** {@inheritDoc} */
+  @Override
+  public void updateOperationErrMsgAndResCode()
   {
     DN entryDN = getEntryDN();
     DN parentDN = entryDN.getParentDNInSuffix();

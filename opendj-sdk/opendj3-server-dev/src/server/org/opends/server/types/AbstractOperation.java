@@ -72,35 +72,22 @@ public abstract class AbstractOperation
   protected static final List<Control> NO_RESPONSE_CONTROLS =
        new ArrayList<Control>(0);
 
-  /**
-   * The client connection with which this operation is associated.
-   */
+  /** The client connection with which this operation is associated. */
   protected final ClientConnection clientConnection;
 
-  /**
-   * The message ID for this operation.
-   */
+  /** The message ID for this operation. */
   protected final int messageID;
 
-  /**
-   * The operation ID for this operation.
-   */
+  /** The operation ID for this operation. */
   protected final long operationID;
 
-  /**
-   * Whether nanotime was used for this operation.
-   */
+  /** Whether nanotime was used for this operation. */
   protected final boolean useNanoTime;
 
-  /**
-   * The cancel request for this operation.
-   */
+  /** The cancel request for this operation. */
   protected CancelRequest cancelRequest;
 
-
-  /**
-   * The cancel result for this operation.
-   */
+  /** The cancel result for this operation. */
   protected CancelResult cancelResult;
 
   /**
@@ -762,7 +749,6 @@ public abstract class AbstractOperation
     {
       return true;
     }
-
     if (obj instanceof Operation)
     {
       Operation other = (Operation) obj;
@@ -771,7 +757,6 @@ public abstract class AbstractOperation
         return other.getOperationID() == operationID;
       }
     }
-
     return false;
   }
 
@@ -799,5 +784,13 @@ public abstract class AbstractOperation
       }
     }
   }
-}
 
+  /**
+   * Updates the error message and the result code of the operation. This method
+   * is called because no workflows were found to process the operation.
+   */
+  public void updateOperationErrMsgAndResCode()
+  {
+    // do nothing by default
+  }
+}

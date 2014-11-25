@@ -35,7 +35,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
@@ -44,6 +43,7 @@ import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement.*;
 
 /**
  * This class defines an operation that may be used to authenticate a user to
@@ -557,16 +557,7 @@ public class BindOperationBasis
           }
       }
 
-      Workflow workflow = NetworkGroup.getWorkflowCandidate(bindDN);
-      if (workflow == null)
-      {
-        // We have found no workflow for the requested base DN, just return
-        // a no such entry result code and stop the processing.
-        updateOperationErrMsgAndResCode();
-        return;
-      }
-      workflow.execute(this);
-      workflowExecuted = true;
+      workflowExecuted = execute(this, bindDN);
     }
     catch(CanceledOperationException coe)
     {
@@ -636,14 +627,9 @@ public class BindOperationBasis
     }
   }
 
-
-  /**
-   * Updates the error message and the result code of the operation.
-   *
-   * This method is called because no workflows were found to process
-   * the operation.
-   */
-  private void updateOperationErrMsgAndResCode()
+  /** {@inheritDoc} */
+  @Override
+  public void updateOperationErrMsgAndResCode()
   {
     LocalizableMessage message = ERR_BIND_OPERATION_UNKNOWN_USER.get();
     setResultCode(ResultCode.INVALID_CREDENTIALS);
