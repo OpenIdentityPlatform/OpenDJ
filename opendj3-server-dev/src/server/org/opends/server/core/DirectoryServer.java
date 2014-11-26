@@ -100,7 +100,6 @@ import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.api.Extension;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
@@ -441,9 +440,6 @@ public final class DirectoryServer
   /** The set of key manager providers registered with the server. */
   private ConcurrentMap<DN, KeyManagerProvider> keyManagerProviders;
 
-  /** The set of extensions registered with the server. */
-  private ConcurrentMap<DN, Extension> extensions;
-
   /**
    * The set of password generators registered with the Directory Server, as a
    * mapping between the DN of the associated configuration entry and the
@@ -664,9 +660,6 @@ public final class DirectoryServer
    * The key manager provider configuration manager for the Directory Server.
    */
   private KeyManagerProviderConfigManager keyManagerProviderConfigManager;
-
-  /** The extension configuration manager for the Directory Server. */
-  private ExtensionConfigManager extensionConfigManager;
 
   /** The set of connections that are currently established. */
   private Set<ClientConnection> establishedConnections;
@@ -1078,8 +1071,6 @@ public final class DirectoryServer
       directoryServer.alternateRootBindDNs = new ConcurrentHashMap<DN,DN>();
       directoryServer.keyManagerProviders =
            new ConcurrentHashMap<DN,KeyManagerProvider>();
-      directoryServer.extensions =
-           new ConcurrentHashMap<DN,Extension>();
       directoryServer.trustManagerProviders =
            new ConcurrentHashMap<DN,TrustManagerProvider>();
       directoryServer.rotationPolicies =
@@ -1581,9 +1572,6 @@ public final class DirectoryServer
       initializeAuthenticationPolicyComponents();
 
       pluginConfigManager.initializeUserPlugins(null);
-
-      extensionConfigManager = new ExtensionConfigManager(serverContext);
-      extensionConfigManager.initializeExtensions();
 
       if (!environmentConfig.disableSynchronization())
       {
@@ -6307,64 +6295,6 @@ public final class DirectoryServer
                                                             provider)
   {
     directoryServer.synchronizationProviders.remove(provider);
-  }
-
-
-
-  /**
-   * Retrieves the set of extensions registered with the Directory
-   * Server.
-   *
-   * @return  The set of extensions registered with the Directory
-   *          Server.
-   */
-  public static Map<DN,Extension> getExtensions()
-  {
-    return directoryServer.extensions;
-  }
-
-
-
-  /**
-   * Retrieves the extension registered with the provided entry DN.
-   *
-   * @param  providerDN  The DN with which the extension is
-   *                     registered.
-   *
-   * @return  The extension registered with the provided entry DN, or
-   *          {@code null} if there is no such extension registered
-   *          with the server.
-   */
-  public static Extension getExtension(DN providerDN)
-  {
-    return directoryServer.extensions.get(providerDN);
-  }
-
-
-
-  /**
-   * Registers the provided extension with the Directory Server.
-   *
-   * @param  providerDN  The DN with which to register the extension.
-   * @param  provider    The extension to register with the server.
-   */
-  public static void registerExtension(DN providerDN,
-                                                Extension provider)
-  {
-    directoryServer.extensions.put(providerDN, provider);
-  }
-
-
-
-  /**
-   * Deregisters the specified extension with the Directory Server.
-   *
-   * @param  providerDN  The DN with which the extension is
-   *                     registered.
-   */
-  public static void deregisterExtension(DN providerDN)
-  {
-    directoryServer.extensions.remove(providerDN);
   }
 
 
