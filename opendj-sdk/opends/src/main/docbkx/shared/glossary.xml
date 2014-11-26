@@ -20,16 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2012 ForgeRock AS
+  !      Copyright 2012-2014 ForgeRock AS
   !    
 -->
 <glossary xml:id='glossary'
- xmlns='http://docbook.org/ns/docbook'
- version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+          xmlns='http://docbook.org/ns/docbook'
+          version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>OpenDJ Glossary</title>
 
  <glossentry>
@@ -189,6 +189,26 @@
  </glossentry>
 
  <glossentry>
+  <glossterm>Branch</glossterm>
+  <glossdef>
+   <para>
+    The distinguished name (DN) of a non-leaf entry
+    in the Directory Information Tree (DIT),
+    and also that entry and all its subordinates taken together.
+   </para>
+
+   <para>
+    Some administrative operations allow you to include or exclude branches
+    by specifying the DN of the branch.
+   </para>
+
+   <para>
+    See also <xref linkend="suffix" />.
+   </para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
   <glossterm>Collective attribute</glossterm>
   <glossdef>
    <para>A standard mechanism for defining attributes that appear on all the
@@ -256,6 +276,17 @@
    and so on. Alternately, the top level may represent the world, the next
    level down countries, next states or provinces, next cities, and so
    on.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry>
+  <glossterm>Directory Information Tree (DIT)</glossterm>
+  <glossdef>
+   <para>
+    A set of directory entries organized hierarchically in a tree structure,
+    where the vertices are the entries
+    and the arcs between vertices define relationships between entries
+   </para>
   </glossdef>
  </glossentry>
 
@@ -776,6 +807,19 @@
   <glossterm>Substring index</glossterm>
   <glossdef>
    <para>Index used to match values specified with wildcards in the filter.</para>
+  </glossdef>
+ </glossentry>
+
+ <glossentry xml:id="suffix">
+  <glossterm>Suffix</glossterm>
+  <glossdef>
+   <para>
+    The distinguished name (DN) of a root entry
+    in the Directory Information Tree (DIT),
+    and also that entry and all its subordinates taken together
+    as a single object of administrative tasks
+    such as export, import, indexing, and replication.
+   </para>
   </glossdef>
  </glossentry>
 
