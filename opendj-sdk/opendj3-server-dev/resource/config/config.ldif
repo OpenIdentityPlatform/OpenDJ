@@ -2609,9 +2609,3 @@ ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider
 ds-cfg-enabled: true
 ds-cfg-trust-store-type: JKS
 ds-cfg-trust-store-file: config/admin-truststore
-
-dn: cn=Extensions,cn=config
-objectClass: top
-objectClass: ds-cfg-branch
-cn: Extensions
-

@@ -433,12 +433,6 @@
       <ldap:rdn-sequence>cn=Administration Connector,cn=config</ldap:rdn-sequence>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="extension" hidden="true">
-    <adm:one-to-many />
-    <adm:profile name="ldap">
-      <ldap:rdn-sequence>cn=Extensions,cn=config</ldap:rdn-sequence>
-    </adm:profile>
-   </adm:relation>
   <adm:product-name>OpenDJ</adm:product-name>
   <adm:tag-definition name="logging">
     <adm:synopsis>Logging</adm:synopsis>
