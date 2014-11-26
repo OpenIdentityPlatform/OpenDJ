@@ -29,9 +29,12 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OCTET_STRING_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_OCTET_STRING_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_ENHANCED_GUIDE_NAME;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -50,6 +53,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_OCTET_STRING_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_ENHANCED_GUIDE_NAME;
     }
@@ -59,6 +63,7 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         return OMR_OCTET_STRING_OID;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
@@ -77,8 +82,9 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
      * @return <CODE>true</CODE> if the provided value is acceptable for use
      *         with this syntax, or <CODE>false</CODE> if not.
      */
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
-            final LocalizableMessageBuilder invalidReason) {
+        final LocalizableMessageBuilder invalidReason) {
         // Get a lowercase string version of the provided value.
         final String valueStr = toLowerCase(value.toString());
 
@@ -99,8 +105,8 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
         }
 
         try {
-            SchemaUtils.readOID(new SubstringReader(ocName.substring(ocLength)), schema
-                    .allowMalformedNamesAndOptions());
+            readOID(new SubstringReader(ocName.substring(ocLength)),
+                schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
         } catch (final DecodeException de) {
             invalidReason.append(de.getMessageObject());
             return false;
@@ -116,12 +122,12 @@ final class EnhancedGuideSyntaxImpl extends AbstractSyntaxImpl {
 
         final String scopeStr = valueStr.substring(lastSharpPos + 1).trim();
         if (!"baseobject".equals(scopeStr) && !"onelevel".equals(scopeStr)
-                && !"wholesubtree".equals(scopeStr) && !"subordinatesubtree".equals(scopeStr)) {
+            && !"wholesubtree".equals(scopeStr) && !"subordinatesubtree".equals(scopeStr)) {
             if (scopeStr.length() == 0) {
                 invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_NO_SCOPE.get(valueStr));
             } else {
                 invalidReason.append(ERR_ATTR_SYNTAX_ENHANCEDGUIDE_INVALID_SCOPE.get(valueStr,
-                        scopeStr));
+                    scopeStr));
             }
             return false;
         }

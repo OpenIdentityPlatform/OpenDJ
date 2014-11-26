@@ -30,6 +30,8 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+
 /**
  * Tests schema compatibility options.
  */
@@ -73,11 +75,9 @@ public class SchemaCompatTest extends AbstractSchemaTestCase {
      */
     @Test(dataProvider = "validAttributeDescriptions")
     public void testValidAttributeDescriptions(String atd, boolean allowIllegalCharacters) {
-        SchemaBuilder builder =
-                new SchemaBuilder(Schema.getCoreSchema())
-                        .allowMalformedNamesAndOptions(allowIllegalCharacters);
-        Schema schema = builder.toSchema().asNonStrictSchema();
-        AttributeDescription.valueOf(atd, schema);
+        SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema())
+            .setOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowIllegalCharacters);
+        AttributeDescription.valueOf(atd, builder.toSchema().asNonStrictSchema());
     }
 
     /**
@@ -113,14 +113,11 @@ public class SchemaCompatTest extends AbstractSchemaTestCase {
      *            {@code true} if the attribute description requires the
      *            compatibility option to be set.
      */
-    @Test(dataProvider = "invalidAttributeDescriptions",
-            expectedExceptions = LocalizedIllegalArgumentException.class)
+    @Test(dataProvider = "invalidAttributeDescriptions", expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testInvalidAttributeDescriptions(String atd, boolean allowIllegalCharacters) {
-        SchemaBuilder builder =
-                new SchemaBuilder(Schema.getCoreSchema())
-                        .allowMalformedNamesAndOptions(allowIllegalCharacters);
-        Schema schema = builder.toSchema().asNonStrictSchema();
-        AttributeDescription.valueOf(atd, schema);
+        SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
+        builder.setOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowIllegalCharacters);
+        AttributeDescription.valueOf(atd, builder.toSchema().asNonStrictSchema());
     }
 
     private static final Syntax ATD_SYNTAX = CoreSchema.getAttributeTypeDescriptionSyntax();
@@ -206,12 +203,10 @@ public class SchemaCompatTest extends AbstractSchemaTestCase {
      *            {@code true} if the element requires the compatibility option
      *            to be set.
      */
-    @Test(dataProvider = "invalidSchemaElements",
-            expectedExceptions = LocalizedIllegalArgumentException.class)
-    public void testInvalidSchemaBuilderElementParsers(String element, Syntax syntax,
-            boolean allowIllegalCharacters) {
-        SchemaBuilder builder =
-                new SchemaBuilder().allowMalformedNamesAndOptions(allowIllegalCharacters);
+    @Test(dataProvider = "invalidSchemaElements", expectedExceptions = LocalizedIllegalArgumentException.class)
+    public void testInvalidSchemaBuilderElementParsers(String element, Syntax syntax, boolean allowIllegalCharacters) {
+        SchemaBuilder builder = new SchemaBuilder();
+        builder.setOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowIllegalCharacters);
 
         if (syntax == ATD_SYNTAX) {
             builder.addAttributeType(element, false);
@@ -301,10 +296,9 @@ public class SchemaCompatTest extends AbstractSchemaTestCase {
      *            to be set.
      */
     @Test(dataProvider = "validSchemaElements")
-    public void testValidSchemaBuilderElementParsers(String element, Syntax syntax,
-            boolean allowIllegalCharacters) {
-        SchemaBuilder builder =
-                new SchemaBuilder().allowMalformedNamesAndOptions(allowIllegalCharacters);
+    public void testValidSchemaBuilderElementParsers(String element, Syntax syntax, boolean allowIllegalCharacters) {
+        SchemaBuilder builder = new SchemaBuilder();
+        builder.setOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS, allowIllegalCharacters);
 
         if (syntax == ATD_SYNTAX) {
             builder.addAttributeType(element, false);

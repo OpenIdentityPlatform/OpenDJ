@@ -34,6 +34,9 @@ import org.forgerock.opendj.ldap.DecodeException;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
 /**
  * This class defines the objectIdentifierMatch matching rule defined in X.520
  * and referenced in RFC 2252. This expects to work on OIDs and will match
@@ -81,7 +84,7 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMat
             throws DecodeException {
         final String definition = assertionValue.toString();
         final SubstringReader reader = new SubstringReader(definition);
-        final String oid = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+        final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
         final String normalized = resolveNames(schema, oid);
         return DefaultAssertion.equality(ByteString.valueOf(normalized));
     }
@@ -90,7 +93,7 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMat
             throws DecodeException {
         final String definition = value.toString();
         final SubstringReader reader = new SubstringReader(definition);
-        final String oid = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+        final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
         final String normalized = resolveNames(schema, oid);
         return ByteString.valueOf(normalized);
     }

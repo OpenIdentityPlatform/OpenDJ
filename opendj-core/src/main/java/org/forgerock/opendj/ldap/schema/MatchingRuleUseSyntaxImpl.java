@@ -26,19 +26,20 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_MATCHING_RULE_USE_NAME;
-
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class implements the matching rule use description syntax, which is used
@@ -54,10 +55,12 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_OID_FIRST_COMPONENT_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_MATCHING_RULE_USE_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
@@ -76,6 +79,7 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl {
      * @return <CODE>true</CODE> if the provided value is acceptable for use
      *         with this syntax, or <CODE>false</CODE> if not.
      */
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // We'll use the decodeAttributeType method to determine if the
@@ -89,24 +93,16 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl {
             reader.skipWhitespaces();
 
             if (reader.remaining() <= 0) {
-                // This means that the value was empty or contained only
-                // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE1.get(definition);
-                final DecodeException e = DecodeException.error(message);
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                // Value was empty or contained only whitespace. This is illegal.
+                throwDecodeException(logger, ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c);
-                final DecodeException e = DecodeException.error(message);
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                throwDecodeException(logger,
+                    ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c));
             }
 
             // Skip over any spaces immediately following the opening
@@ -114,7 +110,8 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+            final boolean allowMalformedNamesAndOptions = schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS);
+            readOID(reader, allowMalformedNamesAndOptions);
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -126,52 +123,43 @@ final class MatchingRuleUseSyntaxImpl extends AbstractSyntaxImpl {
             // for everything else we might need to know.
             Set<String> attributes = null;
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    SchemaUtils.readNameDescriptors(reader, schema.allowMalformedNamesAndOptions());
+                    readNameDescriptors(reader, allowMalformedNamesAndOptions);
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    SchemaUtils.readQuotedString(reader);
+                    readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                 } else if ("applies".equalsIgnoreCase(tokenName)) {
-                    attributes =
-                            SchemaUtils.readOIDs(reader, schema.allowMalformedNamesAndOptions());
+                    attributes = readOIDs(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    SchemaUtils.readExtensions(reader);
+                    readExtensions(reader);
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    final DecodeException e = DecodeException.error(message);
-                    logger.debug(LocalizableMessage.raw("%s", e));
-                    throw e;
+                    throwDecodeException(logger, ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
             // Make sure that the set of attributes was defined.
             if (attributes == null || attributes.size() == 0) {
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
-                final DecodeException e = DecodeException.error(message);
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                throwDecodeException(logger, ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition));
             }
             return true;
         } catch (final DecodeException de) {
-            invalidReason.append(ERR_ATTR_SYNTAX_MRUSE_INVALID1.get(definition, de
-                    .getMessageObject()));
+            invalidReason.append(ERR_ATTR_SYNTAX_MRUSE_INVALID1.get(definition, de.getMessageObject()));
             return false;
         }
     }

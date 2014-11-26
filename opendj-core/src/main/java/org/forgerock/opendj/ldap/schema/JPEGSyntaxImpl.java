@@ -30,6 +30,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 /**
  * This class implements the JPEG attribute syntax. This is actually
@@ -75,7 +76,7 @@ final class JPEGSyntaxImpl extends AbstractSyntaxImpl {
     @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
-        return schema.allowMalformedJPEGPhotos() || isValidJfif(value) || isValidExif(value);
+        return schema.getOption(ALLOW_MALFORMED_JPEG_PHOTOS) || isValidJfif(value) || isValidExif(value);
     }
 
     /**

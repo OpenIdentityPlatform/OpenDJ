@@ -32,7 +32,9 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_CERTIFICATE_OID;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.testng.Assert.*;
 
 /**
@@ -138,7 +140,7 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
     @Test(dataProvider = "acceptableValues")
     public void testAllowMalformedCertificates(ByteString value, Boolean result) {
         // Make sure that the specified class can be instantiated as a task.
-        SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema()).allowMalformedCertificates(true);
+        SchemaBuilder builder = new SchemaBuilder(getCoreSchema()).setOption(ALLOW_MALFORMED_CERTIFICATES, true);
         final Syntax syntax = builder.toSchema().getSyntax(SYNTAX_CERTIFICATE_OID);
 
         final LocalizableMessageBuilder reason = new LocalizableMessageBuilder();
@@ -155,7 +157,8 @@ public class CertificateSyntaxTest extends AbstractSchemaTestCase {
      * @return An instance of the attribute syntax that must be tested.
      */
     protected Syntax getRule() {
-        SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema()).allowMalformedCertificates(false);
+        SchemaBuilder builder = new SchemaBuilder(getCoreSchema()).setOption(ALLOW_MALFORMED_CERTIFICATES, false);
+
         return builder.toSchema().getSyntax(SYNTAX_CERTIFICATE_OID);
     }
 }

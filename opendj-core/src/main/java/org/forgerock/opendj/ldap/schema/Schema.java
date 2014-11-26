@@ -47,6 +47,7 @@ import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.Option;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Function;
@@ -54,7 +55,6 @@ import org.forgerock.util.promise.Function;
 import com.forgerock.opendj.util.StaticUtils;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.*;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
@@ -77,15 +77,7 @@ public final class Schema {
 
         Schema asStrictSchema();
 
-        boolean allowMalformedNamesAndOptions();
-
-        boolean allowMalformedJPEGPhotos();
-
-        boolean allowMalformedCertificates();
-
-        boolean allowNonStandardTelephoneNumbers();
-
-        boolean allowZeroLengthDirectoryStrings();
+        SchemaOptions getOptions();
 
         MatchingRule getDefaultMatchingRule();
 
@@ -186,28 +178,8 @@ public final class Schema {
         }
 
         @Override
-        public boolean allowMalformedNamesAndOptions() {
-            return strictImpl.allowMalformedNamesAndOptions();
-        }
-
-        @Override
-        public boolean allowMalformedJPEGPhotos() {
-            return strictImpl.allowMalformedJPEGPhotos();
-        }
-
-        @Override
-        public boolean allowMalformedCertificates() {
-            return strictImpl.allowMalformedCertificates();
-        }
-
-        @Override
-        public boolean allowNonStandardTelephoneNumbers() {
-            return strictImpl.allowNonStandardTelephoneNumbers();
-        }
-
-        @Override
-        public boolean allowZeroLengthDirectoryStrings() {
-            return strictImpl.allowZeroLengthDirectoryStrings();
+        public SchemaOptions getOptions() {
+            return strictImpl.getOptions();
         }
 
         @Override
@@ -439,21 +411,14 @@ public final class Schema {
         private final Map<String, List<NameForm>> objectClass2NameForms;
         private final List<LocalizableMessage> warnings;
         private final String schemaName;
-        private final boolean allowMalformedJPEGPhotos;
-        private final boolean allowMalformedCertificates;
-        private final boolean allowNonStandardTelephoneNumbers;
-        private final boolean allowZeroLengthDirectoryStrings;
-        private final boolean allowMalformedNamesAndOptions;
+        private final SchemaOptions options;
         private final Syntax defaultSyntax;
         private final MatchingRule defaultMatchingRule;
         private final Schema strictSchema;
         private final Schema nonStrictSchema;
 
-        StrictImpl(final String schemaName, final boolean allowMalformedNamesAndOptions,
-                final boolean allowMalformedJPEGPhotos,
-                final boolean allowMalformedCertificates,
-                final boolean allowNonStandardTelephoneNumbers,
-                final boolean allowZeroLengthDirectoryStrings,
+        StrictImpl(final String schemaName,
+                final SchemaOptions options,
                 final Syntax defaultSyntax,
                 final MatchingRule defaultMatchingRule,
                 final Map<String, Syntax> numericOID2Syntaxes,
@@ -475,17 +440,12 @@ public final class Schema {
                 final Map<String, List<DITStructureRule>> nameForm2StructureRules,
                 final List<LocalizableMessage> warnings) {
             this.schemaName = schemaName;
-            this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
-            this.allowMalformedJPEGPhotos = allowMalformedJPEGPhotos;
-            this.allowMalformedCertificates = allowMalformedCertificates;
-            this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
-            this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
+            this.options = SchemaOptions.unmodifiable(options);
             this.defaultSyntax = defaultSyntax;
             this.defaultMatchingRule = defaultMatchingRule;
             this.numericOID2Syntaxes = Collections.unmodifiableMap(numericOID2Syntaxes);
             this.numericOID2MatchingRules = Collections.unmodifiableMap(numericOID2MatchingRules);
-            this.numericOID2MatchingRuleUses =
-                    Collections.unmodifiableMap(numericOID2MatchingRuleUses);
+            this.numericOID2MatchingRuleUses = Collections.unmodifiableMap(numericOID2MatchingRuleUses);
             this.numericOID2AttributeTypes = Collections.unmodifiableMap(numericOID2AttributeTypes);
             this.numericOID2ObjectClasses = Collections.unmodifiableMap(numericOID2ObjectClasses);
             this.numericOID2NameForms = Collections.unmodifiableMap(numericOID2NameForms);
@@ -516,28 +476,8 @@ public final class Schema {
         }
 
         @Override
-        public boolean allowMalformedNamesAndOptions() {
-            return allowMalformedNamesAndOptions;
-        }
-
-        @Override
-        public boolean allowMalformedJPEGPhotos() {
-            return allowMalformedJPEGPhotos;
-        }
-
-        @Override
-        public boolean allowMalformedCertificates() {
-            return allowMalformedCertificates;
-        }
-
-        @Override
-        public boolean allowNonStandardTelephoneNumbers() {
-            return allowNonStandardTelephoneNumbers;
-        }
-
-        @Override
-        public boolean allowZeroLengthDirectoryStrings() {
-            return allowZeroLengthDirectoryStrings;
+        public SchemaOptions getOptions() {
+            return options;
         }
 
         @Override
@@ -1116,91 +1056,6 @@ public final class Schema {
     }
 
     /**
-     * Returns {@code true} if this schema allows certain illegal characters in
-     * OIDs and attribute options. When this compatibility option is set to
-     * {@code true} the following illegal characters will be permitted in
-     * addition to those permitted in section 1.4 of RFC 4512:
-     *
-     * <pre>
-     * USCORE  = %x5F ; underscore ("_")
-     * DOT     = %x2E ; period (".")
-     * </pre>
-     *
-     * By default this compatibility option is set to {@code true} because these
-     * characters are often used for naming purposes (such as collation rules).
-     *
-     * @return {@code true} if this schema allows certain illegal characters in
-     *         OIDs and attribute options.
-     * @see <a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
-     *      Directory Access Protocol (LDAP): Directory Information Models </a>
-     */
-    public boolean allowMalformedNamesAndOptions() {
-        return impl.allowMalformedNamesAndOptions();
-    }
-
-    /**
-     * Returns {@code true} if the JPEG Photo syntax defined for this
-     * schema allows values which do not conform to the JFIF or Exif
-     * specifications.
-     * <p>
-     * By default this compatibility option is set to {@code true}.
-     *
-     * @return {@code true} if the JPEG Photo syntax defined for this
-     *         schema allows values which do not conform to the JFIF
-     *         of Exit specifications.
-     */
-    public boolean allowMalformedJPEGPhotos() {
-        return impl.allowMalformedJPEGPhotos();
-    }
-
-    /**
-     * Returns {@code true} if the Certificate syntax defined for this
-     * schema allows values which do not conform to the X.509
-     * specifications.
-     * <p>
-     * By default this compatibility option is set to {@code true}.
-     *
-     * @return {@code true} if the Certificate syntax defined for this
-     *         schema allows values which do not conform to the X.509
-     *         specifications.
-     */
-    public boolean allowMalformedCertificates() {
-        return impl.allowMalformedCertificates();
-    }
-
-    /**
-     * Returns {@code true} if the Telephone Number syntax defined for this
-     * schema allows values which do not conform to the E.123 international
-     * telephone number format.
-     * <p>
-     * By default this compatibility option is set to {@code true}.
-     *
-     * @return {@code true} if the Telephone Number syntax defined for this
-     *         schema allows values which do not conform to the E.123
-     *         international telephone number format.
-     */
-    public boolean allowNonStandardTelephoneNumbers() {
-        return impl.allowNonStandardTelephoneNumbers();
-    }
-
-    /**
-     * Returns {@code true} if zero-length values will be allowed by the
-     * Directory String syntax defined for this schema. This is technically
-     * forbidden by the LDAP specification, but it was allowed in earlier
-     * versions of the server, and the discussion of the directory string syntax
-     * in RFC 2252 does not explicitly state that they are not allowed.
-     * <p>
-     * By default this compatibility option is set to {@code false}.
-     *
-     * @return {@code true} if zero-length values will be allowed by the
-     *         Directory String syntax defined for this schema, or {@code false}
-     *         if not.
-     */
-    public boolean allowZeroLengthDirectoryStrings() {
-        return impl.allowZeroLengthDirectoryStrings();
-    }
-
-    /**
      * Returns a non-strict view of this schema.
      * <p>
      * See the description of {@link #isStrict()} for more details.
@@ -1224,25 +1079,11 @@ public final class Schema {
         return impl.asStrictSchema();
     }
 
-    /**
-     * Returns the default matching rule which will be used when parsing
-     * unrecognized attributes.
-     *
-     * @return The default matching rule which will be used when parsing
-     *         unrecognized attributes.
-     */
-    public MatchingRule getDefaultMatchingRule() {
+    MatchingRule getDefaultMatchingRule() {
         return impl.getDefaultMatchingRule();
     }
 
-    /**
-     * Returns the default syntax which will be used when parsing unrecognized
-     * attributes.
-     *
-     * @return The default syntax which will be used when parsing unrecognized
-     *         attributes.
-     */
-    public Syntax getDefaultSyntax() {
+    Syntax getDefaultSyntax() {
         return impl.getDefaultSyntax();
     }
 
@@ -1571,6 +1412,25 @@ public final class Schema {
      */
     public Collection<ObjectClass> getObjectClassesWithName(final String name) {
         return impl.getObjectClassesWithName(name);
+    }
+
+    /**
+     * Returns the value associated to the provided {@link Option} or the option
+     * default value, if there is no such option in this schema.
+     *
+     * @param <T>
+     *            The option type.
+     * @param option
+     *            The option whose associated value should to be retrieve.
+     * @return The value associated to the provided {@link Option} or the option
+     *         default value, if there is no such option in this schema.
+     */
+    public <T> T getOption(Option<T> option) {
+        return getOptions().get(option);
+    }
+
+    SchemaOptions getOptions() {
+        return impl.getOptions();
     }
 
     /**

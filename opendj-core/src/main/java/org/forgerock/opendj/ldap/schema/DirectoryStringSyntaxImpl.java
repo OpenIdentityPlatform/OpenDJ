@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -84,11 +85,10 @@ final class DirectoryStringSyntaxImpl extends AbstractSyntaxImpl {
      */
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
-        if (value.length() > 0 || schema.allowZeroLengthDirectoryStrings()) {
+        if (value.length() > 0 || schema.getOption(ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS)) {
             return true;
-        } else {
-            invalidReason.append(ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE.get());
-            return false;
         }
+        invalidReason.append(ERR_ATTR_SYNTAX_DIRECTORYSTRING_INVALID_ZEROLENGTH_VALUE.get());
+        return false;
     }
 }

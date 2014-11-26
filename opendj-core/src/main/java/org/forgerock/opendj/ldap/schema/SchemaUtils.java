@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -741,6 +743,12 @@ final class SchemaUtils {
         }
         throwIfIA5IllegalCharacter(buffer, value);
         return ByteString.valueOf(buffer.toString());
+    }
+
+    static void throwDecodeException(LocalizedLogger logger, LocalizableMessage message) throws DecodeException {
+        final DecodeException e = DecodeException.error(message);
+        logger.debug(LocalizableMessage.raw("%s", e));
+        throw e;
     }
 
     private static void throwIfIA5IllegalCharacter(StringBuilder buffer, ByteSequence value) throws DecodeException {
