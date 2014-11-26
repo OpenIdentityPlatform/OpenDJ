@@ -56,6 +56,144 @@ import static org.opends.messages.CoreMessages.*;
  */
 public class LocalBackendWorkflowElement
 {
+  /**
+   * This class implements the workflow result code. The workflow result code
+   * contains an LDAP result code along with an LDAP error message.
+   */
+  private static class SearchResultCode
+  {
+    /** The global result code. */
+    private ResultCode resultCode = ResultCode.UNDEFINED;
+
+    /** The global error message. */
+    private LocalizableMessageBuilder errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+
+    /**
+     * Creates a new instance of a workflow result code and initializes it with
+     * a result code and an error message.
+     *
+     * @param resultCode
+     *          the initial value for the result code
+     * @param errorMessage
+     *          the initial value for the error message
+     */
+    SearchResultCode(ResultCode resultCode, LocalizableMessageBuilder errorMessage)
+    {
+      this.resultCode = resultCode;
+      this.errorMessage = errorMessage;
+    }
+
+    /**
+     * Elaborates a global result code. A workflow may execute an operation on
+     * several subordinate workflows. In such case, the parent workflow has to
+     * take into account all the subordinate result codes to elaborate a global
+     * result code. Sometimes, a referral result code has to be turned into a
+     * reference entry. When such case is occurring the
+     * elaborateGlobalResultCode method will return true. The global result code
+     * is elaborated as follows:
+     *
+     * <PRE>
+     *  -----------+------------+------------+-------------------------------
+     *  new        | current    | resulting  |
+     *  resultCode | resultCode | resultCode | action
+     *  -----------+------------+------------+-------------------------------
+     *  SUCCESS      NO_SUCH_OBJ  SUCCESS      -
+     *               REFERRAL     SUCCESS      send reference entry to client
+     *               other        [unchanged]  -
+     *  ---------------------------------------------------------------------
+     *  NO_SUCH_OBJ  SUCCESS      [unchanged]  -
+     *               REFERRAL     [unchanged]  -
+     *               other        [unchanged]  -
+     *  ---------------------------------------------------------------------
+     *  REFERRAL     SUCCESS      [unchanged]  send reference entry to client
+     *               REFERRAL     SUCCESS      send reference entry to client
+     *               NO_SUCH_OBJ  REFERRAL     -
+     *               other        [unchanged]  send reference entry to client
+     *  ---------------------------------------------------------------------
+     *  others       SUCCESS      other        -
+     *               REFERRAL     other        send reference entry to client
+     *               NO_SUCH_OBJ  other        -
+     *               other2       [unchanged]  -
+     *  ---------------------------------------------------------------------
+     * </PRE>
+     *
+     * @param newResultCode
+     *          the new result code to take into account
+     * @param newErrorMessage
+     *          the new error message associated to the new error code
+     * @return <code>true</code> if a referral result code must be turned into a
+     *         reference entry
+     */
+    private boolean elaborateGlobalResultCode(ResultCode newResultCode, LocalizableMessageBuilder newErrorMessage)
+    {
+      // if global result code has not been set yet then just take the new
+      // result code as is
+      if (resultCode == ResultCode.UNDEFINED)
+      {
+        resultCode = newResultCode;
+        errorMessage = new LocalizableMessageBuilder(newErrorMessage);
+        return false;
+      }
+
+      // Elaborate the new result code (see table in the description header).
+      switch (newResultCode.asEnum())
+      {
+      case SUCCESS:
+        switch (resultCode.asEnum())
+        {
+        case NO_SUCH_OBJECT:
+          resultCode = ResultCode.SUCCESS;
+          errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+          return false;
+        case REFERRAL:
+          resultCode = ResultCode.SUCCESS;
+          errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+          return true;
+        default:
+          // global resultCode remains the same
+          return false;
+        }
+
+      case NO_SUCH_OBJECT:
+        // global resultCode remains the same
+        return false;
+
+      case REFERRAL:
+        switch (resultCode.asEnum())
+        {
+        case REFERRAL:
+          resultCode = ResultCode.SUCCESS;
+          errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+          return true;
+        case NO_SUCH_OBJECT:
+          resultCode = ResultCode.REFERRAL;
+          errorMessage = new LocalizableMessageBuilder(LocalizableMessage.EMPTY);
+          return false;
+        default:
+          // global resultCode remains the same
+          return true;
+        }
+
+      default:
+        switch (resultCode.asEnum())
+        {
+        case REFERRAL:
+          resultCode = newResultCode;
+          errorMessage = new LocalizableMessageBuilder(newErrorMessage);
+          return true;
+        case SUCCESS:
+        case NO_SUCH_OBJECT:
+          resultCode = newResultCode;
+          errorMessage = new LocalizableMessageBuilder(newErrorMessage);
+          return false;
+        default:
+          // Do nothing (we don't want to override the first error)
+          return false;
+        }
+      }
+    }
+  }
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend's baseDN mapped by this object. */
@@ -722,8 +860,8 @@ public class LocalBackendWorkflowElement
 
     // Create a workflow result code in case we need to perform search in
     // subordinate workflows.
-    WorkflowResultCode workflowResultCode =
-        new WorkflowResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
+    SearchResultCode searchResultCode =
+        new SearchResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
 
     // The search scope is not 'base', so let's do a search on all the public
     // naming contexts with appropriate new search scope and new base DN.
@@ -743,7 +881,7 @@ public class LocalBackendWorkflowElement
       // in the naming context workflow.
       searchOp.setBaseDN(ncDN);
       execute(searchOp, ncDN);
-      boolean sendReferenceEntry = workflowResultCode.elaborateGlobalResultCode(
+      boolean sendReferenceEntry = searchResultCode.elaborateGlobalResultCode(
           searchOp.getResultCode(), searchOp.getErrorMessage());
       if (sendReferenceEntry)
       {
@@ -758,12 +896,12 @@ public class LocalBackendWorkflowElement
 
     // If the result code is still uninitialized (ie no naming context),
     // we should return NO_SUCH_OBJECT
-    workflowResultCode.elaborateGlobalResultCode(
+    searchResultCode.elaborateGlobalResultCode(
         ResultCode.NO_SUCH_OBJECT, new LocalizableMessageBuilder(LocalizableMessage.EMPTY));
 
     // Set the operation result code and error message
-    searchOp.setResultCode(workflowResultCode.resultCode());
-    searchOp.setErrorMessage(workflowResultCode.errorMessage());
+    searchOp.setResultCode(searchResultCode.resultCode);
+    searchOp.setErrorMessage(searchResultCode.errorMessage);
   }
 
   private static Collection<LocalBackendWorkflowElement> getRootDSESubordinates()
@@ -816,8 +954,7 @@ public class LocalBackendWorkflowElement
     searchOp.setScope(newScope);
 
     // Let's search in the subordinate workflows.
-    WorkflowResultCode workflowResultCode = new WorkflowResultCode(
-        searchOp.getResultCode(), searchOp.getErrorMessage());
+    SearchResultCode searchResultCode = new SearchResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
     DN originalBaseDN = searchOp.getBaseDN();
     for (LocalBackendWorkflowElement subordinate : getSubordinates(workflow))
     {
@@ -845,8 +982,8 @@ public class LocalBackendWorkflowElement
       // operation in the subordinate workflow.
       searchOp.setBaseDN(subordinateDN);
       execute(searchOp, subordinateDN);
-      boolean sendReferenceEntry =
-          workflowResultCode.elaborateGlobalResultCode(searchOp.getResultCode(), searchOp.getErrorMessage());
+      boolean sendReferenceEntry = searchResultCode.elaborateGlobalResultCode(
+          searchOp.getResultCode(), searchOp.getErrorMessage());
       if (sendReferenceEntry)
       {
         // TODO jdemendi - turn a referral result code into a reference entry
@@ -860,8 +997,8 @@ public class LocalBackendWorkflowElement
     searchOp.setScope(originalScope);
 
     // Update the operation result code and error message
-    searchOp.setResultCode(workflowResultCode.resultCode());
-    searchOp.setErrorMessage(workflowResultCode.errorMessage());
+    searchOp.setResultCode(searchResultCode.resultCode);
+    searchOp.setErrorMessage(searchResultCode.errorMessage);
   }
 
   private static Collection<LocalBackendWorkflowElement> getSubordinates(LocalBackendWorkflowElement workflow)
