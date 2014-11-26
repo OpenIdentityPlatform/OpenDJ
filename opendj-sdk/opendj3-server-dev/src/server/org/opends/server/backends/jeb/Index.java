@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.backends.jeb.IndexBuffer.BufferedIndexValues;
 import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -40,6 +41,8 @@ import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
+
+import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.JebMessages.*;
 
@@ -53,24 +56,16 @@ public class Index extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The indexer object to construct index keys from LDAP attribute values.
-   */
+  /** The indexer object to construct index keys from LDAP attribute values. */
   public Indexer indexer;
 
-  /**
-   * The comparator for index keys.
-   */
+  /** The comparator for index keys. */
   private final Comparator<byte[]> comparator;
 
-  /**
-   * The comparator for index keys.
-   */
+  /** The comparator for index keys. */
   private final Comparator<ByteSequence> bsComparator;
 
-  /**
-   * The limit on the number of entry IDs that may be indexed by one key.
-   */
+  /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
 
   /**
@@ -85,16 +80,14 @@ public class Index extends DatabaseContainer
    */
   private int entryLimitExceededCount;
 
-  /**
-   * The max number of tries to rewrite phantom records.
-   */
-  final int phantomWriteRetires = 3;
+  /** The max number of tries to rewrite phantom records. */
+  private final int phantomWriteRetries = 3;
 
   /**
    * Whether to maintain a count of IDs for a key once the entry limit
    * has exceeded.
    */
-  boolean maintainCount;
+  private final boolean maintainCount;
 
   private final State state;
 
@@ -108,7 +101,7 @@ public class Index extends DatabaseContainer
    * - no entryIDs will be added to a non-existing key.
    * - undefined entryIdSet will be returned whenever a key is not found.
    */
-  private boolean trusted = false;
+  private boolean trusted;
 
   /**
    * A flag to indicate if a rebuild process is running on this index.
@@ -117,9 +110,9 @@ public class Index extends DatabaseContainer
    * However all write operations will succeed. The rebuildRunning
    * flag overrides all behaviors of the trusted flag.
    */
-  private boolean rebuildRunning = false;
+  private boolean rebuildRunning;
 
-  //Thread local area to store per thread cursors.
+  /** Thread local area to store per thread cursors. */
   private final ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
   private final ImportIDSet newImportIDSet;
 
@@ -200,29 +193,9 @@ public class Index extends DatabaseContainer
    *         count is exceeded. False if it already exists in the entry ID set
    *         for the given key.
    */
-  public boolean insertID(IndexBuffer buffer, ByteString keyBytes,
-                          EntryID entryID)
+  public boolean insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
-    TreeMap<ByteString, IndexBuffer.BufferedIndexValues> bufferedOperations =
-        buffer.getBufferedIndex(this);
-    IndexBuffer.BufferedIndexValues values = null;
-
-    if(bufferedOperations == null)
-    {
-      bufferedOperations =
-          new TreeMap<ByteString, IndexBuffer.BufferedIndexValues>(bsComparator);
-      buffer.putBufferedIndex(this, bufferedOperations);
-    }
-    else
-    {
-      values = bufferedOperations.get(keyBytes);
-    }
-
-    if(values == null)
-    {
-      values = new IndexBuffer.BufferedIndexValues();
-      bufferedOperations.put(keyBytes, values);
-    }
+    final BufferedIndexValues values = getBufferedIndexValues(buffer, keyBytes);
 
     if(values.deletedIDs != null && values.deletedIDs.contains(entryID))
     {
@@ -234,7 +207,6 @@ public class Index extends DatabaseContainer
     {
       values.addedIDs = new EntryIDSet(keyBytes, null);
     }
-
     values.addedIDs.add(entryID);
     return true;
   }
@@ -258,10 +230,9 @@ public class Index extends DatabaseContainer
 
     if(maintainCount)
     {
-      for(int i = 0; i < phantomWriteRetires; i++)
+      for (int i = 0; i < phantomWriteRetries; i++)
       {
-        if(insertIDWithRMW(txn, key, data, entryIDData, entryID) ==
-            OperationStatus.SUCCESS)
+        if (insertIDWithRMW(txn, key, data, entryIDData, entryID) == SUCCESS)
         {
           return true;
         }
@@ -272,15 +243,25 @@ public class Index extends DatabaseContainer
       final OperationStatus status = read(txn, key, data, LockMode.READ_COMMITTED);
       if(status == OperationStatus.SUCCESS)
       {
-        EntryIDSet entryIDList =
-            new EntryIDSet(key.getData(), data.getData());
-
+        EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
         if (entryIDList.isDefined())
         {
-          for(int i = 0; i < phantomWriteRetires; i++)
+          for (int i = 0; i < phantomWriteRetries; i++)
           {
-            if(insertIDWithRMW(txn, key, data, entryIDData, entryID) ==
-                OperationStatus.SUCCESS)
+            if (insertIDWithRMW(txn, key, data, entryIDData, entryID) == SUCCESS)
+            {
+              return true;
+            }
+          }
+        }
+      }
+      else if(rebuildRunning || trusted)
+      {
+        if (insert(txn, key, entryIDData) == OperationStatus.KEYEXIST)
+        {
+          for (int i = 1; i < phantomWriteRetries; i++)
+          {
+            if (insertIDWithRMW(txn, key, data, entryIDData, entryID) == SUCCESS)
             {
               return true;
             }
@@ -289,24 +270,7 @@ public class Index extends DatabaseContainer
       }
       else
       {
-        if(rebuildRunning || trusted)
-        {
-          if (insert(txn, key, entryIDData) == OperationStatus.KEYEXIST)
-          {
-            for(int i = 1; i < phantomWriteRetires; i++)
-            {
-              if(insertIDWithRMW(txn, key, data, entryIDData, entryID) ==
-                  OperationStatus.SUCCESS)
-              {
-                return true;
-              }
-            }
-          }
-        }
-        else
-        {
-          return true;
-        }
+        return true;
       }
     }
     return false;
@@ -317,11 +281,11 @@ public class Index extends DatabaseContainer
   private void
   deleteKey(DatabaseEntry key, ImportIDSet importIdSet,
          DatabaseEntry data) throws DatabaseException {
-    OperationStatus status  = read(null, key, data, LockMode.DEFAULT);
-    if(status == OperationStatus.SUCCESS) {
+    final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
+    if(status == SUCCESS) {
       newImportIDSet.clear(false);
       newImportIDSet.remove(data.getData(), importIdSet);
-      if(newImportIDSet.isDefined() && (newImportIDSet.size() == 0))
+      if (newImportIDSet.isDefined() && newImportIDSet.size() == 0)
       {
         delete(null, key);
       }
@@ -340,7 +304,7 @@ public class Index extends DatabaseContainer
   private void
   insertKey(DatabaseEntry key, ImportIDSet importIdSet,
          DatabaseEntry data) throws DatabaseException {
-    OperationStatus status  = read(null, key, data, LockMode.DEFAULT);
+    final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
     if(status == OperationStatus.SUCCESS) {
       newImportIDSet.clear(false);
       if (newImportIDSet.merge(data.getData(), importIdSet))
@@ -435,9 +399,7 @@ public class Index extends DatabaseContainer
                                           EntryID entryID)
       throws DatabaseException
   {
-    OperationStatus status;
-
-    status = read(txn, key, data, LockMode.RMW);
+    final OperationStatus status = read(txn, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS)
     {
       EntryIDSet entryIDList =
@@ -471,16 +433,13 @@ public class Index extends DatabaseContainer
       data.setData(after);
       return put(txn, key, data);
     }
+    else if(rebuildRunning || trusted)
+    {
+      return insert(txn, key, entryIDData);
+    }
     else
     {
-      if(rebuildRunning || trusted)
-      {
-        return insert(txn, key, entryIDData);
-      }
-      else
-      {
-        return OperationStatus.SUCCESS;
-      }
+      return OperationStatus.SUCCESS;
     }
   }
 
@@ -497,40 +456,31 @@ public class Index extends DatabaseContainer
                  EntryIDSet deletedIDs, EntryIDSet addedIDs)
       throws DatabaseException
   {
-    OperationStatus status;
     DatabaseEntry data = new DatabaseEntry();
 
     if(deletedIDs == null && addedIDs == null)
     {
-      status = delete(txn, key);
-
-      if(status != OperationStatus.SUCCESS)
+      final OperationStatus status = delete(txn, key);
+      if (status != SUCCESS && logger.isTraceEnabled())
       {
-        if(logger.isTraceEnabled())
-        {
-          StringBuilder builder = new StringBuilder();
-          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          logger.trace("The expected key does not exist in the index %s.\nKey:%s ", name, builder);
-        }
+        StringBuilder builder = new StringBuilder();
+        StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+        logger.trace("The expected key does not exist in the index %s.\nKey:%s ", name, builder);
       }
-
       return;
     }
 
-    // Handle cases where nothing is changed early to avoid
-    // DB access.
-    if((deletedIDs == null || deletedIDs.size() == 0) &&
-        (addedIDs == null || addedIDs.size() == 0))
+    // Handle cases where nothing is changed early to avoid DB access.
+    if (isNullOrEmpty(deletedIDs) && isNullOrEmpty(addedIDs))
     {
       return;
     }
 
     if(maintainCount)
     {
-      for(int i = 0; i < phantomWriteRetires; i++)
+      for (int i = 0; i < phantomWriteRetries; i++)
       {
-        if(updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) ==
-            OperationStatus.SUCCESS)
+        if (updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) == SUCCESS)
         {
           return;
         }
@@ -538,18 +488,15 @@ public class Index extends DatabaseContainer
     }
     else
     {
-      status = read(txn, key, data, LockMode.READ_COMMITTED);
+      OperationStatus status = read(txn, key, data, LockMode.READ_COMMITTED);
       if(status == OperationStatus.SUCCESS)
       {
-        EntryIDSet entryIDList =
-            new EntryIDSet(key.getData(), data.getData());
-
+        EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
         if (entryIDList.isDefined())
         {
-          for(int i = 0; i < phantomWriteRetires; i++)
+          for (int i = 0; i < phantomWriteRetries; i++)
           {
-            if(updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) ==
-                OperationStatus.SUCCESS)
+            if (updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) == SUCCESS)
             {
               return;
             }
@@ -571,18 +518,16 @@ public class Index extends DatabaseContainer
           logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
         }
 
-        if((rebuildRunning || trusted) && addedIDs != null &&
-            addedIDs.size() > 0)
+        if ((rebuildRunning || trusted) && isNotNullOrEmpty(addedIDs))
         {
           data.setData(addedIDs.toDatabase());
 
           status = insert(txn, key, data);
           if(status == OperationStatus.KEYEXIST)
           {
-            for(int i = 1; i < phantomWriteRetires; i++)
+            for (int i = 1; i < phantomWriteRetries; i++)
             {
-              if(updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) ==
-                    OperationStatus.SUCCESS)
+              if (updateKeyWithRMW(txn, key, data, deletedIDs, addedIDs) == SUCCESS)
               {
                 return;
               }
@@ -593,6 +538,17 @@ public class Index extends DatabaseContainer
     }
   }
 
+  private boolean isNullOrEmpty(EntryIDSet entryIDSet)
+  {
+    return entryIDSet == null || entryIDSet.size() == 0;
+  }
+
+
+  private boolean isNotNullOrEmpty(EntryIDSet entryIDSet)
+  {
+    return entryIDSet != null && entryIDSet.size() > 0;
+  }
+
   private OperationStatus updateKeyWithRMW(Transaction txn,
                                            DatabaseEntry key,
                                            DatabaseEntry data,
@@ -600,14 +556,10 @@ public class Index extends DatabaseContainer
                                            EntryIDSet addedIDs)
       throws DatabaseException
   {
-    OperationStatus status;
-
-    status = read(txn, key, data, LockMode.RMW);
-    if(status == OperationStatus.SUCCESS)
+    final OperationStatus status = read(txn, key, data, LockMode.RMW);
+    if(status == SUCCESS)
     {
-      EntryIDSet entryIDList =
-          new EntryIDSet(key.getData(), data.getData());
-
+      EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
       if(addedIDs != null)
       {
         if(entryIDList.isDefined() && indexEntryLimit > 0)
@@ -691,7 +643,7 @@ public class Index extends DatabaseContainer
         logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
       }
 
-      if((rebuildRunning || trusted) && addedIDs != null && addedIDs.size() > 0)
+      if((rebuildRunning || trusted) && isNotNullOrEmpty(addedIDs))
       {
         data.setData(addedIDs.toDatabase());
         return insert(txn, key, data);
@@ -713,26 +665,7 @@ public class Index extends DatabaseContainer
   public boolean removeID(IndexBuffer buffer, ByteString keyBytes,
                           EntryID entryID)
   {
-    TreeMap<ByteString, IndexBuffer.BufferedIndexValues> bufferedOperations =
-        buffer.getBufferedIndex(this);
-    IndexBuffer.BufferedIndexValues values = null;
-
-    if(bufferedOperations == null)
-    {
-      bufferedOperations =
-          new TreeMap<ByteString, IndexBuffer.BufferedIndexValues>(bsComparator);
-      buffer.putBufferedIndex(this, bufferedOperations);
-    }
-    else
-    {
-      values = bufferedOperations.get(keyBytes);
-    }
-
-    if(values == null)
-    {
-      values = new IndexBuffer.BufferedIndexValues();
-      bufferedOperations.put(keyBytes, values);
-    }
+    BufferedIndexValues values = getBufferedIndexValues(buffer, keyBytes);
 
     if(values.addedIDs != null && values.addedIDs.contains(entryID))
     {
@@ -744,7 +677,6 @@ public class Index extends DatabaseContainer
     {
       values.deletedIDs = new EntryIDSet(keyBytes, null);
     }
-
     values.deletedIDs.add(entryID);
     return true;
   }
@@ -760,7 +692,6 @@ public class Index extends DatabaseContainer
   public void removeID(Transaction txn, DatabaseEntry key, EntryID entryID)
       throws DatabaseException
   {
-    OperationStatus status;
     DatabaseEntry data = new DatabaseEntry();
 
     if(maintainCount)
@@ -769,8 +700,8 @@ public class Index extends DatabaseContainer
     }
     else
     {
-      status = read(txn, key, data, LockMode.READ_COMMITTED);
-      if(status == OperationStatus.SUCCESS)
+      final OperationStatus status = read(txn, key, data, LockMode.READ_COMMITTED);
+      if(status == SUCCESS)
       {
         EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
         if(entryIDList.isDefined())
@@ -778,23 +709,20 @@ public class Index extends DatabaseContainer
           removeIDWithRMW(txn, key, data, entryID);
         }
       }
-      else
+      else if (trusted && !rebuildRunning)
       {
-        // Ignore failures if rebuild is running since a empty entryIDset
-        // will probably not be rebuilt.
-        if(trusted && !rebuildRunning)
+        if(logger.isTraceEnabled())
         {
-          if(logger.isTraceEnabled())
-          {
-            StringBuilder builder = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-            logger.trace("The expected key does not exist in the index %s.\nKey:%s",name, builder);
-          }
-
-          setTrusted(txn, false);
-          logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
+          StringBuilder builder = new StringBuilder();
+          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+          logger.trace("The expected key does not exist in the index %s.\nKey:%s",name, builder);
         }
+
+        setTrusted(txn, false);
+        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
       }
+      // Ignore failures if rebuild is running since a empty entryIDset
+      // will probably not be rebuilt.
     }
   }
 
@@ -821,10 +749,8 @@ public class Index extends DatabaseContainer
                                DatabaseEntry data, EntryID entryID)
       throws DatabaseException
   {
-    OperationStatus status;
-    status = read(txn, key, data, LockMode.RMW);
-
-    if (status == OperationStatus.SUCCESS)
+    final OperationStatus status = read(txn, key, data, LockMode.RMW);
+    if (status == SUCCESS)
     {
       EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
       // Ignore failures if rebuild is running since the entry ID is
@@ -859,23 +785,20 @@ public class Index extends DatabaseContainer
         }
       }
     }
-    else
+    else if (trusted && !rebuildRunning)
     {
-      // Ignore failures if rebuild is running since a empty entryIDset
-      // will probably not be rebuilt.
-      if(trusted && !rebuildRunning)
+      if(logger.isTraceEnabled())
       {
-        if(logger.isTraceEnabled())
-        {
-          StringBuilder builder = new StringBuilder();
-          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          logger.trace("The expected key does not exist in the index %s.\nKey:%s", name, builder);
-        }
-
-        setTrusted(txn, false);
-        logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
+        StringBuilder builder = new StringBuilder();
+        StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
+        logger.trace("The expected key does not exist in the index %s.\nKey:%s", name, builder);
       }
+
+      setTrusted(txn, false);
+      logger.error(ERR_JEB_INDEX_CORRUPT_REQUIRES_REBUILD, name);
     }
+    // Ignore failures if rebuild is running since a empty entryIDset
+    // will probably not be rebuilt.
   }
 
   /**
@@ -885,14 +808,17 @@ public class Index extends DatabaseContainer
    */
   public void delete(IndexBuffer buffer, ByteString keyBytes)
   {
-    TreeMap<ByteString, IndexBuffer.BufferedIndexValues> bufferedOperations =
-        buffer.getBufferedIndex(this);
-    IndexBuffer.BufferedIndexValues values = null;
+    getBufferedIndexValues(buffer, keyBytes);
+  }
 
-    if(bufferedOperations == null)
+  private BufferedIndexValues getBufferedIndexValues(IndexBuffer buffer, ByteString keyBytes)
+  {
+    TreeMap<ByteString, BufferedIndexValues> bufferedOperations = buffer.getBufferedIndex(this);
+    BufferedIndexValues values = null;
+
+    if (bufferedOperations == null)
     {
-      bufferedOperations =
-          new TreeMap<ByteString, IndexBuffer.BufferedIndexValues>(bsComparator);
+      bufferedOperations = new TreeMap<ByteString, BufferedIndexValues>(bsComparator);
       buffer.putBufferedIndex(this, bufferedOperations);
     }
     else
@@ -900,11 +826,12 @@ public class Index extends DatabaseContainer
       values = bufferedOperations.get(keyBytes);
     }
 
-    if(values == null)
+    if (values == null)
     {
-      values = new IndexBuffer.BufferedIndexValues();
+      values = new BufferedIndexValues();
       bufferedOperations.put(keyBytes, values);
     }
+    return values;
   }
 
   /**
@@ -927,31 +854,25 @@ public class Index extends DatabaseContainer
       return ConditionResult.UNDEFINED;
     }
 
-    OperationStatus status;
-    LockMode lockMode = LockMode.DEFAULT;
     DatabaseEntry data = new DatabaseEntry();
 
-    status = read(txn, key, data, lockMode);
-    if (status == OperationStatus.SUCCESS)
+    OperationStatus status = read(txn, key, data, LockMode.DEFAULT);
+    if (status == SUCCESS)
     {
-      EntryIDSet entryIDList =
-           new EntryIDSet(key.getData(), data.getData());
+      EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
       if (!entryIDList.isDefined())
       {
         return ConditionResult.UNDEFINED;
       }
       return ConditionResult.valueOf(entryIDList.contains(entryID));
     }
+    else if (trusted)
+    {
+      return ConditionResult.FALSE;
+    }
     else
     {
-      if(trusted)
-      {
-        return ConditionResult.FALSE;
-      }
-      else
-      {
-        return ConditionResult.UNDEFINED;
-      }
+      return ConditionResult.UNDEFINED;
     }
   }
 
@@ -973,10 +894,9 @@ public class Index extends DatabaseContainer
 
     try
     {
-      OperationStatus status;
       DatabaseEntry data = new DatabaseEntry();
-      status = read( txn, key, data, lockMode);
-      if (status != OperationStatus.SUCCESS)
+      OperationStatus status = read( txn, key, data, lockMode);
+      if (status != SUCCESS)
       {
         if(trusted)
         {
@@ -1071,13 +991,10 @@ public class Index extends DatabaseContainer
 
       ArrayList<EntryIDSet> lists = new ArrayList<EntryIDSet>();
 
-      OperationStatus status;
-      Cursor cursor;
-
-      cursor = openCursor(null, CursorConfig.READ_COMMITTED);
-
+      Cursor cursor = openCursor(null, CursorConfig.READ_COMMITTED);
       try
       {
+        OperationStatus status;
         // Set the lower bound if necessary.
         if(lower.length > 0)
         {
@@ -1087,7 +1004,7 @@ public class Index extends DatabaseContainer
           status = cursor.getSearchKeyRange(key, data, lockMode);
 
           // Advance past the lower bound if necessary.
-          if (status == OperationStatus.SUCCESS && !lowerIncluded &&
+          if (status == SUCCESS && !lowerIncluded &&
                comparator.compare(key.getData(), lower) == 0)
           {
             // Do not include the lower value.
@@ -1113,7 +1030,7 @@ public class Index extends DatabaseContainer
           if(upper.length > 0)
           {
             int cmp = comparator.compare(key.getData(), upper);
-            if ((cmp > 0) || (cmp == 0 && !upperIncluded))
+            if (cmp > 0 || (cmp == 0 && !upperIncluded))
             {
               break;
             }
@@ -1364,14 +1281,9 @@ public class Index extends DatabaseContainer
    */
   public boolean setIndexEntryLimit(int indexEntryLimit)
   {
-    boolean rebuildRequired = false;
-    if(this.indexEntryLimit < indexEntryLimit &&
-        entryLimitExceededCount > 0 )
-    {
-      rebuildRequired = true;
-    }
+    final boolean rebuildRequired =
+        this.indexEntryLimit < indexEntryLimit && entryLimitExceededCount > 0;
     this.indexEntryLimit = indexEntryLimit;
-
     return rebuildRequired;
   }
 
