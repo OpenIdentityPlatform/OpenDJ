@@ -50,11 +50,11 @@ import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.StaticUtils;
 
-import static org.opends.messages.ConfigMessages.INFO_CONFIG_FILE_HEADER;
-import static org.opends.messages.ToolMessages.ERR_UPGRADE_CORRUPTED_TEMPLATE;
-import static org.opends.messages.ToolMessages.ERR_UPGRADE_UNKNOWN_OC_ATT;
-import static org.opends.server.tools.upgrade.FileManager.deleteRecursively;
-import static org.opends.server.tools.upgrade.FileManager.rename;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.upgrade.FileManager.*;
 import static org.opends.server.tools.upgrade.Installation.*;
 import static org.opends.server.util.ChangeOperationType.*;
 
@@ -825,10 +825,9 @@ final class UpgradeUtils
    * @return A schema which may used in the upgrade context.
    */
   final static Schema getUpgradeSchema() {
-    final SchemaBuilder sb =
-        new SchemaBuilder(Schema.getCoreSchema())
-        .defaultMatchingRule(CoreSchema.getCaseExactMatchingRule())
-        .defaultSyntax(CoreSchema.getDirectoryStringSyntax());
+    final SchemaBuilder sb = new SchemaBuilder(Schema.getCoreSchema())
+        .setOption(DEFAULT_MATCHING_RULE_OID, getCaseExactMatchingRule().getOID())
+        .setOption(DEFAULT_SYNTAX_OID, getDirectoryStringSyntax().getOID());
 
     // Adds ds-cfg-enabled / boolean syntax
     sb.addAttributeType("( 1.3.6.1.4.1.26027.1.1.2 NAME 'ds-cfg-enabled'"
