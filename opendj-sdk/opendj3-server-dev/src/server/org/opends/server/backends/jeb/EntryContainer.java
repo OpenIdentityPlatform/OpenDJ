@@ -70,155 +70,93 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * The name of the entry database.
-   */
+  /** The name of the entry database. */
   public static final String ID2ENTRY_DATABASE_NAME = "id2entry";
-
-  /**
-   * The name of the DN database.
-   */
+  /** The name of the DN database. */
   public static final String DN2ID_DATABASE_NAME = "dn2id";
-
-  /**
-   * The name of the children index database.
-   */
-  public static final String ID2CHILDREN_DATABASE_NAME = "id2children";
-
-  /**
-   * The name of the subtree index database.
-   */
-  public static final String ID2SUBTREE_DATABASE_NAME = "id2subtree";
-
-  /**
-   * The name of the referral database.
-   */
-  public static final String REFERRAL_DATABASE_NAME = "referral";
-
-  /**
-   * The name of the state database.
-   */
-  public static final String STATE_DATABASE_NAME = "state";
-
-  /**
-   * The attribute used to return a search index debug string to the client.
-   */
+  /** The name of the children index database. */
+  private static final String ID2CHILDREN_DATABASE_NAME = "id2children";
+  /** The name of the subtree index database. */
+  private static final String ID2SUBTREE_DATABASE_NAME = "id2subtree";
+  /** The name of the referral database. */
+  private static final String REFERRAL_DATABASE_NAME = "referral";
+  /** The name of the state database. */
+  private static final String STATE_DATABASE_NAME = "state";
+  /** The attribute used to return a search index debug string to the client. */
   public static final String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
 
-  /**
-   * The attribute index configuration manager.
-   */
-  public AttributeJEIndexCfgManager attributeJEIndexCfgManager;
+  /** The attribute index configuration manager. */
+  private final AttributeJEIndexCfgManager attributeJEIndexCfgManager;
+  /** The vlv index configuration manager. */
+  private final VLVJEIndexCfgManager vlvJEIndexCfgManager;
 
-  /**
-   * The vlv index configuration manager.
-   */
-  public VLVJEIndexCfgManager vlvJEIndexCfgManager;
-
-  /**
-   * The backend to which this entry entryContainer belongs.
-   */
+  /** The backend to which this entry entryContainer belongs. */
   private final Backend<?> backend;
 
-  /**
-   * The root container in which this entryContainer belongs.
-   */
+  /** The root container in which this entryContainer belongs. */
   private final RootContainer rootContainer;
 
-  /**
-   * The baseDN this entry container is responsible for.
-   */
+  /** The baseDN this entry container is responsible for. */
   private final DN baseDN;
 
-  /**
-   * The backend configuration.
-   */
+  /** The backend configuration. */
   private LocalDBBackendCfg config;
 
-  /**
-   * The JE database environment.
-   */
+  /** The JE database environment. */
   private final Environment env;
 
-  /**
-   * The DN database maps a normalized DN string to an entry ID (8 bytes).
-   */
+  /** The DN database maps a normalized DN string to an entry ID (8 bytes). */
   private DN2ID dn2id;
-
-  /**
-   * The entry database maps an entry ID (8 bytes) to a complete encoded entry.
-   */
+  /** The entry database maps an entry ID (8 bytes) to a complete encoded entry. */
   private ID2Entry id2entry;
-
-  /**
-   * Index maps entry ID to an entry ID list containing its children.
-   */
+  /** Index maps entry ID to an entry ID list containing its children. */
   private Index id2children;
-
-  /**
-   * Index maps entry ID to an entry ID list containing its subordinates.
-   */
+  /** Index maps entry ID to an entry ID list containing its subordinates. */
   private Index id2subtree;
-
-  /**
-   * The referral database maps a normalized DN string to labeled URIs.
-   */
+  /** The referral database maps a normalized DN string to labeled URIs. */
   private DN2URI dn2uri;
-
-  /**
-   * The state database maps a config DN to config entries.
-   */
+  /** The state database maps a config DN to config entries. */
   private State state;
 
-  /**
-   * The set of attribute indexes.
-   */
-  private final HashMap<AttributeType, AttributeIndex> attrIndexMap;
+  /** The set of attribute indexes. */
+  private final HashMap<AttributeType, AttributeIndex> attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
 
-  /**
-   * The set of VLV (Virtual List View) indexes.
-   */
-  private final HashMap<String, VLVIndex> vlvIndexMap;
+  /** The set of VLV (Virtual List View) indexes. */
+  private final HashMap<String, VLVIndex> vlvIndexMap = new HashMap<String, VLVIndex>();
 
   private String databasePrefix;
+
   /**
    * This class is responsible for managing the configuration for attribute
    * indexes used within this entry container.
    */
-  public class AttributeJEIndexCfgManager implements
+  private class AttributeJEIndexCfgManager implements
   ConfigurationAddListener<LocalDBIndexCfg>,
   ConfigurationDeleteListener<LocalDBIndexCfg>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationAddAcceptable(
         LocalDBIndexCfg cfg,
         List<LocalizableMessage> unacceptableReasons)
     {
-      boolean isValid = true;
       try
       {
         //Try creating all the indexes before confirming they are valid ones.
         new AttributeIndex(cfg, state, env, EntryContainer.this);
+        return true;
       }
       catch(Exception e)
       {
         unacceptableReasons.add(LocalizableMessage.raw(e.getLocalizedMessage()));
-        isValid = false ;
+        return false;
       }
-      return isValid;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(LocalDBIndexCfg cfg)
     {
-      ConfigChangeResult ccr;
       boolean adminActionRequired = false;
       List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
@@ -238,19 +176,14 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       catch(Exception e)
       {
         messages.add(LocalizableMessage.raw(e.getLocalizedMessage()));
-        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-            adminActionRequired,
-            messages);
-        return ccr;
+        return new ConfigChangeResult(
+            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-          messages);
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(
         LocalDBIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -259,13 +192,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(LocalDBIndexCfg cfg)
     {
-      ConfigChangeResult ccr;
       boolean adminActionRequired = false;
       ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
@@ -279,18 +209,15 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       catch(DatabaseException de)
       {
         messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-            adminActionRequired,
-            messages);
-        return ccr;
+        return new ConfigChangeResult(
+            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
       }
       finally
       {
         exclusiveLock.unlock();
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-          messages);
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
     }
   }
 
@@ -298,13 +225,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * This class is responsible for managing the configuration for VLV indexes
    * used within this entry container.
    */
-  public class VLVJEIndexCfgManager implements
+  private class VLVJEIndexCfgManager implements
   ConfigurationAddListener<LocalDBVLVIndexCfg>,
   ConfigurationDeleteListener<LocalDBVLVIndexCfg>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationAddAcceptable(
         LocalDBVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -366,13 +291,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(LocalDBVLVIndexCfg cfg)
     {
-      ConfigChangeResult ccr;
       boolean adminActionRequired = false;
       ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
@@ -391,19 +313,14 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       catch(Exception e)
       {
         messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-            adminActionRequired,
-            messages);
-        return ccr;
+        return new ConfigChangeResult(
+            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-          messages);
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(
         LocalDBVLVIndexCfg cfg,
@@ -413,13 +330,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationDelete(LocalDBVLVIndexCfg cfg)
     {
-      ConfigChangeResult ccr;
       boolean adminActionRequired = false;
       List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
@@ -434,25 +348,20 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       catch(DatabaseException de)
       {
         messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-            adminActionRequired,
-            messages);
-        return ccr;
+        return new ConfigChangeResult(
+            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
       }
       finally
       {
         exclusiveLock.unlock();
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-          messages);
+      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
     }
 
   }
 
-  /**
-   * A read write lock to handle schema changes and bulk changes.
-   */
+  /** A read write lock to handle schema changes and bulk changes. */
   private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
   final Lock sharedLock = lock.readLock();
   final Lock exclusiveLock = lock.writeLock();
@@ -472,10 +381,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public EntryContainer(DN baseDN, String databasePrefix, Backend backend,
-      LocalDBBackendCfg config, Environment env,
-      RootContainer rootContainer)
-  throws ConfigException
+  public EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
+      LocalDBBackendCfg config, Environment env, RootContainer rootContainer)
+          throws ConfigException
   {
     this.backend = backend;
     this.baseDN = baseDN;
@@ -485,21 +393,13 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
     this.databasePrefix = preparePrefix(databasePrefix);
 
-    // Instantiate the attribute indexes.
-    attrIndexMap = new HashMap<AttributeType, AttributeIndex>();
-
-    // Instantiate the VLV indexes.
-    vlvIndexMap = new HashMap<String, VLVIndex>();
-
     config.addLocalDBChangeListener(this);
 
-    attributeJEIndexCfgManager =
-      new AttributeJEIndexCfgManager();
+    attributeJEIndexCfgManager = new AttributeJEIndexCfgManager();
     config.addLocalDBIndexAddListener(attributeJEIndexCfgManager);
     config.addLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
 
-    vlvJEIndexCfgManager =
-      new VLVJEIndexCfgManager();
+    vlvJEIndexCfgManager = new VLVJEIndexCfgManager();
     config.addLocalDBVLVIndexAddListener(vlvJEIndexCfgManager);
     config.addLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
@@ -883,8 +783,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     {
       if (pageRequest.getSize() == 0)
       {
-        PagedResultsControl control;
-        control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
+        Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
         searchOperation.getResponseControls().add(control);
         return;
       }
@@ -917,8 +816,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       if (pageRequest != null)
       {
         // Indicate no more pages.
-        PagedResultsControl control;
-        control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
+        Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
         searchOperation.getResponseControls().add(control);
       }
 
@@ -1195,28 +1093,19 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       /*
        * The base entry is only included for whole subtree search.
        */
-      if (searchScope == SearchScope.WHOLE_SUBTREE)
+      if (searchScope == SearchScope.WHOLE_SUBTREE
+          && searchOperation.getFilter().matchesEntry(baseEntry))
       {
-        if (searchOperation.getFilter().matchesEntry(baseEntry))
-        {
-          searchOperation.returnEntry(baseEntry, null);
-        }
+        searchOperation.returnEntry(baseEntry, null);
       }
 
-      if (!manageDsaIT)
+      if (!manageDsaIT
+          && !dn2uri.returnSearchReferences(searchOperation)
+          && pageRequest != null)
       {
-        // Return any search result references.
-        if (!dn2uri.returnSearchReferences(searchOperation))
-        {
-          if (pageRequest != null)
-          {
-            // Indicate no more pages.
-            PagedResultsControl control;
-            control = new PagedResultsControl(pageRequest.isCritical(), 0,
-                null);
-            searchOperation.getResponseControls().add(control);
-          }
-        }
+        // Indicate no more pages.
+        Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
+        searchOperation.getResponseControls().add(control);
       }
     }
 
@@ -1305,32 +1194,23 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
           EntryID entryID = new EntryID(data);
 
-          boolean isInScope = true;
-          if (searchScope == SearchScope.SINGLE_LEVEL)
-          {
-            // Check if this entry is an immediate child.
-            if(JebFormat.findDNKeyParent(key.getData(), 0,
-                                       key.getSize()) != baseDNKey.length)
-            {
-              isInScope = false;
-            }
-          }
-
+          boolean isInScope =
+              searchScope != SearchScope.SINGLE_LEVEL
+                  // Check if this entry is an immediate child.
+                  || JebFormat.findDNKeyParent(key.getData(), 0, key.getSize()) == baseDNKey.length;
           if (isInScope)
           {
-            Entry entry;
-            Entry cacheEntry;
-
             // Try the entry cache first.
-            cacheEntry = entryCache.getEntry(backend, entryID.longValue());
+            final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
 
-            if (cacheEntry == null)
+            final Entry entry;
+            if (cacheEntry != null)
             {
-              entry = id2entry.get(null, entryID, LockMode.DEFAULT);
+              entry = cacheEntry;
             }
             else
             {
-              entry = cacheEntry;
+              entry = id2entry.get(null, entryID, LockMode.DEFAULT);
             }
 
             // Process the candidate entry.
@@ -1338,32 +1218,27 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             {
               lookthroughCount++;
 
-              if (manageDsaIT || entry.getReferralURLs() == null)
+              if ((manageDsaIT || entry.getReferralURLs() == null)
+                  && searchOperation.getFilter().matchesEntry(entry))
               {
-                // Filter the entry.
-                if (searchOperation.getFilter().matchesEntry(entry))
+                if (pageRequest != null &&
+                    searchOperation.getEntriesSent() ==
+                      pageRequest.getSize())
                 {
-                  if (pageRequest != null &&
-                      searchOperation.getEntriesSent() ==
-                        pageRequest.getSize())
-                  {
-                    // The current page is full.
-                    // Set the cookie to remember where we were.
-                    ByteString cookie = ByteString.wrap(key.getData());
-                    PagedResultsControl control;
-                    control = new PagedResultsControl(pageRequest.isCritical(),
-                        0, cookie);
-                    searchOperation.getResponseControls().add(control);
-                    return;
-                  }
+                  // The current page is full.
+                  // Set the cookie to remember where we were.
+                  ByteString cookie = ByteString.wrap(key.getData());
+                  Control control = new PagedResultsControl(pageRequest.isCritical(), 0, cookie);
+                  searchOperation.getResponseControls().add(control);
+                  return;
+                }
 
-                  if (!searchOperation.returnEntry(entry, null))
-                  {
-                    // We have been told to discontinue processing of the
-                    // search. This could be due to size limit exceeded or
-                    // operation cancelled.
-                    return;
-                  }
+                if (!searchOperation.returnEntry(entry, null))
+                {
+                  // We have been told to discontinue processing of the
+                  // search. This could be due to size limit exceeded or
+                  // operation cancelled.
+                  return;
                 }
               }
             }
@@ -1388,11 +1263,9 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     if (pageRequest != null)
     {
       // Indicate no more pages.
-      PagedResultsControl control;
-      control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
+      Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
-
   }
 
   /**
@@ -1430,13 +1303,12 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     boolean continueSearch = true;
 
     // Set the starting value.
-    EntryID begin = null;
     if (pageRequest != null && pageRequest.getCookie().length() != 0)
     {
       // The cookie contains the ID of the next entry to be returned.
       try
       {
-        begin = new EntryID(pageRequest.getCookie().toLong());
+        new EntryID(pageRequest.getCookie().toLong());
       }
       catch (Exception e)
       {
@@ -1447,13 +1319,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
             msg, e);
       }
     }
-    else
+    else if (!manageDsaIT)
     {
-      if (!manageDsaIT)
-      {
-        // Return any search result references.
-        continueSearch = dn2uri.returnSearchReferences(searchOperation);
-      }
+      // Return any search result references.
+      continueSearch = dn2uri.returnSearchReferences(searchOperation);
     }
 
     // Make sure the candidate list is smaller than the lookthrough limit
@@ -1471,10 +1340,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     // Iterate through the index candidates.
     if (continueSearch)
     {
-      Iterator<EntryID> iterator = entryIDList.iterator(begin);
-      while (iterator.hasNext())
+      for (EntryID id : entryIDList)
       {
-        EntryID id = iterator.next();
         Entry entry;
 
         // Try the entry cache first.
@@ -1500,39 +1367,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         // Process the candidate entry.
         if (entry != null)
         {
-          boolean isInScope = false;
-          DN entryDN = entry.getName();
-
-          if (candidatesAreInScope)
-          {
-            isInScope = true;
-          }
-          else if (searchScope == SearchScope.SINGLE_LEVEL)
-          {
-            // Check if this entry is an immediate child.
-            if ((entryDN.size() ==
-                aBaseDN.size() + 1) &&
-                entryDN.isDescendantOf(aBaseDN))
-            {
-              isInScope = true;
-            }
-          }
-          else if (searchScope == SearchScope.WHOLE_SUBTREE)
-          {
-            if (entryDN.isDescendantOf(aBaseDN))
-            {
-              isInScope = true;
-            }
-          }
-          else if (searchScope == SearchScope.SUBORDINATES)
-          {
-            if ((entryDN.size() >
-            aBaseDN.size()) &&
-            entryDN.isDescendantOf(aBaseDN))
-            {
-              isInScope = true;
-            }
-          }
+          boolean isInScope = isInScope(candidatesAreInScope, searchScope, aBaseDN, entry);
 
           // Put this entry in the cache if it did not come from the cache.
           if (cacheEntry == null)
@@ -1544,35 +1379,29 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           }
 
           // Filter the entry if it is in scope.
-          if (isInScope)
+          if (isInScope
+              && (manageDsaIT || entry.getReferralURLs() == null)
+              && searchOperation.getFilter().matchesEntry(entry))
           {
-            if (manageDsaIT || entry.getReferralURLs() == null)
+            if (pageRequest != null &&
+                searchOperation.getEntriesSent() ==
+                pageRequest.getSize())
             {
-              if (searchOperation.getFilter().matchesEntry(entry))
-              {
-                if (pageRequest != null &&
-                    searchOperation.getEntriesSent() ==
-                    pageRequest.getSize())
-                {
-                  // The current page is full.
-                  // Set the cookie to remember where we were.
-                  byte[] cookieBytes = id.getDatabaseEntry().getData();
-                  ByteString cookie = ByteString.wrap(cookieBytes);
-                  PagedResultsControl control;
-                  control = new PagedResultsControl(pageRequest.isCritical(),
-                      0, cookie);
-                  searchOperation.getResponseControls().add(control);
-                  return;
-                }
+              // The current page is full.
+              // Set the cookie to remember where we were.
+              byte[] cookieBytes = id.getDatabaseEntry().getData();
+              ByteString cookie = ByteString.wrap(cookieBytes);
+              Control control = new PagedResultsControl(pageRequest.isCritical(), 0, cookie);
+              searchOperation.getResponseControls().add(control);
+              return;
+            }
 
-                if (!searchOperation.returnEntry(entry, null))
-                {
-                  // We have been told to discontinue processing of the
-                  // search. This could be due to size limit exceeded or
-                  // operation cancelled.
-                  break;
-                }
-              }
+            if (!searchOperation.returnEntry(entry, null))
+            {
+              // We have been told to discontinue processing of the
+              // search. This could be due to size limit exceeded or
+              // operation cancelled.
+              break;
             }
           }
         }
@@ -1598,11 +1427,43 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     if (pageRequest != null)
     {
       // Indicate no more pages.
-      PagedResultsControl control;
-      control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
+      Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
 
+  }
+
+  private boolean isInScope(boolean candidatesAreInScope, SearchScope searchScope, DN aBaseDN, Entry entry)
+  {
+    DN entryDN = entry.getName();
+
+    if (candidatesAreInScope)
+    {
+      return true;
+    }
+    else if (searchScope == SearchScope.SINGLE_LEVEL)
+    {
+      // Check if this entry is an immediate child.
+      if (entryDN.size() == aBaseDN.size() + 1
+          && entryDN.isDescendantOf(aBaseDN))
+      {
+        return true;
+      }
+    }
+    else if (searchScope == SearchScope.WHOLE_SUBTREE)
+    {
+      if (entryDN.isDescendantOf(aBaseDN))
+      {
+        return true;
+      }
+    }
+    else if (searchScope == SearchScope.SUBORDINATES
+        && entryDN.size() > aBaseDN.size()
+        && entryDN.isDescendantOf(aBaseDN))
+    {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -1784,14 +1645,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       dn2uri.targetEntryReferrals(entryDN, null);
 
       // Determine whether this is a subtree delete.
-      boolean isSubtreeDelete = false;
-
-      if (deleteOperation != null
-          && deleteOperation
-              .getRequestControl(SubtreeDeleteControl.DECODER) != null)
-      {
-        isSubtreeDelete = true;
-      }
+      boolean isSubtreeDelete = deleteOperation != null
+          && deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
 
       /*
        * We will iterate forwards through a range of the dn2id keys to
@@ -1865,8 +1720,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           EntryID entryID = new EntryID(data);
 
           // Invoke any subordinate delete plugins on the entry.
-          if ((deleteOperation != null) &&
-              !deleteOperation.isSynchronizationOperation())
+          if (deleteOperation != null
+              && !deleteOperation.isSynchronizationOperation())
           {
             Entry subordinateEntry = id2entry.get(
                     txn, entryID, LockMode.DEFAULT);
@@ -2306,7 +2161,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message, e);
     }
-      }
+  }
 
   /**
    * Moves and/or renames the provided entry in this backend, altering any
@@ -2804,13 +2659,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       // Reindex the entry with the new ID.
       indexRemoveEntry(buffer, oldEntry, oldID);
     }
-    else
+    else if (!modifications.isEmpty())
     {
-      // Update the indexes if needed.
-      if(! modifications.isEmpty())
-      {
-        indexModifications(buffer, oldEntry, newEntry, oldID, modifications);
-      }
+      // Update the indexes.
+      indexModifications(buffer, oldEntry, newEntry, oldID, modifications);
     }
 
     // Remove the entry from the entry cache.
@@ -3087,10 +2939,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       index.listDatabases(dbList);
     }
 
-    for (VLVIndex vlvIndex : vlvIndexMap.values())
-    {
-      dbList.add(vlvIndex);
-    }
+    dbList.addAll(vlvIndexMap.values());
   }
 
   /**
@@ -3100,7 +2949,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * @return true if the operation has the ManageDsaIT request control, or false
    * if not.
    */
-  public static boolean isManageDsaITOperation(Operation operation)
+  private static boolean isManageDsaITOperation(Operation operation)
   {
     if(operation != null)
     {
@@ -3109,7 +2958,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         for (Control control : controls)
         {
-          if (control.getOID().equals(ServerConstants.OID_MANAGE_DSAIT_CONTROL))
+          if (ServerConstants.OID_MANAGE_DSAIT_CONTROL.equals(control.getOID()))
           {
             return true;
           }
@@ -3271,8 +3120,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * @throws DatabaseException If an JE database error occurs while attempting
    * to delete the index.
    */
-  public void deleteAttributeIndex(AttributeIndex attributeIndex)
-  throws DatabaseException
+  private void deleteAttributeIndex(AttributeIndex attributeIndex)
+      throws DatabaseException
   {
     attributeIndex.close();
     Transaction txn = env.getConfig().getTransactional()
@@ -3424,9 +3273,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     return dn.parent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -3436,9 +3283,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
@@ -3448,8 +3293,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     exclusiveLock.lock();
     try
     {
-      if (config.isSubordinateIndexesEnabled() != cfg
-          .isSubordinateIndexesEnabled())
+      if (config.isSubordinateIndexesEnabled() != cfg.isSubordinateIndexesEnabled())
       {
         if (cfg.isSubordinateIndexesEnabled())
         {
@@ -3481,17 +3325,13 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         if (id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
         {
           adminActionRequired = true;
-          LocalizableMessage message = NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
-              .get(id2children.getName());
-          messages.add(message);
+          messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2children.getName()));
         }
 
         if (id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
         {
           adminActionRequired = true;
-          LocalizableMessage message = NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
-              .get(id2subtree.getName());
-          messages.add(message);
+          messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2subtree.getName()));
         }
       }
 
@@ -3512,8 +3352,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       exclusiveLock.unlock();
     }
 
-    return new ConfigChangeResult(ResultCode.SUCCESS,
-        adminActionRequired, messages);
+    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
   }
 
   /**
@@ -3521,7 +3360,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * container.
    *
    * @return The environment config of the JE environment.
-   * @throws DatabaseException If an error occurs while retriving the
+   * @throws DatabaseException If an error occurs while retrieving the
    *                           configuration object.
    */
   public EnvironmentConfig getEnvironmentConfig()
@@ -3810,17 +3649,12 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     return builder.toString();
   }
 
-
-  /**
-   * Get the exclusive lock.
-   */
+  /** Get the exclusive lock. */
   public void lock() {
     exclusiveLock.lock();
   }
 
-  /**
-   * Unlock the exclusive lock.
-   */
+  /** Unlock the exclusive lock. */
   public void unlock() {
     exclusiveLock.unlock();
   }
