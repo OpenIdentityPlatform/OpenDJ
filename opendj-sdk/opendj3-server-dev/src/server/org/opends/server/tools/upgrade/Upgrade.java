@@ -381,6 +381,9 @@ public final class Upgrade
     register("3.0.0.11239",
         deleteConfigEntry(INFO_UPGRADE_TASK_11239_1_SUMMARY.get(),
             "dn: cn=Network Group,cn=Plugins,cn=config"));
+    register("3.0.0.11339",
+        deleteConfigEntry(INFO_UPGRADE_TASK_11339_1_SUMMARY.get(),
+            "dn: cn=Extensions,cn=config"));
 
     /** See OPENDJ-1637 */
     register("3.0.0.11260",
