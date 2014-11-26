@@ -25,29 +25,33 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import org.forgerock.i18n.LocalizableMessage;
-import com.sleepycat.je.config.EnvironmentParams;
-import com.sleepycat.je.config.ConfigParam;
-import com.sleepycat.je.*;
+
+import java.io.File;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.*;
-import java.io.File;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.api.Backend;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
-import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.Backend;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.InitializationException;
+
+import com.sleepycat.je.*;
+import com.sleepycat.je.config.ConfigParam;
+import com.sleepycat.je.config.EnvironmentParams;
+
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.messages.ConfigMessages.*;
 
 /**
  * Wrapper class for the JE environment. Root container holds all the entry
@@ -59,43 +63,28 @@ public class RootContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * The JE database environment.
-   */
+  /** The JE database environment. */
   private Environment env;
 
-  //Used to force a checkpoint during import.
-  private CheckpointConfig importForceCheckPoint = new CheckpointConfig();
+  /** Used to force a checkpoint during import. */
+  private final CheckpointConfig importForceCheckPoint = new CheckpointConfig();
 
-  /**
-   * The backend configuration.
-   */
+  /** The backend configuration. */
   private LocalDBBackendCfg config;
 
-  /**
-   * The backend to which this entry root container belongs.
-   */
-  private Backend backend;
+  /** The backend to which this entry root container belongs. */
+  private final Backend<?> backend;
 
-  /**
-   * The database environment monitor for this JE environment.
-   */
+  /** The database environment monitor for this JE environment. */
   private DatabaseEnvironmentMonitor monitor;
 
-  /**
-   * The base DNs contained in this entryContainer.
-   */
-  private ConcurrentHashMap<DN, EntryContainer> entryContainers;
+  /** The base DNs contained in this entryContainer. */
+  private final ConcurrentHashMap<DN, EntryContainer> entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
 
-  /**
-   * The cached value of the next entry identifier to be assigned.
-   */
+  /** The cached value of the next entry identifier to be assigned. */
   private AtomicLong nextid = new AtomicLong(1);
 
-  /**
-   * The compressed schema manager for this backend.
-   */
+  /** The compressed schema manager for this backend. */
   private JECompressedSchema compressedSchema;
 
 
@@ -108,19 +97,13 @@ public class RootContainer
    * @param backend A reference to the JE back end that is creating this
    *                root container.
    */
-  public RootContainer(Backend backend, LocalDBBackendCfg config)
+  public RootContainer(Backend<?> backend, LocalDBBackendCfg config)
   {
-    this.env = null;
-    this.monitor = null;
-    this.entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
     this.backend = backend;
     this.config = config;
-    this.compressedSchema = null;
 
-    getMonitorProvider().enableFilterUseStats(
-        config.isIndexFilterAnalyzerEnabled());
-    getMonitorProvider().setMaxEntries(
-        config.getIndexFilterAnalyzerMaxFilters());
+    getMonitorProvider().enableFilterUseStats(config.isIndexFilterAnalyzerEnabled());
+    getMonitorProvider().setMaxEntries(config.getIndexFilterAnalyzerMaxFilters());
 
     config.addLocalDBChangeListener(this);
     importForceCheckPoint.setForce(true);
@@ -133,9 +116,9 @@ public class RootContainer
    * @throws DatabaseException       If a database error occurs when creating
    *                                 the environment.
    * @throws InitializationException If an initialization error occurs while
-   *                                 creating the enviornment.
+   *                                 creating the environment.
    * @throws ConfigException         If an configuration error occurs while
-   *                                 creating the enviornment.
+   *                                 creating the environment.
    */
   public void open(EnvironmentConfig envConfig)
       throws DatabaseException, InitializationException, ConfigException
@@ -157,9 +140,7 @@ public class RootContainer
     //Make sure the directory is valid.
     else if (!backendDirectory.isDirectory())
     {
-      LocalizableMessage message =
-          ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
     }
 
     FilePermission backendPermission;
@@ -213,13 +194,11 @@ public class RootContainer
       // Get current size of heap in bytes
       long heapSize = Runtime.getRuntime().totalMemory();
 
-      // Get maximum size of heap in bytes. The heap cannot grow beyond this
-      // size.
+      // Get maximum size of heap in bytes. The heap cannot grow beyond this size.
       // Any attempt will result in an OutOfMemoryException.
       long heapMaxSize = Runtime.getRuntime().maxMemory();
 
-      // Get amount of free memory within the heap in bytes. This size will
-      // increase
+      // Get amount of free memory within the heap in bytes. This size will increase
       // after garbage collection and decrease as new objects are created.
       long heapFreeSize = Runtime.getRuntime().freeMemory();
 
@@ -269,15 +248,14 @@ public class RootContainer
   }
 
   /**
-   * Registeres the entry container for a base DN.
+   * Registers the entry container for a base DN.
    *
    * @param baseDN The base DN of the entry container to close.
    * @param entryContainer The entry container to register for the baseDN.
    * @throws InitializationException If an error occurs while opening the
    *                                 entry container.
    */
-  public void registerEntryContainer(DN baseDN,
-                                     EntryContainer entryContainer)
+  public void registerEntryContainer(DN baseDN, EntryContainer entryContainer)
       throws InitializationException
   {
     EntryContainer ec1 = this.entryContainers.get(baseDN);
@@ -324,7 +302,7 @@ public class RootContainer
   }
 
   /**
-   * Unregisteres the entry container for a base DN.
+   * Unregisters the entry container for a base DN.
    *
    * @param baseDN The base DN of the entry container to close.
    * @return The entry container that was unregistered or NULL if a entry
@@ -420,8 +398,7 @@ public class RootContainer
 
           if(logger.isTraceEnabled())
           {
-            logger.trace("file=" + db.getName() +
-                      " LNs=" + preloadStats.getNLNsLoaded());
+            logger.trace("file=" + db.getName() + " LNs=" + preloadStats.getNLNsLoaded());
           }
 
           // Stop if the cache is full or the time limit has been exceeded.
@@ -458,8 +435,7 @@ public class RootContainer
         logger.traceException(e);
 
         logger.error(ERR_JEB_CACHE_PRELOAD, backend.getBackendID(),
-          (e.getCause() != null ? e.getCause().getMessage() :
-            stackTraceToSingleLineString(e)));
+            stackTraceToSingleLineString(e.getCause() != null ? e.getCause() : e));
       }
     }
   }
@@ -519,7 +495,7 @@ public class RootContainer
   /**
    * Return the entry container for a specific base DN.
    *
-   * @param baseDN The base DN of the entry container to retrive.
+   * @param baseDN The base DN of the entry container to retrieve.
    * @return The entry container for the base DN.
    */
   public EntryContainer getEntryContainer(DN baseDN)
@@ -562,7 +538,7 @@ public class RootContainer
    * @param statsConfig The configuration to use for the EnvironmentStats
    *                    object.
    * @return The environment status of the JE environment.
-   * @throws DatabaseException If an error occurs while retriving the stats
+   * @throws DatabaseException If an error occurs while retrieving the stats
    *                           object.
    */
   public TransactionStats getEnvironmentTransactionStats(
@@ -576,7 +552,7 @@ public class RootContainer
    * container.
    *
    * @return The environment config of the JE environment.
-   * @throws DatabaseException If an error occurs while retriving the
+   * @throws DatabaseException If an error occurs while retrieving the
    *                           configuration object.
    */
   public EnvironmentConfig getEnvironmentConfig() throws DatabaseException
@@ -641,16 +617,6 @@ public class RootContainer
   }
 
   /**
-   * Return the highest entry ID assigned.
-   *
-   * @return The highest entry ID assigned.
-   */
-  public Long getHighestEntryID()
-  {
-    return (nextid.get() - 1);
-  }
-
-  /**
    * Resets the next entry ID counter to zero.  This should only be used after
    * clearing all databases.
    */
@@ -661,9 +627,7 @@ public class RootContainer
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg,
@@ -679,9 +643,7 @@ public class RootContainer
     {
       if(!backendDirectory.mkdirs())
       {
-        LocalizableMessage message =
-          ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
-        unacceptableReasons.add(message);
+        unacceptableReasons.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
         acceptable = false;
       }
       else
@@ -692,9 +654,7 @@ public class RootContainer
     //Make sure the directory is valid.
     else if (!backendDirectory.isDirectory())
     {
-      LocalizableMessage message =
-          ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
       acceptable = false;
     }
 
@@ -736,9 +696,7 @@ public class RootContainer
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
@@ -768,8 +726,7 @@ public class RootContainer
               String oldValue = oldEnvConfig.getConfigParam(param.getName());
               if (!oldValue.equalsIgnoreCase(jePropertyValue)) {
                 adminActionRequired = true;
-                messages.add(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(
-                        jePropertyName));
+                messages.add(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(jePropertyName));
                 if(logger.isTraceEnabled()) {
                   logger.trace("The change to the following property " +
                     "will take effect when the component is restarted: " +
@@ -795,13 +752,11 @@ public class RootContainer
                   getAttributeForProperty(param.getName());
               if (configAttr != null)
               {
-                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART
-                    .get(configAttr));
+                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(configAttr));
               }
               else
               {
-                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART
-                    .get(param.getName()));
+                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(param.getName()));
               }
               if(logger.isTraceEnabled())
               {
@@ -890,12 +845,10 @@ public class RootContainer
         if(FilePermission.canSetPermissions())
         {
           File parentDirectory = getFileForPath(config.getDBDirectory());
-          File backendDirectory = new File(parentDirectory,
-              config.getBackendId());
+          File backendDirectory = new File(parentDirectory, config.getBackendId());
           try
           {
-            if(!FilePermission.setPermissions(backendDirectory,
-                backendPermission))
+            if (!FilePermission.setPermissions(backendDirectory, backendPermission))
             {
               logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
             }
@@ -924,29 +877,6 @@ public class RootContainer
     }
 
     return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
-  }
-
-  /**
-   * Force a checkpoint.
-   *
-   * @throws DatabaseException If a database error occurs.
-   */
-  public void importForceCheckPoint() throws DatabaseException {
-    env.checkpoint(importForceCheckPoint);
-  }
-
-  /**
-   * Run the cleaner and return the number of files cleaned.
-   *
-   * @return The number of logs cleaned.
-   * @throws DatabaseException If a database error occurs.
-   */
-  public int cleanedLogFiles() throws DatabaseException {
-    int cleaned, totalCleaned = 0;
-    while((cleaned = env.cleanLog()) > 0) {
-      totalCleaned += cleaned;
-    }
-    return totalCleaned;
   }
 
   /**
