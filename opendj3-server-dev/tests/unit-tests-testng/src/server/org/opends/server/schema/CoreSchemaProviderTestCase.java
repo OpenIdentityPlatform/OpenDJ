@@ -25,16 +25,17 @@
  */
 package org.opends.server.schema;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static org.opends.server.TestCaseUtils.*;
-
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
 import org.opends.server.ConfigurationMock;
 import org.opends.server.core.CoreTestCase;
 import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.mockito.Mockito.*;
+import static org.opends.server.TestCaseUtils.*;
 
 @SuppressWarnings("javadoc")
 public class CoreSchemaProviderTestCase extends CoreTestCase
@@ -63,7 +64,7 @@ public class CoreSchemaProviderTestCase extends CoreTestCase
     CoreSchemaProvider provider = new CoreSchemaProvider();
     provider.initialize(coreSchemaCfg, schemaBuilder, mock(SchemaUpdater.class));
 
-    assertThat(schemaBuilder.toSchema().allowZeroLengthDirectoryStrings()).isTrue();
+    assertThat(schemaBuilder.toSchema().getOption(ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS)).isTrue();
   }
 
   @Test

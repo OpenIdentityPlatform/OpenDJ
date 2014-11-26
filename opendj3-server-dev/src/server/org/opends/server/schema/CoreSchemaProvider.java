@@ -30,12 +30,14 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.InitializationException;
+
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 /**
  * Provides the core schema, which includes core matching rules and syntaxes.
@@ -78,7 +80,11 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
    */
   private void updateSchemaFromConfiguration(final SchemaBuilder schemaBuilder, final CoreSchemaCfg configuration)
   {
-    schemaBuilder.allowZeroLengthDirectoryStrings(configuration.isAllowZeroLengthValuesDirectoryString());
+    schemaBuilder
+      .setOption(ALLOW_ZERO_LENGTH_DIRECTORY_STRINGS, configuration.isAllowZeroLengthValuesDirectoryString())
+      .setOption(STRICT_FORMAT_FOR_COUNTRY_STRINGS, configuration.isStrictFormatCountryString())
+      .setOption(STRIP_UPPER_BOUND_FOR_ATTRIBUTE_TYPE,
+          configuration.isStripSyntaxMinUpperBoundAttributeTypeDescription());
     // TODO : add the missing methods in schema builder for those properties
     // schemaBuilder.allowMalformedJPEGPhotos(configuration.)
     // schemaBuilder.allowMalformedNamesAndOptions(configuration.)
