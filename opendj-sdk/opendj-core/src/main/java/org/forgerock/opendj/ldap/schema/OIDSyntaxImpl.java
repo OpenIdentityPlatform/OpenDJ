@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldap.schema;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_OID_NAME;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -77,8 +78,8 @@ final class OIDSyntaxImpl extends AbstractSyntaxImpl {
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         try {
-            SchemaUtils.readOID(new SubstringReader(value.toString()), schema
-                    .allowMalformedNamesAndOptions());
+            SchemaUtils.readOID(new SubstringReader(value.toString()),
+                    schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
             return true;
         } catch (final DecodeException de) {
             invalidReason.append(de.getMessageObject());

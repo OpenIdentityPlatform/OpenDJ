@@ -45,7 +45,9 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
@@ -197,9 +199,8 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         assertThat(schema.getAttributeTypes().containsAll(baseSchema.getAttributeTypes()));
         assertThat(schema.getAttributeType("testtype")).isNotNull();
         assertThat(schema.getSchemaName()).isEqualTo(baseSchema.getSchemaName());
-        assertThat(schema.allowMalformedNamesAndOptions()).isEqualTo(
-                baseSchema.allowMalformedNamesAndOptions());
-
+        assertThat(schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS))
+                .isEqualTo(baseSchema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
     }
 
     /**
@@ -2018,11 +2019,11 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     @Test
     public void testOverrideDefaultSyntax() {
         final Schema schema =
-                new SchemaBuilder(Schema.getCoreSchema()).defaultSyntax(
-                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
-        assertThat(schema.getDefaultSyntax()).isEqualTo(CoreSchema.getDirectoryStringSyntax());
-        assertThat(schema.getAttributeType("dummy").getSyntax()).isEqualTo(
-                CoreSchema.getDirectoryStringSyntax());
+                new SchemaBuilder(Schema.getCoreSchema())
+                    .setOption(DEFAULT_SYNTAX_OID, getDirectoryStringSyntax().getOID())
+                    .toSchema().asNonStrictSchema();
+        assertThat(schema.getDefaultSyntax()).isEqualTo(getDirectoryStringSyntax());
+        assertThat(schema.getAttributeType("dummy").getSyntax()).isEqualTo(getDirectoryStringSyntax());
     }
 
     @Test
@@ -2038,8 +2039,9 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
     @Test
     public void testOverrideMatchingRule() {
         final Schema schema =
-                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
-                        CoreSchema.getCaseIgnoreMatchingRule()).toSchema().asNonStrictSchema();
+                new SchemaBuilder(Schema.getCoreSchema())
+                    .setOption(DEFAULT_MATCHING_RULE_OID, getCaseIgnoreMatchingRule().getOID())
+                    .toSchema().asNonStrictSchema();
         assertThat(schema.getDefaultMatchingRule()).isEqualTo(
                 CoreSchema.getCaseIgnoreMatchingRule());
         assertThat(schema.getAttributeType("dummy").getEqualityMatchingRule()).isEqualTo(

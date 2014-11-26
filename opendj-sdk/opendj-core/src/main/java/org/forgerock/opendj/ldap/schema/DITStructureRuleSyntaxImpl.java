@@ -26,16 +26,18 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
-
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class implements the DIT structure rule description syntax, which is
@@ -51,14 +53,17 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_INTEGER_FIRST_COMPONENT_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_DIT_STRUCTURE_RULE_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // We'll use the decodeDITStructureRule method to determine if the
@@ -72,22 +77,16 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
             reader.skipWhitespaces();
 
             if (reader.remaining() <= 0) {
-                // This means that the value was empty or contained only
-                // whitespace. That is illegal.
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE1.get(definition);
-                final DecodeException e = DecodeException.error(message);
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                // Value was empty or contained only whitespace. This is illegal.
+                throwDecodeException(logger, ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final DecodeException e = DecodeException.error(
-                        ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c));
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                throwDecodeException(logger,
+                    ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c));
             }
 
             // Skip over any spaces immediately following the opening
@@ -95,7 +94,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            SchemaUtils.readRuleID(reader);
+            readRuleID(reader);
 
             String nameForm = null;
 
@@ -108,52 +107,44 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    SchemaUtils.readNameDescriptors(reader, schema.allowMalformedNamesAndOptions());
+                    readNameDescriptors(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    SchemaUtils.readQuotedString(reader);
+                    readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                 } else if ("form".equalsIgnoreCase(tokenName)) {
-                    nameForm = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+                    nameForm = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
                 } else if ("sup".equalsIgnoreCase(tokenName)) {
-                    SchemaUtils.readRuleIDs(reader);
+                    readRuleIDs(reader);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    SchemaUtils.readExtensions(reader);
+                    readExtensions(reader);
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    final DecodeException e = DecodeException.error(message);
-                    logger.debug(LocalizableMessage.raw("%s", e));
-                    throw e;
+                    throwDecodeException(logger, ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
             if (nameForm == null) {
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
-                final DecodeException e = DecodeException.error(message);
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                throwDecodeException(logger, ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition));
             }
             return true;
         } catch (final DecodeException de) {
-            invalidReason.append(ERR_ATTR_SYNTAX_DSR_INVALID1
-                    .get(definition, de.getMessageObject()));
+            invalidReason.append(ERR_ATTR_SYNTAX_DSR_INVALID1.get(definition, de.getMessageObject()));
             return false;
         }
     }

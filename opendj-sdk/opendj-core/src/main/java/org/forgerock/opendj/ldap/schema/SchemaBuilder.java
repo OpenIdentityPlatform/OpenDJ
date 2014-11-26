@@ -52,6 +52,7 @@ import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
+import org.forgerock.opendj.ldap.Option;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -68,8 +69,8 @@ import com.forgerock.opendj.util.SubstringReader;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
@@ -146,14 +147,8 @@ public final class SchemaBuilder {
     private Map<String, List<NameForm>> objectClass2NameForms;
     private String schemaName;
     private List<LocalizableMessage> warnings;
-    private boolean allowNonStandardTelephoneNumbers;
-    private boolean allowZeroLengthDirectoryStrings;
-    private boolean allowMalformedNamesAndOptions;
-    private boolean allowMalformedJPEGPhotos;
-    private boolean allowMalformedCertificates;
+    private SchemaOptions options;
 
-    private String defaultSyntaxOID;
-    private String defaultMatchingRuleOID;
 
     /** A schema which should be copied into this builder on any mutation. */
     private Schema copyOnWriteSchema;
@@ -213,6 +208,10 @@ public final class SchemaBuilder {
         preLazyInitBuilder(schemaName, null);
     }
 
+    private Boolean allowsMalformedNamesAndOptions() {
+        return options.get(ALLOW_MALFORMED_NAMES_AND_OPTIONS);
+    }
+
     /**
      * Adds the provided attribute type definition to this schema builder.
      *
@@ -246,9 +245,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the definition was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -265,7 +262,7 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+            final String oid = readOID(reader, allowsMalformedNamesAndOptions());
 
             List<String> names = Collections.emptyList();
             String description = "".intern();
@@ -291,18 +288,18 @@ public final class SchemaBuilder {
             // the end of the definition. But before we start, set default
             // values for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
+                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    description = readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
@@ -312,22 +309,19 @@ public final class SchemaBuilder {
                     // This specifies the name or OID of the superior attribute
                     // type from which this attribute type should inherit its
                     // properties.
-                    superiorType = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    superiorType = readOID(reader, allowsMalformedNamesAndOptions());
                 } else if ("equality".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the equality matching
                     // rule to use for this attribute type.
-                    equalityMatchingRule =
-                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    equalityMatchingRule = readOID(reader, allowsMalformedNamesAndOptions());
                 } else if ("ordering".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the ordering matching
                     // rule to use for this attribute type.
-                    orderingMatchingRule =
-                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    orderingMatchingRule = readOID(reader, allowsMalformedNamesAndOptions());
                 } else if ("substr".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the substring matching
                     // rule to use for this attribute type.
-                    substringMatchingRule =
-                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    substringMatchingRule = readOID(reader, allowsMalformedNamesAndOptions());
                 } else if ("syntax".equalsIgnoreCase(tokenName)) {
                     // This specifies the numeric OID of the syntax for this
                     // matching rule. It may optionally be immediately followed
@@ -337,7 +331,7 @@ public final class SchemaBuilder {
                     // implementation will ignore any such length because it
                     // does not impose any practical limit on the length of attribute
                     // values.
-                    syntax = SchemaUtils.readOIDLen(reader, allowMalformedNamesAndOptions);
+                    syntax = readOIDLen(reader, allowsMalformedNamesAndOptions());
                 } else if ("single-definition".equalsIgnoreCase(tokenName)) {
                     // This indicates that attributes of this type are allowed
                     // to have at most one definition. We do not need any more
@@ -384,9 +378,8 @@ public final class SchemaBuilder {
                     } else if ("dsaoperation".equalsIgnoreCase(usageStr)) {
                         attributeUsage = AttributeUsage.DSA_OPERATION;
                     } else {
-                        final LocalizableMessage message =
-                            WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition, usageStr);
-                        throw new LocalizedIllegalArgumentException(message);
+                        throw new LocalizedIllegalArgumentException(
+                            WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition, usageStr));
                     }
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
@@ -399,9 +392,8 @@ public final class SchemaBuilder {
                     }
                     extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
@@ -415,9 +407,8 @@ public final class SchemaBuilder {
             }
 
             if (superiorType == null && syntax == null) {
-                final LocalizableMessage msg =
-                        WARN_ATTR_SYNTAX_ATTRTYPE_MISSING_SYNTAX_AND_SUPERIOR.get(definition);
-                throw new LocalizedIllegalArgumentException(msg);
+                throw new LocalizedIllegalArgumentException(
+                    WARN_ATTR_SYNTAX_ATTRTYPE_MISSING_SYNTAX_AND_SUPERIOR.get(definition));
             }
 
             final AttributeType attrType =
@@ -545,8 +536,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the value was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -563,8 +553,7 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String structuralClass =
-                    SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+            final String structuralClass = readOID(reader, allowsMalformedNamesAndOptions());
 
             List<String> names = Collections.emptyList();
             String description = "".intern();
@@ -584,34 +573,31 @@ public final class SchemaBuilder {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
+                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    description = readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
                 } else if ("aux".equalsIgnoreCase(tokenName)) {
-                    auxiliaryClasses = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    auxiliaryClasses = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if ("must".equalsIgnoreCase(tokenName)) {
-                    requiredAttributes =
-                            SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    requiredAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if ("may".equalsIgnoreCase(tokenName)) {
-                    optionalAttributes =
-                            SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    optionalAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if ("not".equalsIgnoreCase(tokenName)) {
-                    prohibitedAttributes =
-                            SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    prohibitedAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
@@ -621,11 +607,10 @@ public final class SchemaBuilder {
                     if (extraProperties.isEmpty()) {
                         extraProperties = new HashMap<String, List<String>>();
                     }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    extraProperties.put(tokenName, readExtensions(reader));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DCR_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_DCR_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
@@ -774,8 +759,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the value was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -792,7 +776,7 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final Integer ruleID = SchemaUtils.readRuleID(reader);
+            final Integer ruleID = readRuleID(reader);
 
             List<String> names = Collections.emptyList();
             String description = "".intern();
@@ -810,27 +794,27 @@ public final class SchemaBuilder {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
+                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    description = readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
                 } else if ("form".equalsIgnoreCase(tokenName)) {
-                    nameForm = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    nameForm = readOID(reader, allowsMalformedNamesAndOptions());
                 } else if ("sup".equalsIgnoreCase(tokenName)) {
-                    superiorRules = SchemaUtils.readRuleIDs(reader);
+                    superiorRules = readRuleIDs(reader);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
@@ -840,17 +824,15 @@ public final class SchemaBuilder {
                     if (extraProperties.isEmpty()) {
                         extraProperties = new HashMap<String, List<String>>();
                     }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    extraProperties.put(tokenName, readExtensions(reader));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
             if (nameForm == null) {
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition));
             }
 
             if (!extraProperties.isEmpty()) {
@@ -862,8 +844,7 @@ public final class SchemaBuilder {
                             superiorRules, extraProperties, definition);
             addDITStructureRule(rule, overwrite);
         } catch (final DecodeException e) {
-            final LocalizableMessage msg =
-                    ERR_ATTR_SYNTAX_DSR_INVALID1.get(definition, e.getMessageObject());
+            final LocalizableMessage msg = ERR_ATTR_SYNTAX_DSR_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
         return this;
@@ -946,8 +927,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the value was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_MR_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -964,10 +944,9 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final MatchingRule.Builder matchingRuleBuilder =
-                    new MatchingRule.Builder(
-                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions), this)
-                            .definition(definition);
+            final MatchingRule.Builder matchingRuleBuilder = new MatchingRule.Builder(
+                readOID(reader, allowsMalformedNamesAndOptions()), this);
+            matchingRuleBuilder.definition(definition);
 
             String syntax = null;
             // At this point, we should have a pretty specific syntax that
@@ -979,25 +958,25 @@ public final class SchemaBuilder {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    matchingRuleBuilder.names(SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions));
+                    matchingRuleBuilder.names(readNameDescriptors(reader, allowsMalformedNamesAndOptions()));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the matching rule. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    matchingRuleBuilder.description(SchemaUtils.readQuotedString(reader));
+                    matchingRuleBuilder.description(readQuotedString(reader));
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the matching rule should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     matchingRuleBuilder.obsolete(true);
                 } else if ("syntax".equalsIgnoreCase(tokenName)) {
-                    syntax = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    syntax = readOID(reader, allowsMalformedNamesAndOptions());
                     matchingRuleBuilder.syntaxOID(syntax);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
@@ -1005,20 +984,17 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    final List<String> extensions = SchemaUtils.readExtensions(reader);
-                    matchingRuleBuilder.extraProperties(tokenName, extensions
-                            .toArray(new String[extensions.size()]));
+                    final List<String> extensions = readExtensions(reader);
+                    matchingRuleBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_MR_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_MR_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
             // Make sure that a syntax was specified.
             if (syntax == null) {
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition));
             }
             if (overwrite) {
                 matchingRuleBuilder.addToSchemaOverwrite();
@@ -1066,9 +1042,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the value was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_MRUSE_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -1085,7 +1059,7 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+            final String oid = readOID(reader, allowsMalformedNamesAndOptions());
 
             List<String> names = Collections.emptyList();
             String description = "".intern();
@@ -1102,25 +1076,25 @@ public final class SchemaBuilder {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
+                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    description = readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
                 } else if ("applies".equalsIgnoreCase(tokenName)) {
-                    attributes = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    attributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
@@ -1130,18 +1104,16 @@ public final class SchemaBuilder {
                     if (extraProperties.isEmpty()) {
                         extraProperties = new HashMap<String, List<String>>();
                     }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    extraProperties.put(tokenName, readExtensions(reader));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
             // Make sure that the set of attributes was defined.
             if (attributes == null || attributes.size() == 0) {
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition));
             }
 
             if (!extraProperties.isEmpty()) {
@@ -1248,9 +1220,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the value was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -1267,10 +1237,9 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final NameForm.Builder nameFormBuilder =
-                    new NameForm.Builder(
-                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions), this)
-                            .definition(definition);
+            final NameForm.Builder nameFormBuilder = new NameForm.Builder(
+                readOID(reader, allowsMalformedNamesAndOptions()), this);
+            nameFormBuilder.definition(definition);
 
             // Required properties :
             String structuralOID = null;
@@ -1285,62 +1254,54 @@ public final class SchemaBuilder {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    nameFormBuilder.names(SchemaUtils.readNameDescriptors(reader,
-                            allowMalformedNamesAndOptions));
+                    nameFormBuilder.names(readNameDescriptors(reader, allowsMalformedNamesAndOptions()));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    nameFormBuilder.description(SchemaUtils.readQuotedString(reader));
+                    nameFormBuilder.description(readQuotedString(reader));
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     nameFormBuilder.obsolete(true);
                 } else if ("oc".equalsIgnoreCase(tokenName)) {
-                    structuralOID = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    structuralOID = readOID(reader, allowsMalformedNamesAndOptions());
                     nameFormBuilder.structuralObjectClassOID(structuralOID);
                 } else if ("must".equalsIgnoreCase(tokenName)) {
-                    requiredAttributes =
-                            SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    requiredAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                     nameFormBuilder.requiredAttributes(requiredAttributes);
                 } else if ("may".equalsIgnoreCase(tokenName)) {
-                    nameFormBuilder.optionalAttributes(SchemaUtils.readOIDs(reader,
-                            allowMalformedNamesAndOptions));
+                    nameFormBuilder.optionalAttributes(readOIDs(reader, allowsMalformedNamesAndOptions()));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    final List<String> extensions = SchemaUtils.readExtensions(reader);
-                    nameFormBuilder.extraProperties(tokenName, extensions
-                            .toArray(new String[extensions.size()]));
+                    final List<String> extensions = readExtensions(reader);
+                    nameFormBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
             // Make sure that a structural class was specified. If not, then
             // it cannot be valid and the name form cannot be build.
             if (structuralOID == null) {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(
+                    ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS1.get(definition));
             }
 
             if (requiredAttributes.isEmpty()) {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition));
             }
 
             if (overwrite) {
@@ -1390,74 +1351,6 @@ public final class SchemaBuilder {
     public Syntax.Builder buildSyntax(final String oid) {
         lazyInitBuilder();
         return new Syntax.Builder(oid, this);
-    }
-
-    /**
-     * Sets the default syntax which will be used when parsing unrecognized
-     * attributes.
-     * <p>
-     * By default the {@link CoreSchema#getOctetStringSyntax() OctetString}
-     * syntax will be used.
-     *
-     * @param syntax
-     *            The default syntax which will be used when parsing
-     *            unrecognized attributes.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder defaultSyntax(final Syntax syntax) {
-        return defaultSyntax(syntax.getOID());
-    }
-
-    /**
-     * Sets the default matching rule which will be used when parsing
-     * unrecognized attributes.
-     * <p>
-     * By default the {@link CoreSchema#getOctetStringMatchingRule()
-     * OctetString} matching rule will be used.
-     *
-     * @param rule
-     *            The default matching rule which will be used when parsing
-     *            unrecognized attributes.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder defaultMatchingRule(final MatchingRule rule) {
-        return defaultMatchingRule(rule.getOID());
-    }
-
-    /**
-     * Sets the default syntax which will be used when parsing unrecognized
-     * attributes.
-     * <p>
-     * By default the {@link CoreSchema#getOctetStringSyntax() OctetString}
-     * syntax will be used.
-     *
-     * @param syntaxOID
-     *            The default syntax which will be used when parsing
-     *            unrecognized attributes.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder defaultSyntax(final String syntaxOID) {
-        lazyInitBuilder();
-        this.defaultSyntaxOID = syntaxOID;
-        return this;
-    }
-
-    /**
-     * Sets the default matching rule which will be used when parsing
-     * unrecognized attributes.
-     * <p>
-     * By default the {@link CoreSchema#getOctetStringMatchingRule()
-     * OctetString} matching rule will be used.
-     *
-     * @param ruleOID
-     *            The default matching rule which will be used when parsing
-     *            unrecognized attributes.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder defaultMatchingRule(final String ruleOID) {
-        lazyInitBuilder();
-        this.defaultMatchingRuleOID = ruleOID;
-        return this;
     }
 
     /**
@@ -1561,9 +1454,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the value was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -1580,7 +1471,7 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+            final String oid = readOID(reader, allowsMalformedNamesAndOptions());
 
             List<String> names = Collections.emptyList();
             String description = "".intern();
@@ -1600,25 +1491,25 @@ public final class SchemaBuilder {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
+                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    description = readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
                 } else if ("sup".equalsIgnoreCase(tokenName)) {
-                    superiorClasses = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    superiorClasses = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if ("abstract".equalsIgnoreCase(tokenName)) {
                     // This indicates that entries must not include this
                     // objectclass unless they also include a non-abstract
@@ -1634,11 +1525,9 @@ public final class SchemaBuilder {
                     // do not need any more parsing for this token.
                     objectClassType = ObjectClassType.AUXILIARY;
                 } else if ("must".equalsIgnoreCase(tokenName)) {
-                    requiredAttributes =
-                            SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    requiredAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if ("may".equalsIgnoreCase(tokenName)) {
-                    optionalAttributes =
-                            SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    optionalAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
@@ -1648,11 +1537,10 @@ public final class SchemaBuilder {
                     if (extraProperties.isEmpty()) {
                         extraProperties = new HashMap<String, List<String>>();
                     }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    extraProperties.put(tokenName, readExtensions(reader));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
@@ -2124,9 +2012,7 @@ public final class SchemaBuilder {
             if (reader.remaining() <= 0) {
                 // This means that the value was empty or contained only
                 // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE1.get(definition);
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
@@ -2143,7 +2029,7 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+            final String oid = readOID(reader, allowsMalformedNamesAndOptions());
             final Syntax.Builder syntaxBuilder = new Syntax.Builder(oid, this).definition(definition);
 
             // At this point, we should have a pretty specific syntax that
@@ -2155,7 +2041,7 @@ public final class SchemaBuilder {
             // the end of the value. But before we start, set default values
             // for everything else we might need to know.
             while (true) {
-                final String tokenName = SchemaUtils.readTokenName(reader);
+                final String tokenName = readTokenName(reader);
 
                 if (tokenName == null) {
                     // No more tokens.
@@ -2163,19 +2049,18 @@ public final class SchemaBuilder {
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the syntax. It is an
                     // arbitrary string of characters enclosed in single quotes.
-                    syntaxBuilder.description(SchemaUtils.readQuotedString(reader));
+                    syntaxBuilder.description(readQuotedString(reader));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    final List<String> extensions = SchemaUtils.readExtensions(reader);
+                    final List<String> extensions = readExtensions(reader);
                     syntaxBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    throw new LocalizedIllegalArgumentException(message);
+                    throw new LocalizedIllegalArgumentException(
+                        ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
@@ -2184,7 +2069,6 @@ public final class SchemaBuilder {
                 if ("x-enum".equalsIgnoreCase(property.getKey())) {
                     final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, property.getValue());
                     syntaxBuilder.implementation(enumImpl);
-
                     syntaxBuilder.addToSchema(overwrite);
 
                     buildMatchingRule(enumImpl.getOrderingMatchingRule())
@@ -2206,110 +2090,10 @@ public final class SchemaBuilder {
         return this;
     }
 
-    /**
-     * Specifies whether or not the schema should allow certain illegal
-     * characters in OIDs and attribute options. When this compatibility option
-     * is set to {@code true} the following illegal characters will be permitted
-     * in addition to those permitted in section 1.4 of RFC 4512:
-     *
-     * <pre>
-     * USCORE  = %x5F ; underscore ("_")
-     * DOT     = %x2E ; period (".")
-     * </pre>
-     *
-     * By default this compatibility option is set to {@code true} because these
-     * characters are often used for naming purposes (such as collation rules).
-     *
-     * @param allowMalformedNamesAndOptions
-     *            {@code true} if the schema should allow certain illegal
-     *            characters in OIDs and attribute options.
-     * @return A reference to this {@code SchemaBuilder}.
-     * @see <a href="http://tools.ietf.org/html/rfc4512">RFC 4512 - Lightweight
-     *      Directory Access Protocol (LDAP): Directory Information Models </a>
-     */
-    public SchemaBuilder allowMalformedNamesAndOptions(final boolean allowMalformedNamesAndOptions) {
+    SchemaOptions getOptions() {
         lazyInitBuilder();
 
-        this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
-        return this;
-    }
-
-    /**
-     * Specifies whether or not the JPEG Photo syntax should allow values which
-     * do not conform to the JFIF or Exif specifications.
-     * <p>
-     * By default this compatibility option is set to {@code true}.
-     *
-     * @param allowMalformedJPEGPhotos
-     *            {@code true} if the JPEG Photo syntax should allow values
-     *            which do not conform to the JFIF or Exif specifications.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder allowMalformedJPEGPhotos(final boolean allowMalformedJPEGPhotos) {
-        lazyInitBuilder();
-
-        this.allowMalformedJPEGPhotos = allowMalformedJPEGPhotos;
-        return this;
-    }
-
-    /**
-     * Specifies whether or not the Certificate syntax should allow values which
-     * do not conform to the X.509 specifications.
-     * <p>
-     * By default this compatibility option is set to {@code true}.
-     *
-     * @param allowMalformedCertificates
-     *            {@code true} if the Certificate syntax should allow values
-     *            which do not conform to the X.509 specifications.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder allowMalformedCertificates(final boolean allowMalformedCertificates) {
-        lazyInitBuilder();
-
-        this.allowMalformedCertificates = allowMalformedCertificates;
-        return this;
-    }
-
-    /**
-     * Specifies whether or not the Telephone Number syntax should allow values
-     * which do not conform to the E.123 international telephone number format.
-     * <p>
-     * By default this compatibility option is set to {@code true}.
-     *
-     * @param allowNonStandardTelephoneNumbers
-     *            {@code true} if the Telephone Number syntax should allow
-     *            values which do not conform to the E.123 international
-     *            telephone number format.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder allowNonStandardTelephoneNumbers(
-            final boolean allowNonStandardTelephoneNumbers) {
-        lazyInitBuilder();
-
-        this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
-        return this;
-    }
-
-    /**
-     * Specifies whether or not zero-length values will be allowed by the
-     * Directory String syntax. This is technically forbidden by the LDAP
-     * specification, but it was allowed in earlier versions of the server, and
-     * the discussion of the directory string syntax in RFC 2252 does not
-     * explicitly state that they are not allowed.
-     * <p>
-     * By default this compatibility option is set to {@code false}.
-     *
-     * @param allowZeroLengthDirectoryStrings
-     *            {@code true} if zero-length values will be allowed by the
-     *            Directory String syntax, or {@code false} if not.
-     * @return A reference to this {@code SchemaBuilder}.
-     */
-    public SchemaBuilder allowZeroLengthDirectoryStrings(
-            final boolean allowZeroLengthDirectoryStrings) {
-        lazyInitBuilder();
-
-        this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
-        return this;
+        return options;
     }
 
     /**
@@ -2499,6 +2283,24 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Sets a schema option overriding any previous values for the option.
+     *
+     * @param <T>
+     *            The option type.
+     * @param option
+     *            Option with which the specified value is to be associated.
+     * @param value
+     *            Value to be associated with the specified option.
+     * @return A reference to this schema builder.
+     * @throws UnsupportedOperationException
+     *             If the schema builder options are read only.
+     */
+    public <T> SchemaBuilder setOption(final Option<T> option, T value) {
+        getOptions().set(option, value);
+        return this;
+    }
+
+    /**
      * Returns a strict {@code Schema} containing all of the schema elements
      * contained in this schema builder as well as the same set of schema
      * compatibility options.
@@ -2528,20 +2330,18 @@ public final class SchemaBuilder {
             localSchemaName = String.format("Schema#%d", NEXT_SCHEMA_ID.getAndIncrement());
         }
 
-        Syntax defaultSyntax = numericOID2Syntaxes.get(defaultSyntaxOID);
+        Syntax defaultSyntax = numericOID2Syntaxes.get(options.get(DEFAULT_SYNTAX_OID));
         if (defaultSyntax == null) {
             defaultSyntax = Schema.getCoreSchema().getDefaultSyntax();
         }
 
-        MatchingRule defaultMatchingRule = numericOID2MatchingRules.get(defaultMatchingRuleOID);
+        MatchingRule defaultMatchingRule =  numericOID2MatchingRules.get(options.get(DEFAULT_MATCHING_RULE_OID));
         if (defaultMatchingRule == null) {
             defaultMatchingRule = Schema.getCoreSchema().getDefaultMatchingRule();
         }
 
         final Schema schema =
-                new Schema.StrictImpl(localSchemaName, allowMalformedNamesAndOptions,
-                        allowMalformedJPEGPhotos, allowMalformedCertificates,
-                        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
+                new Schema.StrictImpl(localSchemaName, options,
                         defaultSyntax, defaultMatchingRule, numericOID2Syntaxes,
                         numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
@@ -2829,13 +2629,7 @@ public final class SchemaBuilder {
     private void lazyInitBuilder() {
         // Lazy initialization.
         if (numericOID2Syntaxes == null) {
-            allowMalformedNamesAndOptions = true;
-            allowMalformedJPEGPhotos = true;
-            allowMalformedCertificates = true;
-            allowNonStandardTelephoneNumbers = true;
-            allowZeroLengthDirectoryStrings = false;
-            defaultSyntaxOID = SchemaConstants.SYNTAX_OCTET_STRING_OID;
-            defaultMatchingRuleOID = SchemaConstants.EMR_OCTET_STRING_OID;
+            options = defaultSchemaOptions();
 
             numericOID2Syntaxes = new LinkedHashMap<String, Syntax>();
             numericOID2MatchingRules = new LinkedHashMap<String, MatchingRule>();
@@ -2862,15 +2656,7 @@ public final class SchemaBuilder {
         if (copyOnWriteSchema != null) {
             // Copy the schema.
             addSchema0(copyOnWriteSchema, true);
-
-            allowMalformedNamesAndOptions = copyOnWriteSchema.allowMalformedNamesAndOptions();
-            allowMalformedJPEGPhotos = copyOnWriteSchema.allowMalformedJPEGPhotos();
-            allowMalformedCertificates = copyOnWriteSchema.allowMalformedCertificates();
-            allowNonStandardTelephoneNumbers = copyOnWriteSchema.allowNonStandardTelephoneNumbers();
-            allowZeroLengthDirectoryStrings = copyOnWriteSchema.allowZeroLengthDirectoryStrings();
-            defaultSyntaxOID = copyOnWriteSchema.getDefaultSyntax().getOID();
-            defaultMatchingRuleOID = copyOnWriteSchema.getDefaultMatchingRule().getOID();
-
+            options = SchemaOptions.copyOf(copyOnWriteSchema.getOptions());
             copyOnWriteSchema = null;
         }
     }
@@ -2879,13 +2665,7 @@ public final class SchemaBuilder {
         this.schemaName = schemaName;
         this.copyOnWriteSchema = copyOnWriteSchema;
 
-        this.allowMalformedNamesAndOptions = true;
-        this.allowMalformedJPEGPhotos = true;
-        this.allowMalformedCertificates = true;
-        this.allowNonStandardTelephoneNumbers = true;
-        this.allowZeroLengthDirectoryStrings = false;
-        this.defaultSyntaxOID = null;
-        this.defaultMatchingRuleOID = null;
+        this.options = null;
 
         this.numericOID2Syntaxes = null;
         this.numericOID2MatchingRules = null;

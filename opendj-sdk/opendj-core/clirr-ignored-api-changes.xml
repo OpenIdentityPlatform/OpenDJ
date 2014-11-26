@@ -390,4 +390,10 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <to>*toIrreversibleNormalizedByteString()</to>
     <justification>OPENDJ-1585 Function has been renamed to avoid abuse</justification>
   </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/schema/Schema(Builder)?]</className>
+    <differenceType>7002</differenceType>
+    <method>%regex[(boolean|org.forgerock.opendj.ldap.schema.SchemaBuilder) allow(.)*\((boolean)?\)]</method>
+    <justification>OPENDJ-1478 Make it easier to add compatibility options to schemas</justification>
+  </difference>
 </differences>

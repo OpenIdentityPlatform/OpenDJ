@@ -27,9 +27,6 @@
 
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -49,6 +46,11 @@ import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.ASCIICharProp;
 import com.forgerock.opendj.util.Iterators;
+
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * An attribute description as defined in RFC 4512 section 2.5. Attribute
@@ -740,9 +742,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     }
 
     /** Uncached valueOf implementation. */
-    private static AttributeDescription valueOf0(final String attributeDescription,
-            final Schema schema) {
-        final boolean allowMalformedNamesAndOptions = schema.allowMalformedNamesAndOptions();
+    private static AttributeDescription valueOf0(final String attributeDescription, final Schema schema) {
+        final boolean allowMalformedNamesAndOptions = schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS);
         int i = 0;
         final int length = attributeDescription.length();
         char c = 0;

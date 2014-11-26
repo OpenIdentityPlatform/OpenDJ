@@ -26,9 +26,6 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,13 +33,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class defines the LDAP syntax description syntax, which is used to hold
@@ -58,14 +60,17 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_OID_FIRST_COMPONENT_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_LDAP_SYNTAX_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // We'll use the decodeNameForm method to determine if the value is
@@ -79,23 +84,16 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
             reader.skipWhitespaces();
 
             if (reader.remaining() <= 0) {
-                // This means that the value was empty or contained only
-                // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE1.get(definition);
-                final DecodeException e = DecodeException.error(message);
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                // Value was empty or contained only whitespace. This is illegal.
+                throwDecodeException(logger, ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final DecodeException e = DecodeException.error(
-                        ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c));
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                throwDecodeException(logger,
+                    ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c));
             }
 
             // Skip over any spaces immediately following the opening
@@ -103,7 +101,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+            final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
 
             Map<String, List<String>> extraProperties = Collections.emptyMap();
             // At this point, we should have a pretty specific syntax that
@@ -135,11 +133,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                     }
                     extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    final DecodeException e = DecodeException.error(message);
-                    logger.debug(LocalizableMessage.raw("%s", e));
-                    throw e;
+                    throwDecodeException(logger, ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
@@ -151,12 +145,8 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                         try {
                             Pattern.compile(values.next());
                         } catch (final Exception e) {
-                            final LocalizableMessage message =
-                                    WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get(oid,
-                                            pattern);
-                            final DecodeException de = DecodeException.error(message, e);
-                            logger.debug(LocalizableMessage.raw("%s", e));
-                            throw de;
+                            throwDecodeException(logger,
+                                WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get(oid, pattern));
                         }
                         break;
                     }
@@ -166,11 +156,8 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                         final String entry = values.get(i);
                         for (int j = i + 1; j < values.size(); j++) {
                             if (entry.equals(values.get(j))) {
-                                final LocalizableMessage message =
-                                        WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(oid, entry, j);
-                                final DecodeException e = DecodeException.error(message);
-                                logger.debug(LocalizableMessage.raw("%s", e));
-                                throw e;
+                                throwDecodeException(logger,
+                                    WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(oid, entry, j));
                             }
                         }
                     }
@@ -179,8 +166,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
 
             return true;
         } catch (final DecodeException de) {
-            invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_INVALID1.get(definition, de
-                    .getMessageObject()));
+            invalidReason.append(ERR_ATTR_SYNTAX_ATTRSYNTAX_INVALID1.get(definition, de.getMessageObject()));
             return false;
         }
     }

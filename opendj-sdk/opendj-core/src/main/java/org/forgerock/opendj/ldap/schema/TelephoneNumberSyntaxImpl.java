@@ -35,6 +35,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_N
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_TELEPHONE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_TELEPHONE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -93,7 +94,7 @@ final class TelephoneNumberSyntaxImpl extends AbstractSyntaxImpl {
 
         final int length = valueStr.length();
 
-        if (!schema.allowNonStandardTelephoneNumbers()) {
+        if (!schema.getOption(ALLOW_NON_STANDARD_TELEPHONE_NUMBERS)) {
             // If the value does not start with a plus sign, then that's not
             // acceptable.
             if (valueStr.charAt(0) != '+') {

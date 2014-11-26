@@ -27,8 +27,6 @@
 
 package org.forgerock.opendj.ldif;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,12 +52,17 @@ import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.ldap.CoreMessages;
+
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 /**
  * This class tests the LDIF functionality.
@@ -550,10 +553,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public final void testSearchForEntryInLDIFUsingIgnoreMatchingRuleSucceedWithLowerCaseFilter() throws IOException {
-        Schema schema =
-                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
-                        CoreSchema.getCaseIgnoreMatchingRule()).defaultSyntax(
-                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
+        Schema schema = newSchemaBuilder(getCaseIgnoreMatchingRule(), getDirectoryStringSyntax());
 
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -584,10 +584,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test(expectedExceptions = NoSuchElementException.class)
     public final void testSearchForEntryInLDIFUsingExactMatchingRuleFailsWithLowerCaseFilter() throws IOException {
-        Schema schema =
-                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
-                        CoreSchema.getCaseExactMatchingRule()).defaultSyntax(
-                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
+        Schema schema = newSchemaBuilder(getCaseExactMatchingRule(), getDirectoryStringSyntax());
 
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -613,10 +610,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      */
     @Test
     public final void testSearchForEntryInLDIFUsingExactMatchingRuleSucceedWithRightFilter() throws IOException {
-        Schema schema =
-                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
-                        CoreSchema.getCaseExactMatchingRule()).defaultSyntax(
-                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
+        Schema schema = newSchemaBuilder(getCaseExactMatchingRule(), getDirectoryStringSyntax());
 
         // @formatter:off
         final LDIFEntryReader input = new LDIFEntryReader(
@@ -638,6 +632,13 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         assertThat(entry.getAttribute("ds-cfg-java-class").firstValueAsString()).isEqualTo(
                 "org.opends.server.schema.JPEGSyntax");
         input.close();
+    }
+
+    private Schema newSchemaBuilder(MatchingRule defaultMatchingRule, Syntax defaultSyntax) {
+        return new SchemaBuilder(Schema.getCoreSchema())
+            .setOption(DEFAULT_MATCHING_RULE_OID, defaultMatchingRule.getOID())
+            .setOption(DEFAULT_SYNTAX_OID, defaultSyntax.getOID())
+            .toSchema().asNonStrictSchema();
     }
 
     /**

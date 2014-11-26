@@ -27,10 +27,11 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import org.forgerock.opendj.ldap.schema.Syntax.Builder;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 /**
  * This class tests the Syntax class.
@@ -198,7 +199,7 @@ public class SyntaxTestCase extends AbstractSchemaTestCase {
     public final void testBuilderAllowsNoSyntaxCaseWhereDefaultSyntaxIsChanged() {
         // @formatter:off
         final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
-            .defaultSyntax("1.3.6.1.4.1.1466.115.121.1.15")
+            .setOption(DEFAULT_SYNTAX_OID, "1.3.6.1.4.1.1466.115.121.1.15")
             .buildSyntax("1.9.1.2.3")
                 .description("Security Label")
                 .extraProperties("X-ENUM", "top-secret", "secret", "confidential")

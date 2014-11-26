@@ -38,6 +38,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_SYNTAX_CERTIFICATE_ONLY
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CERTIFICATE_EXACT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_OCTET_STRING_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_CERTIFICATE_NAME;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.io.ASN1.*;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -89,7 +90,7 @@ final class CertificateSyntaxImpl extends AbstractSyntaxImpl {
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         // Skip validation if strict validation is disabled.
-        if (schema.allowMalformedCertificates()) {
+        if (schema.getOption(ALLOW_MALFORMED_CERTIFICATES)) {
             return true;
         }
 

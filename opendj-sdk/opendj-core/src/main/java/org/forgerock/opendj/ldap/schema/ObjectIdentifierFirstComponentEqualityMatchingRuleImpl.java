@@ -37,6 +37,9 @@ import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
 
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
 /**
  * This class implements the objectIdentifierFirstComponentMatch matching rule
  * defined in X.520 and referenced in RFC 2252. This rule is intended for use
@@ -52,11 +55,12 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
             throws DecodeException {
         final String definition = assertionValue.toString();
         final SubstringReader reader = new SubstringReader(definition);
-        final String oid = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+        final String oid = readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS));
         final String normalized = ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema, oid);
         return DefaultAssertion.equality(ByteString.valueOf(normalized));
     }
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String definition = value.toString();
@@ -67,8 +71,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
         reader.skipWhitespaces();
 
         if (reader.remaining() <= 0) {
-            // This means that the value was empty or contained only
-            // whitespace. That is illegal.
+            // Value was empty or contained only whitespace. This is illegal.
             final LocalizableMessage message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
             throw DecodeException.error(message);
         }
@@ -85,9 +88,8 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
         reader.skipWhitespaces();
 
         // The next set of characters must be the OID.
-        final String normalized =
-                ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema, SchemaUtils.readOID(
-                        reader, schema.allowMalformedNamesAndOptions()));
+        final String normalized = ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema,
+            readOID(reader, schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS)));
         return ByteString.valueOf(normalized);
     }
 }

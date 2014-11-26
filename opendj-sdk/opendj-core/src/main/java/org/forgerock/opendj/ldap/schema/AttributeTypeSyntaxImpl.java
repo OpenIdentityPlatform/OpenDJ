@@ -26,16 +26,18 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
-
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
+
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class defines the attribute type description syntax, which is used to
@@ -51,43 +53,39 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
         return EMR_OID_FIRST_COMPONENT_OID;
     }
 
+    @Override
     public String getName() {
         return SYNTAX_ATTRIBUTE_TYPE_NAME;
     }
 
+    @Override
     public boolean isHumanReadable() {
         return true;
     }
 
+    @Override
     public boolean valueIsAcceptable(final Schema schema, final ByteSequence value,
             final LocalizableMessageBuilder invalidReason) {
         final String definition = value.toString();
         try {
             final SubstringReader reader = new SubstringReader(definition);
+            final boolean allowMalformedNamesAndOptions = schema.getOption(ALLOW_MALFORMED_NAMES_AND_OPTIONS);
 
             // We'll do this a character at a time. First, skip over any
             // leading whitespace.
             reader.skipWhitespaces();
 
             if (reader.remaining() <= 0) {
-                // This means that the definition was empty or contained only
-                // whitespace. That is illegal.
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE1.get(definition);
-                final DecodeException e = DecodeException.error(message);
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                // Value was empty or contained only whitespace. This is illegal.
+                throwDecodeException(logger, ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE1.get(definition));
             }
 
             // The next character must be an open parenthesis. If it is not,
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final DecodeException e = DecodeException.error(
-                    ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
-                        definition, reader.pos() - 1, String.valueOf(c)));
-                logger.debug(LocalizableMessage.raw("%s", e));
-                throw e;
+                throwDecodeException(logger, ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, String.valueOf(c)));
             }
 
             // Skip over any spaces immediately following the opening
@@ -95,7 +93,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+            readOID(reader, allowMalformedNamesAndOptions);
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -112,12 +110,12 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    SchemaUtils.readNameDescriptors(reader, schema.allowMalformedNamesAndOptions());
+                    readNameDescriptors(reader, allowMalformedNamesAndOptions);
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    SchemaUtils.readQuotedString(reader);
+                    readQuotedString(reader);
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
@@ -126,19 +124,19 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                     // This specifies the name or OID of the superior attribute
                     // type from which this attribute type should inherit its
                     // properties.
-                    SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+                    readOID(reader, allowMalformedNamesAndOptions);
                 } else if ("equality".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the equality matching
                     // rule to use for this attribute type.
-                    SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+                    readOID(reader, allowMalformedNamesAndOptions);
                 } else if ("ordering".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the ordering matching
                     // rule to use for this attribute type.
-                    SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+                    readOID(reader, allowMalformedNamesAndOptions);
                 } else if ("substr".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the substring matching
                     // rule to use for this attribute type.
-                    SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+                    readOID(reader, allowMalformedNamesAndOptions);
                 } else if ("syntax".equalsIgnoreCase(tokenName)) {
                     // This specifies the numeric OID of the syntax for this
                     // matching rule. It may optionally be immediately followed
@@ -150,7 +148,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                     // does
                     // not impose any practical limit on the length of attribute
                     // values.
-                    SchemaUtils.readOIDLen(reader, schema.allowMalformedNamesAndOptions());
+                    readOIDLen(reader, allowMalformedNamesAndOptions);
                 } else if ("single-definition".equalsIgnoreCase(tokenName)) {
                     // This indicates that attributes of this type are allowed to
                     // have at most one definition. We do not need any more
@@ -187,12 +185,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                             && !"directoryoperation".equalsIgnoreCase(usageStr)
                             && !"distributedoperation".equalsIgnoreCase(usageStr)
                             && !"dsaoperation".equalsIgnoreCase(usageStr)) {
-                        final LocalizableMessage message =
-                                WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition,
-                                        usageStr);
-                        final DecodeException e = DecodeException.error(message);
-                        logger.debug(LocalizableMessage.raw("%s", e));
-                        throw e;
+                        throwDecodeException(logger,
+                            WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition, usageStr));
                     }
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
@@ -202,11 +196,8 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                     // parenthesis.
                     SchemaUtils.readExtensions(reader);
                 } else {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1.get(definition, tokenName);
-                    final DecodeException e = DecodeException.error(message);
-                    logger.debug(LocalizableMessage.raw("%s", e));
-                    throw e;
+                    throwDecodeException(logger, ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1.get(definition, tokenName));
+
                 }
             }
             return true;
