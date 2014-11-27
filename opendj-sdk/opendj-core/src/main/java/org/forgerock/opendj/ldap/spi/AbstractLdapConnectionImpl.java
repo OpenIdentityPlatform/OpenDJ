@@ -353,7 +353,7 @@ public abstract class AbstractLdapConnectionImpl<F extends AbstractLdapConnectio
         }
 
         // Remove the promise associated with the request to be abandoned.
-        final LdapPromiseImpl<?> pendingRequest = removePendingResult(request.getRequestID());
+        final ResultLdapPromiseImpl<?, ?> pendingRequest = removePendingResult(request.getRequestID());
         if (pendingRequest == null) {
             /*
              * There has never been a request with the specified message ID or
