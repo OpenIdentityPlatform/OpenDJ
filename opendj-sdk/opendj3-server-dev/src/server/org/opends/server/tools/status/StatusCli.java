@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
+import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.INFO_ERROR_READING_SERVER_CONFIGURATION;
@@ -1179,7 +1180,7 @@ class StatusCli extends ConsoleApplication
         options.setUseStartTLS(ci.useStartTLS());
         options.setSSLContext(sslBuilder.getSSLContext());
 
-        factory = new LDAPConnectionFactory(hostName, portNumber, options);
+        factory = newLDAPConnectionFactory(hostName, portNumber, options);
         connection = factory.getConnection();
         connection.bind(bindDN, bindPassword.toCharArray());
         break;
