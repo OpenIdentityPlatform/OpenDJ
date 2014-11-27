@@ -23,7 +23,7 @@
  *
  *      Copyright 2014 ForgeRock AS.
  */
-package org.opends.server.backends;
+package org.opends.server.backends.pluggable;
 
 import java.util.Collections;
 import java.util.Set;
