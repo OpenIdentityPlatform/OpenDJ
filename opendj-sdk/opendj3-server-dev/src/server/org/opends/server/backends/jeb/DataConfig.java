@@ -26,28 +26,24 @@
  */
 package org.opends.server.backends.jeb;
 
+import org.forgerock.util.Reject;
+import org.opends.server.api.CompressedSchema;
 import org.opends.server.types.EntryEncodeConfig;
-
-import static org.forgerock.util.Reject.*;
 
 /**
  * Configuration class to indicate desired compression and cryptographic options
  * for the data stored in the database.
  */
-public class DataConfig
+public final class DataConfig
 {
-  /**
-   * Indicates whether data should be compressed before writing to the database.
-   */
-  private boolean compressed = false;
+  /** Indicates whether data should be compressed before writing to the database. */
+  private boolean compressed;
 
-  /**
-   * The configuration to use when encoding entries in the database.
-   */
+  /** The configuration to use when encoding entries in the database. */
   private EntryEncodeConfig encodeConfig = new EntryEncodeConfig();
 
   /**
-   * Constrct a new DataConfig object with the specified settings.
+   * Construct a new DataConfig object with the specified settings.
    *
    * @param compressed true if data should be compressed, false if not.
    * @param compactEncoding true if data should be encoded in compact form,
@@ -55,22 +51,10 @@ public class DataConfig
    * @param compressedSchema the compressed schema manager to use.  It must not
    * be {@code null} if compactEncoding is {@code true}.
    */
-  public DataConfig(boolean compressed, boolean compactEncoding,
-                    JECompressedSchema compressedSchema)
+  public DataConfig(boolean compressed, boolean compactEncoding, CompressedSchema compressedSchema)
   {
     this.compressed = compressed;
-
-    if (compressedSchema == null)
-    {
-      ifFalse(! compactEncoding);
-      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding, false);
-    }
-    else
-    {
-      this.encodeConfig =
-           new EntryEncodeConfig(false, compactEncoding, compactEncoding,
-                                 compressedSchema);
-    }
+    setCompactEncoding(compactEncoding, compressedSchema);
   }
 
   /**
@@ -92,8 +76,6 @@ public class DataConfig
     return encodeConfig.compressAttributeDescriptions();
   }
 
-
-
   /**
    * Configure whether data should be compressed before writing to the database.
    * @param compressed true if data should be compressed, false if not.
@@ -111,20 +93,16 @@ public class DataConfig
    * @param compressedSchema The compressed schema manager to use.  It must not
    * be {@code null} if compactEncoding is {@code true}.
    */
-  public void setCompactEncoding(boolean compactEncoding,
-                                 JECompressedSchema compressedSchema)
+  public void setCompactEncoding(boolean compactEncoding, CompressedSchema compressedSchema)
   {
     if (compressedSchema == null)
     {
-      ifFalse(! compactEncoding);
-      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
-                                                compactEncoding);
+      Reject.ifTrue(compactEncoding);
+      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding, false);
     }
     else
     {
-      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding,
-                                                compactEncoding,
-                                                compressedSchema);
+      this.encodeConfig = new EntryEncodeConfig(false, compactEncoding, compactEncoding, compressedSchema);
     }
   }
 
@@ -141,9 +119,10 @@ public class DataConfig
    * Get a string representation of this object.
    * @return A string representation of this object.
    */
+  @Override
   public String toString()
   {
-    StringBuilder builder = new StringBuilder();
+    final StringBuilder builder = new StringBuilder();
     builder.append("DataConfig(compressed=");
     builder.append(compressed);
     builder.append(", ");
