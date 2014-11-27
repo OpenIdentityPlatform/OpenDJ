@@ -27,39 +27,34 @@
 package org.opends.server.backends.task;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
 import java.util.Iterator;
 import java.util.List;
-
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.server.config.ConfigConstants.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.RDN;
 
+import static java.util.Calendar.*;
+
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a information about a recurring task, which will be used
@@ -72,42 +67,39 @@ public class RecurringTask
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-
-  // The DN of the entry that actually defines this task.
+  /** The DN of the entry that actually defines this task. */
   private final DN recurringTaskEntryDN;
 
-  // The entry that actually defines this task.
+  /** The entry that actually defines this task. */
   private final Entry recurringTaskEntry;
 
-  // The unique ID for this recurring task.
+  /** The unique ID for this recurring task. */
   private final String recurringTaskID;
 
-  // The fully-qualified name of the class that will be used to implement the
-  // class.
+  /**
+   * The fully-qualified name of the class that will be used to implement the
+   * class.
+   */
   private final String taskClassName;
 
-  // Task instance.
+  /** Task instance. */
   private Task task;
 
-  // Task scheduler for this task.
+  /** Task scheduler for this task. */
   private final TaskScheduler taskScheduler;
 
-  // Number of tokens in the task schedule tab.
+  /** Number of tokens in the task schedule tab. */
   private static final int TASKTAB_NUM_TOKENS = 5;
 
-  // Maximum year month days.
+  /** Maximum year month days. */
   static final int MONTH_LENGTH[]
         = {31,28,31,30,31,30,31,31,30,31,30,31};
 
-  // Maximum leap year month days.
+  /** Maximum leap year month days. */
   static final int LEAP_MONTH_LENGTH[]
         = {31,29,31,30,31,30,31,31,30,31,30,31};
 
-  /**
-   * Task tab fields.
-   */
+  /** Task tab fields. */
   private static enum TaskTab {MINUTE, HOUR, DAY, MONTH, WEEKDAY};
 
   private static final int MINUTE_INDEX = 0;
@@ -116,16 +108,16 @@ public class RecurringTask
   private static final int MONTH_INDEX = 3;
   private static final int WEEKDAY_INDEX = 4;
 
-  // Wildcard match pattern.
+  /** Wildcard match pattern. */
   private static final Pattern wildcardPattern = Pattern.compile("^\\*(?:/(\\d+))?");
 
-  // Exact match pattern.
+  /** Exact match pattern. */
   private static final Pattern exactPattern = Pattern.compile("(\\d+)");
 
-  // Range match pattern.
+  /** Range match pattern. */
   private static final Pattern rangePattern = Pattern.compile("(\\d+)-(\\d+)(?:/(\\d+))?");
 
-  // Boolean arrays holding task tab slots.
+  /** Boolean arrays holding task tab slots. */
   private final boolean[] minutesArray;
   private final boolean[] hoursArray;
   private final boolean[] daysArray;
@@ -156,12 +148,11 @@ public class RecurringTask
                                   ATTR_RECURRING_TASK_ID.toLowerCase());
     if (attrType == null)
     {
-      attrType = DirectoryServer.getDefaultAttributeType(
-                                      ATTR_RECURRING_TASK_ID);
+      attrType = DirectoryServer.getDefaultAttributeType(ATTR_RECURRING_TASK_ID);
     }
 
     List<Attribute> attrList = recurringTaskEntry.getAttribute(attrType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
       LocalizableMessage message =
           ERR_RECURRINGTASK_NO_ID_ATTRIBUTE.get(ATTR_RECURRING_TASK_ID);
@@ -195,16 +186,14 @@ public class RecurringTask
 
 
     // Get the schedule for this task.
-    attrType = DirectoryServer.getAttributeType(
-                    ATTR_RECURRING_TASK_SCHEDULE.toLowerCase());
+    attrType = DirectoryServer.getAttributeType(ATTR_RECURRING_TASK_SCHEDULE.toLowerCase());
     if (attrType == null)
     {
-      attrType = DirectoryServer.getDefaultAttributeType(
-        ATTR_RECURRING_TASK_SCHEDULE);
+      attrType = DirectoryServer.getDefaultAttributeType(ATTR_RECURRING_TASK_SCHEDULE);
     }
 
     attrList = recurringTaskEntry.getAttribute(attrType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
       LocalizableMessage message = ERR_RECURRINGTASK_NO_SCHEDULE_ATTRIBUTE.get(
           ATTR_RECURRING_TASK_SCHEDULE);
@@ -230,8 +219,7 @@ public class RecurringTask
     value = iterator.next();
     if (iterator.hasNext())
     {
-      LocalizableMessage message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_VALUES.get(
-          ATTR_RECURRING_TASK_SCHEDULE);
+      LocalizableMessage message = ERR_RECURRINGTASK_MULTIPLE_SCHEDULE_VALUES.get(ATTR_RECURRING_TASK_SCHEDULE);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -248,33 +236,29 @@ public class RecurringTask
     weekdayArray = taskArrays[WEEKDAY_INDEX];
 
     // Get the class name from the entry.  If there isn't one, then fail.
-    attrType = DirectoryServer.getAttributeType(
-                    ATTR_TASK_CLASS.toLowerCase());
+    attrType = DirectoryServer.getAttributeType(ATTR_TASK_CLASS.toLowerCase());
     if (attrType == null)
     {
       attrType = DirectoryServer.getDefaultAttributeType(ATTR_TASK_CLASS);
     }
 
     attrList = recurringTaskEntry.getAttribute(attrType);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
-      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(
-          ATTR_TASK_CLASS);
+      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_ATTRIBUTE.get(ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (attrList.size() > 1)
     {
-      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(
-          ATTR_TASK_CLASS);
+      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_TYPES.get(ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     attr = attrList.get(0);
     if (attr.isEmpty())
     {
-      LocalizableMessage message =
-          ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_CLASS);
+      LocalizableMessage message = ERR_TASKSCHED_NO_CLASS_VALUES.get(ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -282,8 +266,7 @@ public class RecurringTask
     value = iterator.next();
     if (iterator.hasNext())
     {
-      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(
-          ATTR_TASK_CLASS);
+      LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(ATTR_TASK_CLASS);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -423,10 +406,8 @@ public class RecurringTask
       SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmssSSS");
       String nextTaskID = task.getTaskID() + "-" + df.format(nextTaskDate);
       String nextTaskIDName = NAME_PREFIX_TASK + "id";
-      AttributeType taskIDAttrType =
-        DirectoryServer.getAttributeType(nextTaskIDName);
-      Attribute nextTaskIDAttr = Attributes.create(
-        taskIDAttrType, nextTaskID);
+      AttributeType taskIDAttrType = DirectoryServer.getAttributeType(nextTaskIDName);
+      Attribute nextTaskIDAttr = Attributes.create(taskIDAttrType, nextTaskID);
       nextTaskEntry.replaceAttribute(nextTaskIDAttr);
       RDN nextTaskRDN = RDN.decode(nextTaskIDName + "=" + nextTaskID);
       DN nextTaskDN = new DN(nextTaskRDN,
@@ -465,7 +446,7 @@ public class RecurringTask
   /**
    * Parse and validate recurring task schedule.
    * @param taskSchedule recurring task schedule tab in crontab(5) format.
-   * @param arrays, an array of 5 boolean arrays.  The array has the following
+   * @param arrays an array of 5 boolean arrays.  The array has the following
    * structure: {minutesArray, hoursArray, daysArray, monthArray, weekdayArray}.
    * @param referToTaskEntryAttribute whether the error messages must refer
    * to the task entry attribute or not.  This is used to have meaningful
@@ -473,8 +454,7 @@ public class RecurringTask
    * a crontab formatted string.
    * @throws DirectoryException to indicate an error.
    */
-  private static void parseTaskTab(String taskSchedule,
-      boolean[][] arrays,
+  private static void parseTaskTab(String taskSchedule, boolean[][] arrays,
       boolean referToTaskEntryAttribute) throws DirectoryException
   {
     StringTokenizer st = new StringTokenizer(taskSchedule);
@@ -591,15 +571,13 @@ public class RecurringTask
    * @param tabField recurring task schedule field in crontab(5) format.
    * @param minValue minimum value allowed for this field.
    * @param maxValue maximum value allowed for this field.
-   * @return boolean schedule slots range set according to
-   *         the schedule field.
+   * @return boolean schedule slots range set according to the schedule field.
    * @throws IllegalArgumentException if tab field is invalid.
    */
   public static boolean[] parseTaskTabField(String tabField,
     int minValue, int maxValue) throws IllegalArgumentException
   {
     boolean[] valueList = new boolean[maxValue + 1];
-    Arrays.fill(valueList, false);
 
     // Wildcard with optional increment.
     Matcher m = wildcardPattern.matcher(tabField);
@@ -675,7 +653,7 @@ public class RecurringTask
    */
   private static boolean isValueAbsent(String s)
   {
-    return (s == null || s.length() == 0) ? true : false;
+    return s == null || s.length() == 0;
   }
   /**
    * Get next recurring slot from the range.
@@ -719,8 +697,7 @@ public class RecurringTask
           for (;;) {
             // Minute
             for (;;) {
-              minute = getNextTimeSlice(minutesArray,
-                calendar.get(GregorianCalendar.MINUTE));
+              minute = getNextTimeSlice(minutesArray, calendar.get(MINUTE));
               if (minute == -1) {
                 calendar.set(GregorianCalendar.MINUTE, 0);
                 calendar.add(GregorianCalendar.HOUR_OF_DAY, 1);
@@ -741,8 +718,7 @@ public class RecurringTask
           }
           day = getNextTimeSlice(daysArray,
             calendar.get(GregorianCalendar.DAY_OF_MONTH));
-          if ((day == -1) || (day > calendar.getActualMaximum(
-                              GregorianCalendar.DAY_OF_MONTH)))
+          if (day == -1 || day > calendar.getActualMaximum(DAY_OF_MONTH))
           {
             calendar.set(GregorianCalendar.DAY_OF_MONTH, 1);
             calendar.add(GregorianCalendar.MONTH, 1);
@@ -751,33 +727,28 @@ public class RecurringTask
             break;
           }
         }
-        month = getNextTimeSlice(monthArray,
-          (calendar.get(GregorianCalendar.MONTH) + 1));
+        month = getNextTimeSlice(monthArray, calendar.get(MONTH) + 1);
         if (month == -1) {
           calendar.set(GregorianCalendar.MONTH, 0);
           calendar.add(GregorianCalendar.YEAR, 1);
+        }
+        else if (day > LEAP_MONTH_LENGTH[month - 1]
+            && (getNextTimeSlice(daysArray, 1) != day
+                || getNextTimeSlice(monthArray, 1) != month))
+        {
+          calendar.set(DAY_OF_MONTH, 1);
+          calendar.add(MONTH, 1);
+        } else if (day > MONTH_LENGTH[month - 1]
+            && !calendar.isLeapYear(calendar.get(YEAR))) {
+          calendar.add(YEAR, 1);
         } else {
-          if ((day > LEAP_MONTH_LENGTH[month - 1]) &&
-              ((getNextTimeSlice(daysArray, 1) != day) ||
-               (getNextTimeSlice(monthArray, 1) != month)))
-          {
-            calendar.set(GregorianCalendar.DAY_OF_MONTH, 1);
-            calendar.add(GregorianCalendar.MONTH, 1);
-          } else if ((day > MONTH_LENGTH[month - 1]) &&
-                     (!calendar.isLeapYear(calendar.get(
-                      GregorianCalendar.YEAR)))) {
-            calendar.add(GregorianCalendar.YEAR, 1);
-          } else {
-            calendar.set(GregorianCalendar.MONTH, (month - 1));
-            break;
-          }
+          calendar.set(MONTH, month - 1);
+          break;
         }
       }
-      weekday = getNextTimeSlice(weekdayArray,
-        (calendar.get(GregorianCalendar.DAY_OF_WEEK) - 1));
-      if ((weekday == -1) ||
-          (weekday != (calendar.get(
-           GregorianCalendar.DAY_OF_WEEK) - 1)))
+      weekday = getNextTimeSlice(weekdayArray, calendar.get(DAY_OF_WEEK) - 1);
+      if (weekday == -1
+          || weekday != calendar.get(DAY_OF_WEEK) - 1)
       {
         calendar.add(GregorianCalendar.DAY_OF_MONTH, 1);
       } else {
