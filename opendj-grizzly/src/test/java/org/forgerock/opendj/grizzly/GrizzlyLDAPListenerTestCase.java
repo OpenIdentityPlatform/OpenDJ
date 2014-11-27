@@ -74,6 +74,7 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.mockito.Mockito.*;
@@ -230,7 +231,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
     public void testCreateLDAPListener() throws Exception {
         // test no exception is thrown, which means transport provider is
         // correctly loaded
-        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mock(ServerConnectionFactory.class));
+        LDAPListener listener = newLDAPListener(findFreeSocketAddress(), mock(ServerConnectionFactory.class));
         listener.close();
     }
 
@@ -244,7 +245,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         // correctly loaded
         LDAPListenerOptions options = new LDAPListenerOptions().
                 setProviderClassLoader(Thread.currentThread().getContextClassLoader());
-        LDAPListener listener = new LDAPListener(findFreeSocketAddress(),
+        LDAPListener listener = newLDAPListener(findFreeSocketAddress(),
                 mock(ServerConnectionFactory.class), options);
         listener.close();
     }
@@ -257,7 +258,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPListenerFailureProviderNotFound() throws Exception {
         LDAPListenerOptions options = new LDAPListenerOptions().setTransportProvider("unknown");
-        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mock(ServerConnectionFactory.class), options);
+        LDAPListener listener = newLDAPListener(findFreeSocketAddress(), mock(ServerConnectionFactory.class), options);
         listener.close();
     }
 
@@ -272,13 +273,11 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory serverConnectionFactory =
                 new MockServerConnectionFactory(serverConnection);
-        final LDAPListener listener =
-                new LDAPListener(new InetSocketAddress(0), serverConnectionFactory);
+        final LDAPListener listener = newLDAPListener(new InetSocketAddress(0), serverConnectionFactory);
         try {
             // Connect and close.
-            final Connection connection =
-                    new LDAPConnectionFactory(listener.getHostName(),
-                            listener.getPort()).getConnection();
+            final Connection connection = newLDAPConnectionFactory(listener.getHostName(), listener.getPort())
+                    .getConnection();
             assertThat(serverConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
             assertThat(serverConnection.isClosed.getCount()).isEqualTo(1);
             connection.close();
@@ -303,22 +302,22 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnectionFactory onlineServerConnectionFactory =
                 new MockServerConnectionFactory(onlineServerConnection);
         final LDAPListener onlineServerListener =
-                new LDAPListener(findFreeSocketAddress(), onlineServerConnectionFactory);
+                newLDAPListener(findFreeSocketAddress(), onlineServerConnectionFactory);
 
         try {
             // Connection pool and load balancing tests.
             InetSocketAddress offlineAddress1 = findFreeSocketAddress();
             final ConnectionFactory offlineServer1 =
-                    Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
+                    newNamedConnectionFactory(newLDAPConnectionFactory(
                             offlineAddress1.getHostName(),
                             offlineAddress1.getPort()), "offline1");
             InetSocketAddress offlineAddress2 = findFreeSocketAddress();
             final ConnectionFactory offlineServer2 =
-                    Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
+                    newNamedConnectionFactory(newLDAPConnectionFactory(
                             offlineAddress2.getHostName(),
                             offlineAddress2.getPort()), "offline2");
             final ConnectionFactory onlineServer =
-                    Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
+                    newNamedConnectionFactory(newLDAPConnectionFactory(
                             onlineServerListener.getHostName(),
                             onlineServerListener.getPort()), "online");
 
@@ -346,13 +345,11 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
                     };
 
-            final LDAPListener proxyListener =
-                    new LDAPListener(findFreeSocketAddress(), proxyServerConnectionFactory);
+            final LDAPListener proxyListener = newLDAPListener(findFreeSocketAddress(), proxyServerConnectionFactory);
             try {
                 // Connect and close.
-                final Connection connection =
-                        new LDAPConnectionFactory(proxyListener.getHostName(),
-                                proxyListener.getPort()).getConnection();
+                final Connection connection = newLDAPConnectionFactory(
+                        proxyListener.getHostName(), proxyListener.getPort()).getConnection();
 
                 assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
                 assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
@@ -383,24 +380,18 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnectionFactory onlineServerConnectionFactory =
                 new MockServerConnectionFactory(onlineServerConnection);
         final LDAPListener onlineServerListener =
-                new LDAPListener(new InetSocketAddress(0), onlineServerConnectionFactory);
+                newLDAPListener(new InetSocketAddress(0), onlineServerConnectionFactory);
 
         try {
             // Connection pool and load balancing tests.
             InetSocketAddress offlineAddress1 = findFreeSocketAddress();
-            final ConnectionFactory offlineServer1 =
-                    Connections.newNamedConnectionFactory(
-                            new LDAPConnectionFactory(offlineAddress1.getHostName(),
-                                    offlineAddress1.getPort()), "offline1");
+            final ConnectionFactory offlineServer1 = newNamedConnectionFactory(newLDAPConnectionFactory(
+                    offlineAddress1.getHostName(), offlineAddress1.getPort()), "offline1");
             InetSocketAddress offlineAddress2 = findFreeSocketAddress();
-            final ConnectionFactory offlineServer2 =
-                    Connections.newNamedConnectionFactory(
-                            new LDAPConnectionFactory(offlineAddress2.getHostName(),
-                                    offlineAddress2.getPort()), "offline2");
-            final ConnectionFactory onlineServer =
-                    Connections.newNamedConnectionFactory(
-                            new LDAPConnectionFactory(onlineServerListener.getHostName(),
-                                    onlineServerListener.getPort()), "online");
+            final ConnectionFactory offlineServer2 = newNamedConnectionFactory(newLDAPConnectionFactory(
+                    offlineAddress2.getHostName(), offlineAddress2.getPort()), "offline2");
+            final ConnectionFactory onlineServer = newNamedConnectionFactory(newLDAPConnectionFactory(
+                    onlineServerListener.getHostName(), onlineServerListener.getPort()), "online");
 
             // Round robin.
             final ConnectionFactory loadBalancer =
@@ -436,12 +427,11 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     new MockServerConnectionFactory(proxyServerConnection);
 
             final LDAPListener proxyListener =
-                    new LDAPListener(new InetSocketAddress(0), proxyServerConnectionFactory);
+                    newLDAPListener(new InetSocketAddress(0), proxyServerConnectionFactory);
             try {
                 // Connect, bind, and close.
                 final Connection connection =
-                        new LDAPConnectionFactory(proxyListener.getHostName(),
-                                proxyListener.getPort()).getConnection();
+                        newLDAPConnectionFactory(proxyListener.getHostName(), proxyListener.getPort()).getConnection();
                 try {
                     connection.bind("cn=test", "password".toCharArray());
 
@@ -476,7 +466,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnectionFactory onlineServerConnectionFactory =
                 new MockServerConnectionFactory(onlineServerConnection);
         final LDAPListener onlineServerListener =
-                new LDAPListener(findFreeSocketAddress(), onlineServerConnectionFactory);
+                newLDAPListener(findFreeSocketAddress(), onlineServerConnectionFactory);
 
         try {
             final MockServerConnection proxyServerConnection = new MockServerConnection();
@@ -489,8 +479,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             // First attempt offline server.
                             InetSocketAddress offlineAddress = findFreeSocketAddress();
                             LDAPConnectionFactory lcf =
-                                    new LDAPConnectionFactory(offlineAddress.getHostName(),
-                                            offlineAddress.getPort());
+                                    newLDAPConnectionFactory(offlineAddress.getHostName(), offlineAddress.getPort());
                             try {
                                 // This is expected to fail.
                                 lcf.getConnection().close();
@@ -499,8 +488,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             } catch (final ConnectionException ce) {
                                 // This is expected - so go to online server.
                                 try {
-                                    lcf =
-                                            new LDAPConnectionFactory(
+                                    lcf = newLDAPConnectionFactory(
                                                     onlineServerListener.getHostName(),
                                                     onlineServerListener.getPort());
                                     lcf.getConnection().close();
@@ -523,13 +511,11 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         }
 
                     };
-            final LDAPListener proxyListener =
-                    new LDAPListener(findFreeSocketAddress(), proxyServerConnectionFactory);
+            final LDAPListener proxyListener = newLDAPListener(findFreeSocketAddress(), proxyServerConnectionFactory);
             try {
                 // Connect and close.
                 final Connection connection =
-                        new LDAPConnectionFactory(proxyListener.getHostName(),
-                                proxyListener.getPort()).getConnection();
+                        newLDAPConnectionFactory(proxyListener.getHostName(), proxyListener.getPort()).getConnection();
 
                 assertThat(proxyServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
                 assertThat(onlineServerConnection.context.get(10, TimeUnit.SECONDS)).isNotNull();
@@ -559,7 +545,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnectionFactory onlineServerConnectionFactory =
                 new MockServerConnectionFactory(onlineServerConnection);
         final LDAPListener onlineServerListener =
-                new LDAPListener(findFreeSocketAddress(), onlineServerConnectionFactory);
+                newLDAPListener(findFreeSocketAddress(), onlineServerConnectionFactory);
 
         try {
             final MockServerConnection proxyServerConnection = new MockServerConnection() {
@@ -573,8 +559,8 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         throws UnsupportedOperationException {
                     // First attempt offline server.
                     InetSocketAddress offlineAddress = findFreeSocketAddress();
-                    LDAPConnectionFactory lcf = new LDAPConnectionFactory(offlineAddress.getHostName(),
-                            offlineAddress.getPort());
+                    LDAPConnectionFactory lcf =
+                            newLDAPConnectionFactory(offlineAddress.getHostName(), offlineAddress.getPort());
                     try {
                         // This is expected to fail.
                         lcf.getConnection().close();
@@ -584,7 +570,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     } catch (final ConnectionException ce) {
                         // This is expected - so go to online server.
                         try {
-                            lcf = new LDAPConnectionFactory(onlineServerListener.getHostName(),
+                            lcf = newLDAPConnectionFactory(onlineServerListener.getHostName(),
                                     onlineServerListener.getPort());
                             lcf.getConnection().close();
                             resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
@@ -606,12 +592,11 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             final MockServerConnectionFactory proxyServerConnectionFactory =
                     new MockServerConnectionFactory(proxyServerConnection);
             final LDAPListener proxyListener =
-                    new LDAPListener(findFreeSocketAddress(), proxyServerConnectionFactory);
+                    newLDAPListener(findFreeSocketAddress(), proxyServerConnectionFactory);
             try {
                 // Connect, bind, and close.
                 final Connection connection =
-                        new LDAPConnectionFactory(proxyListener.getHostName(),
-                                proxyListener.getPort()).getConnection();
+                        newLDAPConnectionFactory(proxyListener.getHostName(), proxyListener.getPort()).getConnection();
                 try {
                     connection.bind("cn=test", "password".toCharArray());
 
@@ -645,12 +630,12 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnectionFactory factory =
                 new MockServerConnectionFactory(serverConnection);
         final LDAPListenerOptions options = new LDAPListenerOptions().setMaxRequestSize(2048);
-        final LDAPListener listener = new LDAPListener(findFreeSocketAddress(), factory, options);
+        final LDAPListener listener = newLDAPListener(findFreeSocketAddress(), factory, options);
 
         Connection connection = null;
         try {
-            connection = new LDAPConnectionFactory(listener.getHostName(), listener.getPort()).
-                    getConnection();
+            connection =
+                    newLDAPConnectionFactory(listener.getHostName(), listener.getPort()).getConnection();
 
             // Small request
             connection.bind("cn=test", "password".toCharArray());
@@ -702,12 +687,12 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         final MockServerConnection serverConnection = new MockServerConnection();
         final MockServerConnectionFactory factory =
                 new MockServerConnectionFactory(serverConnection);
-        final LDAPListener listener = new LDAPListener(findFreeSocketAddress(), factory);
+        final LDAPListener listener = newLDAPListener(findFreeSocketAddress(), factory);
 
         final Connection connection;
         try {
             // Connect and bind.
-            connection = new LDAPConnectionFactory(listener.getHostName(), listener.getPort()).getConnection();
+            connection = newLDAPConnectionFactory(listener.getHostName(), listener.getPort()).getConnection();
             try {
                 connection.bind("cn=test", "password".toCharArray());
             } catch (final LdapException e) {
@@ -722,8 +707,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         try {
             // Connect and bind.
             final Connection failedConnection =
-                    new LDAPConnectionFactory(listener.getHostName(),
-                            listener.getPort()).getConnection();
+                    newLDAPConnectionFactory(listener.getHostName(), listener.getPort()).getConnection();
             failedConnection.close();
             connection.close();
             fail("Connection attempt to closed listener succeeded unexpectedly");

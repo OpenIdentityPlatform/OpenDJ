@@ -34,8 +34,8 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -44,6 +44,8 @@ import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * This command-line client demonstrates parsing entry attribute values to
@@ -66,11 +68,11 @@ public final class ParseAttributes {
             System.err.println("For example: localhost 1389");
             System.exit(1);
         }
-        final String host = args[0];
+        final String hostName = args[0];
         final int port = Integer.parseInt(args[1]);
 
         // --- JCite ---
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
         try {
             connection = factory.getConnection();

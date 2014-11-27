@@ -63,6 +63,7 @@ import org.forgerock.opendj.ldap.controls.ServerSideSortResponseControl;
 import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewRequestControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewResponseControl;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -88,6 +89,7 @@ import static org.forgerock.util.Utils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.ldap.tools.Utils.*;
 
 /**
  * A tool that can be used to issue Search requests to the Directory Server.
@@ -239,6 +241,7 @@ public final class LDAPSearch extends ConsoleApplication {
                         "[filter] [attributes ...]");
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
+        BindRequest bindRequest;
 
         BooleanArgument countEntries;
         BooleanArgument dontWrap;
@@ -440,7 +443,8 @@ public final class LDAPSearch extends ConsoleApplication {
                 return 0;
             }
 
-            connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
+            connectionFactory = connectionFactoryProvider.getConnectionFactory();
+            bindRequest = connectionFactoryProvider.getBindRequest();
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
             errPrintln(message);
@@ -825,11 +829,13 @@ public final class LDAPSearch extends ConsoleApplication {
         Connection connection;
         try {
             connection = connectionFactory.getConnection();
+            if (bindRequest != null) {
+                printPasswordPolicyResults(this, connection.bind(bindRequest));
+            }
         } catch (final LdapException ere) {
-            return Utils.printErrorMessage(this, ere);
+            return printErrorMessage(this, ere);
         }
 
-        Utils.printPasswordPolicyResults(this, connection);
 
         try {
             int filterIndex = 0;

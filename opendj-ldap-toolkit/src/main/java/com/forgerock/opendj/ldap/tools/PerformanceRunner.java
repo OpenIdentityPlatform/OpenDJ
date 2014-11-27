@@ -53,7 +53,6 @@ import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
-import com.forgerock.opendj.cli.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -547,10 +546,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     }
                 } else {
                     connection = this.connection;
-                    if (!noRebind && connection instanceof AuthenticatedConnection) {
-                        final AuthenticatedConnection ac = (AuthenticatedConnection) connection;
+                    if (!noRebind && app.getBindRequest() != null) {
                         try {
-                            ac.rebindAsync().getOrThrow();
+                            connection.bindAsync(app.getBindRequest()).getOrThrow();
                         } catch (final InterruptedException e) {
                             // Ignore and check stop requested
                             continue;

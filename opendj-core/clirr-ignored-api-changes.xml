@@ -77,8 +77,8 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <className>org/forgerock/opendj/ldap/Connections</className>
     <differenceType>7005</differenceType>
     <method>%regex[org\.forgerock\.opendj\.ldap\.ConnectionFactory newHeartBeatConnectionFactory\(org\.forgerock\.opendj\.ldap\.ConnectionFactory, long, java\.util\.concurrent\.TimeUnit, org\.forgerock\.opendj\.ldap\.requests\.SearchRequest(, java\.util\.concurrent\.ScheduledExecutorService)?\)]</method>
-    <to>%regex[org\.forgerock\.opendj\.ldap\.ConnectionFactory newHeartBeatConnectionFactory\(org\.forgerock\.opendj\.ldap\.ConnectionFactory,\s*long,\s*long,\s*java\.util\.concurrent\.TimeUnit(,\s*org\.forgerock\.opendj\.ldap\.requests\.SearchRequest(,\s*java\.util\.concurrent\.ScheduledExecutorService)?)?\)]</to>
-    <justification>OPENDJ-1058: Added a timeout parameter to actively shutdown dead connections</justification>
+    <to>%regex[org\.forgerock\.opendj\.ldap\.ConnectionFactory newHeartBeatConnectionFactory\(java\.lang\.String,\s*int(,\s*long,\s*long,\s*java\.util\.concurrent\.TimeUnit(,\s*org\.forgerock\.opendj\.ldap\.requests\.SearchRequest(,\s*java\.util\.concurrent\.ScheduledExecutorService)?)?)?\)]</to>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
   </difference>
   <difference>
     <className>org/forgerock/opendj/ldap/Connections</className>
@@ -113,14 +113,6 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <to>%regex[LDAPConnectionFactory\(java\.net\.InetSocketAddress(, org\.forgerock\.opendj\.ldap\.LDAPOptions)?\)]</to>
     <justification>OPENDJ-1270: Changed constructors to only accept InetSocketAddresses instead of more generic SocketAddress</justification>
   </difference>
-  <difference>
-    <className>org/forgerock/opendj/ldap/LDAPListener</className>
-    <differenceType>7005</differenceType>
-    <method>%regex[LDAPListener\(java\.net\.SocketAddress, org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</method>
-    <to>%regex[LDAPListener\(java\.net\.InetSocketAddress,\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</to>
-    <justification>OPENDJ-1270: Changed constructors to only accept InetSocketAddresses instead of more generic SocketAddress</justification>
-  </difference>
-
   <difference>
     <className>%regex[org/forgerock/opendj/ldap/(LDAPOptions|LDAPListenerOptions)]</className>
     <differenceType>7002</differenceType>
@@ -389,6 +381,59 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>*toNormalizedString()</method>
     <to>*toIrreversibleNormalizedByteString()</to>
     <justification>OPENDJ-1585 Function has been renamed to avoid abuse</justification>
+  </difference>  
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/(Authenticated|HeartBeat)ConnectionFactory]</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/AuthenticatedConnectionFactory$AuthenticatedConnection</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Connections</className>
+    <differenceType>7002</differenceType>
+    <method>%regex[org.forgerock.opendj.ldap.ConnectionFactory new(HeartBeat|Authenticated)ConnectionFactory\(org.forgerock.opendj.ldap.ConnectionFactory(.)*\)]</method>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+    <differenceType>7002</differenceType>
+    <method>LDAPConnectionFactory(java.lang.String, int)</method>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7002</differenceType>
+    <method>%regex[LDAPListener\((int|java\.net\.SocketAddress),\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</method>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7002</differenceType>
+    <method>%regex[LDAPListener\(java.lang.String,\s*int,\s*org\.forgerock\.opendj\.ldap\.ServerConnectionFactory(,\s*org\.forgerock\.opendj\.ldap\.LDAPListenerOptions)?\)]</method>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7009</differenceType>
+    <method>LDAPListener(int, org.forgerock.opendj.ldap.ServerConnectionFactory, org.forgerock.opendj.ldap.LDAPListenerOptions)</method>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPListener</className>
+    <differenceType>7005</differenceType>
+    <method>LDAPListener(int, org.forgerock.opendj.ldap.ServerConnectionFactory, org.forgerock.opendj.ldap.LDAPListenerOptions)</method>
+    <to>LDAPListener(*)</to>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+    <differenceType>7009</differenceType>
+    <method>LDAPConnectionFactory(java.lang.String, int, org.forgerock.opendj.ldap.LDAPOptions)</method>
+    <justification>OPENDJ-1607 Merge HeartBeatConnectionFactory, AuthenticatedConnectionFactory and LDAPConnectionFactory</justification>
   </difference>
   <difference>
     <className>%regex[org/forgerock/opendj/ldap/schema/Schema(Builder)?]</className>

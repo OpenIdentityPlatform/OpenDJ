@@ -26,19 +26,13 @@
 
 package org.forgerock.opendj.grizzly;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
-import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.RequestHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
@@ -52,6 +46,10 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.util.promise.FailureHandler;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldap.Connections.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests LDAP connection implementation class.
@@ -84,15 +82,13 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
          * and leave the client waiting forever for a response.
          */
         @SuppressWarnings("unchecked")
-        LDAPListener listener =
-                new LDAPListener(address, Connections
-                        .newServerConnectionFactory(mock(RequestHandler.class)));
+        LDAPListener listener = newLDAPListener(address, newServerConnectionFactory(mock(RequestHandler.class)));
 
         /*
          * Use a very long time out in order to prevent the timeout thread from
          * triggering the timeout.
          */
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(address.getHostName(),
+        LDAPConnectionFactory factory = newLDAPConnectionFactory(address.getHostName(),
                 address.getPort(), new LDAPOptions().setTimeout(100, TimeUnit.SECONDS));
         GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnection();
         try {

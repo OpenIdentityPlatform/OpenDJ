@@ -30,13 +30,15 @@ package org.forgerock.opendj.examples;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An example client application which prints a summary of the schema on the
@@ -68,7 +70,7 @@ public final class ReadSchema {
 
         // --- JCite ---
         // Connect and bind to the server.
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
 
         try {

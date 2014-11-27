@@ -29,8 +29,8 @@ package org.forgerock.opendj.examples;
 import java.util.Collection;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.RootDSE;
@@ -39,6 +39,8 @@ import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.CompareResult;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * This command-line client demonstrates adding and removing a member from a
@@ -81,13 +83,13 @@ public final class UpdateGroup {
         if (args.length != 5) {
             printUsage();
         }
-        final String host = args[0];
+        final String hostName = args[0];
         final int port = Integer.parseInt(args[1]);
         final String groupDN = args[2];
         final String memberDN = args[3];
         final ModificationType modType = getModificationType(args[4]);
 
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
         try {
             connection = factory.getConnection();

@@ -31,13 +31,15 @@ import java.io.IOException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.TreeMapEntry;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * A command-line client that creates, updates, renames, and deletes a
@@ -68,7 +70,7 @@ public final class ShortLife {
             System.err.println("For example: localhost 1389");
             System.exit(1);
         }
-        String host = args[0];
+        String hostName = args[0];
         int port = Integer.parseInt(args[1]);
 
         // User credentials of a "Directory Administrators" group member.
@@ -95,7 +97,7 @@ public final class ShortLife {
 
         LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
 
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
         try {
             connection = factory.getConnection();

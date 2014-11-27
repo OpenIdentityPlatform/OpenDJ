@@ -34,9 +34,9 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.RootDSE;
@@ -83,6 +83,8 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
+import static org.forgerock.opendj.ldap.Connections.*;
+
 /**
  * This command-line client demonstrates use of LDAP controls. The client takes
  * as arguments the host and port for the directory server, and expects to find
@@ -108,10 +110,10 @@ public final class Controls {
             System.err.println("For example: localhost 1389");
             System.exit(1);
         }
-        final String host = args[0];
+        final String hostName = args[0];
         final int port = Integer.parseInt(args[1]);
 
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
         try {
             connection = factory.getConnection();
