@@ -37,14 +37,16 @@ import java.security.GeneralSecurityException;
 import javax.net.ssl.SSLContext;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An example client application which performs SASL PLAIN authentication to a
@@ -87,8 +89,7 @@ public final class SASLAuth {
 
         // --- JCite ---
         try {
-            final LDAPConnectionFactory factory =
-                    new LDAPConnectionFactory(host, port, getTrustAllOptions());
+            final LDAPConnectionFactory factory = newLDAPConnectionFactory(host, port, getTrustAllOptions());
             connection = factory.getConnection();
             PlainSASLBindRequest request =
                     Requests.newPlainSASLBindRequest(authcid, passwd.toCharArray())

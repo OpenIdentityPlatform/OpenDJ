@@ -46,6 +46,8 @@ import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 
+import static org.forgerock.opendj.ldap.Connections.*;
+
 /**
  * An LDAP directory server which exposes data contained in an LDIF file. This
  * is implementation is very simple and is only intended as an example:
@@ -125,10 +127,10 @@ public final class Server {
                             }
                         };
 
-                listener = new LDAPListener(localAddress, localPort, sslWrapper, options);
+                listener = newLDAPListener(localAddress, localPort, sslWrapper, options);
             } else {
                 // No SSL.
-                listener = new LDAPListener(localAddress, localPort, connectionHandler, options);
+                listener = newLDAPListener(localAddress, localPort, connectionHandler, options);
             }
             System.out.println("Press any key to stop the server...");
             System.in.read();

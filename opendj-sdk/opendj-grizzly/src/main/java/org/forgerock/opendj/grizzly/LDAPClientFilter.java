@@ -79,7 +79,7 @@ import static org.forgerock.opendj.ldap.responses.Responses.*;
  */
 final class LDAPClientFilter extends LDAPBaseFilter {
     private static final Attribute<GrizzlyLDAPConnection> LDAP_CONNECTION_ATTR =
-            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPClientConnection");
+            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("GrizzlyLdapClientConnection");
 
     private static final Attribute<ClientResponseHandler> RESPONSE_HANDLER_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("ClientResponseHandler");
@@ -109,6 +109,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
          *
          * @return the reader to read incoming LDAP messages
          */
+        @Override
         public LDAPReader<ASN1BufferReader> getReader() {
             return this.reader;
         }
@@ -119,7 +120,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl pendingRequest = ldapConnection.removePendingRequest(messageID);
+                final ResultLdapPromiseImpl pendingRequest = ldapConnection.removePendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest.getRequest() instanceof AddRequest) {
                         pendingRequest.setResultOrError(result);
@@ -135,7 +136,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 throws DecodeException, IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest instanceof BindResultLdapPromiseImpl) {
                         final BindResultLdapPromiseImpl promise = (BindResultLdapPromiseImpl) pendingRequest;
@@ -143,8 +144,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
 
                         try {
                             if (!bindClient.evaluateResult(result)) {
-                                // The server is expecting a multi stage
-                                // bind response.
+                                // The server is expecting a multi stage bind response.
                                 final int msgID = ldapConnection.continuePendingBindRequest(promise);
 
                                 LDAPWriter<ASN1BufferWriter> ldapWriter = GrizzlyUtils.getWriter();
@@ -202,7 +202,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 throws DecodeException, IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest.getRequest() instanceof CompareRequest) {
                         ((ResultLdapPromiseImpl<CompareRequest, CompareResult>) pendingRequest)
@@ -220,7 +220,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest.getRequest() instanceof DeleteRequest) {
                         ((ResultLdapPromiseImpl<DeleteRequest, Result>) pendingRequest).setResultOrError(result);
@@ -242,12 +242,12 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                         // Treat this as a connection error.
                         final Result errorResult = newResult(result.getResultCode()).setDiagnosticMessage(
                                         result.getDiagnosticMessage());
-                        ldapConnection.close(null, true, errorResult);
+                        ldapConnection.connectionErrorOccurred(true, errorResult);
                     } else {
                         ldapConnection.handleUnsolicitedNotification(result);
                     }
                 } else {
-                    final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingRequest(messageID);
+                    final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingResult(messageID);
                     if (pendingRequest != null) {
                         if (pendingRequest.getRequest() instanceof ExtendedRequest) {
                             final ExtendedResultLdapPromiseImpl<?> extendedPromise =
@@ -274,7 +274,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 throws DecodeException, IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.getPendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.getPendingResult(messageID);
                 if (pendingRequest != null) {
                     pendingRequest.handleIntermediateResponse(response);
                 }
@@ -287,7 +287,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 throws DecodeException, IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest.getRequest() instanceof ModifyDNRequest) {
                         ((ResultLdapPromiseImpl<ModifyDNRequest, Result>) pendingRequest).setResultOrError(result);
@@ -303,7 +303,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         public void modifyResult(final int messageID, final Result result) throws DecodeException, IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest.getRequest() instanceof ModifyRequest) {
                         ((ResultLdapPromiseImpl<ModifyRequest, Result>) pendingRequest).setResultOrError(result);
@@ -320,7 +320,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.removePendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest.getRequest() instanceof SearchRequest) {
                         ((ResultLdapPromiseImpl<SearchRequest, Result>) pendingRequest).setResultOrError(result);
@@ -336,7 +336,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 throws DecodeException, IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.getPendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.getPendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest instanceof SearchResultLdapPromiseImpl) {
                         ((SearchResultLdapPromiseImpl) pendingRequest).handleEntry(entry);
@@ -352,7 +352,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                 throws DecodeException, IOException {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(context.getConnection());
             if (ldapConnection != null) {
-                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.getPendingRequest(messageID);
+                final ResultLdapPromiseImpl<?, ?> pendingRequest = ldapConnection.getPendingResult(messageID);
                 if (pendingRequest != null) {
                     if (pendingRequest instanceof SearchResultLdapPromiseImpl) {
                         ((SearchResultLdapPromiseImpl) pendingRequest).handleReference(reference);
@@ -367,15 +367,14 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         private <R extends ExtendedResult> void handleExtendedResult0(
                 final GrizzlyLDAPConnection conn, final ExtendedResultLdapPromiseImpl<R> promise,
                 final ExtendedResult result) throws DecodeException {
-            final R decodedResponse = promise.decodeResult(result, conn.getLDAPOptions().getDecodeOptions());
+            final R decodedResponse = promise.decodeResult(result, conn.getLdapOptions().getDecodeOptions());
 
             if (result.getResultCode() == ResultCode.SUCCESS
                     && promise.getRequest() instanceof StartTLSExtendedRequest) {
                 try {
                     final StartTLSExtendedRequest request = (StartTLSExtendedRequest) promise.getRequest();
                     conn.startTLS(request.getSSLContext(), request.getEnabledProtocols(),
-                            request.getEnabledCipherSuites(),
-                            new EmptyCompletionHandler<SSLEngine>() {
+                            request.getEnabledCipherSuites(), new EmptyCompletionHandler<SSLEngine>() {
                                 @Override
                                 public void completed(final SSLEngine result) {
                                     conn.setBindOrStartTLSInProgress(false);
@@ -384,19 +383,19 @@ final class LDAPClientFilter extends LDAPBaseFilter {
 
                                 @Override
                                 public void failed(final Throwable throwable) {
-                                    final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR)
-                                            .setCause(throwable).setDiagnosticMessage("SSL handshake failed");
+                                    final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR).setCause(throwable)
+                                            .setDiagnosticMessage("SSL handshake failed");
                                     conn.setBindOrStartTLSInProgress(false);
-                                    conn.close(null, false, errorResult);
+                                    conn.connectionErrorOccurred(false, errorResult);
                                     promise.adaptErrorResult(errorResult);
                                 }
                             });
                     return;
                 } catch (final IOException e) {
-                    final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR).setCause(e)
-                            .setDiagnosticMessage(e.getMessage());
+                    final Result errorResult = newResult(CLIENT_SIDE_LOCAL_ERROR).setCause(e).setDiagnosticMessage(
+                            e.getMessage());
                     promise.adaptErrorResult(errorResult);
-                    conn.close(null, false, errorResult);
+                    conn.connectionErrorOccurred(false, errorResult);
                     return;
                 }
             }
@@ -430,16 +429,11 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         }
         final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(connection);
 
-        Result errorResult;
-        if (error instanceof EOFException) {
-            // FIXME: Is this the best result code?
-            errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN).setCause(error);
-        } else {
-            // FIXME: what other sort of IOExceptions can be thrown?
-            // FIXME: Is this the best result code?
-            errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR).setCause(error);
-        }
-        ldapConnection.close(null, false, errorResult);
+        // FIXME: what other sort of IOExceptions can be thrown?
+        // FIXME: Are they the best result codes?
+        Result errorResult = newResult(error instanceof EOFException ? ResultCode.CLIENT_SIDE_SERVER_DOWN
+                : ResultCode.CLIENT_SIDE_LOCAL_ERROR);
+        ldapConnection.connectionErrorOccurred(false, errorResult.setCause(error));
     }
 
     @Override
@@ -447,8 +441,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         final Connection<?> connection = ctx.getConnection();
         final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.remove(connection);
         if (ldapConnection != null) {
-            final Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
-            ldapConnection.close(null, false, errorResult);
+            ldapConnection.connectionErrorOccurred(false, newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN));
         }
         return ctx.getInvokeAction();
     }
@@ -459,7 +452,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
         final Result errorResult =
                 Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
                         .setDiagnosticMessage(e.getMessage());
-        ldapConnection.close(null, false, errorResult);
+        ldapConnection.connectionErrorOccurred(false, errorResult);
     }
 
     /**
@@ -497,8 +490,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
      * @param ldapConnection
      *            LDAP connection
      */
-    void registerConnection(final Connection<?> connection,
-            final GrizzlyLDAPConnection ldapConnection) {
+    void registerConnection(final Connection<?> connection, final GrizzlyLDAPConnection ldapConnection) {
         LDAP_CONNECTION_ATTR.set(connection, ldapConnection);
     }
 }

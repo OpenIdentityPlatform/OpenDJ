@@ -29,8 +29,8 @@ package org.forgerock.opendj.examples;
 import java.util.Collection;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.RootDSE;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -38,6 +38,8 @@ import org.forgerock.opendj.ldap.requests.WhoAmIExtendedRequest;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * This command-line client demonstrates use of LDAP extended operations. The
@@ -64,10 +66,10 @@ public final class ExtendedOperations {
             System.err.println("For example: localhost 1389");
             System.exit(1);
         }
-        final String host = args[0];
+        final String hostName = args[0];
         final int port = Integer.parseInt(args[1]);
 
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
 
         try {

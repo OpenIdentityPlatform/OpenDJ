@@ -45,7 +45,7 @@ import java.util.concurrent.TimeoutException;
  * A mock scheduled executor which allows unit tests to directly invoke
  * scheduled tasks without needing to wait.
  */
-final class MockScheduler implements ScheduledExecutorService {
+public final class MockScheduler implements ScheduledExecutorService {
 
     private final class ScheduledCallableFuture<T> implements ScheduledFuture<T>, Callable<T> {
         private final Callable<T> callable;
@@ -116,7 +116,7 @@ final class MockScheduler implements ScheduledExecutorService {
     /** Saved scheduled tasks. */
     private final List<Callable<?>> tasks = new CopyOnWriteArrayList<Callable<?>>();
 
-    MockScheduler() {
+    public MockScheduler() {
         // Nothing to do.
     }
 
@@ -230,11 +230,11 @@ final class MockScheduler implements ScheduledExecutorService {
         return tasks.get(0);
     }
 
-    boolean isScheduled() {
+    public boolean isScheduled() {
         return !tasks.isEmpty();
     }
 
-    void runAllTasks() {
+    public void runAllTasks() {
         for (final Callable<?> task : tasks) {
             runTask0(task);
         }

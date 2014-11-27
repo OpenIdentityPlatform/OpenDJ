@@ -28,19 +28,21 @@ package org.forgerock.opendj.examples;
 import java.io.IOException;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * Demonstrates accessing server information about capabilities and schema.
  */
 public final class GetInfo {
     /** Connection information. */
-    private static String host;
+    private static String hostName;
     private static int port;
     /** The kind of server information to request (all, controls, extops). */
     private static String infoType;
@@ -62,7 +64,7 @@ public final class GetInfo {
      */
     private static void connect() {
         // --- JCite ---
-        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
 
         try {
@@ -85,7 +87,7 @@ public final class GetInfo {
                     attributeList); // Return these requested attributes.
 
             final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-            writer.writeComment("Root DSE for LDAP server at " + host + ":" + port);
+            writer.writeComment("Root DSE for LDAP server at " + hostName + ":" + port);
             if (entry != null) {
                 writer.writeEntry(entry);
             }
@@ -122,7 +124,7 @@ public final class GetInfo {
             giveUp();
         }
 
-        host = args[0];
+        hostName = args[0];
         port = Integer.parseInt(args[1]);
         infoType = args[2];
         final String infoTypeLc = infoType.toLowerCase();

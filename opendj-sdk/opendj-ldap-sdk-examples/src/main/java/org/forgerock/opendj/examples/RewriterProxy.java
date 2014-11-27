@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -38,13 +39,13 @@ import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
+import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
@@ -69,6 +70,8 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * This example is based on the {@link Proxy}. This example does no load
@@ -107,6 +110,10 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * and {@code proxyUserPassword} to {@code password}.
  */
 public final class RewriterProxy {
+
+    /** The timeout after which a connection will be marked as failed. */
+    private static final long TIMEOUT_SECONDS = 3;
+
     private static final class Rewriter implements RequestHandler<RequestContext> {
 
         /** This example hard codes the attribute... */
@@ -393,15 +400,15 @@ public final class RewriterProxy {
         final String proxyPassword = args[3];
         final String remoteAddress = args[4];
         final int remotePort = Integer.parseInt(args[5]);
+        final LDAPOptions factoryOptions = new LDAPOptions()
+            .setBindRequest(Requests.newSimpleBindRequest(proxyDN, proxyPassword.toCharArray()))
+            .setTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Create connection factories.
-        final ConnectionFactory factory =
-                Connections.newCachedConnectionPool(Connections.newAuthenticatedConnectionFactory(
-                        new LDAPConnectionFactory(remoteAddress, remotePort), Requests
-                                .newSimpleBindRequest(proxyDN, proxyPassword.toCharArray())));
-        final ConnectionFactory bindFactory =
-                Connections.newCachedConnectionPool(new LDAPConnectionFactory(remoteAddress,
-                        remotePort));
+        final ConnectionFactory factory = newCachedConnectionPool(
+            newLDAPConnectionFactory(remoteAddress, remotePort, factoryOptions));
+        final ConnectionFactory bindFactory = newCachedConnectionPool(
+            newLDAPConnectionFactory(remoteAddress, remotePort));
 
         /*
          * Create a server connection adapter which will create a new proxy
@@ -424,7 +431,7 @@ public final class RewriterProxy {
         final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
         LDAPListener listener = null;
         try {
-            listener = new LDAPListener(localAddress, localPort, connectionHandler, options);
+            listener = newLDAPListener(localAddress, localPort, connectionHandler, options);
             System.out.println("Press any key to stop the server...");
             System.in.read();
         } catch (final IOException e) {

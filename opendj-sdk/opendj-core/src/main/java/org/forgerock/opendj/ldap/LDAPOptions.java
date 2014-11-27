@@ -22,18 +22,25 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.util.Reject;
+
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.forgerock.opendj.ldap.requests.Requests.*;
 
 /**
  * Common options for LDAP client connections.
@@ -63,6 +70,28 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
         DEFAULT_CONNECT_TIMEOUT = getIntProperty("org.forgerock.opendj.io.connectTimeout", 5000);
     }
 
+    /** Default heart beat search request. */
+    private static final SearchRequest DEFAULT_HEART_BEAT_SEARCH_REQUEST =
+        unmodifiableSearchRequest(newSearchRequest("", SearchScope.BASE_OBJECT, "(objectClass=*)", "1.1"));
+
+    /** The heartbeat search request. Default request will target the root DSE but not return any results. */
+    private SearchRequest heartBeatSearchRequest = DEFAULT_HEART_BEAT_SEARCH_REQUEST;
+
+    /** The heartbeat bind request, if any. Default value is {@code null}. */
+    private BindRequest bindRequest;
+
+    /** The interval between successive heartbeats (milliseconds). Default value is 0 (means heartbeat disabled). */
+    private long heartBeatIntervalInMillis = 0;
+
+    /**
+     *  The heartbeat scheduler.
+     *  Default value is {@code null}.
+     *  If no scheduler is provided while creating new {@link HeartBeatConnectionFactory},
+     *  the factory will use his default one.
+     */
+    private ScheduledExecutorService heartBeatScheduler;
+
+    /** General Options. */
     private SSLContext sslContext;
     private boolean useStartTLS;
     private long timeoutInMillis = DEFAULT_TIMEOUT;
@@ -93,6 +122,10 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
         this.enabledCipherSuites.addAll(options.getEnabledCipherSuites());
         this.enabledProtocols.addAll(options.getEnabledProtocols());
         this.connectTimeoutInMillis = options.connectTimeoutInMillis;
+        this.bindRequest = options.bindRequest;
+        this.heartBeatIntervalInMillis = options.heartBeatIntervalInMillis;
+        this.heartBeatSearchRequest = options.heartBeatSearchRequest;
+        this.heartBeatScheduler = options.heartBeatScheduler;
     }
 
     /**
@@ -136,6 +169,21 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
     }
 
     /**
+     * Returns the bind request which will be sent as soon as the connection
+     * attempt succeeds, or null if unauthenticated connections should be
+     * returned.
+     * <p>
+     * By default, the bind request is {@code null}.
+     *
+     * @return The bind request which will be sent as soon as the connection
+     *         attempt succeeds, or null if unauthenticated connections should
+     *         be returned.
+     */
+    public BindRequest getBindRequest() {
+        return bindRequest;
+    }
+
+    /**
      * Returns the connect timeout in the specified unit. If a connection is not
      * established within the timeout period, then a
      * {@link TimeoutResultException} error result will be returned. A timeout
@@ -150,7 +198,7 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
      *         timeout.
      */
     public long getConnectTimeout(final TimeUnit unit) {
-        return unit.convert(connectTimeoutInMillis, TimeUnit.MILLISECONDS);
+        return unit.convert(connectTimeoutInMillis, MILLISECONDS);
     }
 
     /**
@@ -173,6 +221,45 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
      */
     public List<String> getEnabledProtocols() {
         return enabledProtocols;
+    }
+
+    /**
+     * Returns the interval between successive heart beat in the specified unit.
+     * <p>
+     * By default, heart beat interval value is 0, indicating that heart beat
+     * support will be disabled in the {@link LDAPConnectionFactory}.
+     *
+     * @param unit
+     *            The time unit.
+     * @return The interval between keepalive pings in the specified time unit.
+     */
+    public long getHeartBeatInterval(final TimeUnit unit) {
+        return unit.convert(heartBeatIntervalInMillis, MILLISECONDS);
+    }
+
+    /**
+     * Returns the scheduler which should periodically send keepalive pings.
+     * <p>
+     * By default, the scheduler is {@code null}, indicating that the associated
+     * {@link LDAPConnectionFactory} will use the default one.
+     *
+     * @return Returns the {@link ScheduledExecutorService} instance which
+     *         should periodically send keepalive pings.
+     */
+    public ScheduledExecutorService getHeartBeatScheduler() {
+        return heartBeatScheduler;
+    }
+
+    /**
+     * Returns the search request to use for keepalive pings.
+     * <p>
+     * The default {@link SearchRequest} will target the root DSE but not return
+     * any results.
+     *
+     * @return the {@link SearchRequest} to use for keepalive pings.
+     */
+    public SearchRequest getHeartBeatSearchRequest() {
+        return heartBeatSearchRequest;
     }
 
     /**
@@ -208,7 +295,25 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
      *         timeout.
      */
     public long getTimeout(final TimeUnit unit) {
-        return unit.convert(timeoutInMillis, TimeUnit.MILLISECONDS);
+        return unit.convert(timeoutInMillis, MILLISECONDS);
+    }
+
+    /**
+     * Sets the bind request which will be sent as soon as the
+     * connection attempt succeeds.
+     * <p>
+     * By default, the bind request is {@code null}, indicating that
+     * unauthenticated connections should be returned by the associated
+     * {@link LDAPConnectionFactory}
+     *
+     * @param bindRequest
+     *            The bind request which will be sent as soon as the connection
+     *            attempt succeeds.
+     * @return A reference to this set of options.
+     */
+    public LDAPOptions setBindRequest(final BindRequest bindRequest) {
+        this.bindRequest = bindRequest;
+        return this;
     }
 
     /**
@@ -229,6 +334,55 @@ public final class LDAPOptions extends CommonLDAPOptions<LDAPOptions> {
      */
     public LDAPOptions setConnectTimeout(final long timeout, final TimeUnit unit) {
         this.connectTimeoutInMillis = unit.toMillis(timeout);
+        return this;
+    }
+
+    /**
+     * Sets the interval between successive heartbeats in the specified unit.
+     * <p>
+     * By default, heart beat interval value is 0, indicating that heart beat
+     * will be disabled in the {@link LDAPConnectionFactory}.
+     *
+     * @param interval
+     *            The interval between keepalive pings in the specified time unit.
+     * @param unit
+     *            The time unit of the given interval.
+     * @return A reference to this set of options.
+     */
+    public LDAPOptions setHeartBeatInterval(final long interval, final TimeUnit unit) {
+        Reject.ifTrue(interval < 0, "negative timeout");
+        this.heartBeatIntervalInMillis = MILLISECONDS.convert(interval, unit);
+        return this;
+    }
+
+    /**
+     * The scheduler which should for periodically sending keepalive pings.
+     * <p>
+     * By default, the scheduler is {@code null}, indicating that the associated
+     * {@link LDAPConnectionFactory} will use the default one.
+     *
+     * @param scheduler
+     *            The scheduler which should for periodically sending keepalive
+     *            pings.
+     * @return A reference to this set of options.
+     */
+    public LDAPOptions setHeartBeatScheduler(final ScheduledExecutorService scheduler) {
+        this.heartBeatScheduler = scheduler;
+        return this;
+    }
+
+    /**
+     * Sets the search request to use for keepalive pings.
+     * <p>
+     * The default {@link SearchRequest} will target the root DSE but not return
+     * any results.
+     *
+     * @param heartBeatRequest
+     *            The search request to use for keepalive pings.
+     * @return A reference to this set of options.
+     */
+    public LDAPOptions setHeartBeatSearchRequest(final SearchRequest heartBeatRequest) {
+        this.heartBeatSearchRequest = heartBeatRequest;
         return this;
     }
 

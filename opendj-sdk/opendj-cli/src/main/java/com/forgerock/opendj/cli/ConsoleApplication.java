@@ -45,6 +45,7 @@ import java.io.PrintStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 
 /**
  * This class provides an abstract base class which can be used as the basis of a console-based application.
@@ -64,6 +65,8 @@ public abstract class ConsoleApplication {
     private final Console console = System.console();
 
     private boolean isProgressSuite;
+
+    private BindRequest bindRequest = null;
 
     /**
      * Defines the different line styles for output.
@@ -113,6 +116,15 @@ public abstract class ConsoleApplication {
     public ConsoleApplication(PrintStream out, PrintStream err) {
         this.out = out;
         this.err = err;
+    }
+
+    /**
+     * Returns the bind request used by this application.
+     *
+     * @return The bind request used by this application.
+     */
+    public BindRequest getBindRequest() {
+        return bindRequest;
     }
 
     /**
@@ -672,6 +684,10 @@ public abstract class ConsoleApplication {
             nTries++;
         }
         throw new ClientException(ReturnCode.ERROR_USER_DATA, ERR_TRIES_LIMIT_REACHED.get(maxTries));
+    }
+
+    void setBindRequest(final BindRequest bindRequest) {
+        this.bindRequest = bindRequest;
     }
 
     /**

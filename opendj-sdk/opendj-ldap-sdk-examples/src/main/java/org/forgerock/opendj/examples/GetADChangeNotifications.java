@@ -30,8 +30,8 @@ package org.forgerock.opendj.examples;
 import java.io.IOException;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.GenericControl;
@@ -41,6 +41,8 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+
+import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An example client application which searches Microsoft Active Directory
@@ -93,8 +95,7 @@ public final class GetADChangeNotifications {
         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
 
         // Connect and bind to the server.
-        final LDAPConnectionFactory factory =
-                new LDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
         Connection connection = null;
 
         try {

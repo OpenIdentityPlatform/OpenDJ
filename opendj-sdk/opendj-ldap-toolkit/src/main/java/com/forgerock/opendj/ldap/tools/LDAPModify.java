@@ -29,7 +29,8 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
-import static com.forgerock.opendj.ldap.tools.Utils.printErrorMessage;
+import static com.forgerock.opendj.ldap.tools.Utils.*;
+
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.FileInputStream;
@@ -56,6 +57,7 @@ import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -248,10 +250,10 @@ public final class LDAPModify extends ConsoleApplication {
     int run(final String[] args) {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
-        final ArgumentParser argParser =
-                new ArgumentParser(LDAPModify.class.getName(), toolDescription, false);
+        final ArgumentParser argParser = new ArgumentParser(LDAPModify.class.getName(), toolDescription, false);
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
+        BindRequest bindRequest;
 
         BooleanArgument continueOnError;
         // TODO: Remove this due to new LDIF reader api?
@@ -366,7 +368,8 @@ public final class LDAPModify extends ConsoleApplication {
                 return 0;
             }
 
-            connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
+            connectionFactory = connectionFactoryProvider.getConnectionFactory();
+            bindRequest = connectionFactoryProvider.getBindRequest();
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
             errPrintln(message);
@@ -456,12 +459,13 @@ public final class LDAPModify extends ConsoleApplication {
         if (!noop.isPresent()) {
             try {
                 connection = connectionFactory.getConnection();
+                if (bindRequest != null) {
+                    printPasswordPolicyResults(this, connection.bind(bindRequest));
+                }
             } catch (final LdapException ere) {
-                return Utils.printErrorMessage(this, ere);
+                return printErrorMessage(this, ere);
             }
         }
-
-        Utils.printPasswordPolicyResults(this, connection);
 
         writer = new LDIFEntryWriter(getOutputStream());
         final VisitorImpl visitor = new VisitorImpl();
