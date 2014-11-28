@@ -26,6 +26,11 @@
  */
 package com.forgerock.opendj.cli;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
+import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,6 +51,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.KeyManagers;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
@@ -59,15 +65,6 @@ import org.forgerock.opendj.ldap.requests.GSSAPISASLBindRequest;
 import org.forgerock.opendj.ldap.requests.PlainSASLBindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 
-import static java.util.concurrent.TimeUnit.*;
-
-import static org.forgerock.opendj.ldap.Connections.*;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.CliConstants.*;
-import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
 /**
  * A connection factory designed for use with command line tools.
  */
@@ -75,61 +72,59 @@ public final class ConnectionFactoryProvider {
     /** The Logger. */
     static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    private static final long DEFAULT_TIMEOUT_SECONDS = 3;
-
     /** The 'hostName' global argument. */
-    private final StringArgument hostNameArg;
+    private StringArgument hostNameArg;
 
     /** The 'port' global argument. */
-    private final IntegerArgument portArg;
+    private IntegerArgument portArg;
 
     /** The 'bindDN' global argument. */
-    private final StringArgument bindNameArg;
+    private StringArgument bindNameArg;
 
     /** The 'bindPasswordFile' global argument. */
-    private final FileBasedArgument bindPasswordFileArg;
+    private FileBasedArgument bindPasswordFileArg;
 
     /** The 'password' value. */
     private char[] password;
 
     /** The 'bindPassword' global argument. */
-    private final StringArgument bindPasswordArg;
+    private StringArgument bindPasswordArg;
 
     /** The 'connectTimeOut' global argument. */
-    private final IntegerArgument connectTimeOut;
+    private IntegerArgument connectTimeOut;
 
     /** The 'trustAllArg' global argument. */
-    private final BooleanArgument trustAllArg;
+    private BooleanArgument trustAllArg;
 
     /** The 'trustStore' global argument. */
-    private final StringArgument trustStorePathArg;
+    private StringArgument trustStorePathArg;
 
     /** The 'trustStorePassword' global argument. */
-    private final StringArgument trustStorePasswordArg;
+    private StringArgument trustStorePasswordArg;
 
     /** The 'trustStorePasswordFile' global argument. */
-    private final FileBasedArgument trustStorePasswordFileArg;
+    private FileBasedArgument trustStorePasswordFileArg;
 
     /** The 'keyStore' global argument. */
-    private final StringArgument keyStorePathArg;
+    private StringArgument keyStorePathArg;
 
     /** The 'keyStorePassword' global argument. */
-    private final StringArgument keyStorePasswordArg;
+    private StringArgument keyStorePasswordArg;
 
     /** The 'keyStorePasswordFile' global argument. */
-    private final FileBasedArgument keyStorePasswordFileArg;
+    private FileBasedArgument keyStorePasswordFileArg;
 
     /** The 'certNicknameArg' global argument. */
-    private final StringArgument certNicknameArg;
+    private StringArgument certNicknameArg;
 
     /** The 'useSSLArg' global argument. */
-    private final BooleanArgument useSSLArg;
+    private BooleanArgument useSSLArg;
 
     /** The 'useStartTLSArg' global argument. */
-    private final BooleanArgument useStartTLSArg;
+    private BooleanArgument useStartTLSArg;
 
     /** Argument indicating a SASL option. */
-    private final StringArgument saslOptionArg;
+    private StringArgument saslOptionArg;
 
     /**
      * Whether to request that the server return the authorization ID in the
@@ -427,7 +422,8 @@ public final class ConnectionFactoryProvider {
                     }
                 }
             } catch (final Exception e) {
-                throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(e.toString()), e);
+                throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(e.toString()),
+                        e);
             }
 
             LDAPOptions options = new LDAPOptions();
@@ -436,7 +432,7 @@ public final class ConnectionFactoryProvider {
                 options.setSSLContext(sslContext).setUseStartTLS(useStartTLSArg.isPresent());
             }
             options.setConnectTimeout(getConnectTimeout(), TimeUnit.MILLISECONDS);
-            connFactory = newLDAPConnectionFactory(hostNameArg.getValue(), port, options);
+            connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
         }
         return connFactory;
     }
@@ -528,9 +524,7 @@ public final class ConnectionFactoryProvider {
             authenticatedConnFactory = getConnectionFactory();
             final BindRequest bindRequest = getBindRequest();
             if (bindRequest != null) {
-                app.setBindRequest(bindRequest);
-                authenticatedConnFactory = newLDAPConnectionFactory(hostNameArg.getValue(), port,
-                        new LDAPOptions().setBindRequest(bindRequest).setTimeout(DEFAULT_TIMEOUT_SECONDS, SECONDS));
+                authenticatedConnFactory = new AuthenticatedConnectionFactory(authenticatedConnFactory, bindRequest);
             }
         }
         return authenticatedConnFactory;

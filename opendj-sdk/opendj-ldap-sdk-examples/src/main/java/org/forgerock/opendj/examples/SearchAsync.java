@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LdapPromise;
@@ -176,7 +175,7 @@ public final class SearchAsync {
 
         // --- Using Promises ---
         // Initiate the asynchronous connect, bind, and search.
-        final LDAPConnectionFactory factory = Connections.newLDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
 
         factory.getConnectionAsync()
                 .thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {

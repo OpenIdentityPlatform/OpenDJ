@@ -31,12 +31,10 @@ import java.io.Console;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-
-import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An interactive command-line client that performs a search and subsequent
@@ -64,7 +62,7 @@ public final class SearchBind {
             System.err.println("For example: localhost 1389 dc=example,dc=com");
             System.exit(1);
         }
-        String hostName = args[0];
+        String host = args[0];
         int port = Integer.parseInt(args[1]);
         String baseDN = args[2];
 
@@ -80,7 +78,7 @@ public final class SearchBind {
         char[] password = c.readPassword("Password: ");
 
         // Search using mail address, and then bind with the DN and password.
-        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
         Connection connection = null;
         try {
             connection = factory.getConnection();

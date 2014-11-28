@@ -59,6 +59,24 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *            The host name.
      * @param port
      *            The port number.
+     * @throws NullPointerException
+     *             If {@code host} was {@code null}.
+     * @throws ProviderNotFoundException if no provider is available or if the
+     *             provider requested using options is not found.
+     */
+    public LDAPConnectionFactory(final String host, final int port) {
+        this(host, port, new LDAPOptions());
+    }
+
+    /**
+     * Creates a new LDAP connection factory which can be used to create LDAP
+     * connections to the Directory Server at the provided host and port
+     * number.
+     *
+     * @param host
+     *            The host name.
+     * @param port
+     *            The port number.
      * @param options
      *            The LDAP options to use when creating connections.
      * @throws NullPointerException
@@ -66,7 +84,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * @throws ProviderNotFoundException if no provider is available or if the
      *             provider requested using options is not found.
      */
-    LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
+    public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
         Reject.ifNull(host, options);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());

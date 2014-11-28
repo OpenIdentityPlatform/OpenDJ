@@ -34,14 +34,12 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
-
-import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An example client application which performs simple authentication to a
@@ -90,7 +88,7 @@ public final class SimpleAuth {
      * Authenticate over LDAP.
      */
     private static void connect() {
-        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
         Connection connection = null;
 
         try {
@@ -169,7 +167,8 @@ public final class SimpleAuth {
         try {
 
             final LDAPConnectionFactory factory =
-                    newLDAPConnectionFactory(hostName, port, getTrustOptions(hostName, keystore, storepass));
+                    new LDAPConnectionFactory(host, port,
+                            getTrustOptions(host, keystore, storepass));
             connection = factory.getConnection();
             connection.bind(bindDN, bindPassword.toCharArray());
 
@@ -221,7 +220,8 @@ public final class SimpleAuth {
         Connection connection = null;
 
         try {
-            final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port, getTrustAllOptions());
+            final LDAPConnectionFactory factory =
+                    new LDAPConnectionFactory(host, port, getTrustAllOptions());
             connection = factory.getConnection();
             connection.bind(bindDN, bindPassword.toCharArray());
             System.out.println("Authenticated as " + bindDN + ".");
@@ -256,7 +256,7 @@ public final class SimpleAuth {
         // trustAllConnect();
     }
 
-    private static String hostName;
+    private static String host;
     private static int port;
     private static String bindDN;
     private static String bindPassword;
@@ -276,7 +276,7 @@ public final class SimpleAuth {
             giveUp();
         }
 
-        hostName = args[0];
+        host = args[0];
         port = Integer.parseInt(args[1]);
         bindDN = args[2];
         bindPassword = args[3];

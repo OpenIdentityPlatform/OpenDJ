@@ -30,23 +30,19 @@ package org.forgerock.opendj.examples;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
-import org.forgerock.opendj.ldap.LDAPOptions;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandlerFactory;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
-
-import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An LDAP load balancing proxy which forwards requests to one or more remote
@@ -66,12 +62,6 @@ import static org.forgerock.opendj.ldap.Connections.*;
  * </pre>
  */
 public final class Proxy {
-    /** The timeout after which a connection will be marked as failed. */
-    private static final long TIMEOUT_SECONDS = 3;
-
-    /** The interval between keepalive pings. */
-    private static final long HEARTBEAT_INTERVAL_SECONDS = 10;
-
     /**
      * Main method.
      *
@@ -102,16 +92,15 @@ public final class Proxy {
         for (int i = 4; i < args.length; i += 2) {
             final String remoteAddress = args[i];
             final int remotePort = Integer.parseInt(args[i + 1]);
-            final LDAPOptions commonOptions = new LDAPOptions().setTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-            final BindRequest bindRequest = Requests.newSimpleBindRequest(proxyDN, proxyPassword.toCharArray());
-            final LDAPOptions options = new LDAPOptions(commonOptions).setBindRequest(bindRequest);
-            factories.add(newCachedConnectionPool(newLDAPConnectionFactory(remoteAddress, remotePort, options)));
-
-            final LDAPOptions heartBeatOptions =
-                    new LDAPOptions(commonOptions).setHeartBeatInterval(HEARTBEAT_INTERVAL_SECONDS, TimeUnit.SECONDS);
-            bindFactories.add(newCachedConnectionPool(
-                newLDAPConnectionFactory(remoteAddress, remotePort, heartBeatOptions)));
+            factories.add(Connections.newCachedConnectionPool(Connections
+                    .newAuthenticatedConnectionFactory(Connections
+                            .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
+                                    remotePort)), Requests.newSimpleBindRequest(proxyDN,
+                            proxyPassword.toCharArray()))));
+            bindFactories.add(Connections.newCachedConnectionPool(Connections
+                    .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
+                            remotePort))));
         }
         // --- JCite pools ---
 
@@ -147,7 +136,7 @@ public final class Proxy {
         final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
         LDAPListener listener = null;
         try {
-            listener = newLDAPListener(localAddress, localPort, connectionHandler, options);
+            listener = new LDAPListener(localAddress, localPort, connectionHandler, options);
             System.out.println("Press any key to stop the server...");
             System.in.read();
         } catch (final IOException e) {

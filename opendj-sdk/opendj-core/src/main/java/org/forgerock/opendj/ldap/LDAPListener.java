@@ -103,7 +103,74 @@ public final class LDAPListener implements Closeable {
     /**
      * Transport provider that provides the implementation of this listener.
      */
-    private final TransportProvider provider;
+    private TransportProvider provider;
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections at the provided address.
+     *
+     * @param port
+     *            The port to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     * @throws NullPointerException
+     *             If {code factory} was {@code null}.
+     */
+    public LDAPListener(final int port,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
+        this(port, factory, new LDAPListenerOptions());
+    }
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections at the provided address.
+     *
+     * @param port
+     *            The port to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @param options
+     *            The LDAP listener options.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     * @throws NullPointerException
+     *             If {code factory} or {@code options} was {@code null}.
+     */
+    public LDAPListener(final int port,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+            final LDAPListenerOptions options) throws IOException {
+        Reject.ifNull(factory, options);
+        final InetSocketAddress address = new InetSocketAddress(port);
+        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
+                options.getProviderClassLoader());
+        this.impl = provider.getLDAPListener(address, factory, options);
+    }
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections at the provided address.
+     *
+     * @param address
+     *            The address to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     * @throws NullPointerException
+     *             If {@code address} or {code factory} was {@code null}.
+     */
+    public LDAPListener(final InetSocketAddress address,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
+        this(address, factory, new LDAPListenerOptions());
+    }
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
@@ -123,10 +190,62 @@ public final class LDAPListener implements Closeable {
      *             If {@code address}, {code factory}, or {@code options} was
      *             {@code null}.
      */
-    LDAPListener(final InetSocketAddress address,
+    public LDAPListener(final InetSocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
         Reject.ifNull(address, factory, options);
+        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
+                options.getProviderClassLoader());
+        this.impl = provider.getLDAPListener(address, factory, options);
+    }
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections at the provided address.
+     *
+     * @param host
+     *            The address to listen on.
+     * @param port
+     *            The port to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     * @throws NullPointerException
+     *             If {@code host} or {code factory} was {@code null}.
+     */
+    public LDAPListener(final String host, final int port,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
+        this(host, port, factory, new LDAPListenerOptions());
+    }
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections at the provided address.
+     *
+     * @param host
+     *            The address to listen on.
+     * @param port
+     *            The port to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @param options
+     *            The LDAP listener options.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     * @throws NullPointerException
+     *             If {@code host}, {code factory}, or {@code options} was
+     *             {@code null}.
+     */
+    public LDAPListener(final String host, final int port,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+            final LDAPListenerOptions options) throws IOException {
+        Reject.ifNull(host, factory, options);
+        final InetSocketAddress address = new InetSocketAddress(host, port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
         this.impl = provider.getLDAPListener(address, factory, options);
