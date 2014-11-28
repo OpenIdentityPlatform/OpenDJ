@@ -56,20 +56,28 @@ if not "%JAVA_HOME%"=="" set JAVACMD="%JAVA_HOME%\bin\%JAVACMD%"
 if "%SVNKIT_LIB%"=="" set SVNKIT_LIB=%BASEDIR%\lib
 
 set CLASSPATH=
-set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\svnkit-1.7.5-v1.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\svnkit-1.8.5.jar"
 set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\sequence-library-1.0.2.jar"
 set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\antlr-runtime-3.4.jar"
-set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\sqljet-1.1.4.jar"
-set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jna-3.4.0.jar"
-set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\trilead-ssh2-1.0.0-build215.jar"
-set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\svnkit-cli-1.7.5-v1.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\sqljet-1.1.10.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jna-3.5.2.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\platform-3.5.2.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\trilead-ssh2-1.0.0-build217.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jsch.agentproxy.core-0.0.7.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jsch.agentproxy.usocket-jna-0.0.7.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jsch.agentproxy.usocket-nc-0.0.7.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jsch.agentproxy.sshagent-0.0.7.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jsch.agentproxy.pageant-0.0.7.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jsch.agentproxy.connector-factory-0.0.7.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\jsch.agentproxy.svnkit-trilead-ssh2-0.0.7.jar"
+set CLASSPATH=%CLASSPATH%;"%SVNKIT_LIB%\svnkit-cli-1.8.5.jar"
 set EXTRA_JVM_ARGUMENTS=-Djava.util.logging.config.file="%BASEDIR%\conf\logging.properties" -Dsun.io.useCanonCaches=false
 goto endInit
 
 @REM Reaching here means variables are defined and arguments have been captured
 :endInit
 
-%JAVACMD% %JAVA_OPTS% %EXTRA_JVM_ARGUMENTS% -classpath %CLASSPATH% org.tmatesoft.svn.cli.SVNAdmin %CMD_LINE_ARGS%
+%JAVACMD% %JAVA_OPTS% %EXTRA_JVM_ARGUMENTS% -classpath %CLASSPATH% org.tmatesoft.svn.cli.SVNVersion %CMD_LINE_ARGS%
 if ERRORLEVEL 1 goto error
 goto end
 
