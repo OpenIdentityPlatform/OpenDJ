@@ -27,16 +27,14 @@
 
 package org.forgerock.opendj.examples;
 
-import java.io.IOException;
-
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -48,7 +46,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 
-import static org.forgerock.opendj.ldap.Connections.*;
+import java.io.IOException;
 
 /**
  * An example client application which uses
@@ -90,7 +88,8 @@ public final class UseGenericControl {
         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
 
         // Connect and bind to the server.
-        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory =
+                new LDAPConnectionFactory(hostName, port);
         Connection connection = null;
 
         // Prepare the value for the GenericControl.

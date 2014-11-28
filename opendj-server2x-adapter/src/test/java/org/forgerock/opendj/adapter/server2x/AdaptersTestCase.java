@@ -32,6 +32,7 @@ import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -40,7 +41,6 @@ import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -74,14 +74,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static java.util.concurrent.TimeUnit.*;
-
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.adapter.server2x.Adapters.*;
 import static org.forgerock.opendj.adapter.server2x.EmbeddedServerTestCaseUtils.*;
-import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.requests.Requests.*;
 
 /**
  * This class defines a set of tests for the Adapters.class.
@@ -89,13 +84,6 @@ import static org.forgerock.opendj.ldap.requests.Requests.*;
 @SuppressWarnings("javadoc")
 @Test
 public class AdaptersTestCase extends ForgeRockTestCase {
-
-    /** The timeout after which a connection will be marked as failed. */
-    private static final long TIMEOUT_SEC = 3;
-
-    private Integer getListenPort() {
-        return Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"));
-    }
 
     /**
      * Provides an anonymous connection factories.
@@ -105,8 +93,9 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @DataProvider
     public Object[][] anonymousConnectionFactories() {
         return new Object[][] {
-            { newLDAPConnectionFactory("localhost", getListenPort()) },
-            { newAnonymousConnectionFactory() } };
+            { new LDAPConnectionFactory("localhost",
+                    Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))) },
+            { Adapters.newAnonymousConnectionFactory() } };
     }
 
     /**
@@ -117,13 +106,11 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @DataProvider
     public Object[][] rootConnectionFactories() {
         return new Object[][] {
-            { newLDAPConnectionFactory(
-                    "localhost",
-                    getListenPort(),
-                    new LDAPOptions()
-                        .setBindRequest(newSimpleBindRequest("cn=directory manager", "password".toCharArray()))
-                        .setTimeout(TIMEOUT_SEC, SECONDS)) },
-            { newConnectionFactoryForUser(DN.valueOf("cn=directory manager")) } };
+            { Connections.newAuthenticatedConnectionFactory(
+                   new LDAPConnectionFactory("localhost",
+                           Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))),
+                   Requests.newSimpleBindRequest("cn=directory manager", "password".toCharArray())) },
+            { Adapters.newConnectionFactoryForUser(DN.valueOf("cn=directory manager")) } };
     }
 
     /**
@@ -227,7 +214,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @Test
     public void testSimpleLDAPConnectionFactorySimpleBind() throws LdapException {
         final LDAPConnectionFactory factory =
-                newLDAPConnectionFactory("localhost", getListenPort());
+                new LDAPConnectionFactory("localhost",
+                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
         Connection connection = null;
         try {
             connection = factory.getConnection();
@@ -251,7 +239,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @Test
     public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException, LdapException {
         LDAPConnectionFactory factory =
-                newLDAPConnectionFactory("localhost", getListenPort());
+                new LDAPConnectionFactory("localhost",
+                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
 
         Connection connection = factory.getConnection();
         PlainSASLBindRequest request =
@@ -1004,7 +993,9 @@ public class AdaptersTestCase extends ForgeRockTestCase {
         final DeleteRequest deleteRequest = Requests.newDeleteRequest("sn=babs,dc=example,dc=org");
 
         // LDAP Connection
-        final LDAPConnectionFactory factory = newLDAPConnectionFactory("localhost", getListenPort());
+        final LDAPConnectionFactory factory =
+                new LDAPConnectionFactory("localhost",
+                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
         Connection connection = null;
         connection = factory.getConnection();
         connection.bind("cn=Directory Manager", "password".toCharArray());

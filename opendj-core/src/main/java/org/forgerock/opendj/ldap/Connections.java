@@ -27,23 +27,51 @@
 
 package org.forgerock.opendj.ldap;
 
-import java.io.IOException;
+import static org.forgerock.opendj.ldap.RequestHandlerFactoryAdapter.adaptRequestHandler;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Promise;
-
-import static org.forgerock.opendj.ldap.RequestHandlerFactoryAdapter.*;
 
 /**
  * This class contains methods for creating and manipulating connection
  * factories and connections.
  */
 public final class Connections {
+    /**
+     * Creates a new authenticated connection factory which will obtain
+     * connections using the provided connection factory and immediately perform
+     * the provided Bind request.
+     * <p>
+     * The connections returned by an authenticated connection factory support
+     * all operations with the exception of Bind requests. Attempts to perform a
+     * Bind will result in an {@code UnsupportedOperationException}.
+     * <p>
+     * If the Bind request fails for some reason (e.g. invalid credentials),
+     * then the connection attempt will fail and an {@link LdapException}
+     * will be thrown.
+     *
+     * @param factory
+     *            The connection factory to use for connecting to the Directory
+     *            Server.
+     * @param request
+     *            The Bind request to use for authentication.
+     * @return The new connection pool.
+     * @throws NullPointerException
+     *             If {@code factory} or {@code request} was {@code null}.
+     */
+    public static ConnectionFactory newAuthenticatedConnectionFactory(
+            final ConnectionFactory factory, final BindRequest request) {
+        Reject.ifNull(factory, request);
 
+        return new AuthenticatedConnectionFactory(factory, request);
+    }
 
     /**
      * Creates a new connection pool which creates new connections as needed
@@ -215,6 +243,113 @@ public final class Connections {
     }
 
     /**
+     * Creates a new heart-beat connection factory which will create connections
+     * using the provided connection factory and periodically ping any created
+     * connections in order to detect that they are still alive every 10 seconds
+     * using the default scheduler. Connections will be marked as having failed
+     * if a heart-beat takes longer than 3 seconds.
+     *
+     * @param factory
+     *            The connection factory to use for creating connections.
+     * @return The new heart-beat connection factory.
+     * @throws NullPointerException
+     *             If {@code factory} was {@code null}.
+     */
+    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory) {
+        return new HeartBeatConnectionFactory(factory, 10, 3, TimeUnit.SECONDS, null, null);
+    }
+
+    /**
+     * Creates a new heart-beat connection factory which will create connections
+     * using the provided connection factory and periodically ping any created
+     * connections in order to detect that they are still alive using the
+     * specified frequency and the default scheduler.
+     *
+     * @param factory
+     *            The connection factory to use for creating connections.
+     * @param interval
+     *            The interval between keepalive pings.
+     * @param timeout
+     *            The heart-beat timeout after which a connection will be marked
+     *            as failed.
+     * @param unit
+     *            The time unit for the interval between keepalive pings.
+     * @return The new heart-beat connection factory.
+     * @throws IllegalArgumentException
+     *             If {@code interval} was negative.
+     * @throws NullPointerException
+     *             If {@code factory} or {@code unit} was {@code null}.
+     */
+    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
+            final long interval, final long timeout, final TimeUnit unit) {
+        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, null, null);
+    }
+
+    /**
+     * Creates a new heart-beat connection factory which will create connections
+     * using the provided connection factory and periodically ping any created
+     * connections using the specified search request in order to detect that
+     * they are still alive.
+     *
+     * @param factory
+     *            The connection factory to use for creating connections.
+     * @param interval
+     *            The interval between keepalive pings.
+     * @param timeout
+     *            The heart-beat timeout after which a connection will be marked
+     *            as failed.
+     * @param unit
+     *            The time unit for the interval between keepalive pings.
+     * @param heartBeat
+     *            The search request to use for keepalive pings.
+     * @return The new heart-beat connection factory.
+     * @throws IllegalArgumentException
+     *             If {@code interval} was negative.
+     * @throws NullPointerException
+     *             If {@code factory}, {@code unit}, or {@code heartBeat} was
+     *             {@code null}.
+     */
+    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
+            final long interval, final long timeout, final TimeUnit unit,
+            final SearchRequest heartBeat) {
+        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, heartBeat, null);
+    }
+
+    /**
+     * Creates a new heart-beat connection factory which will create connections
+     * using the provided connection factory and periodically ping any created
+     * connections using the specified search request in order to detect that
+     * they are still alive.
+     *
+     * @param factory
+     *            The connection factory to use for creating connections.
+     * @param interval
+     *            The interval between keepalive pings.
+     * @param timeout
+     *            The heart-beat timeout after which a connection will be marked
+     *            as failed.
+     * @param unit
+     *            The time unit for the interval between keepalive pings.
+     * @param heartBeat
+     *            The search request to use for keepalive pings.
+     * @param scheduler
+     *            The scheduler which should for periodically sending keepalive
+     *            pings.
+     * @return The new heart-beat connection factory.
+     * @throws IllegalArgumentException
+     *             If {@code interval} was negative.
+     * @throws NullPointerException
+     *             If {@code factory}, {@code unit}, or {@code heartBeat} was
+     *             {@code null}.
+     */
+    public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
+            final long interval, final long timeout, final TimeUnit unit,
+            final SearchRequest heartBeat, final ScheduledExecutorService scheduler) {
+        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, heartBeat,
+                scheduler);
+    }
+
+    /**
      * Creates a new internal client connection which will route requests to the
      * provided {@code RequestHandler}.
      * <p>
@@ -363,181 +498,6 @@ public final class Connections {
             final ServerConnectionFactory<C, Integer> factory, final C clientContext) {
         Reject.ifNull(factory);
         return new InternalConnectionFactory<C>(factory, clientContext);
-    }
-
-    /**
-     * Creates a new LDAP connection factory which can be used to create LDAP
-     * connections to the Directory Server at the provided host and port
-     * number.
-     *
-     * @param host
-     *            The host name.
-     * @param port
-     *            The port number.
-     * @return The connection factory to use for creating connections.
-     */
-    public static LDAPConnectionFactory newLDAPConnectionFactory(final String host, final int port) {
-        return new LDAPConnectionFactory(host, port, new LDAPOptions());
-    }
-
-    /**
-     * Creates a new LDAP connection factory which can be used to create LDAP
-     * connections to the Directory Server at the provided host and port
-     * number.
-     *
-     * @param host
-     *            The host name.
-     * @param port
-     *            The port number.
-     * @param options
-     *            The LDAP options to use when creating connections.
-     * @return The connection factory to use for creating connections.
-     */
-    public static LDAPConnectionFactory newLDAPConnectionFactory(final String host, final int port,
-            final LDAPOptions options) {
-        return new LDAPConnectionFactory(host, port, options);
-    }
-
-    /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections at the provided address.
-     *
-     * @param port
-     *            The port to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
-     * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
-     * @throws NullPointerException
-     *             If {code factory} was {@code null}.
-     * @return The LDAP listener implementation which will listen for LDAP client connections.
-     */
-    public static LDAPListener newLDAPListener(final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
-        return newLDAPListener(null, port, factory, new LDAPListenerOptions());
-    }
-
-    /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections at the provided address.
-     *
-     * @param port
-     *            The port to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
-     * @param options
-     *            The LDAP listener options.
-     * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
-     * @throws NullPointerException
-     *             If {code factory} or {@code options} was {@code null}.
-     * @return The LDAP listener implementation which will listen for LDAP client connections.
-     */
-    public static LDAPListener newLDAPListener(final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options) throws IOException {
-        return newLDAPListener(null, port, factory, options);
-    }
-
-    /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections at the provided address.
-     *
-     * @param host
-     *            The address to listen on.
-     * @param port
-     *            The port to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
-     * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
-     * @throws NullPointerException
-     *             If {@code host} or {code factory} was {@code null}.
-     * @return The LDAP listener implementation which will listen for LDAP client connections.
-     */
-    public static LDAPListener newLDAPListener(final String host, final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
-        return newLDAPListener(host, port, factory, new LDAPListenerOptions());
-    }
-
-    /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections at the provided address.
-     *
-     * @param host
-     *            The address to listen on.
-     * @param port
-     *            The port to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
-     * @param options
-     *            The LDAP listener options.
-     * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
-     * @throws NullPointerException
-     *             If {@code host}, {code factory}, or {@code options} was
-     *             {@code null}.
-     * @return The LDAP listener implementation which will listen for LDAP client connections.
-     */
-    public static LDAPListener newLDAPListener(final String host, final int port,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options) throws IOException {
-        return newLDAPListener(host != null ? new InetSocketAddress(host, port) : new InetSocketAddress(port),
-                factory, options);
-    }
-
-    /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections at the provided address.
-     *
-     * @param address
-     *            The address to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
-     * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
-     * @throws NullPointerException
-     *             If {@code address} or {code factory} was {@code null}.
-     * @return The LDAP listener implementation which will listen for LDAP client connections.
-     */
-    public static LDAPListener newLDAPListener(final InetSocketAddress address,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory) throws IOException {
-        return newLDAPListener(address, factory, new LDAPListenerOptions());
-    }
-
-    /**
-     * Creates a new LDAP listener implementation which will listen for LDAP
-     * client connections at the provided address.
-     *
-     * @param address
-     *            The address to listen on.
-     * @param factory
-     *            The server connection factory which will be used to create
-     *            server connections.
-     * @param options
-     *            The LDAP listener options.
-     * @throws IOException
-     *             If an error occurred while trying to listen on the provided
-     *             address.
-     * @throws NullPointerException
-     *             If {@code address}, {code factory}, or {@code options} was
-     *             {@code null}.
-     * @return The LDAP listener implementation which will listen for LDAP client connections.
-     */
-    public static LDAPListener newLDAPListener(final InetSocketAddress address,
-            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
-            final LDAPListenerOptions options) throws IOException {
-        return new LDAPListener(address, factory, options);
     }
 
     /**

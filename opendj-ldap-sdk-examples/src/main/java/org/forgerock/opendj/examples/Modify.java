@@ -33,14 +33,12 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionChangeRecordWriter;
 import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
-
-import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An example client application which applies update operations to a Directory
@@ -91,7 +89,7 @@ public final class Modify {
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);
 
         // Connect and bind to the server.
-        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
         Connection connection = null;
 
         try {

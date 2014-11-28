@@ -76,7 +76,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 
-import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 
@@ -549,7 +548,9 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             return;
         }
         sslContext = new SSLContextBuilder().getSSLContext();
-        listener = newLDAPListener(findFreeSocketAddress(), getInstance(), new LDAPListenerOptions().setBacklog(4096));
+        listener =
+                new LDAPListener(findFreeSocketAddress(), getInstance(),
+                        new LDAPListenerOptions().setBacklog(4096));
         isRunning = true;
     }
 

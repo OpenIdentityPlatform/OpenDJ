@@ -26,16 +26,11 @@
 
 package org.forgerock.opendj.examples;
 
-import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
-
-import javax.net.ssl.SSLContext;
-
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
-import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
@@ -43,7 +38,9 @@ import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 
-import static org.forgerock.opendj.ldap.Connections.*;
+import javax.net.ssl.SSLContext;
+import java.nio.charset.Charset;
+import java.security.GeneralSecurityException;
 
 /**
  * This command-line client demonstrates how to reset a user password in
@@ -87,7 +84,8 @@ public final class PasswordResetForAD {
 
         Connection connection = null;
         try {
-            final LDAPConnectionFactory factory = newLDAPConnectionFactory(host, port, getTrustAllOptions());
+            final LDAPConnectionFactory factory =
+                    new LDAPConnectionFactory(host, port, getTrustAllOptions());
             connection = factory.getConnection();
             connection.bind(bindDN, bindPassword.toCharArray());
 

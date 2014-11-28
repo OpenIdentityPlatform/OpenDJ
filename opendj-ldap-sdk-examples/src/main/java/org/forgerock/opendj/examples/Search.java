@@ -31,16 +31,14 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
-
-import static org.forgerock.opendj.ldap.Connections.*;
 
 /**
  * An example client application which searches a Directory Server. This example
@@ -94,7 +92,7 @@ public final class Search {
         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
 
         // Connect and bind to the server.
-        final LDAPConnectionFactory factory = newLDAPConnectionFactory(hostName, port);
+        final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
         Connection connection = null;
 
         try {
