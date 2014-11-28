@@ -31,9 +31,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1291,15 +1293,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public UpdateMsg take(ServerHandler sHandler)
   {
-    /*
-     * Get the balanced tree that we use to sort the changes to be
-     * sent to the replica from the cookie
-     *
-     * The next change to send is always the first one in the tree
-     * So this methods simply need to check that dependencies are OK
-     * and update this replicaId RUV
-     */
-    return sHandler.take();
+    // Next message can only be taken from connected DSs
+    final Set<Integer> connectedReplicaIds = new HashSet<Integer>(getConnectedDSs().keySet());
+    if (sHandler.isDataServer())
+    {
+      // Prevents sending to a DS its own messages
+      connectedReplicaIds.remove(sHandler.getServerId());
+    }
+    return sHandler.take(connectedReplicaIds);
   }
 
   /**
