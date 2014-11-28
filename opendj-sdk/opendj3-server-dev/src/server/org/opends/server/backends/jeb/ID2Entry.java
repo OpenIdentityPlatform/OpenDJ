@@ -40,7 +40,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.CompressedSchema;
-import org.opends.server.backends.pluggable.KeyValueStore;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -58,7 +57,7 @@ import static org.opends.server.core.DirectoryServer.*;
  * Represents the database containing the LDAP entries. The database key is
  * the entry ID and the value is the entry contents.
  */
-public class ID2Entry extends DatabaseContainer implements KeyValueStore<EntryID, Entry, Transaction, LockMode>
+public class ID2Entry extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -348,7 +347,6 @@ public class ID2Entry extends DatabaseContainer implements KeyValueStore<EntryID
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  @Override
   public boolean insert(Transaction txn, EntryID id, Entry entry)
        throws DatabaseException, DirectoryException
   {
@@ -376,7 +374,6 @@ public class ID2Entry extends DatabaseContainer implements KeyValueStore<EntryID
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  @Override
   public boolean put(Transaction txn, EntryID id, Entry entry)
        throws DatabaseException, DirectoryException
   {
@@ -417,7 +414,6 @@ public class ID2Entry extends DatabaseContainer implements KeyValueStore<EntryID
    * @return true if the entry was removed, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  @Override
   public boolean remove(Transaction txn, EntryID id) throws DatabaseException
   {
     DatabaseEntry key = id.getDatabaseEntry();
@@ -434,7 +430,6 @@ public class ID2Entry extends DatabaseContainer implements KeyValueStore<EntryID
    * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  @Override
   public Entry get(Transaction txn, EntryID id, LockMode lockMode)
        throws DirectoryException, DatabaseException
   {
