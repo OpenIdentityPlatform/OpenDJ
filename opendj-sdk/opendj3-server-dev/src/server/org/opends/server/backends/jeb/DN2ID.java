@@ -26,12 +26,16 @@
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.*;
+import java.util.Comparator;
 
 import org.opends.server.types.DN;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-import java.util.Comparator;
+import com.sleepycat.je.*;
+
+import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.OperationStatus.*;
+
+import static org.opends.server.backends.jeb.JebFormat.*;
 
 /**
  * This class represents the DN database, or dn2id, which has one record
@@ -40,13 +44,8 @@ import java.util.Comparator;
  */
 public class DN2ID extends DatabaseContainer
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * The key comparator used for the DN database.
-   */
+  /** The key comparator used for the DN database. */
   private final Comparator<byte[]> comparator;
-
   private final int prefixRDNComponents;
 
   /**
@@ -90,8 +89,7 @@ public class DN2ID extends DatabaseContainer
 
     //This line causes an unchecked cast error if the SuppressWarnings
     //annotation is removed at the beginning of this method.
-    this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
-                                     comparator.getClass());
+    this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>) comparator.getClass());
   }
 
 
@@ -107,21 +105,12 @@ public class DN2ID extends DatabaseContainer
    * @throws DatabaseException If an error occurred while attempting to insert
    * the new record.
    */
-  public boolean insert(Transaction txn, DN dn, EntryID id)
-       throws DatabaseException
+  public boolean insert(Transaction txn, DN dn, EntryID id) throws DatabaseException
   {
-    DatabaseEntry key = new DatabaseEntry(
-        JebFormat.dnToDNKey(dn, prefixRDNComponents));
+    DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
     DatabaseEntry data = id.getDatabaseEntry();
 
-    OperationStatus status;
-
-    status = insert(txn, key, data);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return insert(txn, key, data) == SUCCESS;
   }
 
   /**
@@ -136,20 +125,12 @@ public class DN2ID extends DatabaseContainer
    * @throws DatabaseException If an error occurred while attempting to write
    * the record.
    */
-  public boolean put(Transaction txn, DN dn, EntryID id)
-       throws DatabaseException
+  public boolean put(Transaction txn, DN dn, EntryID id) throws DatabaseException
   {
-    DatabaseEntry key = new DatabaseEntry(
-        JebFormat.dnToDNKey(dn, prefixRDNComponents));
+    DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
     DatabaseEntry data = id.getDatabaseEntry();
 
-    OperationStatus status;
-    status = put(txn, key, data);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return put(txn, key, data) == SUCCESS;
   }
 
   /**
@@ -163,9 +144,8 @@ public class DN2ID extends DatabaseContainer
    * @throws DatabaseException If an error occurred while attempting to write
    * the record.
    */
-  public OperationStatus put(Transaction txn, DatabaseEntry key,
-                             DatabaseEntry data)
-       throws DatabaseException
+  @Override
+  public OperationStatus put(Transaction txn, DatabaseEntry key, DatabaseEntry data) throws DatabaseException
   {
     return super.put(txn, key, data);
   }
@@ -179,27 +159,16 @@ public class DN2ID extends DatabaseContainer
    * @throws DatabaseException If an error occurred while attempting to remove
    * the record.
    */
-  public boolean remove(Transaction txn, DN dn)
-       throws DatabaseException
+  public boolean remove(Transaction txn, DN dn) throws DatabaseException
   {
-    DatabaseEntry key = new DatabaseEntry(
-        JebFormat.dnToDNKey(dn, prefixRDNComponents)
-    );
+    DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
 
-    OperationStatus status = delete(txn, key);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return delete(txn, key) == SUCCESS;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  protected OperationStatus delete(Transaction txn, DatabaseEntry key)
-      throws DatabaseException
+  protected OperationStatus delete(Transaction txn, DatabaseEntry key) throws DatabaseException
   {
     return super.delete(txn, key);
   }
@@ -213,30 +182,21 @@ public class DN2ID extends DatabaseContainer
    * @return The entry ID, or null if the given DN is not in the DN database.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public EntryID get(Transaction txn, DN dn, LockMode lockMode)
-       throws DatabaseException
+  public EntryID get(Transaction txn, DN dn, LockMode lockMode) throws DatabaseException
   {
-    DatabaseEntry key = new DatabaseEntry(
-        JebFormat.dnToDNKey(dn, prefixRDNComponents)
-    );
+    DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
     DatabaseEntry data = new DatabaseEntry();
 
-    OperationStatus status;
-    status = read(txn, key, data, LockMode.DEFAULT);
-    if (status != OperationStatus.SUCCESS)
+    if (read(txn, key, data, DEFAULT) == SUCCESS)
     {
-      return null;
+      return new EntryID(data);
     }
-    return new EntryID(data);
+    return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public OperationStatus read(Transaction txn,
-                              DatabaseEntry key, DatabaseEntry data,
-                              LockMode lockMode)
+  public OperationStatus read(Transaction txn, DatabaseEntry key, DatabaseEntry data, LockMode lockMode)
   {
     return super.read(txn, key, data, lockMode);
   }
