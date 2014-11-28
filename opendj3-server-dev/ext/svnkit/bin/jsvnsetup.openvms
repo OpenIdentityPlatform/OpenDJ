@@ -20,13 +20,21 @@ $ endif
 $!
 $!
 $ CP = "/svnkit_home/../lib"
-$ CP = CP + ":/svnkit_home/../lib/svnkit-1.7.5-v1.jar
+$ CP = CP + ":/svnkit_home/../lib/svnkit-1.8.5.jar
 $ CP = CP + ":/svnkit_home/../lib/sequence-library-1.0.2.jar
 $ CP = CP + ":/svnkit_home/../lib/antlr-runtime-3.4.jar
-$ CP = CP + ":/svnkit_home/../lib/sqljet-1.1.4.jar
-$ CP = CP + ":/svnkit_home/../lib/jna-3.4.0.jar
-$ CP = CP + ":/svnkit_home/../lib/trilead-ssh2-1.0.0-build215.jar
-$ CP = CP + ":/svnkit_home/../lib/svnkit-cli-1.7.5-v1.jar
+$ CP = CP + ":/svnkit_home/../lib/sqljet-1.1.10.jar
+$ CP = CP + ":/svnkit_home/../lib/jna-3.5.2.jar
+$ CP = CP + ":/svnkit_home/../lib/platform-3.5.2.jar
+$ CP = CP + ":/svnkit_home/../lib/trilead-ssh2-1.0.0-build217.jar
+$ CP = CP + ":/svnkit_home/../lib/jsch.agentproxy.core-0.0.7.jar
+$ CP = CP + ":/svnkit_home/../lib/jsch.agentproxy.usocket-jna-0.0.7.jar
+$ CP = CP + ":/svnkit_home/../lib/jsch.agentproxy.usocket-nc-0.0.7.jar
+$ CP = CP + ":/svnkit_home/../lib/jsch.agentproxy.sshagent-0.0.7.jar
+$ CP = CP + ":/svnkit_home/../lib/jsch.agentproxy.pageant-0.0.7.jar
+$ CP = CP + ":/svnkit_home/../lib/jsch.agentproxy.connector-factory-0.0.7.jar
+$ CP = CP + ":/svnkit_home/../lib/jsch.agentproxy.svnkit-trilead-ssh2-0.0.7.jar
+$ CP = CP + ":/svnkit_home/../lib/svnkit-cli-1.8.5.jar
 $ OPT = ""
 $! OPT = "-Djava.util.logging.config.file=/svnkit_home/../conf/logging.properties"
 $!

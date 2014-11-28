@@ -55,13 +55,21 @@ then
 fi
 
 CLASSPATH="$BASEDIR/conf"
-CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/svnkit-1.7.5-v1.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/svnkit-1.8.5.jar"
 CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/sequence-library-1.0.2.jar"
 CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/antlr-runtime-3.4.jar"
-CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/sqljet-1.1.4.jar"
-CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jna-3.4.0.jar"
-CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/trilead-ssh2-1.0.0-build215.jar"
-CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/svnkit-cli-1.7.5-v1.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/sqljet-1.1.10.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jna-3.5.2.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/platform-3.5.2.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/trilead-ssh2-1.0.0-build217.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jsch.agentproxy.core-0.0.7.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jsch.agentproxy.usocket-jna-0.0.7.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jsch.agentproxy.usocket-nc-0.0.7.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jsch.agentproxy.sshagent-0.0.7.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jsch.agentproxy.pageant-0.0.7.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jsch.agentproxy.connector-factory-0.0.7.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/jsch.agentproxy.svnkit-trilead-ssh2-0.0.7.jar"
+CLASSPATH=$CLASSPATH:"$SVNKIT_LIB/svnkit-cli-1.8.5.jar"
 LOGGING_PROPERTIES_PATH="$BASEDIR/conf/logging.properties"
 
 # For Cygwin, switch paths to Windows format before running java
@@ -79,5 +87,5 @@ EXTRA_JVM_ARGUMENTS="-Djava.util.logging.config.file=$LOGGING_PROPERTIES_PATH -D
 exec "$JAVACMD" $JAVA_OPTS \
   $EXTRA_JVM_ARGUMENTS \
   -classpath "$CLASSPATH" \
-  org.tmatesoft.svn.cli.SVNSync \
+  org.tmatesoft.svn.cli.SVN \
   "$@"
