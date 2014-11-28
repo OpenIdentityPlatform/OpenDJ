@@ -29,6 +29,7 @@ package org.opends.server.replication.server;
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -960,13 +961,15 @@ public abstract class ServerHandler extends MessageHandler
    * Select the next update that must be sent to the server managed by this
    * ServerHandler.
    *
+   * @param connectedReplicaIds
+   *          Ids of replicas to accept when returning a message.
    * @return the next update that must be sent to the server managed by this
    *         ServerHandler.
    */
-  public UpdateMsg take()
+  public UpdateMsg take(Set<Integer> connectedReplicaIds)
   {
     boolean interrupted = true;
-    UpdateMsg msg = getNextMessage(true); // synchronous:block until msg
+    UpdateMsg msg = getNextMessage(connectedReplicaIds, true); // synchronous:block until msg
 
     boolean acquired = false;
     do
