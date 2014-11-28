@@ -26,6 +26,12 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.zip.DataFormatException;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterOutputStream;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
@@ -34,6 +40,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.CompressedSchema;
+import org.opends.server.backends.pluggable.KeyValueStore;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -41,11 +48,7 @@ import org.opends.server.types.LDAPException;
 
 import com.sleepycat.je.*;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.zip.DataFormatException;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.InflaterOutputStream;
+import static com.sleepycat.je.OperationStatus.*;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.JebMessages.*;
@@ -55,7 +58,7 @@ import static org.opends.server.core.DirectoryServer.*;
  * Represents the database containing the LDAP entries. The database key is
  * the entry ID and the value is the entry contents.
  */
-public class ID2Entry extends DatabaseContainer
+public class ID2Entry extends DatabaseContainer implements KeyValueStore<EntryID, Entry, Transaction, LockMode>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -345,6 +348,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
+  @Override
   public boolean insert(Transaction txn, EntryID id, Entry entry)
        throws DatabaseException, DirectoryException
   {
@@ -353,8 +357,7 @@ public class ID2Entry extends DatabaseContainer
     try
     {
       DatabaseEntry data = codec.encodeInternal(entry, dataConfig);
-      OperationStatus status = insert(txn, key, data);
-      return status == OperationStatus.SUCCESS;
+      return insert(txn, key, data) == SUCCESS;
     }
     finally
     {
@@ -373,6 +376,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
+  @Override
   public boolean put(Transaction txn, EntryID id, Entry entry)
        throws DatabaseException, DirectoryException
   {
@@ -381,8 +385,7 @@ public class ID2Entry extends DatabaseContainer
     try
     {
       DatabaseEntry data = codec.encodeInternal(entry, dataConfig);
-      OperationStatus status = put(txn, key, data);
-      return status == OperationStatus.SUCCESS;
+      return put(txn, key, data) == SUCCESS;
     }
     finally
     {
@@ -414,11 +417,11 @@ public class ID2Entry extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @Override
   public boolean remove(Transaction txn, EntryID id) throws DatabaseException
   {
     DatabaseEntry key = id.getDatabaseEntry();
-    OperationStatus status = delete(txn, key);
-    return status == OperationStatus.SUCCESS;
+    return delete(txn, key) == SUCCESS;
   }
 
   /**
@@ -431,16 +434,14 @@ public class ID2Entry extends DatabaseContainer
    * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @Override
   public Entry get(Transaction txn, EntryID id, LockMode lockMode)
        throws DirectoryException, DatabaseException
   {
     DatabaseEntry key = id.getDatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
 
-    OperationStatus status;
-    status = read(txn, key, data, lockMode);
-
-    if (status != OperationStatus.SUCCESS)
+    if (read(txn, key, data, lockMode) != SUCCESS)
     {
       return null;
     }
