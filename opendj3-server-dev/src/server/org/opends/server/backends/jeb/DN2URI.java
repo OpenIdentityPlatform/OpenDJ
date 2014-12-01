@@ -33,14 +33,17 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
+
+import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -146,17 +149,15 @@ public class DN2URI extends DatabaseContainer
     byte[] URIBytes = StaticUtils.getBytes(labeledURI);
     DatabaseEntry key = new DatabaseEntry(normDN);
     DatabaseEntry data = new DatabaseEntry(URIBytes);
-    OperationStatus status;
 
     // The JE insert method does not permit duplicate keys so we must use the
     // put method.
-    status = put(txn, key, data);
-    if (status != OperationStatus.SUCCESS)
+    if (put(txn, key, data) == SUCCESS)
     {
-      return false;
+      containsReferrals = ConditionResult.TRUE;
+      return true;
     }
-    containsReferrals = ConditionResult.TRUE;
-    return true;
+    return false;
   }
 
   /**
@@ -174,15 +175,13 @@ public class DN2URI extends DatabaseContainer
   {
     byte[] normDN = JebFormat.dnToDNKey(dn, prefixRDNComponents);
     DatabaseEntry key = new DatabaseEntry(normDN);
-    OperationStatus status;
 
-    status = delete(txn, key);
-    if (status != OperationStatus.SUCCESS)
+    if (delete(txn, key) == SUCCESS)
     {
-      return false;
+      containsReferrals = containsReferrals(txn);
+      return true;
     }
-    containsReferrals = containsReferrals(txn);
-    return true;
+    return false;
   }
 
   /**
@@ -202,28 +201,27 @@ public class DN2URI extends DatabaseContainer
     byte[] URIBytes = StaticUtils.getBytes(labeledURI);
     DatabaseEntry key = new DatabaseEntry(normDN);
     DatabaseEntry data = new DatabaseEntry(URIBytes);
-    OperationStatus status;
 
     Cursor cursor = openCursor(txn, cursorConfig);
     try
     {
-      status = cursor.getSearchBoth(key, data, null);
+      OperationStatus status = cursor.getSearchBoth(key, data, null);
       if (status == OperationStatus.SUCCESS)
       {
         status = cursor.delete();
       }
+
+      if (status == OperationStatus.SUCCESS)
+      {
+        containsReferrals = containsReferrals(txn);
+        return true;
+      }
+      return false;
     }
     finally
     {
       cursor.close();
     }
-
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    containsReferrals = containsReferrals(txn);
-    return true;
   }
 
   /**
@@ -455,7 +453,7 @@ public class DN2URI extends DatabaseContainer
       {
         LDAPURL ldapurl = LDAPURL.decode(uri, false);
 
-        if (ldapurl.getScheme().equalsIgnoreCase("ldap"))
+        if ("ldap".equalsIgnoreCase(ldapurl.getScheme()))
         {
           DN urlBaseDN = targetDN;
           if (!referralDN.equals(ldapurl.getBaseDN()))
@@ -545,18 +543,16 @@ public class DN2URI extends DatabaseContainer
         {
           // Look for a record whose key matches the current DN.
           key.setData(JebFormat.dnToDNKey(dn, prefixRDNComponents));
-          OperationStatus status =
-             cursor.getSearchKey(key, data, LockMode.DEFAULT);
+          OperationStatus status = cursor.getSearchKey(key, data, DEFAULT);
           if (status == OperationStatus.SUCCESS)
           {
             // Construct a set of all the labeled URIs in the referral.
-            Set<String> labeledURIs =
-                 new LinkedHashSet<String>(cursor.count());
+            Set<String> labeledURIs = new LinkedHashSet<String>(cursor.count());
             do
             {
               String labeledURI = new String(data.getData(), "UTF-8");
               labeledURIs.add(labeledURI);
-              status = cursor.getNextDup(key, data, LockMode.DEFAULT);
+              status = cursor.getNextDup(key, data, DEFAULT);
             } while (status == OperationStatus.SUCCESS);
 
             throwReferralException(targetDN, dn, labeledURIs, searchScope);
@@ -635,9 +631,9 @@ public class DN2URI extends DatabaseContainer
         // Initialize the cursor very close to the starting value then
         // step forward until we pass the ending value.
         for (OperationStatus status =
-             cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
+             cursor.getSearchKeyRange(key, data, DEFAULT);
              status == OperationStatus.SUCCESS;
-             status = cursor.getNextNoDup(key, data, LockMode.DEFAULT))
+             status = cursor.getNextNoDup(key, data, DEFAULT))
         {
           int cmp = dn2uriComparator.compare(key.getData(), end);
           if (cmp >= 0)
@@ -651,13 +647,10 @@ public class DN2URI extends DatabaseContainer
                                         entryContainer.getBaseDN());
 
           // Make sure the referral is within scope.
-          if (searchOp.getScope() == SearchScope.SINGLE_LEVEL)
+          if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
+              && JebFormat.findDNKeyParent(key.getData(), 0, key.getSize()) != baseDN.length)
           {
-            if(JebFormat.findDNKeyParent(key.getData(), 0,
-                                       key.getSize()) != baseDN.length)
-            {
-              continue;
-            }
+            continue;
           }
 
           // Construct a list of all the URIs in the referral.
@@ -683,7 +676,7 @@ public class DN2URI extends DatabaseContainer
             {
               LDAPURL ldapurl = LDAPURL.decode(uri, false);
 
-              if (ldapurl.getScheme().equalsIgnoreCase("ldap"))
+              if ("ldap".equalsIgnoreCase(ldapurl.getScheme()))
               {
                 if (ldapurl.getBaseDN().isRootDN())
                 {
@@ -709,7 +702,7 @@ public class DN2URI extends DatabaseContainer
             }
 
             URIList.add(uri);
-            status = cursor.getNextDup(key, data, LockMode.DEFAULT);
+            status = cursor.getNextDup(key, data, DEFAULT);
           } while (status == OperationStatus.SUCCESS);
 
           SearchResultReference reference = new SearchResultReference(URIList);
