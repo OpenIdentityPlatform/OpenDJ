@@ -26,10 +26,14 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.util.Arrays;
+
 import org.opends.server.util.StaticUtils;
+
 import com.sleepycat.je.*;
 
-import java.util.Arrays;
+import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.OperationStatus.*;
 
 /**
  * This class is responsible for storing the configuration state of
@@ -90,9 +94,7 @@ public class State extends DatabaseContainer
   {
     String shortName =
       index.getName().replace(entryContainer.getDatabasePrefix(), "");
-    DatabaseEntry key =
-      new DatabaseEntry(StaticUtils.getBytes(shortName));
-    return key;
+    return new DatabaseEntry(StaticUtils.getBytes(shortName));
   }
 
   /**
@@ -108,12 +110,7 @@ public class State extends DatabaseContainer
   {
     DatabaseEntry key = keyForIndex(index);
 
-    OperationStatus status = delete(txn, key);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return delete(txn, key) == SUCCESS;
   }
 
   /**
@@ -129,16 +126,12 @@ public class State extends DatabaseContainer
     DatabaseEntry key = keyForIndex(index);
     DatabaseEntry data = new DatabaseEntry();
 
-    OperationStatus status;
-    status = read(txn, key, data, LockMode.DEFAULT);
-
-    if (status != OperationStatus.SUCCESS)
+    if (read(txn, key, data, DEFAULT) == SUCCESS)
     {
-      return false;
+      byte[] bytes = data.getData();
+      return Arrays.equals(bytes, trueBytes);
     }
-
-    byte[] bytes = data.getData();
-    return Arrays.equals(bytes, trueBytes);
+    return false;
   }
 
   /**
@@ -156,18 +149,9 @@ public class State extends DatabaseContainer
     DatabaseEntry key = keyForIndex(index);
     DatabaseEntry data = new DatabaseEntry();
 
-    if(trusted)
-      data.setData(trueBytes);
-    else
-      data.setData(falseBytes);
+    data.setData(trusted ? trueBytes : falseBytes);
 
-    OperationStatus status;
-    status = put(txn, key, data);
-    if (status != OperationStatus.SUCCESS)
-    {
-      return false;
-    }
-    return true;
+    return put(txn, key, data) == SUCCESS;
   }
 
 }
