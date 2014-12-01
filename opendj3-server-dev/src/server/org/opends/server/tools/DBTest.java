@@ -28,6 +28,7 @@ package org.opends.server.tools;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.text.ParseException;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -173,8 +174,7 @@ public class DBTest
     JDKLogging.disableLogging();
 
     LocalizableMessage toolDescription = INFO_DESCRIPTION_DBTEST_TOOL.get();
-    this.parser = new SubCommandArgumentParser(this.getClass().getName(),
-                                               toolDescription, false);
+    this.parser = new SubCommandArgumentParser(getClass().getName(), toolDescription, false);
   }
 
   /** Displays the provided message followed by a help usage reference. */
@@ -939,14 +939,7 @@ public class DBTest
           builder.appendCell(dc.getName().replace(toReplace, ""));
           builder.appendCell(dc.getClass().getSimpleName());
           builder.appendCell(dc.getName());
-          if(dc instanceof Index)
-          {
-            builder.appendCell(ec.getState().getIndexTrustState(null, dc));
-          }
-          else if(dc instanceof VLVIndex)
-          {
-            builder.appendCell(ec.getState().getIndexTrustState(null, dc));
-          }
+          builder.appendCell(ec.getState().getIndexTrustState(null, dc));
           builder.appendCell(dc.getRecordCount());
 
           if(dc instanceof Index)
@@ -1153,7 +1146,6 @@ public class DBTest
         DatabaseEntry data = new DatabaseEntry();
         LockMode lockMode = LockMode.DEFAULT;
         OperationStatus status;
-        Comparator<byte[]> defaultComparator = ByteSequence.BYTE_ARRAY_COMPARATOR;
         byte[] start = null;
         byte[] end = null;
         int minSize = -1;
@@ -1192,39 +1184,7 @@ public class DBTest
         {
           try
           {
-            if(minKeyValue.getValue().startsWith("0x"))
-            {
-              start = hexStringToByteArray(minKeyValue.getValue().substring(2));
-            }
-            else
-            {
-              if(databaseContainer instanceof DN2ID ||
-                  databaseContainer instanceof DN2URI)
-              {
-                // Encode the value as a DN
-                start = StaticUtils.getBytes(
-                    DN.valueOf(minKeyValue.getValue()).toNormalizedString());
-              }
-              else if(databaseContainer instanceof ID2Entry)
-              {
-                // Encode the value as an entryID
-                start = JebFormat.entryIDToDatabase(
-                    Long.parseLong(minKeyValue.getValue()));
-              }
-              else if(databaseContainer instanceof VLVIndex)
-              {
-                // Encode the value as a size/value pair
-                byte[] vBytes = StaticUtils.getBytes(minKeyValue.getValue());
-                ByteStringBuilder builder = new ByteStringBuilder();
-                builder.appendBERLength(vBytes.length);
-                builder.append(vBytes);
-                start = builder.toByteArray();
-              }
-              else
-              {
-                start = StaticUtils.getBytes(minKeyValue.getValue());
-              }
-            }
+            start = parseKeyValue(minKeyValue.getValue(), databaseContainer);
           }
           catch(Exception e)
           {
@@ -1239,39 +1199,7 @@ public class DBTest
         {
           try
           {
-            if(maxKeyValue.getValue().startsWith("0x"))
-            {
-              end = hexStringToByteArray(maxKeyValue.getValue().substring(2));
-            }
-            else
-            {
-              if(databaseContainer instanceof DN2ID ||
-                  databaseContainer instanceof DN2URI)
-              {
-                // Encode the value as a DN
-                end = StaticUtils.getBytes(
-                    DN.valueOf(maxKeyValue.getValue()).toNormalizedString());
-              }
-              else if(databaseContainer instanceof ID2Entry)
-              {
-                // Encode the value as an entryID
-                end = JebFormat.entryIDToDatabase(
-                    Long.parseLong(maxKeyValue.getValue()));
-              }
-              else if(databaseContainer instanceof VLVIndex)
-              {
-                // Encode the value as a size/value pair
-                byte[] vBytes = StaticUtils.getBytes(maxKeyValue.getValue());
-                ByteStringBuilder builder = new ByteStringBuilder();
-                builder.appendBERLength(vBytes.length);
-                builder.append(vBytes);
-                start = builder.toByteArray();
-              }
-              else
-              {
-                end = StaticUtils.getBytes(maxKeyValue.getValue());
-              }
-            }
+            end = parseKeyValue(maxKeyValue.getValue(), databaseContainer);
           }
           catch(Exception e)
           {
@@ -1304,45 +1232,10 @@ public class DBTest
           }
 
           // Make sure we haven't gone pass the max value yet
-          if(end != null)
+          if(end != null
+              && getComparator(databaseContainer).compare(key.getData(), end) > 0)
           {
-            if(databaseContainer instanceof DN2ID)
-            {
-              if(defaultComparator.compare(key.getData(), end) > 0)
-              {
-                break;
-              }
-            }
-            else if(databaseContainer instanceof DN2URI)
-            {
-              if(defaultComparator.compare(key.getData(), end) > 0)
-              {
-                break;
-              }
-            }
-            else if(databaseContainer instanceof Index)
-            {
-              if(((Index)databaseContainer).indexer.getComparator().
-                  compare(key.getData(), end) > 0)
-              {
-                break;
-              }
-            }
-            else if(databaseContainer instanceof VLVIndex)
-            {
-              if(((VLVIndex)databaseContainer).comparator.
-                  compare(key.getData(), end) > 0)
-              {
-                break;
-              }
-            }
-            else
-            {
-              if (defaultComparator.compare(key.getData(), end) > 0)
-              {
-                break;
-              }
-            }
+            break;
           }
 
           if (!statsOnly.isPresent())
@@ -1366,9 +1259,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  LocalizableMessage message =
-                    ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                  printMessage(message);
+                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
                 formatedData = String.valueOf(
                   JebFormat.entryIDFromDatabase(data.getData()));
@@ -1389,9 +1280,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  LocalizableMessage message =
-                    ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                  printMessage(message);
+                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
               }
               else if(databaseContainer instanceof DN2URI)
@@ -1403,9 +1292,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  LocalizableMessage message =
-                    ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                  printMessage(message);
+                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
                 formatedData = new String(key.getData());
                 dataLabel = INFO_LABEL_DBTEST_URI.get();
@@ -1470,8 +1357,7 @@ public class DBTest
                     }
 
                     byte[] valueBytes = new byte[valueLength];
-                    System.arraycopy(keyBytes, pos, valueBytes, 0,
-                                   valueLength);
+                    System.arraycopy(keyBytes, pos, valueBytes, 0, valueLength);
                     builder.append(sortKey.getAttributeType().getNameOrOID());
                     builder.append(": ");
                     if(valueBytes.length == 0)
@@ -1537,9 +1423,7 @@ public class DBTest
                 }
                 catch(Exception e)
                 {
-                  LocalizableMessage message =
-                    ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e));
-                  printMessage(message);
+                  printMessage(ERR_DBTEST_DECODE_FAIL.get(getExceptionMessage(e)));
                 }
               }
             }
@@ -1592,6 +1476,57 @@ public class DBTest
     {
       close(rc);
       releaseSharedLock(backend);
+    }
+  }
+
+  private byte[] parseKeyValue(String value, DatabaseContainer databaseContainer)
+      throws ParseException, DirectoryException
+  {
+    if(value.startsWith("0x"))
+    {
+      return hexStringToByteArray(value.substring(2));
+    }
+    else if(databaseContainer instanceof DN2ID
+        || databaseContainer instanceof DN2URI)
+    {
+      // Encode the value as a DN
+      return StaticUtils.getBytes(
+          DN.valueOf(value).toNormalizedString());
+    }
+    else if(databaseContainer instanceof ID2Entry)
+    {
+      // Encode the value as an entryID
+      return JebFormat.entryIDToDatabase(
+          Long.parseLong(value));
+    }
+    else if(databaseContainer instanceof VLVIndex)
+    {
+      // Encode the value as a size/value pair
+      byte[] vBytes = StaticUtils.getBytes(value);
+      ByteStringBuilder builder = new ByteStringBuilder();
+      builder.appendBERLength(vBytes.length);
+      builder.append(vBytes);
+      return builder.toByteArray();
+    }
+    else
+    {
+      return StaticUtils.getBytes(value);
+    }
+  }
+
+  private Comparator<byte[]> getComparator(DatabaseContainer databaseContainer)
+  {
+    if(databaseContainer instanceof Index)
+    {
+      return ((Index)databaseContainer).indexer.getComparator();
+    }
+    else if(databaseContainer instanceof VLVIndex)
+    {
+      return ((VLVIndex)databaseContainer).comparator;
+    }
+    else
+    { // default comparator
+      return ByteSequence.BYTE_ARRAY_COMPARATOR;
     }
   }
 
