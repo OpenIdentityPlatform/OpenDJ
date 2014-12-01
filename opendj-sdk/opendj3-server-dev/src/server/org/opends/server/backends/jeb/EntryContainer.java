@@ -38,6 +38,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -48,16 +49,19 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
 
+import static com.sleepycat.je.LockMode.*;
+
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -66,7 +70,7 @@ import static org.opends.server.util.StaticUtils.*;
  * the guts of the backend API methods for LDAP operations.
  */
 public class EntryContainer
-implements ConfigurationChangeListener<LocalDBBackendCfg>
+    implements SuffixContainer, ConfigurationChangeListener<LocalDBBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -90,7 +94,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /** The vlv index configuration manager. */
   private final VLVJEIndexCfgManager vlvJEIndexCfgManager;
 
-  /** The backend to which this entry entryContainer belongs. */
+  /** The backend to which this entry container belongs. */
   private final Backend<?> backend;
 
   /** The root container in which this entryContainer belongs. */
@@ -124,6 +128,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /** The set of VLV (Virtual List View) indexes. */
   private final HashMap<String, VLVIndex> vlvIndexMap = new HashMap<String, VLVIndex>();
 
+  /**
+   * Prevents name clashes for common indexes (like id2entry) across multiple suffixes.
+   * For example when a root container contains multiple suffixes.
+   */
   private String databasePrefix;
 
   /**
@@ -367,7 +375,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   final Lock exclusiveLock = lock.writeLock();
 
   /**
-   * Create a new entry entryContainer object.
+   * Create a new entry container object.
    *
    * @param baseDN  The baseDN this entry container will be responsible for
    *                storing on disk.
@@ -457,8 +465,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
       }
 
-      dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME,
-          env, this);
+      dn2uri = new DN2URI(databasePrefix + "_" + REFERRAL_DATABASE_NAME, env, this);
       dn2uri.open();
 
       for (String idx : config.listLocalDBIndexes())
@@ -499,12 +506,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * Closes the entry entryContainer.
+   * Closes the entry container.
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void close()
-  throws DatabaseException
+  public void close() throws DatabaseException
   {
     // Close core indexes.
     dn2id.close();
@@ -514,18 +520,14 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     id2subtree.close();
     state.close();
 
-    // Close attribute indexes and deregister any listeners.
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      index.close();
-    }
+    Utils.closeSilently(attrIndexMap.values());
 
-    // Close VLV indexes and deregister any listeners.
     for (VLVIndex vlvIndex : vlvIndexMap.values())
     {
       vlvIndex.close();
     }
 
+    // Deregister any listeners.
     config.removeLocalDBChangeListener(this);
     config.removeLocalDBIndexAddListener(attributeJEIndexCfgManager);
     config.removeLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
@@ -546,8 +548,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * Get the DN database used by this entry entryContainer. The entryContainer
-   * must have been opened.
+   * Get the DN database used by this entry container.
+   * The entryContainer must have been opened.
    *
    * @return The DN database.
    */
@@ -557,8 +559,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * Get the entry database used by this entry entryContainer. The
-   * entryContainer must have been opened.
+   * Get the entry database used by this entry container.
+   * The entryContainer must have been opened.
    *
    * @return The entry database.
    */
@@ -568,8 +570,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * Get the referral database used by this entry entryContainer. The
-   * entryContainer must have been opened.
+   * Get the referral database used by this entry container.
+   * The entryContainer must have been opened.
    *
    * @return The referral database.
    */
@@ -579,7 +581,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * Get the children database used by this entry entryContainer.
+   * Get the children database used by this entry container.
    * The entryContainer must have been opened.
    *
    * @return The children database.
@@ -590,7 +592,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * Get the subtree database used by this entry entryContainer.
+   * Get the subtree database used by this entry container.
    * The entryContainer must have been opened.
    *
    * @return The subtree database.
@@ -621,7 +623,6 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   {
     return attrIndexMap.get(attrType);
   }
-
 
   /**
    * Return attribute index map.
@@ -672,26 +673,23 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    */
   public EntryID getHighestEntryID() throws DatabaseException
   {
-    EntryID entryID = new EntryID(0);
     Cursor cursor = id2entry.openCursor(null, null);
-    DatabaseEntry key = new DatabaseEntry();
-    DatabaseEntry data = new DatabaseEntry();
-
-    // Position a cursor on the last data item, and the key should
-    // give the highest ID.
     try
     {
-      OperationStatus status = cursor.getLast(key, data, LockMode.DEFAULT);
-      if (status == OperationStatus.SUCCESS)
+      // Position a cursor on the last data item, and the key should give the highest ID.
+      DatabaseEntry key = new DatabaseEntry();
+      DatabaseEntry data = new DatabaseEntry();
+
+      if (cursor.getLast(key, data, DEFAULT) == OperationStatus.SUCCESS)
       {
-        entryID = new EntryID(key);
+        return new EntryID(key);
       }
+      return new EntryID(0);
     }
     finally
     {
       cursor.close();
     }
-    return entryID;
   }
 
   /**
@@ -763,9 +761,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
          the searchResultDone message, and not send back any search result
          entries.
        */
-      searchOperation.addResponseControl(
-            new ServerSideSortResponseControl(
-                LDAPResultCode.NO_SUCH_ATTRIBUTE, null));
+      searchOperation.addResponseControl(new ServerSideSortResponseControl(NO_SUCH_ATTRIBUTE, null));
       searchOperation.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
       return;
     }
@@ -839,23 +835,17 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         try
         {
-          entryIDList =
-            vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest,
-                debugBuffer);
+          entryIDList = vlvIndex.evaluate(null, searchOperation, sortRequest, vlvRequest, debugBuffer);
           if(entryIDList != null)
           {
-            searchOperation.addResponseControl(
-                new ServerSideSortResponseControl(LDAPResultCode.SUCCESS,
-                    null));
+            searchOperation.addResponseControl(new ServerSideSortResponseControl(SUCCESS, null));
             candidatesAreInScope = true;
             break;
           }
         }
         catch (DirectoryException de)
         {
-          searchOperation.addResponseControl(
-              new ServerSideSortResponseControl(
-                  de.getResultCode().intValue(), null));
+          searchOperation.addResponseControl(new ServerSideSortResponseControl(de.getResultCode().intValue(), null));
 
           if (sortRequest.isCritical())
           {
@@ -941,9 +931,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
                 vlvRequest);
             if(sortRequest.containsSortKeys())
             {
-              searchOperation.addResponseControl(
-                new ServerSideSortResponseControl(
-                                              LDAPResultCode.SUCCESS, null));
+              searchOperation.addResponseControl(new ServerSideSortResponseControl(SUCCESS, null));
             }
             else
             {
@@ -953,16 +941,12 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
                 server return all search results unsorted and include the
                 sortKeyResponseControl in the searchResultDone message.
               */
-              searchOperation.addResponseControl(
-                      new ServerSideSortResponseControl
-                                (LDAPResultCode.NO_SUCH_ATTRIBUTE, null));
+              searchOperation.addResponseControl(new ServerSideSortResponseControl(NO_SUCH_ATTRIBUTE, null));
             }
           }
           catch (DirectoryException de)
           {
-            searchOperation.addResponseControl(
-                new ServerSideSortResponseControl(
-                    de.getResultCode().intValue(), null));
+            searchOperation.addResponseControl(new ServerSideSortResponseControl(de.getResultCode().intValue(), null));
 
             if (sortRequest.isCritical())
             {
@@ -979,11 +963,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       debugBuffer.append(" final=");
       entryIDList.toString(debugBuffer);
 
-      Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX,
-          debugBuffer.toString());
-
-      Entry debugEntry =
-          new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
+      Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX, debugBuffer.toString());
+      Entry debugEntry = new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
       debugEntry.addAttribute(attr, new ArrayList<ByteString>());
 
       searchOperation.returnEntry(debugEntry, null);
@@ -996,8 +977,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       {
         rootContainer.getMonitorProvider().updateIndexedSearchCount();
       }
-      searchIndexed(entryIDList, candidatesAreInScope, searchOperation,
-          pageRequest);
+      searchIndexed(entryIDList, candidatesAreInScope, searchOperation, pageRequest);
     }
     else
     {
@@ -1006,8 +986,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         rootContainer.getMonitorProvider().updateUnindexedSearchCount();
       }
 
-      searchOperation.addAdditionalLogItem(
-          AdditionalLogItem.keyOnly(getClass(), "unindexed"));
+      searchOperation.addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(), "unindexed"));
 
       // See if we could use a virtual attribute rule to process the search.
       for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
@@ -1019,24 +998,18 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         }
       }
 
-      ClientConnection clientConnection =
-        searchOperation.getClientConnection();
-      if(! clientConnection.hasPrivilege(Privilege.UNINDEXED_SEARCH,
-          searchOperation))
+      ClientConnection clientConnection = searchOperation.getClientConnection();
+      if (!clientConnection.hasPrivilege(Privilege.UNINDEXED_SEARCH, searchOperation))
       {
-        LocalizableMessage message =
-          ERR_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES.get();
-        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-            message);
+        LocalizableMessage message = ERR_JEB_SEARCH_UNINDEXED_INSUFFICIENT_PRIVILEGES.get();
+        throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS, message);
       }
 
       if (sortRequest != null)
       {
         // FIXME -- Add support for sorting unindexed searches using indexes
         //          like DSEE currently does.
-        searchOperation.addResponseControl(
-            new ServerSideSortResponseControl(
-                LDAPResultCode.UNWILLING_TO_PERFORM, null));
+        searchOperation.addResponseControl(new ServerSideSortResponseControl(UNWILLING_TO_PERFORM, null));
 
         if (sortRequest.isCritical())
         {
@@ -1068,9 +1041,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * @throws DirectoryException If an error prevented the search from being
    * processed.
    */
-  private void searchNotIndexed(SearchOperation searchOperation,
-      PagedResultsControl pageRequest)
-  throws DirectoryException, CanceledOperationException
+  private void searchNotIndexed(SearchOperation searchOperation, PagedResultsControl pageRequest)
+      throws DirectoryException, CanceledOperationException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     DN aBaseDN = searchOperation.getBaseDN();
@@ -1145,8 +1117,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         logger.traceException(e);
         String str = pageRequest.getCookie().toHexString();
         LocalizableMessage msg = ERR_JEB_INVALID_PAGED_RESULTS_COOKIE.get(str);
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-            msg, e);
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg, e);
       }
     }
     else
@@ -1159,18 +1130,15 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     DatabaseEntry key = new DatabaseEntry(begin);
 
     int lookthroughCount = 0;
-    int lookthroughLimit =
-      searchOperation.getClientConnection().getLookthroughLimit();
+    int lookthroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
 
     try
     {
       Cursor cursor = dn2id.openCursor(null, null);
       try
       {
-        OperationStatus status;
-
         // Initialize the cursor very close to the starting value.
-        status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
+        OperationStatus status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
 
         // Step forward until we pass the ending value.
         while (status == OperationStatus.SUCCESS)
@@ -1221,9 +1189,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
               if ((manageDsaIT || entry.getReferralURLs() == null)
                   && searchOperation.getFilter().matchesEntry(entry))
               {
-                if (pageRequest != null &&
-                    searchOperation.getEntriesSent() ==
-                      pageRequest.getSize())
+                if (pageRequest != null
+                    && searchOperation.getEntriesSent() == pageRequest.getSize())
                 {
                   // The current page is full.
                   // Set the cookie to remember where we were.
@@ -1675,10 +1642,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Cursor cursor = dn2id.openCursor(txn, cursorConfig);
       try
       {
-        OperationStatus status;
-
         // Initialize the cursor very close to the starting value.
-        status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
+        OperationStatus status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
 
         // Step forward until the key is greater than the starting value.
         while (status == OperationStatus.SUCCESS &&
@@ -1834,13 +1799,10 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       // Read the entry ID from dn2id.
       if(leafDNKey == null)
       {
-        leafDNKey =
-            new DatabaseEntry(JebFormat.dnToDNKey(
-                targetDN, this.baseDN.size()));
+        leafDNKey = new DatabaseEntry(JebFormat.dnToDNKey(targetDN, this.baseDN.size()));
       }
       DatabaseEntry value = new DatabaseEntry();
-      OperationStatus status;
-      status = dn2id.read(txn, leafDNKey, value, LockMode.RMW);
+      OperationStatus status = dn2id.read(txn, leafDNKey, value, LockMode.RMW);
       if (status != OperationStatus.SUCCESS)
       {
         LocalizableMessage message =
@@ -1964,14 +1926,13 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * @throws  DirectoryException  If a problem occurs while trying to make the
    *                              determination.
    */
-  public boolean entryExists(DN entryDN)
-  throws DirectoryException
+  public boolean entryExists(DN entryDN) throws DirectoryException
   {
     // Try the entry cache first.
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     if (entryCache != null && entryCache.containsEntry(entryDN))
     {
-        return true;
+      return true;
     }
 
     try
@@ -1983,9 +1944,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     catch (DatabaseException e)
     {
       logger.traceException(e);
+      return false;
     }
-
-    return false;
   }
 
   /**
@@ -2317,10 +2277,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Cursor cursor = dn2id.openCursor(txn, cursorConfig);
       try
       {
-        OperationStatus status;
-
         // Initialize the cursor very close to the starting value.
-        status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
+        OperationStatus status = cursor.getSearchKeyRange(key, data, LockMode.DEFAULT);
 
         // Step forward until the key is greater than the starting value.
         while (status == OperationStatus.SUCCESS &&
@@ -2865,20 +2823,19 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   }
 
   /**
-   * Get a count of the number of entries stored in this entry entryContainer.
+   * Get a count of the number of entries stored in this entry container.
    *
-   * @return The number of entries stored in this entry entryContainer.
+   * @return The number of entries stored in this entry container.
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @Override
   public long getEntryCount() throws DatabaseException
   {
     EntryID entryID = dn2id.get(null, baseDN, LockMode.DEFAULT);
     if (entryID != null)
     {
-      DatabaseEntry key =
-        new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
-      EntryIDSet entryIDSet;
-      entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
+      DatabaseEntry key = new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
+      EntryIDSet entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
 
       long count = entryIDSet.size();
       if(count != Long.MAX_VALUE)
@@ -2902,7 +2859,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
   /**
    * Get the number of values for which the entry limit has been exceeded
-   * since the entry entryContainer was opened.
+   * since the entry container was opened.
    * @return The number of values for which the entry limit has been exceeded.
    */
   public int getEntryLimitExceededCount()
@@ -3247,12 +3204,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     }
   }
 
-
-  /**
-   * Get the baseDN this entry container is responsible for.
-   *
-   * @return The Base DN for this entry container.
-   */
+  /** {@inheritDoc} */
+  @Override
   public DN getBaseDN()
   {
     return baseDN;
@@ -3363,8 +3316,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * @throws DatabaseException If an error occurs while retrieving the
    *                           configuration object.
    */
-  public EnvironmentConfig getEnvironmentConfig()
-  throws DatabaseException
+  public EnvironmentConfig getEnvironmentConfig() throws DatabaseException
   {
     return env.getConfig();
   }
@@ -3512,8 +3464,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    * @throws DirectoryException If an error prevented the check of an
    * existing entry from being performed.
    */
-  private DN getMatchedDN(DN baseDN)
-  throws DirectoryException
+  private DN getMatchedDN(DN baseDN) throws DirectoryException
   {
     DN parentDN  = baseDN.getParentDNInSuffix();
     while (parentDN != null && parentDN.isDescendantOf(getBaseDN()))
@@ -3532,22 +3483,20 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    */
   private void openSubordinateIndexes()
   {
-    id2children = new Index(databasePrefix + "_"
-          + ID2CHILDREN_DATABASE_NAME, new ID2CIndexer(), state,
-          config.getIndexEntryLimit(), 0, true, env, this);
-    id2children.open();
-    if (!id2children.isTrusted())
+    id2children = newIndex(ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
+    id2subtree = newIndex(ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
+  }
+
+  private Index newIndex(String name, Indexer indexer)
+  {
+    final Index index = new Index(databasePrefix + "_" + name,
+        indexer, state, config.getIndexEntryLimit(), 0, true, env, this);
+    index.open();
+    if (!index.isTrusted())
     {
-      logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2children.getName());
+      logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, index.getName());
     }
-    id2subtree = new Index(databasePrefix + "_" + ID2SUBTREE_DATABASE_NAME,
-            new ID2SIndexer(), state, config.getIndexEntryLimit(), 0, true,
-            env, this);
-    id2subtree.open();
-    if (!id2subtree.isTrusted())
-    {
-      logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, id2subtree.getName());
-    }
+    return index;
   }
 
 
