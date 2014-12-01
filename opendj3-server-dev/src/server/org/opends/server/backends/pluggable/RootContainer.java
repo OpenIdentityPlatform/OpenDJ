@@ -52,4 +52,13 @@ public interface RootContainer<T extends SuffixContainer>
    * @return a Map of baseDN to suffix containers
    */
   Map<DN, T> getSuffixContainers();
+
+  /**
+   * Returns the number of entries managed by all the suffix containers under
+   * this root container.
+   *
+   * @return the number of entries managed by this root container, or -1 if the
+   *         count not not be determined
+   */
+  long getEntryCount();
 }

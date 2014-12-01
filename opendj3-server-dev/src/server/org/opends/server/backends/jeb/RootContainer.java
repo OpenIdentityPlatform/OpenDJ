@@ -59,7 +59,8 @@ import static org.opends.server.util.StaticUtils.*;
  * of the entry containers.
  */
 public class RootContainer
-     implements ConfigurationChangeListener<LocalDBBackendCfg>
+     implements org.opends.server.backends.pluggable.RootContainer<EntryContainer>,
+                ConfigurationChangeListener<LocalDBBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -78,7 +79,7 @@ public class RootContainer
   /** The database environment monitor for this JE environment. */
   private DatabaseEnvironmentMonitor monitor;
 
-  /** The base DNs contained in this entryContainer. */
+  /** The base DNs contained in this root container. */
   private final ConcurrentHashMap<DN, EntryContainer> entryContainers = new ConcurrentHashMap<DN, EntryContainer>();
 
   /** The cached value of the next entry identifier to be assigned. */
@@ -311,7 +312,6 @@ public class RootContainer
   public EntryContainer unregisterEntryContainer(DN baseDN)
   {
     return entryContainers.remove(baseDN);
-
   }
 
   /**
@@ -352,8 +352,7 @@ public class RootContainer
     if (timeLimit > 0)
     {
       // Get a list of all the databases used by the backend.
-      ArrayList<DatabaseContainer> dbList =
-          new ArrayList<DatabaseContainer>();
+      ArrayList<DatabaseContainer> dbList = new ArrayList<DatabaseContainer>();
       for (EntryContainer ec : entryContainers.values())
       {
         ec.sharedLock.lock();
@@ -441,10 +440,10 @@ public class RootContainer
   }
 
   /**
-   * Close the root entryContainer.
+   * Closes this root container.
    *
    * @throws DatabaseException If an error occurs while attempting to close
-   * the entryContainer.
+   * the root container.
    */
   public void close() throws DatabaseException
   {
@@ -480,6 +479,13 @@ public class RootContainer
   public Collection<EntryContainer> getEntryContainers()
   {
     return entryContainers.values();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Map<DN, EntryContainer> getSuffixContainers()
+  {
+    return entryContainers;
   }
 
   /**

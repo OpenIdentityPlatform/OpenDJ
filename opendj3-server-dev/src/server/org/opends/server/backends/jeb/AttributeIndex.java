@@ -27,6 +27,7 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.io.Closeable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -73,7 +74,7 @@ import static org.opends.server.util.StaticUtils.*;
  * then we would not need a separate ordering index.
  */
 public class AttributeIndex
-    implements ConfigurationChangeListener<LocalDBIndexCfg>
+    implements ConfigurationChangeListener<LocalDBIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -296,13 +297,9 @@ public class AttributeIndex
     indexConfig.addChangeListener(this);
   }
 
-  /**
-   * Close the attribute index.
-   *
-   * @throws DatabaseException if a JE database error occurs while
-   * closing the index.
-   */
-  public void close() throws DatabaseException
+  /** Closes the attribute index. */
+  @Override
+  public void close()
   {
     Utils.closeSilently(nameToIndexes.values());
     indexConfig.removeChangeListener(this);
