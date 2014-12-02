@@ -330,8 +330,10 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                 following = true;
                 lateQueue.clear();
                 msgQueue.consumeUpTo(msg);
-                updateServerState(msg);
-                return msg;
+                if (updateServerState(msg))
+                {
+                  return msg;
+                }
               }
             }
           }
@@ -344,8 +346,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           {
             msg = lateQueue.removeFirst();
           }
-          updateServerState(msg);
-          return msg;
+          if (updateServerState(msg))
+          {
+            return msg;
+          }
+          continue;
         }
       }
 
