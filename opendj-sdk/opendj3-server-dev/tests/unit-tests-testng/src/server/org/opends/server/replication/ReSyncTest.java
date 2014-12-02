@@ -81,7 +81,7 @@ public class ReSyncTest extends ReplicationTestCase
     // re-enabled and this clears the backend reference and thus the underlying
     // data. So for this particular test, we use a classical backend. Let's
     // clear it and create the root entry
-    TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend("userRoot");
     addEntry("dn: dc=example,dc=com\n" + "objectClass: top\n"
         + "objectClass: domain\n");
 
@@ -240,7 +240,7 @@ public class ReSyncTest extends ReplicationTestCase
     entriesToCleanup.remove(DN.valueOf(EXAMPLE_DN));
     super.classCleanUp();
 
-    TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend("userRoot");
     TestCaseUtils.deleteDirectory(reSyncTempDir);
 
     paranoiaCheck();

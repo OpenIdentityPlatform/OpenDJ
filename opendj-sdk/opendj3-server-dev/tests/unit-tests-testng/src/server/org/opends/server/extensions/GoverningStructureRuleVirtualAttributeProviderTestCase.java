@@ -78,7 +78,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     governingStructureRuleType =
          DirectoryServer.getAttributeType("governingstructurerule", false);

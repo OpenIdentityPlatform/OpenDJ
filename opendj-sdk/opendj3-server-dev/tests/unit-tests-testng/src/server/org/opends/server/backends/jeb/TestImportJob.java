@@ -299,7 +299,7 @@ public class TestImportJob extends JebTestCase
   @Test(enabled = true)
   public void testImportAll() throws Exception
   {
-    TestCaseUtils.clearJEBackend(false, beID, null);
+    TestCaseUtils.clearJEBackend(beID);
     ArrayList<String> fileList = new ArrayList<String>();
     fileList.add(homeDirName + File.separator + "top.ldif");
     fileList.add(homeDirName + File.separator + "entries1.ldif");
@@ -536,7 +536,7 @@ public class TestImportJob extends JebTestCase
   @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportAppend() throws Exception
   {
-    TestCaseUtils.clearJEBackend(false, beID, null);
+    TestCaseUtils.clearJEBackend(beID);
 
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
         + File.separator + "top.ldif");

@@ -80,6 +80,9 @@ import org.opends.server.util.LDIFReader;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
+import static org.opends.server.loggers.TextAccessLogPublisher.*;
+import static org.opends.server.loggers.TextErrorLogPublisher.*;
+import static org.opends.server.loggers.TextHTTPAccessLogPublisher.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -155,28 +158,26 @@ public final class TestCaseUtils {
    */
   public static final String TEST_ROOT_DN_STRING = "o=test";
 
-  /**
-   * The backend if for the test backend
-   */
+  /** The backend if for the test backend. */
   public static final String TEST_BACKEND_ID = "test";
 
   /**
    * The string representation of the OpenDMK jar file location
-   * that will be used as base to determine if snmp is included or not
+   * that will be used as base to determine if snmp is included or not.
    */
   public static final String PROPERTY_OPENDMK_LOCATION =
           "org.opends.server.snmp.opendmk";
 
-  /** The test text writer for the Debug Logger */
+  /** The test text writer for the Debug Logger. */
   public static TestTextWriter DEBUG_TEXT_WRITER = new TestTextWriter();
 
-  /** The test text writer for the Error Logger */
+  /** The test text writer for the Error Logger. */
   public static TestTextWriter ERROR_TEXT_WRITER = new TestTextWriter();
 
-  /** The test text writer for the Access Logger */
+  /** The test text writer for the Access Logger. */
   public static TestTextWriter ACCESS_TEXT_WRITER = new TestTextWriter();
 
-  /** The test text writer for the HTTP Access Logger */
+  /** The test text writer for the HTTP Access Logger. */
   public static TestTextWriter HTTP_ACCESS_TEXT_WRITER = new TestTextWriter();
 
   /**
@@ -184,7 +185,7 @@ public final class TestCaseUtils {
    * constant must not be altered by anything outside the
    * <CODE>startServer</CODE> method.
    */
-  public static boolean SERVER_STARTED = false;
+  public static boolean SERVER_STARTED;
 
   /**
    * This is used to store the schema as it was before starting the fake server
@@ -216,7 +217,7 @@ public final class TestCaseUtils {
   /**
    * Incremented by one each time the server has restarted.
    */
-  private static int serverRestarts = 0;
+  private static int serverRestarts;
 
   /**
    * The config directory in the test environment.
@@ -289,10 +290,8 @@ public final class TestCaseUtils {
       File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
                                     File.separator + "unit-tests-testng");
 
-      String cleanupRequiredString =
-              System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
-      boolean cleanupRequired =
-          !cleanupRequiredString.equalsIgnoreCase("false");
+      String cleanupRequiredString = System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
+      boolean cleanupRequired = !"false".equalsIgnoreCase(cleanupRequiredString);
 
       if (cleanupRequired) {
         deleteDirectory(testInstallRoot);
@@ -480,16 +479,14 @@ public final class TestCaseUtils {
               testInstanceRoot.getAbsolutePath());
 
       AccessLogger.getInstance().addLogPublisher(
-          (AccessLogPublisher) TextAccessLogPublisher
-              .getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));
+          (AccessLogPublisher) getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));
 
       HTTPAccessLogger.getInstance().addLogPublisher(
-          (HTTPAccessLogPublisher) TextHTTPAccessLogPublisher
-              .getStartupTextHTTPAccessPublisher(HTTP_ACCESS_TEXT_WRITER));
+          (HTTPAccessLogPublisher) getStartupTextHTTPAccessPublisher(HTTP_ACCESS_TEXT_WRITER));
 
       // Enable more verbose error logger.
       ErrorLogger.getInstance().addLogPublisher(
-            (ErrorLogPublisher) TextErrorLogPublisher.getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
+          (ErrorLogPublisher) getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
       DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
 
@@ -585,9 +582,9 @@ public final class TestCaseUtils {
 
   private static void clearJEBackends() throws Exception
   {
-    for (Backend backend: DirectoryServer.getBackends().values()) {
+    for (Backend<?> backend : DirectoryServer.getBackends().values()) {
       if (backend instanceof BackendImpl) {
-        TestCaseUtils.clearJEBackend(false, backend.getBackendID(), null);
+        clearJEBackend(backend.getBackendID());
       }
     }
   }
@@ -603,8 +600,7 @@ public final class TestCaseUtils {
     if (testConfigDir == null) {
       throw new RuntimeException("The testConfigDir variable is not set yet!");
     }
-
-    return (testConfigDir);
+    return testConfigDir;
   }
 
   public static File getBuildRoot()
@@ -854,34 +850,38 @@ public final class TestCaseUtils {
    */
   public static void clearMemoryBackend(String backendID) throws Exception
   {
-    MemoryBackend memoryBackend =
-      (MemoryBackend) DirectoryServer.getBackend(backendID);
+    MemoryBackend memoryBackend = (MemoryBackend) DirectoryServer.getBackend(backendID);
     // FIXME JNR I suspect we could call finalizeBackend() here (but also in other
     // places in this class), because finalizeBackend() calls clearMemoryBackend().
     if (memoryBackend != null)
+    {
       memoryBackend.clearMemoryBackend();
+    }
   }
 
   /**
-   * Clears all the entries from the JE backend determined by the
-   * be id passed into the method.
+   * Clears all the entries from the JE backend determined by the backend id passed into the method.
+   *
+   * @throws Exception If an unexpected problem occurs.
+   */
+  public static void clearJEBackend(String backendId) throws Exception
+  {
+    clearJEBackend(backendId, null);
+  }
 
-   * @param  createBaseEntry  Indicate whether to automatically create the base
-   *                          entry and add it to the backend.
+  /**
+   * Clears all the entries from the JE backend determined by the backend id passed into the method.
    *
-   * @param beID  The be id to clear.
-   *
-   * @param dn   The suffix of the backend to create if the the createBaseEntry
-   *             boolean is true.
-   *
+   * @param backendId  The backend id to clear
+   * @param baseDN   If not null, the suffix of the backend to create
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void clearJEBackend(boolean createBaseEntry, String beID, String dn)
-       throws Exception
+  public static void clearJEBackend(String backendId, String baseDN) throws Exception
   {
-    BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(beID);
-    RootContainer rootContainer = backend.getRootContainer();
-    if (rootContainer != null) {
+    final BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(backendId);
+    final RootContainer rootContainer = backend.getRootContainer();
+    if (rootContainer != null)
+    {
       for (EntryContainer ec : rootContainer.getEntryContainers())
       {
         ec.clear();
@@ -889,12 +889,10 @@ public final class TestCaseUtils {
       }
       rootContainer.resetNextEntryID();
 
-      if (createBaseEntry)
+      if (baseDN != null)
       {
-        DN baseDN = DN.valueOf(dn);
-        Entry e = createEntry(baseDN);
-        backend = (BackendImpl)DirectoryServer.getBackend(beID);
-        backend.addEntry(e, null);
+        Entry e = createEntry(DN.valueOf(baseDN));
+        DirectoryServer.getBackend(backendId).addEntry(e, null);
       }
     }
   }
@@ -919,7 +917,7 @@ public final class TestCaseUtils {
           if (dbContainer instanceof Index) {
             Index index = (Index)dbContainer;
             if (!index.isTrusted()) {
-              originalSystemErr.println("ERROR:  The index " + index.toString() + " is no longer trusted.");
+              originalSystemErr.println("ERROR:  The index " + index + " is no longer trusted.");
             }
           }
         }
@@ -1531,27 +1529,27 @@ public final class TestCaseUtils {
   // ---------------------------------------------------------------------------
 
   /** The set of loggers for which the console logger has been disabled. */
-  private final static Map<Logger, Handler> disabledLogHandlers = new HashMap<Logger,Handler>();
+  private static final Map<Logger, Handler> disabledLogHandlers = new HashMap<Logger,Handler>();
 
   /** The original System.err print stream.  Use this if you absolutely
    *  must write something to System.err. */
-  public final static PrintStream originalSystemErr = System.err;
+  public static final PrintStream originalSystemErr = System.err;
 
   /** The original System.out print stream.  Use this if you absolutely
    *  must write something to System.out. */
-  public final static PrintStream originalSystemOut = System.out;
+  public static final PrintStream originalSystemOut = System.out;
 
   /** System.err is redirected to here so that we can only print it out
    *  if a test fails. */
-  private final static ByteArrayOutputStream redirectedSystemErr = new ByteArrayOutputStream();
+  private static final ByteArrayOutputStream redirectedSystemErr = new ByteArrayOutputStream();
 
   /** System.out is redirected to here so that we can only print it out
    *  if a test fails. */
-  private final static ByteArrayOutputStream redirectedSystemOut = new ByteArrayOutputStream();
+  private static final ByteArrayOutputStream redirectedSystemOut = new ByteArrayOutputStream();
 
-  public synchronized static void suppressOutput() {
+  public static synchronized void suppressOutput() {
     String suppressStr = System.getProperty("org.opends.test.suppressOutput");
-    if ((suppressStr != null) && suppressStr.equalsIgnoreCase("true"))
+    if ("true".equalsIgnoreCase(suppressStr))
     {
       System.setOut(new PrintStream(redirectedSystemOut));
       System.setErr(new PrintStream(redirectedSystemErr));
@@ -1583,7 +1581,7 @@ public final class TestCaseUtils {
    * @return everything written to System.out since the last time
    * clearSystemOutContents was called.
    */
-  public synchronized static String getSystemOutContents() {
+  public static synchronized String getSystemOutContents() {
     return redirectedSystemOut.toString();
   }
 
@@ -1591,30 +1589,30 @@ public final class TestCaseUtils {
    * @return everything written to System.err since the last time
    * clearSystemErrContents was called.
    */
-  public synchronized static String getSystemErrContents() {
+  public static synchronized String getSystemErrContents() {
     return redirectedSystemErr.toString();
   }
 
   /**
-   * clear everything written to System.out since the last time
+   * Clear everything written to System.out since the last time
    * clearSystemOutContents was called.
    */
-  public synchronized static void clearSystemOutContents() {
+  public static synchronized void clearSystemOutContents() {
     redirectedSystemOut.reset();
   }
 
   /**
-   * clear everything written to System.err since the last time
+   * Clear everything written to System.err since the last time
    * clearSystemErrContents was called.
    */
-  public synchronized static void clearSystemErrContents() {
+  public static synchronized void clearSystemErrContents() {
     redirectedSystemErr.reset();
   }
 
   /**
-   * clear everything written to the Access, Error, or Debug loggers
+   * Clear everything written to the Access, Error, or Debug loggers.
    */
-  public synchronized static void clearLoggersContents() {
+  public static synchronized void clearLoggersContents() {
     ACCESS_TEXT_WRITER.clear();
     ERROR_TEXT_WRITER.clear();
     DEBUG_TEXT_WRITER.clear();
@@ -1661,7 +1659,7 @@ public final class TestCaseUtils {
     }
   }
 
-  public synchronized static void unsupressOutput() {
+  public static synchronized void unsupressOutput() {
     System.setOut(originalSystemOut);
     System.setErr(originalSystemErr);
 
@@ -1676,16 +1674,14 @@ public final class TestCaseUtils {
   /**
    * Read the contents of a file and return it as a String.
    */
-  public static String readFile(String name)
-          throws IOException {
+  public static String readFile(String name) throws IOException {
     return readFile(new File(name));
   }
 
   /**
    * Read the contents of a file and return it as a String.
    */
-  public static String readFile(File file)
-          throws IOException {
+  public static String readFile(File file) throws IOException {
     byte[] bytes = readFileBytes(file);
     return new String(bytes);
   }

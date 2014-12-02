@@ -150,7 +150,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     String uuidString =
          UUID.nameUUIDFromBytes(getBytes("dc=example,dc=com")).toString();
 
-    TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot");
 
     Entry e = TestCaseUtils.addEntry(
       "dn: dc=example,dc=com",

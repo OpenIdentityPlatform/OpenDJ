@@ -74,7 +74,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     subschemaSubentryType =
          DirectoryServer.getAttributeType("subschemasubentry", false);

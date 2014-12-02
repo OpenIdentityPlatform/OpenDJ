@@ -82,7 +82,7 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
     String backendBaseDNName = "ds-cfg-base-dn";
 
     // Initialize a backend with a base entry.
-    TestCaseUtils.clearJEBackend(true, "userRoot", suffix);
+    TestCaseUtils.clearJEBackend("userRoot", suffix);
 
     // Check that suffix is accessible while suffix2 is not.
     searchEntry(suffix, ResultCode.SUCCESS);
@@ -175,26 +175,26 @@ public class LocalBackendWorkflowElementTest extends DirectoryServerTestCase
     try
     {
       TestCaseUtils.clearDataBackends();
-      
+
       // At this point, the list of subordinate naming context is not defined
       // yet (null): any public backend should be visible. Create a backend
       // with a base entry and check that the test naming context is visible.
       TestCaseUtils.initializeMemoryBackend(backendID1, backend1, true);
       searchPublicNamingContexts(ResultCode.SUCCESS, 1);
-      
+
       // Create another test backend and check that the new backend is visible
       TestCaseUtils.initializeMemoryBackend(backendID2, backend2, true);
       searchPublicNamingContexts(ResultCode.SUCCESS, 2);
-      
+
       // Now put in the list of subordinate naming context the backend1 naming context.
       // This white list will prevent the backend2 to be visible.
       TestCaseUtils.dsconfig(
           "set-root-dse-backend-prop",
           "--set", "subordinate-base-dn:" + backend1);
       searchPublicNamingContexts(ResultCode.SUCCESS, 1);
-      
+
       // === Cleaning
-      
+
       // Reset the subordinate naming context list.
       // Both naming context should be visible again.
       TestCaseUtils.dsconfig(

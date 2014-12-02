@@ -63,7 +63,7 @@ public final class StringPrepProfileTestCase extends SchemaTestCase
   /** Adds an entry for test. */
   private void addEntry() throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.addEntries(
       "dn: cn=Jos\u00E9,dc=example,   dc=com",
             "objectClass: person",
@@ -95,7 +95,7 @@ public final class StringPrepProfileTestCase extends SchemaTestCase
     }
     finally
     {
-      TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     }
   }
 

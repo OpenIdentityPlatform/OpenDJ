@@ -141,17 +141,17 @@ public class TestVerifyJob extends JebTestCase
 
   @AfterClass
   public void cleanUp() throws Exception {
-    TestCaseUtils.clearJEBackend(false, beID, suffix);
+    TestCaseUtils.clearJEBackend(beID);
     TestCaseUtils.disableBackend(beID);
   }
 
   /**
-   * Performs a ncomplete verify against a backend using the
-   * entries loaded in the setup initializer.
+   * Performs a complete verify against a backend using the entries loaded in
+   * the setup initializer.
    *
-   * @throws Exception if error count is not equal to 0.
+   * @throws Exception
+   *           if error count is not equal to 0.
    */
-
   @Test()
   public void testCompleteVerifyJob()  throws Exception {
     cleanAndLoad(9);
@@ -850,7 +850,7 @@ public class TestVerifyJob extends JebTestCase
    * @throws Exception if the entries are not loaded or created.
    */
   private void cleanAndLoad(int numEntries) throws Exception {
-    TestCaseUtils.clearJEBackend(false, beID, suffix);
+    TestCaseUtils.clearJEBackend(beID);
     template[2]=numUsersLine;
     template[2]=
          template[2].replaceAll("#numEntries#", String.valueOf(numEntries));
@@ -866,10 +866,11 @@ public class TestVerifyJob extends JebTestCase
    */
   private long getStatEntryCount(Entry e, String type)
        throws NumberFormatException {
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(type);
+    AttributeType attrType = DirectoryServer.getAttributeType(type);
     if (attrType == null)
+    {
       attrType = DirectoryServer.getDefaultAttributeType(type);
+    }
     List<Attribute> attrList = e.getAttribute(attrType, null);
     ByteString v = attrList.get(0).iterator().next();
     return Long.parseLong(v.toString());

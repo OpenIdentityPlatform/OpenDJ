@@ -226,7 +226,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
 
   @AfterClass
   public void cleanUp() throws Exception {
-      TestCaseUtils.clearJEBackend(false, beID, "dc=vlvtest,dc=com");
+      TestCaseUtils.clearJEBackend(beID);
       TestCaseUtils.disableBackend(beID);
   }
 
