@@ -24,6 +24,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import java.io.Closeable;
+
 import org.opends.server.types.DN;
 
 /**
@@ -32,8 +34,37 @@ import org.opends.server.types.DN;
  * stores a.k.a indexes. It stores entries in these key-values stores and
  * maintain the indexes all in sync on updates.
  */
-public interface SuffixContainer
+public interface SuffixContainer extends Closeable
 {
+
+  /**
+   * The name of the index associating normalized DNs to ids. LDAP DNs uniquely
+   * identify entries.
+   */
+  String DN2ID_INDEX_NAME = "dn2id";
+  /**
+   * The name of the index associating entry ids to entries. Entry ids are
+   * monotonically increasing unique longs and entries are serialized versions
+   * of LDAP entries.
+   */
+  String ID2ENTRY_INDEX_NAME = "id2entry";
+  /**
+   * The name of the index associating an entry id to the entry id set of all
+   * its children.
+   */
+  String ID2CHILDREN_INDEX_NAME = "id2children";
+  /**
+   * The name of the index associating an entry id to the entry id set of all
+   * its subordinates.
+   */
+  String ID2SUBTREE_INDEX_NAME = "id2subtree";
+  /** The name of the index associating normalized DNs to normalized URIs. */
+  String REFERRAL_INDEX_NAME = "referral";
+  /**
+   * The name of the index which associates indexes with their trust state, i.e.
+   * does the index needs to be rebuilt ?
+   */
+  String STATE_INDEX_NAME = "state";
 
   /**
    * Returns the baseDN that this suffix container is responsible for.

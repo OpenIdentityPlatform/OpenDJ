@@ -25,15 +25,20 @@
  */
 package org.opends.server.backends.pluggable;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
-import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -45,6 +50,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -64,29 +70,65 @@ import static org.opends.server.util.StaticUtils.*;
  * @param <C>
  *          the type of the BackendCfg for the current backend
  */
-public abstract class PluggableStorageBackend<C extends Configuration> extends Backend<C>
+public abstract class PluggableStorageBackend<C extends BackendCfg>
+    extends Backend<C>
+    implements ConfigurationChangeListener<C>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** The configuration object. */
+  protected C cfg;
   /** The set of base DNs for this backend. */
   private DN[] baseDNs;
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(final Configuration cfg) throws ConfigException
+  public void configureBackend(final C cfg) throws ConfigException
   {
     Reject.ifNull(cfg);
+
+    this.cfg = cfg;
+    baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws InitializationException
+  public boolean isConfigurationChangeAcceptable(C cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    for (DN baseDN : this.baseDNs)
+    return false;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ConfigChangeResult applyConfigurationChange(C cfg)
+  {
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void initializeBackend() throws ConfigException, InitializationException
+  {
+    registerBaseDNs(cfg.getBaseDN());
+  }
+
+  /**
+   * Associates the current backend with the provided baseDNs in the directory
+   * server.
+   *
+   * @param baseDNs
+   *          the base DNs to be associated with this backend
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not related to
+   *           the server configuration.
+   */
+  public void registerBaseDNs(Collection<DN> baseDNs) throws InitializationException
+  {
+    for (DN baseDN : baseDNs)
     {
       try
       {
-        DirectoryServer.registerBaseDN(baseDN, this, true);
+        DirectoryServer.registerBaseDN(baseDN, this, false);
       }
       catch (final Exception e)
       {
@@ -101,7 +143,19 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
   {
     super.finalizeBackend();
 
-    for (DN baseDN : this.baseDNs)
+    deregisterBaseDNs(cfg.getBaseDN());
+  }
+
+  /**
+   * Dissociates the current backend from the provided baseDNs in the directory
+   * server.
+   *
+   * @param baseDNs
+   *          the base DNs to dissociate from this backend
+   */
+  public void deregisterBaseDNs(Collection<DN> baseDNs)
+  {
+    for (DN baseDN : baseDNs)
     {
       try
       {
@@ -125,7 +179,7 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
@@ -139,7 +193,7 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
   @Override
   public boolean isIndexed(final AttributeType attributeType, final IndexType indexType)
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
@@ -151,7 +205,7 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
@@ -170,7 +224,7 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
   @Override
   public long numSubordinates(final DN entryDN, final boolean subtree) throws DirectoryException
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
@@ -210,9 +264,9 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
 
   /** {@inheritDoc} */
   @Override
-  public void search(final SearchOperation searchOperation) throws DirectoryException
+  public void search(final SearchOperation searchOperation) throws DirectoryException, CanceledOperationException
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
@@ -263,14 +317,14 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
   @Override
   public boolean supportsBackup()
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean supportsBackup(BackupConfig backupConfig, StringBuilder unsupportedReason)
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
@@ -293,7 +347,7 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
   @Override
   public boolean supportsRestore()
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
   /** {@inheritDoc} */
@@ -308,7 +362,13 @@ public abstract class PluggableStorageBackend<C extends Configuration> extends B
   @Override
   public long getEntryCount()
   {
-    throw new RuntimeException("Not implemented");
+    throw new NotImplementedException();
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + " baseDNs=" + Arrays.toString(baseDNs);
+  }
 }
