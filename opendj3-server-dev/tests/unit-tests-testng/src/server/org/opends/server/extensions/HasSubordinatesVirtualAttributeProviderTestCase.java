@@ -167,7 +167,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
         "postalAddress: Aarika Atpco$59208 Elm Street$Youngstown, HI  57377",
         "description: This is the description for Aarika Atpco.");
 
-    TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot");
 
     TestCaseUtils.addEntries(entries);
   }

@@ -132,7 +132,7 @@ public class VLVControlTestCase
   private void populateDB()
           throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",

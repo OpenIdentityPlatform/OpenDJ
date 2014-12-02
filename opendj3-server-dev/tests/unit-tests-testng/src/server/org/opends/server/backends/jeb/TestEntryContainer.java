@@ -26,23 +26,23 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.testng.AssertJUnit.assertTrue;
-
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Entry;
 import org.opends.server.types.DN;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
+import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * EntryContainer tester.
  */
 public class TestEntryContainer extends JebTestCase {
-  private  String beID="userRoot";
+  private static final String backendID = "userRoot";
   private BackendImpl be;
 
   private static final String ldifString = "dn: dc=example,dc=com\n"
@@ -141,7 +141,7 @@ public class TestEntryContainer extends JebTestCase {
    */
   @AfterClass
   public void tearDown() throws Exception {
-    TestCaseUtils.clearJEBackend(false, beID, "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend(backendID);
   }
 
   /**
@@ -152,8 +152,8 @@ public class TestEntryContainer extends JebTestCase {
    */
   @Test()
   public void test1() throws Exception {
-    TestCaseUtils.clearJEBackend(false, beID, null);
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    TestCaseUtils.clearJEBackend(backendID);
+    be = (BackendImpl) DirectoryServer.getBackend(backendID);
     RootContainer rootContainer = be.getRootContainer();
     EntryContainer entryContainer =
         rootContainer.getEntryContainer(DN.valueOf("dc=example,dc=com"));

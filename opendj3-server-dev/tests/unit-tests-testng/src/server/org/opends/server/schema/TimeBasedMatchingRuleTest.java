@@ -133,7 +133,7 @@ public final class TimeBasedMatchingRuleTest
     }
     finally
     {
-      TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearJEBackend("userRoot");
     }
   }
 
@@ -158,7 +158,7 @@ public final class TimeBasedMatchingRuleTest
     }
     finally
     {
-      TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearJEBackend("userRoot");
     }
   }
 
@@ -184,7 +184,7 @@ public final class TimeBasedMatchingRuleTest
     }
     finally
     {
-      TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearJEBackend("userRoot");
     }
   }
 
@@ -209,7 +209,7 @@ public final class TimeBasedMatchingRuleTest
     }
     finally
     {
-      TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearJEBackend("userRoot");
     }
   }
 
@@ -238,7 +238,7 @@ public final class TimeBasedMatchingRuleTest
     }
     finally
     {
-      TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+      TestCaseUtils.clearJEBackend("userRoot");
     }
   }
 
@@ -436,7 +436,7 @@ public final class TimeBasedMatchingRuleTest
     // calendar may fail if the time thread using a stale time.
     long currentTime = TimeThread.getTime();
 
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.addEntries(
       "dn: cn=user1,dc=example,dc=com",
       "objectclass: person",

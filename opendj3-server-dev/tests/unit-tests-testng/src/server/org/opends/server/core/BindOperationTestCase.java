@@ -47,13 +47,14 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 /**
- * A set of test cases for bind operations
+ * A set of test cases for bind operations.
  */
 public class BindOperationTestCase
        extends OperationTestCase
@@ -202,12 +203,8 @@ public class BindOperationTestCase
     return array;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   protected Operation[] createTestOperations()
          throws Exception
   {
@@ -648,7 +645,7 @@ public class BindOperationTestCase
    * Tests the <CODE>getUserEntryDN</CODE> method for a completed bind operation
    * using simple authentication in which this value will be set.
    */
-  @Test()
+  @Test
   public void testGetUserEntryDNSimpleNonNull()
   {
     InternalClientConnection conn =
@@ -681,7 +678,7 @@ public class BindOperationTestCase
    * Tests the <CODE>getUserEntryDN</CODE> method for a completed bind operation
    * using SASL authentication in which this value will be set.
    */
-  @Test()
+  @Test
   public void testGetUserEntryDNSASLNonNull()
   {
     InternalClientConnection conn =
@@ -703,7 +700,7 @@ public class BindOperationTestCase
    * <CODE>getProcessingStopTime</CODE>, and <CODE>getProcessingTime()</CODE>
    * methods for a completed bind operation using simple authentication.
    */
-  @Test()
+  @Test
   public void testGetProcessingStartAndStopTimesSimple()
   {
     InternalClientConnection conn =
@@ -726,7 +723,7 @@ public class BindOperationTestCase
    * <CODE>getProcessingStopTime</CODE>, and <CODE>getProcessingTime()</CODE>
    * methods for a completed bind operation using SASL authentication.
    */
-  @Test()
+  @Test
   public void testGetProcessingStartAndStopTimesSASL()
   {
     InternalClientConnection conn =
@@ -778,7 +775,7 @@ public class BindOperationTestCase
    * Tests a simple bind operation to ensure that all plugin types are invoked
    * as expected.
    */
-  @Test()
+  @Test
   public void testAllPluginsCalledSimple()
   {
     InvocationCounterPlugin.resetAllCounters();
@@ -804,7 +801,7 @@ public class BindOperationTestCase
    * Tests a SASL bind operation to ensure that all plugin types are invoked
    * as expected.
    */
-  @Test()
+  @Test
   public void testAllPluginsCalledSASL()
   {
     InvocationCounterPlugin.resetAllCounters();
@@ -964,8 +961,7 @@ public class BindOperationTestCase
     message = r.readMessage();
     while (message != null)
     {
-      assertTrue((message.getProtocolOpType() == OP_TYPE_BIND_RESPONSE) ||
-                 (message.getProtocolOpType() == OP_TYPE_EXTENDED_RESPONSE));
+      assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
       message = r.readMessage();
     }
 
@@ -1110,8 +1106,7 @@ public class BindOperationTestCase
     message = r.readMessage();
     while (message != null)
     {
-      assertTrue((message.getProtocolOpType() == OP_TYPE_BIND_RESPONSE) ||
-                 (message.getProtocolOpType() == OP_TYPE_EXTENDED_RESPONSE));
+      assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
       message = r.readMessage();
     }
 
@@ -1261,8 +1256,7 @@ public class BindOperationTestCase
     message = r.readMessage();
     while (message != null)
     {
-      assertTrue((message.getProtocolOpType() == OP_TYPE_BIND_RESPONSE) ||
-                 (message.getProtocolOpType() == OP_TYPE_EXTENDED_RESPONSE));
+      assertThat(message.getProtocolOpType()).isIn(OP_TYPE_BIND_RESPONSE, OP_TYPE_EXTENDED_RESPONSE);
       message = r.readMessage();
     }
 
@@ -1278,7 +1272,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBindShortCircuitInPreParseSimpleAnonymous()
          throws Exception
   {
@@ -1310,7 +1304,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBindShortCircuitInPreOperationSimpleAnonymous()
          throws Exception
   {
@@ -1343,7 +1337,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBindShortCircuitInPreParseSimpleAuthenticated()
          throws Exception
   {
@@ -1375,7 +1369,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBindShortCircuitInPreOperationSimpleAuthenticated()
          throws Exception
   {
@@ -1407,7 +1401,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBindShortCircuitInPreParseSASL()
          throws Exception
   {
@@ -1440,7 +1434,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBindShortCircuitInPreOperationSASL()
          throws Exception
   {
@@ -1471,7 +1465,7 @@ public class BindOperationTestCase
   /**
    * Tests performing a simple bind operation with an invalid user DN.
    */
-  @Test()
+  @Test
   public void testSimpleBindInvalidDN()
   {
     InternalClientConnection conn =
@@ -1488,7 +1482,7 @@ public class BindOperationTestCase
   /**
    * Tests performing a SASL bind operation with an invalid user DN.
    */
-  @Test()
+  @Test
   public void testSASLBindInvalidDN()
   {
     InternalClientConnection conn =
@@ -1509,7 +1503,7 @@ public class BindOperationTestCase
    * Tests performing a simple bind operation with an unsupported control that
    * is marked critical.
    */
-  @Test()
+  @Test
   public void testSimpleBindUnsupportedCriticalControl()
   {
     InternalClientConnection conn =
@@ -1533,7 +1527,7 @@ public class BindOperationTestCase
    * Tests performing a SASL bind operation with an unsupported control that is
    * marked critical.
    */
-  @Test()
+  @Test
   public void testSASLBindUnsupportedCriticalControl()
   {
     InternalClientConnection conn =
@@ -1560,7 +1554,7 @@ public class BindOperationTestCase
    * Tests performing a simple bind operation with an unsupported control that
    * is not marked critical.
    */
-  @Test()
+  @Test
   public void testSimpleBindUnsupportedNonCriticalControl()
   {
     InternalClientConnection conn =
@@ -1584,7 +1578,7 @@ public class BindOperationTestCase
    * Tests performing a SASL bind operation with an unsupported control that is
    * is not marked critical.
    */
-  @Test()
+  @Test
   public void testSASLBindUnsupportedNonCriticalControl()
   {
     InternalClientConnection conn =
@@ -1612,7 +1606,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleBindNoSuchUser()
          throws Exception
   {
@@ -1636,7 +1630,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleBindWithDNNoPasswordDisallowed()
          throws Exception
   {
@@ -1661,7 +1655,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleBindWithDNNoPasswordAllowed()
          throws Exception
   {
@@ -1698,7 +1692,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleBindNoUserPassword()
          throws Exception
   {
@@ -1729,11 +1723,10 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSimpleBindReferral()
-         throws Exception
+  @Test
+  public void testSimpleBindReferral() throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntry(
          "dn: ou=people,dc=example,dc=com",
@@ -1763,7 +1756,7 @@ public class BindOperationTestCase
    * Tests performing a simple bind operation with a valid DN but incorrect
    * password.
    */
-  @Test()
+  @Test
   public void testSimpleBindWrongPassword()
   {
     InternalClientConnection conn =
@@ -1780,7 +1773,7 @@ public class BindOperationTestCase
   /**
    * Tests the behavior of the returnBindErrorMessage configuration option.
    */
-  @Test()
+  @Test
   public void testReturnBindErrorMessage()
   {
     // Make sure that the default behavior is to not include the error message.
@@ -1791,9 +1784,7 @@ public class BindOperationTestCase
          conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
-    assertTrue(((bindOperation.getErrorMessage() == null) ||
-                (bindOperation.getErrorMessage().length() == 0)),
-               bindOperation.getErrorMessage().toString());
+    assertThat(bindOperation.getErrorMessage()).isEmpty();
 
 
     // Change the server configuration so that error messages should be
@@ -1819,9 +1810,7 @@ public class BindOperationTestCase
          conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
                                 ByteString.valueOf("wrongpassword"));
     assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
-    assertTrue(((bindOperation.getErrorMessage() == null) ||
-                (bindOperation.getErrorMessage().length() == 0)),
-               bindOperation.getErrorMessage().toString());
+    assertThat(bindOperation.getErrorMessage()).isEmpty();
   }
 
 
@@ -1833,7 +1822,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRebindClearsAuthInfo()
          throws Exception
   {
@@ -1904,7 +1893,7 @@ public class BindOperationTestCase
          throws Exception
   {
     TestCaseUtils.restartServer();
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.addEntries(
       "dn: ou=people,dc=example,dc=com",
       "objectClass: organizationalUnit",
@@ -1963,8 +1952,7 @@ public class BindOperationTestCase
     s.close();
 
     // Cleanup.
-    TestCaseUtils.clearJEBackend(false,
-       "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot");
   }
 
 
@@ -1981,7 +1969,7 @@ public class BindOperationTestCase
          throws Exception
   {
     TestCaseUtils.restartServer();
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.addEntries(
       "dn: ou=people,dc=example,dc=com",
       "objectClass: organizationalUnit",
@@ -2050,8 +2038,7 @@ public class BindOperationTestCase
     s.close();
 
     // Cleanup.
-    TestCaseUtils.clearJEBackend(false,
-       "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot");
   }
 
 
@@ -2062,7 +2049,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIgnoreStateUpdateFailurePolicy()
          throws Exception
   {
@@ -2156,7 +2143,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testReactiveStateUpdateFailurePolicy()
          throws Exception
   {
@@ -2251,7 +2238,7 @@ public class BindOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProactiveStateUpdateFailurePolicy()
          throws Exception
   {

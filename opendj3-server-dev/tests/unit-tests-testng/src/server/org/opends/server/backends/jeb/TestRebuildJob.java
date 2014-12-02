@@ -137,7 +137,7 @@ public class TestRebuildJob extends JebTestCase
 
   @AfterClass
   public void cleanUp() throws Exception {
-    TestCaseUtils.clearJEBackend(false, beID, suffix);
+    TestCaseUtils.clearJEBackend(beID);
     TestCaseUtils.disableBackend(beID);
   }
 
@@ -147,7 +147,7 @@ public class TestRebuildJob extends JebTestCase
    * @throws Exception if the entries are not loaded or created.
    */
   private void cleanAndLoad(int numEntries) throws Exception {
-    TestCaseUtils.clearJEBackend(false, beID, suffix);
+    TestCaseUtils.clearJEBackend(beID);
     template[2]=numUsersLine;
     template[2]=
         template[2].replaceAll("#numEntries#", String.valueOf(numEntries));

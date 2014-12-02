@@ -78,14 +78,14 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
     TestCaseUtils.startServer();
   }
 
-  @AfterClass()
+  @AfterClass
   public void cleanUp() {
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
@@ -97,7 +97,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetGroupImplementations()
          throws Exception
   {
@@ -126,7 +126,7 @@ public class GroupManagerTestCase
    * @throws Exception If an unexpected problem occurs.
    */
 
-  @Test()
+  @Test
   public void testStaticGroupCircularNested() throws Exception {
     TestCaseUtils.initializeTestBackend(true);
     GroupManager groupManager = DirectoryServer.getGroupManager();
@@ -170,7 +170,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStaticGroupDynamicNested() throws Exception {
     TestCaseUtils.initializeTestBackend(true);
     GroupManager groupManager = DirectoryServer.getGroupManager();
@@ -219,7 +219,7 @@ public class GroupManagerTestCase
    *
    * @throws Exception If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStaticGroupInstanceChange() throws Exception {
     TestCaseUtils.initializeTestBackend(true);
     GroupManager groupManager = DirectoryServer.getGroupManager();
@@ -311,7 +311,7 @@ public class GroupManagerTestCase
    *
    * @throws Exception If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStaticGroupInstanceInvalid() throws Exception {
     TestCaseUtils.initializeTestBackend(true);
     GroupManager groupManager = DirectoryServer.getGroupManager();
@@ -357,7 +357,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStaticGroupNestedAPI() throws Exception {
     TestCaseUtils.initializeTestBackend(true);
     GroupManager groupManager = DirectoryServer.getGroupManager();
@@ -492,7 +492,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGenericStaticGroupAPI()
          throws Exception
   {
@@ -613,7 +613,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidPopulatedGroupOfNames()
          throws Exception
   {
@@ -752,7 +752,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidEmptyGroupOfNames()
          throws Exception
   {
@@ -807,7 +807,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidPopulatedGroupOfUniqueNames()
          throws Exception
   {
@@ -946,7 +946,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidEmptyGroupOfUniqueNames()
          throws Exception
   {
@@ -1001,7 +1001,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidPopulatedGroupOfEntries()
          throws Exception
   {
@@ -1140,7 +1140,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidEmptyGroupOfEntries()
          throws Exception
   {
@@ -1194,7 +1194,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRenameStaticGroup()
          throws Exception
   {
@@ -1285,7 +1285,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStaticClientConnectionMembership()
          throws Exception
   {
@@ -1526,7 +1526,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStaticMemberList()
          throws Exception
   {
@@ -1666,7 +1666,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGenericDynamicGroupAPI()
          throws Exception
   {
@@ -1792,7 +1792,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDynamicGroupMalformedURL()
          throws Exception
   {
@@ -1852,7 +1852,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMembersSimple()
          throws Exception
   {
@@ -1929,7 +1929,7 @@ public class GroupManagerTestCase
     {
       DN memberDN = memberList.nextMemberDN();
       assertTrue(memberSet.remove(memberDN),
-                 "Returned unexpected member " + memberDN.toString());
+                 "Returned unexpected member " + memberDN);
     }
     memberList.close();
     assertTrue(memberSet.isEmpty(),
@@ -1951,7 +1951,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMembersComplex()
          throws Exception
   {
@@ -2029,7 +2029,7 @@ public class GroupManagerTestCase
     {
       DN memberDN = memberList.nextMemberDN();
       assertTrue(memberSet.remove(memberDN),
-                 "Returned unexpected member " + memberDN.toString());
+                 "Returned unexpected member " + memberDN);
     }
     memberList.close();
     assertTrue(memberSet.isEmpty(),
@@ -2051,7 +2051,7 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMembersMultipleDistinctURLs()
          throws Exception
   {
@@ -2130,7 +2130,7 @@ public class GroupManagerTestCase
     {
       DN memberDN = memberList.nextMemberDN();
       assertTrue(memberSet.remove(memberDN),
-                 "Returned unexpected member " + memberDN.toString());
+                 "Returned unexpected member " + memberDN);
     }
     memberList.close();
     assertTrue(memberSet.isEmpty(),
@@ -2152,12 +2152,12 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMembersMultipleOverlappingURLs()
          throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
-    TestCaseUtils.clearJEBackend(false, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot");
 
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
@@ -2235,7 +2235,7 @@ public class GroupManagerTestCase
     {
       DN memberDN = memberList.nextMemberDN();
       assertTrue(memberSet.remove(memberDN),
-                 "Returned unexpected member " + memberDN.toString());
+                 "Returned unexpected member " + memberDN);
     }
     memberList.close();
     assertTrue(memberSet.isEmpty(),
@@ -2254,9 +2254,9 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSubtreeDelete() throws Exception {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addSubtreeGroupTestEntries();
@@ -2305,8 +2305,7 @@ public class GroupManagerTestCase
     assertNull(group3);
 
     // Cleanup.
-    TestCaseUtils.clearJEBackend(false,
-       "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot");
   }
 
   /**
@@ -2314,9 +2313,9 @@ public class GroupManagerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSubtreeModify() throws Exception {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     GroupManager groupManager = DirectoryServer.getGroupManager();
     groupManager.deregisterAllGroups();
     addSubtreeGroupTestEntries();
@@ -2377,8 +2376,7 @@ public class GroupManagerTestCase
     assertTrue(conn.isMemberOf(newGroup3, null));
 
     // Cleanup.
-    TestCaseUtils.clearJEBackend(false,
-       "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot");
   }
 
   /**

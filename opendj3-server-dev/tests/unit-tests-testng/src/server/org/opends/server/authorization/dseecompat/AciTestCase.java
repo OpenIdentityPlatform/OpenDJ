@@ -37,6 +37,7 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.ModificationItem;
 
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigConstants;
@@ -48,7 +49,6 @@ import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
@@ -69,7 +69,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     Reporter.log("Running aciTestCaseSetup");
 
     TestCaseUtils.startServer();
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
     TestCaseUtils.initializeTestBackend(true);
 
     // Save Global ACI.
@@ -91,7 +91,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   {
     Reporter.log("Running aciTestCaseTearDown");
 
-    TestCaseUtils.clearJEBackend(false, "userRoot", null);
+    TestCaseUtils.clearJEBackend("userRoot");
     TestCaseUtils.initializeTestBackend(true);
 
     // Restore Global ACI.

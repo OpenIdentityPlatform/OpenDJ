@@ -49,10 +49,10 @@ import static org.testng.Assert.*;
 public class LDAPSearchTestCase
        extends ToolsTestCase
 {
-  // The path to a file containing an invalid bind password.
+  /** The path to a file containing an invalid bind password. */
   private String invalidPasswordFile;
 
-  // The path to a file containing a valid bind password.
+  /** The path to a file containing a valid bind password. */
   private String validPasswordFile;
 
 
@@ -63,9 +63,8 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServerAndCreatePasswordFiles()
-         throws Exception
+  @BeforeClass
+  public void startServerAndCreatePasswordFiles() throws Exception
   {
     TestCaseUtils.startServer();
 
@@ -92,7 +91,6 @@ public class LDAPSearchTestCase
 
   @AfterClass
   public void tearDown() throws Exception {
-
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
@@ -386,7 +384,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a simple LDAPv2 search.
    */
-  @Test()
+  @Test
   public void testSimpleLDAPv2Search()
   {
     String[] args =
@@ -410,7 +408,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a simple LDAPv3 search.
    */
-  @Test()
+  @Test
   public void testSimpleLDAPv3Search()
   {
     String[] args =
@@ -434,7 +432,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a simple search with verbose output.
    */
-  @Test()
+  @Test
   public void testSimpleVerboseSearch()
   {
     String[] args =
@@ -459,7 +457,7 @@ public class LDAPSearchTestCase
    * Tests a simple invocation using the "--dry-run" option with a valid argument
    * set.
    */
-  @Test()
+  @Test
   public void testNoOpSearchValidArguments()
   {
     String[] args =
@@ -485,7 +483,7 @@ public class LDAPSearchTestCase
    * Tests a simple invocation using the "--dry-run" option with an invalid
    * argument set.
    */
-  @Test()
+  @Test
   public void testNoOpSearchInvalidArguments()
   {
     String[] args =
@@ -510,7 +508,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a simple LDAP search over SSL using blind trust.
    */
-  @Test()
+  @Test
   public void testSimpleSearchSSLBlindTrust()
   {
     String[] args =
@@ -533,7 +531,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a simple LDAP search over SSL using a trust store.
    */
-  @Test()
+  @Test
   public void testSimpleSearchSSLTrustStore()
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
@@ -559,7 +557,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a simple LDAP search using StartTLS with blind trust.
    */
-  @Test()
+  @Test
   public void testSimpleSearchStartTLSBlindTrust()
   {
     String[] args =
@@ -582,7 +580,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a simple LDAP search using StartTLS with a trust store.
    */
-  @Test()
+  @Test
   public void testSimpleSearchStartTLSTrustStore()
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
@@ -611,7 +609,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleSearchSSLTrustStoreSASLExternal()
          throws Exception
   {
@@ -658,7 +656,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleSearchSSLTrustStoreSASLExternalValidClientCert()
          throws Exception
   {
@@ -706,7 +704,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleSearchSSLTrustStoreSASLExternalInvalidClientCert()
          throws Exception
   {
@@ -754,7 +752,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleSearchStartTLSTrustStoreSASLExternal()
          throws Exception
   {
@@ -800,7 +798,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCRAMMD5()
          throws Exception
   {
@@ -843,7 +841,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDigestMD5()
          throws Exception
   {
@@ -887,7 +885,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAIN()
          throws Exception
   {
@@ -912,7 +910,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a search with a malformed bind DN.
    */
-  @Test()
+  @Test
   public void testMalformedBindDN()
   {
     String[] args =
@@ -935,7 +933,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a search with a nonexistent bind DN.
    */
-  @Test()
+  @Test
   public void testNonExistentBindDN()
   {
     String[] args =
@@ -958,7 +956,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a search with an invalid password.
    */
-  @Test()
+  @Test
   public void testInvalidBindPassword()
   {
     String[] args =
@@ -983,7 +981,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidPasswordFromFile()
          throws Exception
   {
@@ -1009,7 +1007,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testInvalidPasswordFromFile()
          throws Exception
   {
@@ -1033,7 +1031,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a search with a malformed base DN.
    */
-  @Test()
+  @Test
   public void testMalformedBaseDN()
   {
     String[] args =
@@ -1054,7 +1052,7 @@ public class LDAPSearchTestCase
   /**
    * Tests a search with a nonexistent base DN.
    */
-  @Test()
+  @Test
   public void testNonExistentBaseDN()
   {
     String[] args =
@@ -1170,7 +1168,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the typesOnly option.
    */
-  @Test()
+  @Test
   public void testTypesOnly()
          throws Exception
   {
@@ -1195,7 +1193,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the reportAuthzID option for an unauthenticated search.
    */
-  @Test()
+  @Test
   public void testReportAuthzIDUnauthenticated()
          throws Exception
   {
@@ -1220,7 +1218,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the reportAuthzID option for an authenticated search.
    */
-  @Test()
+  @Test
   public void testReportAuthzIDAuthenticated()
          throws Exception
   {
@@ -1247,7 +1245,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the usePasswordPolicyControl option for an authenticated search.
    */
-  @Test()
+  @Test
   public void testUsePasswordPolicyControl()
          throws Exception
   {
@@ -1274,7 +1272,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the account usability control for an authenticated search.
    */
-  @Test()
+  @Test
   public void testAccountUsabilityControl()
          throws Exception
   {
@@ -1302,7 +1300,7 @@ public class LDAPSearchTestCase
    * Tests with the account usability control with an alternate name for an
    * authenticated search.
    */
-  @Test()
+  @Test
   public void testAccountUsabilityControlAltName()
          throws Exception
   {
@@ -1329,7 +1327,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the LDAP assertion control in which the assertion is true.
    */
-  @Test()
+  @Test
   public void testLDAPAssertionControlTrue()
          throws Exception
   {
@@ -1356,7 +1354,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the LDAP assertion control in which the assertion is false.
    */
-  @Test()
+  @Test
   public void testLDAPAssertionControlFalse()
          throws Exception
   {
@@ -1383,7 +1381,7 @@ public class LDAPSearchTestCase
   /**
    * Tests with the LDAP matched values control.
    */
-  @Test()
+  @Test
   public void testMatchedValuesControl()
          throws Exception
   {
@@ -1413,7 +1411,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSubentriesControl()
          throws Exception
   {
@@ -1476,9 +1474,9 @@ public class LDAPSearchTestCase
    * Tests the inclusion of multiple arbitrary controls in the request to the
    * server.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleRequestControls()
          throws Exception
   {
@@ -1506,13 +1504,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the simple paged results control.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimplePagedResults()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: cn=device 1,dc=example,dc=com",
@@ -1563,13 +1561,13 @@ public class LDAPSearchTestCase
    * Tests the use of both the server-side sort control and the simple paged
    * results control.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortWithPagedResults()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1703,13 +1701,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the server-side sort control with valid sort criteria.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortValidGivenNameAscending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1764,13 +1762,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the server-side sort control with valid sort criteria.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortValidGivenNameDescending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1825,13 +1823,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the server-side sort control with valid sort criteria.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortValidGivenNameAscendingCaseExactOrderingMatch()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1886,13 +1884,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the server-side sort control with valid sort criteria.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortValidSnAscendingGivenNameAscending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -1947,13 +1945,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the server-side sort control with valid sort criteria.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortValidSnAscendingGivenNameDescending()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -2008,13 +2006,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the server-side sort control with an empty sort order.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortEmptySortOrder()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2038,13 +2036,13 @@ public class LDAPSearchTestCase
    * Tests the use of the server-side sort control with a sort order containing
    * a key with no attribute type.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortSortOrderMissingType()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2068,13 +2066,13 @@ public class LDAPSearchTestCase
    * Tests the use of the server-side sort control with a sort order containing
    * a key with a colon but no matching rule.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortSortOrderMissingMatchingRule()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2097,13 +2095,13 @@ public class LDAPSearchTestCase
   /**
    * Tests the use of the server-side sort control with an undefined attribute.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortUndefinedAttribute()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2127,13 +2125,13 @@ public class LDAPSearchTestCase
    * Tests the use of the server-side sort control with an undefined ordering
    * rule.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortUndefinedOrderingRule()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2157,7 +2155,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testControlNoValue()
          throws Exception
   {
@@ -2188,13 +2186,13 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVLVWithoutSort()
          throws Exception
   {
     // Test is supposed to fail in parsing arguments. But we do not
     // want it to fail because there no backend to search in.
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2218,13 +2216,13 @@ public class LDAPSearchTestCase
    * Tests the use of the server-side sort control with both the simple paged
    * results and virtual list view controls.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortWithVLVAndPagedResults()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     String[] args =
     {
@@ -2252,7 +2250,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVLVInvalidDescriptorNoColons()
          throws Exception
   {
@@ -2281,7 +2279,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVLVInvalidDescriptorTwoColons()
          throws Exception
   {
@@ -2310,7 +2308,7 @@ public class LDAPSearchTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testVLVInvalidDescriptorThreeColons()
          throws Exception
   {
@@ -2337,13 +2335,13 @@ public class LDAPSearchTestCase
    * Tests the use of both the server-side sort control and the virtual list
    * view control.
    *
-   * @throws  Exception  If an unexpectd problem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSortWithVLV()
          throws Exception
   {
-    TestCaseUtils.clearJEBackend(true, "userRoot", "dc=example,dc=com");
+    TestCaseUtils.clearJEBackend("userRoot", "dc=example,dc=com");
 
     TestCaseUtils.addEntries(
       "dn: uid=albert.zimmerman,dc=example,dc=com",
@@ -2460,7 +2458,7 @@ public class LDAPSearchTestCase
   /**
    * Tests the LDAPSearch tool with the "--help" option.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--help" };
