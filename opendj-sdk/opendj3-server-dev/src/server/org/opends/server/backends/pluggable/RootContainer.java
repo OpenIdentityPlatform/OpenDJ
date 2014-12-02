@@ -24,6 +24,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import java.io.Closeable;
 import java.util.Map;
 
 import org.opends.server.types.DN;
@@ -43,7 +44,7 @@ import org.opends.server.types.DN;
  * @param <T>
  *          the type of the suffix containers
  */
-public interface RootContainer<T extends SuffixContainer>
+public interface RootContainer<T extends SuffixContainer> extends Closeable
 {
 
   /**

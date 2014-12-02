@@ -75,17 +75,17 @@ public class EntryContainer
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The name of the entry database. */
-  public static final String ID2ENTRY_DATABASE_NAME = "id2entry";
+  public static final String ID2ENTRY_DATABASE_NAME = ID2ENTRY_INDEX_NAME;
   /** The name of the DN database. */
-  public static final String DN2ID_DATABASE_NAME = "dn2id";
+  public static final String DN2ID_DATABASE_NAME = DN2ID_INDEX_NAME;
   /** The name of the children index database. */
-  private static final String ID2CHILDREN_DATABASE_NAME = "id2children";
+  private static final String ID2CHILDREN_DATABASE_NAME = ID2CHILDREN_INDEX_NAME;
   /** The name of the subtree index database. */
-  private static final String ID2SUBTREE_DATABASE_NAME = "id2subtree";
+  private static final String ID2SUBTREE_DATABASE_NAME = ID2SUBTREE_INDEX_NAME;
   /** The name of the referral database. */
-  private static final String REFERRAL_DATABASE_NAME = "referral";
+  private static final String REFERRAL_DATABASE_NAME = REFERRAL_INDEX_NAME;
   /** The name of the state database. */
-  private static final String STATE_DATABASE_NAME = "state";
+  private static final String STATE_DATABASE_NAME = STATE_INDEX_NAME;
   /** The attribute used to return a search index debug string to the client. */
   public static final String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
 
@@ -510,6 +510,7 @@ public class EntryContainer
    *
    * @throws DatabaseException If an error occurs in the JE database.
    */
+  @Override
   public void close() throws DatabaseException
   {
     // Close core indexes.
