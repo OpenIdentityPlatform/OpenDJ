@@ -152,13 +152,20 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled = true)
   public void replicationServerTest() throws Exception
   {
-    changelogBasic();
-    newClientLateServer1();
-    newClient();
-    newClientWithFirstChanges();
-    newClientWithChangefromServer1();
-    newClientWithChangefromServer2();
-    newClientWithUnknownChanges();
+    ReplicationBroker[] brokers1And2 = null;
+    try {
+      brokers1And2 = changelogBasic();
+      newClientLateServer1();
+      newClient();
+      newClientWithFirstChanges();
+      newClientWithChangefromServer1();
+      newClientWithChangefromServer2();
+      newClientWithUnknownChanges();
+    }
+    finally
+    {
+      stop(brokers1And2);
+    }
     stopChangelog();
   }
 
@@ -173,11 +180,27 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=false)
   public void replicationServerTestLoop() throws Exception
   {
-    changelogBasic();
-    while (true)
+    ReplicationBroker[] brokers1And2 = null;
+    try
     {
-      newClient();
+      brokers1And2 = changelogBasic();
+      while (true)
+      {
+        newClient();
+      }
     }
+    finally
+    {
+      stop(brokers1And2);
+    }
+  }
+
+  /** Create two brokers: open for each a sender session and a receiver session to the replicationServer. */
+  private ReplicationBroker[] createReplicationBrokers1And2() throws Exception {
+    return new ReplicationBroker[] {
+       openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000),
+       openReplicationSession(TEST_ROOT_DN, 2, 100, replicationServerPort, 1000)
+    };
   }
 
   @Override
@@ -190,64 +213,56 @@ public class ReplicationServerTest extends ReplicationTestCase
   }
 
   /**
-   * Basic test of the replicationServer code :
-   *  Connect 2 clients to the replicationServer and exchange messages
-   *  between the clients.
+   * Basic test of the replicationServer code : Connect 2 clients to the
+   * replicationServer and exchange messages between the clients. Note : Other
+   * tests in this file depends on this test and may need to change if this test
+   * is modified.
    *
-   * Note : Other tests in this file depends on this test and may need to
-   *        change if this test is modified.
+   * @return the two brokers created to simulate 2 DS sending and receiving
+   *         messages. They are returned to allow other tests to close the
+   *         brokers themselves.
    */
-  private void changelogBasic() throws Exception
+  private ReplicationBroker[] changelogBasic() throws Exception
   {
     clearChangelogDB(replicationServer);
     debugInfo("Starting changelogBasic");
-    ReplicationBroker server1 = null;
-    ReplicationBroker server2 = null;
+    ReplicationBroker[] brokers1And2 = createReplicationBrokers1And2();
+    ReplicationBroker server1 = brokers1And2[0];
+    ReplicationBroker server2 = brokers1And2[1];
 
-    try {
-      /*
-       * Open a sender session and a receiver session to the replicationServer
-       */
-      server1 = openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000);
-      server2 = openReplicationSession(TEST_ROOT_DN, 2, 100, replicationServerPort, 1000);
+    /*
+     * Create CSNs for the messages sent from server 1 with current time
+     * sequence 1 and with current time + 2 sequence 2
+     */
+    long time = TimeThread.getTime();
+    firstCSNServer1 = new CSN(time, 1, 1);
+    secondCSNServer1 = new CSN(time + 2, 2, 1);
 
-      /*
-       * Create CSNs for the messages sent from server 1 with current time
-       * sequence 1 and with current time + 2 sequence 2
-       */
-      long time = TimeThread.getTime();
-      firstCSNServer1 = new CSN(time, 1, 1);
-      secondCSNServer1 = new CSN(time + 2, 2, 1);
+    /*
+     * Create CSNs for the messages sent from server 2 with current time
+     * sequence 1 and with current time + 3 sequence 2
+     */
+    firstCSNServer2 = new CSN(time + 1, 1, 2);
+    secondCSNServer2 = new CSN(time + 3, 2, 2);
 
-      /*
-       * Create CSNs for the messages sent from server 2 with current time
-       * sequence 1 and with current time + 3 sequence 2
-       */
-      firstCSNServer2 = new CSN(time + 1, 1, 2);
-      secondCSNServer2 = new CSN(time + 3, 2, 2);
+    /*
+     * Create a CSN between firstCSNServer1 and secondCSNServer1 that will not
+     * be used to create a change sent to the replicationServer but that will
+     * be used in the Server State when opening a connection to the
+     * ReplicationServer to make sure that the ReplicationServer is able to
+     * accept such clients.
+     */
+    unknownCSNServer1 = new CSN(time + 1, 1, 1);
 
-      /*
-       * Create a CSN between firstCSNServer1 and secondCSNServer1 that will not
-       * be used to create a change sent to the replicationServer but that will
-       * be used in the Server State when opening a connection to the
-       * ReplicationServer to make sure that the ReplicationServer is able to
-       * accept such clients.
-       */
-      unknownCSNServer1 = new CSN(time + 1, 1, 1);
+    sendAndReceiveDeleteMsg(server1, server2, EXAMPLE_DN, firstCSNServer1, "uid");
+    sendAndReceiveDeleteMsg(server1, server2, TEST_ROOT_DN, secondCSNServer1, "uid");
 
-      sendAndReceiveDeleteMsg(server1, server2, EXAMPLE_DN, firstCSNServer1, "uid");
-      sendAndReceiveDeleteMsg(server1, server2, TEST_ROOT_DN, secondCSNServer1, "uid");
+    // Send and receive a Delete Msg from server 2 to server 1
+    sendAndReceiveDeleteMsg(server2, server1, EXAMPLE_DN, firstCSNServer2, "other-uid");
+    sendAndReceiveDeleteMsg(server2, server1, TEST_ROOT_DN, secondCSNServer2, "uid");
 
-      // Send and receive a Delete Msg from server 2 to server 1
-      sendAndReceiveDeleteMsg(server2, server1, EXAMPLE_DN, firstCSNServer2, "other-uid");
-      sendAndReceiveDeleteMsg(server2, server1, TEST_ROOT_DN, secondCSNServer2, "uid");
-
-      debugInfo("Ending changelogBasic");
-    }
-    finally
-    {
-      stop(server1, server2);
-    }
+    debugInfo("Ending changelogBasic");
+    return new ReplicationBroker[] { server1, server2 };
   }
 
   private void sendAndReceiveDeleteMsg(ReplicationBroker sender, ReplicationBroker receiver,
@@ -436,14 +451,21 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   private void stopChangelog() throws Exception
   {
-    debugInfo("Starting stopChangelog");
-    shutdown();
-    configure();
-    newClient();
-    newClientWithFirstChanges();
-    newClientWithChangefromServer1();
-    newClientWithChangefromServer2();
-    debugInfo("Ending stopChangelog");
+    ReplicationBroker[] brokers1And2 = null;
+    try {
+      debugInfo("Starting stopChangelog");
+      shutdown();
+      configure();
+      brokers1And2 = createReplicationBrokers1And2();
+      newClient();
+      newClientWithFirstChanges();
+      newClientWithChangefromServer1();
+      newClientWithChangefromServer2();
+      debugInfo("Ending stopChangelog");
+    }
+    finally {
+      stop(brokers1And2);
+    }
   }
 
   /**
