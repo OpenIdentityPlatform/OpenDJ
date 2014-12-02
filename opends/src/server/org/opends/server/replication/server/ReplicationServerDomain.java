@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1294,13 +1293,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public UpdateMsg take(ServerHandler sHandler)
   {
     // Next message can only be taken from connected DSs
-    final Set<Integer> connectedReplicaIds = new HashSet<Integer>(getConnectedDSs().keySet());
-    if (sHandler.isDataServer())
-    {
-      // Prevents sending to a DS its own messages
-      connectedReplicaIds.remove(sHandler.getServerId());
-    }
-    return sHandler.take(connectedReplicaIds);
+    return sHandler.take(new HashSet<Integer>(getConnectedDSs().keySet()));
   }
 
   /**
