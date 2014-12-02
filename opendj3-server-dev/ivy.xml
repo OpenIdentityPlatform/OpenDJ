@@ -32,6 +32,8 @@
     <!ENTITY crest.version      "2.1.0-SNAPSHOT">
     <!ENTITY jackson.version    "1.9.13">
     <!ENTITY slf4j.version      "1.7.6">
+    <!ENTITY je.version         "5.0.104">
+    <!ENTITY persistit.version  "3.3.1">
 ]>
 <ivy-module version="2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -49,7 +51,9 @@
     <dependency org="javax.mail"            name="mail"                     rev="1.4.7" />
     <!-- subsequent versions are not compatible with java 6, so force to use this version only -->
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
-    <dependency org="com.sleepycat"         name="je"                       rev="5.0.104" />
+    <dependency org="com.sleepycat"         name="je"                       rev="&je.version;" />
+    <dependency org="org.codehaus.sonar"    name="sonar-persistit"          rev="&persistit.version;" />
+
     <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" conf="default->master,compile" />
     <dependency org="org.forgerock.opendj"  name="opendj-slf4j-adapter"     rev="&opendj.sdk.version;" />
     <dependency org="org.forgerock.commons" name="i18n-slf4j"               rev="&i18n.version;" />
@@ -70,6 +74,8 @@
 
     <!-- Force download of the source jars -->
     <!--
+    <dependency org="com.sleepycat"         name="je"                       rev="&je.version;"         conf="default->master,sources"/>
+    <dependency org="org.codehaus.sonar"    name="sonar-persistit"          rev="&persistit.version;"  conf="default->master,sources"/>
     <dependency org="org.codehaus.jackson"  name="jackson-core-asl"         rev="&jackson.version;"    conf="default->master,sources"/>
     <dependency org="org.codehaus.jackson"  name="jackson-mapper-asl"       rev="&jackson.version;"    conf="default->master,sources"/>
     <dependency org="org.glassfish.grizzly" name="grizzly-framework"        rev="&grizzly.version;"    conf="default->master,sources"/>
@@ -89,7 +95,9 @@
     <dependency org="org.slf4j"             name="slf4j-jdk14"              rev="&slf4j.version;"      conf="default->master,sources"/>
     -->
 
-    <exclude org="javax.activation" artifact="activation" />
+    <exclude    org="javax.activation"      artifact="activation" />
+    <exclude    org="org.easytesting"       artifact="fest-assert" />
+    <exclude    org="junit"                 artifact="junit" />
     <!-- This is already the OpenDJ server module :) -->
     <exclude  module="opendj3-server-dev"/>
   </dependencies>
