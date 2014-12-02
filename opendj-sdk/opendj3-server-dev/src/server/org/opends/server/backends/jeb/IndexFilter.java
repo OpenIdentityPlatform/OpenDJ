@@ -115,7 +115,7 @@ public class IndexFilter
    */
   private EntryIDSet evaluateFilter(SearchFilter filter)
   {
-    EntryIDSet candidates = pp(filter);
+    EntryIDSet candidates = evaluate(filter);
     if (buffer != null)
     {
       candidates.toString(buffer);
@@ -123,11 +123,7 @@ public class IndexFilter
     return candidates;
   }
 
-  /**
-   * @param filter
-   * @return
-   */
-  private EntryIDSet pp(SearchFilter filter)
+  private EntryIDSet evaluate(SearchFilter filter)
   {
     switch (filter.getFilterType())
     {
@@ -239,32 +235,16 @@ public class IndexFilter
     }
 
     // First, process the fast components.
-    for (SearchFilter filter : fastComps)
-    {
-      EntryIDSet set = evaluateFilter(filter);
-      if (retainAll(results, set))
-      {
-        return results;
-      }
-    }
-
-    // Next, process the other (non-range) components.
-    for (SearchFilter filter : otherComps)
-    {
-      EntryIDSet set = evaluateFilter(filter);
-      if (retainAll(results, set))
-      {
-        return results;
-      }
-    }
-
-    // Next, process range component pairs like (cn>=A)(cn<=B).
-
-    if (rangeComps.isEmpty())
+    if (evaluateFilters(results, fastComps)
+        // Next, process the other (non-range) components.
+        || evaluateFilters(results, otherComps)
+        // Are there any range component pairs like (cn>=A)(cn<=B) ?
+        || rangeComps.isEmpty())
     {
       return results;
     }
 
+    // Next, process range component pairs like (cn>=A)(cn<=B).
     ArrayList<SearchFilter> remainComps = new ArrayList<SearchFilter>();
     for (Map.Entry<AttributeType, ArrayList<SearchFilter>> rangeEntry : rangeComps.entrySet())
     {
@@ -285,38 +265,41 @@ public class IndexFilter
           }
           continue;
         }
-        EntryIDSet set = attributeIndex.evaluateBoundedRange(filter1, filter2, buffer, monitor);
 
+        EntryIDSet set = attributeIndex.evaluateBoundedRange(filter1, filter2, buffer, monitor);
         if(monitor.isFilterUseEnabled() && set.isDefined())
         {
           monitor.updateStats(SearchFilter.createANDFilter(rangeList), set.size());
         }
-
         if (retainAll(results, set))
         {
           return results;
         }
-        continue;
       }
-
-      // Add to the remaining range components to be processed.
-      for (SearchFilter filter : rangeList)
+      else
       {
-        remainComps.add(filter);
+        // Add to the remaining range components to be processed.
+        remainComps.addAll(rangeList);
       }
     }
 
     // Finally, process the remaining slow range components.
-    for (SearchFilter filter : remainComps)
-    {
-      EntryIDSet set = evaluateFilter(filter);
-      if (retainAll(results, set))
-      {
-        return results;
-      }
-    }
+    evaluateFilters(results, remainComps);
 
     return results;
+  }
+
+  private boolean evaluateFilters(EntryIDSet results, ArrayList<SearchFilter> filters)
+  {
+    for (SearchFilter filter : filters)
+    {
+      final EntryIDSet filteredSet = evaluateFilter(filter);
+      if (retainAll(results, filteredSet))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -334,7 +317,6 @@ public class IndexFilter
     // We may have reached the point of diminishing returns where
     // it is quicker to stop now and process the current small number of candidates.
     return a.isDefined() && a.size() <= FILTER_CANDIDATE_THRESHOLD;
-
   }
 
   /**
