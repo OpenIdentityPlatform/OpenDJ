@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 
 /**
- * This class is registered with a Backend and it provides call- backs
+ * This class is registered with a Backend and it provides callbacks
  * for indexing attribute values. An index implementation will use
  * this interface to create the keys for an attribute value.
  */
