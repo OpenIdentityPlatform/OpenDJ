@@ -1271,12 +1271,13 @@ public class EntryContainer
     boolean continueSearch = true;
 
     // Set the starting value.
+    EntryID begin = null;
     if (pageRequest != null && pageRequest.getCookie().length() != 0)
     {
       // The cookie contains the ID of the next entry to be returned.
       try
       {
-        new EntryID(pageRequest.getCookie().toLong());
+        begin = new EntryID(pageRequest.getCookie().toLong());
       }
       catch (Exception e)
       {
@@ -1308,11 +1309,12 @@ public class EntryContainer
     // Iterate through the index candidates.
     if (continueSearch)
     {
-      for (EntryID id : entryIDList)
+      for (Iterator<EntryID> it = entryIDList.iterator(begin); it.hasNext();)
       {
-        Entry entry;
+        final EntryID id = it.next();
 
         // Try the entry cache first.
+        Entry entry;
         Entry cacheEntry = entryCache.getEntry(backend, id.longValue());
         if (cacheEntry == null)
         {
@@ -1398,7 +1400,6 @@ public class EntryContainer
       Control control = new PagedResultsControl(pageRequest.isCritical(), 0, null);
       searchOperation.getResponseControls().add(control);
     }
-
   }
 
   private boolean isInScope(boolean candidatesAreInScope, SearchScope searchScope, DN aBaseDN, Entry entry)
