@@ -32,29 +32,34 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope.Enum;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope.Enum;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.opends.server.backends.jeb.IndexBuffer.BufferedVLVValues;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.*;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SortKey;
+import org.opends.server.types.SortOrder;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
@@ -77,49 +82,31 @@ public class VLVIndex extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The comparator for vlvIndex keys.
-   */
+  /** The comparator for vlvIndex keys. */
   public VLVKeyComparator comparator;
-
-  /**
-   * The limit on the number of entry IDs that may be indexed by one key.
-   */
+  /** The limit on the number of entry IDs that may be indexed by one key. */
   private int sortedSetCapacity = 4000;
+  /** The SortOrder in use by this VLV index to sort the entries. */
+  public SortOrder sortOrder;
 
-  /**
-   * The cached count of entries in this index.
-   */
-  private AtomicInteger count;
+  /** The cached count of entries in this index. */
+  private final AtomicInteger count;
 
-  private State state;
-
+  private final State state;
   /**
    * A flag to indicate if this vlvIndex should be trusted to be consistent
    * with the entries database.
    */
-  private boolean trusted = false;
+  private boolean trusted;
+  /** A flag to indicate if a rebuild process is running on this vlvIndex. */
+  private boolean rebuildRunning;
 
-  /**
-   * A flag to indicate if a rebuild process is running on this vlvIndex.
-   */
-  private boolean rebuildRunning = false;
-
-  /**
-   * The VLV vlvIndex configuration.
-   */
+  /** The VLV vlvIndex configuration. */
   private LocalDBVLVIndexCfg config;
 
   private DN baseDN;
-
   private SearchFilter filter;
-
   private SearchScope scope;
-
-  /**
-   * The SortOrder in use by this VLV index to sort the entries.
-   */
-  public SortOrder sortOrder;
 
 
   /**
@@ -251,24 +238,20 @@ public class VLVIndex extends DatabaseContainer
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void open() throws DatabaseException
   {
     super.open();
 
     DatabaseEntry key = new DatabaseEntry();
-    OperationStatus status;
-    LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
+    LockMode lockMode = LockMode.RMW;
 
     Cursor cursor = openCursor(null, CursorConfig.READ_COMMITTED);
-
     try
     {
-      status = cursor.getFirst(key, data,lockMode);
+      OperationStatus status = cursor.getFirst(key, data,lockMode);
       while(status == OperationStatus.SUCCESS)
       {
         count.getAndAdd(SortValuesSet.getEncodedSize(data.getData(), 0));
@@ -310,12 +293,8 @@ public class VLVIndex extends DatabaseContainer
   public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException, JebException
   {
-    DN entryDN = entry.getName();
-    if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
-    {
-      return insertValues(txn, entryID.longValue(), entry);
-    }
-    return false;
+    return shouldInclude(entry)
+        && insertValues(txn, entryID.longValue(), entry);
   }
 
   /**
@@ -332,33 +311,10 @@ public class VLVIndex extends DatabaseContainer
   public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DirectoryException
   {
-    DN entryDN = entry.getName();
-    if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
+    if (shouldInclude(entry))
     {
-      SortValues sortValues = new SortValues(entryID, entry, sortOrder);
-
-      IndexBuffer.BufferedVLVValues bufferedValues =
-          buffer.getVLVIndex(this);
-      if(bufferedValues == null)
-      {
-        bufferedValues = new IndexBuffer.BufferedVLVValues();
-        buffer.putBufferedVLVIndex(this, bufferedValues);
-      }
-
-      if(bufferedValues.deletedValues != null &&
-          bufferedValues.deletedValues.contains(sortValues))
-      {
-        bufferedValues.deletedValues.remove(sortValues);
-        return true;
-      }
-
-      TreeSet<SortValues> bufferedAddedValues = bufferedValues.addedValues;
-      if(bufferedAddedValues == null)
-      {
-        bufferedAddedValues = new TreeSet<SortValues>();
-        bufferedValues.addedValues = bufferedAddedValues;
-      }
-      bufferedAddedValues.add(sortValues);
+      final SortValues sortValues = new SortValues(entryID, entry, sortOrder);
+      getVLVIndex(buffer).addValues(sortValues);
       return true;
     }
     return false;
@@ -380,12 +336,8 @@ public class VLVIndex extends DatabaseContainer
   public boolean removeEntry(Transaction txn, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException, JebException
   {
-    DN entryDN = entry.getName();
-    if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
-    {
-      return removeValues(txn, entryID.longValue(), entry);
-    }
-    return false;
+    return shouldInclude(entry)
+        && removeValues(txn, entryID.longValue(), entry);
   }
 
   /**
@@ -401,37 +353,24 @@ public class VLVIndex extends DatabaseContainer
   public boolean removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DirectoryException
   {
-    DN entryDN = entry.getName();
-    if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
+    if (shouldInclude(entry))
     {
-      SortValues sortValues = new SortValues(entryID, entry, sortOrder);
-
-      IndexBuffer.BufferedVLVValues bufferedValues =
-          buffer.getVLVIndex(this);
-      if(bufferedValues == null)
-      {
-        bufferedValues = new IndexBuffer.BufferedVLVValues();
-        buffer.putBufferedVLVIndex(this, bufferedValues);
-      }
-
-      if(bufferedValues.addedValues != null &&
-          bufferedValues.addedValues.contains(sortValues))
-      {
-        bufferedValues.addedValues.remove(sortValues);
-        return true;
-      }
-
-      TreeSet<SortValues> bufferedDeletedValues = bufferedValues.deletedValues;
-      if(bufferedDeletedValues == null)
-      {
-        bufferedDeletedValues = new TreeSet<SortValues>();
-        bufferedValues.deletedValues = bufferedDeletedValues;
-      }
-      bufferedDeletedValues.add(sortValues);
+      final SortValues sortValues = new SortValues(entryID, entry, sortOrder);
+      getVLVIndex(buffer).deleteValues(sortValues);
       return true;
     }
     return false;
+  }
 
+  private BufferedVLVValues getVLVIndex(IndexBuffer buffer)
+  {
+    BufferedVLVValues bufferedValues = buffer.getVLVIndex(this);
+    if (bufferedValues == null)
+    {
+      bufferedValues = new BufferedVLVValues();
+      buffer.putBufferedVLVIndex(this, bufferedValues);
+    }
+    return bufferedValues;
   }
 
   /**
@@ -458,46 +397,13 @@ public class VLVIndex extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException, DirectoryException, JebException
   {
-    DN oldEntryDN = oldEntry.getName();
-    DN newEntryDN = newEntry.getName();
-    if(oldEntryDN.matchesBaseAndScope(baseDN, scope) &&
-        filter.matchesEntry(oldEntry))
+    if (shouldInclude(oldEntry))
     {
-      if(newEntryDN.matchesBaseAndScope(baseDN, scope) &&
-          filter.matchesEntry(newEntry))
+      if (shouldInclude(newEntry))
       {
         // The entry should still be indexed. See if any sorted attributes are
         // changed.
-        boolean sortAttributeModified = false;
-        SortKey[] sortKeys = sortOrder.getSortKeys();
-        for(SortKey sortKey : sortKeys)
-        {
-          AttributeType attributeType = sortKey.getAttributeType();
-          Iterable<AttributeType> subTypes =
-              DirectoryServer.getSchema().getSubTypes(attributeType);
-          for(Modification mod : mods)
-          {
-            AttributeType modAttrType = mod.getAttribute().getAttributeType();
-            if(modAttrType.equals(attributeType))
-            {
-              sortAttributeModified = true;
-              break;
-            }
-            for(AttributeType subType : subTypes)
-            {
-              if(modAttrType.equals(subType))
-              {
-                sortAttributeModified = true;
-                break;
-              }
-            }
-          }
-          if(sortAttributeModified)
-          {
-            break;
-          }
-        }
-        if(sortAttributeModified)
+        if (isSortAttributeModified(mods))
         {
           boolean success;
           // Sorted attributes have changed. Reindex the entry;
@@ -515,8 +421,7 @@ public class VLVIndex extends DatabaseContainer
     }
     else
     {
-      if(newEntryDN.matchesBaseAndScope(baseDN, scope) &&
-          filter.matchesEntry(newEntry))
+      if (shouldInclude(newEntry))
       {
         // The modifications caused the new entry to be indexed. Add to
         // vlvIndex.
@@ -550,46 +455,13 @@ public class VLVIndex extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException, DirectoryException
   {
-    DN oldEntryDN = oldEntry.getName();
-    DN newEntryDN = newEntry.getName();
-    if(oldEntryDN.matchesBaseAndScope(baseDN, scope) &&
-        filter.matchesEntry(oldEntry))
+    if (shouldInclude(oldEntry))
     {
-      if(newEntryDN.matchesBaseAndScope(baseDN, scope) &&
-          filter.matchesEntry(newEntry))
+      if (shouldInclude(newEntry))
       {
         // The entry should still be indexed. See if any sorted attributes are
         // changed.
-        boolean sortAttributeModified = false;
-        SortKey[] sortKeys = sortOrder.getSortKeys();
-        for(SortKey sortKey : sortKeys)
-        {
-          AttributeType attributeType = sortKey.getAttributeType();
-          Iterable<AttributeType> subTypes =
-              DirectoryServer.getSchema().getSubTypes(attributeType);
-          for(Modification mod : mods)
-          {
-            AttributeType modAttrType = mod.getAttribute().getAttributeType();
-            if(modAttrType.equals(attributeType))
-            {
-              sortAttributeModified = true;
-              break;
-            }
-            for(AttributeType subType : subTypes)
-            {
-              if(modAttrType.equals(subType))
-              {
-                sortAttributeModified = true;
-                break;
-              }
-            }
-          }
-          if(sortAttributeModified)
-          {
-            break;
-          }
-        }
-        if(sortAttributeModified)
+        if (isSortAttributeModified(mods))
         {
           boolean success;
           // Sorted attributes have changed. Reindex the entry;
@@ -607,11 +479,9 @@ public class VLVIndex extends DatabaseContainer
     }
     else
     {
-      if(newEntryDN.matchesBaseAndScope(baseDN, scope) &&
-          filter.matchesEntry(newEntry))
+      if (shouldInclude(newEntry))
       {
-        // The modifications caused the new entry to be indexed. Add to
-        // vlvIndex.
+        // The modifications caused the new entry to be indexed. Add to vlvIndex
         return addEntry(buffer, entryID, newEntry);
       }
     }
@@ -620,10 +490,35 @@ public class VLVIndex extends DatabaseContainer
     return true;
   }
 
+  private boolean isSortAttributeModified(List<Modification> mods)
+  {
+    for (SortKey sortKey : sortOrder.getSortKeys())
+    {
+      AttributeType attributeType = sortKey.getAttributeType();
+      Iterable<AttributeType> subTypes = DirectoryServer.getSchema().getSubTypes(attributeType);
+      for (Modification mod : mods)
+      {
+        AttributeType modAttrType = mod.getAttribute().getAttributeType();
+        if (modAttrType.equals(attributeType))
+        {
+          return true;
+        }
+        for (AttributeType subType : subTypes)
+        {
+          if (modAttrType.equals(subType))
+          {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   /**
    * Put a sort values set in this VLV index.
    *
-   * @param txn The transaction to use when retriving the set or NULL if it is
+   * @param txn The transaction to use when retrieving the set or NULL if it is
    *            not required.
    * @param sortValuesSet The SortValuesSet to put.
    * @return True if the sortValuesSet was put successfully or False otherwise.
@@ -636,12 +531,9 @@ public class VLVIndex extends DatabaseContainer
   public boolean putSortValuesSet(Transaction txn, SortValuesSet sortValuesSet)
       throws JebException, DatabaseException, DirectoryException
   {
-    DatabaseEntry key = new DatabaseEntry();
-    DatabaseEntry data = new DatabaseEntry();
+    DatabaseEntry key = new DatabaseEntry(sortValuesSet.getKeyBytes());
+    DatabaseEntry data = new DatabaseEntry(sortValuesSet.toDatabase());
 
-    byte[] after = sortValuesSet.toDatabase();
-    key.setData(sortValuesSet.getKeyBytes());
-    data.setData(after);
     return put(txn, key, data) == OperationStatus.SUCCESS;
   }
 
@@ -649,7 +541,7 @@ public class VLVIndex extends DatabaseContainer
    * Get a sorted values set that should contain the entry with the given
    * information.
    *
-   * @param txn The transaction to use when retriving the set or NULL if it is
+   * @param txn The transaction to use when retrieving the set or NULL if it is
    *            not required.
    * @param entryID The entry ID to use.
    * @param values The values to use.
@@ -664,9 +556,8 @@ public class VLVIndex extends DatabaseContainer
       ByteString[] values, AttributeType[] types) throws DatabaseException,
       DirectoryException
   {
-    DatabaseEntry key = new DatabaseEntry();
+    DatabaseEntry key = new DatabaseEntry(encodeKey(entryID, values, types));
     DatabaseEntry data = new DatabaseEntry();
-    key.setData(encodeKey(entryID, values, types));
     return getSortValuesSet(txn, key, data, LockMode.DEFAULT);
   }
 
@@ -735,10 +626,9 @@ public class VLVIndex extends DatabaseContainer
   {
     ByteString[] values = getSortValues(entry);
     AttributeType[] types = getSortTypes();
-    DatabaseEntry key = new DatabaseEntry();
+    DatabaseEntry key = new DatabaseEntry(encodeKey(entryID, values, types));
     DatabaseEntry data = new DatabaseEntry();
 
-    key.setData(encodeKey(entryID, values, types));
     SortValuesSet sortValuesSet =
         getSortValuesSet(txn, key, data, LockMode.RMW);
     boolean success = sortValuesSet.add(entryID, values, types);
@@ -803,10 +693,9 @@ public class VLVIndex extends DatabaseContainer
   {
     ByteString[] values = getSortValues(entry);
     AttributeType[] types = getSortTypes();
-    DatabaseEntry key = new DatabaseEntry();
+    DatabaseEntry key = new DatabaseEntry(encodeKey(entryID, values, types));
     DatabaseEntry data = new DatabaseEntry();
 
-    key.setData(encodeKey(entryID, values, types));
     OperationStatus status = getSearchKeyRange(txn, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS)
     {
@@ -1040,8 +929,7 @@ public class VLVIndex extends DatabaseContainer
     {
       debugBuilder.append("vlv=");
       debugBuilder.append("[INDEX:");
-      debugBuilder.append(name.replace(entryContainer.getDatabasePrefix() + "_",
-                                       ""));
+      debugBuilder.append(name.replace(entryContainer.getDatabasePrefix() + "_", ""));
       debugBuilder.append("]");
     }
 
@@ -1455,7 +1343,7 @@ public class VLVIndex extends DatabaseContainer
    * @return The sort values represented by the key bytes.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  SortValues decodeKey(byte[] keyBytes) throws DirectoryException
+  private SortValues decodeKey(byte[] keyBytes) throws DirectoryException
   {
     if(keyBytes == null || keyBytes.length == 0)
     {
@@ -1521,9 +1409,7 @@ public class VLVIndex extends DatabaseContainer
         && filter.matchesEntry(entry);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized boolean isConfigurationChangeAcceptable(
       LocalDBVLVIndexCfg cfg,
@@ -1570,12 +1456,10 @@ public class VLVIndex extends DatabaseContainer
         return false;
       }
 
-      AttributeType attrType =
-          DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
+      AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
       if(attrType == null)
       {
-        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
-                sortAttrs[i], name);
+        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], name);
         unacceptableReasons.add(msg);
         return false;
       }
@@ -1586,9 +1470,7 @@ public class VLVIndex extends DatabaseContainer
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized ConfigChangeResult applyConfigurationChange(
       LocalDBVLVIndexCfg cfg)
@@ -1703,9 +1585,9 @@ public class VLVIndex extends DatabaseContainer
       entryContainer.exclusiveLock.lock();
       try
       {
-        this.close();
+        close();
         this.dbConfig.setBtreeComparator(this.comparator);
-        this.open();
+        open();
       }
       catch(DatabaseException de)
       {

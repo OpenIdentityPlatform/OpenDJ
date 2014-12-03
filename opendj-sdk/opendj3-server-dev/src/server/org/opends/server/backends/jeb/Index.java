@@ -195,19 +195,7 @@ public class Index extends DatabaseContainer
    */
   public boolean insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
-    final BufferedIndexValues values = getBufferedIndexValues(buffer, keyBytes);
-
-    if(values.deletedIDs != null && values.deletedIDs.contains(entryID))
-    {
-      values.deletedIDs.remove(entryID);
-      return true;
-    }
-
-    if(values.addedIDs == null)
-    {
-      values.addedIDs = new EntryIDSet(keyBytes, null);
-    }
-    values.addedIDs.add(entryID);
+    getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
     return true;
   }
 
@@ -662,22 +650,9 @@ public class Index extends DatabaseContainer
    *         count is exceeded. False if it already exists in the entry ID set
    *         for the given key.
    */
-  public boolean removeID(IndexBuffer buffer, ByteString keyBytes,
-                          EntryID entryID)
+  public boolean removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
-    BufferedIndexValues values = getBufferedIndexValues(buffer, keyBytes);
-
-    if(values.addedIDs != null && values.addedIDs.contains(entryID))
-    {
-      values.addedIDs.remove(entryID);
-      return true;
-    }
-
-    if(values.deletedIDs == null)
-    {
-      values.deletedIDs = new EntryIDSet(keyBytes, null);
-    }
-    values.deletedIDs.add(entryID);
+    getBufferedIndexValues(buffer, keyBytes).deleteEntryID(keyBytes, entryID);
     return true;
   }
 
