@@ -22,21 +22,20 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock, AS
  */
 package org.opends.server.backends.task;
+
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import org.opends.messages.Message;
-
-
-
 import java.util.Iterator;
 import java.util.List;
-
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -58,8 +57,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.*;
 
-
-
 /**
  * This class defines a information about a recurring task, which will be used
  * to repeatedly schedule tasks for processing.
@@ -74,63 +71,57 @@ public class RecurringTask
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-
-  // The DN of the entry that actually defines this task.
+  /** The DN of the entry that actually defines this task. */
   private final DN recurringTaskEntryDN;
 
-  // The entry that actually defines this task.
+  /** The entry that actually defines this task. */
   private final Entry recurringTaskEntry;
 
-  // The unique ID for this recurring task.
+  /** The unique ID for this recurring task. */
   private final String recurringTaskID;
 
-  // The fully-qualified name of the class that will be used to implement the
-  // class.
+  /**
+   * The fully-qualified name of the class that will be used to implement the
+   * class.
+   */
   private final String taskClassName;
 
-  // Task instance.
+  /** Task instance. */
   private Task task;
 
-  // Task scheduler for this task.
+  /** Task scheduler for this task. */
   private final TaskScheduler taskScheduler;
 
-  // Number of tokens in the task schedule tab.
+  /** Number of tokens in the task schedule tab. */
   private static final int TASKTAB_NUM_TOKENS = 5;
 
-  // Maximum year month days.
+  /** Maximum year month days. */
   static final int MONTH_LENGTH[]
         = {31,28,31,30,31,30,31,31,30,31,30,31};
 
-  // Maximum leap year month days.
+  /** Maximum leap year month days. */
   static final int LEAP_MONTH_LENGTH[]
         = {31,29,31,30,31,30,31,31,30,31,30,31};
 
-  /**
-   * Task tab fields.
-   */
+  /** Task tab fields. */
   private static enum TaskTab {MINUTE, HOUR, DAY, MONTH, WEEKDAY};
 
-  private final static int MINUTE_INDEX = 0;
-  private final static int HOUR_INDEX = 1;
-  private final static int DAY_INDEX = 2;
-  private final static int MONTH_INDEX = 3;
-  private final static int WEEKDAY_INDEX = 4;
+  private static final int MINUTE_INDEX = 0;
+  private static final int HOUR_INDEX = 1;
+  private static final int DAY_INDEX = 2;
+  private static final int MONTH_INDEX = 3;
+  private static final int WEEKDAY_INDEX = 4;
 
-  // Exact match pattern.
-  private static final Pattern exactPattern =
-    Pattern.compile("\\d+");
+  /** Wildcard match pattern. */
+  private static final Pattern wildcardPattern = Pattern.compile("^\\*(?:/(\\d+))?");
 
-  // Range match pattern.
-  private static final Pattern rangePattern =
-    Pattern.compile("\\d+[-]\\d+");
+  /** Exact match pattern. */
+  private static final Pattern exactPattern = Pattern.compile("(\\d+)");
 
-  // List match pattern.
-  private static final Pattern listPattern =
-    Pattern.compile("^(\\d+,)(.*)(\\d+)$");
+  /** Range match pattern. */
+  private static final Pattern rangePattern = Pattern.compile("(\\d+)-(\\d+)(?:/(\\d+))?");
 
-  // Boolean arrays holding task tab slots.
+  /** Boolean arrays holding task tab slots. */
   private final boolean[] minutesArray;
   private final boolean[] hoursArray;
   private final boolean[] daysArray;
@@ -612,6 +603,7 @@ public class RecurringTask
 
   /**
    * Parse and validate recurring task schedule field.
+   *
    * @param tabField recurring task schedule field in crontab(5) format.
    * @param minValue minimum value allowed for this field.
    * @param maxValue maximum value allowed for this field.
@@ -623,57 +615,82 @@ public class RecurringTask
     int minValue, int maxValue) throws IllegalArgumentException
   {
     boolean[] valueList = new boolean[maxValue + 1];
-    Arrays.fill(valueList, false);
 
-    // Blanket.
-    if (tabField.equals("*")) {
-      for (int i = minValue; i <= maxValue; i++) {
+    // Wildcard with optional increment.
+    Matcher m = wildcardPattern.matcher(tabField);
+    if (m.matches() && m.groupCount() == 1)
+    {
+      String stepString = m.group(1);
+      int increment = isValueAbsent(stepString) ? 1 : Integer.parseInt(stepString);
+      for (int i = minValue; i <= maxValue; i += increment)
+      {
         valueList[i] = true;
       }
       return valueList;
     }
 
-    // Exact.
-    if (exactPattern.matcher(tabField).matches()) {
-      int value = Integer.parseInt(tabField);
-      if ((value >= minValue) && (value <= maxValue)) {
-        valueList[value] = true;
-        return valueList;
-      }
-      throw new IllegalArgumentException();
-    }
-
-    // Range.
-    if (rangePattern.matcher(tabField).matches()) {
-      StringTokenizer st = new StringTokenizer(tabField, "-");
-      int startValue = Integer.parseInt(st.nextToken());
-      int endValue = Integer.parseInt(st.nextToken());
-      if ((startValue < endValue) &&
-          ((startValue >= minValue) && (endValue <= maxValue)))
-      {
-        for (int i = startValue; i <= endValue; i++) {
-          valueList[i] = true;
-        }
-        return valueList;
-      }
-      throw new IllegalArgumentException();
-    }
-
     // List.
-    if (listPattern.matcher(tabField).matches()) {
-      StringTokenizer st = new StringTokenizer(tabField, ",");
-      while (st.hasMoreTokens()) {
-        int value = Integer.parseInt(st.nextToken());
-        if ((value >= minValue) && (value <= maxValue)) {
-          valueList[value] = true;
-        } else {
+    for (String listVal : tabField.split(","))
+    {
+      // Single number.
+      m = exactPattern.matcher(listVal);
+      if (m.matches() && m.groupCount() == 1)
+      {
+        String exactValue = m.group(1);
+        if (isValueAbsent(exactValue))
+        {
           throw new IllegalArgumentException();
         }
+        int value = Integer.parseInt(exactValue);
+        if (value < minValue || value > maxValue)
+        {
+          throw new IllegalArgumentException();
+        }
+        valueList[value] = true;
+        continue;
       }
-      return valueList;
+
+      // Range of numbers with optional increment.
+      m = rangePattern.matcher(listVal);
+      if (m.matches() && m.groupCount() == 3) {
+        String startString = m.group(1);
+        String endString = m.group(2);
+        String stepString = m.group(3);
+        int increment = isValueAbsent(stepString) ? 1 : Integer.parseInt(stepString);
+        if (isValueAbsent(startString) || isValueAbsent(endString))
+        {
+          throw new IllegalArgumentException();
+        }
+        int startValue = Integer.parseInt(startString);
+        int endValue = Integer.parseInt(endString);
+        if (startValue > endValue || startValue < minValue || endValue > maxValue)
+        {
+          throw new IllegalArgumentException();
+        }
+        for (int i = startValue; i <= endValue; i += increment)
+        {
+          valueList[i] = true;
+        }
+        continue;
+      }
+
+      // Can only have a list of numbers and ranges.
+      throw new IllegalArgumentException();
     }
 
-    throw new IllegalArgumentException();
+    return valueList;
+  }
+
+  /**
+   * Check if a String from a Matcher group is absent. Matcher returns empty strings
+   * for optional groups that are absent.
+   *
+   * @param s A string returned from Matcher.group()
+   * @return true if the string is unusable, false if it is usable.
+   */
+  private static boolean isValueAbsent(String s)
+  {
+    return (s == null || s.length() == 0) ? true : false;
   }
 
   /**
