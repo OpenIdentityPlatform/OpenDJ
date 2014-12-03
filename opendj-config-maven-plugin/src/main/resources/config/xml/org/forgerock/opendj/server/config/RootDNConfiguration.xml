@@ -77,6 +77,7 @@
         <adm:value>privilege-change</adm:value>
         <adm:value>unindexed-search</adm:value>
         <adm:value>subentry-write</adm:value>
+        <adm:value>changelog-read</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -215,6 +216,11 @@
           <adm:synopsis>
             Allows the associated user to perform LDAP subentry write
             operations.
+          </adm:synopsis>
+        </adm:value>  
+        <adm:value name="changelog-read">
+          <adm:synopsis>
+            Allows the user to perform read operations on the changelog
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>

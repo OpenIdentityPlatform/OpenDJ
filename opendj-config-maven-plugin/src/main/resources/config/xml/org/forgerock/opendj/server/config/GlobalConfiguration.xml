@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2011-2012 ForgeRock AS
+  !      Portions Copyright 2011-2014 ForgeRock AS
   ! -->
 <adm:managed-object name="global" plural-name="globals"
   package="org.forgerock.opendj.server.config"
@@ -679,6 +679,12 @@
           <adm:synopsis>
             Allows the associated user to perform LDAP subentry write
             operations.
+          </adm:synopsis>
+        </adm:value>
+        <adm:value name="changelog-read">
+          <adm:synopsis>
+            The privilege that provides the ability to perform read
+            operations on the changelog
           </adm:synopsis>
         </adm:value>
       </adm:enumeration>
