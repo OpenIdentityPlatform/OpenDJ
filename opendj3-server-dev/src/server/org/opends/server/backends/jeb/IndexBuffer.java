@@ -58,15 +58,106 @@ public class IndexBuffer
   /** A simple class representing a pair of added and deleted indexed IDs. */
   static class BufferedIndexValues
   {
-    EntryIDSet addedIDs;
-    EntryIDSet deletedIDs;
+    private EntryIDSet addedIDs;
+    private EntryIDSet deletedIDs;
+
+    /**
+     * Adds the provided entryID to this object associating it with the provided keyBytes.
+     *
+     * @param keyBytes the keyBytes mapping for this entryID
+     * @param entryID the entryID to add
+     */
+    void addEntryID(ByteString keyBytes, EntryID entryID)
+    {
+      if (!remove(deletedIDs, entryID))
+      {
+        if (this.addedIDs == null)
+        {
+          this.addedIDs = new EntryIDSet(keyBytes, null);
+        }
+        this.addedIDs.add(entryID);
+      }
+    }
+
+    /**
+     * Deletes the provided entryID from this object.
+     *
+     * @param keyBytes the keyBytes mapping for this entryID
+     * @param entryID the entryID to delete
+     */
+    void deleteEntryID(ByteString keyBytes, EntryID entryID)
+    {
+      if (!remove(addedIDs, entryID))
+      {
+        if (this.deletedIDs == null)
+        {
+          this.deletedIDs = new EntryIDSet(keyBytes, null);
+        }
+        this.deletedIDs.add(entryID);
+      }
+    }
+
+    private boolean remove(EntryIDSet ids, EntryID entryID)
+    {
+      if (ids != null && ids.contains(entryID))
+      {
+        ids.remove(entryID);
+        return true;
+      }
+      return false;
+    }
+
   }
 
   /** A simple class representing a pair of added and deleted VLV values. */
   static class BufferedVLVValues
   {
-    TreeSet<SortValues> addedValues;
-    TreeSet<SortValues> deletedValues;
+    private TreeSet<SortValues> addedValues;
+    private TreeSet<SortValues> deletedValues;
+
+    /**
+     * Adds the provided values to this object.
+     *
+     * @param sortValues the values to add
+     */
+    void addValues(SortValues sortValues)
+    {
+      if (!remove(deletedValues, sortValues))
+      {
+        if (this.addedValues == null)
+        {
+          this.addedValues = new TreeSet<SortValues>();
+        }
+        this.addedValues.add(sortValues);
+      }
+    }
+
+    /**
+     * Deletes the provided values from this object.
+     *
+     * @param sortValues the values to delete
+     */
+    void deleteValues(SortValues sortValues)
+    {
+      if (!remove(addedValues, sortValues))
+      {
+        if (this.deletedValues == null)
+        {
+          this.deletedValues = new TreeSet<SortValues>();
+        }
+        this.deletedValues.add(sortValues);
+      }
+    }
+
+    private boolean remove(TreeSet<SortValues> values, SortValues sortValues)
+    {
+      if (values != null && values.contains(sortValues))
+      {
+        values.remove(sortValues);
+        return true;
+      }
+      return false;
+    }
   }
 
   /**
