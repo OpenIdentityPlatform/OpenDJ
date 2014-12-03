@@ -1923,6 +1923,7 @@ ds-cfg-default-root-privilege-name: update-schema
 ds-cfg-default-root-privilege-name: privilege-change
 ds-cfg-default-root-privilege-name: unindexed-search
 ds-cfg-default-root-privilege-name: subentry-write
+ds-cfg-default-root-privilege-name: changelog-read
 
 dn: cn=Directory Manager,cn=Root DNs,cn=config
 objectClass: top
