@@ -50,10 +50,12 @@ public class IndexBuffer
    * The buffered records stored as a map from the record key to the
    * buffered value for that key for each index.
    */
-  private final LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>> bufferedIndexes;
+  private final LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>> bufferedIndexes =
+      new LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>>();
 
   /** The buffered records stored as a set of buffered VLV values for each index. */
-  private final LinkedHashMap<VLVIndex, BufferedVLVValues> bufferedVLVIndexes;
+  private final LinkedHashMap<VLVIndex, BufferedVLVValues> bufferedVLVIndexes =
+      new LinkedHashMap<VLVIndex, BufferedVLVValues>();
 
   /** A simple class representing a pair of added and deleted indexed IDs. */
   static class BufferedIndexValues
@@ -106,7 +108,6 @@ public class IndexBuffer
       }
       return false;
     }
-
   }
 
   /** A simple class representing a pair of added and deleted VLV values. */
@@ -168,8 +169,6 @@ public class IndexBuffer
    */
   public IndexBuffer(EntryContainer entryContainer)
   {
-    bufferedIndexes = new LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>>();
-    bufferedVLVIndexes = new LinkedHashMap<VLVIndex, BufferedVLVValues>();
     this.entryContainer = entryContainer;
   }
 
@@ -265,17 +264,18 @@ public class IndexBuffer
   }
 
   private void updateKeys(Index index, Transaction txn, DatabaseEntry key,
-      NavigableMap<ByteString, BufferedIndexValues> bufferedValues)
+      Map<ByteString, BufferedIndexValues> bufferedValues)
   {
     if (bufferedValues != null)
     {
       final Iterator<Map.Entry<ByteString, BufferedIndexValues>> it = bufferedValues.entrySet().iterator();
       while (it.hasNext())
       {
-        final Map.Entry<ByteString, BufferedIndexValues> bufferedKey = it.next();
-        final BufferedIndexValues values = bufferedKey.getValue();
+        final Map.Entry<ByteString, BufferedIndexValues> entry = it.next();
+        final ByteString bufferedKey = entry.getKey();
+        final BufferedIndexValues values = entry.getValue();
 
-        key.setData(bufferedKey.getKey().toByteArray());
+        key.setData(bufferedKey.toByteArray());
         index.updateKey(txn, key, values.deletedIDs, values.addedIDs);
 
         it.remove();
