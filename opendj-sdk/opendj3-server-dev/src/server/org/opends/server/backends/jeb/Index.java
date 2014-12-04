@@ -198,73 +198,6 @@ public class Index extends DatabaseContainer
     return true;
   }
 
-  /**
-   * Insert an entry ID into the set of IDs indexed by a given key.
-   *
-   * @param txn A database transaction, or null if none is required.
-   * @param key         The index key.
-   * @param entryID     The entry ID.
-   * @return True if the entry ID is inserted or ignored because the entry limit
-   *         count is exceeded. False if it already exists in the entry ID set
-   *         for the given key.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public boolean insertID(Transaction txn, DatabaseEntry key, EntryID entryID)
-       throws DatabaseException
-  {
-    DatabaseEntry entryIDData = entryID.getDatabaseEntry();
-    DatabaseEntry data = new DatabaseEntry();
-
-    if(maintainCount)
-    {
-      for (int i = 0; i < phantomWriteRetries; i++)
-      {
-        if (insertIDWithRMW(txn, key, data, entryIDData, entryID) == SUCCESS)
-        {
-          return true;
-        }
-      }
-    }
-    else
-    {
-      final OperationStatus status = read(txn, key, data, LockMode.READ_COMMITTED);
-      if(status == OperationStatus.SUCCESS)
-      {
-        EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
-        if (entryIDList.isDefined())
-        {
-          for (int i = 0; i < phantomWriteRetries; i++)
-          {
-            if (insertIDWithRMW(txn, key, data, entryIDData, entryID) == SUCCESS)
-            {
-              return true;
-            }
-          }
-        }
-      }
-      else if(rebuildRunning || trusted)
-      {
-        if (insert(txn, key, entryIDData) == OperationStatus.KEYEXIST)
-        {
-          for (int i = 1; i < phantomWriteRetries; i++)
-          {
-            if (insertIDWithRMW(txn, key, data, entryIDData, entryID) == SUCCESS)
-            {
-              return true;
-            }
-          }
-        }
-      }
-      else
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-
   private void deleteKey(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
     final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
     if(status == SUCCESS) {
@@ -368,56 +301,6 @@ public class Index extends DatabaseContainer
     keyData.setData(null);
     data.setData(null);
     return true;
-  }
-
-  private OperationStatus insertIDWithRMW(Transaction txn, DatabaseEntry key,
-                                          DatabaseEntry data,
-                                          DatabaseEntry entryIDData,
-                                          EntryID entryID)
-      throws DatabaseException
-  {
-    final OperationStatus status = read(txn, key, data, LockMode.RMW);
-    if(status == OperationStatus.SUCCESS)
-    {
-      EntryIDSet entryIDList =
-          new EntryIDSet(key.getData(), data.getData());
-      if (entryIDList.isDefined() && indexEntryLimit > 0 &&
-          entryIDList.size() >= indexEntryLimit)
-      {
-        if(maintainCount)
-        {
-          entryIDList = new EntryIDSet(entryIDList.size());
-        }
-        else
-        {
-          entryIDList = new EntryIDSet();
-        }
-        entryLimitExceededCount++;
-
-        if(logger.isTraceEnabled())
-        {
-          StringBuilder builder = new StringBuilder();
-          StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-          logger.trace("Index entry exceeded in index %s. " +
-              "Limit: %d. ID list size: %d.\nKey:%s",
-              name, indexEntryLimit, entryIDList.size(), builder);
-        }
-      }
-
-      entryIDList.add(entryID);
-
-      byte[] after = entryIDList.toDatabase();
-      data.setData(after);
-      return put(txn, key, data);
-    }
-    else if(rebuildRunning || trusted)
-    {
-      return insert(txn, key, entryIDData);
-    }
-    else
-    {
-      return OperationStatus.SUCCESS;
-    }
   }
 
   /**
@@ -633,111 +516,13 @@ public class Index extends DatabaseContainer
     return true;
   }
 
-  /**
-   * Remove an entry ID from the set of IDs indexed by a given key.
-   *
-   * @param txn A database transaction, or null if none is required.
-   * @param key         The index key.
-   * @param entryID     The entry ID.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void removeID(Transaction txn, DatabaseEntry key, EntryID entryID)
-      throws DatabaseException
-  {
-    DatabaseEntry data = new DatabaseEntry();
-
-    if(maintainCount)
-    {
-      removeIDWithRMW(txn, key, data, entryID);
-    }
-    else
-    {
-      final OperationStatus status = read(txn, key, data, LockMode.READ_COMMITTED);
-      if(status == SUCCESS)
-      {
-        EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
-        if(entryIDList.isDefined())
-        {
-          removeIDWithRMW(txn, key, data, entryID);
-        }
-      }
-      else if (trusted && !rebuildRunning)
-      {
-        logIndexCorruptError(txn, key);
-      }
-      // Ignore failures if rebuild is running since a empty entryIDset
-      // will probably not be rebuilt.
-    }
-  }
-
-  /**
-   * Delete specified entry ID from all keys in the provided key set.
-   *
-   * @param txn  A Transaction.
-   * @param keySet A set of keys.
-   * @param entryID The entry ID to delete.
-   * @throws DatabaseException If a database error occurs.
-   */
-  public void delete(Transaction txn, Set<byte[]> keySet, EntryID entryID) throws DatabaseException {
-    setTrusted(txn, false);
-    for(byte[] key : keySet) {
-       removeIDWithRMW(txn, new DatabaseEntry(key), new DatabaseEntry(), entryID);
-    }
-    setTrusted(txn, true);
-  }
-
-  private void removeIDWithRMW(Transaction txn, DatabaseEntry key,
-                               DatabaseEntry data, EntryID entryID)
-      throws DatabaseException
-  {
-    final OperationStatus status = read(txn, key, data, LockMode.RMW);
-    if (status == SUCCESS)
-    {
-      EntryIDSet entryIDList = new EntryIDSet(key.getData(), data.getData());
-      // Ignore failures if rebuild is running since the entry ID is
-      // probably already removed.
-      if (!entryIDList.remove(entryID) && trusted && !rebuildRunning)
-      {
-        logIndexCorruptError(txn, key,
-            "The expected entry ID does not exist in the entry ID list for index %s.\nKey:%s");
-      }
-      else
-      {
-        byte[] after = entryIDList.toDatabase();
-        if (after != null)
-        {
-          data.setData(after);
-          put(txn, key, data);
-        }
-        else
-        {
-          // No more IDs, so remove the key. If index is not
-          // trusted then this will cause all subsequent reads
-          // for this key to return undefined set.
-          delete(txn, key);
-        }
-      }
-    }
-    else if (trusted && !rebuildRunning)
-    {
-      logIndexCorruptError(txn, key);
-    }
-    // Ignore failures if rebuild is running since a empty entryIDset
-    // will probably not be rebuilt.
-  }
-
   private void logIndexCorruptError(Transaction txn, DatabaseEntry key)
-  {
-    logIndexCorruptError(txn, key, "The expected key does not exist in the index %s.\nKey:%s");
-  }
-
-  private void logIndexCorruptError(Transaction txn, DatabaseEntry key, String traceMsg)
   {
     if (logger.isTraceEnabled())
     {
       StringBuilder builder = new StringBuilder();
       StaticUtils.byteArrayToHexPlusAscii(builder, key.getData(), 4);
-      logger.trace(traceMsg, name, builder);
+      logger.trace("The expected key does not exist in the index %s.\nKey:%s", name, builder);
     }
 
     setTrusted(txn, false);
@@ -1060,37 +845,6 @@ public class Index extends DatabaseContainer
   }
 
   /**
-   * Update the index for a new entry.
-   *
-   * @param txn A database transaction, or null if none is required.
-   * @param entryID     The entry ID.
-   * @param entry       The entry to be indexed.
-   * @param options     The indexing options to use
-   * @return True if all the indexType keys for the entry are added. False if
-   *         the entry ID already exists for some keys.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry,
-      IndexingOptions options) throws DatabaseException, DirectoryException
-  {
-    TreeSet<ByteString> addKeys = new TreeSet<ByteString>(indexer.getBSComparator());
-    indexer.indexEntry(entry, addKeys, options);
-
-    DatabaseEntry key = new DatabaseEntry();
-    boolean success = true;
-    for (ByteString keyBytes : addKeys)
-    {
-      key.setData(keyBytes.toByteArray());
-      if(!insertID(txn, key, entryID))
-      {
-        success = false;
-      }
-    }
-    return success;
-  }
-
-  /**
    * Update the index buffer for a deleted entry.
    *
    * @param buffer The index buffer to use to store the deleted keys
@@ -1109,70 +863,6 @@ public class Index extends DatabaseContainer
     for (ByteString keyBytes : delKeys)
     {
       removeID(buffer, keyBytes, entryID);
-    }
-  }
-
-  /**
-   * Update the index for a deleted entry.
-   *
-   * @param txn A database transaction, or null if none is required.
-   * @param entryID     The entry ID
-   * @param entry       The contents of the deleted entry.
-   * @param options     The indexing options to use
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public void removeEntry(Transaction txn, EntryID entryID, Entry entry,
-      IndexingOptions options) throws DatabaseException, DirectoryException
-  {
-    TreeSet<ByteString> delKeys =
-        new TreeSet<ByteString>(indexer.getBSComparator());
-    indexer.indexEntry(entry, delKeys, options);
-
-    DatabaseEntry key = new DatabaseEntry();
-    for (ByteString keyBytes : delKeys)
-    {
-      key.setData(keyBytes.toByteArray());
-      removeID(txn, key, entryID);
-    }
-  }
-
-
-  /**
-   * Update the index to reflect a sequence of modifications in a Modify
-   * operation.
-   *
-   * @param txn A database transaction, or null if none is required.
-   * @param entryID The ID of the entry that was modified.
-   * @param oldEntry The entry before the modifications were applied.
-   * @param newEntry The entry after the modifications were applied.
-   * @param mods The sequence of modifications in the Modify operation.
-   * @param options The indexing options to use
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public void modifyEntry(Transaction txn,
-                          EntryID entryID,
-                          Entry oldEntry,
-                          Entry newEntry,
-                          List<Modification> mods, IndexingOptions options)
-       throws DatabaseException
-  {
-    TreeMap<ByteString, Boolean> modifiedKeys =
-        new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
-    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, options);
-
-    DatabaseEntry key = new DatabaseEntry();
-    for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
-    {
-      key.setData(modifiedKey.getKey().toByteArray());
-      if(modifiedKey.getValue())
-      {
-        insertID(txn, key, entryID);
-      }
-      else
-      {
-        removeID(txn, key, entryID);
-      }
     }
   }
 
