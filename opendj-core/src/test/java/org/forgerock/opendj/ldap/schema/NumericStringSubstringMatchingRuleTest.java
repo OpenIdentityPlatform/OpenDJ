@@ -29,11 +29,13 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_NUMERIC_STRIN
 
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the NumericStringSubstringMatchingRule.
  */
 @SuppressWarnings("javadoc")
+@Test
 public class NumericStringSubstringMatchingRuleTest extends SubstringMatchingRuleTest {
 
     @Override
@@ -56,6 +58,7 @@ public class NumericStringSubstringMatchingRuleTest extends SubstringMatchingRul
     public Object[][] createSubstringFinalMatchData() {
         return new Object[][] {
             {"123456789",  "123456789", ConditionResult.TRUE },
+            {"12 345 6789",  "123456789", ConditionResult.TRUE },
             {"123456789",  "456789", ConditionResult.TRUE },
             {"123456789",  "567", ConditionResult.FALSE },
             {"123456789",  "123", ConditionResult.FALSE },

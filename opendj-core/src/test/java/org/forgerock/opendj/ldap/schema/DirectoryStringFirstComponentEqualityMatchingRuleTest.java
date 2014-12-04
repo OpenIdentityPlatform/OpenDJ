@@ -27,12 +27,14 @@ package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID;
 
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the DirectoryStringFirstComponentEqualityMatchingRule.
  */
-//TODO: fix matching rule so that commented data in data providers pass
+@Test
 public class DirectoryStringFirstComponentEqualityMatchingRuleTest extends MatchingRuleTest {
 
     /** {@inheritDoc} */
@@ -47,8 +49,9 @@ public class DirectoryStringFirstComponentEqualityMatchingRuleTest extends Match
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
         return new Object[][] {
-            //{"(1.2.8.5 NAME 'testtype' DESC 'full type')", "1.2.8.5", ConditionResult.TRUE },
-            //{"(1.2.8.5 NAME 'testtype' DESC 'full type')", "something", ConditionResult.FALSE },
+            { "('full type' 'other value')", "other value", ConditionResult.FALSE },
+            { "('full type' 'other value')", "something", ConditionResult.FALSE },
+            { "('full type' 'other value')", "full type", ConditionResult.TRUE },
         };
     }
 
