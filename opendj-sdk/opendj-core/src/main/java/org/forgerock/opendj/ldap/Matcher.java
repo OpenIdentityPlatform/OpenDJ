@@ -234,10 +234,7 @@ public final class Matcher {
 
         public MatcherImpl visitApproxMatchFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
-            AttributeDescription ad;
-            MatchingRule rule;
-            Assertion assertion;
-
+            final AttributeDescription ad;
             try {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
@@ -247,13 +244,15 @@ public final class Matcher {
                 return UNDEFINED;
             }
 
-            if ((rule = ad.getAttributeType().getApproximateMatchingRule()) == null) {
+            final MatchingRule rule = ad.getAttributeType().getApproximateMatchingRule();
+            if (rule == null) {
                 // TODO: I18N
                 logger.warn(LocalizableMessage.raw("The attribute type %s does not define an approximate matching rule",
                         attributeDescription));
                 return UNDEFINED;
             }
 
+            final Assertion assertion;
             try {
                 assertion = rule.getAssertion(assertionValue);
             } catch (final DecodeException de) {
@@ -266,10 +265,7 @@ public final class Matcher {
 
         public MatcherImpl visitEqualityMatchFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
-            AttributeDescription ad;
-            MatchingRule rule;
-            Assertion assertion;
-
+            final AttributeDescription ad;
             try {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
@@ -279,13 +275,15 @@ public final class Matcher {
                 return UNDEFINED;
             }
 
-            if ((rule = ad.getAttributeType().getEqualityMatchingRule()) == null) {
+            final MatchingRule rule = ad.getAttributeType().getEqualityMatchingRule();
+            if (rule == null) {
                 // TODO: I18N
                 logger.warn(LocalizableMessage.raw("The attribute type %s does not define an equality matching rule",
                         attributeDescription));
                 return UNDEFINED;
             }
 
+            final Assertion assertion;
             try {
                 assertion = rule.getAssertion(assertionValue);
             } catch (final DecodeException de) {
@@ -325,7 +323,8 @@ public final class Matcher {
                 }
 
                 if (rule == null) {
-                    if ((rule = ad.getAttributeType().getEqualityMatchingRule()) == null) {
+                    rule = ad.getAttributeType().getEqualityMatchingRule();
+                    if (rule == null) {
                         // TODO: I18N
                         logger.warn(LocalizableMessage.raw(
                                 "The attribute type %s does not define an equality matching rule",
@@ -372,10 +371,7 @@ public final class Matcher {
 
         public MatcherImpl visitGreaterOrEqualFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
-            AttributeDescription ad;
-            MatchingRule rule;
-            Assertion assertion;
-
+            final AttributeDescription ad;
             try {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
@@ -386,13 +382,15 @@ public final class Matcher {
                 return UNDEFINED;
             }
 
-            if ((rule = ad.getAttributeType().getOrderingMatchingRule()) == null) {
+            final MatchingRule rule = ad.getAttributeType().getOrderingMatchingRule();
+            if (rule == null) {
                 // TODO: I18N
                 logger.warn(LocalizableMessage.raw("The attribute type %s does not define an ordering matching rule",
                         attributeDescription));
                 return UNDEFINED;
             }
 
+            final Assertion assertion;
             try {
                 assertion = rule.getGreaterOrEqualAssertion(assertionValue);
             } catch (final DecodeException de) {
@@ -405,10 +403,7 @@ public final class Matcher {
 
         public MatcherImpl visitLessOrEqualFilter(final Schema schema,
                 final String attributeDescription, final ByteString assertionValue) {
-            AttributeDescription ad;
-            MatchingRule rule;
-            Assertion assertion;
-
+            final AttributeDescription ad;
             try {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
@@ -418,13 +413,15 @@ public final class Matcher {
                 return UNDEFINED;
             }
 
-            if ((rule = ad.getAttributeType().getOrderingMatchingRule()) == null) {
+            final MatchingRule rule = ad.getAttributeType().getOrderingMatchingRule();
+            if (rule == null) {
                 // TODO: I18N
                 logger.warn(LocalizableMessage.raw("The attribute type %s does not define an ordering matching rule",
                         attributeDescription));
                 return UNDEFINED;
             }
 
+            final Assertion assertion;
             try {
                 assertion = rule.getLessOrEqualAssertion(assertionValue);
             } catch (final DecodeException de) {
@@ -470,10 +467,7 @@ public final class Matcher {
         public MatcherImpl visitSubstringsFilter(final Schema schema,
                 final String attributeDescription, final ByteString initialSubstring,
                 final List<ByteString> anySubstrings, final ByteString finalSubstring) {
-            AttributeDescription ad;
-            MatchingRule rule;
-            Assertion assertion;
-
+            final AttributeDescription ad;
             try {
                 ad = AttributeDescription.valueOf(attributeDescription, schema);
             } catch (final LocalizedIllegalArgumentException e) {
@@ -483,13 +477,15 @@ public final class Matcher {
                 return UNDEFINED;
             }
 
-            if ((rule = ad.getAttributeType().getSubstringMatchingRule()) == null) {
+            final MatchingRule rule = ad.getAttributeType().getSubstringMatchingRule();
+            if (rule == null) {
                 // TODO: I18N
                 logger.warn(LocalizableMessage.raw("The attribute type %s does not define an substring matching rule",
                         attributeDescription));
                 return UNDEFINED;
             }
 
+            final Assertion assertion;
             try {
                 assertion = rule.getSubstringAssertion(initialSubstring, anySubstrings, finalSubstring);
             } catch (final DecodeException de) {
@@ -512,16 +508,13 @@ public final class Matcher {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     private static final MatcherImpl FALSE = new FalseMatcherImpl();
-
     private static final MatcherImpl TRUE = new TrueMatcherImpl();
-
     private static final MatcherImpl UNDEFINED = new UndefinedMatcherImpl();
 
     private static final FilterVisitor<MatcherImpl, Schema> VISITOR = new Visitor();
 
     private static ConditionResult matches(final Attribute a, final MatchingRule rule,
             final Assertion assertion) {
-
         ConditionResult r = ConditionResult.FALSE;
         if (a != null) {
             for (final ByteString v : a) {

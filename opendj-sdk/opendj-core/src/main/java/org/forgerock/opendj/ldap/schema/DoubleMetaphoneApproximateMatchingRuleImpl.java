@@ -64,8 +64,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
         final int last = length - 1;
 
-        // Pad the value to allow for checks to go past the end of the
-        // value.
+        // Pad the value to allow for checks to go past the end of the value.
         valueString = valueString.toUpperCase() + "     ";
 
         // The metaphone value that is being constructed.
@@ -87,8 +86,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
         // Loop until we have at least four metaphone characters or have
         // reached the end of the string.
         while (metaphone.length() < 4 && pos < length) {
-            // Check the character at the current position against various
-            // targets.
+            // Check the character at the current position against various targets.
             char posMinusFour;
             char posMinusThree;
             char posMinusTwo;
@@ -122,8 +120,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                 break;
 
             case 'C':
-                // Check for various Germanic sequences, which will be mapped to
-                // 'K'. This basically includes all occurrences of "ACH" where
+                // Check for various Germanic sequences, which will be mapped to 'K'.
+                // This basically includes all occurrences of "ACH" where
                 // the preceding character is not a vowel and the following
                 // character is neither an 'E' nor an 'I' except in "BACHER" and
                 // "MACHER".
@@ -131,15 +129,15 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                         && !isVowel(posMinusTwo = valueString.charAt(pos - 2))
                         && hasSubstring(valueString, pos - 1, "ACH")
                         && (posPlusTwo = valueString.charAt(pos + 2)) != 'I'
-                        && (posPlusTwo != 'E' || valueString.charAt(pos + 3) == 'R'
-                                && (posMinusTwo == 'B' || posMinusTwo == 'M'))) {
+                        && (posPlusTwo != 'E'
+                            || (valueString.charAt(pos + 3) == 'R'
+                                && (posMinusTwo == 'B' || posMinusTwo == 'M')))) {
                     metaphone.append("K");
                     pos += 2;
                     break;
                 }
 
-                // Check for a special case of "caesar", which will be maped to
-                // 'S'.
+                // Check for a special case of "caesar", which will be mapped to 'S'.
                 if (pos == 0 && hasSubstring(valueString, pos + 1, "AESAR")) {
                     metaphone.append("S");
                     pos += 2;
@@ -147,7 +145,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                 }
 
                 // CH can be treated in lots of different ways.
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'H') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'H') {
                     // Check for "chia" as in "chianti" and map to 'K'.
                     if (hasSubstring(valueString, pos + 2, "IA")) {
                         metaphone.append("K");
@@ -226,7 +225,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
                 // Check for a double C but not in values that start with "McC"
                 if (posPlusOne == 'C' && !(pos == 1 && valueString.charAt(0) == 'M')) {
-                    if (((posPlusTwo = valueString.charAt(pos + 2)) == 'I' || posPlusTwo == 'E' || posPlusTwo == 'H')
+                    posPlusTwo = valueString.charAt(pos + 2);
+                    if ((posPlusTwo == 'I' || posPlusTwo == 'E' || posPlusTwo == 'H')
                             && !(posPlusTwo == 'H' && valueString.charAt(pos + 3) == 'U')) {
                         if ((pos == 1 && valueString.charAt(pos - 1) == 'A')
                                 || hasSubstring(valueString, pos - 1, "UCCEE")
@@ -251,8 +251,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
                 // Check for CK, CG, or CQ and map to 'K'. Check for CI, CE, and
                 // CY and map to "S".
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'K' || posPlusOne == 'G'
-                        || posPlusOne == 'Q') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'K' || posPlusOne == 'G' || posPlusOne == 'Q') {
                     metaphone.append("K");
                     pos += 2;
                     break;
@@ -311,17 +311,17 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
             case 'D':
                 // DG will be mapped to either 'J' (in cases like edge) or 'TK'
                 // (in cases like Edgar).
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'G') {
-                    if ((posPlusTwo = valueString.charAt(pos + 2)) == 'I' || posPlusTwo == 'E'
-                            || posPlusTwo == 'Y') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'G') {
+                    posPlusTwo = valueString.charAt(pos + 2);
+                    if (posPlusTwo == 'I' || posPlusTwo == 'E' || posPlusTwo == 'Y') {
                         metaphone.append("J");
                         pos += 3;
-                        break;
                     } else {
                         metaphone.append("TK");
                         pos += 2;
-                        break;
                     }
+                    break;
                 }
 
                 // DT and DD will be mapped to 'T'.
@@ -337,8 +337,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                 break;
 
             case 'F':
-                // F always maps to F. If there is a double F, then skip the
-                // second one.
+                // F always maps to F. If there is a double F, then skip the second one.
                 metaphone.append("F");
                 pos++;
                 if (valueString.charAt(pos) == 'F') {
@@ -347,9 +346,9 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                 break;
 
             case 'G':
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'H') {
-                    // A "GH" that is not preceded by a vowel will be mapped to
-                    // 'K'.
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'H') {
+                    // A "GH" that is not preceded by a vowel will be mapped to 'K'.
                     if (pos > 0 && !isVowel(valueString.charAt(pos - 1))) {
                         metaphone.append("K");
                         pos += 2;
@@ -385,9 +384,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                                 && ((posMinusThree = valueString.charAt(pos - 3)) == 'C'
                                         || posMinusThree == 'G' || posMinusThree == 'L'
                                         || posMinusThree == 'R' || posMinusThree == 'T')) {
-                            // Words like laugh, McLaughlin, cough, rough are
-                            // mapped
-                            // to 'F'.
+                            // Words like laugh, McLaughlin, cough, rough are mapped to 'F'.
                             metaphone.append("F");
                         } else if (pos > 0 && valueString.charAt(pos - 1) != 'I') {
                             metaphone.append("K");
@@ -423,26 +420,24 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                     break;
                 }
 
-                // Forms of GY, GE, and GI at the beginning of a word will map
-                // to 'K'.
+                // Forms of GY, GE, and GI at the beginning of a word will map to 'K'.
                 if (pos == 0
                         && (posPlusOne == 'Y'
-                                || (substring = valueString.substring(pos + 1, pos + 3))
-                                        .equals("ES") || substring.equals("EP")
+                                || (substring = valueString.substring(pos + 1, pos + 3)).equals("ES")
+                                || substring.equals("EP")
                                 || substring.equals("EB") || substring.equals("EL")
                                 || substring.equals("EY") || substring.equals("IB")
                                 || substring.equals("IL") || substring.equals("IN")
-                                || substring.equals("IE") || substring.equals("EI") || substring
-                                    .equals("ER"))) {
+                                || substring.equals("IE") || substring.equals("EI")
+                                || substring.equals("ER"))) {
                     metaphone.append("K");
                     pos += 2;
                     break;
                 }
 
-                // Some occurrences of GER and GY in a word will be mapped to
-                // 'K'.
+                // Some occurrences of GER and GY in a word will be mapped to 'K'.
                 posPlusTwo = valueString.charAt(pos + 2);
-                if ((posPlusOne == 'E' && posPlusTwo == 'R' || posPlusOne == 'Y')
+                if (((posPlusOne == 'E' && posPlusTwo == 'R') || posPlusOne == 'Y')
                         && (posMinusOne = valueString.charAt(pos - 1)) != 'E' && posMinusOne != 'I'
                         && !hasSubstring(valueString, 0, "DANGER")
                         && !hasSubstring(valueString, 0, "RANGER")
@@ -484,11 +479,10 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                 // The letter 'H' will only be processed if it is immediately
                 // followed by a vowel and is either the start of the word or
                 // preceded by a vowel.
-                if (isVowel(valueString.charAt(pos + 1))) {
-                    if (pos == 0 || isVowel(valueString.charAt(pos - 1))) {
-                        metaphone.append("H");
-                        pos++;
-                    }
+                if (isVowel(valueString.charAt(pos + 1))
+                        && (pos == 0 || isVowel(valueString.charAt(pos - 1)))) {
+                    metaphone.append("H");
+                    pos++;
                 }
 
                 pos++;
@@ -553,10 +547,9 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
                 if (valueString.charAt(pos + 1) == 'M') {
                     pos++;
-                } else if (hasSubstring(valueString, pos - 1, "UMB")) {
-                    if (pos + 1 == last || hasSubstring(valueString, pos + 2, "ER")) {
-                        pos++;
-                    }
+                } else if (hasSubstring(valueString, pos - 1, "UMB")
+                        && (pos + 1 == last || hasSubstring(valueString, pos + 2, "ER"))) {
+                    pos++;
                 }
 
                 pos++;
@@ -575,7 +568,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
             case 'P':
                 // PH will be mapped to 'F'.
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'H') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'H') {
                     metaphone.append("F");
                     pos += 2;
                     break;
@@ -613,8 +607,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                     break;
                 }
 
-                // All other cases will be mapped to 'R', with RR treated like
-                // R.
+                // All other cases will be mapped to 'R', with RR treated like R.
                 metaphone.append("R");
 
                 if (valueString.charAt(pos + 1) == 'R') {
@@ -640,7 +633,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                 }
 
                 // SH is generally mapped to 'X', but not in Germanic cases.
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'H') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'H') {
                     if (hasSubstring(valueString, pos + 1, "HEIM")
                             || hasSubstring(valueString, pos + 1, "HOEK")
                             || hasSubstring(valueString, pos + 1, "HOLM")
@@ -669,8 +663,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                     break;
                 }
 
-                // Various combinations at the beginning of words will be mapped
-                // to 'S'.
+                // Various combinations at the beginning of words will be mapped to 'S'.
                 if (pos == 0
                         && (posPlusOne == 'M' || posPlusOne == 'N' || posPlusOne == 'L' || posPlusOne == 'W')) {
                     metaphone.append("S");
@@ -680,7 +673,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
                 // SC should be mapped to either SK, X, or S.
                 if (posPlusOne == 'C') {
-                    if ((posPlusTwo = valueString.charAt(pos + 2)) == 'H') {
+                    posPlusTwo = valueString.charAt(pos + 2);
+                    if (posPlusTwo == 'H') {
                         if (hasSubstring(valueString, pos + 3, "OO")
                                 || hasSubstring(valueString, pos + 3, "UY")
                                 || hasSubstring(valueString, pos + 3, "ED")
@@ -730,8 +724,9 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
                 // TH or TTH will be mapped to either T (for Germanic cases) or
                 // 0 (zero) for the rest.
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'H' || posPlusOne == 'T'
-                        && valueString.charAt(pos + 2) == 'H') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'H'
+                        || (posPlusOne == 'T' && valueString.charAt(pos + 2) == 'H')) {
                     if (isGermanic(valueString) || hasSubstring(valueString, pos + 2, "OM")
                             || hasSubstring(valueString, pos + 2, "AM")) {
                         metaphone.append("T");
@@ -743,8 +738,7 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                     break;
                 }
 
-                // All other cases will map to T, with TT and TD being treated
-                // like T.
+                // All other cases will map to T, with TT and TD being treated like T.
                 metaphone.append("T");
 
                 if (posPlusOne == 'T' || posPlusOne == 'D') {
@@ -767,20 +761,18 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
             case 'W':
                 // WR should always map to R.
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'R') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'R') {
                     metaphone.append("R");
                     pos += 2;
                     break;
                 }
 
-                // W[AEIOUYH] at the beginning of the word should be mapped to
-                // A.
+                // W[AEIOUYH] at the beginning of the word should be mapped to A.
                 if (pos == 0 && (isVowel(posPlusOne) || posPlusOne == 'H')) {
                     metaphone.append("A");
 
-                    // FIXME -- This isn't in the algorithm as written. Should
-                    // it
-                    // be?
+                    // FIXME -- This isn't in the algorithm as written. Should it be?
                     pos += 2;
                     break;
                 }
@@ -806,7 +798,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
                     metaphone.append("KS");
                 }
 
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'C' || posPlusOne == 'X') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'C' || posPlusOne == 'X') {
                     pos++;
                 }
 
@@ -815,7 +808,8 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproxima
 
             case 'Z':
                 // Chinese usages like zhao will map to J.
-                if ((posPlusOne = valueString.charAt(pos + 1)) == 'H') {
+                posPlusOne = valueString.charAt(pos + 1);
+                if (posPlusOne == 'H') {
                     metaphone.append("J");
                     pos += 2;
                     break;
