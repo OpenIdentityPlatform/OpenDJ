@@ -48,7 +48,8 @@ import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
-import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginResult.SubordinateDelete;
+import org.opends.server.api.plugin.PluginResult.SubordinateModifyDN;
 import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
@@ -61,7 +62,10 @@ import com.sleepycat.je.*;
 import static com.sleepycat.je.LockMode.*;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.jeb.JebFormat.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.types.AdditionalLogItem.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -710,16 +714,15 @@ public class EntryContainer
     EntryID entryID = dn2id.get(null, entryDN, LockMode.DEFAULT);
     if (entryID != null)
     {
-      DatabaseEntry key =
-        new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
+      DatabaseEntry key = new DatabaseEntry(entryIDToDatabase(entryID.longValue()));
       EntryIDSet entryIDSet;
-      if(!subtree)
+      if (subtree)
       {
-        entryIDSet = id2children.readKey(key, null, LockMode.DEFAULT);
+        entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
       }
       else
       {
-        entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
+        entryIDSet = id2children.readKey(key, null, LockMode.DEFAULT);
       }
       long count = entryIDSet.size();
       if(count != Long.MAX_VALUE)
@@ -987,7 +990,7 @@ public class EntryContainer
         rootContainer.getMonitorProvider().updateUnindexedSearchCount();
       }
 
-      searchOperation.addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(), "unindexed"));
+      searchOperation.addAdditionalLogItem(keyOnly(getClass(), "unindexed"));
 
       // See if we could use a virtual attribute rule to process the search.
       for (VirtualAttributeRule rule : DirectoryServer.getVirtualAttributes())
@@ -1090,8 +1093,7 @@ public class EntryContainer
      * "cn=joe,ou=people,dc=example,dc=com" will appear after the entry
      * "ou=people,dc=example,dc=com".
      */
-    byte[] baseDNKey = JebFormat.dnToDNKey(aBaseDN,
-                                             this.baseDN.size());
+    byte[] baseDNKey = dnToDNKey(aBaseDN, this.baseDN.size());
     byte[] suffix = Arrays.copyOf(baseDNKey, baseDNKey.length+1);
     suffix[suffix.length-1] = 0x00;
 
@@ -1166,7 +1168,7 @@ public class EntryContainer
           boolean isInScope =
               searchScope != SearchScope.SINGLE_LEVEL
                   // Check if this entry is an immediate child.
-                  || JebFormat.findDNKeyParent(key.getData(), 0, key.getSize()) == baseDNKey.length;
+                  || findDNKeyParent(key.getData(), 0, key.getSize()) == baseDNKey.length;
           if (isInScope)
           {
             // Try the entry cache first.
@@ -1622,8 +1624,7 @@ public class EntryContainer
        * find subordinates of the target entry from the top of the tree
        * downwards.
        */
-      byte[] entryDNKey = JebFormat.dnToDNKey(entryDN,
-                                               this.baseDN.size());
+      byte[] entryDNKey = dnToDNKey(entryDN, this.baseDN.size());
       byte[] suffix = Arrays.copyOf(entryDNKey, entryDNKey.length+1);
       suffix[suffix.length-1] = 0x00;
 
@@ -1690,20 +1691,16 @@ public class EntryContainer
           if (deleteOperation != null
               && !deleteOperation.isSynchronizationOperation())
           {
-            Entry subordinateEntry = id2entry.get(
-                    txn, entryID, LockMode.DEFAULT);
-            PluginConfigManager pluginManager =
-              DirectoryServer.getPluginConfigManager();
-            PluginResult.SubordinateDelete pluginResult =
-              pluginManager.invokeSubordinateDeletePlugins(
+            Entry subordinateEntry = id2entry.get(txn, entryID, LockMode.DEFAULT);
+            SubordinateDelete pluginResult =
+              getPluginConfigManager().invokeSubordinateDeletePlugins(
                   deleteOperation, subordinateEntry);
 
             if (!pluginResult.continueProcessing())
             {
               LocalizableMessage message =
                       ERR_JEB_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(
-                      JebFormat.dnFromDNKey(key.getData(), 0, 0, getBaseDN()).
-                          toString());
+                      dnFromDNKey(key.getData(), 0, 0, getBaseDN()));
               throw new DirectoryException(
                   DirectoryServer.getServerErrorResultCode(), message);
             }
@@ -1753,8 +1750,8 @@ public class EntryContainer
 
       if(isSubtreeDelete)
       {
-        deleteOperation.addAdditionalLogItem(AdditionalLogItem
-            .unquotedKeyValue(getClass(), "deletedEntries",
+        deleteOperation.addAdditionalLogItem(
+            unquotedKeyValue(getClass(), "deletedEntries",
                 subordinateEntriesDeleted + 1));
       }
     }
@@ -1801,17 +1798,15 @@ public class EntryContainer
       // Read the entry ID from dn2id.
       if(leafDNKey == null)
       {
-        leafDNKey = new DatabaseEntry(JebFormat.dnToDNKey(targetDN, this.baseDN.size()));
+        leafDNKey = new DatabaseEntry(dnToDNKey(targetDN, baseDN.size()));
       }
       DatabaseEntry value = new DatabaseEntry();
       OperationStatus status = dn2id.read(txn, leafDNKey, value, LockMode.RMW);
       if (status != OperationStatus.SUCCESS)
       {
-        LocalizableMessage message =
-          ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
+        LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
         DN matchedDN = getMatchedDN(baseDN);
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-            message, matchedDN, null);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
       }
       leafID = new EntryID(value);
     }
@@ -1822,8 +1817,7 @@ public class EntryContainer
       // Do not expect to ever come through here.
       LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
       DN matchedDN = getMatchedDN(baseDN);
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          message, matchedDN, null);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
 
     // Check that the entry exists in id2entry and read its contents.
@@ -2027,7 +2021,7 @@ public class EntryContainer
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DatabaseException,
       DirectoryException, CanceledOperationException
-      {
+  {
     Transaction txn = beginTransaction();
 
     try
@@ -2259,8 +2253,7 @@ public class EntryContainer
        * find subordinates of the target entry from the top of the tree
        * downwards.
        */
-      byte[] currentDNKey = JebFormat.dnToDNKey(currentDN,
-                                               this.baseDN.size());
+      byte[] currentDNKey = dnToDNKey(currentDN, this.baseDN.size());
       byte[] suffix = Arrays.copyOf(currentDNKey, currentDNKey.length+1);
       suffix[suffix.length-1] = 0x00;
 
@@ -2556,10 +2549,8 @@ public class EntryContainer
     //          operations.
     if (! modifyDNOperation.isSynchronizationOperation())
     {
-      PluginConfigManager pluginManager =
-        DirectoryServer.getPluginConfigManager();
-      PluginResult.SubordinateModifyDN pluginResult =
-        pluginManager.invokeSubordinateModifyDNPlugins(
+      SubordinateModifyDN pluginResult =
+        getPluginConfigManager().invokeSubordinateModifyDNPlugins(
             modifyDNOperation, oldEntry, newEntry, modifications);
 
       if (!pluginResult.continueProcessing())
@@ -2694,9 +2685,8 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void indexInsertEntry(IndexBuffer buffer, Entry entry,
-      EntryID entryID)
-  throws DatabaseException, DirectoryException
+  private void indexInsertEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
+      throws DatabaseException, DirectoryException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -2742,9 +2732,8 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void indexRemoveEntry(IndexBuffer buffer, Entry entry,
-      EntryID entryID)
-  throws DatabaseException, DirectoryException
+  private void indexRemoveEntry(IndexBuffer buffer, Entry entry, EntryID entryID)
+      throws DatabaseException, DirectoryException
   {
     for (AttributeIndex index : attrIndexMap.values())
     {
@@ -2803,8 +2792,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void indexModifications(IndexBuffer buffer, Entry oldEntry,
-      Entry newEntry,
+  private void indexModifications(IndexBuffer buffer, Entry oldEntry, Entry newEntry,
       EntryID entryID, List<Modification> mods)
   throws DatabaseException, DirectoryException
   {
@@ -2836,7 +2824,7 @@ public class EntryContainer
     EntryID entryID = dn2id.get(null, baseDN, LockMode.DEFAULT);
     if (entryID != null)
     {
-      DatabaseEntry key = new DatabaseEntry(JebFormat.entryIDToDatabase(entryID.longValue()));
+      DatabaseEntry key = new DatabaseEntry(entryIDToDatabase(entryID.longValue()));
       EntryIDSet entryIDSet = id2subtree.readKey(key, null, LockMode.DEFAULT);
 
       long count = entryIDSet.size();
