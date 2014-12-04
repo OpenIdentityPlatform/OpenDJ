@@ -105,7 +105,7 @@ public class InstallDS extends ConsoleApplication
   private final PlainTextProgressMessageFormatter formatter =
     new PlainTextProgressMessageFormatter();
   /** Prefix for log files. */
-  static public final String TMP_FILE_PREFIX = "opendj-setup-";
+  public static final String TMP_FILE_PREFIX = "opendj-setup-";
 
   /** Suffix for log files. */
   public static final String LOG_FILE_SUFFIX = ".log";
@@ -183,13 +183,13 @@ public class InstallDS extends ConsoleApplication
    */
   private enum ConfirmCode
   {
-    // Continue with the install
+    /** Continue with the install. */
     CONTINUE(1),
-    // Provide information again
+    /** Provide information again. */
     PROVIDE_INFORMATION_AGAIN(2),
-    // Display equivalent command-line
+    /** Display equivalent command-line. */
     PRINT_EQUIVALENT_COMMAND_LINE(3),
-    // Cancel the install
+    /** Cancel the install. */
     CANCEL(3);
 
     private int returnCode;
@@ -215,28 +215,22 @@ public class InstallDS extends ConsoleApplication
    */
   public static final int LIMIT_KEYSTORE_PASSWORD_PROMPT = 7;
 
-  // Different variables we use when the user decides to provide data again.
-  private NewSuffixOptions.Type lastResetPopulateOption = null;
+  /** Different variables we use when the user decides to provide data again. */
+  private NewSuffixOptions.Type lastResetPopulateOption;
 
-  private String lastResetImportFile = null;
+  private String lastResetImportFile;
+  private String lastResetRejectedFile;
+  private String lastResetSkippedFile;
 
-  private String lastResetRejectedFile = null;
+  private Integer lastResetNumEntries;
+  private Boolean lastResetEnableSSL;
+  private Boolean lastResetEnableStartTLS;
 
-  private String lastResetSkippedFile = null;
+  private SecurityOptions.CertificateType lastResetCertType;
+  private String lastResetKeyStorePath;
 
-  private Integer lastResetNumEntries = null;
-
-  private Boolean lastResetEnableSSL = null;
-
-  private Boolean lastResetEnableStartTLS = null;
-
-  private SecurityOptions.CertificateType lastResetCertType = null;
-
-  private String lastResetKeyStorePath = null;
-
-  private Boolean lastResetEnableWindowsService = null;
-
-  private Boolean lastResetStartServer = null;
+  private Boolean lastResetEnableWindowsService;
+  private Boolean lastResetStartServer;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -427,12 +421,12 @@ public class InstallDS extends ConsoleApplication
             try
             {
               String response = in.readLine();
-              if ((response == null) || (response.equalsIgnoreCase(no))
-                  || (response.equalsIgnoreCase(noShort))
-                  || (response.length() == 0))
+              if (response == null
+                  || response.equalsIgnoreCase(no)
+                  || response.equalsIgnoreCase(noShort)
+                  || response.length() == 0)
               {
-                return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED
-                    .getReturnCode();
+                return ErrorReturnCode.ERROR_LICENSE_NOT_ACCEPTED.getReturnCode();
               }
               else if (response.equalsIgnoreCase(yes)
                   || response.equalsIgnoreCase(yesShort))
@@ -641,52 +635,40 @@ public class InstallDS extends ConsoleApplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isQuiet()
   {
     return argParser.quietArg.isPresent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInteractive()
   {
     return !argParser.noPromptArg.isPresent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return argParser.verboseArg.isPresent();
@@ -793,22 +775,14 @@ public class InstallDS extends ConsoleApplication
         errorMessages.add(ERR_INSTALLDS_NO_SUCH_LDIF_FILE.get(joinAsString(", ", nonExistingFiles)));
       }
       String rejectedFile = argParser.rejectedImportFileArg.getValue();
-      if (rejectedFile != null)
+      if (rejectedFile != null && !canWrite(rejectedFile))
       {
-        if (!canWrite(rejectedFile))
-        {
-          errorMessages.add(
-              ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
-        }
+        errorMessages.add(ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
       }
       String skippedFile = argParser.skippedImportFileArg.getValue();
-      if (skippedFile != null)
+      if (skippedFile != null && !canWrite(skippedFile))
       {
-        if (!canWrite(skippedFile))
-        {
-          errorMessages.add(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(
-              skippedFile));
-        }
+        errorMessages.add(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
       }
       dataOptions = NewSuffixOptions.createImportFromLDIF(baseDNs,
           argParser.importLDIFArg.getValues(),
@@ -821,7 +795,7 @@ public class InstallDS extends ConsoleApplication
     else if (argParser.sampleDataArg.isPresent())
     {
       dataOptions = NewSuffixOptions.createAutomaticallyGenerated(baseDNs,
-          new Integer(argParser.sampleDataArg.getValue()));
+          Integer.valueOf(argParser.sampleDataArg.getValue()));
     }
     else
     {
@@ -861,7 +835,7 @@ public class InstallDS extends ConsoleApplication
       String path = argParser.useJavaKeyStoreArg.getValue();
       checkCertificateInKeystore(SecurityOptions.CertificateType.JKS, path, pwd,
           certNickname, errorMessages, keystoreAliases);
-      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      if (certNickname == null && !keystoreAliases.isEmpty())
       {
         certNickname = keystoreAliases.getFirst();
       }
@@ -873,7 +847,7 @@ public class InstallDS extends ConsoleApplication
       String path = argParser.useJCEKSArg.getValue();
       checkCertificateInKeystore(SecurityOptions.CertificateType.JCEKS, path,
           pwd, certNickname, errorMessages, keystoreAliases);
-      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      if (certNickname == null && !keystoreAliases.isEmpty())
       {
         certNickname = keystoreAliases.getFirst();
       }
@@ -885,7 +859,7 @@ public class InstallDS extends ConsoleApplication
       String path = argParser.usePkcs12Arg.getValue();
       checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS12, path,
           pwd, certNickname, errorMessages, keystoreAliases);
-      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      if (certNickname == null && !keystoreAliases.isEmpty())
       {
         certNickname = keystoreAliases.getFirst();
       }
@@ -896,7 +870,7 @@ public class InstallDS extends ConsoleApplication
     {
       checkCertificateInKeystore(SecurityOptions.CertificateType.PKCS11, null,
           pwd, certNickname, errorMessages, keystoreAliases);
-      if ((certNickname == null) && !keystoreAliases.isEmpty())
+      if (certNickname == null && !keystoreAliases.isEmpty())
       {
         certNickname = keystoreAliases.getFirst();
       }
@@ -932,7 +906,7 @@ public class InstallDS extends ConsoleApplication
 
   private LocalizableMessage getCannotBindErrorMessage(int port)
   {
-    if (SetupUtils.isPriviledgedPort(port))
+    if (SetupUtils.isPrivilegedPort(port))
     {
       return ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(port);
     }
@@ -995,7 +969,7 @@ public class InstallDS extends ConsoleApplication
       while (pwd1 == null)
       {
         pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
-        if ((pwd1 == null) || "".equals(pwd1))
+        if (pwd1 == null || "".equals(pwd1))
         {
           pwd1 = null;
           println();
@@ -1197,31 +1171,26 @@ public class InstallDS extends ConsoleApplication
           usedProvided = true;
         }
 
-        if (!argParser.skipPortCheckArg.isPresent())
+        if (!argParser.skipPortCheckArg.isPresent()
+            && !SetupUtils.canUseAsPort(portNumber))
         {
-          if (!SetupUtils.canUseAsPort(portNumber))
+          LocalizableMessage message = getCannotBindErrorMessage(portNumber);
+          if (prompted || includeLineBreak)
           {
-            LocalizableMessage message = getCannotBindErrorMessage(portNumber);
-            if (prompted || includeLineBreak)
-            {
-              println();
-            }
-            println(message);
-            if (!SetupUtils.isPriviledgedPort(portNumber))
-            {
-              println();
-            }
-            portNumber = -1;
-          }
-        }
-        if (portNumber != -1)
-        {
-          if (usedPorts.contains(portNumber))
-          {
-            println(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(portNumber));
             println();
-            portNumber = -1;
           }
+          println(message);
+          if (!SetupUtils.isPrivilegedPort(portNumber))
+          {
+            println();
+          }
+          portNumber = -1;
+        }
+        if (portNumber != -1 && usedPorts.contains(portNumber))
+        {
+          println(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(portNumber));
+          println();
+          portNumber = -1;
         }
       }
       catch (ArgumentException ae)
@@ -1536,13 +1505,13 @@ public class InstallDS extends ConsoleApplication
       {
         LocalizableMessage message = INFO_INSTALLDS_PROMPT_NUM_ENTRIES.get();
         int defaultValue;
-        if (lastResetNumEntries == null)
+        if (lastResetNumEntries != null)
         {
-          defaultValue = 2000;
+          defaultValue = lastResetNumEntries;
         }
         else
         {
-          defaultValue = lastResetNumEntries;
+          defaultValue = 2000;
         }
         int numUsers = promptForInteger(message, defaultValue, 0,
             Integer.MAX_VALUE);
@@ -1674,126 +1643,123 @@ public class InstallDS extends ConsoleApplication
         createSecurityOptionsPrompting(SecurityOptions.CertificateType.PKCS11,
             enableSSL, enableStartTLS, ldapsPort);
     }
+    else if (!enableSSL && !enableStartTLS)
+    {
+      // If the user did not want to enable SSL or start TLS do not ask
+      // to create a certificate.
+      securityOptions = SecurityOptions.createNoCertificateOptions();
+    }
     else
     {
-      if (!enableSSL && !enableStartTLS)
+      final int SELF_SIGNED = 1;
+      final int JKS = 2;
+      final int JCEKS = 3;
+      final int PKCS12 = 4;
+      final int PKCS11 = 5;
+      int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11};
+      LocalizableMessage[] msgs = {
+          INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(),
+          INFO_INSTALLDS_CERT_OPTION_JKS.get(),
+          INFO_INSTALLDS_CERT_OPTION_JCEKS.get(),
+          INFO_INSTALLDS_CERT_OPTION_PKCS12.get(),
+          INFO_INSTALLDS_CERT_OPTION_PKCS11.get()
+      };
+
+
+      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
+      builder.setPrompt(INFO_INSTALLDS_HEADER_CERT_TYPE.get());
+
+      for (int i=0; i<indexes.length; i++)
       {
-        // If the user did not want to enable SSL or start TLS do not ask
-        // to create a certificate.
-        securityOptions = SecurityOptions.createNoCertificateOptions();
+        builder.addNumberedOption(msgs[i], MenuResult.success(indexes[i]));
+      }
+
+      if (lastResetCertType == null)
+      {
+        builder.setDefault(LocalizableMessage.raw(String.valueOf(SELF_SIGNED)),
+          MenuResult.success(SELF_SIGNED));
       }
       else
       {
-        final int SELF_SIGNED = 1;
-        final int JKS = 2;
-        final int JCEKS = 3;
-        final int PKCS12 = 4;
-        final int PKCS11 = 5;
-        int[] indexes = {SELF_SIGNED, JKS, JCEKS, PKCS12, PKCS11};
-        LocalizableMessage[] msgs = {
-            INFO_INSTALLDS_CERT_OPTION_SELF_SIGNED.get(),
-            INFO_INSTALLDS_CERT_OPTION_JKS.get(),
-            INFO_INSTALLDS_CERT_OPTION_JCEKS.get(),
-            INFO_INSTALLDS_CERT_OPTION_PKCS12.get(),
-            INFO_INSTALLDS_CERT_OPTION_PKCS11.get()
-        };
-
-
-        MenuBuilder<Integer> builder = new MenuBuilder<Integer>(this);
-        builder.setPrompt(INFO_INSTALLDS_HEADER_CERT_TYPE.get());
-
-        for (int i=0; i<indexes.length; i++)
+        switch (lastResetCertType)
         {
-          builder.addNumberedOption(msgs[i], MenuResult.success(indexes[i]));
-        }
-
-        if (lastResetCertType == null)
-        {
+        case JKS:
+          builder.setDefault(LocalizableMessage.raw(String.valueOf(JKS)),
+              MenuResult.success(JKS));
+          break;
+        case JCEKS:
+          builder.setDefault(LocalizableMessage.raw(String.valueOf(JCEKS)),
+              MenuResult.success(JCEKS));
+          break;
+        case PKCS11:
+          builder.setDefault(LocalizableMessage.raw(String.valueOf(PKCS11)),
+              MenuResult.success(PKCS11));
+          break;
+        case PKCS12:
+          builder.setDefault(LocalizableMessage.raw(String.valueOf(PKCS12)),
+              MenuResult.success(PKCS12));
+          break;
+        default:
           builder.setDefault(LocalizableMessage.raw(String.valueOf(SELF_SIGNED)),
-            MenuResult.success(SELF_SIGNED));
+              MenuResult.success(SELF_SIGNED));
         }
-        else
-        {
-          switch (lastResetCertType)
-          {
-          case JKS:
-            builder.setDefault(LocalizableMessage.raw(String.valueOf(JKS)),
-                MenuResult.success(JKS));
-            break;
-          case JCEKS:
-            builder.setDefault(LocalizableMessage.raw(String.valueOf(JCEKS)),
-                MenuResult.success(JCEKS));
-            break;
-          case PKCS11:
-            builder.setDefault(LocalizableMessage.raw(String.valueOf(PKCS11)),
-                MenuResult.success(PKCS11));
-            break;
-          case PKCS12:
-            builder.setDefault(LocalizableMessage.raw(String.valueOf(PKCS12)),
-                MenuResult.success(PKCS12));
-            break;
-          default:
-            builder.setDefault(LocalizableMessage.raw(String.valueOf(SELF_SIGNED)),
-                MenuResult.success(SELF_SIGNED));
-          }
-        }
+      }
 
-        Menu<Integer> menu = builder.toMenu();
-        int certType;
-        try
+      Menu<Integer> menu = builder.toMenu();
+      int certType;
+      try
+      {
+        MenuResult<Integer> m = menu.run();
+        if (m.isSuccess())
         {
-          MenuResult<Integer> m = menu.run();
-          if (m.isSuccess())
-          {
-            certType = m.getValue();
-          }
-          else
-          {
-            // Should never happen.
-            throw new RuntimeException();
-          }
-        }
-        catch (ClientException ce)
-        {
-          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-          certType = SELF_SIGNED;
-        }
-        if (certType == SELF_SIGNED)
-        {
-          securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
-                enableSSL, enableStartTLS, ldapsPort);
-        }
-        else if (certType == JKS)
-        {
-          securityOptions =
-            createSecurityOptionsPrompting(SecurityOptions.CertificateType.JKS,
-                enableSSL, enableStartTLS, ldapsPort);
-        }
-        else if (certType == JCEKS)
-        {
-          securityOptions =
-            createSecurityOptionsPrompting(
-                SecurityOptions.CertificateType.JCEKS,
-                enableSSL, enableStartTLS, ldapsPort);
-        }
-        else if (certType == PKCS12)
-        {
-          securityOptions =
-            createSecurityOptionsPrompting(
-                SecurityOptions.CertificateType.PKCS12, enableSSL,
-                enableStartTLS, ldapsPort);
-        }
-        else if (certType == PKCS11)
-        {
-          securityOptions =
-            createSecurityOptionsPrompting(
-                SecurityOptions.CertificateType.PKCS11, enableSSL,
-                enableStartTLS, ldapsPort);
+          certType = m.getValue();
         }
         else
         {
-          throw new IllegalStateException("Unexpected cert type: "+ certType);
+          // Should never happen.
+          throw new RuntimeException();
         }
+      }
+      catch (ClientException ce)
+      {
+        logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
+        certType = SELF_SIGNED;
+      }
+      if (certType == SELF_SIGNED)
+      {
+        securityOptions = SecurityOptions.createSelfSignedCertificateOptions(
+              enableSSL, enableStartTLS, ldapsPort);
+      }
+      else if (certType == JKS)
+      {
+        securityOptions =
+          createSecurityOptionsPrompting(SecurityOptions.CertificateType.JKS,
+              enableSSL, enableStartTLS, ldapsPort);
+      }
+      else if (certType == JCEKS)
+      {
+        securityOptions =
+          createSecurityOptionsPrompting(
+              SecurityOptions.CertificateType.JCEKS,
+              enableSSL, enableStartTLS, ldapsPort);
+      }
+      else if (certType == PKCS12)
+      {
+        securityOptions =
+          createSecurityOptionsPrompting(
+              SecurityOptions.CertificateType.PKCS12, enableSSL,
+              enableStartTLS, ldapsPort);
+      }
+      else if (certType == PKCS11)
+      {
+        securityOptions =
+          createSecurityOptionsPrompting(
+              SecurityOptions.CertificateType.PKCS11, enableSSL,
+              enableStartTLS, ldapsPort);
+      }
+      else
+      {
+        throw new IllegalStateException("Unexpected cert type: "+ certType);
       }
     }
     return securityOptions;
@@ -1938,7 +1904,7 @@ public class InstallDS extends ConsoleApplication
             throw new IllegalArgumentException("Invalid type: "+type);
         }
         String[] aliases = certManager.getCertificateAliases();
-        if ((aliases == null) || (aliases.length == 0))
+        if (aliases == null || aliases.length == 0)
         {
           // Could not retrieve any certificate
           switch (type)
@@ -2039,12 +2005,9 @@ public class InstallDS extends ConsoleApplication
     String path;
     String certNickname = argParser.certNicknameArg.getValue();
     String pwd = argParser.getKeyStorePassword();
-    if (pwd != null)
+    if (pwd != null && pwd.length() == 0)
     {
-      if (pwd.length() == 0)
-      {
-        pwd = null;
-      }
+      pwd = null;
     }
     LocalizableMessage pathPrompt;
     String defaultPathValue;
@@ -2092,7 +2055,7 @@ public class InstallDS extends ConsoleApplication
     boolean firstTry = true;
     int nPasswordPrompts = 0;
 
-    while ((errorMessages.size() > 0) || firstTry)
+    while (errorMessages.size() > 0 || firstTry)
     {
       boolean prompted = false;
       if (errorMessages.size() > 0)
@@ -2102,38 +2065,35 @@ public class InstallDS extends ConsoleApplication
             formatter.getLineBreak().toString()));
       }
 
-      if (type != SecurityOptions.CertificateType.PKCS11)
+      if (type != SecurityOptions.CertificateType.PKCS11
+          && (containsKeyStorePathErrorMessage(errorMessages) || path == null))
       {
-        if (containsKeyStorePathErrorMessage(errorMessages) || (path == null))
+        println();
+        try
         {
-          println();
-          try
-          {
-            path = readInput(pathPrompt, defaultPathValue);
-          }
-          catch (ClientException ce)
-          {
-            path = "";
-            logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
-          }
+          path = readInput(pathPrompt, defaultPathValue);
+        }
+        catch (ClientException ce)
+        {
+          path = "";
+          logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
+        }
 
-          prompted = true;
-          if (pwd != null)
+        prompted = true;
+        if (pwd != null)
+        {
+          errorMessages.clear();
+          keystoreAliases.clear();
+          checkCertificateInKeystore(type, path, pwd, certNickname,
+              errorMessages, keystoreAliases);
+          if (!errorMessages.isEmpty())
           {
-            errorMessages.clear();
-            keystoreAliases.clear();
-            checkCertificateInKeystore(type, path, pwd, certNickname,
-                errorMessages, keystoreAliases);
-            if (!errorMessages.isEmpty())
-            {
-              // Reset password: this might be a new keystore
-              pwd = null;
-            }
+            // Reset password: this might be a new keystore
+            pwd = null;
           }
         }
       }
-      if (containsKeyStorePasswordErrorMessage(errorMessages) ||
-          (pwd == null))
+      if (containsKeyStorePasswordErrorMessage(errorMessages) || pwd == null)
       {
         if (!prompted)
         {
@@ -2165,7 +2125,7 @@ public class InstallDS extends ConsoleApplication
           keystoreAliases);
       firstTry = false;
     }
-    if ((certNickname == null) && !keystoreAliases.isEmpty())
+    if (certNickname == null && !keystoreAliases.isEmpty())
     {
       certNickname = keystoreAliases.getFirst();
     }
@@ -2325,12 +2285,11 @@ public class InstallDS extends ConsoleApplication
         s = "";
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
-      if (s.equals(""))
+      if ("".equals(s))
       {
         if (defaultValue == null)
         {
-          LocalizableMessage message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
-          println(message);
+          println(ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get());
           println();
         }
         else
@@ -2343,18 +2302,14 @@ public class InstallDS extends ConsoleApplication
         try
         {
           int intValue = Integer.parseInt(s);
-          if ((lowerBound != null) && (intValue < lowerBound))
+          if (lowerBound != null && intValue < lowerBound)
           {
-            LocalizableMessage message =
-                ERR_INSTALLDS_INTEGER_BELOW_LOWER_BOUND.get(lowerBound);
-            println(message);
+            println(ERR_INSTALLDS_INTEGER_BELOW_LOWER_BOUND.get(lowerBound));
             println();
           }
-          else if ((upperBound != null) && (intValue > upperBound))
+          else if (upperBound != null && intValue > upperBound)
           {
-            LocalizableMessage message =
-                ERR_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND.get(upperBound);
-            println(message);
+            println(ERR_INSTALLDS_INTEGER_ABOVE_UPPER_BOUND.get(upperBound));
             println();
           }
           else
@@ -2364,8 +2319,7 @@ public class InstallDS extends ConsoleApplication
         }
         catch (NumberFormatException nfe)
         {
-          LocalizableMessage message = ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get();
-          println(message);
+          println(ERR_INSTALLDS_INVALID_INTEGER_RESPONSE.get());
           println();
         }
       }
@@ -2446,7 +2400,7 @@ public class InstallDS extends ConsoleApplication
       if (values[i] != null)
       {
         LocalizableMessage l = labels[i];
-        sb.append(l.toString()).append(" ");
+        sb.append(l).append(" ");
 
         String[] lines = values[i].toString().split(Constants.LINE_SEPARATOR);
         for (int j=0; j<lines.length; j++)

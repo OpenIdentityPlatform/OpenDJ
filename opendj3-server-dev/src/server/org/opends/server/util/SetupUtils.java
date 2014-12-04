@@ -113,7 +113,7 @@ public class SetupUtils
   public static final String POINT_VERSION = "Point Version";
   /** Revision number in SVN. */
   public static final String REVISION_NUMBER = "Revision Number";
-  /** the SVN url repository. */
+  /** The SVN url repository. */
   public static final String URL_REPOSITORY = "URL Repository";
   /** The version qualifier. */
   public static final String VERSION_QUALIFIER = "Version Qualifier";
@@ -207,7 +207,7 @@ public class SetupUtils
       }
     }
 
-    if (!baseDNs.isEmpty() && (numEntries > 0))
+    if (!baseDNs.isEmpty() && numEntries > 0)
     {
       lines.add("template: person");
       lines.add("rdnAttr: uid");
@@ -347,9 +347,9 @@ public class SetupUtils
    * @return {@code true} if the provided port is a privileged port,
    * {@code false} otherwise.
    */
-  public static boolean isPriviledgedPort(int port)
+  public static boolean isPrivilegedPort(int port)
   {
-    return (port <= 1024) && !OperatingSystem.isWindows();
+    return port <= 1024 && !OperatingSystem.isWindows();
   }
 
   /**
@@ -373,15 +373,10 @@ public class SetupUtils
   public static String getScriptPath(String script)
   {
     String s = script;
-    if (OperatingSystem.isWindows())
+    if (OperatingSystem.isWindows()
+        && s != null && (!s.startsWith("\"") || !s.endsWith("\"")))
     {
-      if (s != null)
-      {
-        if (!s.startsWith("\"") || !s.endsWith("\""))
-        {
-          s = "\""+script+"\"";
-        }
-      }
+      return "\"" + script + "\"";
     }
     return s;
   }
@@ -472,8 +467,10 @@ public class SetupUtils
     }
   }
 
-  /* The next two methods are used to generate the random password for the
-   * self-signed certificate. */
+  /**
+   * The next two methods are used to generate the random password for the
+   * self-signed certificate.
+   */
   private static char getRandomChar(Random random, int type)
   {
     char generatedChar;
@@ -487,7 +484,7 @@ public class SetupUtils
       d = next % 10;
       if (d < 0)
       {
-        d = d * (-1);
+        d = d * -1;
       }
       generatedChar = (char) (d+48);
       break;
@@ -496,16 +493,16 @@ public class SetupUtils
       d = next % 26;
       if (d < 0)
       {
-        d = d * (-1);
+        d = d * -1;
       }
       generatedChar =  (char) (d + 97);
       break;
     default:
       // Will return a capital letter
-      d = (next % 26);
+      d = next % 26;
       if (d < 0)
       {
-        d = d * (-1);
+        d = d * -1;
       }
       generatedChar = (char) (d + 65) ;
     }
@@ -515,7 +512,7 @@ public class SetupUtils
 
   private static int getRandomInt(Random random,int modulo)
   {
-    return (random.nextInt() & modulo);
+    return random.nextInt() & modulo;
   }
 
   /**
