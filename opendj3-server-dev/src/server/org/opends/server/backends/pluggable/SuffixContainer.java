@@ -26,7 +26,10 @@ package org.opends.server.backends.pluggable;
 
 import java.io.Closeable;
 
+import org.opends.server.backends.jeb.EntryID;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 /**
  * Container for a whole suffix environment which stores all entries from the
@@ -50,12 +53,13 @@ public interface SuffixContainer extends Closeable
   String ID2ENTRY_INDEX_NAME = "id2entry";
   /**
    * The name of the index associating an entry id to the entry id set of all
-   * its children.
+   * its children, i.e. its immediate children.
    */
   String ID2CHILDREN_INDEX_NAME = "id2children";
   /**
    * The name of the index associating an entry id to the entry id set of all
-   * its subordinates.
+   * its subordinates, i.e. the children, grand-children, grand-grand-children,
+   * ....
    */
   String ID2SUBTREE_INDEX_NAME = "id2subtree";
   /** The name of the index associating normalized DNs to normalized URIs. */
@@ -65,6 +69,8 @@ public interface SuffixContainer extends Closeable
    * does the index needs to be rebuilt ?
    */
   String STATE_INDEX_NAME = "state";
+  /** The attribute used to return a search index debug string to the client. */
+  String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
 
   /**
    * Returns the baseDN that this suffix container is responsible for.
@@ -81,4 +87,14 @@ public interface SuffixContainer extends Closeable
    */
   long getEntryCount();
 
+  /**
+   * Returns the entry corresponding to the provided entryID.
+   *
+   * @param entryID
+   *          the id of the entry to retrieve
+   * @return the entry corresponding to the provided entryID
+   * @throws DirectoryException
+   *           If an error occurs retrieving the entry
+   */
+  Entry getEntry(EntryID entryID) throws DirectoryException;
 }

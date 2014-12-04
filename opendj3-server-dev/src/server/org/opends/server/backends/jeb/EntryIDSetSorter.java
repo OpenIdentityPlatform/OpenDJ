@@ -35,14 +35,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-
-import com.sleepycat.je.LockMode;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -57,8 +56,7 @@ public class EntryIDSetSorter
    * Creates a new entry ID set which is a sorted representation of the provided
    * set using the given sort order.
    *
-   * @param  entryContainer   The entry container with which the ID list is
-   *                          associated.
+   * @param  suffixContainer  The suffix container with which the ID list is associated.
    * @param  entryIDSet       The entry ID set to be sorted.
    * @param  searchOperation  The search operation being processed.
    * @param  sortOrder        The sort order to use for the entry ID set.
@@ -70,7 +68,7 @@ public class EntryIDSetSorter
    *
    * @throws  DirectoryException  If an error occurs while performing the sort.
    */
-  public static EntryIDSet sort(EntryContainer entryContainer,
+  public static EntryIDSet sort(SuffixContainer suffixContainer,
                                 EntryIDSet entryIDSet,
                                 SearchOperation searchOperation,
                                 SortOrder sortOrder,
@@ -82,7 +80,6 @@ public class EntryIDSetSorter
       return new EntryIDSet();
     }
 
-    ID2Entry id2Entry = entryContainer.getID2Entry();
     DN baseDN = searchOperation.getBaseDN();
     SearchScope scope = searchOperation.getScope();
     SearchFilter filter = searchOperation.getFilter();
@@ -92,15 +89,11 @@ public class EntryIDSetSorter
     {
       try
       {
-        Entry e = id2Entry.get(null, id, LockMode.DEFAULT);
-
-        if ((! e.matchesBaseAndScope(baseDN, scope)) ||
-            (! filter.matchesEntry(e)))
+        Entry e = suffixContainer.getEntry(id);
+        if (e.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(e))
         {
-          continue;
+          sortMap.put(new SortValues(id, e, sortOrder), id);
         }
-
-        sortMap.put(new SortValues(id, e, sortOrder), id);
       }
       catch (Exception e)
       {
@@ -111,8 +104,7 @@ public class EntryIDSetSorter
 
 
     // See if there is a VLV request to further pare down the set of results,
-    // and if there is where it should be processed by offset or assertion
-    // value.
+    // and if there is where it should be processed by offset or assertion value.
     long[] sortedIDs;
     if (vlvRequest != null)
     {
@@ -124,8 +116,7 @@ public class EntryIDSetSorter
         int targetOffset = vlvRequest.getOffset();
         if (targetOffset < 0)
         {
-          // The client specified a negative target offset.  This should never
-          // be allowed.
+          // The client specified a negative target offset.  This should never be allowed.
           searchOperation.addResponseControl(
                new VLVResponseControl(targetOffset, sortMap.size(),
                                       LDAPResultCode.OFFSET_RANGE_ERROR));
@@ -167,10 +158,8 @@ public class EntryIDSetSorter
 
         int treePos = 0;
         int arrayPos = 0;
-        Iterator<EntryID> idIterator = sortMap.values().iterator();
-        while (idIterator.hasNext())
+        for (EntryID id : sortMap.values())
         {
-          EntryID id = idIterator.next();
           if (treePos++ < startPos)
           {
             continue;
@@ -206,11 +195,8 @@ public class EntryIDSetSorter
         int includedAfterCount  = 0;
         int listSize            = 0;
         LinkedList<EntryID> idList = new LinkedList<EntryID>();
-        Iterator<Map.Entry<SortValues,EntryID>> mapIterator =
-             sortMap.entrySet().iterator();
-        while (mapIterator.hasNext())
+        for (Map.Entry<SortValues, EntryID> entry : sortMap.entrySet())
         {
-          Map.Entry<SortValues,EntryID> entry = mapIterator.next();
           SortValues sortValues = entry.getKey();
           EntryID id = entry.getValue();
 
@@ -226,7 +212,7 @@ public class EntryIDSetSorter
           }
           else
           {
-            targetFound = (sortValues.compareTo(assertionValue) >= 0);
+            targetFound = sortValues.compareTo(assertionValue) >= 0;
             targetOffset++;
 
             if (targetFound)
@@ -283,4 +269,3 @@ public class EntryIDSetSorter
     return new EntryIDSet(sortedIDs, 0, sortedIDs.length);
   }
 }
-

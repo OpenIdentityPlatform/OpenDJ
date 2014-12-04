@@ -90,8 +90,6 @@ public class EntryContainer
   private static final String REFERRAL_DATABASE_NAME = REFERRAL_INDEX_NAME;
   /** The name of the state database. */
   private static final String STATE_DATABASE_NAME = STATE_INDEX_NAME;
-  /** The attribute used to return a search index debug string to the client. */
-  public static final String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
 
   /** The attribute index configuration manager. */
   private final AttributeJEIndexCfgManager attributeJEIndexCfgManager;
@@ -769,8 +767,7 @@ public class EntryContainer
       searchOperation.setResultCode(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
       return;
     }
-    VLVRequestControl vlvRequest = searchOperation
-    .getRequestControl(VLVRequestControl.DECODER);
+    VLVRequestControl vlvRequest = searchOperation.getRequestControl(VLVRequestControl.DECODER);
 
     if (vlvRequest != null && pageRequest != null)
     {
@@ -889,8 +886,7 @@ public class EntryContainer
         {
           LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(aBaseDN);
           DN matchedDN = getMatchedDN(aBaseDN);
-          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-              message, matchedDN, null);
+          throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
         }
         DatabaseEntry baseIDData = baseID.getDatabaseEntry();
 
@@ -940,11 +936,11 @@ public class EntryContainer
             else
             {
               /*
-                There is no sort key associated with the sort control. Since it
-                came here it means that the criticality is false so let the
-                server return all search results unsorted and include the
-                sortKeyResponseControl in the searchResultDone message.
-              */
+               * There is no sort key associated with the sort control. Since it
+               * came here it means that the criticality is false so let the
+               * server return all search results unsorted and include the
+               * sortKeyResponseControl in the searchResultDone message.
+               */
               searchOperation.addResponseControl(new ServerSideSortResponseControl(NO_SUCH_ATTRIBUTE, null));
             }
           }
@@ -1018,8 +1014,7 @@ public class EntryContainer
         if (sortRequest.isCritical())
         {
           LocalizableMessage message = ERR_JEB_SEARCH_CANNOT_SORT_UNINDEXED.get();
-          throw new DirectoryException(
-              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION, message);
+          throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION, message);
         }
       }
 
@@ -1048,7 +1043,6 @@ public class EntryContainer
   private void searchNotIndexed(SearchOperation searchOperation, PagedResultsControl pageRequest)
       throws DirectoryException, CanceledOperationException
   {
-    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     DN aBaseDN = searchOperation.getBaseDN();
     SearchScope searchScope = searchOperation.getScope();
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
@@ -1171,20 +1165,8 @@ public class EntryContainer
                   || findDNKeyParent(key.getData(), 0, key.getSize()) == baseDNKey.length;
           if (isInScope)
           {
-            // Try the entry cache first.
-            final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
-
-            final Entry entry;
-            if (cacheEntry != null)
-            {
-              entry = cacheEntry;
-            }
-            else
-            {
-              entry = id2entry.get(null, entryID, LockMode.DEFAULT);
-            }
-
             // Process the candidate entry.
+            final Entry entry = getEntry(entryID);
             if (entry != null)
             {
               lookthroughCount++;
@@ -1238,6 +1220,28 @@ public class EntryContainer
     }
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public Entry getEntry(EntryID entryID) throws DirectoryException
+  {
+    // Try the entry cache first.
+    final EntryCache entryCache = getEntryCache();
+    final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
+    if (cacheEntry != null)
+    {
+      return cacheEntry;
+    }
+
+    final Entry entry = id2entry.get(null, entryID, LockMode.DEFAULT);
+    if (entry != null)
+    {
+      // Put the entry in the cache making sure not to overwrite a newer copy
+      // that may have been inserted since the time we read the cache.
+      entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+    }
+    return entry;
+  }
+
   /**
    * We were able to obtain a set of candidate entry IDs for the
    * search from the indexes.
@@ -1266,7 +1270,6 @@ public class EntryContainer
       PagedResultsControl pageRequest)
   throws DirectoryException, CanceledOperationException
   {
-    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     SearchScope searchScope = searchOperation.getScope();
     DN aBaseDN = searchOperation.getBaseDN();
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
@@ -1315,49 +1318,27 @@ public class EntryContainer
       {
         final EntryID id = it.next();
 
-        // Try the entry cache first.
         Entry entry;
-        Entry cacheEntry = entryCache.getEntry(backend, id.longValue());
-        if (cacheEntry == null)
+        try
         {
-          // Fetch the candidate entry from the database.
-          try
-          {
-            entry = id2entry.get(null, id, LockMode.DEFAULT);
-          }
-          catch (Exception e)
-          {
-            logger.traceException(e);
-            continue;
-          }
+          entry = getEntry(id);
         }
-        else
+        catch (Exception e)
         {
-          entry = cacheEntry;
+          logger.traceException(e);
+          continue;
         }
 
         // Process the candidate entry.
         if (entry != null)
         {
-          boolean isInScope = isInScope(candidatesAreInScope, searchScope, aBaseDN, entry);
-
-          // Put this entry in the cache if it did not come from the cache.
-          if (cacheEntry == null)
-          {
-            // Put the entry in the cache making sure not to overwrite
-            // a newer copy that may have been inserted since the time
-            // we read the cache.
-            entryCache.putEntryIfAbsent(entry, backend, id.longValue());
-          }
-
           // Filter the entry if it is in scope.
-          if (isInScope
+          if (isInScope(candidatesAreInScope, searchScope, aBaseDN, entry)
               && (manageDsaIT || entry.getReferralURLs() == null)
               && searchOperation.getFilter().matchesEntry(entry))
           {
-            if (pageRequest != null &&
-                searchOperation.getEntriesSent() ==
-                pageRequest.getSize())
+            if (pageRequest != null
+                && searchOperation.getEntriesSent() == pageRequest.getSize())
             {
               // The current page is full.
               // Set the cookie to remember where we were.
@@ -1384,8 +1365,8 @@ public class EntryContainer
     // Before we return success from the search we must ensure the base entry
     // exists. However, if we have returned at least one entry or subordinate
     // reference it implies the base does exist, so we can omit the check.
-    if (searchOperation.getEntriesSent() == 0 &&
-        searchOperation.getReferencesSent() == 0)
+    if (searchOperation.getEntriesSent() == 0
+        && searchOperation.getReferencesSent() == 0)
     {
       // Fetch the base entry if it exists.
       Entry baseEntry = fetchBaseEntry(aBaseDN, searchScope);

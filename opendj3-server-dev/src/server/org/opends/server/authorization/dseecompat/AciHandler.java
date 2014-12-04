@@ -43,7 +43,7 @@ import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.backends.jeb.EntryContainer;
+import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -64,8 +64,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
- * The AciHandler class performs the main processing for the dseecompat
- * package.
+ * The AciHandler class performs the main processing for the dseecompat package.
  */
 public final class AciHandler extends
     AccessControlHandler<DseeCompatAccessControlHandlerCfg>
@@ -80,8 +79,7 @@ public final class AciHandler extends
    * String used to indicate that the evaluating ACI had a all user
    * attributes targetattr match (targetattr="*").
    */
-  public static final String ALL_USER_ATTRS_MATCHED =
-      "allUserAttrsMatched";
+  public static final String ALL_USER_ATTRS_MATCHED = "allUserAttrsMatched";
 
   /**
    * String used to save the original authorization entry in an
@@ -89,25 +87,16 @@ public final class AciHandler extends
    */
   public static final String ORIG_AUTH_ENTRY = "origAuthorizationEntry";
 
-  /**
-   * Attribute type corresponding to "aci" attribute.
-   */
+  /** Attribute type corresponding to "aci" attribute. */
   static AttributeType aciType;
 
-  /**
-   * Attribute type corresponding to global "ds-cfg-global-aci"
-   * attribute.
-   */
+  /** Attribute type corresponding to global "ds-cfg-global-aci" attribute. */
   static AttributeType globalAciType;
 
-  /**
-   * Attribute type corresponding to "debugsearchindex" attribute.
-   */
+  /** Attribute type corresponding to "debugsearchindex" attribute. */
   private static AttributeType debugSearchIndex;
 
-  /**
-   * DN corresponding to "debugsearchindex" attribute type.
-   */
+  /** DN corresponding to "debugsearchindex" attribute type. */
   private static DN debugSearchIndexDN;
 
   /**
@@ -132,7 +121,7 @@ public final class AciHandler extends
   {
     aciType = getAttributeType("aci");
     globalAciType = getAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
-    debugSearchIndex = getAttributeType(EntryContainer.ATTR_DEBUG_SEARCH_INDEX);
+    debugSearchIndex = getAttributeType(SuffixContainer.ATTR_DEBUG_SEARCH_INDEX);
     refAttrType = getAttributeType(ATTR_REFERRAL_URL);
 
     try
@@ -157,35 +146,23 @@ public final class AciHandler extends
 
 
 
-  /**
-   * The list that holds that ACIs keyed by the DN of the entry holding
-   * the ACI.
-   */
+  /** The list that holds that ACIs keyed by the DN of the entry holding the ACI. */
   private AciList aciList;
 
   /**
    * The listener that handles ACI changes caused by LDAP operations,
-   * ACI decode failure alert logging and backend initialization ACI
-   * list adjustment.
+   * ACI decode failure alert logging and backend initialization ACI list adjustment.
    */
   private AciListenerManager aciListenerMgr;
 
-
-
-  /**
-   * Creates a new DSEE-compatible access control handler.
-   */
+  /** Creates a new DSEE-compatible access control handler. */
   public AciHandler()
   {
     // No implementation required. All initialization should be done in
     // the intializeAccessControlHandler method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void filterEntry(Operation operation,
       SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
@@ -211,12 +188,8 @@ public final class AciHandler extends
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeAccessControlHandler()
   {
     aciListenerMgr.finalizeListenerManager();
@@ -224,12 +197,8 @@ public final class AciHandler extends
     DirectoryServer.deregisterSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeAccessControlHandler(
       DseeCompatAccessControlHandlerCfg configuration)
       throws ConfigException, InitializationException
@@ -243,11 +212,7 @@ public final class AciHandler extends
     DirectoryServer.registerSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(DN entryDN, Operation op, Control control)
       throws DirectoryException
@@ -286,11 +251,7 @@ public final class AciHandler extends
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(ExtendedOperation operation)
   {
@@ -305,33 +266,19 @@ public final class AciHandler extends
     return accessAllowed(container);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendAddOperation operation)
       throws DirectoryException
   {
-    AciContainer container =
-        new AciLDAPOperationContainer(operation, ACI_ADD);
-    if (!isAllowed(container, operation))
-    {
-      return false;
-    }
-
-    // LDAP add needs a verify ACI syntax step in case any
-    // "aci" attribute types are being added.
-    return verifySyntax(operation.getEntryToAdd(), operation, container
-        .getClientDN());
+    AciContainer container = new AciLDAPOperationContainer(operation, ACI_ADD);
+    return isAllowed(container, operation)
+        // LDAP add needs a verify ACI syntax step in case any
+        // "aci" attribute types are being added.
+        && verifySyntax(operation.getEntryToAdd(), operation, container.getClientDN());
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(BindOperation bindOperation)
   {
@@ -428,9 +375,8 @@ public final class AciHandler extends
     // original entry DN has export access.
     if (rdnChangesAllowed && newSuperiorDN != null)
     {
-      AciContainer container =
-          new AciLDAPOperationContainer(operation, ACI_EXPORT, operation
-              .getOriginalEntry());
+      AciContainer container = new AciLDAPOperationContainer(
+          operation, ACI_EXPORT, operation.getOriginalEntry());
       if (!oldRDN.equals(newRDN))
       {
         // The RDNs are not equal, skip the proxy check since it was
@@ -442,11 +388,7 @@ public final class AciHandler extends
     return rdnChangesAllowed;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(LocalBackendModifyOperation operation)
       throws DirectoryException
@@ -455,11 +397,7 @@ public final class AciHandler extends
     return aciCheckMods(container, operation, skipAccessCheck(operation));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(SearchOperation searchOperation)
   {
@@ -467,11 +405,7 @@ public final class AciHandler extends
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowed(Operation operation, Entry entry,
       SearchFilter filter) throws DirectoryException
@@ -486,14 +420,9 @@ public final class AciHandler extends
     return testFilter(container, filter);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public boolean mayProxy(Entry proxyUser, Entry proxiedUser,
-      Operation op)
+  public boolean mayProxy(Entry proxyUser, Entry proxiedUser, Operation op)
   {
     if (skipAccessCheck(proxyUser))
     {
@@ -508,14 +437,9 @@ public final class AciHandler extends
     return accessAllowedEntry(container);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public boolean maySend(DN dn, Operation operation,
-      SearchResultReference reference)
+  public boolean maySend(DN dn, Operation operation, SearchResultReference reference)
   {
     if (skipAccessCheck(operation))
     {
@@ -541,11 +465,7 @@ public final class AciHandler extends
     return accessAllowed(container);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean maySend(Operation operation, SearchResultEntry entry)
   {
