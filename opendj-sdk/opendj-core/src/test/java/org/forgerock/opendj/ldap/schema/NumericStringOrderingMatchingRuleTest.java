@@ -28,11 +28,12 @@ package org.forgerock.opendj.ldap.schema;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_NUMERIC_STRING_OID;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the NumericStringOrderingMatchingRule.
  */
-//TODO: fix matching rule so that commented data in data providers pass
+@Test
 public class NumericStringOrderingMatchingRuleTest extends OrderingMatchingRuleTest {
 
     /** {@inheritDoc} */
@@ -40,8 +41,6 @@ public class NumericStringOrderingMatchingRuleTest extends OrderingMatchingRuleT
     @DataProvider(name = "OrderingMatchingRuleInvalidValues")
     public Object[][] createOrderingMatchingRuleInvalidValues() {
         return new Object[][] {
-            //{"jfhslur"},
-            //{"123AB"},
         };
     }
 
@@ -50,8 +49,13 @@ public class NumericStringOrderingMatchingRuleTest extends OrderingMatchingRuleT
     @DataProvider(name = "Orderingmatchingrules")
     public Object[][] createOrderingMatchingRuleTestData() {
         return new Object[][] {
+            // non-numeric characters are tolerated and treated as significant
+            {"jfhslur", "JFH", 1},
+            {"123AB", "2", -1},
             {"1", "999999999999999999999", -1},
             {"1", "9",  -1},
+            {"10", "9",  -1},
+            {"1 0", "9",  -1},
             {"1", " 1 ", 0},
             {"0", "1",  -1},
             {"1", "0",  1},

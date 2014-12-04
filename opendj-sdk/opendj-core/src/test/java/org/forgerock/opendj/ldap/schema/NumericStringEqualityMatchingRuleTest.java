@@ -29,11 +29,12 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_NUMERIC_STRIN
 
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the NumericStringEqualityMatchingRule.
  */
-//TODO: fix matching rule so that commented data in data providers pass
+@Test
 public class NumericStringEqualityMatchingRuleTest extends MatchingRuleTest {
 
     /** {@inheritDoc} */
@@ -41,7 +42,6 @@ public class NumericStringEqualityMatchingRuleTest extends MatchingRuleTest {
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] {
-            //{"A2B1"}
         };
     }
 
@@ -50,9 +50,12 @@ public class NumericStringEqualityMatchingRuleTest extends MatchingRuleTest {
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
         return new Object[][] {
+            // non-numeric characters are tolerated and treated as significant
+            {"A2B1", "A2B1", ConditionResult.TRUE },
+            {"A2B1", "A2b1", ConditionResult.FALSE },
             {"1234567890", "1234567890", ConditionResult.TRUE },
             {" 1234567890  ", "1234567890", ConditionResult.TRUE },
-            //{" 123   4567890  ", "1234567890", ConditionResult.TRUE },
+            {" 123   4567890  ", "1234567890", ConditionResult.TRUE },
             {"1234", "5678", ConditionResult.FALSE },
         };
     }

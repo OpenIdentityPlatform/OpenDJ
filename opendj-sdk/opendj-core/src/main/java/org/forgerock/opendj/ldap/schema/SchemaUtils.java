@@ -771,6 +771,14 @@ final class SchemaUtils {
         final StringBuilder buffer = new StringBuilder();
         prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
 
+        // Remove any space
+        for (int pos = buffer.length() - 1; pos > 0; pos--) {
+            char c = buffer.charAt(pos);
+            if (c == ' ') {
+                buffer.delete(pos, pos + 1);
+            }
+        }
+
         if (buffer.length() == 0) {
             return ByteString.empty();
         }

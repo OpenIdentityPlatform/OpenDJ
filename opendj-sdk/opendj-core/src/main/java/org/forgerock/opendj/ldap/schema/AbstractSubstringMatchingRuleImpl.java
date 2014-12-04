@@ -508,6 +508,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 valueBuffer.append(evaluateEscapedChar(reader, escapeChars));
                 reader.mark();
                 length = 0;
+                continue;
             }
             if (delimiterChars != null) {
                 for (final char delimiterChar : delimiterChars) {

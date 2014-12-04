@@ -29,11 +29,12 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_UNIQUE_MEMBER
 
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test the UniqueMemberEqualityMatchingRule.
  */
-//TODO: fix matching rule so that commented data in data providers pass
+@Test
 public class UniqueMemberEqualityMatchingRuleTest extends MatchingRuleTest {
 
     /** {@inheritDoc} */
@@ -41,7 +42,6 @@ public class UniqueMemberEqualityMatchingRuleTest extends MatchingRuleTest {
     @DataProvider(name = "matchingRuleInvalidAttributeValues")
     public Object[][] createMatchingRuleInvalidAttributeValues() {
         return new Object[][] {
-            //{"1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'123'B"},
             {"1.3.6.1.4.1.1466.01"}
         };
     }
@@ -51,6 +51,9 @@ public class UniqueMemberEqualityMatchingRuleTest extends MatchingRuleTest {
     @DataProvider(name = "matchingrules")
     public Object[][] createMatchingRuleTest() {
         return new Object[][] {
+            // non-bit string content on optional uid is tolerated
+            { "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'123'B",
+              "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'123'B", ConditionResult.TRUE },
             { "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",
               "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B", ConditionResult.TRUE },
             { "1.3.6.1.4.1.1466.0=#04024869,O=Test,C=GB#'0101'B",

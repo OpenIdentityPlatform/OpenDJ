@@ -249,7 +249,7 @@ public class SchemaUtilsTest extends AbstractSchemaTestCase {
             { "", "" },
             { "   ", "" },
             { " 123  ", "123" },
-            { " 123  456  ", "123 456" },
+            { " 123  456  ", "123456" },
         };
     }
 

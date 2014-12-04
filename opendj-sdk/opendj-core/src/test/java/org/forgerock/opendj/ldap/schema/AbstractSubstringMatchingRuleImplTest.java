@@ -152,7 +152,9 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             { "**" },
             { "\\g" },
             { "\\0" },
+            { "\\00" },
             { "\\0g" },
+            { gen() },
         };
     }
 
@@ -170,10 +172,9 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             { "this is a string", "this*is*a*string", ConditionResult.TRUE },
             { "this is a string", "this*my*string", ConditionResult.FALSE },
             { "this is a string", "string*a*is*this", ConditionResult.FALSE },
-            // FIXME next line is not working (StringIndexOutOfBoundsException), is it incorrect?
-            // { "this is a string", "\\00", ConditionResult.FALSE },
-            // FIXME next line is not working (DecodeException), is it incorrect?
-            // { "this is a string", gen(), ConditionResult.FALSE },
+            { "this is a string", "string*a*is*this", ConditionResult.FALSE },
+            { "this is a string", "*\\00", ConditionResult.FALSE },
+            { "this is a string", gen() + "*", ConditionResult.FALSE },
             // initial longer than value
             { "tt", "this*", ConditionResult.FALSE },
             { "tt", "*this", ConditionResult.FALSE },
