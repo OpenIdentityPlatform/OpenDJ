@@ -28,9 +28,9 @@ package org.opends.server.backends.jeb;
 
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
@@ -114,36 +114,38 @@ public class SortValues
       List<Attribute> attrList = entry.getAttribute(types[i]);
       if (attrList != null)
       {
-        ByteString sortValue = null;
-
-        // There may be multiple versions of this attribute in the target entry
-        // (e.g., with different sets of options), and it may also be a
-        // multivalued attribute.  In that case, we need to find the value that
-        // is the best match for the corresponding sort key (i.e., for sorting
-        // in ascending order, we want to find the lowest value; for sorting in
-        // descending order, we want to find the highest value).  This is
-        // handled by the SortKey.compareValues method.
-        for (Attribute a : attrList)
-        {
-          for (ByteString v : a)
-          {
-            if (sortValue == null)
-            {
-              sortValue = v;
-            }
-            else if (sortKey.compareValues(v, sortValue) < 0)
-            {
-              sortValue = v;
-            }
-          }
-        }
-
-        values[i] = sortValue;
+        values[i] = findBestMatchingValue(sortKey, attrList);
       }
     }
   }
 
-
+  /**
+   * Finds the best matching attribute value for the provided sort key in the
+   * provided attribute list.
+   * <p>
+   * There may be multiple versions of this attribute in the target entry (e.g.,
+   * with different sets of options), and it may also be a multivalued
+   * attribute. In that case, we need to find the value that is the best match
+   * for the corresponding sort key (i.e., for sorting in ascending order, we
+   * want to find the lowest value; for sorting in descending order, we want to
+   * find the highest value). This is handled by the SortKey.compareValues
+   * method.
+   */
+  private ByteString findBestMatchingValue(SortKey sortKey, List<Attribute> attrList)
+  {
+    ByteString sortValue = null;
+    for (Attribute a : attrList)
+    {
+      for (ByteString v : a)
+      {
+        if (sortValue == null || sortKey.compareValues(v, sortValue) < 0)
+        {
+          sortValue = v;
+        }
+      }
+    }
+    return sortValue;
+  }
 
   /**
    * Compares this set of sort values with the provided set of values to
@@ -166,8 +168,7 @@ public class SortValues
 
     for (int i=0; i < values.length; i++)
     {
-      int compareValue = sortKeys[i].compareValues(values[i],
-                                          sortValues.values[i]);
+      int compareValue = sortKeys[i].compareValues(values[i], sortValues.values[i]);
       if (compareValue != 0)
       {
         return compareValue;
@@ -176,22 +177,8 @@ public class SortValues
 
     // If we've gotten here, then we can't tell a difference between the sets of
     // sort values, so sort based on entry ID.
-    long idDifference = (entryID.longValue() - sortValues.entryID.longValue());
-    if (idDifference < 0)
-    {
-      return -1;
-    }
-    else if (idDifference > 0)
-    {
-      return 1;
-    }
-    else
-    {
-      return 0;
-    }
+    return entryID.compareTo(sortValues.entryID);
   }
-
-
 
   /**
    * Compares the first element in this set of sort values with the provided
@@ -213,8 +200,6 @@ public class SortValues
     return sortKey.compareValues(values[0], assertionValue);
   }
 
-
-
   /**
    * Retrieves a string representation of this sort values object.
    *
@@ -227,8 +212,6 @@ public class SortValues
     toString(buffer);
     return buffer.toString();
   }
-
-
 
   /**
    * Appends a string representation of this sort values object to the provided
@@ -248,29 +231,15 @@ public class SortValues
         buffer.append(",");
       }
 
-      if (sortKeys[i].ascending())
-      {
-        buffer.append("+");
-      }
-      else
-      {
-        buffer.append("-");
-      }
+      buffer.append(sortKeys[i].ascending() ? "+" : "-");
 
       buffer.append(sortKeys[i].getAttributeType().getNameOrOID());
       buffer.append("=");
-      if (values[i] == null)
-      {
-        buffer.append("null");
-      }
-      else
-      {
-        buffer.append(values[i].toString());
-      }
+      buffer.append(values[i]);
     }
 
     buffer.append(", id=");
-    buffer.append(entryID.toString());
+    buffer.append(entryID);
     buffer.append(")");
   }
 
@@ -304,5 +273,3 @@ public class SortValues
     return entryID.longValue();
   }
 }
-
-
