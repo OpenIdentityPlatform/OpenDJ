@@ -40,6 +40,7 @@ import com.persistit.exception.PersistitException;
 import com.sleepycat.je.DatabaseException;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 
 /**
  * Persistit implementation of a {@link SuffixContainer}.
@@ -207,6 +208,29 @@ class PersistitSuffixContainer implements SuffixContainer
     {
       db.releaseExchange(exchange);
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Entry getEntry(EntryID entryID) throws DirectoryException
+  {
+    // Try the entry cache first.
+    final EntryCache entryCache = getEntryCache();
+    final PersistitBackend backend = rootContainer.getBackend();
+    final Entry cacheEntry = entryCache.getEntry(backend, entryID.longValue());
+    if (cacheEntry != null)
+    {
+      return cacheEntry;
+    }
+
+    final Entry entry = id2entry.get(null, entryID, null);
+    if (entry != null)
+    {
+      // Put the entry in the cache making sure not to overwrite a newer copy
+      // that may have been inserted since the time we read the cache.
+      entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+    }
+    return entry;
   }
 
   /**
