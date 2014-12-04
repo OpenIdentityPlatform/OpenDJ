@@ -2373,8 +2373,8 @@ public final class SchemaBuilder {
         numericOID2AttributeTypes.put(attribute.getOID(), attribute);
         for (final String name : attribute.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
-            List<AttributeType> attrs;
-            if ((attrs = name2AttributeTypes.get(lowerName)) == null) {
+            List<AttributeType> attrs = name2AttributeTypes.get(lowerName);
+            if (attrs == null) {
                 name2AttributeTypes.put(lowerName, Collections.singletonList(attribute));
             } else if (attrs.size() == 1) {
                 attrs = new ArrayList<AttributeType>(attrs);
@@ -2402,8 +2402,8 @@ public final class SchemaBuilder {
         numericOID2ContentRules.put(rule.getStructuralClassOID(), rule);
         for (final String name : rule.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
-            List<DITContentRule> rules;
-            if ((rules = name2ContentRules.get(lowerName)) == null) {
+            List<DITContentRule> rules = name2ContentRules.get(lowerName);
+            if (rules == null) {
                 name2ContentRules.put(lowerName, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
                 rules = new ArrayList<DITContentRule>(rules);
@@ -2431,8 +2431,8 @@ public final class SchemaBuilder {
         id2StructureRules.put(rule.getRuleID(), rule);
         for (final String name : rule.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
-            List<DITStructureRule> rules;
-            if ((rules = name2StructureRules.get(lowerName)) == null) {
+            List<DITStructureRule> rules = name2StructureRules.get(lowerName);
+            if (rules == null) {
                 name2StructureRules.put(lowerName, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
                 rules = new ArrayList<DITStructureRule>(rules);
@@ -2460,8 +2460,8 @@ public final class SchemaBuilder {
         numericOID2MatchingRuleUses.put(use.getMatchingRuleOID(), use);
         for (final String name : use.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
-            List<MatchingRuleUse> uses;
-            if ((uses = name2MatchingRuleUses.get(lowerName)) == null) {
+            List<MatchingRuleUse> uses = name2MatchingRuleUses.get(lowerName);
+            if (uses == null) {
                 name2MatchingRuleUses.put(lowerName, Collections.singletonList(use));
             } else if (uses.size() == 1) {
                 uses = new ArrayList<MatchingRuleUse>(uses);
@@ -2491,8 +2491,8 @@ public final class SchemaBuilder {
         numericOID2MatchingRules.put(rule.getOID(), rule);
         for (final String name : rule.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
-            List<MatchingRule> rules;
-            if ((rules = name2MatchingRules.get(lowerName)) == null) {
+            List<MatchingRule> rules = name2MatchingRules.get(lowerName);
+            if (rules == null) {
                 name2MatchingRules.put(lowerName, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
                 rules = new ArrayList<MatchingRule>(rules);
@@ -2521,8 +2521,8 @@ public final class SchemaBuilder {
         numericOID2NameForms.put(form.getOID(), form);
         for (final String name : form.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
-            List<NameForm> forms;
-            if ((forms = name2NameForms.get(lowerName)) == null) {
+            List<NameForm> forms = name2NameForms.get(lowerName);
+            if (forms == null) {
                 name2NameForms.put(lowerName, Collections.singletonList(form));
             } else if (forms.size() == 1) {
                 forms = new ArrayList<NameForm>(forms);
@@ -2551,8 +2551,8 @@ public final class SchemaBuilder {
         numericOID2ObjectClasses.put(oc.getOID(), oc);
         for (final String name : oc.getNames()) {
             final String lowerName = StaticUtils.toLowerCase(name);
-            List<ObjectClass> classes;
-            if ((classes = name2ObjectClasses.get(lowerName)) == null) {
+            List<ObjectClass> classes = name2ObjectClasses.get(lowerName);
+            if (classes == null) {
                 name2ObjectClasses.put(lowerName, Collections.singletonList(oc));
             } else if (classes.size() == 1) {
                 classes = new ArrayList<ObjectClass>(classes);
@@ -2861,9 +2861,9 @@ public final class SchemaBuilder {
                 form.validate(schema, warnings);
 
                 // build the objectClass2NameForms map
-                List<NameForm> forms;
                 final String ocOID = form.getStructuralClass().getOID();
-                if ((forms = objectClass2NameForms.get(ocOID)) == null) {
+                List<NameForm> forms = objectClass2NameForms.get(ocOID);
+                if (forms == null) {
                     objectClass2NameForms.put(ocOID, Collections.singletonList(form));
                 } else if (forms.size() == 1) {
                     forms = new ArrayList<NameForm>(forms);
@@ -2902,9 +2902,9 @@ public final class SchemaBuilder {
 
         for (final DITStructureRule rule : id2StructureRules.values()) {
             // build the nameForm2StructureRules map
-            List<DITStructureRule> rules;
             final String ocOID = rule.getNameForm().getOID();
-            if ((rules = nameForm2StructureRules.get(ocOID)) == null) {
+            List<DITStructureRule> rules = nameForm2StructureRules.get(ocOID);
+            if (rules == null) {
                 nameForm2StructureRules.put(ocOID, Collections.singletonList(rule));
             } else if (rules.size() == 1) {
                 rules = new ArrayList<DITStructureRule>(rules);

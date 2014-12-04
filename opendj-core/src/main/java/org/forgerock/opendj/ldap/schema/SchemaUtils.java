@@ -372,7 +372,8 @@ final class SchemaUtils {
             final String oid = reader.read(length);
 
             reader.mark();
-            if ((c = reader.read()) == '{') {
+            c = reader.read();
+            if (c == '{') {
                 reader.mark();
                 // The only thing we'll allow here will be numeric digits and
                 // the closing curly brace.

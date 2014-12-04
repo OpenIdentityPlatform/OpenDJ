@@ -131,8 +131,8 @@ public final class AVA implements Comparable<AVA> {
 
         // The next character must be an equal sign. If it is not, then
         // that's an error.
-        char c;
-        if ((c = reader.read()) != '=') {
+        final char c = reader.read();
+        if (c != '=') {
             final LocalizableMessage message =
                     ERR_ATTR_SYNTAX_DN_NO_EQUAL
                             .get(reader.getString(), attribute.getNameOrOID(), c);
