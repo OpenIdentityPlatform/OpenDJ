@@ -320,26 +320,6 @@ public class VLVIndex extends DatabaseContainer
     return false;
   }
 
-
-  /**
-   * Update the vlvIndex for a deleted entry.
-   *
-   * @param txn         The database transaction to be used for the deletions
-   * @param entryID     The entry ID
-   * @param entry       The contents of the deleted entry.
-   * @return True if the entry was successfully removed from this VLV index
-   * or False otherwise.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
-   */
-  public boolean removeEntry(Transaction txn, EntryID entryID, Entry entry)
-      throws DatabaseException, DirectoryException, JebException
-  {
-    return shouldInclude(entry)
-        && removeValues(txn, entryID.longValue(), entry);
-  }
-
   /**
    * Update the vlvIndex for a deleted entry.
    *
@@ -371,66 +351,6 @@ public class VLVIndex extends DatabaseContainer
       buffer.putBufferedVLVIndex(this, bufferedValues);
     }
     return bufferedValues;
-  }
-
-  /**
-   * Update the vlvIndex to reflect a sequence of modifications in a Modify
-   * operation.
-   *
-   * @param txn The JE transaction to use for database updates.
-   * @param entryID The ID of the entry that was modified.
-   * @param oldEntry The entry before the modifications were applied.
-   * @param newEntry The entry after the modifications were applied.
-   * @param mods The sequence of modifications in the Modify operation.
-   * @return True if the modification was successfully processed or False
-   * otherwise.
-   * @throws JebException If an error occurs during an operation on a
-   * JE database.
-   * @throws DatabaseException If an error occurs during an operation on a
-   * JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public boolean modifyEntry(Transaction txn,
-                          EntryID entryID,
-                          Entry oldEntry,
-                          Entry newEntry,
-                          List<Modification> mods)
-       throws DatabaseException, DirectoryException, JebException
-  {
-    if (shouldInclude(oldEntry))
-    {
-      if (shouldInclude(newEntry))
-      {
-        // The entry should still be indexed. See if any sorted attributes are
-        // changed.
-        if (isSortAttributeModified(mods))
-        {
-          boolean success;
-          // Sorted attributes have changed. Reindex the entry;
-          success = removeValues(txn, entryID.longValue(), oldEntry);
-          success &= insertValues(txn, entryID.longValue(), newEntry);
-          return success;
-        }
-      }
-      else
-      {
-        // The modifications caused the new entry to be unindexed. Remove from
-        // vlvIndex.
-        return removeValues(txn, entryID.longValue(), oldEntry);
-      }
-    }
-    else
-    {
-      if (shouldInclude(newEntry))
-      {
-        // The modifications caused the new entry to be indexed. Add to
-        // vlvIndex.
-        return insertValues(txn, entryID.longValue(), newEntry);
-      }
-    }
-
-    // The modifications does not affect this vlvIndex
-    return true;
   }
 
   /**
@@ -812,7 +732,7 @@ public class VLVIndex extends DatabaseContainer
         break;
       }
 
-      final SortValuesSet sortValuesSet = getSortValuesSet(txn, data, data, LockMode.RMW);
+      final SortValuesSet sortValuesSet = getSortValuesSet(txn, key, data, LockMode.RMW);
       int oldSize = sortValuesSet.size();
       if(key.getData().length == 0)
       {

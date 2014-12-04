@@ -67,28 +67,6 @@ final class NullIndex extends Index
     super(name, indexer, state, 0, 0, false, env, entryContainer);
   }
 
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean insertID(IndexBuffer buffer, ByteString keyBytes,
-      EntryID entryID)
-  {
-    return true;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean insertID(Transaction txn, DatabaseEntry key, EntryID entryID)
-      throws DatabaseException
-  {
-    return true;
-  }
-
-
-
   /** {@inheritDoc} */
   @Override
   public void insert(DatabaseEntry key, ImportIDSet importIdSet,
@@ -97,8 +75,6 @@ final class NullIndex extends Index
     // Do nothing.
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void delete(DatabaseEntry key, ImportIDSet importIdSet,
@@ -106,8 +82,6 @@ final class NullIndex extends Index
   {
     // Do nothing.
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -118,8 +92,6 @@ final class NullIndex extends Index
     return true;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   void updateKey(Transaction txn, DatabaseEntry key, EntryIDSet deletedIDs,
@@ -128,46 +100,12 @@ final class NullIndex extends Index
     // Do nothing.
   }
 
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean removeID(IndexBuffer buffer, ByteString keyBytes,
-      EntryID entryID)
-  {
-    return true;
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void removeID(Transaction txn, DatabaseEntry key, EntryID entryID)
-      throws DatabaseException
-  {
-    // Do nothing.
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void delete(Transaction txn, Set<byte[]> keySet, EntryID entryID)
-      throws DatabaseException
-  {
-    // Do nothing.
-  }
-
-
-
   /** {@inheritDoc} */
   @Override
   public void delete(IndexBuffer buffer, ByteString keyBytes)
   {
     // Do nothing.
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -177,8 +115,6 @@ final class NullIndex extends Index
     return ConditionResult.UNDEFINED;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public EntryIDSet readKey(DatabaseEntry key, Transaction txn,
@@ -186,8 +122,6 @@ final class NullIndex extends Index
   {
     return new EntryIDSet();
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -197,8 +131,6 @@ final class NullIndex extends Index
     // Do nothing.
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public EntryIDSet readRange(byte[] lower, byte[] upper,
@@ -207,8 +139,6 @@ final class NullIndex extends Index
     return new EntryIDSet();
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public int getEntryLimitExceededCount()
@@ -216,16 +146,12 @@ final class NullIndex extends Index
     return 0;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void closeCursor() throws DatabaseException
   {
     // Do nothing.
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -235,18 +161,6 @@ final class NullIndex extends Index
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry, IndexingOptions options)
-      throws DatabaseException, DirectoryException
-  {
-    return true;
-  }
-
-
-
   /** {@inheritDoc} */
   @Override
   public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
@@ -254,28 +168,6 @@ final class NullIndex extends Index
   {
     // Do nothing.
   }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void removeEntry(Transaction txn, EntryID entryID, Entry entry, IndexingOptions options)
-      throws DatabaseException, DirectoryException
-  {
-    // Do nothing.
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void modifyEntry(Transaction txn, EntryID entryID, Entry oldEntry,
-      Entry newEntry, List<Modification> mods, IndexingOptions options) throws DatabaseException
-  {
-    // Do nothing.
-  }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -285,8 +177,6 @@ final class NullIndex extends Index
     // Do nothing.
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public boolean setIndexEntryLimit(int indexEntryLimit)
@@ -294,16 +184,12 @@ final class NullIndex extends Index
     return false;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public int getIndexEntryLimit()
   {
     return 0;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -313,16 +199,12 @@ final class NullIndex extends Index
     // Do nothing.
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public boolean isTrusted()
   {
     return true;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -331,16 +213,12 @@ final class NullIndex extends Index
     return false;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void setRebuildStatus(boolean rebuildRunning)
   {
     // Do nothing.
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -349,8 +227,6 @@ final class NullIndex extends Index
     return false;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void open() throws DatabaseException
@@ -358,16 +234,12 @@ final class NullIndex extends Index
     // Do nothing.
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void close() throws DatabaseException
   {
     // Do nothing.
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -377,8 +249,6 @@ final class NullIndex extends Index
     return OperationStatus.SUCCESS;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   protected OperationStatus read(Transaction txn, DatabaseEntry key,
@@ -386,8 +256,6 @@ final class NullIndex extends Index
   {
     return OperationStatus.SUCCESS;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -397,8 +265,6 @@ final class NullIndex extends Index
     return OperationStatus.SUCCESS;
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   protected OperationStatus delete(Transaction txn, DatabaseEntry key)
@@ -406,8 +272,6 @@ final class NullIndex extends Index
   {
     return OperationStatus.SUCCESS;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -417,16 +281,12 @@ final class NullIndex extends Index
     throw new IllegalStateException();
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public long getRecordCount() throws DatabaseException
   {
     return 0;
   }
-
-
 
   /** {@inheritDoc} */
   @Override

@@ -1512,7 +1512,8 @@ public class EntryContainer
       }
 
       // Insert into the indexes, in index configuration order.
-      indexInsertEntry(txn, entry, entryID);
+      final IndexBuffer indexBuffer = new IndexBuffer(this);
+      indexInsertEntry(indexBuffer, entry, entryID);
 
       // Insert into id2children and id2subtree.
       // The database transaction locks on these records will be hotly
@@ -1520,11 +1521,9 @@ public class EntryContainer
       // shortest duration.
       if (parentDN != null)
       {
-        // Insert into id2children for parent ID.
-        id2children.insertID(txn, parentID.getDatabaseEntry(), entryID);
-
-        // Insert into id2subtree for parent ID.
-        id2subtree.insertID(txn, parentID.getDatabaseEntry(), entryID);
+        final ByteString parentIDKeyBytes = toByteString(parentID);
+        id2children.insertID(indexBuffer, parentIDKeyBytes, entryID);
+        id2subtree.insertID(indexBuffer, parentIDKeyBytes, entryID);
 
         // Iterate up through the superior entries, starting above the parent.
         for (DN dn = getParentWithinBase(parentDN); dn != null;
@@ -1538,9 +1537,10 @@ public class EntryContainer
           }
 
           // Insert into id2subtree for this node.
-          id2subtree.insertID(txn, nodeID.getDatabaseEntry(), entryID);
+          id2subtree.insertID(indexBuffer, toByteString(nodeID), entryID);
         }
       }
+      indexBuffer.flush(txn);
 
       if(addOperation != null)
       {
@@ -1588,6 +1588,11 @@ public class EntryContainer
     }
   }
 
+  private ByteString toByteString(EntryID entryID)
+  {
+    return ByteString.wrap(entryID.getDatabaseEntry().getData());
+  }
+
   /**
    * Removes the specified entry from this database.  This method must ensure
    * that the entry exists and that it does not have any subordinate entries
@@ -1608,7 +1613,7 @@ public class EntryContainer
   throws DirectoryException, DatabaseException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
-    IndexBuffer indexBuffer = null;
+    final IndexBuffer indexBuffer = new IndexBuffer(this);
 
     try
     {
@@ -1674,13 +1679,6 @@ public class EntryContainer
                 ERR_JEB_DELETE_NOT_ALLOWED_ON_NONLEAF.get(entryDN));
           }
 
-          // This is a subtree delete so create a index buffer
-          // if it there isn't one.
-          if(indexBuffer == null)
-          {
-            indexBuffer = new IndexBuffer(EntryContainer.this);
-          }
-
           /*
            * Delete this entry which by now must be a leaf because
            * we have been deleting from the bottom of the tree upwards.
@@ -1732,11 +1730,7 @@ public class EntryContainer
           isSubtreeDelete || isManageDsaITOperation(deleteOperation),
           entryDN, null, null);
 
-
-      if(indexBuffer != null)
-      {
-        indexBuffer.flush(txn);
-      }
+      indexBuffer.flush(txn);
 
 
       if(deleteOperation != null)
@@ -1844,28 +1838,12 @@ public class EntryContainer
     }
 
     // Remove from the indexes, in index config order.
-    if(indexBuffer != null)
-    {
-      indexRemoveEntry(indexBuffer, entry, leafID);
-    }
-    else
-    {
-      indexRemoveEntry(txn, entry, leafID);
-    }
+    indexRemoveEntry(indexBuffer, entry, leafID);
 
     // Remove the id2c and id2s records for this entry.
-    if(indexBuffer != null)
-    {
-      ByteString leafIDKeyBytes = ByteString.valueOf(leafID.longValue());
-      id2children.delete(indexBuffer, leafIDKeyBytes);
-      id2subtree.delete(indexBuffer, leafIDKeyBytes);
-    }
-    else
-    {
-      DatabaseEntry leafIDKey = leafID.getDatabaseEntry();
-      id2children.delete(txn, leafIDKey);
-      id2subtree.delete(txn, leafIDKey);
-    }
+    final ByteString leafIDKeyBytes = ByteString.valueOf(leafID.longValue());
+    id2children.delete(indexBuffer, leafIDKeyBytes);
+    id2subtree.delete(indexBuffer, leafIDKeyBytes);
 
     // Iterate up through the superior entries from the target entry.
     boolean isParent = true;
@@ -1879,28 +1857,14 @@ public class EntryContainer
         throw new JebException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN));
       }
 
-      if(indexBuffer != null)
+      ByteString parentIDBytes = ByteString.valueOf(parentID.longValue());
+      // Remove from id2children.
+      if (isParent)
       {
-        ByteString parentIDBytes = ByteString.valueOf(parentID.longValue());
-        // Remove from id2children.
-        if (isParent)
-        {
-          id2children.removeID(indexBuffer, parentIDBytes, leafID);
-          isParent = false;
-        }
-        id2subtree.removeID(indexBuffer, parentIDBytes, leafID);
+        id2children.removeID(indexBuffer, parentIDBytes, leafID);
+        isParent = false;
       }
-      else
-      {
-        DatabaseEntry nodeIDData = parentID.getDatabaseEntry();
-        // Remove from id2children.
-        if(isParent)
-        {
-          id2children.removeID(txn, nodeIDData, leafID);
-          isParent = false;
-        }
-        id2subtree.removeID(txn, nodeIDData, leafID);
-      }
+      id2subtree.removeID(indexBuffer, parentIDBytes, leafID);
     }
 
     // Remove the entry from the entry cache.
@@ -2060,18 +2024,21 @@ public class EntryContainer
       id2entry.put(txn, entryID, newEntry);
 
       // Update the indexes.
+      final IndexBuffer indexBuffer = new IndexBuffer(this);
       if (modifyOperation != null)
       {
         // In this case we know from the operation what the modifications were.
         List<Modification> mods = modifyOperation.getModifications();
-        indexModifications(txn, oldEntry, newEntry, entryID, mods);
+        indexModifications(indexBuffer, oldEntry, newEntry, entryID, mods);
       }
       else
       {
         // The most optimal would be to figure out what the modifications were.
-        indexRemoveEntry(txn, oldEntry, entryID);
-        indexInsertEntry(txn, newEntry, entryID);
+        indexRemoveEntry(indexBuffer, oldEntry, entryID);
+        indexInsertEntry(indexBuffer, newEntry, entryID);
       }
+
+      indexBuffer.flush(txn);
 
       if(modifyOperation != null)
       {
@@ -2655,30 +2622,6 @@ public class EntryContainer
   /**
    * Insert a new entry into the attribute indexes.
    *
-   * @param txn The database transaction to be used for the updates.
-   * @param entry The entry to be inserted into the indexes.
-   * @param entryID The ID of the entry to be inserted into the indexes.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
-   */
-  private void indexInsertEntry(Transaction txn, Entry entry, EntryID entryID)
-  throws DatabaseException, DirectoryException, JebException
-  {
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      index.addEntry(txn, entryID, entry);
-    }
-
-    for (VLVIndex vlvIndex : vlvIndexMap.values())
-    {
-      vlvIndex.addEntry(txn, entryID, entry);
-    }
-  }
-
-  /**
-   * Insert a new entry into the attribute indexes.
-   *
    * @param buffer The index buffer used to buffer up the index changes.
    * @param entry The entry to be inserted into the indexes.
    * @param entryID The ID of the entry to be inserted into the indexes.
@@ -2702,30 +2645,6 @@ public class EntryContainer
   /**
    * Remove an entry from the attribute indexes.
    *
-   * @param txn The database transaction to be used for the updates.
-   * @param entry The entry to be removed from the indexes.
-   * @param entryID The ID of the entry to be removed from the indexes.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
-   */
-  private void indexRemoveEntry(Transaction txn, Entry entry, EntryID entryID)
-  throws DatabaseException, DirectoryException, JebException
-  {
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      index.removeEntry(txn, entryID, entry);
-    }
-
-    for (VLVIndex vlvIndex : vlvIndexMap.values())
-    {
-      vlvIndex.removeEntry(txn, entryID, entry);
-    }
-  }
-
-  /**
-   * Remove an entry from the attribute indexes.
-   *
    * @param buffer The index buffer used to buffer up the index changes.
    * @param entry The entry to be removed from the indexes.
    * @param entryID The ID of the entry to be removed from the indexes.
@@ -2743,40 +2662,6 @@ public class EntryContainer
     for (VLVIndex vlvIndex : vlvIndexMap.values())
     {
       vlvIndex.removeEntry(buffer, entryID, entry);
-    }
-  }
-
-  /**
-   * Update the attribute indexes to reflect the changes to the
-   * attributes of an entry resulting from a sequence of modifications.
-   *
-   * @param txn The database transaction to be used for the updates.
-   * @param oldEntry The contents of the entry before the change.
-   * @param newEntry The contents of the entry after the change.
-   * @param entryID The ID of the entry that was changed.
-   * @param mods The sequence of modifications made to the entry.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   * @throws JebException If an error occurs in the JE backend.
-   */
-  private void indexModifications(Transaction txn, Entry oldEntry,
-      Entry newEntry,
-      EntryID entryID, List<Modification> mods)
-  throws DatabaseException, DirectoryException, JebException
-  {
-    // Process in index configuration order.
-    for (AttributeIndex index : attrIndexMap.values())
-    {
-      // Check whether any modifications apply to this indexed attribute.
-      if (isAttributeModified(index, mods))
-      {
-        index.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-      }
-    }
-
-    for(VLVIndex vlvIndex : vlvIndexMap.values())
-    {
-      vlvIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
     }
   }
 

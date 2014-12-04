@@ -55,7 +55,6 @@ import org.opends.server.util.StaticUtils;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
-import com.sleepycat.je.Transaction;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -115,29 +114,22 @@ public class AttributeIndex
    * class in the SDK could implement the logic, I hope).
    */
 
-  /**
-   * A database key for the presence index.
-   */
-  public static final DatabaseEntry presenceKey =
-       new DatabaseEntry("+".getBytes());
+  /** A database key for the presence index. */
+  static final DatabaseEntry presenceKey = new DatabaseEntry("+".getBytes());
 
-  /**
-   * The entryContainer in which this attribute index resides.
-   */
-  private EntryContainer entryContainer;
-  private Environment env;
-  private State state;
+  /** The entryContainer in which this attribute index resides. */
+  private final EntryContainer entryContainer;
+  private final Environment env;
+  private final State state;
 
-  /**
-   * The attribute index configuration.
-   */
+  /** The attribute index configuration. */
   private LocalDBIndexCfg indexConfig;
 
   /** The mapping from names to indexes. */
   private final Map<String, Index> nameToIndexes;
   private final IndexQueryFactory<IndexQuery> indexQueryFactory;
 
-  private int cursorEntryLimit = 100000;
+  private final int cursorEntryLimit = 100000;
 
   /**
    * The mapping from extensible index types (e.g. "substring" or "shared") to list of indexes.
@@ -362,33 +354,6 @@ public class AttributeIndex
   }
 
   /**
-   * Update the attribute index for a new entry.
-   *
-   * @param txn         The database transaction to be used for the insertions.
-   * @param entryID     The entry ID.
-   * @param entry       The contents of the new entry.
-   * @return True if all the index keys for the entry are added. False if the
-   *         entry ID already exists for some keys.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException
-  {
-    boolean success = true;
-
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
-    for (Index index : nameToIndexes.values())
-    {
-      if (!index.addEntry(txn, entryID, entry, options))
-      {
-        success = false;
-      }
-    }
-    return success;
-  }
-
-  /**
    * Update the attribute index for a deleted entry.
    *
    * @param buffer The index buffer to use to store the deleted keys
@@ -404,51 +369,6 @@ public class AttributeIndex
     for (Index index : nameToIndexes.values())
     {
       index.removeEntry(buffer, entryID, entry, options);
-    }
-  }
-
-  /**
-   * Update the attribute index for a deleted entry.
-   *
-   * @param txn         The database transaction to be used for the deletions
-   * @param entryID     The entry ID
-   * @param entry       The contents of the deleted entry.
-   * @throws DatabaseException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException
-  {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
-    for (Index index : nameToIndexes.values())
-    {
-      index.removeEntry(txn, entryID, entry, options);
-    }
-  }
-
-  /**
-   * Update the index to reflect a sequence of modifications in a Modify
-   * operation.
-   *
-   * @param txn The JE transaction to use for database updates.
-   * @param entryID The ID of the entry that was modified.
-   * @param oldEntry The entry before the modifications were applied.
-   * @param newEntry The entry after the modifications were applied.
-   * @param mods The sequence of modifications in the Modify operation.
-   * @throws DatabaseException If an error occurs during an operation on a
-   * JE database.
-   */
-  public void modifyEntry(Transaction txn,
-                          EntryID entryID,
-                          Entry oldEntry,
-                          Entry newEntry,
-                          List<Modification> mods)
-       throws DatabaseException
-  {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
-    for (Index index : nameToIndexes.values())
-    {
-      index.modifyEntry(txn, entryID, oldEntry, newEntry, mods, options);
     }
   }
 
@@ -700,18 +620,6 @@ public class AttributeIndex
     public int compare(byte[] a, byte[] b)
     {
       return ByteSequence.BYTE_ARRAY_COMPARATOR.compare(a, b);
-    }
-  }
-
-  /**
-   * Close cursors related to the attribute indexes.
-   *
-   * @throws DatabaseException If a database error occurs.
-   */
-  public void closeCursors() throws DatabaseException {
-    for (Index index : nameToIndexes.values())
-    {
-      index.closeCursor();
     }
   }
 
@@ -1021,22 +929,6 @@ public class AttributeIndex
     {
       adminActionRequired.set(true);
       messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
-    }
-  }
-
-  /**
-   * Set the index truststate.
-   * @param txn A database transaction, or null if none is required.
-   * @param trusted True if this index should be trusted or false
-   *                otherwise.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  public synchronized void setTrusted(Transaction txn, boolean trusted)
-      throws DatabaseException
-  {
-    for (Index index : nameToIndexes.values())
-    {
-      index.setTrusted(txn, trusted);
     }
   }
 
