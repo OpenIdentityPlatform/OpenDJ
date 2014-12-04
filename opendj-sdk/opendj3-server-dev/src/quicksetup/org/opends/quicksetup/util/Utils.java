@@ -87,14 +87,12 @@ public class Utils
    * The class name that contains the control panel customizations for
    * products.
    */
-  private final static String CUSTOMIZATION_CLASS_NAME =
+  private static final String CUSTOMIZATION_CLASS_NAME =
     "org.opends.server.util.ReleaseDefinition";
 
 
-  /**
-   * The service name required by the JNLP downloader.
-   */
-  public static String JNLP_SERVICE_NAME = "javax.jnlp.DownloadService";
+  /** The service name required by the JNLP downloader. */
+  public final static String JNLP_SERVICE_NAME = "javax.jnlp.DownloadService";
 
   /**
    * Returns <CODE>true</CODE> if the provided port is free and we can use it,
@@ -109,15 +107,15 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the provided port is a priviledged port,
+   * Returns <CODE>true</CODE> if the provided port is a privileged port,
    * <CODE>false</CODE> otherwise.
    * @param port the port we are analyzing.
-   * @return <CODE>true</CODE> if the provided port is a priviledged port,
+   * @return <CODE>true</CODE> if the provided port is a privileged port,
    * <CODE>false</CODE> otherwise.
    */
-  public static boolean isPriviledgedPort(int port)
+  public static boolean isPrivilegedPort(int port)
   {
-    return SetupUtils.isPriviledgedPort(port);
+    return SetupUtils.isPrivilegedPort(port);
   }
 
 
@@ -301,7 +299,7 @@ public class Utils
     boolean isDescendant = false;
     if (descendant != null && path != null) {
       File parent = descendant.getParentFile();
-      while ((parent != null) && !isDescendant) {
+      while (parent != null && !isDescendant) {
         isDescendant = path.equals(parent);
         if (!isDescendant) {
           parent = parent.getParentFile();
@@ -352,17 +350,13 @@ public class Utils
    */
   public static boolean directoryExistsAndIsNotEmpty(String path)
   {
-    boolean directoryExistsAndIsNotEmpty = false;
-
-    File f = new File(path);
+    final File f = new File(path);
     if (f.isDirectory())
     {
-      String[] ch = f.list();
-
-      directoryExistsAndIsNotEmpty = (ch != null) && (ch.length > 0);
+      final String[] ch = f.list();
+      return ch != null && ch.length > 0;
     }
-
-    return directoryExistsAndIsNotEmpty;
+    return false;
   }
 
   /**
@@ -413,11 +407,11 @@ public class Utils
    * @return boolean indicating whether or not the input <code>f</code>
    * has a parent after this method is invoked.
    */
-  static public boolean insureParentsExist(File f) {
-    File parent = f.getParentFile();
-    boolean b = parent.exists();
+  public static boolean insureParentsExist(File f) {
+    final File parent = f.getParentFile();
+    final boolean b = parent.exists();
     if (!b) {
-      b = parent.mkdirs();
+      return parent.mkdirs();
     }
     return b;
   }
@@ -519,20 +513,14 @@ public class Utils
    */
   public static LocalizableMessage getMessageFromCollection(Collection<LocalizableMessage> col,
                                                  String separator) {
-    LocalizableMessage message = null;
     if (col != null) {
-      LocalizableMessageBuilder mb = null;
+      final LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       for (LocalizableMessage m : col) {
-        if (mb == null) {
-          mb = new LocalizableMessageBuilder(m);
-        } else {
-          mb.append(separator).append(m);
-        }
+        mb.append(separator).append(m);
       }
-      if (mb == null) mb = new LocalizableMessageBuilder();
-      message = mb.toMessage();
+      return mb.toMessage();
     }
-    return message;
+    return null;
   }
 
   /**
@@ -934,7 +922,7 @@ public class Utils
    * update properly the progress bar ratio.
    * @return the number of entries contained in the zip file.
    */
-  static public int getNumberZipEntries()
+  public static int getNumberZipEntries()
   {
     // TODO  we should get this dynamically during build
     return 165;
@@ -951,7 +939,7 @@ public class Utils
    *        adding to the returned string.
    * @return String representing the list
    */
-  static public String listToString(List<?> list, String separator,
+  public static String listToString(List<?> list, String separator,
                                     String prefix, String suffix) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < list.size(); i++) {
@@ -974,32 +962,30 @@ public class Utils
    * @param file the file for which we want the file permissions.
    * @return the file system permissions for the file.
    */
-  static public String getFileSystemPermissions(File file)
+  public static String getFileSystemPermissions(File file)
   {
-    String perm;
     String name = file.getName();
     if (file.getParent().endsWith(
         File.separator + Installation.WINDOWS_BINARIES_PATH_RELATIVE) ||
         file.getParent().endsWith(
         File.separator + Installation.UNIX_BINARIES_PATH_RELATIVE)) {
       if (name.endsWith(".bat")) {
-        perm = "644";
+        return "644";
       }
       else {
-        perm = "755";
+        return "755";
       }
     } else if (name.endsWith(".sh")) {
-      perm = "755";
+      return "755";
     } else if (name.endsWith(Installation.UNIX_SETUP_FILE_NAME) ||
             name.endsWith(Installation.UNIX_UNINSTALL_FILE_NAME) ||
             name.endsWith(Installation.UNIX_UPGRADE_FILE_NAME)) {
-      perm = "755";
+      return "755";
     } else if (name.endsWith(Installation.MAC_JAVA_APP_STUB_NAME)) {
-      perm = "755";
+      return "755";
     } else {
-      perm = "644";
+      return "644";
     }
-    return perm;
   }
 
   /**
@@ -1016,12 +1002,14 @@ public class Utils
    * @return String representing <code>d</code> with HTML break
    *         tags inserted
    */
-  static public String breakHtmlString(CharSequence cs, int maxll) {
+  public static String breakHtmlString(CharSequence cs, int maxll) {
     if (cs != null) {
       String d = cs.toString();
       int len = d.length();
       if (len <= 0)
+      {
         return d;
+      }
       if (len > maxll) {
 
         // First see if there are any tags that would cause a
@@ -1066,7 +1054,7 @@ public class Utils
    * @param s string to convert
    * @return converted string
    */
-  static public String convertHtmlBreakToLineSeparator(String s) {
+  public static String convertHtmlBreakToLineSeparator(String s) {
     return s.replaceAll("<br>", Constants.LINE_SEPARATOR);
   }
 
@@ -1075,21 +1063,17 @@ public class Utils
    * @param s string to strip
    * @return resulting string
    */
-  static public String stripHtml(String s) {
-    String o = null;
+  public static String stripHtml(String s) {
     if (s != null) {
 
-      // This is not a comprehensive solution but addresses
-      // the few tags that we have in Resources.properties
-      // at the moment.  Note that the following might strip
-      // out more than is intended for non-tags like
-      // '<your name here>' or for funky tags like
-      // '<tag attr="1 > 0">'. See test class for cases that
-      // might cause problems.
-      o = s.replaceAll("<.*?>","");
-
+      // This is not a comprehensive solution but addresses the few tags
+      // that we have in Resources.properties at the moment.
+      // Note that the following might strip out more than is intended for non-tags
+      // like '<your name here>' or for funky tags like '<tag attr="1 > 0">'.
+      // See test class for cases that might cause problems.
+      return s.replaceAll("<.*?>","");
     }
-    return o;
+    return null;
   }
 
   /**
@@ -1097,7 +1081,7 @@ public class Utils
    * @param text String to test
    * @return true if the string contains HTML
    */
-  static public boolean containsHtml(String text) {
+  public static boolean containsHtml(String text) {
     return text != null && text.indexOf('<') != -1 && text.indexOf('>') != -1;
   }
 
@@ -1227,28 +1211,26 @@ public class Utils
    */
   public static boolean isLocalHost(String host)
   {
-    boolean isLocalHost = false;
-    if (!"localhost".equalsIgnoreCase(host))
+    if ("localhost".equalsIgnoreCase(host))
     {
-      try
-      {
-        InetAddress localAddress = InetAddress.getLocalHost();
-        InetAddress[] addresses = InetAddress.getAllByName(host);
-        for (int i=0; i<addresses.length && !isLocalHost; i++)
-        {
-          isLocalHost = localAddress.equals(addresses[i]);
+      return true;
+    }
+
+    try
+    {
+      InetAddress localAddress = InetAddress.getLocalHost();
+      InetAddress[] addresses = InetAddress.getAllByName(host);
+      for (InetAddress address : addresses) {
+        if (localAddress.equals(address)) {
+          return true;
         }
       }
-      catch (Throwable t)
-      {
-        logger.warn(LocalizableMessage.raw("Failing checking host names: "+t, t));
-      }
     }
-    else
+    catch (Throwable t)
     {
-      isLocalHost = true;
+      logger.warn(LocalizableMessage.raw("Failing checking host names: " + t, t));
     }
-    return isLocalHost;
+    return false;
   }
 
   /**
@@ -1260,7 +1242,7 @@ public class Utils
    * representation.
    * @return the HTML representation of the plain text string.
    */
-  static String escapeHtml(String rawString)
+  private static String escapeHtml(String rawString)
   {
     StringBuilder buffer = new StringBuilder();
     for (int i = 0; i < rawString.length(); i++)
@@ -1373,11 +1355,11 @@ public class Utils
       {
         insideTag = true;
       }
-      else if ((c == '>') && insideTag)
+      else if (c == '>' && insideTag)
       {
         insideTag = false;
       }
-      if (!insideTag && (c != '>'))
+      if (!insideTag && c != '>')
       {
         addedChars ++;
         totalAddedChars ++;
@@ -1612,8 +1594,8 @@ public class Utils
     return builder.toString();
   }
 
-  //Chars that require special treatment when passing them to command-line.
-  private final static char[] charsToEscape = {' ', '\t', '\n', '|', ';', '<',
+  /** Chars that require special treatment when passing them to command-line. */
+  private static final char[] charsToEscape = {' ', '\t', '\n', '|', ';', '<',
     '>', '(', ')', '$', '`', '\\', '"', '\''};
 
   /**
@@ -1988,8 +1970,7 @@ public class Utils
       {
         installDir = f.getAbsolutePath();
       }
-      if (installDir.lastIndexOf(File.separatorChar) !=
-        (installDir.length() - 1))
+      if (installDir.lastIndexOf(File.separatorChar) != installDir.length() - 1)
       {
         installDir += File.separatorChar;
       }
@@ -2208,9 +2189,7 @@ class EmptyPrintStream extends PrintStream {
     super(new ByteArrayOutputStream(), true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void println(String msg)
   {

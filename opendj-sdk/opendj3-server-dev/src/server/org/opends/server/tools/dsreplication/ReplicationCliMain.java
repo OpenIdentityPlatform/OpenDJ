@@ -8043,7 +8043,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private LocalizableMessage getCannotBindToPortError(int port)
   {
-    if (SetupUtils.isPriviledgedPort(port))
+    if (SetupUtils.isPrivilegedPort(port))
     {
       return ERR_CANNOT_BIND_TO_PRIVILEGED_PORT.get(port);
     }

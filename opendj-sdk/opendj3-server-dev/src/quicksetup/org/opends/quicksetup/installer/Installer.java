@@ -142,7 +142,6 @@ import static org.opends.quicksetup.util.Utils.*;
  *
  * Note that we can use freely the class org.opends.server.util.SetupUtils as
  * it is included in quicksetup.jar.
- *
  */
 public abstract class Installer extends GuiApplication {
 
@@ -289,7 +288,7 @@ public abstract class Installer extends GuiApplication {
           String sTimeout = userArguments[i+1];
           try
           {
-            ud.setConnectTimeout(new Integer(sTimeout));
+            ud.setConnectTimeout(Integer.valueOf(sTimeout));
           }
           catch (Throwable t)
           {
@@ -2406,9 +2405,7 @@ public abstract class Installer extends GuiApplication {
         int replicationId = replica.getReplicationId();
         if (replicationId == -1)
         {
-          /**
-           * This occurs if the remote server had not replication configured.
-           */
+          // This occurs if the remote server had not replication configured.
           InitialLdapContext rCtx = null;
           try
           {
@@ -3213,7 +3210,7 @@ public abstract class Installer extends GuiApplication {
 
   private LocalizableMessage getCannotBindErrorMessage(int port)
   {
-    if (isPriviledgedPort(port))
+    if (isPrivilegedPort(port))
     {
       return INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(port);
     }
@@ -3982,22 +3979,16 @@ public abstract class Installer extends GuiApplication {
   }
 
 
-  /**
-   * Update the userData object according to the content of the runtime options
-   * panel.
-   */
+  /** Update the userData object according to the content of the runtime options panel. */
   private void updateUserDataForRuntimeOptionsPanel(QuickSetup qs)
   {
     getUserData().setJavaArguments(UserData.SERVER_SCRIPT_NAME,
-        ((JavaArguments)qs.getFieldValue(FieldName.SERVER_JAVA_ARGUMENTS)));
+        (JavaArguments) qs.getFieldValue(FieldName.SERVER_JAVA_ARGUMENTS));
     getUserData().setJavaArguments(UserData.IMPORT_SCRIPT_NAME,
-        ((JavaArguments)qs.getFieldValue(FieldName.IMPORT_JAVA_ARGUMENTS)));
+        (JavaArguments) qs.getFieldValue(FieldName.IMPORT_JAVA_ARGUMENTS));
   }
 
-  /**
-   * Update the userData object according to the content of the review
-   * panel.
-   */
+  /** Update the userData object according to the content of the review panel. */
   private void updateUserDataForReviewPanel(QuickSetup qs)
   {
     Boolean b = (Boolean) qs.getFieldValue(FieldName.SERVER_START_INSTALLER);

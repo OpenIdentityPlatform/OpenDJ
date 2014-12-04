@@ -674,11 +674,8 @@ public class SecurityOptionsDialog extends JDialog
       public ArrayList<LocalizableMessage> processBackgroundTask()
       {
         ArrayList<LocalizableMessage> errorMsgs = new ArrayList<LocalizableMessage>();
-
         errorMsgs.addAll(checkPort());
-
         errorMsgs.addAll(checkKeystore());
-
         return errorMsgs;
       }
 
@@ -706,44 +703,41 @@ public class SecurityOptionsDialog extends JDialog
             displayError(Utils.getMessageFromCollection(returnValue, "\n"),
                 INFO_ERROR_TITLE.get());
           }
-          else
+          else if (rbUseExistingCertificate.isSelected()
+              && (cbEnableSSL.isSelected() || cbEnableStartTLS.isSelected()))
           {
-            if (rbUseExistingCertificate.isSelected() &&
-                (cbEnableSSL.isSelected() || cbEnableStartTLS.isSelected()))
+            if (!certificateHasAlias)
             {
-              if (!certificateHasAlias)
+              selectedAlias = null;
+              isCanceled = false;
+              dispose();
+            }
+            else if (aliases.length > 1)
+            {
+              if (aliasDlg == null)
               {
-                selectedAlias = null;
-                isCanceled = false;
-                dispose();
+                aliasDlg = new SelectAliasDialog(SecurityOptionsDialog.this);
               }
-              else if (aliases.length > 1)
-              {
-                if (aliasDlg == null)
-                {
-                  aliasDlg = new SelectAliasDialog(SecurityOptionsDialog.this);
-                }
-                aliasDlg.display(aliases);
+              aliasDlg.display(aliases);
 
-                if (!aliasDlg.isCanceled())
-                {
-                  selectedAlias = aliasDlg.getSelectedAlias();
-                  isCanceled = false;
-                  dispose();
-                }
-              }
-              else
+              if (!aliasDlg.isCanceled())
               {
-                selectedAlias = aliases[0];
+                selectedAlias = aliasDlg.getSelectedAlias();
                 isCanceled = false;
                 dispose();
               }
             }
             else
             {
+              selectedAlias = aliases[0];
               isCanceled = false;
               dispose();
             }
+          }
+          else
+          {
+            isCanceled = false;
+            dispose();
           }
         }
       }
@@ -911,16 +905,15 @@ public class SecurityOptionsDialog extends JDialog
       try
       {
         port = Integer.parseInt(sPort);
-        if ((port < Installer.MIN_PORT_VALUE) ||
-            (port > Installer.MAX_PORT_VALUE))
+        if (port < Installer.MIN_PORT_VALUE
+            || port > Installer.MAX_PORT_VALUE)
         {
           errorMsgs.add(INFO_INVALID_SECURE_PORT_VALUE_RANGE.get(
               Installer.MIN_PORT_VALUE, Installer.MAX_PORT_VALUE));
-
         }
         else if (!Utils.canUseAsPort(port))
         {
-          if (Utils.isPriviledgedPort(port))
+          if (Utils.isPrivilegedPort(port))
           {
             errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(port));
           }
@@ -928,9 +921,7 @@ public class SecurityOptionsDialog extends JDialog
           {
             errorMsgs.add(INFO_CANNOT_BIND_PORT.get(port));
           }
-
         }
-
       }
       catch (NumberFormatException nfe)
       {
@@ -961,7 +952,7 @@ public class SecurityOptionsDialog extends JDialog
       if (rbJKS.isSelected() || rbJCEKS.isSelected() || rbPKCS12.isSelected())
       {
         /* Check the path */
-        if ((path == null) || (path.length() == 0))
+        if (path == null || path.length() == 0)
         {
           errorMsgs.add(INFO_KEYSTORE_PATH_NOT_PROVIDED.get());
         }
@@ -1020,7 +1011,7 @@ public class SecurityOptionsDialog extends JDialog
             throw new IllegalStateException("No keystore type selected.");
           }
           aliases = certManager.getCertificateAliases();
-          if ((aliases == null) || (aliases.length == 0))
+          if (aliases == null || aliases.length == 0)
           {
             // Could not retrieve any certificate
             if (rbPKCS11.isSelected())
