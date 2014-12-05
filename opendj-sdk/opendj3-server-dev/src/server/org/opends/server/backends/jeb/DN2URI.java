@@ -103,31 +103,8 @@ public class DN2URI extends DatabaseContainer
 
     dn2uriComparator = new AttributeIndex.KeyComparator();
     prefixRDNComponents = entryContainer.getBaseDN().size();
-    DatabaseConfig dn2uriConfig = new DatabaseConfig();
 
-    if(env.getConfig().getReadOnly())
-    {
-      dn2uriConfig.setReadOnly(true);
-      dn2uriConfig.setSortedDuplicates(true);
-      dn2uriConfig.setAllowCreate(false);
-      dn2uriConfig.setTransactional(false);
-    }
-    else if(!env.getConfig().getTransactional())
-    {
-      dn2uriConfig.setSortedDuplicates(true);
-      dn2uriConfig.setAllowCreate(true);
-      dn2uriConfig.setTransactional(false);
-      dn2uriConfig.setDeferredWrite(true);
-    }
-    else
-    {
-      dn2uriConfig.setSortedDuplicates(true);
-      dn2uriConfig.setAllowCreate(true);
-      dn2uriConfig.setTransactional(true);
-    }
-    this.dbConfig = dn2uriConfig;
-    //This line causes an unchecked cast error if the SuppressWarnings
-    //annotation is removed at the beginning of this method.
+    this.dbConfig = JEBUtils.toDatabaseConfigAllowDuplicates(env);
     this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
                                   dn2uriComparator.getClass());
   }

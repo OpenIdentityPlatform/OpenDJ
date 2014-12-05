@@ -196,25 +196,7 @@ public final class JECompressedSchema extends CompressedSchema
    */
   private void load() throws DatabaseException, InitializationException
   {
-    final DatabaseConfig dbConfig = new DatabaseConfig();
-
-    if (environment.getConfig().getReadOnly())
-    {
-      dbConfig.setReadOnly(true);
-      dbConfig.setAllowCreate(false);
-      dbConfig.setTransactional(false);
-    }
-    else if (!environment.getConfig().getTransactional())
-    {
-      dbConfig.setAllowCreate(true);
-      dbConfig.setTransactional(false);
-      dbConfig.setDeferredWrite(true);
-    }
-    else
-    {
-      dbConfig.setAllowCreate(true);
-      dbConfig.setTransactional(true);
-    }
+    final DatabaseConfig dbConfig = JEBUtils.toDatabaseConfigNoDuplicates(environment);
 
     adDatabase = environment.openDatabase(null, DB_NAME_AD, dbConfig);
     ocDatabase = environment.openDatabase(null, DB_NAME_OC, dbConfig);
