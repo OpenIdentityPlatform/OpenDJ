@@ -25,7 +25,6 @@
 package org.opends.server.backends.jeb;
 
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -81,15 +80,6 @@ final class NullIndex extends Index
       DatabaseEntry data) throws DatabaseException
   {
     // Do nothing.
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean insert(ImportIDSet importIDSet,
-      Set<byte[]> keySet, DatabaseEntry keyData, DatabaseEntry data)
-      throws DatabaseException
-  {
-    return true;
   }
 
   /** {@inheritDoc} */
