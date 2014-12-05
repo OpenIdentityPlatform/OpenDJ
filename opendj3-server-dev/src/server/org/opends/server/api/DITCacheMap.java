@@ -24,7 +24,6 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.server.api;
 
 import java.util.AbstractMap;
@@ -35,53 +34,48 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+
 import org.opends.server.types.DN;
 
-
 /**
- * The DITCacheMap class implements custom Map for structural
- * storage of arbitrary objects in Directory Information Tree
- * (DIT) like structure.
+ * The DITCacheMap class implements custom Map for structural storage of
+ * arbitrary objects in Directory Information Tree (DIT) like structure.
+ * <p>
+ * This Map intended usage is for caching various server objects which can be
+ * subject to subtree operations like retrieval or removal of all objects under
+ * a specific DN. While using a regular Map it would require the entire Map
+ * iteration to achieve, this Map implementation maintains such internal
+ * structure that subtree operations are more efficient and do not require
+ * iterations over the entire map, instead additional subtree operations methods
+ * are provided by this Map to do just that.
+ * <p>
+ * API wise it behaves exactly like a regular Map implementation except for
+ * providing additional subtree methods. All required linkage and structuring is
+ * performed within this Map implementation itself and not exposed via the API
+ * in any way. For example, putting these key/value pairs:
  *
- * This Map intended usage is for caching various server
- * objects which can be subject to subtree operations
- * like retrieval or removal of all objects under a
- * specific DN. While using a regular Map it would
- * require the entire Map iteration to achieve, this Map
- * implementation maintains such internal structure that
- * subtree operations are more efficient and do not
- * require iterations over the entire map, instead
- * additional subtree operations methods are provided by
- * this Map to do just that.
- *
- * API wise it behaves exactly like a regular Map
- * implementation except for providing additional
- * subtree methods. All required linkage and
- * structuring is performed within this Map
- * implementation itself and not exposed via the
- * API in any way. For example, putting these
- * key/value pairs
- *
+ * <pre>
  * cn=Object1,ou=Objects,dc=example,dc=com : object1
  * cn=Object2,ou=Objects,dc=example,dc=com : object2
  * cn=Object3,ou=Objects,dc=example,dc=com : object3
+ * </pre>
  *
- * then invoking a subtree method on this Map with
- * any of these keys
+ * then invoking a subtree method on this Map with any of these keys:
  *
+ * <pre>
  * ou=Objects,dc=example,dc=com
  * dc=example,dc=com
  * dc=com
+ * </pre>
  *
- * would bring all three objects previously stored in
- * this map into subtree operation scope. Standard
- * Map API methods can only work with the objects
+ * would bring all three objects previously stored in this map into subtree
+ * operation scope. Standard Map API methods can only work with the objects
  * previously stored in this map explicitly.
+ * <p>
+ * Note that this Map implementation is not synchronized.
  *
- * Note that this Map implementation is not
- * synchronized.
- *
- * @param <T> arbitrary object type.
+ * @param <T>
+ *          arbitrary object type.
  */
 public final class DITCacheMap<T> extends AbstractMap<DN,T>
 {
@@ -92,47 +86,44 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
    */
   private static final class Node<T>
   {
-    // Node DN.
+    /** Node DN. */
     DN dn;
-    // Storage object or null if this node exist
-    // only to support the DIT like structuring.
+    /**
+     * Storage object or null if this node exist
+     * only to support the DIT like structuring.
+     */
     T element;
-    // Parent.
+    /** Parent. */
     Node<T> parent;
-    // First child.
+    /** First child. */
     Node<T> child;
-    // Next sibling.
+    /** Next sibling. */
     Node<T> next;
-    // Previous sibling.
+    /** Previous sibling. */
     Node<T> previous;
 
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String toString()
     {
-      if (element == null)
+      if (element != null)
       {
-        return "glue";
+        return "node(" + element + ")";
       }
       else
       {
-        return "node(" + String.valueOf(element) + ")";
+        return "glue";
       }
     }
   }
 
-  // Map size reflecting only nodes
-  // containing non empty elements.
-  private int size = 0;
+  /** Map size reflecting only nodes containing non empty elements. */
+  private int size;
 
-  // Backing Map implementation.
+  /** Backing Map implementation. */
   private Map<DN,Node<T>> ditCacheMap;
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   public DITCacheMap()
   {
     ditCacheMap = new HashMap<DN,Node<T>>();
@@ -149,47 +140,34 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     this.putAll(m);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size()
   {
     return size;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isEmpty()
   {
     return ditCacheMap.isEmpty();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean containsKey(Object key)
   {
-    if (get((DN) key) != null)
-    {
-      return true;
-    }
-    return false;
+    return get(key) != null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean containsValue(Object value)
   {
     for (Node<T> node : ditCacheMap.values())
     {
-      if ((node.element != null) &&
-           node.element.equals(value))
+      if (node.element != null && node.element.equals(value))
       {
         return true;
       }
@@ -197,18 +175,12 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public T get(Object key)
   {
-    Node<T> node = ditCacheMap.get((DN)key);
-    if (node != null)
-    {
-      return node.element;
-    }
-    return null;
+    Node<T> node = ditCacheMap.get(key);
+    return node != null ? node.element : null;
   }
 
   /**
@@ -223,9 +195,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     return new DITSubtreeSet(key);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public T put(DN key, T value)
   {
@@ -292,9 +262,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public T remove(Object key)
   {
@@ -360,8 +328,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
 
       if (parentNode.child != node)
       {
-        // The parent references another sibling and does not need
-        // fixing.
+        // The parent references another sibling and does not need fixing.
         break;
       }
 
@@ -398,8 +365,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
    * @param key subtree DN.
    * @param values collection for removed objects subordinate
    *               to subtree DN or <code>null</code>.
-   * @return <code>true</code> on success or
-   *         <code>false</code> otherwise.
+   * @return <code>true</code> on success or <code>false</code> otherwise.
    */
   public boolean removeSubtree(DN key, Collection<? super T> values)
   {
@@ -413,22 +379,18 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       adjustSizeAndCollectElements(node, values);
       return true;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 
 
 
   /**
-   * Iterate through detached subtree counting and collecting any
-   * elements.
+   * Iterate through detached subtree counting and collecting any elements.
    *
    * @param node
    *          The node to be collected.
    * @param values
-   *          Collection in which to put elemenets.
+   *          Collection in which to put elements.
    */
   private void adjustSizeAndCollectElements(final Node<T> node,
       Collection<? super T> values)
@@ -464,9 +426,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void putAll(Map<? extends DN, ? extends T> m)
   {
@@ -476,9 +436,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clear()
   {
@@ -486,22 +444,17 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     size = 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Set<Entry<DN, T>> entrySet()
   {
     return new DITCacheEntrySet();
   }
 
-  /**
-   * EntrySet class implementation for the DITCacheMap.
-   */
+  /** EntrySet class implementation for the DITCacheMap. */
   private class DITCacheEntrySet extends AbstractSet<Entry<DN, T>>
   {
-    /**
-     * Iterator class implementation for the DITCacheEntrySet.
-     */
+    /** Iterator class implementation for the DITCacheEntrySet. */
     private class EntryIterator implements Iterator<Entry<DN, T>>
     {
       private Iterator<Entry<DN, Node<T>>> ditCacheMapIterator;
@@ -509,9 +462,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       private Entry<DN, Node<T>> nextEntry;
       private boolean hasNext;
 
-      /**
-       * Default constructor.
-       */
+      /** Default constructor. */
       public EntryIterator()
       {
         ditCacheMapIterator = ditCacheMap.entrySet().iterator();
@@ -520,9 +471,8 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         hasNext = false;
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public boolean hasNext()
       {
         if (hasNext)
@@ -533,7 +483,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         {
           Entry<DN, Node<T>> entry = ditCacheMapIterator.next();
           Node<T> node = entry.getValue();
-          if ((node != null) && (node.element != null))
+          if (node != null && node.element != null)
           {
             nextEntry = entry;
             hasNext = true;
@@ -544,9 +494,8 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         return false;
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public Entry<DN, T> next()
       {
         if (nextEntry != null)
@@ -561,7 +510,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         {
           Entry<DN, Node<T>> entry = ditCacheMapIterator.next();
           Node<T> node = entry.getValue();
-          if ((node != null) && (node.element != null))
+          if (node != null && node.element != null)
           {
             currentEntry = entry;
             hasNext = false;
@@ -571,9 +520,8 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         throw new NoSuchElementException();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void remove()
       {
         if (currentEntry != null)
@@ -592,11 +540,9 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
             while (hasNext())
             {
               Entry<DN, T> newIteratorEntry = next();
-              if ((oldIteratorEntry != null) &&
-                   oldIteratorEntry.getKey().equals(
-                   newIteratorEntry.getKey()) &&
-                   oldIteratorEntry.getValue().element.equals(
-                   newIteratorEntry.getValue()))
+              if (oldIteratorEntry != null
+                  && oldIteratorEntry.getKey().equals(newIteratorEntry.getKey())
+                  && oldIteratorEntry.getValue().element.equals(newIteratorEntry.getValue()))
               {
                 nextEntry = currentEntry;
                 hasNext = true;
@@ -613,26 +559,22 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public int size()
     {
       return DITCacheMap.this.size();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Iterator<Entry<DN, T>> iterator()
     {
       return new EntryIterator();
     }
   }
 
-  /**
-   * Map.Entry class implementation for the DITCacheMap.
-   */
+  /** Map.Entry class implementation for the DITCacheMap. */
   private class DITCacheMapEntry implements Map.Entry<DN, T>
   {
     private DN key;
@@ -650,25 +592,22 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       this.value = value;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public DN getKey()
     {
       return key;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public T getValue()
     {
       return value;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public T setValue(T value)
     {
       Node<T> node = ditCacheMap.get(key);
@@ -679,12 +618,10 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     }
   }
 
-  /**
-   * SubtreeSet class implementation.
-   */
+  /** SubtreeSet class implementation. */
   private class DITSubtreeSet extends AbstractSet<T>
   {
-    // Set key.
+    /** Set key. */
     private DN key;
 
     /**
@@ -697,23 +634,19 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
       this.key = key;
     }
 
-    /**
-     * Iterator class implementation for SubtreeSet.
-     */
+    /** Iterator class implementation for SubtreeSet. */
     private class SubtreeSetIterator implements Iterator<T>
     {
-      // Iterator key.
+      /** Iterator key. */
       private DN key;
 
-      // Iterator root node.
+      /** Iterator root node. */
       private Node<T> rootNode;
 
-      // Iterator current node.
+      /** Iterator current node. */
       private Node<T> node;
 
-      /**
-       * Default constructor.
-       */
+      /** Default constructor. */
       public SubtreeSetIterator()
       {
         this.key = DITSubtreeSet.this.key;
@@ -733,19 +666,15 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         node = rootNode;
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public boolean hasNext()
       {
         if (rootNode != null)
         {
-          if (node == rootNode)
+          if (node == rootNode && rootNode.element != null)
           {
-            if (rootNode.element != null)
-            {
-              return true;
-            }
+            return true;
           }
           while (node != null)
           {
@@ -759,8 +688,7 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
             }
             else
             {
-              while ((node.next == null) &&
-                     (node.parent != rootNode))
+              while (node.next == null && node.parent != rootNode)
               {
                 node = node.parent;
               }
@@ -771,9 +699,8 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         return false;
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public T next()
       {
         T element = null;
@@ -790,22 +717,14 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
           }
           while (node != null)
           {
-            if (node.element != null)
-            {
-              element = node.element;
-            }
-            else
-            {
-              element = null;
-            }
+            element = node.element;
             if (node.child != null)
             {
               node = node.child;
             }
             else
             {
-              while ((node.next == null) &&
-                     (node.parent != rootNode))
+              while (node.next == null && node.parent != rootNode)
               {
                 node = node.parent;
               }
@@ -820,26 +739,23 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
         throw new NoSuchElementException();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void remove()
       {
         throw new UnsupportedOperationException();
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Iterator<T> iterator()
     {
       return new SubtreeSetIterator();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public int size()
     {
       int size = 0;
@@ -855,12 +771,8 @@ public final class DITCacheMap<T> extends AbstractMap<DN,T>
     }
   }
 
-
-
-
   /**
-   * Returns the size of the internal map. Used for testing purposes
-   * only.
+   * Returns the size of the internal map. Used for testing purposes only.
    *
    * @return The size of the internal map.
    */
