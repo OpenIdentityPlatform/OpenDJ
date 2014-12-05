@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,11 +43,13 @@ import org.opends.server.types.Modification;
  */
 public class PresenceIndexer extends Indexer
 {
+  /** The key bytes used for the presence index. */
+  static final byte[] presenceKeyBytes = "+".getBytes();
 
-  /**
-   * The attribute type for which this instance will
-   * generate index keys.
-   */
+  /** The key bytes used for the presence index as a {@link ByteString}. */
+  static final ByteString presenceKey = ByteString.wrap(presenceKeyBytes);
+
+  /** The attribute type for which this instance will generate index keys. */
   private AttributeType attributeType;
 
   /**
@@ -70,13 +73,12 @@ public class PresenceIndexer extends Indexer
   @Override
   public void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
   {
-    List<Attribute> attrList =
-         entry.getAttribute(attributeType);
+    List<Attribute> attrList = entry.getAttribute(attributeType);
     if (attrList != null)
     {
       if (!attrList.isEmpty())
       {
-        keys.add(getPresenceKeyData());
+        keys.add(presenceKey);
       }
     }
   }
@@ -86,22 +88,7 @@ public class PresenceIndexer extends Indexer
   public void replaceEntry(Entry oldEntry, Entry newEntry,
                            Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
   {
-    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
-    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
-    if(oldAttributes == null)
-    {
-      if(newAttributes != null)
-      {
-        modifiedKeys.put(getPresenceKeyData(), true);
-      }
-    }
-    else
-    {
-      if(newAttributes == null)
-      {
-        modifiedKeys.put(getPresenceKeyData(), false);
-      }
-    }
+    modifyEntry(oldEntry, newEntry, Collections.<Modification>emptyList(), modifiedKeys, options);
   }
 
   /** {@inheritDoc} */
@@ -116,20 +103,15 @@ public class PresenceIndexer extends Indexer
     {
       if(newAttributes != null)
       {
-        modifiedKeys.put(getPresenceKeyData(), true);
+        modifiedKeys.put(presenceKey, true);
       }
     }
     else
     {
       if(newAttributes == null)
       {
-        modifiedKeys.put(getPresenceKeyData(), false);
+        modifiedKeys.put(presenceKey, false);
       }
     }
-  }
-
-  private ByteString getPresenceKeyData()
-  {
-    return ByteString.wrap(AttributeIndex.presenceKey.getData());
   }
 }

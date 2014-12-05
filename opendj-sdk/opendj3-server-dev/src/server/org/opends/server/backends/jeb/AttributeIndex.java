@@ -52,7 +52,6 @@ import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
-import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 
 import static org.opends.messages.JebMessages.*;
@@ -112,9 +111,6 @@ public class AttributeIndex
    * revisit this class. All of the evaluateXXX methods should go (the Matcher
    * class in the SDK could implement the logic, I hope).
    */
-
-  /** A database key for the presence index. */
-  static final DatabaseEntry presenceKey = new DatabaseEntry("+".getBytes());
 
   /** The entryContainer in which this attribute index resides. */
   private final EntryContainer entryContainer;

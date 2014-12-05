@@ -975,12 +975,12 @@ public class TestBackendImpl extends JebTestCase {
 
       // This current entry in the DB shouldn't be in the presence titleIndex.
       addKeys = new HashSet<ByteString>();
-      addKeys.add(ByteString.wrap(AttributeIndex.presenceKey.getData()));
+      addKeys.add(PresenceIndexer.presenceKey);
       assertIndexContainsID(addKeys, titleIndex.getPresenceIndex(), entryID, FALSE);
 
       // This current entry should be in the presence nameIndex.
       addKeys = new HashSet<ByteString>();
-      addKeys.add(ByteString.wrap(AttributeIndex.presenceKey.getData()));
+      addKeys.add(PresenceIndexer.presenceKey);
       assertIndexContainsID(addKeys, nameIndex.getPresenceIndex(), entryID, TRUE);
 
       List<Control> noControls = new ArrayList<Control>(0);

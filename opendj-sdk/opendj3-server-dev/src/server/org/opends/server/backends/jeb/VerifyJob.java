@@ -1518,8 +1518,7 @@ public class VerifyJob
 
     if (presenceIndex != null)
     {
-      DatabaseEntry presenceKey = AttributeIndex.presenceKey;
-      verifyAttributeInIndex(presenceIndex, txn, presenceKey, entryID);
+      verifyAttributeInIndex(presenceIndex, txn, JEBUtils.presenceKey, entryID);
     }
 
     final DatabaseEntry key = new DatabaseEntry();
