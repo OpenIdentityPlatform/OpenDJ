@@ -64,35 +64,11 @@ public class DN2ID extends DatabaseContainer
 
     comparator = new AttributeIndex.KeyComparator();
     prefixRDNComponents = entryContainer.getBaseDN().size();
-    DatabaseConfig dn2idConfig = new DatabaseConfig();
 
-    if(env.getConfig().getReadOnly())
-    {
-      dn2idConfig.setReadOnly(true);
-      dn2idConfig.setAllowCreate(false);
-      dn2idConfig.setTransactional(false);
-    }
-    else if(!env.getConfig().getTransactional())
-    {
-      dn2idConfig.setAllowCreate(true);
-      dn2idConfig.setTransactional(false);
-      dn2idConfig.setDeferredWrite(true);
-    }
-    else
-    {
-      dn2idConfig.setAllowCreate(true);
-      dn2idConfig.setTransactional(true);
-    }
-
-    this.dbConfig = dn2idConfig;
+    this.dbConfig = JEBUtils.toDatabaseConfigNoDuplicates(env);
     this.dbConfig.setKeyPrefixing(true);
-
-    //This line causes an unchecked cast error if the SuppressWarnings
-    //annotation is removed at the beginning of this method.
     this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>) comparator.getClass());
   }
-
-
 
   /**
    * Insert a new record into the DN database.

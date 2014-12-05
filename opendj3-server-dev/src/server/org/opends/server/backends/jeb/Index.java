@@ -144,26 +144,7 @@ public class Index extends DatabaseContainer
     this.newImportIDSet = new ImportIDSet(indexEntryLimit,
                                           indexEntryLimit, maintainCount);
 
-    final DatabaseConfig dbNodupsConfig = new DatabaseConfig();
-    if(env.getConfig().getReadOnly())
-    {
-      dbNodupsConfig.setReadOnly(true);
-      dbNodupsConfig.setAllowCreate(false);
-      dbNodupsConfig.setTransactional(false);
-    }
-    else if(!env.getConfig().getTransactional())
-    {
-      dbNodupsConfig.setAllowCreate(true);
-      dbNodupsConfig.setTransactional(false);
-      dbNodupsConfig.setDeferredWrite(true);
-    }
-    else
-    {
-      dbNodupsConfig.setAllowCreate(true);
-      dbNodupsConfig.setTransactional(true);
-    }
-
-    this.dbConfig = dbNodupsConfig;
+    this.dbConfig = JEBUtils.toDatabaseConfigNoDuplicates(env);
     this.dbConfig.setOverrideBtreeComparator(true);
     this.dbConfig.setBtreeComparator((Class<? extends Comparator<byte[]>>)
                                      comparator.getClass());

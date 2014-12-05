@@ -187,27 +187,7 @@ public class VLVIndex extends DatabaseContainer
     this.sortOrder = new SortOrder(sortKeys);
     this.comparator = new VLVKeyComparator(orderingRules, ascending);
 
-    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
-
-    if(env.getConfig().getReadOnly())
-    {
-      dbNodupsConfig.setReadOnly(true);
-      dbNodupsConfig.setAllowCreate(false);
-      dbNodupsConfig.setTransactional(false);
-    }
-    else if(!env.getConfig().getTransactional())
-    {
-      dbNodupsConfig.setAllowCreate(true);
-      dbNodupsConfig.setTransactional(false);
-      dbNodupsConfig.setDeferredWrite(true);
-    }
-    else
-    {
-      dbNodupsConfig.setAllowCreate(true);
-      dbNodupsConfig.setTransactional(true);
-    }
-
-    this.dbConfig = dbNodupsConfig;
+    this.dbConfig = JEBUtils.toDatabaseConfigNoDuplicates(env);
     this.dbConfig.setOverrideBtreeComparator(true);
     this.dbConfig.setBtreeComparator(this.comparator);
 

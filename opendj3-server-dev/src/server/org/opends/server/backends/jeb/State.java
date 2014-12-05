@@ -58,28 +58,7 @@ public class State extends DatabaseContainer
       throws DatabaseException
   {
     super(name, env, entryContainer);
-
-    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
-
-    if(env.getConfig().getReadOnly())
-    {
-      dbNodupsConfig.setReadOnly(true);
-      dbNodupsConfig.setAllowCreate(false);
-      dbNodupsConfig.setTransactional(false);
-    }
-    else if(!env.getConfig().getTransactional())
-    {
-      dbNodupsConfig.setAllowCreate(true);
-      dbNodupsConfig.setTransactional(false);
-      dbNodupsConfig.setDeferredWrite(true);
-    }
-    else
-    {
-      dbNodupsConfig.setAllowCreate(true);
-      dbNodupsConfig.setTransactional(true);
-    }
-
-    this.dbConfig = dbNodupsConfig;
+    this.dbConfig = JEBUtils.toDatabaseConfigNoDuplicates(env);
   }
 
   /**
