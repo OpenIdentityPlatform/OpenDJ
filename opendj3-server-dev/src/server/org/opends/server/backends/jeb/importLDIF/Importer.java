@@ -223,7 +223,8 @@ public final class Importer implements DiskSpaceMonitorHandler
 
   static
   {
-    if ((dnType = DirectoryServer.getAttributeType("dn")) == null)
+    dnType = DirectoryServer.getAttributeType("dn");
+    if (dnType == null)
     {
       dnType = DirectoryServer.getDefaultAttributeType("dn");
     }
@@ -592,7 +593,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       importMemPct -= 15;
     }
 
-    availableMemory = (totalAvailableMemory * importMemPct / 100);
+    availableMemory = totalAvailableMemory * importMemPct / 100;
   }
 
   private void initializeIndexBuffers()
@@ -896,7 +897,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       switchContainers();
       recursiveDelete(tempDir);
       long finishTime = System.currentTimeMillis();
-      long importTime = (finishTime - startTime);
+      long importTime = finishTime - startTime;
       float rate = 0;
       logger.info(NOTE_JEB_IMPORT_PHASE_STATS, importTime / 1000,
               (phaseOneFinishTime - startTime) / 1000,
@@ -1556,60 +1557,46 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    void fillIndexKey(Suffix suffix,
-        Map.Entry<AttributeType, AttributeIndex> mapEntry, Entry entry,
-        AttributeType attributeType, EntryID entryID) throws DatabaseException,
-        InterruptedException, DirectoryException, JebException
+    void fillIndexKey(Suffix suffix, Map.Entry<AttributeType, AttributeIndex> mapEntry, Entry entry,
+        AttributeType attrType, EntryID entryID)
+            throws DatabaseException, InterruptedException, DirectoryException, JebException
     {
-      AttributeIndex attributeIndex = mapEntry.getValue();
-      IndexingOptions options = attributeIndex.getIndexingOptions();
-      Index index = attributeIndex.getEqualityIndex();
-      if (index != null)
-      {
-        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
-            ImportIndexType.EQUALITY, index.getIndexEntryLimit()));
-      }
-      index = attributeIndex.getPresenceIndex();
-      if (index != null)
-      {
-        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
-            ImportIndexType.PRESENCE, index.getIndexEntryLimit()));
-      }
-      index = attributeIndex.getSubstringIndex();
-      if (index != null)
-      {
-        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
-            ImportIndexType.SUBSTRING, index.getIndexEntryLimit()));
-      }
-      index = attributeIndex.getOrderingIndex();
-      if (index != null)
-      {
-        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
-            ImportIndexType.ORDERING, index.getIndexEntryLimit()));
-      }
-      index = attributeIndex.getApproximateIndex();
-      if (index != null)
-      {
-        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
-            ImportIndexType.APPROXIMATE, index.getIndexEntryLimit()));
-      }
+      final AttributeIndex attrIndex = mapEntry.getValue();
+      final IndexingOptions options = attrIndex.getIndexingOptions();
+
+      processAttribute(attrIndex.getEqualityIndex(), ImportIndexType.EQUALITY, entry, attrType, entryID, options);
+      processAttribute(attrIndex.getPresenceIndex(), ImportIndexType.PRESENCE, entry, attrType, entryID, options);
+      processAttribute(attrIndex.getSubstringIndex(), ImportIndexType.SUBSTRING, entry, attrType, entryID, options);
+      processAttribute(attrIndex.getOrderingIndex(), ImportIndexType.ORDERING, entry, attrType, entryID, options);
+      processAttribute(attrIndex.getApproximateIndex(), ImportIndexType.APPROXIMATE, entry, attrType, entryID, options);
+
       for (VLVIndex vlvIdx : suffix.getEntryContainer().getVLVIndexes())
       {
         Transaction transaction = null;
         vlvIdx.addEntry(transaction, entryID, entry);
       }
-      Map<String, Collection<Index>> extensibleMap = attributeIndex.getExtensibleIndexes();
+      Map<String, Collection<Index>> extensibleMap = attrIndex.getExtensibleIndexes();
       if (!extensibleMap.isEmpty())
       {
         Collection<Index> subIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
-        processAttributes(entry, attributeType, entryID, options, subIndexes, ImportIndexType.EX_SUBSTRING);
+        processAttributes(subIndexes, ImportIndexType.EX_SUBSTRING, entry, attrType, entryID, options);
         Collection<Index> sharedIndexes = extensibleMap.get(EXTENSIBLE_INDEXER_ID_SHARED);
-        processAttributes(entry, attributeType, entryID, options, sharedIndexes, ImportIndexType.EX_SHARED);
+        processAttributes(sharedIndexes, ImportIndexType.EX_SHARED, entry, attrType, entryID, options);
       }
     }
 
-    private void processAttributes(Entry entry, AttributeType attributeType, EntryID entryID, IndexingOptions options,
-        Collection<Index> indexes, ImportIndexType indexType) throws InterruptedException
+    private void processAttribute(Index index, ImportIndexType presence, Entry entry, AttributeType attributeType, EntryID entryID,
+        IndexingOptions options) throws InterruptedException
+    {
+      if (index != null)
+      {
+        IndexKey indexKey = new IndexKey(attributeType, presence, index.getIndexEntryLimit());
+        processAttribute(index, entry, entryID, options, indexKey);
+      }
+    }
+
+    private void processAttributes(Collection<Index> indexes, ImportIndexType indexType, Entry entry, AttributeType attributeType,
+        EntryID entryID, IndexingOptions options) throws InterruptedException
     {
       if (indexes != null)
       {
@@ -1734,8 +1721,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     private final IndexManager indexMgr;
     private final DatabaseEntry dbKey, dbValue;
     private final int cacheSize;
-    private final Map<Integer, DNState> dnStateMap =
-        new HashMap<Integer, DNState>();
+    private final Map<Integer, DNState> dnStateMap = new HashMap<Integer, DNState>();
     private final Map<Integer, Index> indexMap = new HashMap<Integer, Index>();
     private final Semaphore permits;
     private final int maxPermits;
@@ -2729,7 +2715,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           return;
         }
-        boolean isDN = indexKey.getIndexType().equals(ImportIndexType.DN);
+        boolean isDN = ImportIndexType.DN.equals(indexKey.getIndexType());
         IndexManager indexMgr = new IndexManager(
             indexKey.getName(), isDN, indexKey.getEntryLimit());
         if (isDN)
