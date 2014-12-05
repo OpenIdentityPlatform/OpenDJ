@@ -184,7 +184,7 @@ public final class IndexQueryFactoryImpl implements
             return new EntryIDSet();
           }
 
-          EntryIDSet entrySet = index.readKey(AttributeIndex.presenceKey, null, LockMode.DEFAULT);
+          EntryIDSet entrySet = index.readKey(JEBUtils.presenceKey, null, LockMode.DEFAULT);
           if (debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);

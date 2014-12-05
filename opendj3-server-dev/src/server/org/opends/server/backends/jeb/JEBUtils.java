@@ -25,6 +25,7 @@
 package org.opends.server.backends.jeb;
 
 import com.sleepycat.je.DatabaseConfig;
+import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.Environment;
 
 /**
@@ -32,6 +33,9 @@ import com.sleepycat.je.Environment;
  */
 final class JEBUtils
 {
+  /** A database key for the presence index. */
+  static final DatabaseEntry presenceKey = new DatabaseEntry(PresenceIndexer.presenceKeyBytes);
+
   private JEBUtils()
   {
     // Private for utility classes
