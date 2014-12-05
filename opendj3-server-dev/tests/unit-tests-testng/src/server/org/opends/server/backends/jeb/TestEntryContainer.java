@@ -36,12 +36,13 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * EntryContainer tester.
+ * Test class for EntryContainer.
  */
 public class TestEntryContainer extends JebTestCase {
+
   private static final String backendID = "userRoot";
   private BackendImpl be;
 
@@ -112,7 +113,7 @@ public class TestEntryContainer extends JebTestCase {
 
   private List<Entry> entryList;
 
-  private long calculatedHighestID = 0;
+  private long calculatedHighestID;
 
   /**
    * Set up the environment for performing the tests in this suite.
@@ -150,8 +151,8 @@ public class TestEntryContainer extends JebTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test()
-  public void test1() throws Exception {
+  @Test
+  public void testGetHighestEntryID() throws Exception {
     TestCaseUtils.clearJEBackend(backendID);
     be = (BackendImpl) DirectoryServer.getBackend(backendID);
     RootContainer rootContainer = be.getRootContainer();
@@ -162,15 +163,15 @@ public class TestEntryContainer extends JebTestCase {
     try
     {
       EntryID actualHighestID = entryContainer.getHighestEntryID();
-      assertTrue(actualHighestID.equals(new EntryID(0)));
+      assertThat(actualHighestID.longValue()).isEqualTo(0);
 
       for (Entry entry : entryList) {
         entryContainer.addEntry(entry, null);
-        Entry afterEntry = entryContainer.getEntry(entry.getName());
-        assertTrue(afterEntry != null);
+        final Entry afterEntry = entryContainer.getEntry(entry.getName());
+        assertThat(afterEntry).as("Entry should have been added").isNotNull();
       }
       actualHighestID = entryContainer.getHighestEntryID();
-      assertTrue(actualHighestID.equals(new EntryID(calculatedHighestID)));
+      assertThat(actualHighestID.longValue()).isEqualTo(calculatedHighestID);
     }
     finally
     {
