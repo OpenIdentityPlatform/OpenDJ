@@ -42,30 +42,16 @@ public abstract class DatabaseContainer implements Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The database entryContainer.
-   */
-  protected EntryContainer entryContainer;
-
-  /**
-   * The JE database configuration.
-   */
-  protected DatabaseConfig dbConfig;
-
-  /**
-   * The name of the database within the entryContainer.
-   */
+  /** The database entryContainer. */
+  protected final EntryContainer entryContainer;
+  /** The name of the database within the entryContainer. */
   protected String name;
 
-  /**
-   * The reference to the JE Environment.
-   */
-  private Environment env;
-
-  /**
-   * A JE database handle opened through this database
-   * container.
-   */
+  /** The JE database configuration. */
+  protected DatabaseConfig dbConfig;
+  /** The reference to the JE Environment. */
+  private final Environment env;
+  /** A JE database handle opened through this database container. */
   private Database database;
 
   /**
@@ -74,11 +60,8 @@ public abstract class DatabaseContainer implements Closeable
    * @param name The name of the entry database.
    * @param env The JE Environment.
    * @param entryContainer The entryContainer of the entry database.
-   * @throws DatabaseException if a JE database error occurs.
    */
-  protected DatabaseContainer(String name, Environment env,
-                              EntryContainer entryContainer)
-      throws DatabaseException
+  protected DatabaseContainer(String name, Environment env, EntryContainer entryContainer)
   {
     this.env = env;
     this.entryContainer = entryContainer;
@@ -98,16 +81,13 @@ public abstract class DatabaseContainer implements Closeable
     if (dbConfig.getTransactional())
     {
       // Open the database under a transaction.
-      Transaction txn =
-          entryContainer.beginTransaction();
+      Transaction txn = entryContainer.beginTransaction();
       try
       {
         database = env.openDatabase(txn, name, dbConfig);
         if (logger.isTraceEnabled())
         {
-          logger.trace("JE database %s opened. txnid=%d",
-                              database.getDatabaseName(),
-                              txn.getId());
+          logger.trace("JE database %s opened. txnid=%d", database.getDatabaseName(), txn.getId());
         }
         EntryContainer.transactionCommit(txn);
       }
@@ -122,8 +102,7 @@ public abstract class DatabaseContainer implements Closeable
       database = env.openDatabase(null, name, dbConfig);
       if (logger.isTraceEnabled())
       {
-        logger.trace("JE database %s opened. txnid=none",
-                            database.getDatabaseName());
+        logger.trace("JE database %s opened. txnid=none", database.getDatabaseName());
       }
     }
   }
@@ -144,7 +123,7 @@ public abstract class DatabaseContainer implements Closeable
    * @throws DatabaseException if an error occurs.
    */
   @Override
-  synchronized public void close() throws DatabaseException
+  public synchronized void close() throws DatabaseException
   {
     if(dbConfig.getDeferredWrite())
     {

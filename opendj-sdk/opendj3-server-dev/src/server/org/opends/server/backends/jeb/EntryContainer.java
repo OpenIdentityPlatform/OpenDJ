@@ -153,7 +153,7 @@ public class EntryContainer
       try
       {
         //Try creating all the indexes before confirming they are valid ones.
-        new AttributeIndex(cfg, state, env, EntryContainer.this);
+        new AttributeIndex(cfg, EntryContainer.this);
         return true;
       }
       catch(Exception e)
@@ -172,8 +172,7 @@ public class EntryContainer
 
       try
       {
-        AttributeIndex index =
-          new AttributeIndex(cfg, state, env, EntryContainer.this);
+        AttributeIndex index = new AttributeIndex(cfg, EntryContainer.this);
         index.open();
         if(!index.isTrusted())
         {
@@ -474,8 +473,7 @@ public class EntryContainer
       {
         LocalDBIndexCfg indexCfg = config.getLocalDBIndex(idx);
 
-        AttributeIndex index =
-          new AttributeIndex(indexCfg, state, env, this);
+        AttributeIndex index = new AttributeIndex(indexCfg, this);
         index.open();
         if(!index.isTrusted())
         {
@@ -3353,6 +3351,20 @@ public class EntryContainer
       logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, index.getName());
     }
     return index;
+  }
+
+  /**
+   * Creates a new index for an attribute.
+   *
+   * @param indexName the name to give to the new index
+   * @param indexer the indexer to use when inserting data into the index
+   * @param indexEntryLimit the index entry limit
+   * @return a new index
+   */
+  Index newIndexForAttribute(String indexName, Indexer indexer, int indexEntryLimit)
+  {
+    final int cursorEntryLimit = 100000;
+    return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, env, this);
   }
 
 
