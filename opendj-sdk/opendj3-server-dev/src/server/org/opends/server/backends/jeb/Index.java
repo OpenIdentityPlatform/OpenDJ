@@ -61,19 +61,16 @@ public class Index extends DatabaseContainer
 
   /** The comparator for index keys. */
   private final Comparator<byte[]> comparator;
-
   /** The comparator for index keys. */
   private final Comparator<ByteSequence> bsComparator;
 
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int indexEntryLimit;
-
   /**
    * Limit on the number of entry IDs that may be retrieved by cursoring
    * through an index.
    */
   private final int cursorEntryLimit;
-
   /**
    * Number of keys that have exceeded the entry limit since this
    * object was created.
@@ -146,8 +143,8 @@ public class Index extends DatabaseContainer
     this.maintainCount = maintainCount;
     this.newImportIDSet = new ImportIDSet(indexEntryLimit,
                                           indexEntryLimit, maintainCount);
-    DatabaseConfig dbNodupsConfig = new DatabaseConfig();
 
+    final DatabaseConfig dbNodupsConfig = new DatabaseConfig();
     if(env.getConfig().getReadOnly())
     {
       dbNodupsConfig.setReadOnly(true);
@@ -218,7 +215,6 @@ public class Index extends DatabaseContainer
     }
   }
 
-
   private void insertKey(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
     final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
     if(status == OperationStatus.SUCCESS) {
@@ -241,7 +237,6 @@ public class Index extends DatabaseContainer
     }
   }
 
-
   /**
    * Insert the specified import ID set into this index. Creates a DB
    * cursor if needed.
@@ -260,7 +255,6 @@ public class Index extends DatabaseContainer
     insertKey(key, importIdSet, data);
   }
 
-
   /**
    * Delete the specified import ID set from the import ID set associated with
    * the key.
@@ -278,29 +272,6 @@ public class Index extends DatabaseContainer
       curLocal.set(cursor);
     }
     deleteKey(key, importIdSet, data);
-  }
-
-
-  /**
-   * Add the specified import ID set to the provided keys in the keyset.
-   *
-   * @param importIDSet A import ID set to use.
-   * @param keySet  The set containing the keys.
-   * @param keyData A key database entry to use.
-   * @param data A database entry to use for data.
-   * @return <CODE>True</CODE> if the insert was successful.
-   * @throws DatabaseException If a database error occurs.
-   */
-  public synchronized boolean insert(ImportIDSet importIDSet, Set<byte[]> keySet,
-                 DatabaseEntry keyData, DatabaseEntry data)
-          throws DatabaseException {
-    for(byte[] key : keySet) {
-      keyData.setData(key);
-      insert(keyData, importIDSet, data);
-    }
-    keyData.setData(null);
-    data.setData(null);
-    return true;
   }
 
   /**
@@ -671,7 +642,6 @@ public class Index extends DatabaseContainer
     }
   }
 
-
   /**
    * Reads a range of keys and collects all their entry IDs into a
    * single set.
@@ -813,7 +783,6 @@ public class Index extends DatabaseContainer
       curLocal.remove();
     }
   }
-
 
   /**
    * Update the index buffer for a deleted entry.
