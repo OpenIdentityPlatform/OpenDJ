@@ -1585,8 +1585,8 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void processAttribute(Index index, ImportIndexType presence, Entry entry, AttributeType attributeType, EntryID entryID,
-        IndexingOptions options) throws InterruptedException
+    private void processAttribute(Index index, ImportIndexType presence, Entry entry,
+        AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
     {
       if (index != null)
       {
@@ -1595,8 +1595,8 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private void processAttributes(Collection<Index> indexes, ImportIndexType indexType, Entry entry, AttributeType attributeType,
-        EntryID entryID, IndexingOptions options) throws InterruptedException
+    private void processAttributes(Collection<Index> indexes, ImportIndexType indexType, Entry entry,
+        AttributeType attributeType, EntryID entryID, IndexingOptions options) throws InterruptedException
     {
       if (indexes != null)
       {
