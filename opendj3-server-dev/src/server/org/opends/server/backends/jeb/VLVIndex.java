@@ -43,7 +43,6 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
-import org.opends.server.backends.jeb.IndexBuffer.BufferedVLVValues;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
@@ -294,7 +293,7 @@ public class VLVIndex extends DatabaseContainer
     if (shouldInclude(entry))
     {
       final SortValues sortValues = new SortValues(entryID, entry, sortOrder);
-      getVLVIndex(buffer).addValues(sortValues);
+      buffer.getVLVIndex(this).addValues(sortValues);
       return true;
     }
     return false;
@@ -316,21 +315,10 @@ public class VLVIndex extends DatabaseContainer
     if (shouldInclude(entry))
     {
       final SortValues sortValues = new SortValues(entryID, entry, sortOrder);
-      getVLVIndex(buffer).deleteValues(sortValues);
+      buffer.getVLVIndex(this).deleteValues(sortValues);
       return true;
     }
     return false;
-  }
-
-  private BufferedVLVValues getVLVIndex(IndexBuffer buffer)
-  {
-    BufferedVLVValues bufferedValues = buffer.getVLVIndex(this);
-    if (bufferedValues == null)
-    {
-      bufferedValues = new BufferedVLVValues();
-      buffer.putBufferedVLVIndex(this, bufferedValues);
-    }
-    return bufferedValues;
   }
 
   /**

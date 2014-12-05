@@ -493,25 +493,7 @@ public class Index extends DatabaseContainer
 
   private BufferedIndexValues getBufferedIndexValues(IndexBuffer buffer, ByteString keyBytes)
   {
-    TreeMap<ByteString, BufferedIndexValues> bufferedOperations = buffer.getBufferedIndex(this);
-    BufferedIndexValues values = null;
-
-    if (bufferedOperations == null)
-    {
-      bufferedOperations = new TreeMap<ByteString, BufferedIndexValues>(bsComparator);
-      buffer.putBufferedIndex(this, bufferedOperations);
-    }
-    else
-    {
-      values = bufferedOperations.get(keyBytes);
-    }
-
-    if (values == null)
-    {
-      values = new BufferedIndexValues();
-      bufferedOperations.put(keyBytes, values);
-    }
-    return values;
+    return buffer.getBufferedIndexValues(this, keyBytes, bsComparator);
   }
 
   /**

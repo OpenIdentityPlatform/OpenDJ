@@ -28,6 +28,7 @@ package org.opends.server.backends.jeb;
 
 import java.util.*;
 
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 
@@ -173,29 +174,6 @@ public class IndexBuffer
   }
 
   /**
-   * Get the buffered values for the given index.
-   *
-   * @param index The index with the buffered values to retrieve.
-   * @return The buffered values or <code>null</code> if there are
-   * no buffered values for the specified index.
-   */
-  public TreeMap<ByteString, BufferedIndexValues> getBufferedIndex(Index index)
-  {
-    return bufferedIndexes.get(index);
-  }
-
-  /**
-   * Put the specified buffered index values for the given index.
-   *
-   * @param index The index affected by the buffered values.
-   * @param bufferedValues The buffered values for the index.
-   */
-  public void putBufferedIndex(Index index, TreeMap<ByteString, BufferedIndexValues> bufferedValues)
-  {
-    bufferedIndexes.put(index, bufferedValues);
-  }
-
-  /**
    * Get the buffered VLV values for the given VLV index.
    *
    * @param vlvIndex The VLV index with the buffered values to retrieve.
@@ -204,18 +182,48 @@ public class IndexBuffer
    */
   public BufferedVLVValues getVLVIndex(VLVIndex vlvIndex)
   {
-    return bufferedVLVIndexes.get(vlvIndex);
+    BufferedVLVValues bufferedValues = bufferedVLVIndexes.get(vlvIndex);
+    if (bufferedValues == null)
+    {
+      bufferedValues = new BufferedVLVValues();
+      bufferedVLVIndexes.put(vlvIndex, bufferedValues);
+    }
+    return bufferedValues;
   }
 
   /**
-   * Put the specified buffered VLV values for the given VLV index.
+   * Get the buffered index values for the given index and keyBytes.
    *
-   * @param vlvIndex The VLV index affected by the buffered values.
-   * @param bufferedVLVValues The buffered values for the VLV index.
+   * @param index
+   *          The index for which to retrieve the buffered index values
+   * @param keyBytes
+   *          The keyBytes for which to retrieve the buffered index values
+   * @param bsComparator
+   *          The byte sequence comparator to use when retrieving the
+   *          BufferedIndexValues
+   * @return The buffered index values, it can never be null
    */
-  public void putBufferedVLVIndex(VLVIndex vlvIndex, BufferedVLVValues bufferedVLVValues)
+  BufferedIndexValues getBufferedIndexValues(Index index, ByteString keyBytes, Comparator<ByteSequence> bsComparator)
   {
-    bufferedVLVIndexes.put(vlvIndex, bufferedVLVValues);
+    BufferedIndexValues values = null;
+
+    TreeMap<ByteString, BufferedIndexValues> bufferedOperations = bufferedIndexes.get(index);
+    if (bufferedOperations == null)
+    {
+      bufferedOperations = new TreeMap<ByteString, BufferedIndexValues>(bsComparator);
+      bufferedIndexes.put(index, bufferedOperations);
+    }
+    else
+    {
+      values = bufferedOperations.get(keyBytes);
+    }
+
+    if (values == null)
+    {
+      values = new BufferedIndexValues();
+      bufferedOperations.put(keyBytes, values);
+    }
+    return values;
   }
 
   /**
