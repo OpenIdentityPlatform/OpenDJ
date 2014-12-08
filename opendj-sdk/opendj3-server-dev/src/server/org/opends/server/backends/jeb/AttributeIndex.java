@@ -313,25 +313,17 @@ public class AttributeIndex
    * @param buffer The index buffer to use to store the added keys
    * @param entryID     The entry ID.
    * @param entry       The contents of the new entry.
-   * @return True if all the index keys for the entry are added. False if the
-   *         entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    boolean success = true;
-
     final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      if (!index.addEntry(buffer, entryID, entry, options))
-      {
-        success = false;
-      }
+      index.addEntry(buffer, entryID, entry, options);
     }
-    return success;
   }
 
   /**
