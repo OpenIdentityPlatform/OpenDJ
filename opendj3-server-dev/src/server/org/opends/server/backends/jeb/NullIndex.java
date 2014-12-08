@@ -145,10 +145,10 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
+  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
       throws DatabaseException, DirectoryException
   {
-    return true;
+    // Do nothing.
   }
 
   /** {@inheritDoc} */

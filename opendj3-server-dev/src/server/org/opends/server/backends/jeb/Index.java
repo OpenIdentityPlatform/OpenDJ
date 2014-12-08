@@ -166,14 +166,10 @@ public class Index extends DatabaseContainer
    * @param buffer The index buffer to insert the ID into.
    * @param keyBytes         The index key bytes.
    * @param entryID     The entry ID.
-   * @return True if the entry ID is inserted or ignored because the entry limit
-   *         count is exceeded. False if it already exists in the entry ID set
-   *         for the given key.
    */
-  public boolean insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  public void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
-    return true;
   }
 
   private void deleteKey(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
@@ -458,14 +454,10 @@ public class Index extends DatabaseContainer
    * @param buffer The index buffer to insert the ID into.
    * @param keyBytes    The index key bytes.
    * @param entryID     The entry ID.
-   * @return True if the entry ID is inserted or ignored because the entry limit
-   *         count is exceeded. False if it already exists in the entry ID set
-   *         for the given key.
    */
-  public boolean removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  public void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).deleteEntryID(keyBytes, entryID);
-    return true;
   }
 
   private void logIndexCorruptError(Transaction txn, DatabaseEntry key)
@@ -754,26 +746,19 @@ public class Index extends DatabaseContainer
    * @param entryID     The entry ID.
    * @param entry       The entry to be indexed.
    * @param options     The indexing options to use
-   * @return True if all the indexType keys for the entry are added. False if
-   *         the entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
+  public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
       IndexingOptions options) throws DatabaseException, DirectoryException
   {
     HashSet<ByteString> addKeys = new HashSet<ByteString>();
     indexer.indexEntry(entry, addKeys, options);
 
-    boolean success = true;
     for (ByteString keyBytes : addKeys)
     {
-      if(!insertID(buffer, keyBytes, entryID))
-      {
-        success = false;
-      }
+      insertID(buffer, keyBytes, entryID);
     }
-    return success;
   }
 
   /**
