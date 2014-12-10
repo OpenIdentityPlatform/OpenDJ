@@ -59,8 +59,7 @@ import static org.opends.server.util.StaticUtils.*;
  * of the entry containers.
  */
 public class RootContainer
-     implements org.opends.server.backends.pluggable.RootContainer<EntryContainer>,
-                ConfigurationChangeListener<LocalDBBackendCfg>
+     implements ConfigurationChangeListener<LocalDBBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -479,13 +478,6 @@ public class RootContainer
   public Collection<EntryContainer> getEntryContainers()
   {
     return entryContainers.values();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Map<DN, EntryContainer> getSuffixContainers()
-  {
-    return entryContainers;
   }
 
   /**
