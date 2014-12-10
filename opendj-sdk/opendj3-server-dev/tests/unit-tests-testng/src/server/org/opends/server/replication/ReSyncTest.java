@@ -197,7 +197,7 @@ public class ReSyncTest extends ReplicationTestCase
     DN entryDN = DN.valueOf("dc=fooUniqueName2," + EXAMPLE_DN);
     connection.processDelete(entryDN);
 
-    String path = reSyncTempDir.getAbsolutePath() + File.pathSeparator + "ReSynchTest";
+    String path = reSyncTempDir.getAbsolutePath() + File.separator + "ReSynchTest";
 
     task("dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
