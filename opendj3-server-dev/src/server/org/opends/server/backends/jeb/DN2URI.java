@@ -585,10 +585,11 @@ public class DN2URI extends DatabaseContainer
      */
     byte[] baseDN = JebFormat.dnToDNKey(searchOp.getBaseDN(),
                                           prefixRDNComponents);
+    final byte special = 0x00;
     byte[] suffix = Arrays.copyOf(baseDN, baseDN.length+1);
-    suffix[suffix.length-1] = 0x00;
-    byte[] end = suffix.clone();
-    end[end.length-1] = (byte) (end[end.length-1] + 1);
+    suffix[suffix.length - 1] = special;
+    byte[] end = Arrays.copyOf(suffix, suffix.length);
+    end[end.length - 1] = (byte) (special + 1);
 
     /*
      * Set the ending value to a value of equal length but slightly
