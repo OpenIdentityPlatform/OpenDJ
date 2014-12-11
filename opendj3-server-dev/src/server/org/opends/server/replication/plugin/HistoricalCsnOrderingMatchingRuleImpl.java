@@ -82,40 +82,7 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
    */
   private int compareValues(ByteSequence value1, ByteSequence value2)
   {
-    /*
-     * See OPENDJ-992: do not use StaticUtils.compare() because it performs
-     * unsigned comparisons whereas the 2.4 implementation (below) performs
-     * signed comparisons. Changes to indexing comparators require that the
-     * index be rebuilt, otherwise the DB can fail unexpectedly.
-     */
-    int minLength = Math.min(value1.length(), value2.length());
-
-    for (int i = 0; i < minLength; i++)
-    {
-      final byte b1 = value1.byteAt(i);
-      final byte b2 = value2.byteAt(i);
-      if (b1 < b2)
-      {
-        return -1;
-      }
-      else if (b1 > b2)
-      {
-        return 1;
-      }
-    }
-
-    if (value1.length() == value2.length())
-    {
-      return 0;
-    }
-    else if (value1.length() < value2.length())
-    {
-      return -1;
-    }
-    else
-    {
-      return 1;
-    }
+    return value1.compareTo(value2);
   }
 
   /** {@inheritDoc} */
