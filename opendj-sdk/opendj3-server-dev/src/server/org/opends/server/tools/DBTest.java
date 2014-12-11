@@ -74,6 +74,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.backends.jeb.JebFormat.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -1252,9 +1253,7 @@ public class DBTest
               {
                 try
                 {
-                  formatedKey = JebFormat.dnFromDNKey(
-                      key.getData(), 0, key.getSize(), ec.getBaseDN()).
-                      toNormalizedString();
+                  formatedKey = dnFromDNKey(key.getData(), ec.getBaseDN()).toNormalizedString();
                   keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
                 }
                 catch(Exception e)
