@@ -41,6 +41,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
@@ -51,12 +52,12 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class TestVerifyJob extends JebTestCase
 {
-  //Root suffix for verify backend
+  /** Root suffix for verify backend. */
   private static String suffix="dc=verify,dc=jeb";
   private static  String vBranch="ou=verify tests," + suffix;
   private  String beID="verifyRoot";
   private  String numUsersLine="define numusers= #numEntries#";
-  //Attribute type in stat entry containing error count
+  /** Attribute type in stat entry containing error count. */
   private  String errorCount="verify-error-count";
   private  DN[] baseDNs;
   private BackendImpl be;
@@ -67,19 +68,19 @@ public class TestVerifyJob extends JebTestCase
   private Index id2subtree;
   private Transaction txn;
 
-  //Some DNs needed mostly for DN2ID tests
+  /** Some DNs needed mostly for DN2ID tests. */
   private  String junkDN="cn=junk," + vBranch;
   private  String junkDN1="cn=junk1," + vBranch;
   private  String junkDN2="cn=junk2," + vBranch;
   private  String junkDN3="cn=junk3," + vBranch;
-  //This DN has no parent
+  /** This DN has no parent. */
   private  String noParentDN="cn=junk1,cn=junk22," + vBranch;
-  //Parent child combo for id2child/subtree type tests
+  /** Parent child combo for id2child/subtree type tests. */
   private  String pDN="cn=junk222," + vBranch;
   private  String cDN="cn=junk4,cn=junk222," + vBranch;
-  //Bad DN
+  /** Bad DN. */
   private  String badDN="this is a bad DN";
-  //This index file should not exist
+  /** This index file should not exist. */
   private  String badIndexName="badIndexName";
 
   @DataProvider(name = "indexes")
@@ -152,7 +153,7 @@ public class TestVerifyJob extends JebTestCase
    * @throws Exception
    *           if error count is not equal to 0.
    */
-  @Test()
+  @Test
   public void testCompleteVerifyJob()  throws Exception {
     cleanAndLoad(9);
     VerifyConfig verifyConfig = new VerifyConfig();
@@ -169,7 +170,7 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if error count is not equal to 0.
    */
-  @Test()
+  @Test
   public void testEntryLimitVerifyJob()  throws Exception {
     cleanAndLoad(25);
     VerifyConfig verifyConfig = new VerifyConfig();
@@ -214,7 +215,7 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 5.
    */
-  @Test()
+  @Test
   public void testCleanDN2ID() throws Exception {
     preTest(3);
     eContainer.sharedLock.lock();
@@ -254,7 +255,8 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 6.
    */
-  @Test() public void testCleanID2Children() throws Exception {
+  @Test
+  public void testCleanID2Children() throws Exception {
     preTest(3);
     eContainer.sharedLock.lock();
     try
@@ -296,7 +298,8 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 7.
    */
-  @Test() public void testCleanID2Subtree() throws Exception {
+  @Test
+  public void testCleanID2Subtree() throws Exception {
     preTest(4);
     eContainer.sharedLock.lock();
     try
@@ -339,7 +342,8 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 4.
    */
-  @Test() public void testCleanAttrIndex() throws Exception {
+  @Test
+  public void testCleanAttrIndex() throws Exception {
     String phoneType="telephonenumber";
     preTest(3);
     eContainer.sharedLock.lock();
@@ -378,7 +382,8 @@ public class TestVerifyJob extends JebTestCase
    * after adding various errors to each of these index files.
    * @throws Exception if the error count is not equal to 6.
    */
-  @Test() public void testCleanVLV() throws Exception {
+  @Test
+  public void testCleanVLV() throws Exception {
     String indexName = "testvlvindex";
     preTest(4);
     eContainer.sharedLock.lock();
@@ -409,8 +414,8 @@ public class TestVerifyJob extends JebTestCase
       svs.remove(id, values);
       svs.add(id, badValues, types);
 
-      vlvIndex.putSortValuesSet(null, svs);
-      vlvIndex.putSortValuesSet(null, svs2);
+      putSortValuesSet(vlvIndex, svs);
+      putSortValuesSet(vlvIndex, svs2);
       performBECleanVerify("vlv." + indexName, 3);
     }
     finally
@@ -434,7 +439,8 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 3.
    */
-  @Test() public void testVerifyID2Entry() throws Exception {
+  @Test
+  public void testVerifyID2Entry() throws Exception {
     preTest(3);
     eContainer.sharedLock.lock();
     try
@@ -474,7 +480,8 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 3.
    */
-  @Test() public void testVerifyDN2ID() throws Exception {
+  @Test
+  public void testVerifyDN2ID() throws Exception {
     preTest(9);
     eContainer.sharedLock.lock();
     try
@@ -508,7 +515,8 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 3.
    */
-  @Test() public void testVerifyID2Children() throws Exception {
+  @Test
+  public void testVerifyID2Children() throws Exception {
     preTest(9);
     eContainer.sharedLock.lock();
     try
@@ -546,7 +554,8 @@ public class TestVerifyJob extends JebTestCase
    *
    * @throws Exception if the error count is not equal to 0.
    */
-  @Test() public void testVerifyID2Children1() throws Exception {
+  @Test
+  public void testVerifyID2Children1() throws Exception {
     preTest(2);
     eContainer.sharedLock.lock();
     try
@@ -623,7 +632,8 @@ public class TestVerifyJob extends JebTestCase
    * after adding various errors to each of these index files.
    * @throws Exception if the error count is not equal to 6.
    */
-  @Test() public void testVerifyAttribute() throws Exception {
+  @Test
+  public void testVerifyAttribute() throws Exception {
     String mailType="mail";
     preTest(4);
     eContainer.sharedLock.lock();
@@ -679,7 +689,8 @@ public class TestVerifyJob extends JebTestCase
    * after adding various errors to each of these index files.
    * @throws Exception if the error count is not equal to 6.
    */
-  @Test() public void testVerifyVLV() throws Exception {
+  @Test
+  public void testVerifyVLV() throws Exception {
     String indexName = "testvlvindex";
     preTest(4);
     eContainer.sharedLock.lock();
@@ -708,15 +719,37 @@ public class TestVerifyJob extends JebTestCase
       svs.remove(id, values);
       svs.add(id, badValues, types);
 
-      vlvIndex.putSortValuesSet(null, svs);
-      vlvIndex.putSortValuesSet(null, svs2);
+      putSortValuesSet(vlvIndex, svs);
+      putSortValuesSet(vlvIndex, svs2);
       performBECompleteVerify("vlv." + indexName, 3);
     }
     finally
     {
       eContainer.sharedLock.unlock();
     }
+  }
 
+  /**
+   * Put a sort values set in this VLV index.
+   * 
+   * @param txn
+   *          The transaction to use when retrieving the set or NULL if it is
+   *          not required.
+   * @param sortValuesSet
+   *          The SortValuesSet to put.
+   * @return True if the sortValuesSet was put successfully or False otherwise.
+   * @throws JebException
+   *           If an error occurs during an operation on a JE database.
+   * @throws DatabaseException
+   *           If an error occurs during an operation on a JE database.
+   * @throws DirectoryException
+   *           If a Directory Server error occurs.
+   */
+  private void putSortValuesSet(VLVIndex vlvIndex, SortValuesSet sortValuesSet) throws JebException, DirectoryException
+  {
+    DatabaseEntry key = new DatabaseEntry(sortValuesSet.getKeyBytes());
+    DatabaseEntry data = new DatabaseEntry(sortValuesSet.toDatabase());
+    vlvIndex.put(null, key, data);
   }
 
   /* Various tests not either clean or complete */
@@ -768,11 +801,12 @@ public class TestVerifyJob extends JebTestCase
        throws Exception {
     DatabaseEntry key= new EntryID(id).getDatabaseEntry();
     Entry testEntry=bldStatEntry(dn);
-    byte []entryBytes =
-         ID2Entry.entryToDatabase(testEntry,
-                                   new DataConfig(false, false, null)).toByteArray();
+    DataConfig dataConfig = new DataConfig(false, false, null);
+    byte []entryBytes = ID2Entry.entryToDatabase(testEntry, dataConfig).toByteArray();
     if(trashFormat)
+    {
       entryBytes[0] = 0x67;
+    }
     DatabaseEntry data= new DatabaseEntry(entryBytes);
     assertEquals(id2entry.put(txn, key, data), OperationStatus.SUCCESS);
     return key;
@@ -815,9 +849,13 @@ public class TestVerifyJob extends JebTestCase
     VerifyConfig verifyConfig = new VerifyConfig();
     verifyConfig.setBaseDN(baseDNs[0]);
     if(!clean)
+    {
       verifyConfig.addCompleteIndex(indexToDo);
+    }
     else
+    {
       verifyConfig.addCleanIndex(indexToDo);
+    }
     Entry statEntry=bldStatEntry("");
     be.verifyBackend(verifyConfig, statEntry);
     assertEquals(getStatEntryCount(statEntry, errorCount), expectedErrors);

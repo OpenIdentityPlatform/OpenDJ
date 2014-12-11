@@ -347,12 +347,11 @@ public class VLVIndex extends DatabaseContainer
     {
       if (shouldInclude(newEntry))
       {
-        // The entry should still be indexed. See if any sorted attributes are
-        // changed.
+        // The entry should still be indexed. See if any sorted attributes are changed.
         if (isSortAttributeModified(mods))
         {
-          boolean success;
           // Sorted attributes have changed. Reindex the entry;
+          boolean success;
           success = removeEntry(buffer, entryID, oldEntry);
           success &= addEntry(buffer, entryID, newEntry);
           return success;
@@ -360,8 +359,7 @@ public class VLVIndex extends DatabaseContainer
       }
       else
       {
-        // The modifications caused the new entry to be unindexed. Remove from
-        // vlvIndex.
+        // The modifications caused the new entry to be unindexed.
         return removeEntry(buffer, entryID, oldEntry);
       }
     }
@@ -401,28 +399,6 @@ public class VLVIndex extends DatabaseContainer
       }
     }
     return false;
-  }
-
-  /**
-   * Put a sort values set in this VLV index.
-   *
-   * @param txn The transaction to use when retrieving the set or NULL if it is
-   *            not required.
-   * @param sortValuesSet The SortValuesSet to put.
-   * @return True if the sortValuesSet was put successfully or False otherwise.
-   * @throws JebException If an error occurs during an operation on a
-   * JE database.
-   * @throws DatabaseException If an error occurs during an operation on a
-   * JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public boolean putSortValuesSet(Transaction txn, SortValuesSet sortValuesSet)
-      throws JebException, DatabaseException, DirectoryException
-  {
-    DatabaseEntry key = new DatabaseEntry(sortValuesSet.getKeyBytes());
-    DatabaseEntry data = new DatabaseEntry(sortValuesSet.toDatabase());
-
-    return put(txn, key, data) == OperationStatus.SUCCESS;
   }
 
   /**
@@ -574,45 +550,6 @@ public class VLVIndex extends DatabaseContainer
       types[i] = sortKeys[i].getAttributeType();
     }
     return types;
-  }
-
-  private boolean removeValues(Transaction txn, long entryID, Entry entry)
-      throws JebException, DatabaseException, DirectoryException
-  {
-    ByteString[] values = getSortValues(entry);
-    AttributeType[] types = getSortTypes();
-    DatabaseEntry key = new DatabaseEntry(encodeKey(entryID, values, types));
-    DatabaseEntry data = new DatabaseEntry();
-
-    OperationStatus status = getSearchKeyRange(txn, key, data, LockMode.RMW);
-    if(status == OperationStatus.SUCCESS)
-    {
-      if(logger.isTraceEnabled())
-      {
-        logSearchKeyResult(key);
-      }
-      SortValuesSet sortValuesSet = new SortValuesSet(key.getData(), data.getData(), this);
-      boolean success = sortValuesSet.remove(entryID, values);
-      byte[] after = sortValuesSet.toDatabase();
-
-      if(after == null)
-      {
-        delete(txn, key);
-      }
-      else
-      {
-        data.setData(after);
-        put(txn, key, data);
-      }
-
-      if(success)
-      {
-        count.getAndDecrement();
-      }
-
-      return success;
-    }
-    return false;
   }
 
   private OperationStatus getSearchKeyRange(Transaction txn, DatabaseEntry key,
