@@ -30,6 +30,12 @@ package org.forgerock.opendj.ldap;
 import static com.forgerock.opendj.util.StaticUtils.*;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.util.Comparator;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -62,6 +68,9 @@ import com.forgerock.opendj.util.SubstringReader;
  *      Models </a>
  */
 public final class AVA implements Comparable<AVA> {
+
+    private static final char HEX_STRING_SEPARATOR = '%';
+
     /**
      * Parses the provided LDAP string representation of an AVA using the
      * default schema.
@@ -473,7 +482,11 @@ public final class AVA implements Comparable<AVA> {
         // that means that the value should be a hex string.
         char c = reader.read();
         int length = 0;
-        if (c == '#') {
+        if (c == '+') {
+            // Value is empty and followed by another AVA
+            reader.reset();
+            return ByteString.empty();
+        } else if (c == '#') {
             // The first two characters must be hex characters.
             reader.mark();
             if (reader.remaining() < 2) {
@@ -791,5 +804,107 @@ public final class AVA implements Comparable<AVA> {
         }
 
         return orderingNormalizedAttributeValue;
+    }
+
+    /**
+     * Returns the normalized byte string representation of this AVA.
+     * <p>
+     * The representation is not a valid AVA.
+     *
+     * @param builder
+     *            The builder to use to construct the normalized byte string.
+     * @return The normalized byte string representation.
+     * @see DN#toIrreversibleNormalizedByteString()
+     */
+    ByteStringBuilder toNormalizedByteString(final ByteStringBuilder builder) {
+        builder.append(toLowerCase(attributeType.getNameOrOID()));
+        builder.append("=");
+        final ByteString value = getEqualityNormalizedValue();
+        if (value.length() > 0) {
+            builder.append(escapeBytes(value));
+        }
+        return builder;
+    }
+
+    /**
+     * Returns the normalized readable string representation of this AVA.
+     * <p>
+     * The representation is not a valid AVA.
+     *
+     * @param builder
+     *            The builder to use to construct the normalized string.
+     * @return The normalized readable string representation.
+     * @see DN#toIrreversibleReadableString()
+     */
+    StringBuilder toNormalizedReadableString(final StringBuilder builder) {
+        builder.append(toLowerCase(attributeType.getNameOrOID()));
+        builder.append('=');
+        final ByteString value = getEqualityNormalizedValue();
+
+        if (value.length() == 0) {
+            return builder;
+        }
+        final boolean hasAttributeName = !attributeType.getNames().isEmpty();
+        final boolean isHumanReadable = attributeType.getSyntax().isHumanReadable();
+        if (!hasAttributeName || !isHumanReadable) {
+            builder.append(value.toHexString(AVA.HEX_STRING_SEPARATOR));
+        } else {
+            // try to decode value as UTF-8 string
+            final CharBuffer buffer = CharBuffer.allocate(value.length());
+            final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
+            if (value.copyTo(buffer, decoder)) {
+                try {
+                    // URL encoding encodes space char as '+' instead of using hex code
+                    final String val = URLEncoder.encode(buffer.toString(), "UTF-8").replaceAll("\\+", "%20");
+                    builder.append(val);
+                } catch (UnsupportedEncodingException e) {
+                    // should never happen
+                    builder.append(value.toHexString(AVA.HEX_STRING_SEPARATOR));
+                }
+            } else {
+                builder.append(value.toHexString(AVA.HEX_STRING_SEPARATOR));
+            }
+        }
+        return builder;
+    }
+
+    /**
+     * Return a new byte string with bytes 0x00, 0x01 and 0x02 escaped.
+     * <p>
+     * These bytes are reserved to represent respectively the RDN separator,
+     * the AVA separator and the escape byte in a normalized byte string.
+     */
+    private ByteString escapeBytes(final ByteString value) {
+        if (!needEscaping(value)) {
+            return value;
+        }
+
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        for (int i = 0; i < value.length(); i++) {
+            final byte b = value.byteAt(i);
+            if (isByteToEscape(b)) {
+                builder.append(DN.NORMALIZED_ESC_BYTE);
+            }
+            builder.append(b);
+        }
+        return builder.toByteString();
+    }
+
+    private boolean needEscaping(final ByteString value) {
+        boolean needEscaping = false;
+        for (int i = 0; i < value.length(); i++) {
+            final byte b = value.byteAt(i);
+            if (isByteToEscape(b)) {
+                needEscaping = true;
+                break;
+            }
+        }
+        return needEscaping;
+    }
+
+    private boolean isByteToEscape(final byte b) {
+        return b == DN.NORMALIZED_RDN_SEPARATOR || b == DN.NORMALIZED_AVA_SEPARATOR || b == DN.NORMALIZED_ESC_BYTE;
     }
 }

@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 
 /**
  * A mutable sequence of bytes backed by a byte array.
@@ -149,10 +150,22 @@ public final class ByteStringBuilder implements ByteSequence {
         }
 
         /** {@inheritDoc} */
+        public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
+            byteBuffer.put(buffer, subOffset, subLength);
+            byteBuffer.flip();
+            return byteBuffer;
+        }
+
+        /** {@inheritDoc} */
         @Override
         public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
             // Protect against reallocation: use builder's buffer.
             return builder.append(buffer, subOffset, subLength);
+        }
+
+        /** {@inheritDoc} */
+        public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
+            return ByteString.copyTo(ByteBuffer.wrap(buffer, subOffset, subLength), charBuffer, decoder);
         }
 
         /** {@inheritDoc} */
@@ -842,10 +855,22 @@ public final class ByteStringBuilder implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
+        byteBuffer.put(buffer, 0, length);
+        byteBuffer.flip();
+        return byteBuffer;
+    }
+
+    /** {@inheritDoc} */
     @Override
     public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
         builder.append(buffer, 0, length);
         return builder;
+    }
+
+    /** {@inheritDoc} */
+    public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
+        return ByteString.copyTo(ByteBuffer.wrap(buffer, 0, length), charBuffer, decoder);
     }
 
     /** {@inheritDoc} */

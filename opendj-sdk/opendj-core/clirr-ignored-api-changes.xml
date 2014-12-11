@@ -396,4 +396,16 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>%regex[(boolean|org.forgerock.opendj.ldap.schema.SchemaBuilder) allow(.)*\((boolean)?\)]</method>
     <justification>OPENDJ-1478 Make it easier to add compatibility options to schemas</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ByteSequence</className>
+    <differenceType>7012</differenceType>
+    <method>java.nio.ByteBuffer copyTo(java.nio.ByteBuffer)</method>
+    <justification>Added new utility method copyTo() for a byte buffer</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ByteSequence</className>
+    <differenceType>7012</differenceType>
+    <method>boolean copyTo(java.nio.CharBuffer, java.nio.charset.CharsetDecoder)</method>
+    <justification>OPENDJ-1585: Added new utility method copyTo for a char buffer</justification>
+  </difference>
 </differences>

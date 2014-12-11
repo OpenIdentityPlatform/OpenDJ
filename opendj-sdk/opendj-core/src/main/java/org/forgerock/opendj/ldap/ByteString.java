@@ -35,6 +35,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
 import java.util.Arrays;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -619,9 +621,36 @@ public final class ByteString implements ByteSequence {
     }
 
     /** {@inheritDoc} */
+    public ByteBuffer copyTo(final ByteBuffer byteBuffer) {
+        byteBuffer.put(buffer, offset, length);
+        byteBuffer.flip();
+        return byteBuffer;
+    }
+
+    /** {@inheritDoc} */
     public ByteStringBuilder copyTo(final ByteStringBuilder builder) {
         builder.append(buffer, offset, length);
         return builder;
+    }
+
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder) {
+        return copyTo(ByteBuffer.wrap(buffer, offset, length), charBuffer, decoder);
+    }
+
+    /**
+     * Convenience method to copy from a byte buffer to a char buffer using provided decoder to decode
+     * bytes into characters.
+     * <p>
+     * It should not be used directly, prefer instance method of ByteString or ByteStringBuilder instead.
+     */
+    static boolean copyTo(ByteBuffer inBuffer, CharBuffer outBuffer, CharsetDecoder decoder) {
+        final CoderResult result = decoder.decode(inBuffer, outBuffer, true);
+        decoder.flush(outBuffer);
+        outBuffer.flip();
+        return !result.isError() && !result.isOverflow();
     }
 
     /** {@inheritDoc} */
@@ -701,10 +730,23 @@ public final class ByteString implements ByteSequence {
      *         using hexadecimal characters.
      */
     public String toHexString() {
+        return toHexString(' ');
+    }
+
+    /**
+     * Returns a string representation of the contents of this byte sequence
+     * using hexadecimal characters and the provided separator between each byte.
+     *
+     * @param separator
+     *          Character used to separate each byte
+     * @return A string representation of the contents of this byte sequence
+     *         using hexadecimal characters.
+     */
+    public String toHexString(char separator) {
         StringBuilder builder = new StringBuilder((length - 1) * 3 + 2);
         builder.append(StaticUtils.byteToHex(buffer[offset]));
         for (int i = 1; i < length; i++) {
-            builder.append(" ");
+            builder.append(separator);
             builder.append(StaticUtils.byteToHex(buffer[offset + i]));
         }
         return builder.toString();
