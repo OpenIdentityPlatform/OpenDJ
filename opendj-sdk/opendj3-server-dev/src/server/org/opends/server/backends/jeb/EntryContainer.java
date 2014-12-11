@@ -735,9 +735,8 @@ public class EntryContainer
    * <CODE>SearchOperation.returnEntry</CODE> method.
    *
    * @param searchOperation The search operation to be processed.
-   * @throws org.opends.server.types.DirectoryException
-   *          If a problem occurs while processing the
-   *          search.
+   * @throws DirectoryException
+   *          If a problem occurs while processing the search.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
@@ -1086,8 +1085,9 @@ public class EntryContainer
      * "ou=people,dc=example,dc=com".
      */
     byte[] baseDNKey = dnToDNKey(aBaseDN, this.baseDN.size());
+    final byte special = 0x00;
     byte[] suffix = Arrays.copyOf(baseDNKey, baseDNKey.length+1);
-    suffix[suffix.length-1] = 0x00;
+    suffix[suffix.length - 1] = special;
 
     /*
      * Set the ending value to a value of equal length but slightly
@@ -1095,8 +1095,8 @@ public class EntryContainer
      * reverse order we must set the first byte (the comma).
      * No possibility of overflow here.
      */
-    byte[] end = suffix.clone();
-    end[end.length-1] = (byte) (end[end.length-1] + 1);
+    byte[] end = Arrays.copyOf(suffix, suffix.length);
+    end[end.length - 1] = (byte) (special + 1);
 
     // Set the starting value.
     byte[] begin;
@@ -1609,15 +1609,16 @@ public class EntryContainer
        * downwards.
        */
       byte[] entryDNKey = dnToDNKey(entryDN, this.baseDN.size());
+      byte special = 0x00;
       byte[] suffix = Arrays.copyOf(entryDNKey, entryDNKey.length+1);
-      suffix[suffix.length-1] = 0x00;
+      suffix[suffix.length - 1] = special;
 
       /*
        * Set the ending value to a value of equal length but slightly
        * greater than the suffix.
        */
-      byte[] end = suffix.clone();
-      end[end.length-1] = (byte) (end[end.length-1] + 1);
+      byte[] end = Arrays.copyOf(suffix, suffix.length);
+      end[end.length - 1] = (byte) (special + 1);
 
       int subordinateEntriesDeleted = 0;
 
@@ -2077,17 +2078,14 @@ public class EntryContainer
    * @param modifyDNOperation The modify DN operation with which this action
    *                          is associated.  This may be <CODE>null</CODE>
    *                          for modify DN operations performed internally.
-   * @throws org.opends.server.types.DirectoryException
-   *          If a problem occurs while trying to perform
-   *          the rename.
-   * @throws org.opends.server.types.CanceledOperationException
-   *          If this backend noticed and reacted
-   *          to a request to cancel or abandon the
-   *          modify DN operation.
+   * @throws DirectoryException
+   *          If a problem occurs while trying to perform the rename.
+   * @throws CanceledOperationException
+   *          If this backend noticed and reacted to a request to cancel
+   *          or abandon the modify DN operation.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void renameEntry(DN currentDN, Entry entry,
-      ModifyDNOperation modifyDNOperation)
+  public void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
   throws DatabaseException, DirectoryException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
@@ -2200,15 +2198,16 @@ public class EntryContainer
        * downwards.
        */
       byte[] currentDNKey = dnToDNKey(currentDN, this.baseDN.size());
+      byte special = 0x00;
       byte[] suffix = Arrays.copyOf(currentDNKey, currentDNKey.length+1);
-      suffix[suffix.length-1] = 0x00;
+      suffix[suffix.length - 1] = special;
 
       /*
        * Set the ending value to a value of equal length but slightly
        * greater than the suffix.
        */
-      byte[] end = suffix.clone();
-      end[end.length-1] = (byte) (end[end.length-1] + 1);
+      byte[] end = Arrays.copyOf(suffix, suffix.length);
+      end[end.length - 1] = (byte) (special + 1);
 
       DatabaseEntry data = new DatabaseEntry();
       DatabaseEntry key = new DatabaseEntry(suffix);
@@ -2239,7 +2238,6 @@ public class EntryContainer
           }
 
           // We have found a subordinate entry.
-
           EntryID oldID = new EntryID(data);
           Entry oldEntry = id2entry.get(txn, oldID, LockMode.DEFAULT);
 
