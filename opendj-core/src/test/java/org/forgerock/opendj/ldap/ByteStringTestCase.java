@@ -26,6 +26,10 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
@@ -257,6 +261,55 @@ public class ByteStringTestCase extends ByteSequenceTestCase {
         final byte[] data = DatatypeConverter.parseHexBinary(hexData);
         final byte[] decodedData = ByteString.valueOfBase64(encodedData).toByteArray();
         Assert.assertEquals(decodedData, data);
+    }
+
+    @Test
+    public void testToHex() throws Exception {
+        ByteString byteString = new ByteStringBuilder().append("org=example").toByteString();
+        assertThat(byteString.toHexString()).isEqualTo("6F 72 67 3D 65 78 61 6D 70 6C 65");
+        assertThat(byteString.toHexString('-')).isEqualTo("6F-72-67-3D-65-78-61-6D-70-6C-65");
+    }
+
+    @Test
+    public void testCopyToCharBuffer() throws Exception {
+        String value = "org=example";
+        ByteString byteString = new ByteStringBuilder().append(value).toByteString();
+        CharBuffer buffer = CharBuffer.allocate(value.length());
+        final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
+
+        boolean isCopied = byteString.copyTo(buffer, decoder);
+
+        assertThat(isCopied).isTrue();
+        assertThat(buffer.toString()).isEqualTo(value);
+    }
+
+    @Test
+    public void testCopyToCharBufferFailure() throws Exception {
+        // Non valid UTF-8 byte sequence
+        ByteString byteString = new ByteStringBuilder().append((byte) 0x80).toByteString();
+        CharBuffer buffer = CharBuffer.allocate(1);
+        final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
+
+        boolean isCopied = byteString.copyTo(buffer, decoder);
+
+        assertThat(isCopied).isFalse();
+    }
+
+    @Test
+    public void testCopyToByteBuffer() throws Exception {
+        String value = "org=example";
+        ByteString byteString = new ByteStringBuilder().append(value).toByteString();
+        ByteBuffer buffer = ByteBuffer.allocate(value.length());
+
+        byteString.copyTo(buffer);
+
+        assertSameByteContent(buffer, byteString);
+    }
+
+    private void assertSameByteContent(ByteBuffer buffer, ByteString byteString) {
+        for (byte b : byteString.toByteArray()) {
+            assertThat(buffer.get()).isEqualTo(b);
+        }
     }
 
     @Test

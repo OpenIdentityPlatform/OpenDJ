@@ -33,6 +33,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.fest.assertions.Assertions.*;
 import static org.testng.Assert.*;
 
 /**
@@ -126,7 +127,7 @@ public class DNTestCase extends SdkTestCase {
             { "AB-global=", "ab-global=", "AB-global=" },
             { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
                 "cn=j. smith+ou=sales,dc=example,dc=net", "OU=Sales+CN=J. Smith,DC=example,DC=net" },
-            { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
+            { "cn=John+dc=", "dc=+cn=john", "cn=John+dc=" },
             { "O=\"Sue, Grabbit and Runn\",C=US", "o=sue\\, grabbit and runn,c=us",
                 "O=Sue\\, Grabbit and Runn,C=US" }, };
     }
@@ -1042,19 +1043,112 @@ public class DNTestCase extends SdkTestCase {
     public Object[][] toIrreversibleNormalizedByteStringDataProvider() {
         // @formatter:off
         return new Object[][] {
-            { "dc=com", "dc=com" },
-            { "dc=example,dc=com", "dc=example,dc=com" },
-            { "dc=example,dc=com", "dc = example, dc = com" },
-            { "dc=example+cn=test,dc=com", "cn=test+dc=example,dc=com" },
+            // first value to normalize, second value to normalize, expected sign of comparison between the two
+            { "dc=com", "dc=com", 0 },
+            { "dc=example,dc=com", "dc=example,dc=com", 0 },
+            { "cn=test+dc=example,dc=com", "cn=test+dc=example,dc=com", 0 },
+            { "dc=example+cn=test,dc=com", "cn=test+dc=example,dc=com", 0 },
+            // parent entry is followed by its children, not its siblings
+            { "dc=com", "dc=example,dc=com", -1 },
+            { "dc=com", "dc=test,dc=example,dc=com", -1},
+            { "dc=example,dc=com", "dc=test,dc=example,dc=com", -1},
+            { "dc=example,dc=com", "dc=example2,dc=com", -1},
+            { "dc=example2,dc=com", "dc=test,dc=example,dc=com", 1},
+            // with space
+            { "dc=example,dc=com", "dc = example, dc = com", 0 },
+            { "dc=example\\20test,dc=com", "dc=example test,dc=com", 0 },
+            { "dc=example test,dc=com", "dc=exampletest,dc=com", -1 },
+            // with various escaped characters
+            { "dc=example\\2Dtest,dc=com", "dc=example-test,dc=com", 0 },
+            { "dc=example\\28test,dc=com", "dc=example(test,dc=com", 0 },
+            { "dc=example\\3Ftest,dc=com", "dc=example?test,dc=com", 0 },
+            // with escaped comma
+            { "dc=example\\,dc=com,dc=com", "dc=example\\2Cdc=com,dc=com", 0 },
+            { "dc=example\\2Cdc=com,dc=com", "dc=example\\2Cdc\\3Dcom,dc=com", 0 },
+            { "dc=example,dc=com", "dc=example\\,dc=com,dc=com", -1 },
+            { "dc=example2,dc=com", "dc=example\\,dc=com,dc=com", 1 },
+            // with escaped "="
+            { "dc=example\\=other,dc=com", "dc=example\\3Dother,dc=com", 0 },
+            // with escaped "+"
+            { "dc=example\\+other,dc=com", "dc=example\\2Bother,dc=com", 0 },
+            // integer
+            { "governingStructureRule=10,dc=com", "governingStructureRule=10, dc=com", 0 },
+            { "governingStructureRule=99,dc=com", "governingStructureRule=100, dc=com", -1 },
+            { "governingStructureRule=999999,dc=com", "governingStructureRule=1000000, dc=com", -1 },
+            // no matching rule for the attribute
+            { "dummy=9,dc=com", "dummy=10,dc=com", 1 }
         };
         // @formatter:on
     }
 
-    /** Tests the {@link DN#toIrreversibleNormalizedByteString()} method. */
     @Test(dataProvider = "toIrreversibleNormalizedByteStringDataProvider")
-    public void testToIrreversibleNormalizedByteString(String actualStr, String expectedStr) {
-        DN actual = DN.valueOf(actualStr);
-        DN expected = DN.valueOf(expectedStr);
-        assertEquals(actual.toIrreversibleNormalizedByteString(), expected.toIrreversibleNormalizedByteString());
+    public void testToIrreversibleNormalizedByteString(String first, String second, int expectedCompareResult) {
+        DN actual = DN.valueOf(first);
+        DN expected = DN.valueOf(second);
+        int cmp = actual.toIrreversibleNormalizedByteString().compareTo(expected.toIrreversibleNormalizedByteString());
+        assertThat(Integer.signum(cmp)).isEqualTo(expectedCompareResult);
+    }
+
+    @Test(dataProvider = "testDNs")
+    /** Additional tests with testDNs data provider */
+    public void testToIrreversibleNormalizedByteString2(String one, String two, String three) {
+        DN dn1 = DN.valueOf(one);
+        DN dn2 = DN.valueOf(two);
+        DN dn3 = DN.valueOf(three);
+        int cmp = dn1.toIrreversibleNormalizedByteString().compareTo(dn2.toIrreversibleNormalizedByteString());
+        assertThat(cmp).isEqualTo(0);
+        int cmp2 = dn1.toIrreversibleNormalizedByteString().compareTo(dn3.toIrreversibleNormalizedByteString());
+        assertThat(cmp2).isEqualTo(0);
+    }
+
+    @DataProvider
+    public Object[][] toIrreversibleReadableStringDataProvider() {
+        // @formatter:off
+        return new Object[][] {
+            // first value = string used to build DN, second value = expected readable string
+            { "dc=com", "dc=com" },
+            { "dc=example,dc=com", "dc=com,dc=example" },
+            { "dc = example, dc = com", "dc=com,dc=example" },
+            { "dc=example+cn=test,dc=com", "dc=com,cn=test+dc=example" },
+            { "cn=test+dc=example,dc=com", "dc=com,cn=test+dc=example" },
+            // with space
+            { "dc=example test,dc=com", "dc=com,dc=example%20test" },
+            { "dc=example\\20test,dc=com", "dc=com,dc=example%20test" },
+            // with escaped comma
+            { "dc=example\\,dc=com,dc=com", "dc=com,dc=example%2Cdc%3Dcom" },
+            { "dc=example\\2Cdc=com,dc=com", "dc=com,dc=example%2Cdc%3Dcom" },
+            // with escaped "="
+            { "dc=example\\=other,dc=com", "dc=com,dc=example%3Dother" },
+            { "dc=example\\3Dother,dc=com", "dc=com,dc=example%3Dother" },
+            // with escaped "+"
+            { "dc=example\\+other,dc=com", "dc=com,dc=example%2Bother" },
+            { "dc=example\\2Bother,dc=com", "dc=com,dc=example%2Bother" },
+            // integer
+            { "governingStructureRule=256,dc=com", "dc=com,governingstructurerule=%01%00" },
+            // uuid
+            { "entryUUID=597ae2f6-16a6-1027-98f4-d28b5365dc14,dc=com",
+              "dc=com,entryuuid=597ae2f6-16a6-1027-98f4-d28b5365dc14" },
+            // characters unescaped by URL encoding (-, _, ., ~)
+            { "dc=example\\2Dtest,dc=com", "dc=com,dc=example-test" },
+            { "dc=example\\5Ftest,dc=com", "dc=com,dc=example_test" },
+        };
+        // @formatter:on
+    }
+
+    @Test(dataProvider = "toIrreversibleReadableStringDataProvider")
+    public void testToIrreversibleReadableString(String dnAsString, String expectedReadableString) {
+        DN actual = DN.valueOf(dnAsString);
+        assertEquals(actual.toIrreversibleReadableString(), expectedReadableString);
+    }
+
+    @Test(dataProvider = "testDNs")
+    /** Additional tests with testDNs data provider */
+    public void testToIrreversibleReadableString2(String one, String two, String three) {
+        DN dn1 = DN.valueOf(one);
+        DN dn2 = DN.valueOf(two);
+        DN dn3 = DN.valueOf(three);
+        String irreversibleReadableString = dn1.toIrreversibleReadableString();
+        assertEquals(irreversibleReadableString, dn2.toIrreversibleReadableString());
+        assertEquals(irreversibleReadableString, dn3.toIrreversibleReadableString());
     }
 }

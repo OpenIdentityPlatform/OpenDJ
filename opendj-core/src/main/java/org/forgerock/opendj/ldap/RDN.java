@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -72,6 +73,9 @@ import org.forgerock.util.Reject;
  *      Models </a>
  */
 public final class RDN implements Iterable<AVA>, Comparable<RDN> {
+
+    /** Separator for AVAs. */
+    private static final char AVA_CHAR_SEPARATOR = '+';
 
     /**
      * A constant holding a special RDN having zero AVAs and which always
@@ -407,5 +411,75 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
 
     StringBuilder toString(final StringBuilder builder) {
         return builder.append(this);
+    }
+
+    /**
+     * Returns the normalized byte string representation of this RDN.
+     * <p>
+     * The representation is not a valid RDN.
+     *
+     * @param builder
+     *            The builder to use to construct the normalized byte string.
+     * @return The normalized byte string representation.
+     * @see DN#toIrreversibleNormalizedByteString()
+     */
+    ByteStringBuilder toNormalizedByteString(final ByteStringBuilder builder) {
+        switch (size()) {
+        case 0:
+            // Handle RDN.maxValue().
+            builder.append(DN.NORMALIZED_AVA_SEPARATOR);
+            break;
+        case 1:
+            getFirstAVA().toNormalizedByteString(builder);
+            break;
+        default:
+            Iterator<AVA> it = getSortedAvas();
+            it.next().toNormalizedByteString(builder);
+            while (it.hasNext()) {
+                builder.append(DN.NORMALIZED_AVA_SEPARATOR);
+                it.next().toNormalizedByteString(builder);
+            }
+            break;
+        }
+        return builder;
+    }
+
+    /**
+     * Returns the normalized readable string representation of this RDN.
+     * <p>
+     * The representation is not a valid RDN.
+     *
+     * @param builder
+     *            The builder to use to construct the normalized string.
+     * @return The normalized readable string representation.
+     * @see DN#toIrreversibleReadableString()
+     */
+    StringBuilder toNormalizedReadableString(final StringBuilder builder) {
+        switch (size()) {
+        case 0:
+            // Handle RDN.maxValue().
+            builder.append(RDN.AVA_CHAR_SEPARATOR);
+            break;
+        case 1:
+            getFirstAVA().toNormalizedReadableString(builder);
+            break;
+        default:
+            Iterator<AVA> it = getSortedAvas();
+            it.next().toNormalizedReadableString(builder);
+            while (it.hasNext()) {
+                builder.append(RDN.AVA_CHAR_SEPARATOR);
+                it.next().toNormalizedReadableString(builder);
+            }
+            break;
+        }
+        return builder;
+    }
+
+    private Iterator<AVA> getSortedAvas() {
+        TreeSet<AVA> sortedAvas = new TreeSet<AVA>();
+        for (AVA ava : avas) {
+            sortedAvas.add(ava);
+        }
+        return sortedAvas.iterator();
     }
 }

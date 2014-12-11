@@ -31,20 +31,15 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.TreeSet;
 import java.util.WeakHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.util.Reject;
 
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -67,6 +62,11 @@ import static com.forgerock.opendj.util.StaticUtils.*;
  *      Models </a>
  */
 public final class DN implements Iterable<RDN>, Comparable<DN> {
+
+    static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
+    static final byte NORMALIZED_AVA_SEPARATOR = 0x01;
+    static final byte NORMALIZED_ESC_BYTE = 0x02;
+
     private static final DN ROOT_DN = new DN(CoreSchema.getInstance(), null, null, "");
 
     /**
@@ -920,31 +920,64 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     }
 
     /**
-     * Returns the irreversible normalized byte string representation of a DN, suitable for equality and comparisons,
-     * and providing a natural hierarchical ordering but not usable as a valid DN nor reversible to a valid DN.
+     * Returns the irreversible normalized byte string representation of a DN,
+     * suitable for equality and comparisons, and providing a natural hierarchical
+     * ordering, but not usable as a valid DN nor reversible to a valid DN.
      * <p>
-     * This representation should be used only when a byte string representation is needed and when no reversibility to
-     * a valid DN is needed. Always consider using a {@code CompactDn} as an alternative.
+     * This representation should be used only when a byte string representation
+     * is needed and when no reversibility to a valid DN is needed. Always consider
+     * using a {@code CompactDn} as an alternative.
      *
-     * @return The normalized string representation of the provided DN, not usable as a valid DN
+     * @return The normalized byte string representation of the provided DN, not
+     *         usable as a valid DN
      */
     public ByteString toIrreversibleNormalizedByteString() {
         if (rdn() == null) {
             return ByteString.empty();
         }
 
-        final StringBuilder builder = new StringBuilder();
+        final ByteStringBuilder builder = new ByteStringBuilder();
         int i = size() - 1;
-        normalizeRDN(builder, parent(i).rdn());
+        parent(i).rdn().toNormalizedByteString(builder);
         for (i--; i >= 0; i--) {
             final RDN rdn = parent(i).rdn();
             // Only add a separator if the RDN is not RDN.maxValue().
             if (rdn.size() != 0) {
-                builder.append('\u0000');
+                builder.append(DN.NORMALIZED_RDN_SEPARATOR);
             }
-            normalizeRDN(builder, rdn);
+            rdn.toNormalizedByteString(builder);
         }
-        return ByteString.valueOf(builder.toString());
+        return builder.toByteString();
+    }
+
+    /**
+     * Returns the irreversible readable string representation of a DN, suitable
+     * for equality and usage as a name in file system or URL, but not usable as
+     * a valid DN nor reversible to a valid DN.
+     * <p>
+     * This representation should be used only when a string representation is
+     * needed and when no reversibility to a valid DN is needed.
+     *
+     * @return The readable string representation of the provided DN,
+     *         not usable as a valid DN
+     */
+    public String toIrreversibleReadableString() {
+        if (rdn() == null) {
+            return "";
+        }
+
+        final StringBuilder builder = new StringBuilder();
+        int i = size() - 1;
+        parent(i).rdn().toNormalizedReadableString(builder);
+        for (i--; i >= 0; i--) {
+            final RDN rdn = parent(i).rdn();
+            // Only add a separator if the RDN is not RDN.maxValue().
+            if (rdn.size() != 0) {
+                builder.append(',');
+            }
+            rdn.toNormalizedReadableString(builder);
+        }
+        return builder.toString();
     }
 
     /**
@@ -960,6 +993,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *   <li>eagerly: the normalized value is computed immediately at creation time.</li>
      *   <li>lazily: the normalized value is computed only the first time it is needed.</li>
      * </ul>
+     *
+     * @Deprecated This class will eventually be replaced by a compact implementation of a DN.
      */
     public static final class CompactDn implements Comparable<CompactDn> {
 
@@ -1036,114 +1071,6 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      */
     public CompactDn compact() {
         return new CompactDn(this);
-    }
-
-    /**
-     * Returns the normalized string representation of a RDN.
-     *
-     * @param builder
-     *            The StringBuilder to use to construct the normalized string.
-     * @param rdn
-     *            The RDN.
-     * @return The normalized string representation of the provided RDN.
-     */
-    private static StringBuilder normalizeRDN(final StringBuilder builder, final RDN rdn) {
-        final int sz = rdn.size();
-        switch (sz) {
-        case 0:
-            // Handle RDN.maxValue().
-            builder.append('\u0001');
-            break;
-        case 1:
-            normalizeAVA(builder, rdn.getFirstAVA());
-            break;
-        default:
-            // Need to sort the AVAs before comparing.
-            TreeSet<AVA> a = new TreeSet<AVA>();
-            for (AVA ava : rdn) {
-                a.add(ava);
-            }
-            Iterator<AVA> i = a.iterator();
-            // Normalize the first AVA.
-            normalizeAVA(builder, i.next());
-            while (i.hasNext()) {
-                builder.append('\u0001');
-                normalizeAVA(builder, i.next());
-            }
-            break;
-        }
-        return builder;
-    }
-
-    /**
-     * Returns the normalized string representation of an AVA.
-     *
-     * @param builder
-     *            The StringBuilder to use to construct the normalized string.
-     * @param ava
-     *            The AVA.
-     * @return The normalized string representation of the provided AVA.
-     */
-    private static StringBuilder normalizeAVA(final StringBuilder builder, final AVA ava) {
-        final AttributeType attributeType = ava.getAttributeType();
-
-        ByteString value = ava.getAttributeValue();
-        final MatchingRule matchingRule = attributeType.getEqualityMatchingRule();
-        if (matchingRule != null) {
-            try {
-                value = matchingRule.normalizeAttributeValue(ava.getAttributeValue());
-            } catch (final DecodeException de) {
-                // Ignore - we'll drop back to the user provided value.
-            }
-        }
-
-        if (attributeType.getNames().isEmpty()) {
-            builder.append(attributeType.getOID());
-            builder.append("=#");
-            builder.append(value.toHexString());
-        } else {
-            final String name = attributeType.getNameOrOID();
-            // Normalizing.
-            StaticUtils.toLowerCase(name, builder);
-
-            builder.append("=");
-
-            final Syntax syntax = attributeType.getSyntax();
-            if (!syntax.isHumanReadable()) {
-                builder.append("#");
-                builder.append(value.toHexString());
-            } else {
-                final String str = value.toString();
-                if (str.length() == 0) {
-                    return builder;
-                }
-                char c = str.charAt(0);
-                int startPos = 0;
-                if (c == ' ' || c == '#') {
-                    builder.append('\\');
-                    builder.append(c);
-                    startPos = 1;
-                }
-                final int length = str.length();
-                for (int si = startPos; si < length; si++) {
-                    c = str.charAt(si);
-                    if (c < ' ') {
-                        for (final byte b : getBytes(String.valueOf(c))) {
-                            builder.append('\\');
-                            builder.append(StaticUtils.byteToLowerHex(b));
-                        }
-                    } else {
-                        if ((c == ' ' && si == length - 1)
-                                || (c == '"' || c == '+' || c == ',' || c == ';' || c == '<'
-                                        || c == '=' || c == '>' || c == '\\' || c == '\u0000')) {
-                            builder.append('\\');
-                        }
-                        builder.append(c);
-                    }
-                }
-            }
-        }
-        return builder;
     }
 
 }

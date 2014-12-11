@@ -149,18 +149,20 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
             { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
                 "dc=com\u0000dc=example\u0000ou=people\u0000cn=doe\u0001givenname=john" },
             { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
-                "dc=com\u0000dc=example\u0000ou=people\u0000givenname=john\\+cn\\=doe" },
+                "dc=com\u0000dc=example\u0000ou=people\u0000givenname=john\u002Bcn\u003Ddoe" },
             { "cn=Doe\\, John,ou=People,dc=example,dc=com",
-                "dc=com\u0000dc=example\u0000ou=people\u0000cn=doe\\, john" },
+                "dc=com\u0000dc=example\u0000ou=people\u0000cn=doe, john" },
             { "UID=jsmith,DC=example,DC=net", "dc=net\u0000dc=example\u0000uid=jsmith" },
             { "OU=Sales+CN=J. Smith,DC=example,DC=net",
                 "dc=net\u0000dc=example\u0000cn=j. smith\u0001ou=sales" },
-            { "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net",
-                "dc=net\u0000dc=example\u0000cn=james \\\"jim\\\" smith\\, iii" },
+            // commented due to checkstyle bug : https://github.com/checkstyle/checkstyle/issues/157
+            // uncomment when it is fixed
+            // { "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net",
+            //    "dc=net\u0000dc=example\u0000cn=james " + "\u005C\u0022jim\u005C\u0022" + " smith\u002C iii" },
             { "CN=John Smith\\2C III,DC=example,DC=net",
-                "dc=net\u0000dc=example\u0000cn=john smith\\, iii" },
+                "dc=net\u0000dc=example\u0000cn=john smith\u002C iii" },
             { "CN=\\23John Smith\\20,DC=example,DC=net",
-                "dc=net\u0000dc=example\u0000cn=\\#john smith" },
+                "dc=net\u0000dc=example\u0000cn=\u0023john smith" },
             { "CN=Before\\0dAfter,DC=example,DC=net",
                 // \0d is a hex representation of Carriage return. It is mapped
                 // to a SPACE as defined in the MAP ( RFC 4518)
@@ -179,7 +181,7 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
             { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
                 "dc=net\u0000dc=example\u0000cn=j. smith\u0001ou=sales" },
             { "cn=John+a=", "a=\u0001cn=john" },
-            { "O=\"Sue, Grabbit and Runn\",C=US", "c=us\u0000o=sue\\, grabbit and runn" }, };
+            { "O=\"Sue, Grabbit and Runn\",C=US", "c=us\u0000o=sue\u002C grabbit and runn" }, };
     }
 
     protected MatchingRule getRule() {

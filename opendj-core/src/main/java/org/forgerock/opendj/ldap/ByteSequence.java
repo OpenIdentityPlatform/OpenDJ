@@ -28,6 +28,10 @@ package org.forgerock.opendj.ldap;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetDecoder;
 import java.util.Comparator;
 
 /**
@@ -187,6 +191,32 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      * @return The builder.
      */
     ByteStringBuilder copyTo(ByteStringBuilder builder);
+
+    /**
+     * Appends the content of this byte sequence to the provided {@link ByteBuffer}.
+     *
+     * @param buffer
+     *            The buffer to copy to.
+     *            It must be large enough to receive all bytes.
+     * @return The buffer.
+     * @throws BufferOverflowException
+     *            If there is insufficient space in the provided buffer
+     */
+    ByteBuffer copyTo(ByteBuffer buffer);
+
+    /**
+     * Appends the content of this byte sequence decoded using provided charset decoder,
+     * to the provided {@link CharBuffer}.
+     *
+     * @param charBuffer
+     *            The buffer to copy to, if decoding is successful.
+     *            It must be large enough to receive all decoded characters.
+     * @param decoder
+     *            The charset decoder to use for decoding.
+     * @return {@code true} if byte string was successfully decoded and charBuffer is
+     *         large enough to receive the resulting string, {@code false} otherwise
+     */
+    boolean copyTo(CharBuffer charBuffer, CharsetDecoder decoder);
 
     /**
      * Copies the entire contents of this byte sequence to the provided
