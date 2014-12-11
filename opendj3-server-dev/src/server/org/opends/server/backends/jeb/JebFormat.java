@@ -257,34 +257,31 @@ public class JebFormat
    * Decode a DN value from its database key representation.
    *
    * @param dnKey The database key value of the DN.
-   * @param offset Starting position in the database key data.
-   * @param length The length of the database key data.
-   * @param prefix The DN to prefix the deocded DN value.
+   * @param prefix The DN to prefix the decoded DN value.
    * @return The decoded DN value.
    * @throws DirectoryException if an error occurs while decoding the DN value.
    * @see #dnToDNKey(DN, int)
    */
-  public static DN dnFromDNKey(byte[] dnKey, int offset, int length, DN prefix)
+  public static DN dnFromDNKey(byte[] dnKey, DN prefix)
       throws DirectoryException
   {
     DN dn = prefix;
-    int start = offset;
     boolean escaped = false;
     ByteStringBuilder buffer = new ByteStringBuilder();
-    for(int i = start; i < length; i++)
+    for (byte b : dnKey)
     {
-      if(dnKey[i] == 0x5C)
+      if (b == 0x5C)
       {
         escaped = true;
         continue;
       }
-      else if(!escaped && dnKey[i] == 0x01)
+      else if (!escaped && b == 0x01)
       {
         buffer.append(0x01);
         escaped = false;
         continue;
       }
-      else if(!escaped && dnKey[i] == 0x00)
+      else if (!escaped && b == 0x00)
       {
         if(buffer.length() > 0)
         {
@@ -299,7 +296,7 @@ public class JebFormat
           buffer.append(0x5C);
           escaped = false;
         }
-        buffer.append(dnKey[i]);
+        buffer.append(b);
       }
     }
 
@@ -309,6 +306,20 @@ public class JebFormat
     }
 
     return dn;
+  }
+
+
+  /**
+   * Find the length of bytes that represents the superior DN of the given
+   * DN key. The superior DN is represented by the initial bytes of the DN key.
+   *
+   * @param dnKey The database key value of the DN.
+   * @return The length of the superior DN or -1 if the given dn is the
+   *         root DN or 0 if the superior DN is removed.
+   */
+  public static int findDNKeyParent(byte[] dnKey)
+  {
+    return findDNKeyParent(dnKey, 0, dnKey.length);
   }
 
   /**
@@ -347,7 +358,7 @@ public class JebFormat
    * @param prefixRDNs The number of prefix RDNs to remove from the encoded
    *                   representation.
    * @return A DatabaseEntry containing the key.
-   * @see #dnFromDNKey(byte[], int, int, DN)
+   * @see #dnFromDNKey(byte[], DN)
    */
   public static byte[] dnToDNKey(DN dn, int prefixRDNs)
   {

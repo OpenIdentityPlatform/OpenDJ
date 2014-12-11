@@ -1160,7 +1160,7 @@ public class EntryContainer
           boolean isInScope =
               searchScope != SearchScope.SINGLE_LEVEL
                   // Check if this entry is an immediate child.
-                  || findDNKeyParent(key.getData(), 0, key.getSize()) == baseDNKey.length;
+                  || findDNKeyParent(key.getData()) == baseDNKey.length;
           if (isInScope)
           {
             // Process the candidate entry.
@@ -1678,7 +1678,7 @@ public class EntryContainer
             {
               LocalizableMessage message =
                       ERR_JEB_DELETE_ABORTED_BY_SUBORDINATE_PLUGIN.get(
-                      dnFromDNKey(key.getData(), 0, 0, getBaseDN()));
+                      dnFromDNKey(key.getData(), getBaseDN()));
               throw new DirectoryException(
                   DirectoryServer.getServerErrorResultCode(), message);
             }

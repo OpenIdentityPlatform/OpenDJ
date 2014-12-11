@@ -46,6 +46,7 @@ import static com.sleepycat.je.LockMode.*;
 import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.jeb.JebFormat.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
@@ -621,12 +622,11 @@ public class DN2URI extends DatabaseContainer
           }
 
           // We have found a subordinate referral.
-          DN dn = JebFormat.dnFromDNKey(key.getData(), 0, key.getSize(),
-                                        entryContainer.getBaseDN());
+          DN dn = dnFromDNKey(key.getData(), entryContainer.getBaseDN());
 
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
-              && JebFormat.findDNKeyParent(key.getData(), 0, key.getSize()) != baseDN.length)
+              && findDNKeyParent(key.getData()) != baseDN.length)
           {
             continue;
           }
