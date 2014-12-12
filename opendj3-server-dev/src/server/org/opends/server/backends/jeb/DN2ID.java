@@ -90,26 +90,6 @@ public class DN2ID extends DatabaseContainer
   }
 
   /**
-   * Write a record to the DN database.  If a record with the given key already
-   * exists, the record will be replaced, otherwise a new record will be
-   * inserted.
-   * @param txn A JE database transaction to be used for the database operation,
-   * or null if none.
-   * @param dn The entry DN, which is the key to the record.
-   * @param id The entry ID, which is the value of the record.
-   * @return true if the record was written, false if it was not written.
-   * @throws DatabaseException If an error occurred while attempting to write
-   * the record.
-   */
-  public boolean put(Transaction txn, DN dn, EntryID id) throws DatabaseException
-  {
-    DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
-    DatabaseEntry data = id.getDatabaseEntry();
-
-    return put(txn, key, data) == SUCCESS;
-  }
-
-  /**
    * Write a record to the DN database, where the key and value are already
    * formatted.
    * @param txn A JE database transaction to be used for the database operation,

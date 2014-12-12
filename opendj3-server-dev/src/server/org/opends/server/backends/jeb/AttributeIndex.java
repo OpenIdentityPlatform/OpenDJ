@@ -372,19 +372,19 @@ public class AttributeIndex
   }
 
   /**
-   * Makes a byte array representing a substring index key for
+   * Makes a byte string representing a substring index key for
    * one substring of a value.
    *
    * @param bytes The byte array containing the value.
    * @param pos The starting position of the substring.
    * @param len The length of the substring.
-   * @return A byte array containing a substring key.
+   * @return A byte string containing a substring key.
    */
-  private byte[] makeSubstringKey(byte[] bytes, int pos, int len)
+  private ByteString makeSubstringKey(byte[] bytes, int pos, int len)
   {
     byte[] keyBytes = new byte[len];
     System.arraycopy(bytes, pos, keyBytes, 0, len);
-    return keyBytes;
+    return ByteString.wrap(keyBytes);
   }
 
   /**
@@ -411,15 +411,12 @@ public class AttributeIndex
     // We produce the keys ABC BCD CDE DE E
     // To find values containing a short substring such as DE,
     // iterate through keys with prefix DE. To find values
-    // containing a longer substring such as BCDE, read keys
-    // BCD and CDE.
+    // containing a longer substring such as BCDE, read keys BCD and CDE.
     for (int i = 0, remain = value.length; remain > 0; i++, remain--)
     {
       int len = Math.min(substrLength, remain);
-      byte[] keyBytes = makeSubstringKey(value, i, len);
-      set.add(ByteString.wrap(keyBytes));
+      set.add(makeSubstringKey(value, i, len));
     }
-
     return set;
   }
 
