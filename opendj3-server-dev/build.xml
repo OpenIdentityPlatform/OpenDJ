@@ -1857,10 +1857,10 @@ Please:
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
+        excludes="${pluggablebackend.pkg}/**"
         destdir="${classes.dir}">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
-        <fileset refid="opendj.test.jars"/>
         <fileset dir="${build.dir}/build-tools">
           <include name="build-tools.jar" />
         </fileset>
