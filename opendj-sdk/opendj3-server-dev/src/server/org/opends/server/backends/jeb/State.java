@@ -118,19 +118,16 @@ public class State extends DatabaseContainer
    * @param txn The database transaction or null if none.
    * @param index The index storing the trusted state info.
    * @param trusted The state value to put into the database.
-   * @return true if the entry was written, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean putIndexTrustState(Transaction txn, DatabaseContainer index,
-                                    boolean trusted)
+  public void putIndexTrustState(Transaction txn, DatabaseContainer index, boolean trusted)
        throws DatabaseException
   {
     DatabaseEntry key = keyForIndex(index);
     DatabaseEntry data = new DatabaseEntry();
 
     data.setData(trusted ? trueBytes : falseBytes);
-
-    return put(txn, key, data) == SUCCESS;
+    put(txn, key, data);
   }
 
 }
