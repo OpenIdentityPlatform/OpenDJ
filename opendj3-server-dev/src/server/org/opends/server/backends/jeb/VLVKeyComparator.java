@@ -67,7 +67,7 @@ public class VLVKeyComparator implements DatabaseComparator
   private boolean[] ascending;
 
   /**
-   * Construst a new VLV Key Comparator object.
+   * Construct a new VLV Key Comparator object.
    *
    * @param orderingRules The array of ordering rules to use when comparing
    *                      the decoded values in the key.
@@ -219,20 +219,7 @@ public class VLVKeyComparator implements DatabaseComparator
     {
       long b1ID = JebFormat.toLong(b1, b1Pos, b1Pos + 8);
       long b2ID = JebFormat.toLong(b2, b2Pos, b2Pos + 8);
-
-      long idDifference = (b1ID - b2ID);
-      if (idDifference < 0)
-      {
-        return -1;
-      }
-      else if (idDifference > 0)
-      {
-        return 1;
-      }
-      else
-      {
-        return 0;
-      }
+      return compare(b1ID, b2ID);
     }
 
     // If we've gotten here, then we can't tell the difference between the sets
@@ -248,7 +235,7 @@ public class VLVKeyComparator implements DatabaseComparator
    *
    * If the given attribute values array does not contain all the values in the
    * sort order, any missing values will be considered as a unknown or
-   * wildcard value instead of a nonexistant value. When comparing partial
+   * wildcard value instead of a non existent value. When comparing partial
    * information, only values available in both the values set and the
    * given values will be used to determine the ordering. If all available
    * information is the same, 0 will be returned.
@@ -325,25 +312,29 @@ public class VLVKeyComparator implements DatabaseComparator
     {
       // If we've gotten here, then we can't tell a difference between the sets
       // of values, so sort based on entry ID.
-
-      long idDifference = (set.getEntryIDs()[index] - entryID);
-      if (idDifference < 0)
-      {
-        return -1;
-      }
-      else if (idDifference > 0)
-      {
-        return 1;
-      }
-      else
-      {
-        return 0;
-      }
+      return compare(set.getEntryIDs()[index], entryID);
     }
 
     // If we've gotten here, then we can't tell the difference between the sets
     // of available values and the entry ID is not available. Just return 0.
     return 0;
+  }
+
+  private int compare(long l1, long l2)
+  {
+    final long difference = l1 - l2;
+    if (difference < 0)
+    {
+      return -1;
+    }
+    else if (difference > 0)
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
   }
 
   /** {@inheritDoc} */

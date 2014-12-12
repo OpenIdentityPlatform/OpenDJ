@@ -26,7 +26,6 @@ package org.opends.server.backends.pluggable;
 
 import java.io.Closeable;
 
-import org.opends.server.backends.jeb.EntryID;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -86,15 +85,4 @@ public interface SuffixContainer extends Closeable
    *         count not be determined
    */
   long getEntryCount();
-
-  /**
-   * Returns the entry corresponding to the provided entryID.
-   *
-   * @param entryID
-   *          the id of the entry to retrieve
-   * @return the entry corresponding to the provided entryID
-   * @throws DirectoryException
-   *           If an error occurs retrieving the entry
-   */
-  Entry getEntry(EntryID entryID) throws DirectoryException;
 }

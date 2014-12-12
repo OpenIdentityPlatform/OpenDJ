@@ -1218,8 +1218,15 @@ public class EntryContainer
     }
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Returns the entry corresponding to the provided entryID.
+   *
+   * @param entryID
+   *          the id of the entry to retrieve
+   * @return the entry corresponding to the provided entryID
+   * @throws DirectoryException
+   *           If an error occurs retrieving the entry
+   */
   public Entry getEntry(EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
