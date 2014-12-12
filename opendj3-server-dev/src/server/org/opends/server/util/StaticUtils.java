@@ -773,7 +773,6 @@ public final class StaticUtils
     {
       return (char) b;
     }
-
     return ' ';
   }
 
@@ -813,7 +812,6 @@ public final class StaticUtils
    * array using hexadecimal characters and a space between each byte.
    *
    * @param  b  The byte array containing the data.
-   *
    * @return  A string representation of the contents of the provided byte
    *          array using hexadecimal characters.
    */
@@ -832,6 +830,34 @@ public final class StaticUtils
     {
       buffer.append(" ");
       buffer.append(byteToHex(b[i]));
+    }
+
+    return buffer.toString();
+  }
+
+  /**
+   * Retrieves a string representation of the contents of the provided byte
+   * sequence using hexadecimal characters and a space between each byte.
+   *
+   * @param b The byte sequence containing the data.
+   * @return A string representation of the contents of the provided byte
+   *         sequence using hexadecimal characters.
+   */
+  public static String bytesToHex(ByteSequence b)
+  {
+    if ((b == null) || (b.length() == 0))
+    {
+      return "";
+    }
+
+    int arrayLength = b.length();
+    StringBuilder buffer = new StringBuilder((arrayLength - 1) * 3 + 2);
+    buffer.append(byteToHex(b.byteAt(0)));
+
+    for (int i=1; i < arrayLength; i++)
+    {
+      buffer.append(" ");
+      buffer.append(byteToHex(b.byteAt(i)));
     }
 
     return buffer.toString();
@@ -4199,6 +4225,7 @@ public final class StaticUtils
         }
         catch (NamingException ignored)
         {
+          // ignore
         }
       }
     }
@@ -4219,6 +4246,7 @@ public final class StaticUtils
     }
     catch (InterruptedException wokenUp)
     {
+      // ignore
     }
   }
 
@@ -4348,7 +4376,6 @@ public final class StaticUtils
   {
     return new Iterable<T>()
     {
-
       @Override
       public Iterator<T> iterator()
       {
