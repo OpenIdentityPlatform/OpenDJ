@@ -1478,7 +1478,7 @@ public class EntryContainer
   {
     try
     {
-      storage.update(new WriteOperation()
+      storage.write(new WriteOperation()
       {
         @Override
         public void run(WriteableStorage txn) throws Exception
@@ -1641,7 +1641,7 @@ public class EntryContainer
   {
     try
     {
-      storage.update(new WriteOperation()
+      storage.write(new WriteOperation()
       {
         @Override
         public void run(WriteableStorage txn) throws Exception
@@ -2040,7 +2040,7 @@ public class EntryContainer
   {
     try
     {
-      storage.update(new WriteOperation()
+      storage.write(new WriteOperation()
       {
         @Override
         public void run(WriteableStorage txn) throws Exception
@@ -2175,7 +2175,7 @@ public class EntryContainer
   {
     try
     {
-      storage.update(new WriteOperation()
+      storage.write(new WriteOperation()
       {
         @Override
         public void run(WriteableStorage txn) throws Exception
