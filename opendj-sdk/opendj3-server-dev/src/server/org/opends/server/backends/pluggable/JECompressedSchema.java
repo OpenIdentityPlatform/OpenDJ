@@ -36,6 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.BackendImpl.Cursor;
@@ -45,18 +46,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
-
-
-
-
-
-
-
-
-
-
-import static com.sleepycat.je.LockMode.*;
-import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.JebMessages.*;
 
@@ -281,8 +270,8 @@ public final class JECompressedSchema extends CompressedSchema
   private boolean putNoOverwrite(final Database database, final byte[] key, final ByteStringBuilder value)
       throws DirectoryException
   {
-    final ByteString keyEntry = new ByteString(key);
-    final ByteString valueEntry = new ByteString(value.getBackingArray(), 0, value.length());
+    final ByteString keyEntry = ByteString.wrap(key);
+    final ByteString valueEntry = ByteString.wrap(value.getBackingArray(), 0, value.length());
     for (int i = 0; i < 3; i++)
     {
       try

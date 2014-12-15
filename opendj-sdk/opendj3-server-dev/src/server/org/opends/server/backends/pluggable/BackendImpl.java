@@ -80,7 +80,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  interface Importer extends Closeable
+  public interface Importer extends Closeable
   {
     void createTree(TreeName name);
 
@@ -90,12 +90,12 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     void close();
   }
 
-  interface ReadOperation<T>
+  public interface ReadOperation<T>
   {
     T run(ReadableStorage txn) throws Exception;
   }
 
-  interface ReadableStorage
+  public interface ReadableStorage
   {
     ByteString get(TreeName name, ByteSequence key);
 
@@ -106,7 +106,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     // TODO: contains, etc.
   }
 
-  interface Cursor extends Closeable
+  public interface Cursor extends Closeable
   {
     boolean positionToKey(ByteSequence key);
 
@@ -126,7 +126,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     public void close();
   }
 
-  interface Storage extends Closeable
+  public interface Storage extends Closeable
   {
     void initialize(Map<String, String> options) throws Exception;
 
@@ -138,7 +138,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
     <T> T read(ReadOperation<T> readTransaction) throws Exception;
 
-    void update(WriteOperation updateTransaction) throws Exception;
+    void write(WriteOperation updateTransaction) throws Exception;
 
     Cursor openCursor(TreeName name);
 
@@ -147,7 +147,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   }
 
   @SuppressWarnings("serial")
-  static final class StorageRuntimeException extends RuntimeException
+  public static final class StorageRuntimeException extends RuntimeException
   {
 
     public StorageRuntimeException(final String message)
@@ -167,7 +167,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   }
 
   /** Assumes name components don't contain a '/'. */
-  static final class TreeName
+  public static final class TreeName
   {
     public static TreeName of(final String... names)
     {
@@ -257,12 +257,12 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
   }
 
-  interface WriteOperation
+  public interface WriteOperation
   {
     void run(WriteableStorage txn) throws Exception;
   }
 
-  interface WriteableStorage extends ReadableStorage
+  public interface WriteableStorage extends ReadableStorage
   {
     void put(TreeName name, ByteSequence key, ByteSequence value);
 
