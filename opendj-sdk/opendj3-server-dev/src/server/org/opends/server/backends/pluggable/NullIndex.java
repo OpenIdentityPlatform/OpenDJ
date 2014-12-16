@@ -208,7 +208,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void open() throws StorageRuntimeException
+  public void open(WriteableStorage txn) throws StorageRuntimeException
   {
     // Do nothing.
   }

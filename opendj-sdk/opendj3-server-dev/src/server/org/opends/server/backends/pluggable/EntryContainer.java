@@ -152,14 +152,19 @@ public class EntryContainer
   {
     /** {@inheritDoc} */
     @Override
-    public boolean isConfigurationAddAcceptable(
-        LocalDBIndexCfg cfg,
-        List<LocalizableMessage> unacceptableReasons)
+    public boolean isConfigurationAddAcceptable(final LocalDBIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
       try
       {
-        //Try creating all the indexes before confirming they are valid ones.
-        new AttributeIndex(cfg, EntryContainer.this);
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            //Try creating all the indexes before confirming they are valid ones.
+            new AttributeIndex(cfg, EntryContainer.this, txn);
+          }
+        });
         return true;
       }
       catch(Exception e)
@@ -171,31 +176,33 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationAdd(LocalDBIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationAdd(final LocalDBIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
+      final ConfigChangeResult ccr = new ConfigChangeResult();
       try
       {
-        AttributeIndex index = new AttributeIndex(cfg, EntryContainer.this);
-        index.open();
-        if(!index.isTrusted())
+        storage.write(new WriteOperation()
         {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              cfg.getAttribute().getNameOrOID()));
-        }
-        attrIndexMap.put(cfg.getAttribute(), index);
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            final AttributeIndex index = new AttributeIndex(cfg, EntryContainer.this, txn);
+            index.open(txn);
+            if (!index.isTrusted())
+            {
+              ccr.setAdminActionRequired(true);
+              ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getAttribute().getNameOrOID()));
+            }
+            attrIndexMap.put(cfg.getAttribute(), index);
+          }
+        });
       }
       catch(Exception e)
       {
-        messages.add(LocalizableMessage.raw(e.getLocalizedMessage()));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(LocalizableMessage.raw(e.getLocalizedMessage()));
       }
-
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
 
     /** {@inheritDoc} */
@@ -308,38 +315,38 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationAdd(LocalDBVLVIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationAdd(final LocalDBVLVIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
+      final ConfigChangeResult ccr = new ConfigChangeResult();
       try
       {
-        VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this);
-        vlvIndex.open();
-        if(!vlvIndex.isTrusted())
+        storage.write(new WriteOperation()
         {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              cfg.getName()));
-        }
-        vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            VLVIndex vlvIndex = new VLVIndex(cfg, state, storage, EntryContainer.this, txn);
+            vlvIndex.open(txn);
+            if(!vlvIndex.isTrusted())
+            {
+              ccr.setAdminActionRequired(true);
+              ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getName()));
+            }
+            vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
+          }
+        });
       }
       catch(Exception e)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
       }
-
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
 
     /** {@inheritDoc} */
     @Override
-    public boolean isConfigurationDeleteAcceptable(
-        LocalDBVLVIndexCfg cfg,
-        List<LocalizableMessage> unacceptableReasons)
+    public boolean isConfigurationDeleteAcceptable(LocalDBVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
       // TODO: validate more before returning true?
       return true;
@@ -425,8 +432,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public void open()
-  throws StorageRuntimeException, ConfigException
+  public void open(WriteableStorage txn) throws StorageRuntimeException, ConfigException
   {
     try
     {
@@ -437,17 +443,17 @@ public class EntryContainer
 
       id2entry = new ID2Entry(databasePrefix.child(ID2ENTRY_DATABASE_NAME),
           entryDataConfig, storage, this);
-      id2entry.open();
+      id2entry.open(txn);
 
       dn2id = new DN2ID(databasePrefix.child(DN2ID_DATABASE_NAME), storage, this);
-      dn2id.open();
+      dn2id.open(txn);
 
       state = new State(databasePrefix.child(STATE_DATABASE_NAME), storage, this);
-      state.open();
+      state.open(txn);
 
       if (config.isSubordinateIndexesEnabled())
       {
-        openSubordinateIndexes();
+        openSubordinateIndexes(txn);
       }
       else
       {
@@ -459,7 +465,7 @@ public class EntryContainer
         {
           state.putIndexTrustState(null, id2children, false);
         }
-        id2children.open(); // No-op
+        id2children.open(txn); // No-op
 
         id2subtree = new NullIndex(databasePrefix.child(ID2SUBTREE_DATABASE_NAME),
             new ID2SIndexer(), state, storage, this);
@@ -467,20 +473,20 @@ public class EntryContainer
         {
           state.putIndexTrustState(null, id2subtree, false);
         }
-        id2subtree.open(); // No-op
+        id2subtree.open(txn); // No-op
 
         logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
       }
 
       dn2uri = new DN2URI(databasePrefix.child(REFERRAL_DATABASE_NAME), storage, this);
-      dn2uri.open();
+      dn2uri.open(txn);
 
       for (String idx : config.listLocalDBIndexes())
       {
         LocalDBIndexCfg indexCfg = config.getLocalDBIndex(idx);
 
-        AttributeIndex index = new AttributeIndex(indexCfg, this);
-        index.open();
+        AttributeIndex index = new AttributeIndex(indexCfg, this, txn);
+        index.open(txn);
         if(!index.isTrusted())
         {
           logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, index.getName());
@@ -492,8 +498,8 @@ public class EntryContainer
       {
         LocalDBVLVIndexCfg vlvIndexCfg = config.getLocalDBVLVIndex(idx);
 
-        VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, storage, this);
-        vlvIndex.open();
+        VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, storage, this, txn);
+        vlvIndex.open(txn);
 
         if(!vlvIndex.isTrusted())
         {
@@ -683,9 +689,9 @@ public class EntryContainer
    * @return The highest entry ID.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public EntryID getHighestEntryID() throws StorageRuntimeException
+  public EntryID getHighestEntryID(ReadableStorage txn) throws StorageRuntimeException
   {
-    Cursor cursor = storage.openCursor(id2entry.getName());
+    Cursor cursor = txn.openCursor(id2entry.getName());
     try
     {
       // Position a cursor on the last data item, and the key should give the highest ID.
@@ -821,9 +827,7 @@ public class EntryContainer
           // Handle base-object search first.
           if (searchScope == SearchScope.BASE_OBJECT)
           {
-            // Fetch the base entry.
-            Entry baseEntry = fetchBaseEntry(aBaseDN, searchScope);
-
+            final Entry baseEntry = fetchBaseEntry(txn, aBaseDN, searchScope);
             if (!isManageDsaITOperation(searchOperation))
             {
               dn2uri.checkTargetForReferral(baseEntry, searchOperation.getScope());
@@ -1002,7 +1006,7 @@ public class EntryContainer
             {
               rootContainer.getMonitorProvider().updateIndexedSearchCount();
             }
-            searchIndexed(entryIDList, candidatesAreInScope, searchOperation, pageRequest);
+            searchIndexed(txn, entryIDList, candidatesAreInScope, searchOperation, pageRequest);
           }
           else
           {
@@ -1045,7 +1049,7 @@ public class EntryContainer
               }
             }
 
-            searchNotIndexed(searchOperation, pageRequest);
+            searchNotIndexed(txn, searchOperation, pageRequest);
           }
           return null;
         }
@@ -1075,7 +1079,7 @@ public class EntryContainer
    * @throws DirectoryException If an error prevented the search from being
    * processed.
    */
-  private void searchNotIndexed(SearchOperation searchOperation, PagedResultsControl pageRequest)
+  private void searchNotIndexed(ReadableStorage txn, SearchOperation searchOperation, PagedResultsControl pageRequest)
       throws DirectoryException, CanceledOperationException
   {
     DN aBaseDN = searchOperation.getBaseDN();
@@ -1087,9 +1091,7 @@ public class EntryContainer
     // the base entry processing if the cookie is set.
     if (pageRequest == null || pageRequest.getCookie().length() == 0)
     {
-      // Fetch the base entry.
-      Entry baseEntry = fetchBaseEntry(aBaseDN, searchScope);
-
+      final Entry baseEntry = fetchBaseEntry(txn, aBaseDN, searchScope);
       if (!manageDsaIT)
       {
         dn2uri.checkTargetForReferral(baseEntry, searchScope);
@@ -1105,7 +1107,7 @@ public class EntryContainer
       }
 
       if (!manageDsaIT
-          && !dn2uri.returnSearchReferences(searchOperation)
+          && !dn2uri.returnSearchReferences(txn, searchOperation)
           && pageRequest != null)
       {
         // Indicate no more pages.
@@ -1165,7 +1167,7 @@ public class EntryContainer
 
     try
     {
-      Cursor cursor = storage.openCursor(dn2id.getName());
+      final Cursor cursor = txn.openCursor(dn2id.getName());
       try
       {
         // Initialize the cursor very close to the starting value.
@@ -1305,11 +1307,9 @@ public class EntryContainer
    * @throws DirectoryException If an error prevented the search from being
    * processed.
    */
-  private void searchIndexed(EntryIDSet entryIDList,
-      boolean candidatesAreInScope,
-      SearchOperation searchOperation,
-      PagedResultsControl pageRequest)
-  throws DirectoryException, CanceledOperationException
+  private void searchIndexed(ReadableStorage txn, EntryIDSet entryIDList, boolean candidatesAreInScope,
+      SearchOperation searchOperation, PagedResultsControl pageRequest) throws DirectoryException,
+      CanceledOperationException
   {
     SearchScope searchScope = searchOperation.getScope();
     DN aBaseDN = searchOperation.getBaseDN();
@@ -1336,8 +1336,7 @@ public class EntryContainer
     }
     else if (!manageDsaIT)
     {
-      // Return any search result references.
-      continueSearch = dn2uri.returnSearchReferences(searchOperation);
+      continueSearch = dn2uri.returnSearchReferences(txn, searchOperation);
     }
 
     // Make sure the candidate list is smaller than the lookthrough limit
@@ -1408,9 +1407,7 @@ public class EntryContainer
     if (searchOperation.getEntriesSent() == 0
         && searchOperation.getReferencesSent() == 0)
     {
-      // Fetch the base entry if it exists.
-      Entry baseEntry = fetchBaseEntry(aBaseDN, searchScope);
-
+      final Entry baseEntry = fetchBaseEntry(txn, aBaseDN, searchScope);
       if (!manageDsaIT)
       {
         dn2uri.checkTargetForReferral(baseEntry, searchScope);
@@ -1499,7 +1496,7 @@ public class EntryContainer
             if (parentDN != null)
             {
               // Check for referral entries above the target.
-              dn2uri.targetEntryReferrals(entry.getName(), null);
+              dn2uri.targetEntryReferrals(txn, entry.getName(), null);
 
               // Read the parent ID from dn2id.
               parentID = dn2id.get(txn, parentDN, false);
@@ -1651,7 +1648,7 @@ public class EntryContainer
           try
           {
             // Check for referral entries above the target entry.
-            dn2uri.targetEntryReferrals(entryDN, null);
+            dn2uri.targetEntryReferrals(txn, entryDN, null);
 
             // Determine whether this is a subtree delete.
             boolean isSubtreeDelete =
@@ -1677,8 +1674,6 @@ public class EntryContainer
 
             ByteSequence startKey = suffix;
 
-            CursorConfig cursorConfig = new CursorConfig();
-            cursorConfig.setReadCommitted(true);
             Cursor cursor = dn2id.openCursor(txn);
             try
             {
@@ -1989,7 +1984,7 @@ public class EntryContainer
             {
               // The entryDN does not exist.
               // Check for referral entries above the target entry.
-              dn2uri.targetEntryReferrals(entryDN, null);
+              dn2uri.targetEntryReferrals(txn, entryDN, null);
               return null;
             }
 
@@ -2212,7 +2207,7 @@ public class EntryContainer
             if (oldApexID == null)
             {
               // Check for referral entries above the target entry.
-              dn2uri.targetEntryReferrals(currentDN, null);
+              dn2uri.targetEntryReferrals(txn, currentDN, null);
 
               LocalizableMessage message = ERR_JEB_MODIFYDN_NO_SUCH_OBJECT.get(currentDN);
               DN matchedDN = getMatchedDN(baseDN);
@@ -3109,7 +3104,7 @@ public class EntryContainer
         {
           TreeName oldName = db.getName();
           String newName = oldName.replace(databasePrefix, newDbPrefix);
-          storage.renameDatabase(null, oldName, newName);
+          storage.renameDatabase(txn, oldName, newName);
           db.setName(newName);
         }
 
@@ -3122,7 +3117,7 @@ public class EntryContainer
       // Open the containers backup.
       for(DatabaseContainer db : databases)
       {
-        db.open();
+        db.open(txn);
       }
     }
   }
@@ -3161,74 +3156,79 @@ public class EntryContainer
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(final LocalDBBackendCfg cfg)
   {
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     exclusiveLock.lock();
     try
     {
-      if (config.isSubordinateIndexesEnabled() != cfg.isSubordinateIndexesEnabled())
+      storage.write(new WriteOperation()
       {
-        if (cfg.isSubordinateIndexesEnabled())
+        @Override
+        public void run(WriteableStorage txn) throws Exception
         {
-          // Re-enabling subordinate indexes.
-          openSubordinateIndexes();
+          if (config.isSubordinateIndexesEnabled() != cfg.isSubordinateIndexesEnabled())
+          {
+            if (cfg.isSubordinateIndexesEnabled())
+            {
+              // Re-enabling subordinate indexes.
+              openSubordinateIndexes(txn);
+            }
+            else
+            {
+              // Disabling subordinate indexes. Use a null index and ensure that
+              // future attempts to use the real indexes will fail.
+              id2children.close();
+              id2children = new NullIndex(databasePrefix.child(ID2CHILDREN_DATABASE_NAME),
+                  new ID2CIndexer(), state, storage, EntryContainer.this);
+              state.putIndexTrustState(null, id2children, false);
+              id2children.open(txn); // No-op
+
+              id2subtree.close();
+              id2subtree = new NullIndex(databasePrefix.child(ID2SUBTREE_DATABASE_NAME),
+                  new ID2SIndexer(), state, storage, EntryContainer.this);
+              state.putIndexTrustState(null, id2subtree, false);
+              id2subtree.open(txn); // No-op
+
+              logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
+            }
+          }
+
+          if (config.getIndexEntryLimit() != cfg.getIndexEntryLimit())
+          {
+            if (id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
+            {
+              ccr.setAdminActionRequired(true);
+              ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2children.getName()));
+            }
+
+            if (id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
+            {
+              ccr.setAdminActionRequired(true);
+              ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2subtree.getName()));
+            }
+          }
+
+          DataConfig entryDataConfig = new DataConfig(cfg.isEntriesCompressed(),
+              cfg.isCompactEncoding(), rootContainer.getCompressedSchema());
+          id2entry.setDataConfig(entryDataConfig);
+
+          EntryContainer.this.config = cfg;
         }
-        else
-        {
-          // Disabling subordinate indexes. Use a null index and ensure that
-          // future attempts to use the real indexes will fail.
-          id2children.close();
-          id2children = new NullIndex(databasePrefix.child(ID2CHILDREN_DATABASE_NAME),
-              new ID2CIndexer(), state, storage, this);
-          state.putIndexTrustState(null, id2children, false);
-          id2children.open(); // No-op
-
-          id2subtree.close();
-          id2subtree = new NullIndex(databasePrefix.child(ID2SUBTREE_DATABASE_NAME),
-              new ID2SIndexer(), state, storage, this);
-          state.putIndexTrustState(null, id2subtree, false);
-          id2subtree.open(); // No-op
-
-          logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
-        }
-      }
-
-      if (config.getIndexEntryLimit() != cfg.getIndexEntryLimit())
-      {
-        if (id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-        {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2children.getName()));
-        }
-
-        if (id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
-        {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2subtree.getName()));
-        }
-      }
-
-      DataConfig entryDataConfig = new DataConfig(cfg.isEntriesCompressed(),
-          cfg.isCompactEncoding(), rootContainer.getCompressedSchema());
-      id2entry.setDataConfig(entryDataConfig);
-
-      this.config = cfg;
+      });
     }
-    catch (StorageRuntimeException e)
+    catch (Exception e)
     {
-      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-          false, messages);
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
     finally
     {
       exclusiveLock.unlock();
     }
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+    return ccr;
   }
 
   /**
@@ -3294,7 +3294,7 @@ public class EntryContainer
     {
       for(DatabaseContainer db : databases)
       {
-        db.open();
+        db.open(txn);
       }
 
       Transaction txn = null;
@@ -3370,7 +3370,7 @@ public class EntryContainer
     }
     finally
     {
-      database.open();
+      database.open(txn);
     }
     if(logger.isTraceEnabled())
     {
@@ -3401,20 +3401,18 @@ public class EntryContainer
     return null;
   }
 
-  /**
-   * Opens the id2children and id2subtree indexes.
-   */
-  private void openSubordinateIndexes()
+  /** Opens the id2children and id2subtree indexes. */
+  private void openSubordinateIndexes(WriteableStorage txn)
   {
-    id2children = newIndex(ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
-    id2subtree = newIndex(ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
+    id2children = newIndex(txn, ID2CHILDREN_DATABASE_NAME, new ID2CIndexer());
+    id2subtree = newIndex(txn, ID2SUBTREE_DATABASE_NAME, new ID2SIndexer());
   }
 
-  private Index newIndex(String name, Indexer indexer)
+  private Index newIndex(WriteableStorage txn, String name, Indexer indexer)
   {
     final Index index = new Index(databasePrefix.child(name),
-        indexer, state, config.getIndexEntryLimit(), 0, true, storage, this);
-    index.open();
+        indexer, state, config.getIndexEntryLimit(), 0, true, storage, txn, this);
+    index.open(txn);
     if (!index.isTrusted())
     {
       logger.info(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD, index.getName());
@@ -3430,10 +3428,10 @@ public class EntryContainer
    * @param indexEntryLimit the index entry limit
    * @return a new index
    */
-  Index newIndexForAttribute(TreeName indexName, Indexer indexer, int indexEntryLimit)
+  Index newIndexForAttribute(WriteableStorage txn, TreeName indexName, Indexer indexer, int indexEntryLimit)
   {
     final int cursorEntryLimit = 100000;
-    return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, storage, this);
+    return new Index(indexName, indexer, state, indexEntryLimit, cursorEntryLimit, false, storage, txn, this);
   }
 
 
@@ -3481,10 +3479,9 @@ public class EntryContainer
    * @return the Entry matching the baseDN.
    * @throws DirectoryException if the baseDN doesn't exist.
    */
-  private Entry fetchBaseEntry(DN baseDN, SearchScope searchScope)
-          throws DirectoryException
+  private Entry fetchBaseEntry(ReadableStorage txn, DN baseDN, SearchScope searchScope)
+      throws DirectoryException
   {
-    // Fetch the base entry.
     Entry baseEntry = null;
     try
     {
@@ -3499,7 +3496,7 @@ public class EntryContainer
     if (baseEntry == null)
     {
       // Check for referral entries above the base entry.
-      dn2uri.targetEntryReferrals(baseDN, searchScope);
+      dn2uri.targetEntryReferrals(txn, baseDN, searchScope);
 
       LocalizableMessage message = ERR_JEB_SEARCH_NO_SUCH_OBJECT.get(baseDN);
       DN matchedDN = getMatchedDN(baseDN);

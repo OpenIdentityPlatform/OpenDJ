@@ -29,7 +29,6 @@ package org.opends.server.backends.pluggable;
 
 import java.io.Closeable;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -38,7 +37,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -48,6 +46,8 @@ import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
 import org.opends.server.backends.pluggable.BackendImpl.TreeName;
+import org.opends.server.backends.pluggable.BackendImpl.WriteOperation;
+import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.*;
@@ -133,42 +133,42 @@ public class AttributeIndex
    * @param entryContainer The entryContainer of this attribute index.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public AttributeIndex(LocalDBIndexCfg indexConfig, EntryContainer entryContainer) throws ConfigException
+  public AttributeIndex(LocalDBIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn) throws ConfigException
   {
     this.entryContainer = entryContainer;
     this.indexConfig = indexConfig;
 
-    buildPresenceIndex();
-    buildIndexes(IndexType.EQUALITY);
-    buildIndexes(IndexType.SUBSTRING);
-    buildIndexes(IndexType.ORDERING);
-    buildIndexes(IndexType.APPROXIMATE);
-    buildExtensibleIndexes();
+    buildPresenceIndex(txn);
+    buildIndexes(txn, IndexType.EQUALITY);
+    buildIndexes(txn, IndexType.SUBSTRING);
+    buildIndexes(txn, IndexType.ORDERING);
+    buildIndexes(txn, IndexType.APPROXIMATE);
+    buildExtensibleIndexes(txn);
 
     final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
     indexQueryFactory = new IndexQueryFactoryImpl(nameToIndexes, config);
     extensibleIndexesMapping = computeExtensibleIndexesMapping();
   }
 
-  private void buildPresenceIndex()
+  private void buildPresenceIndex(WriteableStorage txn)
   {
     final IndexType indexType = IndexType.PRESENCE;
     if (indexConfig.getIndexType().contains(indexType))
     {
       String indexID = indexType.toString();
-      nameToIndexes.put(indexID, newPresenceIndex(indexConfig));
+      nameToIndexes.put(indexID, newPresenceIndex(txn, indexConfig));
     }
   }
 
-  private Index newPresenceIndex(LocalDBIndexCfg cfg)
+  private Index newPresenceIndex(WriteableStorage txn, LocalDBIndexCfg cfg)
   {
     final AttributeType attrType = cfg.getAttribute();
     final TreeName indexName = getIndexName(attrType, IndexType.PRESENCE.toString());
     final PresenceIndexer indexer = new PresenceIndexer(attrType);
-    return entryContainer.newIndexForAttribute(indexName, indexer, cfg.getIndexEntryLimit());
+    return entryContainer.newIndexForAttribute(txn, indexName, indexer, cfg.getIndexEntryLimit());
   }
 
-  private void buildExtensibleIndexes() throws ConfigException
+  private void buildExtensibleIndexes(WriteableStorage txn) throws ConfigException
   {
     final IndexType indexType = IndexType.EXTENSIBLE;
     if (indexConfig.getIndexType().contains(indexType))
@@ -198,14 +198,14 @@ public class AttributeIndex
           if (!nameToIndexes.containsKey(indexId))
           {
             // There is no index available for this index id. Create a new index
-            nameToIndexes.put(indexId, newAttributeIndex(indexConfig, indexer));
+            nameToIndexes.put(indexId, newAttributeIndex(txn, indexConfig, indexer));
           }
         }
       }
     }
   }
 
-  private void buildIndexes(IndexType indexType) throws ConfigException
+  private void buildIndexes(WriteableStorage txn, IndexType indexType) throws ConfigException
   {
     if (indexConfig.getIndexType().contains(indexType))
     {
@@ -219,7 +219,7 @@ public class AttributeIndex
 
       for (org.forgerock.opendj.ldap.spi.Indexer indexer : rule.getIndexers())
       {
-        nameToIndexes.put(indexID, newAttributeIndex(indexConfig, indexer));
+        nameToIndexes.put(indexID, newAttributeIndex(txn, indexConfig, indexer));
       }
     }
   }
@@ -241,12 +241,13 @@ public class AttributeIndex
     }
   }
 
-  private Index newAttributeIndex(LocalDBIndexCfg indexConfig, org.forgerock.opendj.ldap.spi.Indexer indexer)
+  private Index newAttributeIndex(WriteableStorage txn, LocalDBIndexCfg indexConfig,
+      org.forgerock.opendj.ldap.spi.Indexer indexer)
   {
     final AttributeType attrType = indexConfig.getAttribute();
     final TreeName indexName = getIndexName(attrType, indexer.getIndexID());
     final AttributeIndexer attrIndexer = new AttributeIndexer(attrType, indexer);
-    return entryContainer.newIndexForAttribute(indexName, attrIndexer, indexConfig.getIndexEntryLimit());
+    return entryContainer.newIndexForAttribute(txn, indexName, attrIndexer, indexConfig.getIndexEntryLimit());
   }
 
   private TreeName getIndexName(AttributeType attrType, String indexID)
@@ -260,11 +261,11 @@ public class AttributeIndex
    * @throws StorageRuntimeException if a JE database error occurs while
    * opening the index.
    */
-  public void open() throws StorageRuntimeException
+  public void open(WriteableStorage txn) throws StorageRuntimeException
   {
     for (Index index : nameToIndexes.values())
     {
-      index.open();
+      index.open(txn);
     }
     indexConfig.addChangeListener(this);
   }
@@ -635,35 +636,37 @@ public class AttributeIndex
 
   /** {@inheritDoc} */
   @Override
-  public synchronized ConfigChangeResult applyConfigurationChange(LocalDBIndexCfg cfg)
+  public synchronized ConfigChangeResult applyConfigurationChange(final LocalDBIndexCfg cfg)
   {
-    // this method is not perf sensitive, using an AtomicBoolean will not hurt
-    AtomicBoolean adminActionRequired = new AtomicBoolean(false);
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
-      applyChangeToPresenceIndex(cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.EQUALITY, cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.SUBSTRING, cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.ORDERING, cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.APPROXIMATE, cfg, adminActionRequired, messages);
-      applyChangeToExtensibleIndexes(cfg, adminActionRequired, messages);
+      entryContainer.getStorage().write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableStorage txn) throws Exception
+        {
+          applyChangeToPresenceIndex(txn, cfg, ccr);
+          applyChangeToIndex(txn, IndexType.EQUALITY, cfg, ccr);
+          applyChangeToIndex(txn, IndexType.SUBSTRING, cfg, ccr);
+          applyChangeToIndex(txn, IndexType.ORDERING, cfg, ccr);
+          applyChangeToIndex(txn, IndexType.APPROXIMATE, cfg, ccr);
+          applyChangeToExtensibleIndexes(txn, cfg, ccr);
+        }
+      });
 
       extensibleIndexesMapping = computeExtensibleIndexesMapping();
       indexConfig = cfg;
-
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired.get(), messages);
     }
     catch(Exception e)
     {
-      messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(
-          DirectoryServer.getServerErrorResultCode(), adminActionRequired.get(), messages);
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
     }
+    return ccr;
   }
 
-  private void applyChangeToExtensibleIndexes(LocalDBIndexCfg cfg,
-      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private void applyChangeToExtensibleIndexes(WriteableStorage txn, LocalDBIndexCfg cfg, ConfigChangeResult ccr)
   {
     final AttributeType attrType = cfg.getAttribute();
     if (!cfg.getIndexType().contains(IndexType.EXTENSIBLE))
@@ -694,8 +697,8 @@ public class AttributeIndex
         validIndexIds.add(indexId);
         if (!nameToIndexes.containsKey(indexId))
         {
-          Index index = newAttributeIndex(cfg, indexer);
-          openIndex(index, adminActionRequired, messages);
+          Index index = newAttributeIndex(txn, cfg, indexer);
+          openIndex(txn, index, ccr);
           nameToIndexes.put(indexId, index);
         }
         else
@@ -703,8 +706,8 @@ public class AttributeIndex
           Index index = nameToIndexes.get(indexId);
           if (index.setIndexEntryLimit(indexEntryLimit))
           {
-            adminActionRequired.set(true);
-            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+            ccr.setAdminActionRequired(true);
+            ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
           }
           if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
           {
@@ -770,8 +773,7 @@ public class AttributeIndex
     return rules;
   }
 
-  private void applyChangeToIndex(IndexType indexType, LocalDBIndexCfg cfg,
-      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private void applyChangeToIndex(WriteableStorage txn, IndexType indexType, LocalDBIndexCfg cfg, ConfigChangeResult ccr)
   {
     String indexId = indexType.toString();
     Index index = nameToIndexes.get(indexId);
@@ -786,8 +788,8 @@ public class AttributeIndex
       final MatchingRule matchingRule = getMatchingRule(indexType, cfg.getAttribute());
       for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
       {
-        index = newAttributeIndex(cfg, indexer);
-        openIndex(index, adminActionRequired, messages);
+        index = newAttributeIndex(txn, cfg, indexer);
+        openIndex(txn, index, ccr);
         nameToIndexes.put(indexId, index);
       }
     }
@@ -796,14 +798,13 @@ public class AttributeIndex
       // already exists. Just update index entry limit.
       if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
-        adminActionRequired.set(true);
-        messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
     }
   }
 
-  private void applyChangeToPresenceIndex(LocalDBIndexCfg cfg, AtomicBoolean adminActionRequired,
-      ArrayList<LocalizableMessage> messages)
+  private void applyChangeToPresenceIndex(WriteableStorage txn, LocalDBIndexCfg cfg, ConfigChangeResult ccr)
   {
     final IndexType indexType = IndexType.PRESENCE;
     final String indexID = indexType.toString();
@@ -816,8 +817,8 @@ public class AttributeIndex
 
     if (index == null)
     {
-      index = newPresenceIndex(cfg);
-      openIndex(index, adminActionRequired, messages);
+      index = newPresenceIndex(txn, cfg);
+      openIndex(txn, index, ccr);
       nameToIndexes.put(indexID, index);
     }
     else
@@ -825,8 +826,8 @@ public class AttributeIndex
       // already exists. Just update index entry limit.
       if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
-        adminActionRequired.set(true);
-        messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
     }
   }
@@ -848,14 +849,14 @@ public class AttributeIndex
     }
   }
 
-  private void openIndex(Index index, AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private void openIndex(WriteableStorage txn, Index index, ConfigChangeResult ccr)
   {
-    index.open();
+    index.open(txn);
 
     if (!index.isTrusted())
     {
-      adminActionRequired.set(true);
-      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
   }
 

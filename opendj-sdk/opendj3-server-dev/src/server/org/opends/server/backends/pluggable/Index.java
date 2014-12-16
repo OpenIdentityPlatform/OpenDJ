@@ -37,13 +37,13 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.backends.pluggable.IndexBuffer.BufferedIndexValues;
 import org.opends.server.backends.pluggable.BackendImpl.Cursor;
 import org.opends.server.backends.pluggable.BackendImpl.ReadableStorage;
 import org.opends.server.backends.pluggable.BackendImpl.Storage;
 import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
 import org.opends.server.backends.pluggable.BackendImpl.TreeName;
 import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
+import org.opends.server.backends.pluggable.IndexBuffer.BufferedIndexValues;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
@@ -76,9 +76,6 @@ public class Index extends DatabaseContainer
    * object was created.
    */
   private int entryLimitExceededCount;
-
-  /** The max number of tries to rewrite phantom records. */
-  private final int phantomWriteRetries = 3;
 
   /**
    * Whether to maintain a count of IDs for a key once the entry limit
@@ -129,7 +126,7 @@ public class Index extends DatabaseContainer
    */
   public Index(TreeName name, Indexer indexer, State state,
         int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
-        Storage storage, EntryContainer entryContainer)
+        Storage storage, WriteableStorage txn, EntryContainer entryContainer)
       throws StorageRuntimeException
   {
     super(name, storage, entryContainer);
@@ -140,11 +137,11 @@ public class Index extends DatabaseContainer
 
     this.state = state;
     this.trusted = state.getIndexTrustState(null, this);
-    if (!trusted && entryContainer.getHighestEntryID().longValue() == 0)
+    if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
       // If there are no entries in the entry container then there
       // is no reason why this index can't be upgraded to trusted.
-      setTrusted(null, true);
+      setTrusted(txn, true);
     }
   }
 

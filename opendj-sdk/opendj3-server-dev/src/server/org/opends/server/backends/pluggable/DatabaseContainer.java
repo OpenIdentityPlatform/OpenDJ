@@ -78,34 +78,12 @@ public abstract class DatabaseContainer implements Closeable
    * @throws StorageRuntimeException if a JE database error occurs while
    * opening the index.
    */
-  public void open() throws StorageRuntimeException
+  public void open(WriteableStorage txn) throws StorageRuntimeException
   {
-    if (dbConfig.getTransactional())
+    storage.openTree(treeName);
+    if (logger.isTraceEnabled())
     {
-      // Open the database under a transaction.
-      Transaction txn = entryContainer.beginTransaction();
-      try
-      {
-        treeName = storage.openDatabase(txn, treeName, dbConfig);
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("JE database %s opened. txnid=%d", treeName, txn.getId());
-        }
-        EntryContainer.transactionCommit(txn);
-      }
-      catch (StorageRuntimeException e)
-      {
-        EntryContainer.transactionAbort(txn);
-        throw e;
-      }
-    }
-    else
-    {
-      treeName = storage.openDatabase(null, treeName, dbConfig);
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("JE database %s opened. txnid=none", treeName);
-      }
+      logger.trace("JE database %s opened. txnid=%d", treeName, txn.getId());
     }
   }
 
@@ -131,7 +109,6 @@ public abstract class DatabaseContainer implements Closeable
     {
       treeName.sync();
     }
-    storage.openTree(treeName)
     treeName.close();
     treeName = null;
 

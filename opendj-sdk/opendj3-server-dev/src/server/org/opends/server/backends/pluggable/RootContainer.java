@@ -40,16 +40,14 @@ import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.pluggable.BackendImpl.Storage;
 import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
+import org.opends.server.backends.pluggable.BackendImpl.WriteOperation;
+import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
-
-
-
-
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
@@ -209,7 +207,15 @@ public class RootContainer
     }
 
     compressedSchema = new JECompressedSchema(storage);
-    openAndRegisterEntryContainers(config.getBaseDN());
+
+    storage.write(new WriteOperation()
+    {
+      @Override
+      public void run(WriteableStorage txn) throws Exception
+      {
+        openAndRegisterEntryContainers(txn, config.getBaseDN());
+      }
+    });
   }
 
   /**
@@ -229,7 +235,7 @@ public class RootContainer
    * @throws ConfigException If an configuration error occurs while opening
    *                         the entry container.
    */
-  public EntryContainer openEntryContainer(DN baseDN, String name)
+  public EntryContainer openEntryContainer(DN baseDN, String name, WriteableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
     String databasePrefix;
@@ -244,7 +250,7 @@ public class RootContainer
 
     EntryContainer ec = new EntryContainer(baseDN, databasePrefix,
                                            backend, config, storage, this);
-    ec.open();
+    ec.open(txn);
     return ec;
   }
 
@@ -283,15 +289,15 @@ public class RootContainer
    * @throws ConfigException         If a configuration error occurs while
    *                                 opening the entry container.
    */
-  private void openAndRegisterEntryContainers(Set<DN> baseDNs)
+  private void openAndRegisterEntryContainers(WriteableStorage txn, Set<DN> baseDNs)
       throws StorageRuntimeException, InitializationException, ConfigException
   {
     EntryID id;
     EntryID highestID = null;
     for(DN baseDN : baseDNs)
     {
-      EntryContainer ec = openEntryContainer(baseDN, null);
-      id = ec.getHighestEntryID();
+      EntryContainer ec = openEntryContainer(baseDN, null, txn);
+      id = ec.getHighestEntryID(txn);
       registerEntryContainer(baseDN, ec);
       if(highestID == null || id.compareTo(highestID) > 0)
       {
