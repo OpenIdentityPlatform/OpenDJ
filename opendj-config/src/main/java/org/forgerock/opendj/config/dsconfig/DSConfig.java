@@ -138,10 +138,10 @@ public final class DSConfig extends ConsoleApplication {
                     return MenuResult.again();
                 }
             } catch (ArgumentException e) {
-                app.println(e.getMessageObject());
+                app.errPrintln(e.getMessageObject());
                 return MenuResult.success(1);
             } catch (ClientException e) {
-                app.println(e.getMessageObject());
+                app.errPrintln(e.getMessageObject());
                 return MenuResult.success(e.getReturnCode());
             }
         }
@@ -239,7 +239,7 @@ public final class DSConfig extends ConsoleApplication {
                 }
                 return result;
             } catch (ClientException e) {
-                app.println(e.getMessageObject());
+                app.errPrintln(e.getMessageObject());
                 return MenuResult.success(1);
             }
         }
@@ -256,6 +256,32 @@ public final class DSConfig extends ConsoleApplication {
      * intended for customization.
      */
     public static final String GENERIC_TYPE = "generic";
+
+    /**
+     * Prints the provided error message if the provided application is
+     * interactive, throws a {@link ClientException} with provided error code
+     * and message otherwise.
+     *
+     * @param app
+     *            The console application where the message should be printed.
+     * @param msg
+     *            The human readable error message.
+     * @param errorCode
+     *            The operation error code.
+     * @return A generic cancel menu result if application is interactive.
+     * @throws ClientException
+     *             If the application is not interactive.
+     */
+    static <T> MenuResult<T> interactivePrintOrThrowError(ConsoleApplication app,
+        LocalizableMessage msg, ReturnCode errorCode) throws ClientException {
+        if (app.isInteractive()) {
+            app.errPrintln();
+            app.errPrintln(msg);
+            return MenuResult.cancel();
+        } else {
+            throw new ClientException(errorCode, msg);
+        }
+    }
 
     private long sessionStartTime;
     private boolean sessionStartTimePrinted;
@@ -294,7 +320,7 @@ public final class DSConfig extends ConsoleApplication {
             try {
                 ConfigurationFramework.getInstance().initialize();
             } catch (ConfigException e) {
-                app.println(e.getMessageObject());
+                app.errPrintln(e.getMessageObject());
                 return ReturnCode.ERROR_INITIALIZING_SERVER.get();
             }
         }
@@ -418,11 +444,11 @@ public final class DSConfig extends ConsoleApplication {
         return verboseArgument.isPresent();
     }
 
-    /** Displays the provided message followed by a help usage reference. */
-    private void displayMessageAndUsageReference(LocalizableMessage message) {
-        println(message);
-        println();
-        println(parser.getHelpUsageReference());
+    /** Displays the provided error message followed by a help usage reference. */
+    private void displayErrorMessageAndUsageReference(LocalizableMessage message) {
+        errPrintln(message);
+        errPrintln();
+        errPrintln(parser.getHelpUsageReference());
     }
 
     /**
@@ -560,7 +586,7 @@ public final class DSConfig extends ConsoleApplication {
             initializeGlobalArguments(args);
             initializeSubCommands();
         } catch (ArgumentException e) {
-            println(ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage()));
+            errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage()));
             return ReturnCode.ERROR_USER_DATA.get();
         }
 
@@ -574,7 +600,7 @@ public final class DSConfig extends ConsoleApplication {
             parser.parseArguments(args);
             checkForConflictingArguments();
         } catch (ArgumentException ae) {
-            displayMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+            displayErrorMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             return ReturnCode.CONFLICTING_ARGS.get();
         }
 
@@ -589,10 +615,10 @@ public final class DSConfig extends ConsoleApplication {
         if (equivalentCommandFileArgument.isPresent()) {
             final String file = equivalentCommandFileArgument.getValue();
             if (!canWrite(file)) {
-                println(ERR_DSCFG_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
+                errPrintln(ERR_DSCFG_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
                 return ReturnCode.ERROR_UNEXPECTED.get();
             } else if (new File(file).isDirectory()) {
-                println(ERR_DSCFG_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
+                errPrintln(ERR_DSCFG_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
                 return ReturnCode.ERROR_UNEXPECTED.get();
             }
         }
@@ -601,35 +627,30 @@ public final class DSConfig extends ConsoleApplication {
         try {
             factory = new LDAPManagementContextFactory(cfp);
         } catch (ArgumentException e) {
-            displayMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(e.getMessage()));
+            displayErrorMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(e.getMessage()));
             return ReturnCode.CONFLICTING_ARGS.get();
         }
 
         // Handle batch file if any
         if (batchFileArgument.isPresent()) {
             handleBatchFile(args);
-            // don't need to do anything else
             return ReturnCode.SUCCESS.get();
         }
 
         int retCode = 0;
-        if (parser.getSubCommand() == null) {
-            hasSubCommand = false;
-
+        hasSubCommand = parser.getSubCommand() != null;
+        if (!hasSubCommand) {
             if (isInteractive()) {
                 // Top-level interactive mode.
                 retCode = runInteractiveMode();
             } else {
-                LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
-                displayMessageAndUsageReference(message);
+                displayErrorMessageAndUsageReference(
+                    ERR_ERROR_PARSING_ARGS.get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get()));
                 retCode = ReturnCode.ERROR_USER_DATA.get();
             }
         } else {
-            hasSubCommand = true;
-
             // Retrieve the sub-command implementation and run it.
-            SubCommandHandler handler = handlers.get(parser.getSubCommand());
-            retCode = runSubCommand(handler);
+            retCode = runSubCommand(handlers.get(parser.getSubCommand()));
         }
 
         factory.close();
@@ -749,10 +770,10 @@ public final class DSConfig extends ConsoleApplication {
             // Force retrieval of management context.
             factory.getManagementContext(app);
         } catch (ArgumentException e) {
-            app.println(e.getMessageObject());
+            app.errPrintln(e.getMessageObject());
             return ReturnCode.ERROR_UNEXPECTED.get();
         } catch (ClientException e) {
-            app.println(e.getMessageObject());
+            app.errPrintln(e.getMessageObject());
             return ReturnCode.ERROR_UNEXPECTED.get();
         }
 
@@ -768,7 +789,7 @@ public final class DSConfig extends ConsoleApplication {
                 return result.getValue();
             }
         } catch (ClientException e) {
-            app.println(e.getMessageObject());
+            app.errPrintln(e.getMessageObject());
             return ReturnCode.ERROR_UNEXPECTED.get();
         }
     }
@@ -788,11 +809,11 @@ public final class DSConfig extends ConsoleApplication {
                 return ReturnCode.ERROR_UNEXPECTED.get();
             }
         } catch (ArgumentException e) {
-            println(e.getMessageObject());
+            errPrintln(e.getMessageObject());
             return ReturnCode.ERROR_UNEXPECTED.get();
         } catch (ClientException e) {
             Throwable cause = e.getCause();
-            println();
+            errPrintln();
             if (cause instanceof ManagedObjectDecodingException) {
                 displayManagedObjectDecodingException(this, (ManagedObjectDecodingException) cause);
             } else if (cause instanceof MissingMandatoryPropertiesException) {
@@ -801,13 +822,13 @@ public final class DSConfig extends ConsoleApplication {
                 displayOperationRejectedException(this, (OperationRejectedException) cause);
             } else {
                 // Just display the default message.
-                println(e.getMessageObject());
+                errPrintln(e.getMessageObject());
             }
-            println();
+            errPrintln();
 
             return ReturnCode.ERROR_UNEXPECTED.get();
         } catch (Exception e) {
-            println(LocalizableMessage.raw(stackTraceToSingleLineString(e, true)));
+            errPrintln(LocalizableMessage.raw(stackTraceToSingleLineString(e, true)));
             return ReturnCode.ERROR_UNEXPECTED.get();
         }
     }
@@ -901,7 +922,7 @@ public final class DSConfig extends ConsoleApplication {
 
                 writer.flush();
             } catch (IOException ioe) {
-                println(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
+                errPrintln(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
             } finally {
                 closeSilently(writer);
             }
@@ -993,7 +1014,7 @@ public final class DSConfig extends ConsoleApplication {
                 errPrintln();
             }
         } catch (IOException ex) {
-            println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
+            errPrintln(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
         } finally {
             closeSilently(bReader);
         }

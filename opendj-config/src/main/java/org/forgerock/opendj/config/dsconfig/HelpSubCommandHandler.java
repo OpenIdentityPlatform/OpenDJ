@@ -436,11 +436,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
         // Display the property synopsis and description.
         app.println();
-        app.errPrintln(pd.getSynopsis(), 4);
+        app.println(pd.getSynopsis(), 4);
 
         if (pd.getDescription() != null) {
             app.println();
-            app.errPrintln(pd.getDescription(), 4);
+            app.println(pd.getDescription(), 4);
         }
 
         if (pd instanceof AggregationPropertyDefinition) {

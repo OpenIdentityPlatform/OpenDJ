@@ -1025,8 +1025,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         switch (children.size()) {
         case 0: {
             // No options available - abort.
-            LocalizableMessage msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName());
-            app.println(msg);
+            app.errPrintln(ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(d.getUserFriendlyPluralName()));
             return MenuResult.cancel();
         }
         case 1: {
