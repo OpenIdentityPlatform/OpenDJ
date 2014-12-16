@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DN;
@@ -43,19 +44,11 @@ import org.opends.server.util.StaticUtils;
 public class JebFormat
 {
 
-  /**
-   * The format version used by this class to encode and decode a ByteString.
-   */
+  /** The format version used by this class to encode and decode a ByteString. */
   public static final byte FORMAT_VERSION = 0x01;
-
-  /**
-   * The ASN1 tag for the ByteString type.
-   */
+  /** The ASN1 tag for the ByteString type. */
   public static final byte TAG_DATABASE_ENTRY = 0x60;
-
-  /**
-   * The ASN1 tag for the DirectoryServerEntry type.
-   */
+  /** The ASN1 tag for the DirectoryServerEntry type. */
   public static final byte TAG_DIRECTORY_SERVER_ENTRY = 0x61;
 
   /**
@@ -125,22 +118,14 @@ public class JebFormat
    */
   public static long[] entryIDListFromDatabase(ByteSequence bytes)
   {
-    int count = bytes.length() / 8;
-    long[] entryIDList = new long[count];
-    for (int pos = 0, i = 0; i < count; i++)
-    {
-      long v = 0;
-      v |= (bytes.byteAt(pos++) & 0xFFL) << 56;
-      v |= (bytes.byteAt(pos++) & 0xFFL) << 48;
-      v |= (bytes.byteAt(pos++) & 0xFFL) << 40;
-      v |= (bytes.byteAt(pos++) & 0xFFL) << 32;
-      v |= (bytes.byteAt(pos++) & 0xFFL) << 24;
-      v |= (bytes.byteAt(pos++) & 0xFFL) << 16;
-      v |= (bytes.byteAt(pos++) & 0xFFL) << 8;
-      v |= (bytes.byteAt(pos++) & 0xFFL);
-      entryIDList[i] = v;
-    }
+    final ByteSequenceReader r = bytes.asReader();
 
+    final int count = bytes.length() / 8;
+    final long[] entryIDList = new long[count];
+    for (int i = 0; i < count; i++)
+    {
+      entryIDList[i] = r.getLong();
+    }
     return entryIDList;
   }
 
@@ -291,8 +276,7 @@ public class JebFormat
       return -1;
     }
 
-    // We will walk backwords through the buffer and find the first
-    // unescaped comma
+    // We will walk backwards through the buffer and find the first unescaped comma
     for(int i = offset+length - 1; i >= offset; i--)
     {
       if(dnKey[i] == 0x00 && i-1 >= offset && dnKey[i-1] != 0x5C)
@@ -311,8 +295,7 @@ public class JebFormat
       return -1;
     }
 
-    // We will walk backwords through the buffer and find the first
-    // unescaped comma
+    // We will walk backwards through the buffer and find the first unescaped comma
     for (int i = dnKey.length() - 1; i >= 0; i--)
     {
       if (dnKey.byteAt(i) == 0x00 && i - 1 >= 0 && dnKey.byteAt(i - 1) != 0x5C)
