@@ -80,7 +80,7 @@ public abstract class DatabaseContainer implements Closeable
    */
   public void open(WriteableStorage txn) throws StorageRuntimeException
   {
-    storage.openTree(treeName);
+    txn.openTree(treeName);
     if (logger.isTraceEnabled())
     {
       logger.trace("JE database %s opened. txnid=%d", treeName, txn.getId());
@@ -146,7 +146,7 @@ public abstract class DatabaseContainer implements Closeable
    */
   protected ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
   {
-    ByteString value = txn.get(treeName, key);
+    ByteString value = isRMW ? txn.get(treeName, key) : txn.getRMW(treeName, key);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(value != null, treeName, txn, key, value));
