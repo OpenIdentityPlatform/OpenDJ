@@ -251,7 +251,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public long getRecordCount() throws StorageRuntimeException
+  public long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
   {
     return 0;
   }

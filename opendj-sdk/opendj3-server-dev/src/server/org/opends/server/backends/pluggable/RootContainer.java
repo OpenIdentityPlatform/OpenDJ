@@ -34,16 +34,19 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.backends.pluggable.BackendImpl.Storage;
+import org.opends.server.api.CompressedSchema;
+import org.opends.server.backends.persistit.PersistItStorage;
+import org.opends.server.backends.pluggable.BackendImpl.ReadOperation;
+import org.opends.server.backends.pluggable.BackendImpl.ReadableStorage;
 import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
+import org.opends.server.backends.pluggable.BackendImpl.TreeName;
 import org.opends.server.backends.pluggable.BackendImpl.WriteOperation;
 import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
+import org.opends.server.core.DefaultCompressedSchema;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
@@ -64,10 +67,7 @@ public class RootContainer
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The JE database environment. */
-  private Storage storage;
-
-  /** Used to force a checkpoint during import. */
-  private final CheckpointConfig importForceCheckPoint = new CheckpointConfig();
+  private PersistItStorage storage; // FIXME JNR do not hardcode here
 
   /** The backend configuration. */
   private LocalDBBackendCfg config;
@@ -84,8 +84,9 @@ public class RootContainer
   /** The cached value of the next entry identifier to be assigned. */
   private AtomicLong nextid = new AtomicLong(1);
 
+  // FIXME JNR Switch back to a database persisted implementation of CompressedSchema
   /** The compressed schema manager for this backend. */
-  private JECompressedSchema compressedSchema;
+  private CompressedSchema compressedSchema;
 
 
 
@@ -106,13 +107,16 @@ public class RootContainer
     getMonitorProvider().setMaxEntries(config.getIndexFilterAnalyzerMaxFilters());
 
     config.addLocalDBChangeListener(this);
-    importForceCheckPoint.setForce(true);
+  }
+
+  PersistItStorage getStorage()
+  {
+    return storage;
   }
 
   /**
    * Opens the root container using the JE configuration object provided.
    *
-   * @param  envConfig               The JE environment configuration.
    * @throws StorageRuntimeException       If a database error occurs when creating
    *                                 the environment.
    * @throws InitializationException If an initialization error occurs while
@@ -120,7 +124,7 @@ public class RootContainer
    * @throws ConfigException         If an configuration error occurs while
    *                                 creating the environment.
    */
-  public void open(EnvironmentConfig envConfig)
+  public void open()
       throws StorageRuntimeException, InitializationException, ConfigException
   {
     // Determine the backend database directory.
@@ -183,39 +187,26 @@ public class RootContainer
     }
 
     // Open the database environment
-    storage = new Storage(backendDirectory, envConfig);
+    storage = new PersistItStorage(backendDirectory, this.config);
 
-    if (logger.isTraceEnabled())
+    compressedSchema = new DefaultCompressedSchema();
+    try
     {
-      logger.trace("JE (%s) environment opened with the following config: %n%s",
-          JEVersion.CURRENT_VERSION, storage.getConfig());
-
-      // Get current size of heap in bytes
-      long heapSize = Runtime.getRuntime().totalMemory();
-
-      // Get maximum size of heap in bytes. The heap cannot grow beyond this size.
-      // Any attempt will result in an OutOfMemoryException.
-      long heapMaxSize = Runtime.getRuntime().maxMemory();
-
-      // Get amount of free memory within the heap in bytes. This size will increase
-      // after garbage collection and decrease as new objects are created.
-      long heapFreeSize = Runtime.getRuntime().freeMemory();
-
-      logger.trace("Current size of heap: %d bytes", heapSize);
-      logger.trace("Max size of heap: %d bytes", heapMaxSize);
-      logger.trace("Free memory in heap: %d bytes", heapFreeSize);
-    }
-
-    compressedSchema = new JECompressedSchema(storage);
-
-    storage.write(new WriteOperation()
-    {
-      @Override
-      public void run(WriteableStorage txn) throws Exception
+      storage.initialize(null);
+      storage.open();
+      storage.write(new WriteOperation()
       {
-        openAndRegisterEntryContainers(txn, config.getBaseDN());
-      }
-    });
+        @Override
+        public void run(WriteableStorage txn) throws Exception
+        {
+          openAndRegisterEntryContainers(txn, config.getBaseDN());
+        }
+      });
+    }
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
+    }
   }
 
   /**
@@ -248,10 +239,23 @@ public class RootContainer
       databasePrefix = name;
     }
 
-    EntryContainer ec = new EntryContainer(baseDN, databasePrefix,
+    EntryContainer ec = new EntryContainer(baseDN, toSuffixName(databasePrefix),
                                            backend, config, storage, this);
     ec.open(txn);
     return ec;
+  }
+
+  /**
+   * Transform a database prefix string to one usable by the DB.
+   *
+   * @param databasePrefix
+   *          the database prefix
+   * @return a new string when non letter or digit characters have been replaced
+   *         with underscore
+   */
+  private TreeName toSuffixName(String databasePrefix)
+  {
+    return TreeName.of(storage.toSuffixName(databasePrefix));
   }
 
   /**
@@ -325,7 +329,7 @@ public class RootContainer
    *
    * @return  The compressed schema manager for this backend.
    */
-  public JECompressedSchema getCompressedSchema()
+  public CompressedSchema getCompressedSchema()
   {
     return compressedSchema;
   }
@@ -537,35 +541,6 @@ public class RootContainer
   }
 
   /**
-   * Get the environment transaction stats of the JE environment used
-   * in this root container.
-   *
-   * @param statsConfig The configuration to use for the EnvironmentStats
-   *                    object.
-   * @return The environment status of the JE environment.
-   * @throws StorageRuntimeException If an error occurs while retrieving the stats
-   *                           object.
-   */
-  public TransactionStats getEnvironmentTransactionStats(
-      StatsConfig statsConfig) throws StorageRuntimeException
-  {
-    return storage.getTransactionStats(statsConfig);
-  }
-
-  /**
-   * Get the environment config of the JE environment used in this root
-   * container.
-   *
-   * @return The environment config of the JE environment.
-   * @throws StorageRuntimeException If an error occurs while retrieving the
-   *                           configuration object.
-   */
-  public EnvironmentConfig getEnvironmentConfig() throws StorageRuntimeException
-  {
-    return storage.getConfig();
-  }
-
-  /**
    * Get the backend configuration used by this root container.
    *
    * @return The JE backend configuration used by this root container.
@@ -584,21 +559,34 @@ public class RootContainer
    */
   public long getEntryCount() throws StorageRuntimeException
   {
-    long entryCount = 0;
-    for(EntryContainer ec : this.entryContainers.values())
+    try
     {
-      ec.sharedLock.lock();
-      try
+      return storage.read(new ReadOperation<Long>()
       {
-        entryCount += ec.getEntryCount();
-      }
-      finally
-      {
-        ec.sharedLock.unlock();
-      }
+        @Override
+        public Long run(ReadableStorage txn) throws Exception
+        {
+          long entryCount = 0;
+          for (EntryContainer ec : entryContainers.values())
+          {
+            ec.sharedLock.lock();
+            try
+            {
+              entryCount += ec.getEntryCount(txn);
+            }
+            finally
+            {
+              ec.sharedLock.unlock();
+            }
+          }
+          return entryCount;
+        }
+      });
     }
-
-    return entryCount;
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
+    }
   }
 
   /**
@@ -705,81 +693,10 @@ public class RootContainer
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     try
     {
-      if(storage != null)
-      {
-        // Check if any JE non-mutable properties were changed.
-        EnvironmentConfig oldEnvConfig = storage.getConfig();
-        EnvironmentConfig newEnvConfig =
-            ConfigurableEnvironment.parseConfigEntry(cfg);
-        Map<?,?> paramsMap = EnvironmentParams.SUPPORTED_PARAMS;
-
-        // Iterate through native JE properties.
-        SortedSet<String> jeProperties = cfg.getJEProperty();
-        for (String jeEntry : jeProperties) {
-          // There is no need to validate properties yet again.
-          StringTokenizer st = new StringTokenizer(jeEntry, "=");
-          if (st.countTokens() == 2) {
-            String jePropertyName = st.nextToken();
-            String jePropertyValue = st.nextToken();
-            ConfigParam param = (ConfigParam) paramsMap.get(jePropertyName);
-            if (!param.isMutable()) {
-              String oldValue = oldEnvConfig.getConfigParam(param.getName());
-              if (!oldValue.equalsIgnoreCase(jePropertyValue)) {
-                adminActionRequired = true;
-                messages.add(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(jePropertyName));
-                if(logger.isTraceEnabled()) {
-                  logger.trace("The change to the following property " +
-                    "will take effect when the component is restarted: " +
-                    jePropertyName);
-                }
-              }
-            }
-          }
-        }
-
-        // Iterate through JE configuration attributes.
-        for (Object o : paramsMap.values())
-        {
-          ConfigParam param = (ConfigParam) o;
-          if (!param.isMutable())
-          {
-            String oldValue = oldEnvConfig.getConfigParam(param.getName());
-            String newValue = newEnvConfig.getConfigParam(param.getName());
-            if (!oldValue.equalsIgnoreCase(newValue))
-            {
-              adminActionRequired = true;
-              String configAttr = ConfigurableEnvironment.
-                  getAttributeForProperty(param.getName());
-              if (configAttr != null)
-              {
-                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(configAttr));
-              }
-              else
-              {
-                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(param.getName()));
-              }
-              if(logger.isTraceEnabled())
-              {
-                logger.trace("The change to the following property will " +
-                    "take effect when the backend is restarted: " +
-                    param.getName());
-              }
-            }
-          }
-        }
-
-        // This takes care of changes to the JE environment for those
-        // properties that are mutable at runtime.
-        storage.setMutableConfig(newEnvConfig);
-
-        logger.trace("JE database configuration: %s", storage.getConfig());
-      }
-
       // Create the directory if it doesn't exist.
       if(!cfg.getDBDirectory().equals(this.config.getDBDirectory()))
       {
@@ -791,31 +708,25 @@ public class RootContainer
         {
           if(!backendDirectory.mkdirs())
           {
-            messages.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(),
-                adminActionRequired,
-                messages);
+            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+            ccr.addMessage(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
+            return ccr;
           }
         }
         //Make sure the directory is valid.
         else if (!backendDirectory.isDirectory())
         {
-          messages.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
-          return new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(),
-              adminActionRequired,
-              messages);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+          return ccr;
         }
 
-        adminActionRequired = true;
-        messages.add(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(
-                        this.config.getDBDirectory(), cfg.getDBDirectory()));
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(this.config.getDBDirectory(), cfg.getDBDirectory()));
       }
 
-      if(!cfg.getDBDirectoryPermissions().equalsIgnoreCase(
-          config.getDBDirectoryPermissions()) ||
-          !cfg.getDBDirectory().equals(this.config.getDBDirectory()))
+      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
+          || !cfg.getDBDirectory().equals(this.config.getDBDirectory()))
       {
         FilePermission backendPermission;
         try
@@ -825,25 +736,19 @@ public class RootContainer
         }
         catch(Exception e)
         {
-          messages.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
-          return new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(),
-              adminActionRequired,
-              messages);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
+          return ccr;
         }
 
-        //Make sure the mode will allow the server itself access to
-        //the database
+        // Make sure the mode will allow the server itself access to the database
         if(!backendPermission.isOwnerWritable() ||
             !backendPermission.isOwnerReadable() ||
             !backendPermission.isOwnerExecutable())
         {
-          messages.add(ERR_CONFIG_BACKEND_INSANE_MODE.get(
-              cfg.getDBDirectoryPermissions()));
-          return new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(),
-              adminActionRequired,
-              messages);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_CONFIG_BACKEND_INSANE_MODE.get(cfg.getDBDirectoryPermissions()));
+          return ccr;
         }
 
         // Get the backend database backendDirectory permissions and apply
@@ -866,22 +771,18 @@ public class RootContainer
         }
       }
 
-      getMonitorProvider().enableFilterUseStats(
-          cfg.isIndexFilterAnalyzerEnabled());
-      getMonitorProvider()
-          .setMaxEntries(cfg.getIndexFilterAnalyzerMaxFilters());
+      getMonitorProvider().enableFilterUseStats(cfg.isIndexFilterAnalyzerEnabled());
+      getMonitorProvider().setMaxEntries(cfg.getIndexFilterAnalyzerMaxFilters());
 
       this.config = cfg;
     }
     catch (Exception e)
     {
-      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                   adminActionRequired,
-                                   messages);
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+      return ccr;
     }
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+    return ccr;
   }
 
   /**

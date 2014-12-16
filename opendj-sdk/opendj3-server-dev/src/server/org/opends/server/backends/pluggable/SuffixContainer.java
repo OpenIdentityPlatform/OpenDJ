@@ -75,12 +75,4 @@ public interface SuffixContainer extends Closeable
    * @return the baseDN that this suffix container is responsible for
    */
   DN getBaseDN();
-
-  /**
-   * Returns the number of entries stored in this suffix container.
-   *
-   * @return the number of entries stored in this suffix container, or -1 if the
-   *         count not be determined
-   */
-  long getEntryCount();
 }

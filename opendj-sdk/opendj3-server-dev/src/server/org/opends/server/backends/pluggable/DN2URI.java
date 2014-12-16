@@ -104,7 +104,6 @@ public class DN2URI extends DatabaseContainer
    * @throws StorageRuntimeException
    *           If an error occurs in the JE database.
    */
-  @SuppressWarnings("unchecked")
   DN2URI(TreeName treeName, Storage storage, EntryContainer entryContainer)
       throws StorageRuntimeException
   {
@@ -502,7 +501,7 @@ public class DN2URI extends DatabaseContainer
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
     {
-      containsReferrals = containsReferrals(null);
+      containsReferrals = containsReferrals(txn);
     }
 
     if (containsReferrals == ConditionResult.FALSE)

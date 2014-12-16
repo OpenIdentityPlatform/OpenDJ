@@ -211,7 +211,7 @@ public abstract class DatabaseContainer implements Closeable
    * @return The count of key/data pairs in the database.
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
-  public long getRecordCount() throws StorageRuntimeException
+  public long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
   {
     long count = treeName.count();
     if (logger.isTraceEnabled())

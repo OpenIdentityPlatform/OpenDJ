@@ -2687,7 +2687,6 @@ public class EntryContainer
    * @return The number of entries stored in this entry container.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  @Override
   public long getEntryCount() throws DatabaseException
   {
     EntryID entryID = dn2id.get(null, baseDN, LockMode.DEFAULT);

@@ -54,15 +54,11 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
+import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
 import org.opends.server.util.RuntimeInformation;
-
-import com.sleepycat.je.Durability;
-import com.sleepycat.je.EnvironmentConfig;
-
-import static com.sleepycat.je.EnvironmentConfig.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
@@ -408,7 +404,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
     if (mustOpenRootContainer())
     {
-      rootContainer = initializeRootContainer(parseConfigEntry(cfg));
+      rootContainer = initializeRootContainer();
     }
 
     // Preload the database cache.
@@ -417,7 +413,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     try
     {
       // Log an informational message about the number of entries.
-      logger.info(NOTE_JEB_BACKEND_STARTED, cfg.getBackendId(), rootContainer.getEntryCount());
+      logger.info(NOTE_JEB_BACKEND_STARTED, cfg.getBackendId(), getEntryCount());
     }
     catch (StorageRuntimeException e)
     {
@@ -640,7 +636,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         logger.traceException(e);
       }
     }
-
     return -1;
   }
 
@@ -988,7 +983,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
       throw new NotImplementedException();
 //      Importer importer = new Importer(importConfig, cfg, envConfig);
-//      rootContainer = initializeRootContainer(envConfig);
+//      rootContainer = initializeRootContainer();
 //      return importer.processImport(rootContainer);
     }
     catch (ExecutionException execEx)
@@ -1005,10 +1000,10 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       logger.traceException(intEx);
       throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
     }
-    catch (JebException je)
+    catch (StorageRuntimeException e)
     {
-      logger.traceException(je);
-      throw new DirectoryException(errorRC, je.getMessageObject());
+      logger.traceException(e);
+      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()));
     }
     catch (InitializationException ie)
     {
@@ -1093,12 +1088,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       logger.traceException(e);
       throw createDirectoryException(e);
     }
-    catch (JebException e)
-    {
-      logger.traceException(e);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   e.getMessageObject());
-    }
     finally
     {
       closeTemporaryRootContainer(openRootContainer);
@@ -1141,7 +1130,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       if (openRootContainer)
       {
         envConfig = getEnvConfigForImport();
-        rootContainer = initializeRootContainer(envConfig);
+        rootContainer = initializeRootContainer();
       }
       else
       {
@@ -1167,10 +1156,10 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       logger.traceException(ce);
       throw new DirectoryException(errorRC, ce.getMessageObject());
     }
-    catch (JebException e)
+    catch (StorageRuntimeException e)
     {
       logger.traceException(e);
-      throw new DirectoryException(errorRC, e.getMessageObject());
+      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()));
     }
     catch (InitializationException e)
     {
@@ -1270,50 +1259,52 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg newCfg)
+  public ConfigChangeResult applyConfigurationChange(final LocalDBBackendCfg newCfg)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       if(rootContainer != null)
       {
-        SortedSet<DN> newBaseDNs = newCfg.getBaseDN();
-        DN[] newBaseDNsArray = newBaseDNs.toArray(new DN[newBaseDNs.size()]);
-
-        // Check for changes to the base DNs.
-        removeDeletedBaseDNs(newBaseDNs);
-        ConfigChangeResult failure = createNewBaseDNs(newBaseDNsArray, messages);
-        if (failure != null)
+        rootContainer.getStorage().write(new WriteOperation()
         {
-          return failure;
-        }
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            SortedSet<DN> newBaseDNs = newCfg.getBaseDN();
+            DN[] newBaseDNsArray = newBaseDNs.toArray(new DN[newBaseDNs.size()]);
 
-        baseDNs = newBaseDNsArray;
+            // Check for changes to the base DNs.
+            removeDeletedBaseDNs(newBaseDNs, txn);
+            if (!createNewBaseDNs(newBaseDNsArray, ccr, txn))
+            {
+              return;
+            }
+
+            baseDNs = newBaseDNsArray;
+
+            if(cfg.getDiskFullThreshold() != newCfg.getDiskFullThreshold() ||
+                cfg.getDiskLowThreshold() != newCfg.getDiskLowThreshold())
+            {
+              diskMonitor.setFullThreshold(newCfg.getDiskFullThreshold());
+              diskMonitor.setLowThreshold(newCfg.getDiskLowThreshold());
+            }
+            
+            // Put the new configuration in place.
+            cfg = newCfg;
+          }
+        });
       }
-
-      if(cfg.getDiskFullThreshold() != newCfg.getDiskFullThreshold() ||
-          cfg.getDiskLowThreshold() != newCfg.getDiskLowThreshold())
-      {
-        diskMonitor.setFullThreshold(newCfg.getDiskFullThreshold());
-        diskMonitor.setLowThreshold(newCfg.getDiskLowThreshold());
-      }
-
-      // Put the new configuration in place.
-      this.cfg = newCfg;
     }
     catch (Exception e)
     {
-      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(
-          DirectoryServer.getServerErrorResultCode(), false, messages);
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
     }
-
-    return new ConfigChangeResult(resultCode, false, messages);
+    return ccr;
   }
 
-  private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs) throws DirectoryException
+  private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs, WriteableStorage txn) throws DirectoryException
   {
     for (DN baseDN : cfg.getBaseDN())
     {
@@ -1323,12 +1314,12 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         DirectoryServer.deregisterBaseDN(baseDN);
         EntryContainer ec = rootContainer.unregisterEntryContainer(baseDN);
         ec.close();
-        ec.delete();
+        ec.delete(txn);
       }
     }
   }
 
-  private ConfigChangeResult createNewBaseDNs(DN[] newBaseDNsArray, ArrayList<LocalizableMessage> messages)
+  private boolean createNewBaseDNs(DN[] newBaseDNsArray, ConfigChangeResult ccr, WriteableStorage txn)
   {
     for (DN baseDN : newBaseDNsArray)
     {
@@ -1337,7 +1328,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         try
         {
           // The base DN was added.
-          EntryContainer ec = rootContainer.openEntryContainer(baseDN, null);
+          EntryContainer ec = rootContainer.openEntryContainer(baseDN, null, txn);
           rootContainer.registerEntryContainer(baseDN, ec);
           DirectoryServer.registerBaseDN(baseDN, this, false);
         }
@@ -1345,13 +1336,13 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         {
           logger.traceException(e);
 
-          ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
-          return new ConfigChangeResult(resultCode, false, messages);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
+          return false;
         }
       }
     }
-    return null;
+    return true;
   }
 
   /**
@@ -1380,15 +1371,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public RootContainer getReadOnlyRootContainer()
       throws ConfigException, InitializationException
   {
-    EnvironmentConfig envConfig = parseConfigEntry(cfg);
-
-    envConfig.setReadOnly(true);
-    envConfig.setAllowCreate(false);
-    envConfig.setTransactional(false);
-    envConfig.setConfigParam(ENV_IS_LOCKING, "true");
-    envConfig.setConfigParam(ENV_RUN_CHECKPOINTER, "true");
-
-    return initializeRootContainer(envConfig);
+    return initializeRootContainer();
   }
 
   /**
@@ -1397,11 +1380,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
    *
    * @throws  ConfigException  If an unrecoverable problem arises in the
    *                           process of performing the initialization.
-   *
-   * @throws  JebException     If an error occurs while removing the data.
+   * @throws  StorageRuntimeException If an error occurs while removing the data.
    */
-  public void clearBackend()
-      throws ConfigException, JebException
+  public void clearBackend() throws ConfigException, StorageRuntimeException
   {
     // Determine the backend database directory.
     File parentDirectory = getFileForPath(cfg.getDBDirectory());
@@ -1419,7 +1400,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
    */
   DirectoryException createDirectoryException(StorageRuntimeException e)
   {
-    if (true) {
+    if (true) { // FIXME JNR
       throw new NotImplementedException();
     }
     if (/*e instanceof EnvironmentFailureException && */ !rootContainer.isValid()) {
@@ -1465,12 +1446,12 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     return cfg.dn();
   }
 
-  private RootContainer initializeRootContainer(EnvironmentConfig envConfig)
+  private RootContainer initializeRootContainer()
           throws ConfigException, InitializationException {
     // Open the database environment
     try {
       RootContainer rc = new RootContainer(this, cfg);
-      rc.open(envConfig);
+      rc.open();
       return rc;
     }
     catch (StorageRuntimeException e)
