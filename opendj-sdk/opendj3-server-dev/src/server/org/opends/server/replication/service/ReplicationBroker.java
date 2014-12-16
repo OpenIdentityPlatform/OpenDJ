@@ -1136,14 +1136,17 @@ public class ReplicationBroker
     }
     catch (ConnectException e)
     {
+      logger.traceException(e);
       errorMessage = WARN_NO_CHANGELOG_SERVER_LISTENING.get(getServerId(), serverURL, getBaseDN());
     }
     catch (SocketTimeoutException e)
     {
+      logger.traceException(e);
       errorMessage = WARN_TIMEOUT_CONNECTING_TO_RS.get(getServerId(), serverURL, getBaseDN());
     }
     catch (Exception e)
     {
+      logger.traceException(e);
       errorMessage = WARN_EXCEPTION_STARTING_SESSION_PHASE.get(
           getServerId(), serverURL, getBaseDN(), stackTraceToSingleLineString(e));
     }
