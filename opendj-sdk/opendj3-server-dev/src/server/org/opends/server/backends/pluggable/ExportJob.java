@@ -197,7 +197,7 @@ public class ExportJob
           break;
         }
 
-        ByteString key=cursor.getKey();
+        ByteString key = cursor.getKey();
         EntryID entryID = null;
         try
         {
@@ -209,8 +209,7 @@ public class ExportJob
           {
             logger.traceException(e);
 
-            logger.trace("Malformed id2entry ID %s.%n",
-                            StaticUtils.bytesToHex(key.toByteArray()));
+            logger.trace("Malformed id2entry ID %s.%n", StaticUtils.bytesToHex(key));
           }
           skippedCount++;
           continue;
@@ -236,8 +235,7 @@ public class ExportJob
             logger.traceException(e);
 
             logger.trace("Malformed id2entry record for ID %d:%n%s%n",
-                       entryID.longValue(),
-                       StaticUtils.bytesToHex(value.toByteArray()));
+                       entryID, StaticUtils.bytesToHex(value));
           }
           skippedCount++;
           continue;
