@@ -33,8 +33,6 @@ import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
-
-
 /**
  * Implementation of an Indexer for the subtree index.
  */
@@ -71,14 +69,6 @@ public class ID2SIndexer extends Indexer
       ByteString nodeIDData = iter.next().toByteString();
       addKeys.add(nodeIDData);
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void replaceEntry(Entry oldEntry, Entry newEntry,
-                           Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
-  {
-    // Nothing to do.
   }
 
   /** {@inheritDoc} */

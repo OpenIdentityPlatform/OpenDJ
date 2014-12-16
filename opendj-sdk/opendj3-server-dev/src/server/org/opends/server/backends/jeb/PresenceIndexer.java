@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,14 +80,6 @@ public class PresenceIndexer extends Indexer
         keys.add(presenceKey);
       }
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void replaceEntry(Entry oldEntry, Entry newEntry,
-                           Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
-  {
-    modifyEntry(oldEntry, newEntry, Collections.<Modification>emptyList(), modifiedKeys, options);
   }
 
   /** {@inheritDoc} */

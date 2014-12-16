@@ -90,18 +90,6 @@ public final class AttributeIndexer extends Indexer
 
   /** {@inheritDoc} */
   @Override
-  public void replaceEntry(Entry oldEntry, Entry newEntry,
-      Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
-  {
-    List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
-    List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
-
-    indexAttribute(oldAttributes, modifiedKeys, false, options);
-    indexAttribute(newAttributes, modifiedKeys, true, options);
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
       List<Modification> mods, Map<ByteString, Boolean> modifiedKeys,
       IndexingOptions options)

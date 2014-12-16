@@ -77,18 +77,6 @@ public abstract class Indexer
 
   /**
    * Generate the set of index keys to be added and the set of index keys
-   * to be deleted for an entry that has been replaced.
-   *
-   * @param oldEntry The original entry contents.
-   * @param newEntry The new entry contents.
-   * @param modifiedKeys The map into which the modified keys will be inserted.
-   * @param options The indexing options to use
-   */
-  public abstract void replaceEntry(Entry oldEntry, Entry newEntry,
-      Map<ByteString, Boolean> modifiedKeys, IndexingOptions options);
-
-  /**
-   * Generate the set of index keys to be added and the set of index keys
    * to be deleted for an entry that was modified.
    *
    * @param oldEntry The original entry contents.
