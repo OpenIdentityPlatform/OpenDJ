@@ -45,6 +45,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
@@ -73,7 +74,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.ServerStatus.*;
@@ -2618,8 +2618,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           // any other failure on the connection.
 
           // FIXME: why do we log for RSs but not DSs?
-          logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG, msg.getValue()
-              .getDestination());
+          logger.traceException(e);
+          logger.error(ERR_CHANGELOG_ERROR_SENDING_MSG, msg.getValue().getDestination());
         }
       }
     }
@@ -2629,8 +2629,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private void sendPendingChangeTimeHeartbeatMsgs(PendingStatusMessages pendingMsgs)
   {
-    for (ChangeTimeHeartbeatMsg pendingHeartbeat : pendingMsgs.pendingHeartbeats
-        .values())
+    for (ChangeTimeHeartbeatMsg pendingHeartbeat : pendingMsgs.pendingHeartbeats.values())
     {
       for (ReplicationServerHandler rsHandler : connectedRSs.values())
       {
