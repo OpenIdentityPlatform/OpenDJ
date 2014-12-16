@@ -27,10 +27,12 @@
 package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
-import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.displayMissingMandatoryPropertyException;
-import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.displayOperationRejectedException;
+
+import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
+import static org.forgerock.opendj.config.dsconfig.DSConfig.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -542,9 +544,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                                         isBadReference = false;
                                     } catch (MissingMandatoryPropertiesException e) {
                                         // Give the user the chance to fix the problems.
-                                        app.println();
+                                        app.errPrintln();
                                         displayMissingMandatoryPropertyException(app, e);
-                                        app.println();
+                                        app.errPrintln();
                                         if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
                                             MenuResult<Void> result = SetPropSubCommandHandler.modifyManagedObject(app,
                                                     context, ref, handler);
@@ -561,9 +563,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                                         throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
                                     } catch (OperationRejectedException e) {
                                         // Give the user the chance to fix the problems.
-                                        app.println();
+                                        app.errPrintln();
                                         displayOperationRejectedException(app, e);
-                                        app.println();
+                                        app.errPrintln();
                                         if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
                                             MenuResult<Void> result = SetPropSubCommandHandler.modifyManagedObject(app,
                                                     context, ref, handler);
@@ -599,9 +601,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                             // the user refused to modify it, then give the used the
                             // option of editing the referencing component.
                             if (isBadReference) {
-                                app.println();
-                                app.println(ERR_SET_REFERENCED_COMPONENT_DISABLED.get(ufn, rufn));
-                                app.println();
+                                app.errPrintln();
+                                app.errPrintln(ERR_SET_REFERENCED_COMPONENT_DISABLED.get(ufn, rufn));
+                                app.errPrintln();
                                 if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
                                     return MenuResult.again();
                                 }
@@ -693,9 +695,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                 if (app.isInteractive()) {
                     // If interactive, give the user the chance to fix the
                     // problems.
-                    app.println();
+                    app.errPrintln();
                     displayMissingMandatoryPropertyException(app, e);
-                    app.println();
+                    app.errPrintln();
                     if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
                         return MenuResult.cancel();
                     }
@@ -710,11 +712,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                 throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
             } catch (OperationRejectedException e) {
                 if (app.isInteractive()) {
-                    // If interactive, give the user the chance to fix the
-                    // problems.
-                    app.println();
+                    // If interactive, give the user the chance to fix the problems.
+                    app.errPrintln();
                     displayOperationRejectedException(app, e);
-                    app.println();
+                    app.errPrintln();
                     if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
                         return MenuResult.cancel();
                     }
@@ -722,23 +723,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                     throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
                 }
             } catch (LdapException e) {
-                final LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
-                if (app.isInteractive()) {
-                    app.println();
-                    app.printVerboseMessage(msg);
-                    return MenuResult.cancel();
-                } else {
-                    throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
-                }
+                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+                return interactivePrintOrThrowError(app, msg, CLIENT_SIDE_SERVER_DOWN);
             } catch (ManagedObjectAlreadyExistsException e) {
-                final LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
-                if (app.isInteractive()) {
-                    app.println();
-                    app.printVerboseMessage(msg);
-                    return MenuResult.cancel();
-                } else {
-                    throw new ClientException(ReturnCode.ENTRY_ALREADY_EXISTS, msg);
-                }
+                LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
+                return interactivePrintOrThrowError(app, msg, ENTRY_ALREADY_EXISTS);
             }
         }
     }
@@ -763,10 +752,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                     try {
                         child = parent.createChild(irelation, d, input, exceptions);
                     } catch (IllegalManagedObjectNameException e) {
-                        ClientException ae = ArgumentExceptionFactory.adaptIllegalManagedObjectNameException(e, d);
-                        app.println();
-                        app.println(ae.getMessageObject());
-                        app.println();
+                        app.errPrintln();
+                        app.errPrintln(adaptIllegalManagedObjectNameException(e, d).getMessageObject());
+                        app.errPrintln();
                         return null;
                     }
 
@@ -795,11 +783,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
                     }
 
                     // A child with the specified name must already exist.
-                    LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS.get(
-                            irelation.getUserFriendlyName(), input);
-                    app.println();
-                    app.println(msg);
-                    app.println();
+                    app.errPrintln();
+                    app.errPrintln(
+                        ERR_DSCFG_ERROR_CREATE_NAME_ALREADY_EXISTS.get(irelation.getUserFriendlyName(), input));
+                    app.errPrintln();
                     return null;
                 }
             };
@@ -868,8 +855,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
 
         // If there is only one choice then return immediately.
         if (filteredTypes.size() == 0) {
-            LocalizableMessage msg = ERR_DSCFG_ERROR_NO_AVAILABLE_TYPES.get(d.getUserFriendlyName());
-            app.println(msg);
+            app.errPrintln(ERR_DSCFG_ERROR_NO_AVAILABLE_TYPES.get(d.getUserFriendlyName()));
             return MenuResult.<ManagedObjectDefinition<? extends C, ? extends S>> cancel();
         } else if (filteredTypes.size() == 1) {
             ManagedObjectDefinition<? extends C, ? extends S> type = filteredTypes.iterator().next();
@@ -1050,13 +1036,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
         } catch (ManagedObjectNotFoundException e) {
             LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
             LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
-            if (app.isInteractive()) {
-                app.println();
-                app.printVerboseMessage(msg);
-                return MenuResult.cancel();
-            } else {
-                throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
-            }
+            return interactivePrintOrThrowError(app, msg, NO_SUCH_OBJECT);
         } catch (LdapException e) {
             throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }

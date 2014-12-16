@@ -115,15 +115,10 @@ public final class ArgumentExceptionFactory {
     public static void displayManagedObjectDecodingException(ConsoleApplication app, ManagedObjectDecodingException e) {
         AbstractManagedObjectDefinition<?, ?> d = e.getPartialManagedObject().getManagedObjectDefinition();
         LocalizableMessage ufn = d.getUserFriendlyName();
-        LocalizableMessage msg;
-        if (e.getCauses().size() == 1) {
-            msg = ERR_GET_HEADING_MODE_SINGLE.get(ufn);
-        } else {
-            msg = ERR_GET_HEADING_MODE_PLURAL.get(ufn);
-        }
-
-        app.println(msg);
-        app.println();
+        LocalizableMessage msg = e.getCauses().size() == 1 ? ERR_GET_HEADING_MODE_SINGLE.get(ufn)
+                                                           : ERR_GET_HEADING_MODE_PLURAL.get(ufn);
+        app.errPrintln(msg);
+        app.errPrintln();
         TableBuilder builder = new TableBuilder();
         for (PropertyException pe : e.getCauses()) {
             ArgumentException ae = adaptPropertyException(pe, d);
@@ -151,22 +146,17 @@ public final class ArgumentExceptionFactory {
             MissingMandatoryPropertiesException e) {
         LocalizableMessage ufn = e.getUserFriendlyName();
         LocalizableMessage msg;
+        final boolean onePropertyMissing = e.getCauses().size() == 1;
         if (e.isCreate()) {
-            if (e.getCauses().size() == 1) {
-                msg = ERR_CREATE_HEADING_MMPE_SINGLE.get(ufn);
-            } else {
-                msg = ERR_CREATE_HEADING_MMPE_PLURAL.get(ufn);
-            }
+            msg = onePropertyMissing ? ERR_CREATE_HEADING_MMPE_SINGLE.get(ufn)
+                                     : ERR_CREATE_HEADING_MMPE_PLURAL.get(ufn);
         } else {
-            if (e.getCauses().size() == 1) {
-                msg = ERR_MODIFY_HEADING_MMPE_SINGLE.get(ufn);
-            } else {
-                msg = ERR_MODIFY_HEADING_MMPE_PLURAL.get(ufn);
-            }
+            msg = onePropertyMissing ? ERR_MODIFY_HEADING_MMPE_SINGLE.get(ufn)
+                                     : ERR_MODIFY_HEADING_MMPE_PLURAL.get(ufn);
         }
 
-        app.println(msg);
-        app.println();
+        app.errPrintln(msg);
+        app.errPrintln();
         TableBuilder builder = new TableBuilder();
         builder.addSortKey(0);
         builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
@@ -198,32 +188,25 @@ public final class ArgumentExceptionFactory {
     public static void displayOperationRejectedException(ConsoleApplication app, OperationRejectedException e) {
         LocalizableMessage ufn = e.getUserFriendlyName();
         LocalizableMessage msg;
+        final boolean singleMessage = e.getMessages().size() == 1;
+
         switch (e.getOperationType()) {
         case CREATE:
-            if (e.getMessages().size() == 1) {
-                msg = ERR_DSCFG_ERROR_CREATE_ORE_SINGLE.get(ufn);
-            } else {
-                msg = ERR_DSCFG_ERROR_CREATE_ORE_PLURAL.get(ufn);
-            }
+            msg = singleMessage ? ERR_DSCFG_ERROR_CREATE_ORE_SINGLE.get(ufn)
+                                : ERR_DSCFG_ERROR_CREATE_ORE_PLURAL.get(ufn);
             break;
         case DELETE:
-            if (e.getMessages().size() == 1) {
-                msg = ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(ufn);
-            } else {
-                msg = ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(ufn);
-            }
+            msg = singleMessage ? ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(ufn)
+                                : ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(ufn);
             break;
         default:
-            if (e.getMessages().size() == 1) {
-                msg = ERR_DSCFG_ERROR_MODIFY_ORE_SINGLE.get(ufn);
-            } else {
-                msg = ERR_DSCFG_ERROR_MODIFY_ORE_PLURAL.get(ufn);
-            }
+            msg = singleMessage ? ERR_DSCFG_ERROR_MODIFY_ORE_SINGLE.get(ufn)
+                                : ERR_DSCFG_ERROR_MODIFY_ORE_PLURAL.get(ufn);
             break;
         }
 
-        app.println(msg);
-        app.println();
+        app.errPrintln(msg);
+        app.errPrintln();
         TableBuilder builder = new TableBuilder();
         for (LocalizableMessage reason : e.getMessages()) {
             builder.startRow();

@@ -25,9 +25,6 @@
  */
 package org.forgerock.opendj.config.dsconfig;
 
-import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
-
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +37,6 @@ import org.forgerock.opendj.config.DefinitionDecodingException;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
 import org.forgerock.opendj.config.ManagedObjectNotFoundException;
-import org.forgerock.opendj.config.ManagedObjectOption;
 import org.forgerock.opendj.config.ManagedObjectPath;
 import org.forgerock.opendj.config.OptionalRelationDefinition;
 import org.forgerock.opendj.config.PropertyDefinition;
@@ -64,6 +60,13 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TablePrinter;
 import com.forgerock.opendj.cli.TextTablePrinter;
+
+import static org.forgerock.opendj.config.ManagedObjectOption.*;
+import static org.forgerock.opendj.config.dsconfig.DSConfig.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.ReturnCode.*;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 
 /**
  * A sub-command handler which is used to list existing managed objects.
@@ -232,13 +235,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
         } catch (ManagedObjectNotFoundException e) {
             ufn = path.getManagedObjectDefinition().getUserFriendlyName();
             LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(ufn);
-            if (app.isInteractive()) {
-                app.println();
-                app.printVerboseMessage(msg);
-                return MenuResult.cancel();
-            } else {
-                throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
-            }
+            return interactivePrintOrThrowError(app, msg, NO_SUCH_OBJECT);
         } catch (LdapException e) {
             throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
@@ -319,14 +316,8 @@ final class ListSubCommandHandler extends SubCommandHandler {
                     children.put(child.getManagedObjectDefinition().getName(), child);
                 } else {
                     // Indicate that the managed object does not exist.
-                    LocalizableMessage msg = ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(ufn);
-                    if (app.isInteractive()) {
-                        app.println();
-                        app.printVerboseMessage(msg);
-                        return MenuResult.cancel();
-                    } else {
-                        throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
-                    }
+                    return interactivePrintOrThrowError(
+                        app, ERR_DSCFG_ERROR_FINDER_NO_CHILDREN.get(ufn), NO_SUCH_OBJECT);
                 }
             } catch (AuthorizationException e) {
                 LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_AUTHZ.get(ufn);
@@ -353,21 +344,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
         if (app.isScriptFriendly()) {
             // Output just the names of the children.
             for (String name : children.keySet()) {
-                // Skip advanced and hidden components in non-advanced mode.
-                if (!app.isAdvancedMode()) {
-                    ManagedObject<?> child = children.get(name);
-                    ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
-
-                    if (d.hasOption(ManagedObjectOption.HIDDEN)) {
-                        continue;
-                    }
-
-                    if (d.hasOption(ManagedObjectOption.ADVANCED)) {
-                        continue;
-                    }
+                ManagedObjectDefinition<?, ?> d = children.get(name).getManagedObjectDefinition();
+                if (!canDisplay(app, d)) {
+                    app.println(LocalizableMessage.raw(name));
                 }
-
-                app.println(LocalizableMessage.raw(name));
             }
         } else {
             // Create a table of their properties containing the name, type (if
@@ -391,15 +371,8 @@ final class ListSubCommandHandler extends SubCommandHandler {
                 ManagedObject<?> child = children.get(name);
                 ManagedObjectDefinition<?, ?> d = child.getManagedObjectDefinition();
 
-                // Skip advanced and hidden components in non-advanced mode.
-                if (!app.isAdvancedMode()) {
-                    if (d.hasOption(ManagedObjectOption.HIDDEN)) {
-                        continue;
-                    }
-
-                    if (d.hasOption(ManagedObjectOption.ADVANCED)) {
-                        continue;
-                    }
+                if (canDisplay(app, d)) {
+                    continue;
                 }
 
                 // First output the name.
@@ -466,6 +439,10 @@ final class ListSubCommandHandler extends SubCommandHandler {
         }
 
         return MenuResult.success(0);
+    }
+
+    private boolean canDisplay(ConsoleApplication app, ManagedObjectDefinition<?, ?> d) {
+        return !app.isAdvancedMode() && (d.hasOption(HIDDEN) || d.hasOption(ADVANCED));
     }
 
     /** Display the set of values associated with a property. */

@@ -308,9 +308,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 if (app.isInteractive()) {
                     // If interactive, give the user the chance to fix the
                     // problems.
-                    app.println();
+                    app.errPrintln();
                     displayMissingMandatoryPropertyException(app, e);
-                    app.println();
+                    app.errPrintln();
                     if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
                         return MenuResult.cancel();
                     }
@@ -327,9 +327,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 if (app.isInteractive()) {
                     // If interactive, give the user the chance to fix the
                     // problems.
-                    app.println();
+                    app.errPrintln();
                     displayOperationRejectedException(app, e);
-                    app.println();
+                    app.errPrintln();
                     if (!app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
                         return MenuResult.cancel();
                     }
@@ -442,9 +442,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                                         isBadReference = false;
                                     } catch (MissingMandatoryPropertiesException e) {
                                         // Give the user the chance to fix the problems.
-                                        app.println();
+                                        app.errPrintln();
                                         displayMissingMandatoryPropertyException(app, e);
-                                        app.println();
+                                        app.errPrintln();
                                         if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
                                             MenuResult<Void> result = modifyManagedObject(app, context, ref, handler);
                                             if (result.isQuit()) {
@@ -460,9 +460,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                                         throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
                                     } catch (OperationRejectedException e) {
                                         // Give the user the chance to fix the problems.
-                                        app.println();
+                                        app.errPrintln();
                                         displayOperationRejectedException(app, e);
-                                        app.println();
+                                        app.errPrintln();
                                         if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT.get(rufn), true)) {
                                             MenuResult<Void> result = modifyManagedObject(app, context, ref, handler);
                                             if (result.isQuit()) {
@@ -497,9 +497,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                             // the user refused to modify it, then give the used the
                             // option of editing the referencing component.
                             if (isBadReference) {
-                                app.println();
-                                app.println(ERR_SET_REFERENCED_COMPONENT_DISABLED.get(ufn, rufn));
-                                app.println();
+                                app.errPrintln();
+                                app.errPrintln(ERR_SET_REFERENCED_COMPONENT_DISABLED.get(ufn, rufn));
+                                app.errPrintln();
                                 if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn), true)) {
                                     return MenuResult.again();
                                 } else {
@@ -655,8 +655,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 except = ArgumentExceptionFactory.unknownValueForChildComponent("\"" + objName + "\"");
             }
             if (app.isInteractive()) {
-                app.println();
-                app.printVerboseMessage(except.getMessageObject());
+                app.errPrintln();
+                app.errPrintln(except.getMessageObject());
                 return MenuResult.cancel();
             } else {
                 throw except;

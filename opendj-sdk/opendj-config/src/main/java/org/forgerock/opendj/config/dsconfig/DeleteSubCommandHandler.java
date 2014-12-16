@@ -26,6 +26,7 @@
  */
 package org.forgerock.opendj.config.dsconfig;
 
+import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 
 import java.util.List;
@@ -59,6 +60,8 @@ import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
+
+import static org.forgerock.opendj.config.dsconfig.DSConfig.*;
 
 /**
  * A sub-command handler which is used to delete existing managed objects.
@@ -223,13 +226,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
             if (!forceArgument.isPresent()) {
                 LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
                 LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
-                if (app.isInteractive()) {
-                    app.println();
-                    app.printVerboseMessage(msg);
-                    return MenuResult.cancel();
-                } else {
-                    throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
-                }
+                return interactivePrintOrThrowError(app, msg, NO_SUCH_OBJECT);
             } else {
                 return MenuResult.success(0);
             }
@@ -311,18 +308,14 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
             LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(ufn);
             throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
         } catch (OperationRejectedException e) {
-            LocalizableMessage msg;
-            if (e.getMessages().size() == 1) {
-                msg = ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(ufn);
-            } else {
-                msg = ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(ufn);
-            }
+            LocalizableMessage msg = e.getMessages().size() == 1 ? ERR_DSCFG_ERROR_DELETE_ORE_SINGLE.get(ufn)
+                                                                 : ERR_DSCFG_ERROR_DELETE_ORE_PLURAL.get(ufn);
 
             if (app.isInteractive()) {
                 // If interactive, let the user go back to the main menu.
-                app.println();
-                app.println(msg);
-                app.println();
+                app.errPrintln();
+                app.errPrintln(msg);
+                app.errPrintln();
                 TableBuilder builder = new TableBuilder();
                 for (LocalizableMessage reason : e.getMessages()) {
                     builder.startRow();
@@ -369,12 +362,9 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     /** Confirm deletion. */
     private boolean confirmDeletion(ConsoleApplication app) throws ClientException {
         if (app.isInteractive()) {
-            LocalizableMessage prompt = INFO_DSCFG_CONFIRM_DELETE.get(relation.getUserFriendlyName());
             app.println();
-            if (!app.confirmAction(prompt, false)) {
-                // Output failure message.
-                LocalizableMessage msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation.getUserFriendlyName());
-                app.println(msg);
+            if (!app.confirmAction(INFO_DSCFG_CONFIRM_DELETE.get(relation.getUserFriendlyName()), false)) {
+                app.errPrintln(INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation.getUserFriendlyName()));
                 return false;
             }
         }

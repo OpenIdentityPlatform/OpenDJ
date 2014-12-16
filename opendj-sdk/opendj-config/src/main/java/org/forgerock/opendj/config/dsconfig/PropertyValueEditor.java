@@ -26,6 +26,7 @@
  */
 package org.forgerock.opendj.config.dsconfig;
 
+import static com.forgerock.opendj.cli.ReturnCode.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 
 import java.util.ArrayList;
@@ -80,6 +81,8 @@ import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
 
+import static org.forgerock.opendj.config.dsconfig.DSConfig.*;
+
 /**
  * Common methods used for interactively editing properties.
  */
@@ -131,13 +134,7 @@ final class PropertyValueEditor {
                 } catch (ManagedObjectNotFoundException e) {
                     LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
                     LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
-                    if (app.isInteractive()) {
-                        app.println();
-                        app.printVerboseMessage(msg);
-                        return MenuResult.cancel();
-                    } else {
-                        throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
-                    }
+                    return interactivePrintOrThrowError(app, msg, NO_SUCH_OBJECT);
                 }
 
                 // Now let the user create the child component.
@@ -148,9 +145,9 @@ final class PropertyValueEditor {
                 // FIXME: should really do something better with the exception
                 // handling here. For example, if a authz or communications
                 // exception occurs then the application should exit.
-                app.println();
-                app.println(e.getMessageObject());
-                app.println();
+                app.errPrintln();
+                app.errPrintln(e.getMessageObject());
+                app.errPrintln();
                 app.pressReturnToContinue();
                 return MenuResult.cancel();
             }
@@ -1710,10 +1707,10 @@ final class PropertyValueEditor {
         app.println();
         app.println(INFO_EDITOR_HEADING_CONFIGURE_PROPERTY.get(pd.getName()));
         app.println();
-        app.errPrintln(pd.getSynopsis(), 4);
+        app.println(pd.getSynopsis(), 4);
         if (pd.getDescription() != null) {
             app.println();
-            app.errPrintln(pd.getDescription(), 4);
+            app.println(pd.getDescription(), 4);
         }
     }
 
@@ -1850,8 +1847,8 @@ final class PropertyValueEditor {
 
                     break;
                 } catch (PropertyException e) {
-                    app.println();
-                    app.println(ArgumentExceptionFactory.adaptPropertyException(e, d).getMessageObject());
+                    app.errPrintln();
+                    app.errPrintln(ArgumentExceptionFactory.adaptPropertyException(e, d).getMessageObject());
                 }
             }
         }
@@ -1877,9 +1874,9 @@ final class PropertyValueEditor {
                         values.add(value);
                     }
                 } catch (PropertyException e) {
-                    app.println();
-                    app.println(ArgumentExceptionFactory.adaptPropertyException(e, d).getMessageObject());
-                    app.println();
+                    app.errPrintln();
+                    app.errPrintln(ArgumentExceptionFactory.adaptPropertyException(e, d).getMessageObject());
+                    app.errPrintln();
                 }
             }
         }
