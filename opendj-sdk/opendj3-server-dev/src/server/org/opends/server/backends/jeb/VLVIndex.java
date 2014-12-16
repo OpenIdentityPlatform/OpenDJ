@@ -644,13 +644,13 @@ public class VLVIndex extends DatabaseContainer
         // This is the last unbounded set.
         while(av != null)
         {
-          sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
+          sortValuesSet.add(av);
           av = moveToNextSortValues(aValues);
         }
 
         while(dv != null)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          sortValuesSet.remove(dv);
           dv = moveToNextSortValues(dValues);
         }
       }
@@ -660,13 +660,13 @@ public class VLVIndex extends DatabaseContainer
 
         while(av != null && av.compareTo(maxValues) <= 0)
         {
-          sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
+          sortValuesSet.add(av);
           av = moveToNextSortValues(aValues);
         }
 
         while(dv != null && dv.compareTo(maxValues) <= 0)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          sortValuesSet.remove(dv);
           dv = moveToNextSortValues(dValues);
         }
       }

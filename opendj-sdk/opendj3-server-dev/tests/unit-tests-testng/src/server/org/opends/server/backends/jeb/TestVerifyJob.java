@@ -411,7 +411,7 @@ public class TestVerifyJob extends JebTestCase
       ByteString[] badValues = new ByteString[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
-      svs.remove(id, values);
+      remove(svs, id, values);
       svs.add(id, badValues, types);
 
       putSortValuesSet(vlvIndex, svs);
@@ -455,7 +455,7 @@ public class TestVerifyJob extends JebTestCase
       DatabaseEntry data= new DatabaseEntry(entryBytes.toByteArray());
       assertEquals(id2entry.put(txn, key, data), OperationStatus.SUCCESS);
 
-      //add entry with ramdom bytes
+      // add entry with random bytes
       DatabaseEntry key1= new EntryID(4).getDatabaseEntry();
       byte []eBytes = new byte[459];
       for(int i=0;i<459;i++) {
@@ -703,7 +703,7 @@ public class TestVerifyJob extends JebTestCase
       SortValuesSet svs = vlvIndex.getSortValuesSet(null, 0, new ByteString[3], types);
       long id = svs.getEntryIDs()[0];
       Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
-      svs.remove(id, vlvIndex.getSortValues(entry));
+      remove(svs, id, vlvIndex.getSortValues(entry));
 
       // Add an incorrectly ordered values.
       SortValuesSet svs2 = svs.split(2);
@@ -716,7 +716,7 @@ public class TestVerifyJob extends JebTestCase
       ByteString[] badValues = new ByteString[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
-      svs.remove(id, values);
+      remove(svs, id, values);
       svs.add(id, badValues, types);
 
       putSortValuesSet(vlvIndex, svs);
@@ -729,9 +729,14 @@ public class TestVerifyJob extends JebTestCase
     }
   }
 
+  private void remove(SortValuesSet svs, long id, ByteString[] values) throws DirectoryException
+  {
+    svs.remove(new SortValues(new EntryID(id), values, new SortOrder()));
+  }
+
   /**
    * Put a sort values set in this VLV index.
-   * 
+   *
    * @param txn
    *          The transaction to use when retrieving the set or NULL if it is
    *          not required.

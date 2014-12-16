@@ -169,18 +169,6 @@ public class JebFormat
   }
 
   /**
-   * Encode an entry ID value to its database representation.
-   *
-   * @param id The entry ID value to be encoded.
-   * @return The encoded database value of the entry ID.
-   * @see #entryIDFromDatabase(byte[])
-   */
-  public static ByteString entryIDToDatabase(long id)
-  {
-    return ByteString.valueOf(id);
-  }
-
-  /**
    * Encode an entry ID set count to its database representation.
    *
    * @param count The entry ID set count to be encoded.
@@ -205,7 +193,6 @@ public class JebFormat
    *
    * @param entryIDArray An array of entry ID values.
    * @return The encoded database value.
-   * @see #entryIDListFromDatabase(byte[])
    */
   public static byte[] entryIDListToDatabase(long[] entryIDArray)
   {
@@ -342,7 +329,6 @@ public class JebFormat
    * @param prefixRDNs The number of prefix RDNs to remove from the encoded
    *                   representation.
    * @return A ByteString containing the key.
-   * @see #dnFromDNKey(byte[], int, int, DN)
    */
   public static ByteString dnToDNKey(DN dn, int prefixRDNs)
   {

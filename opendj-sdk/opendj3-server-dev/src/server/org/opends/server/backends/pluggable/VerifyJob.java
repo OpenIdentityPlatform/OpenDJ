@@ -773,9 +773,7 @@ public class VerifyJob
             logger.traceException(e);
 
             logger.trace("File id2subtree has malformed ID list " +
-                "for ID %s:%n%s%n", entryID,
- StaticUtils
-                .bytesToHex(value));
+                "for ID %s:%n%s%n", entryID, StaticUtils.bytesToHex(value));
           }
           continue;
         }
@@ -826,7 +824,7 @@ public class VerifyJob
               if (logger.isTraceEnabled())
               {
                 logger.trace("File id2subtree has ID %d referencing " +
- "unknown ID %d%n", entryID, id);
+                    "unknown ID %d%n", entryID, id);
               }
               continue;
             }
@@ -838,8 +836,7 @@ public class VerifyJob
               {
                 logger.trace("File id2subtree has ID %d with DN <%s> " +
                     "referencing ID %d with non-subordinate DN <%s>%n",
- entryID, entry.getName(), id, subordEntry
-                    .getName());
+                    entryID, entry.getName(), id, subordEntry.getName());
               }
             }
           }
@@ -950,8 +947,7 @@ public class VerifyJob
           {
             // If this is the last one in a bounded set, make sure it is the
             // same as the database key.
-            ByteString encodedKey = vlvIndex.encodeKey(
-                values.getEntryID(), values.getValues(), values.getTypes());
+            ByteString encodedKey = vlvIndex.encodeKey(values);
             if (!key.equals(encodedKey))
             {
               if(logger.isTraceEnabled())
