@@ -77,14 +77,6 @@ public class ID2CIndexer extends Indexer
 
   /** {@inheritDoc} */
   @Override
-  public void replaceEntry(Entry oldEntry, Entry newEntry,
-                           Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
-  {
-    // Nothing to do.
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
                           Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
