@@ -497,7 +497,7 @@ public class DN2URI extends DatabaseContainer
    * DN.  The referral URLs will be set appropriately for the references found
    * in the referral entry.
    */
-  public void targetEntryReferrals(DN targetDN, SearchScope searchScope)
+  public void targetEntryReferrals(ReadableStorage txn, DN targetDN, SearchScope searchScope)
        throws DirectoryException
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
@@ -512,7 +512,7 @@ public class DN2URI extends DatabaseContainer
 
     try
     {
-      Cursor cursor = storage.openCursor(treeName);
+      final Cursor cursor = txn.openCursor(treeName);
       try
       {
         // Go up through the DIT hierarchy until we find a referral.
@@ -550,7 +550,7 @@ public class DN2URI extends DatabaseContainer
    *          has been reached or the search has been abandoned).
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean returnSearchReferences(SearchOperation searchOp)
+  public boolean returnSearchReferences(ReadableStorage txn, SearchOperation searchOp)
        throws DirectoryException
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
@@ -584,7 +584,7 @@ public class DN2URI extends DatabaseContainer
     ByteSequence startKey = suffix;
     try
     {
-      Cursor cursor = storage.openCursor(treeName);
+      final Cursor cursor = txn.openCursor(treeName);
       try
       {
         // Initialize the cursor very close to the starting value then

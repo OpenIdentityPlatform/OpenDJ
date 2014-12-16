@@ -51,6 +51,7 @@ import org.opends.server.backends.pluggable.BackendImpl.Cursor;
 import org.opends.server.backends.pluggable.BackendImpl.ReadableStorage;
 import org.opends.server.backends.pluggable.BackendImpl.Storage;
 import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
+import org.opends.server.backends.pluggable.BackendImpl.WriteOperation;
 import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
@@ -131,7 +132,7 @@ public class VLVIndex extends DatabaseContainer
    * configuration
    */
   public VLVIndex(LocalDBVLVIndexCfg config, State state, Storage env,
-                  EntryContainer entryContainer)
+                  EntryContainer entryContainer, ReadableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
     super(entryContainer.getDatabasePrefix().child("vlv."+config.getName()),
@@ -197,7 +198,7 @@ public class VLVIndex extends DatabaseContainer
 
     this.state = state;
     this.trusted = state.getIndexTrustState(null, this);
-    if (!trusted && entryContainer.getHighestEntryID().longValue() == 0)
+    if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
       // If there are no entries in the entry container then there
       // is no reason why this vlvIndex can't be upgraded to trusted.
@@ -223,11 +224,11 @@ public class VLVIndex extends DatabaseContainer
 
   /** {@inheritDoc} */
   @Override
-  public void open() throws StorageRuntimeException
+  public void open(WriteableStorage txn) throws StorageRuntimeException
   {
-    super.open();
+    super.open(txn);
 
-    Cursor cursor = storage.openCursor(treeName);
+    final Cursor cursor = txn.openCursor(treeName);
     try
     {
       while (cursor.next())
@@ -1304,8 +1305,8 @@ public class VLVIndex extends DatabaseContainer
     {
       this.sortedSetCapacity = cfg.getMaxBlockSize();
 
-      // Require admin action only if the new capacity is larger. Otherwise,
-      // we will lazyly update the sorted sets.
+      // Require admin action only if the new capacity is larger.
+      // Otherwise, we will lazily update the sorted sets.
       if (config.getMaxBlockSize() < cfg.getMaxBlockSize())
       {
         adminActionRequired = true;
@@ -1391,12 +1392,19 @@ public class VLVIndex extends DatabaseContainer
       entryContainer.exclusiveLock.lock();
       try
       {
-        close();
-        open();
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            close();
+            open(txn);
+          }
+        });
       }
-      catch(StorageRuntimeException de)
+      catch (Exception e)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
         if(resultCode == ResultCode.SUCCESS)
         {
           resultCode = DirectoryServer.getServerErrorResultCode();

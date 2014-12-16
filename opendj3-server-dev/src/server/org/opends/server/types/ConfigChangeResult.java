@@ -44,27 +44,31 @@ import org.forgerock.opendj.ldap.ResultCode;
      mayInvoke=true)
 public final class ConfigChangeResult
 {
-  // A set of messages describing the changes that were made, any
-  // action that may be required, or any problems that were
-  // encountered.
-  private List<LocalizableMessage> messages;
-
-  // Indicates whether one or more of the changes requires
-  // administrative action in order to take effect.
-  private boolean adminActionRequired;
-
-  // The result code to return to the client from this configuration
-  // change.
-  private ResultCode resultCode;
-
-
+  /**
+   * A set of messages describing the changes that were made, any action that
+   * may be required, or any problems that were encountered.
+   */
+  private final List<LocalizableMessage> messages;
 
   /**
-   * Creates a new config change result object with the provided
-   * information.
+   * Indicates whether one or more of the changes requires administrative action
+   * in order to take effect.
+   */
+  private boolean adminActionRequired;
+
+  /** The result code to return to the client from this configuration change. */
+  private ResultCode resultCode;
+
+  /** Creates a new mutable config change result object. */
+  public ConfigChangeResult()
+  {
+    this(ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>());
+  }
+
+  /**
+   * Creates a new config change result object with the provided information.
    *
-   * @param  resultCode           The result code for this config
-   *                              change result.
+   * @param  resultCode           The result code for this config change result.
    * @param  adminActionRequired  Indicates whether administrative
    *                              action is required for one or more
    *                              of the changes to take effect.
@@ -72,12 +76,8 @@ public final class ConfigChangeResult
   public ConfigChangeResult(ResultCode resultCode,
                             boolean adminActionRequired)
   {
-    this.resultCode          = resultCode;
-    this.adminActionRequired = adminActionRequired;
-    this.messages            = new ArrayList<LocalizableMessage>();
+    this(resultCode, adminActionRequired, new ArrayList<LocalizableMessage>());
   }
-
-
 
   /**
    * Creates a new config change result object with the provided
@@ -100,8 +100,6 @@ public final class ConfigChangeResult
     this.adminActionRequired = adminActionRequired;
     this.messages            = messages;
   }
-
-
 
   /**
    * Retrieves the result code for this config change result.
@@ -126,8 +124,6 @@ public final class ConfigChangeResult
     this.resultCode = resultCode;
   }
 
-
-
   /**
    * Indicates whether administrative action is required before one or
    * more of the changes will take effect.
@@ -140,8 +136,6 @@ public final class ConfigChangeResult
   {
     return adminActionRequired;
   }
-
-
 
   /**
    * Specifies whether administrative action is required before one or
@@ -157,8 +151,6 @@ public final class ConfigChangeResult
     this.adminActionRequired = adminActionRequired;
   }
 
-
-
   /**
    * Retrieves the set of messages that provide explanation for the
    * processing of the configuration changes.  This list may be
@@ -172,8 +164,6 @@ public final class ConfigChangeResult
     return messages;
   }
 
-
-
   /**
    * Adds the provided message to the set of messages for this config
    * change result.
@@ -185,8 +175,6 @@ public final class ConfigChangeResult
   {
     messages.add(message);
   }
-
-
 
   /**
    * Retrieves a string representation of this config change result.
@@ -201,8 +189,6 @@ public final class ConfigChangeResult
     return buffer.toString();
   }
 
-
-
   /**
    * Appends a string representation of this config change result to
    * the provided buffer.
@@ -213,18 +199,15 @@ public final class ConfigChangeResult
   public void toString(StringBuilder buffer)
   {
     buffer.append("ConfigChangeResult(result=");
-    buffer.append(resultCode.toString());
+    buffer.append(resultCode);
     buffer.append(", adminActionRequired=");
     buffer.append(adminActionRequired);
     buffer.append(", messages={");
 
     if (! messages.isEmpty())
     {
-      Iterator<LocalizableMessage> iterator = messages.iterator();
-
-      LocalizableMessage firstMessage = iterator.next();
-      buffer.append(firstMessage);
-
+      final Iterator<LocalizableMessage> iterator = messages.iterator();
+      buffer.append(iterator.next());
       while (iterator.hasNext())
       {
         buffer.append(",");
@@ -232,8 +215,6 @@ public final class ConfigChangeResult
       }
     }
 
-
     buffer.append("})");
   }
 }
-
