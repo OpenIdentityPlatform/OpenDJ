@@ -134,8 +134,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
     void open() throws Exception;
 
-    void openTree(TreeName name);
-
     <T> T read(ReadOperation<T> readTransaction) throws Exception;
 
     void write(WriteOperation updateTransaction) throws Exception;
@@ -264,13 +262,13 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   public interface WriteableStorage extends ReadableStorage
   {
+    void openTree(TreeName name);
+
     void put(TreeName name, ByteSequence key, ByteSequence value);
 
     boolean putIfAbsent(TreeName treeName, ByteSequence key, ByteSequence value);
 
     boolean remove(TreeName name, ByteSequence key);
-
-    boolean remove(TreeName name, ByteSequence key, ByteSequence value);
   }
 
   /** The configuration of this JE backend. */
