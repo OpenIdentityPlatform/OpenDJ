@@ -36,13 +36,8 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SortKey;
 
-import static org.opends.server.backends.pluggable.JebFormat.*;
-
-
-
 /**
- * This class represents a partial sorted set of sorted entries in a VLV
- * index.
+ * This class represents a partial sorted set of sorted entries in a VLV index.
  */
 public class SortValuesSet
 {
@@ -97,6 +92,19 @@ public class SortValuesSet
 
   private SortValuesSet()
   {}
+
+  /**
+   * Add the given entryID and values from these sort values.
+   *
+   * @param sv The sort values to add.
+   * @param types The types of the values to add.
+   * @throws DirectoryException If a Directory Server error occurs.
+   * @throws DatabaseException If an error occurs in the JE database.
+   */
+  void add(SortValues sv) throws DirectoryException
+  {
+    add(sv.getEntryID(), sv.getValues(), sv.getTypes());
+  }
 
   /**
    * Add the given entryID and values from this VLV index.
@@ -219,21 +227,17 @@ public class SortValuesSet
   }
 
   /**
-   * Remove the given entryID and values from this VLV index.
+   * Remove the given entryID and values from these sort values.
    *
-   * @param entryID The entry ID to remove.
-   * @param values The values to remove.
-   * @return True if the information was successfully removed or False
-   * otherwise.
+   * @param sv The sort values to remove.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean remove(long entryID, ByteString[] values)
-      throws StorageRuntimeException, DirectoryException
+  void remove(SortValues sv) throws DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
     {
-      return false;
+      return;
     }
 
     if(valuesBytesOffsets == null)
@@ -241,50 +245,45 @@ public class SortValuesSet
       updateValuesBytesOffsets();
     }
 
-    int pos = binarySearch(entryID, values);
+    int pos = binarySearch(sv.getEntryID(), sv.getValues());
     if(pos < 0)
     {
       // Not found.
-      return false;
+      return;
+    }
+
+    // Found it.
+    long[] updatedEntryIDs = new long[entryIDs.length - 1];
+    System.arraycopy(entryIDs, 0, updatedEntryIDs, 0, pos);
+    System.arraycopy(entryIDs, pos + 1, updatedEntryIDs, pos,
+                     entryIDs.length - pos - 1);
+    int valuesLength;
+    int valuesPos = valuesBytesOffsets[pos];
+    if (pos < valuesBytesOffsets.length - 1)
+    {
+      valuesLength = valuesBytesOffsets[pos + 1] - valuesPos;
     }
     else
     {
-      // Found it.
-      long[] updatedEntryIDs = new long[entryIDs.length - 1];
-      System.arraycopy(entryIDs, 0, updatedEntryIDs, 0, pos);
-      System.arraycopy(entryIDs, pos+1, updatedEntryIDs, pos,
-                       entryIDs.length-pos-1);
-      int valuesLength;
-      int valuesPos = valuesBytesOffsets[pos];
-      if(pos < valuesBytesOffsets.length - 1)
-      {
-        valuesLength = valuesBytesOffsets[pos+1] - valuesPos;
-      }
-      else
-      {
-        valuesLength = valuesBytes.length - valuesPos;
-      }
-      byte[] updatedValuesBytes = new byte[valuesBytes.length - valuesLength];
-      System.arraycopy(valuesBytes, 0, updatedValuesBytes, 0, valuesPos);
-      System.arraycopy(valuesBytes, valuesPos + valuesLength,
-                       updatedValuesBytes, valuesPos,
-                       valuesBytes.length - valuesPos - valuesLength);
-
-      int[] updatedValuesBytesOffsets = new int[valuesBytesOffsets.length - 1];
-      System.arraycopy(valuesBytesOffsets, 0, updatedValuesBytesOffsets,
-          0, pos);
-      // Update the rest of the offsets one by one - Expensive!
-      for(int i = pos + 1; i < valuesBytesOffsets.length; i++)
-      {
-        updatedValuesBytesOffsets[i-1] =
-            valuesBytesOffsets[i] - valuesLength;
-      }
-
-      entryIDs = updatedEntryIDs;
-      valuesBytes = updatedValuesBytes;
-      valuesBytesOffsets = updatedValuesBytesOffsets;
-      return true;
+      valuesLength = valuesBytes.length - valuesPos;
     }
+    byte[] updatedValuesBytes = new byte[valuesBytes.length - valuesLength];
+    System.arraycopy(valuesBytes, 0, updatedValuesBytes, 0, valuesPos);
+    System.arraycopy(valuesBytes, valuesPos + valuesLength,
+                     updatedValuesBytes, valuesPos,
+                     valuesBytes.length - valuesPos - valuesLength);
+
+    int[] updatedValuesBytesOffsets = new int[valuesBytesOffsets.length - 1];
+    System.arraycopy(valuesBytesOffsets, 0, updatedValuesBytesOffsets, 0, pos);
+    // Update the rest of the offsets one by one - Expensive!
+    for (int i = pos + 1; i < valuesBytesOffsets.length; i++)
+    {
+      updatedValuesBytesOffsets[i - 1] = valuesBytesOffsets[i] - valuesLength;
+    }
+
+    entryIDs = updatedEntryIDs;
+    valuesBytes = updatedValuesBytes;
+    valuesBytesOffsets = updatedValuesBytesOffsets;
   }
 
   /**
@@ -537,7 +536,7 @@ public class SortValuesSet
     int vBytesPos = valuesBytesOffsets[valuesBytesOffsets.length - 1];
     int vBytesLength = valuesBytes.length - vBytesPos;
 
-    ByteString idBytes = entryIDToDatabase(entryIDs[entryIDs.length - 1]);
+    ByteString idBytes = ByteString.valueOf(entryIDs[entryIDs.length - 1]);
     ByteStringBuilder keyBytes = new ByteStringBuilder(vBytesLength + idBytes.length());
     keyBytes.append(valuesBytes, vBytesPos, vBytesLength);
     keyBytes.append(idBytes);

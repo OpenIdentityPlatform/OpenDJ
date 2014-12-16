@@ -27,8 +27,6 @@ package org.opends.server.backends.pluggable;
 import java.io.Closeable;
 
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 
 /**
  * Container for a whole suffix environment which stores all entries from the

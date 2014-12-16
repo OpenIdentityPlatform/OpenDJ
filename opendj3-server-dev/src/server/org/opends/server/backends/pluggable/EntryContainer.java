@@ -1256,7 +1256,7 @@ public class EntryContainer
 
   /**
    * Returns the entry corresponding to the provided entryID.
-   * 
+   *
    * @param entryID
    *          the id of the entry to retrieve
    * @return the entry corresponding to the provided entryID
@@ -1323,7 +1323,7 @@ public class EntryContainer
       // The cookie contains the ID of the next entry to be returned.
       try
       {
-        begin = new EntryID(pageRequest.getCookie().toLong());
+        begin = new EntryID(pageRequest.getCookie());
       }
       catch (Exception e)
       {
@@ -1876,7 +1876,7 @@ public class EntryContainer
     indexRemoveEntry(indexBuffer, entry, leafID);
 
     // Remove the id2c and id2s records for this entry.
-    final ByteString leafIDKeyBytes = ByteString.valueOf(leafID.longValue());
+    final ByteString leafIDKeyBytes = leafID.toByteString();
     id2children.delete(indexBuffer, leafIDKeyBytes);
     id2subtree.delete(indexBuffer, leafIDKeyBytes);
 
@@ -1892,7 +1892,7 @@ public class EntryContainer
         throw new JebException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN));
       }
 
-      ByteString parentIDBytes = ByteString.valueOf(parentID.longValue());
+      ByteString parentIDBytes = parentID.toByteString();
       // Remove from id2children.
       if (isParent)
       {
@@ -2259,8 +2259,8 @@ public class EntryContainer
                 {
                   logger.trace("Move of target entry requires renumbering" + "all entries in the subtree. "
                       + "Old DN: %s " + "New DN: %s " + "Old entry ID: %d " + "New entry ID: %d "
-                      + "New Superior ID: %d" + oldApexEntry.getName(), entry.getName(), oldApexID.longValue(),
-                      newApexID.longValue(), newSuperiorID.longValue());
+                      + "New Superior ID: %d" + oldApexEntry.getName(), entry.getName(), oldApexID,
+                      newApexID, newSuperiorID);
                 }
               }
             }
@@ -2328,9 +2328,9 @@ public class EntryContainer
 
                   if (logger.isTraceEnabled())
                   {
-                    logger.trace("Move of subordinate entry requires " + "renumbering. " + "Old DN: %s "
-                        + "New DN: %s " + "Old entry ID: %d " + "New entry ID: %d", oldEntry.getName(), newDN, oldID
-                        .longValue(), newID.longValue());
+                    logger.trace("Move of subordinate entry requires renumbering. "
+                        + "Old DN: %s New DN: %s Old entry ID: %d New entry ID: %d",
+                        oldEntry.getName(), newDN, oldID, newID);
                   }
                 }
 
@@ -2459,7 +2459,7 @@ public class EntryContainer
            dn = getParentWithinBase(dn))
       {
         EntryID parentID = dn2id.get(txn, dn, false);
-        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
+        ByteString parentIDKeyBytes = parentID.toByteString();
         if(isParent)
         {
           id2children.insertID(buffer, parentIDKeyBytes, newID);
@@ -2504,7 +2504,7 @@ public class EntryContainer
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID parentID = dn2id.get(txn, dn, false);
-        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
+        ByteString parentIDKeyBytes = parentID.toByteString();
         if(isParent)
         {
           id2children.removeID(buffer, parentIDKeyBytes, oldID);
@@ -2518,7 +2518,7 @@ public class EntryContainer
     {
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
-      ByteString oldIDKeyBytes = ByteString.valueOf(oldID.longValue());
+      ByteString oldIDKeyBytes = oldID.toByteString();
       id2children.delete(buffer, oldIDKeyBytes);
       id2subtree.delete(buffer, oldIDKeyBytes);
 
@@ -2610,7 +2610,7 @@ public class EntryContainer
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID parentID = dn2id.get(txn, dn, false);
-        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
+        ByteString parentIDKeyBytes = parentID.toByteString();
         id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
       }
     }
@@ -2619,7 +2619,7 @@ public class EntryContainer
     {
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
-      ByteString oldIDKeyBytes = ByteString.valueOf(oldID.longValue());
+      ByteString oldIDKeyBytes = oldID.toByteString();
       id2children.delete(buffer, oldIDKeyBytes);
       id2subtree.delete(buffer, oldIDKeyBytes);
 
@@ -2758,8 +2758,7 @@ public class EntryContainer
     EntryID entryID = dn2id.get(null, baseDN, false);
     if (entryID != null)
     {
-      ByteString key = entryIDToDatabase(entryID.longValue());
-      EntryIDSet entryIDSet = id2subtree.readKey(key, null);
+      EntryIDSet entryIDSet = id2subtree.readKey(entryID.toByteString(), null);
 
       long count = entryIDSet.size();
       if(count != Long.MAX_VALUE)

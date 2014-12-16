@@ -634,13 +634,13 @@ public class VLVIndex extends DatabaseContainer
         // This is the last unbounded set.
         while(av != null)
         {
-          sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
+          sortValuesSet.add(av);
           av = moveToNextSortValues(aValues);
         }
 
         while(dv != null)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          sortValuesSet.remove(dv);
           dv = moveToNextSortValues(dValues);
         }
       }
@@ -650,13 +650,13 @@ public class VLVIndex extends DatabaseContainer
 
         while(av != null && av.compareTo(maxValues) <= 0)
         {
-          sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
+          sortValuesSet.add(av);
           av = moveToNextSortValues(aValues);
         }
 
         while(dv != null && dv.compareTo(maxValues) <= 0)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          sortValuesSet.remove(dv);
           dv = moveToNextSortValues(dValues);
         }
       }
@@ -699,11 +699,6 @@ public class VLVIndex extends DatabaseContainer
       return sortValues.next();
     }
     return null;
-  }
-
-  private ByteString encodeKey(SortValues sv) throws DirectoryException
-  {
-    return encodeKey(sv.getEntryID(), sv.getValues(), sv.getTypes());
   }
 
   /**
@@ -1090,6 +1085,18 @@ public class VLVIndex extends DatabaseContainer
       }
     }
     return values;
+  }
+
+  /**
+   * Encode a VLV database key with the provided sort values.
+   *
+   * @param sv the sort values to encode
+   * @return The encoded bytes.
+   * @throws DirectoryException If a Directory Server error occurs.
+   */
+  ByteString encodeKey(SortValues sv) throws DirectoryException
+  {
+    return encodeKey(sv.getEntryID(), sv.getValues(), sv.getTypes());
   }
 
   /**
