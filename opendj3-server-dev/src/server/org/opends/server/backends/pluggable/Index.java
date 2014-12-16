@@ -136,7 +136,7 @@ public class Index extends DatabaseContainer
     this.maintainCount = maintainCount;
 
     this.state = state;
-    this.trusted = state.getIndexTrustState(null, this);
+    this.trusted = state.getIndexTrustState(txn, this);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
       // If there are no entries in the entry container then there

@@ -35,7 +35,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.backends.pluggable.SuffixContainer;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
@@ -68,7 +67,7 @@ public class EntryIDSetSorter
    *
    * @throws  DirectoryException  If an error occurs while performing the sort.
    */
-  public static EntryIDSet sort(SuffixContainer suffixContainer,
+  public static EntryIDSet sort(EntryContainer suffixContainer,
                                 EntryIDSet entryIDSet,
                                 SearchOperation searchOperation,
                                 SortOrder sortOrder,

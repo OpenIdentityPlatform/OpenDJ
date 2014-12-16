@@ -25,13 +25,15 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
-import org.forgerock.i18n.LocalizableMessage;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.JebMessages.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
+
+import static org.opends.messages.JebMessages.*;
 
 /**
  * A singleton class to manage the life-cycle of a JE database environment.
@@ -40,10 +42,7 @@ public class EnvManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * A filename filter to match all kinds of JE files.
-   */
+  /** A filename filter to match all kinds of JE files. */
   private static final FilenameFilter jeAllFilesFilter;
 
   static
@@ -53,6 +52,7 @@ public class EnvManager
     // here but is not public.
     jeAllFilesFilter = new FilenameFilter()
     {
+      @Override
       public boolean accept(File d, String name)
       {
         return name.endsWith(".jdb") ||
@@ -68,10 +68,9 @@ public class EnvManager
    * The environment must not be open.
    *
    * @param homeDir The backend home directory.
-   * @throws JebException If an error occurs in the JE backend.
+   * @throws StorageRuntimeException If an error occurs in the JE backend.
    */
-  public static void createHomeDir(String homeDir)
-       throws JebException
+  public static void createHomeDir(String homeDir) throws StorageRuntimeException
   {
     File dir = new File(homeDir);
 
@@ -80,7 +79,7 @@ public class EnvManager
       if (!dir.isDirectory())
       {
         LocalizableMessage message = ERR_JEB_DIRECTORY_INVALID.get(homeDir);
-        throw new JebException(message);
+        throw new StorageRuntimeException(message.toString());
       }
       removeFiles(homeDir);
     }
@@ -94,7 +93,7 @@ public class EnvManager
       {
         logger.traceException(e);
         LocalizableMessage message = ERR_JEB_CREATE_FAIL.get(e.getMessage());
-        throw new JebException(message, e);
+        throw new StorageRuntimeException(message.toString(), e);
       }
     }
   }
@@ -104,22 +103,22 @@ public class EnvManager
    * The environment must not be open.
    *
    * @param homeDir The backend home directory
-   * @throws JebException If an error occurs in the JE backend or if the
-   * specified home directory does not exist.
+   * @throws StorageRuntimeException
+   *           If an error occurs in the JE backend or if the specified home
+   *           directory does not exist.
    */
-  public static void removeFiles(String homeDir)
-       throws JebException
+  public static void removeFiles(String homeDir) throws StorageRuntimeException
   {
     File dir = new File(homeDir);
     if (!dir.exists())
     {
       LocalizableMessage message = ERR_JEB_DIRECTORY_DOES_NOT_EXIST.get(homeDir);
-      throw new JebException(message);
+      throw new StorageRuntimeException(message.toString());
     }
     if (!dir.isDirectory())
     {
       LocalizableMessage message = ERR_JEB_DIRECTORY_INVALID.get(homeDir);
-      throw new JebException(message);
+      throw new StorageRuntimeException(message.toString());
     }
 
     try
@@ -134,7 +133,7 @@ public class EnvManager
     {
       logger.traceException(e);
       LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
-      throw new JebException(message, e);
+      throw new StorageRuntimeException(message.toString(), e);
     }
   }
 

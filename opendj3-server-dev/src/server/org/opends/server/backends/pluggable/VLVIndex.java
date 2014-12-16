@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -197,7 +196,7 @@ public class VLVIndex extends DatabaseContainer
     this.comparator = new VLVKeyComparator(orderingRules, ascending);
 
     this.state = state;
-    this.trusted = state.getIndexTrustState(null, this);
+    this.trusted = state.getIndexTrustState(txn, this);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
     {
       // If there are no entries in the entry container then there
@@ -264,12 +263,10 @@ public class VLVIndex extends DatabaseContainer
    * @return True if the entry ID for the entry are added. False if
    *         the entry ID already exists.
    * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws org.opends.server.types.DirectoryException If a Directory Server
-   * error occurs.
-   * @throws JebException If an error occurs in the JE backend.
+   * @throws DirectoryException If a Directory Server error occurs.
    */
   public boolean addEntry(WriteableStorage txn, EntryID entryID, Entry entry)
-      throws StorageRuntimeException, DirectoryException, JebException
+      throws StorageRuntimeException, DirectoryException
   {
     return shouldInclude(entry)
         && insertValues(txn, entryID.longValue(), entry);
@@ -470,13 +467,11 @@ public class VLVIndex extends DatabaseContainer
    * found.
    * @throws StorageRuntimeException If an error occurs during an operation on a
    * JE database.
-   * @throws JebException If an error occurs during an operation on a
-   * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public boolean containsValues(ReadableStorage txn, long entryID,
-      ByteString[] values, AttributeType[] types) throws JebException,
-      StorageRuntimeException, DirectoryException
+      ByteString[] values, AttributeType[] types)
+          throws StorageRuntimeException, DirectoryException
   {
     SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
     int pos = valuesSet.binarySearch(entryID, values);
@@ -484,7 +479,7 @@ public class VLVIndex extends DatabaseContainer
   }
 
   private boolean insertValues(WriteableStorage txn, long entryID, Entry entry)
-      throws JebException, StorageRuntimeException, DirectoryException
+      throws StorageRuntimeException, DirectoryException
   {
     ByteString[] values = getSortValues(entry);
     AttributeType[] types = getSortTypes();
@@ -543,19 +538,6 @@ public class VLVIndex extends DatabaseContainer
       types[i] = sortKeys[i].getAttributeType();
     }
     return types;
-  }
-
-  private boolean getSearchKeyRange(ReadableStorage txn, ByteString key)
-  {
-    Cursor cursor = txn.openCursor(treeName);
-    try
-    {
-      return cursor.positionToKeyOrNext(key);
-    }
-    finally
-    {
-      cursor.close();
-    }
   }
 
   /**
@@ -1279,25 +1261,42 @@ public class VLVIndex extends DatabaseContainer
 
   /** {@inheritDoc} */
   @Override
-  public synchronized ConfigChangeResult applyConfigurationChange(
-      LocalDBVLVIndexCfg cfg)
+  public synchronized ConfigChangeResult applyConfigurationChange(final LocalDBVLVIndexCfg cfg)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    try
+    {
+      final ConfigChangeResult ccr = new ConfigChangeResult();
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableStorage txn) throws Exception
+        {
+          applyConfigurationChange0(txn, cfg, ccr);
+        }
+      });
+      return ccr;
+    }
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
+    }
+  }
 
+  private synchronized void applyConfigurationChange0(WriteableStorage txn, LocalDBVLVIndexCfg cfg,
+      ConfigChangeResult ccr)
+  {
     // Update base DN only if changed..
     if(!config.getBaseDN().equals(cfg.getBaseDN()))
     {
       this.baseDN = cfg.getBaseDN();
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
     // Update scope only if changed.
     if(!config.getScope().equals(cfg.getScope()))
     {
       this.scope = SearchScope.valueOf(cfg.getScope().name());
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
     // Update sort set capacity only if changed.
@@ -1309,7 +1308,7 @@ public class VLVIndex extends DatabaseContainer
       // Otherwise, we will lazily update the sorted sets.
       if (config.getMaxBlockSize() < cfg.getMaxBlockSize())
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
     }
 
@@ -1319,18 +1318,13 @@ public class VLVIndex extends DatabaseContainer
       try
       {
         this.filter = SearchFilter.createFilterFromString(cfg.getFilter());
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
       catch(Exception e)
       {
-        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-                config.getFilter(), treeName,
-                stackTraceToSingleLineString(e));
-        messages.add(msg);
-        if(resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-        }
+        ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+            config.getFilter(), treeName, stackTraceToSingleLineString(e)));
+        ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
       }
     }
 
@@ -1361,22 +1355,16 @@ public class VLVIndex extends DatabaseContainer
         }
         catch(Exception e)
         {
-          messages.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
-          if(resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-          }
+          ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
+          ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         }
 
         AttributeType attrType =
             DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
-          messages.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
-          if(resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-          }
+          ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
+          ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         }
         else
         {
@@ -1392,22 +1380,15 @@ public class VLVIndex extends DatabaseContainer
       entryContainer.exclusiveLock.lock();
       try
       {
-        storage.write(new WriteOperation()
-        {
-          @Override
-          public void run(WriteableStorage txn) throws Exception
-          {
-            close();
-            open(txn);
-          }
-        });
+        close();
+        open(txn);
       }
-      catch (Exception e)
+      catch (StorageRuntimeException de)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-        if(resultCode == ResultCode.SUCCESS)
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        if (ccr.getResultCode() == ResultCode.SUCCESS)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
       finally
@@ -1415,29 +1396,28 @@ public class VLVIndex extends DatabaseContainer
         entryContainer.exclusiveLock.unlock();
       }
 
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
 
-    if(adminActionRequired)
+    if (ccr.adminActionRequired())
     {
       trusted = false;
-      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(treeName));
+      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(treeName));
       try
       {
         state.putIndexTrustState(null, this, false);
       }
       catch(StorageRuntimeException de)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        if(resultCode == ResultCode.SUCCESS)
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        if (ccr.getResultCode() == ResultCode.SUCCESS)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
     }
 
     this.config = cfg;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 }

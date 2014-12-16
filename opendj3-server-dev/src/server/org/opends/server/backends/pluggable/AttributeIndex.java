@@ -49,7 +49,6 @@ import org.opends.server.backends.pluggable.BackendImpl.TreeName;
 import org.opends.server.backends.pluggable.BackendImpl.WriteOperation;
 import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
@@ -716,11 +715,12 @@ public class AttributeIndex
         }
       }
     }
-    removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
+    removeIndexesForExtensibleMatchingRules(txn, validRules, validIndexIds);
   }
 
   /** Remove indexes which do not correspond to valid rules. */
-  private void removeIndexesForExtensibleMatchingRules(Set<MatchingRule> validRules, Set<String> validIndexIds)
+  private void removeIndexesForExtensibleMatchingRules(WriteableStorage txn, Set<MatchingRule> validRules,
+      Set<String> validIndexIds)
   {
     final Set<MatchingRule> rulesToDelete = getCurrentExtensibleMatchingRules();
     rulesToDelete.removeAll(validRules);
@@ -746,7 +746,7 @@ public class AttributeIndex
             Index index = nameToIndexes.get(indexId);
             if (index != null)
             {
-              entryContainer.deleteDatabase(index);
+              entryContainer.deleteDatabase(txn, index);
               nameToIndexes.remove(index);
             }
           }
@@ -779,7 +779,7 @@ public class AttributeIndex
     Index index = nameToIndexes.get(indexId);
     if (!cfg.getIndexType().contains(indexType))
     {
-      removeIndex(index, indexType);
+      removeIndex(txn, index, indexType);
       return;
     }
 
@@ -811,7 +811,7 @@ public class AttributeIndex
     Index index = nameToIndexes.get(indexID);
     if (!cfg.getIndexType().contains(indexType))
     {
-      removeIndex(index, indexType);
+      removeIndex(txn, index, indexType);
       return;
     }
 
@@ -832,7 +832,7 @@ public class AttributeIndex
     }
   }
 
-  private void removeIndex(Index index, IndexType indexType)
+  private void removeIndex(WriteableStorage txn, Index index, IndexType indexType)
   {
     if (index != null)
     {
@@ -840,7 +840,7 @@ public class AttributeIndex
       try
       {
         nameToIndexes.remove(indexType.toString());
-        entryContainer.deleteDatabase(index);
+        entryContainer.deleteDatabase(txn, index);
       }
       finally
       {

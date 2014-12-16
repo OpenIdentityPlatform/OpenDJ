@@ -51,7 +51,6 @@ import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.pluggable.BackendImpl.Cursor;
 import org.opends.server.backends.pluggable.BackendImpl.ReadOperation;
 import org.opends.server.backends.pluggable.BackendImpl.ReadableStorage;
-import org.opends.server.backends.pluggable.BackendImpl.Storage;
 import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
@@ -146,16 +145,14 @@ public class VerifyJob
    * @param statEntry Optional statistics entry.
    * @return The error count.
    * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE backend.
    * @throws DirectoryException If an error occurs while verifying the backend.
    */
   public long verifyBackend(final RootContainer rootContainer, final Entry statEntry) throws StorageRuntimeException,
-      JebException, DirectoryException
+      DirectoryException
   {
-    Storage s;
     try
     {
-      return s.read(new ReadOperation<Long>()
+      return rootContainer.getStorage().read(new ReadOperation<Long>()
       {
         @Override
         public Long run(ReadableStorage txn) throws Exception
@@ -171,7 +168,7 @@ public class VerifyJob
   }
 
   private long verifyBackend0(ReadableStorage txn, RootContainer rootContainer, Entry statEntry)
-      throws StorageRuntimeException, JebException, DirectoryException
+      throws StorageRuntimeException, DirectoryException
   {
     this.rootContainer = rootContainer;
     EntryContainer entryContainer =
@@ -224,7 +221,7 @@ public class VerifyJob
             {
               LocalizableMessage msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
                   .get(rootContainer.getConfiguration().getBackendId());
-              throw new JebException(msg);
+              throw new StorageRuntimeException(msg.toString());
             }
           }
           else if ("id2subtree".equals(lowerName))
@@ -237,7 +234,7 @@ public class VerifyJob
             {
               LocalizableMessage msg = NOTE_JEB_SUBORDINATE_INDEXES_DISABLED
                   .get(rootContainer.getConfiguration().getBackendId());
-              throw new JebException(msg);
+              throw new StorageRuntimeException(msg.toString());
             }
           }
           else if(lowerName.startsWith("vlv."))
@@ -245,7 +242,7 @@ public class VerifyJob
             if(lowerName.length() < 5)
             {
               LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
-              throw new JebException(msg);
+              throw new StorageRuntimeException(msg.toString());
             }
 
             VLVIndex vlvIndex =
@@ -254,35 +251,31 @@ public class VerifyJob
             {
               LocalizableMessage msg =
                   ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
-              throw new JebException(msg);
+              throw new StorageRuntimeException(msg.toString());
             }
 
             vlvIndexList.add(vlvIndex);
           }
           else
           {
-            AttributeType attrType =
-                DirectoryServer.getAttributeType(lowerName);
+            AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
             if (attrType == null)
             {
               LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new JebException(msg);
+              throw new StorageRuntimeException(msg.toString());
             }
-            AttributeIndex attrIndex =
-                entryContainer.getAttributeIndex(attrType);
+            AttributeIndex attrIndex = entryContainer.getAttributeIndex(attrType);
             if (attrIndex == null)
             {
               LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new JebException(msg);
+              throw new StorageRuntimeException(msg.toString());
             }
             attrIndexList.add(attrIndex);
           }
         }
       }
 
-      entryLimitMap =
-          new IdentityHashMap<Index,HashMap<ByteString,Long>>(
-              attrIndexList.size());
+      entryLimitMap = new IdentityHashMap<Index, HashMap<ByteString, Long>>(attrIndexList.size());
 
       // We will be updating these files independently of the indexes
       // so we need direct access to them rather than going through
@@ -421,7 +414,7 @@ public class VerifyJob
     Cursor cursor = id2entry.openCursor(txn);
     try
     {
-      long storedEntryCount = id2entry.getRecordCount();
+      long storedEntryCount = id2entry.getRecordCount(txn);
       while (cursor.next())
       {
         ByteString key = cursor.getKey();
@@ -487,12 +480,10 @@ public class VerifyJob
    * index cleanliness. For each ID in the index we check that the
    * entry it refers to does indeed contain the expected value.
    *
-   * @throws JebException If an error occurs in the JE backend.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
-  private void iterateIndex(ReadableStorage txn)
-      throws JebException, StorageRuntimeException, DirectoryException
+  private void iterateIndex(ReadableStorage txn) throws StorageRuntimeException, DirectoryException
   {
     if (verifyDN2ID)
     {
@@ -598,10 +589,9 @@ public class VerifyJob
    * Iterate through the entries in ID2Children to perform a check for
    * index cleanliness.
    *
-   * @throws JebException If an error occurs in the JE backend.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void iterateID2Children(ReadableStorage txn) throws JebException, StorageRuntimeException
+  private void iterateID2Children(ReadableStorage txn) throws StorageRuntimeException
   {
     Cursor cursor = id2c.openCursor(txn);
     try
@@ -727,10 +717,9 @@ public class VerifyJob
    * Iterate through the entries in ID2Subtree to perform a check for
    * index cleanliness.
    *
-   * @throws JebException If an error occurs in the JE backend.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  private void iterateID2Subtree(ReadableStorage txn) throws JebException, StorageRuntimeException
+  private void iterateID2Subtree(ReadableStorage txn) throws StorageRuntimeException
   {
     Cursor cursor = id2s.openCursor(txn);
     try
@@ -906,12 +895,11 @@ public class VerifyJob
    *
    * @param vlvIndex The VLV index to perform the check against.
    * @param verifyID True to verify the IDs against id2entry.
-   * @throws JebException If an error occurs in the JE backend.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws DirectoryException If an error occurs reading values in the index.
    */
   private void iterateVLVIndex(ReadableStorage txn, VLVIndex vlvIndex, boolean verifyID)
-      throws JebException, StorageRuntimeException, DirectoryException
+      throws StorageRuntimeException, DirectoryException
   {
     if(vlvIndex == null)
     {
@@ -1012,11 +1000,10 @@ public class VerifyJob
    * Iterate through the entries in an attribute index to perform a check for
    * index cleanliness.
    * @param index The index database to be checked.
-   * @throws JebException If an error occurs in the JE backend.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
   private void iterateAttrIndex(ReadableStorage txn, Index index, IndexingOptions options)
-      throws JebException, StorageRuntimeException
+      throws StorageRuntimeException
   {
     if (index == null)
     {
@@ -1478,16 +1465,6 @@ public class VerifyJob
         errorCount++;
       }
       catch (StorageRuntimeException e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.traceException(e);
-          logger.trace("Error reading VLV index %s for entry %s: %s",
-              vlvIndex.getName(), entry.getName(), StaticUtils.getBacktrace(e));
-        }
-        errorCount++;
-      }
-      catch (JebException e)
       {
         if (logger.isTraceEnabled())
         {

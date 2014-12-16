@@ -88,12 +88,11 @@ public class ExportJob
    * @param rootContainer The root container to export.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws IOException If an I/O error occurs while writing an entry.
-   * @throws JebException If an error occurs in the JE backend.
    * @throws LDIFException If an error occurs while trying to determine whether
    * to write an entry.
    */
   public void exportLDIF(RootContainer rootContainer)
-       throws IOException, LDIFException, StorageRuntimeException, JebException
+       throws IOException, LDIFException, StorageRuntimeException
   {
     List<DN> includeBranches = exportConfig.getIncludeBranches();
     DN baseDN;

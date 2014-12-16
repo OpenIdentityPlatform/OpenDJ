@@ -27,7 +27,13 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -60,12 +66,37 @@ import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
 import org.opends.server.backends.pluggable.BackendImpl.TreeName;
 import org.opends.server.backends.pluggable.BackendImpl.WriteOperation;
 import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
-import org.opends.server.backends.pluggable.SuffixContainer;
-import org.opends.server.controls.*;
-import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.controls.PagedResultsControl;
+import org.opends.server.controls.ServerSideSortRequestControl;
+import org.opends.server.controls.ServerSideSortResponseControl;
+import org.opends.server.controls.SubtreeDeleteControl;
+import org.opends.server.controls.VLVRequestControl;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RDN;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SortKey;
+import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
+import com.sleepycat.je.TransactionConfig;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
@@ -156,6 +187,8 @@ public class EntryContainer
     {
       try
       {
+        // FIXME this should be a read operation, but I cannot change it
+        // because of AttributeIndex ctor.
         storage.write(new WriteOperation()
         {
           @Override
@@ -216,30 +249,35 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationDelete(LocalDBIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationDelete(final LocalDBIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+      final ConfigChangeResult ccr = new ConfigChangeResult();
 
       exclusiveLock.lock();
       try
       {
-        AttributeIndex index = attrIndexMap.get(cfg.getAttribute());
-        deleteAttributeIndex(index);
-        attrIndexMap.remove(cfg.getAttribute());
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            AttributeIndex index = attrIndexMap.get(cfg.getAttribute());
+            deleteAttributeIndex(txn, index, ccr);
+            attrIndexMap.remove(cfg.getAttribute());
+          }
+        });
       }
-      catch(StorageRuntimeException de)
+      catch (Exception de)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.setResultCode(getServerErrorResultCode());
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
       }
       finally
       {
         exclusiveLock.unlock();
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
   }
 
@@ -354,31 +392,33 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationDelete(LocalDBVLVIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationDelete(final LocalDBVLVIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
+      final ConfigChangeResult ccr = new ConfigChangeResult();
       exclusiveLock.lock();
       try
       {
-        VLVIndex vlvIndex =
-          vlvIndexMap.get(cfg.getName().toLowerCase());
-        deleteDatabase(vlvIndex);
-        vlvIndexMap.remove(cfg.getName());
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            VLVIndex vlvIndex = vlvIndexMap.get(cfg.getName().toLowerCase());
+            deleteDatabase(txn, vlvIndex);
+            vlvIndexMap.remove(cfg.getName());
+          }
+        });
       }
-      catch(StorageRuntimeException de)
+      catch (Exception e)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.setResultCode(getServerErrorResultCode());
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
       }
       finally
       {
         exclusiveLock.unlock();
       }
-
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
 
   }
@@ -403,7 +443,7 @@ public class EntryContainer
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
+  public EntryContainer(DN baseDN, TreeName databasePrefix, Backend<?> backend,
       LocalDBBackendCfg config, Storage env, RootContainer rootContainer)
           throws ConfigException
   {
@@ -412,8 +452,7 @@ public class EntryContainer
     this.config = config;
     this.storage = env;
     this.rootContainer = rootContainer;
-
-    this.databasePrefix = preparePrefix(databasePrefix);
+    this.databasePrefix = databasePrefix;
 
     config.addLocalDBChangeListener(this);
 
@@ -1316,14 +1355,12 @@ public class EntryContainer
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
     boolean continueSearch = true;
 
-    // Set the starting value.
-    EntryID begin = null;
     if (pageRequest != null && pageRequest.getCookie().length() != 0)
     {
       // The cookie contains the ID of the next entry to be returned.
       try
       {
-        begin = new EntryID(pageRequest.getCookie());
+        new EntryID(pageRequest.getCookie());
       }
       catch (Exception e)
       {
@@ -1354,10 +1391,8 @@ public class EntryContainer
     // Iterate through the index candidates.
     if (continueSearch)
     {
-      for (Iterator<EntryID> it = entryIDList.iterator(begin); it.hasNext();)
+      for (EntryID id : entryIDList)
       {
-        final EntryID id = it.next();
-
         Entry entry;
         try
         {
@@ -1556,7 +1591,7 @@ public class EntryContainer
                 EntryID nodeID = dn2id.get(txn, dn, false);
                 if (nodeID == null)
                 {
-                  throw new JebException(ERR_JEB_MISSING_DN2ID_RECORD.get(dn));
+                  throw new StorageRuntimeException(ERR_JEB_MISSING_DN2ID_RECORD.get(dn).toString());
                 }
 
                 // Insert into id2subtree for this node.
@@ -1816,7 +1851,7 @@ public class EntryContainer
       DN targetDN,
       ByteSequence leafDNKey,
       EntryID leafID)
-  throws StorageRuntimeException, DirectoryException, JebException
+  throws StorageRuntimeException, DirectoryException
   {
     if(leafID == null || leafDNKey == null)
     {
@@ -1884,7 +1919,7 @@ public class EntryContainer
       EntryID parentID = dn2id.get(txn, parentDN, false);
       if (parentID == null)
       {
-        throw new JebException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN));
+        throw new StorageRuntimeException(ERR_JEB_MISSING_DN2ID_RECORD.get(parentDN).toString());
       }
 
       ByteString parentIDBytes = parentID.toByteString();
@@ -2747,14 +2782,12 @@ public class EntryContainer
    * @return The number of entries stored in this entry container.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  @Override
-  public long getEntryCount() throws StorageRuntimeException
+  public long getEntryCount(ReadableStorage txn) throws StorageRuntimeException
   {
-    EntryID entryID = dn2id.get(null, baseDN, false);
+    final EntryID entryID = dn2id.get(txn, baseDN, false);
     if (entryID != null)
     {
-      EntryIDSet entryIDSet = id2subtree.readKey(entryID.toByteString(), null);
-
+      final EntryIDSet entryIDSet = id2subtree.readKey(entryID.toByteString(), txn);
       long count = entryIDSet.size();
       if(count != Long.MAX_VALUE)
       {
@@ -2764,7 +2797,7 @@ public class EntryContainer
       else
       {
         // The count is not maintained. Fall back to the slow method
-        return id2entry.getRecordCount();
+        return id2entry.getRecordCount(txn);
       }
     }
     else
@@ -2910,36 +2943,14 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs while removing the entry
    *                           container.
    */
-  public void delete() throws StorageRuntimeException
+  public void delete(WriteableStorage txn) throws StorageRuntimeException
   {
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
 
-    if(storage.getConfig().getTransactional())
+    for (DatabaseContainer db : databases)
     {
-      Transaction txn = beginTransaction();
-
-      try
-      {
-        for(DatabaseContainer db : databases)
-        {
-          storage.removeDatabase(txn, db.getName());
-        }
-
-        transactionCommit(txn);
-      }
-      catch(StorageRuntimeException de)
-      {
-        transactionAbort(txn);
-        throw de;
-      }
-    }
-    else
-    {
-      for(DatabaseContainer db : databases)
-      {
-        storage.removeDatabase(null, db.getName());
-      }
+      storage.removeDatabase(txn, db.getName());
     }
   }
 
@@ -2950,8 +2961,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs while attempting to delete the
    * database.
    */
-  public void deleteDatabase(DatabaseContainer database)
-  throws StorageRuntimeException
+  public void deleteDatabase(WriteableStorage txn, DatabaseContainer database) throws StorageRuntimeException
   {
     if(database == state)
     {
@@ -2960,31 +2970,10 @@ public class EntryContainer
     }
 
     database.close();
-    if(storage.getConfig().getTransactional())
+    storage.removeDatabase(txn, database.getName());
+    if(database instanceof Index)
     {
-      Transaction txn = beginTransaction();
-      try
-      {
-        storage.removeDatabase(txn, database.getName());
-        if(database instanceof Index)
-        {
-          state.removeIndexTrustState(txn, database);
-        }
-        transactionCommit(txn);
-      }
-      catch(StorageRuntimeException de)
-      {
-        transactionAbort(txn);
-        throw de;
-      }
-    }
-    else
-    {
-      storage.removeDatabase(null, database.getName());
-      if(database instanceof Index)
-      {
-        state.removeIndexTrustState(null, database);
-      }
+      state.removeIndexTrustState(txn, database);
     }
   }
 
@@ -2995,31 +2984,14 @@ public class EntryContainer
    * @throws StorageRuntimeException If an JE database error occurs while attempting
    * to delete the index.
    */
-  private void deleteAttributeIndex(AttributeIndex attributeIndex)
+  private void deleteAttributeIndex(WriteableStorage txn, AttributeIndex attributeIndex, ConfigChangeResult ccr)
       throws StorageRuntimeException
   {
     attributeIndex.close();
-    Transaction txn = storage.getConfig().getTransactional()
-      ? beginTransaction() : null;
-    try
+    for (Index index : attributeIndex.getAllIndexes())
     {
-      for (Index index : attributeIndex.getAllIndexes())
-      {
-        storage.removeDatabase(txn, index.getName());
-        state.removeIndexTrustState(txn, index);
-      }
-      if (txn != null)
-      {
-        transactionCommit(txn);
-      }
-    }
-    catch(StorageRuntimeException de)
-    {
-      if (txn != null)
-      {
-        transactionAbort(txn);
-      }
-      throw de;
+      storage.removeDatabase(txn, index.getName());
+      state.removeIndexTrustState(txn, index);
     }
   }
 
@@ -3041,16 +3013,13 @@ public class EntryContainer
    *
    * @param newDatabasePrefix The new database prefix to use.
    * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE backend.
    */
-  public void setDatabasePrefix(String newDatabasePrefix)
-  throws StorageRuntimeException, JebException
-
+  public void setDatabasePrefix(TreeName newDatabasePrefix) throws StorageRuntimeException, StorageRuntimeException
   {
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
 
-    TreeName newDbPrefix = preparePrefix(newDatabasePrefix);
+    final TreeName newDbPrefix = newDatabasePrefix;
 
     // close the containers.
     for(DatabaseContainer db : databases)
@@ -3060,11 +3029,10 @@ public class EntryContainer
 
     try
     {
-      if(storage.getConfig().getTransactional())
+      storage.write(new WriteOperation()
       {
-        //Rename under transaction
-        Transaction txn = beginTransaction();
-        try
+        @Override
+        public void run(WriteableStorage txn) throws Exception
         {
           for(DatabaseContainer db : databases)
           {
@@ -3072,52 +3040,60 @@ public class EntryContainer
             String newName = oldName.replace(databasePrefix, newDbPrefix);
             storage.renameDatabase(txn, oldName, newName);
           }
-
-          transactionCommit(txn);
-
-          for(DatabaseContainer db : databases)
+        }
+      });
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableStorage txn) throws Exception
+        {
+          for (DatabaseContainer db : databases)
           {
             TreeName oldName = db.getName();
             String newName = oldName.replace(databasePrefix, newDbPrefix);
             db.setName(newName);
           }
 
-          // Update the prefix.
-          this.databasePrefix = newDbPrefix;
+          databasePrefix = newDbPrefix;
         }
-        catch(Exception e)
-        {
-          transactionAbort(txn);
-
-          String msg = e.getMessage();
-          if (msg == null)
-          {
-            msg = stackTraceToSingleLineString(e);
-          }
-          LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
-          throw new JebException(message, e);
-        }
-      }
-      else
+      });
+    }
+    catch (Exception e)
+    {
+      String msg = e.getMessage();
+      if (msg == null)
       {
-        for(DatabaseContainer db : databases)
-        {
-          TreeName oldName = db.getName();
-          String newName = oldName.replace(databasePrefix, newDbPrefix);
-          storage.renameDatabase(txn, oldName, newName);
-          db.setName(newName);
-        }
-
-        // Update the prefix.
-        this.databasePrefix = newDbPrefix;
+        msg = stackTraceToSingleLineString(e);
       }
+      LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
+      throw new StorageRuntimeException(message.toString(), e);
     }
     finally
     {
-      // Open the containers backup.
-      for(DatabaseContainer db : databases)
+      try
       {
-        db.open(txn);
+        storage.write(new WriteOperation()
+        {
+          @Override
+          public void run(WriteableStorage txn) throws Exception
+          {
+            // Open the containers backup.
+            for(DatabaseContainer db : databases)
+            {
+              db.open(txn);
+            }
+          }
+        });
+      }
+      catch (Exception e)
+      {
+        String msg = e.getMessage();
+        if (msg == null)
+        {
+          msg = stackTraceToSingleLineString(e);
+        }
+        LocalizableMessage message = ERR_JEB_UNCHECKED_EXCEPTION.get(msg);
+        throw new StorageRuntimeException(message.toString(), e);
       }
     }
   }
@@ -3232,19 +3208,6 @@ public class EntryContainer
   }
 
   /**
-   * Get the environment config of the JE environment used in this entry
-   * container.
-   *
-   * @return The environment config of the JE environment.
-   * @throws StorageRuntimeException If an error occurs while retrieving the
-   *                           configuration object.
-   */
-  public EnvironmentConfig getEnvironmentConfig() throws StorageRuntimeException
-  {
-    return storage.getConfig();
-  }
-
-  /**
    * Clear the contents of this entry container.
    *
    * @return The number of records deleted.
@@ -3253,7 +3216,28 @@ public class EntryContainer
    */
   public long clear() throws StorageRuntimeException
   {
-    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    final AtomicLong count = new AtomicLong();
+    try
+    {
+      storage.write(new WriteOperation()
+      {
+        @Override
+        public void run(WriteableStorage txn) throws Exception
+        {
+          count.set(clear0(txn));
+        }
+      });
+      return count.get();
+    }
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
+    }
+  }
+
+  private long clear0(WriteableStorage txn) throws StorageRuntimeException
+  {
+    final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
     long count = 0;
 
@@ -3263,31 +3247,9 @@ public class EntryContainer
     }
     try
     {
-      if(storage.getConfig().getTransactional())
+      for (DatabaseContainer db : databases)
       {
-        Transaction txn = beginTransaction();
-
-        try
-        {
-          for(DatabaseContainer db : databases)
-          {
-            count += storage.truncateDatabase(txn, db.getName(), true);
-          }
-
-          transactionCommit(txn);
-        }
-        catch(StorageRuntimeException de)
-        {
-          transactionAbort(txn);
-          throw de;
-        }
-      }
-      else
-      {
-        for(DatabaseContainer db : databases)
-        {
-          count += storage.truncateDatabase(null, db.getName(), true);
-        }
+        count += storage.truncateDatabase(txn, db.getName(), true);
       }
     }
     finally
@@ -3297,39 +3259,11 @@ public class EntryContainer
         db.open(txn);
       }
 
-      Transaction txn = null;
-      try
+      for (DatabaseContainer db : databases)
       {
-        if(storage.getConfig().getTransactional()) {
-          txn = beginTransaction();
-        }
-        for(DatabaseContainer db : databases)
+        if (db instanceof Index)
         {
-          if (db instanceof Index)
-          {
-            Index index = (Index)db;
-            index.setTrusted(txn, true);
-          }
-        }
-        if(storage.getConfig().getTransactional()) {
-          transactionCommit(txn);
-        }
-      }
-      catch(Exception de)
-      {
-        logger.traceException(de);
-
-        // This is mainly used during the unit tests, so it's not essential.
-        try
-        {
-          if (txn != null)
-          {
-            transactionAbort(txn);
-          }
-        }
-        catch (Exception e)
-        {
-          logger.traceException(de);
+          ((Index) db).setTrusted(txn, true);
         }
       }
     }
@@ -3343,34 +3277,30 @@ public class EntryContainer
    * @param database The database to clear.
    * @throws StorageRuntimeException if a JE database error occurs.
    */
-  public void clearDatabase(DatabaseContainer database)
-  throws StorageRuntimeException
+  public void clearDatabase(final DatabaseContainer database) throws StorageRuntimeException
   {
     database.close();
     try
     {
-      if(storage.getConfig().getTransactional())
+      storage.write(new WriteOperation()
       {
-        Transaction txn = beginTransaction();
-        try
+        @Override
+        public void run(WriteableStorage txn) throws Exception
         {
-          storage.removeDatabase(txn, database.getName());
-          transactionCommit(txn);
+          try
+          {
+            storage.removeDatabase(txn, database.getName());
+          }
+          finally
+          {
+            database.open(txn);
+          }
         }
-        catch(StorageRuntimeException de)
-        {
-          transactionAbort(txn);
-          throw de;
-        }
-      }
-      else
-      {
-        storage.removeDatabase(null, database.getName());
-      }
+      });
     }
-    finally
+    catch (Exception e)
     {
-      database.open(txn);
+      throw new StorageRuntimeException(e);
     }
     if(logger.isTraceEnabled())
     {
@@ -3505,31 +3435,6 @@ public class EntryContainer
     }
 
     return baseEntry;
-  }
-
-
-  /**
-   * Transform a database prefix string to one usable by the DB.
-   * @param databasePrefix the database prefix
-   * @return a new string when non letter or digit characters
-   *         have been replaced with underscore
-   */
-  private TreeName preparePrefix(String databasePrefix)
-  {
-    StringBuilder builder = new StringBuilder(databasePrefix.length());
-    for (int i = 0; i < databasePrefix.length(); i++)
-    {
-      char ch = databasePrefix.charAt(i);
-      if (Character.isLetterOrDigit(ch))
-      {
-        builder.append(ch);
-      }
-      else
-      {
-        builder.append('_');
-      }
-    }
-    return TreeName.of(builder.toString());
   }
 
   /** Get the exclusive lock. */

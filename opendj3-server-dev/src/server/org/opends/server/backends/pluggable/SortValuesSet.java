@@ -99,9 +99,9 @@ public class SortValuesSet
    * @param sv The sort values to add.
    * @param types The types of the values to add.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws DatabaseException If an error occurs in the JE database.
+   * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  void add(SortValues sv) throws DirectoryException
+  void add(SortValues sv) throws StorageRuntimeException, DirectoryException
   {
     add(sv.getEntryID(), sv.getValues(), sv.getTypes());
   }
@@ -587,10 +587,8 @@ public class SortValuesSet
    * @return The sort values object at the specified index.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws JebException If an error occurs in the JE database.
-   **/
-  public SortValues getSortValues(int index)
-      throws JebException, StorageRuntimeException, DirectoryException
+   */
+  public SortValues getSortValues(int index) throws StorageRuntimeException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
     {
