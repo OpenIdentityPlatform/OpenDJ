@@ -37,7 +37,6 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
@@ -81,7 +80,6 @@ public class PreloadEntryCacheTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass()
-  @SuppressWarnings("unchecked")
   public void preloadEntryCacheTestInit()
          throws Exception
   {
@@ -100,15 +98,15 @@ public class PreloadEntryCacheTestCase
 
     // Configure the entry cache, use FileSystemEntryCache.
     Entry cacheConfigEntry = TestCaseUtils.makeEntry(
-      "dn: cn=File System,cn=Entry Caches,cn=config",
-      "objectClass: ds-cfg-file-system-entry-cache",
-      "objectClass: ds-cfg-entry-cache",
-      "objectClass: top",
-      "cn: File System",
-      "ds-cfg-cache-level: 1",
-      "ds-cfg-java-class: " +
-      "org.opends.server.extensions.FileSystemEntryCache",
-      "ds-cfg-enabled: true");
+            "dn: cn=Soft Reference,cn=Entry Caches,cn=config",
+            "objectClass: ds-cfg-soft-reference-entry-cache",
+            "objectClass: ds-cfg-entry-cache",
+            "objectClass: top",
+            "cn: Soft Reference",
+            "ds-cfg-cache-level: 1",
+            "ds-cfg-java-class: " +
+            "org.opends.server.extensions.SoftReferenceEntryCache",
+            "ds-cfg-enabled: true");
     configuration = AdminTestCaseUtils.getConfiguration(
       EntryCacheCfgDefn.getInstance(), cacheConfigEntry);
 
@@ -225,11 +223,6 @@ public class PreloadEntryCacheTestCase
 
     // Sanity in-core restart.
     TestCaseUtils.restartServer();
-
-    // Remove default FS cache JE environment.
-    FileSystemEntryCacheCfg config =
-      (FileSystemEntryCacheCfg) configuration;
-    TestCaseUtils.deleteDirectory(new File(config.getCacheDirectory()));
   }
 
 

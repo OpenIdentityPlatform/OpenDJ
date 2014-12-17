@@ -28,7 +28,6 @@ package org.opends.server.extensions;
 
 
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.SortedMap;
@@ -38,7 +37,6 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.testng.annotations.BeforeClass;
 import org.opends.server.admin.std.meta.*;
 import org.opends.server.admin.std.server.EntryCacheCfg;
-import org.opends.server.admin.std.server.FileSystemEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.core.DirectoryServer;
@@ -63,12 +61,10 @@ public class DefaultEntryCacheTestCase
   // Entry cache implementations participating in this test.
   private SoftReferenceEntryCache softRefCache = null;
   private FIFOEntryCache fifoCache = null;
-  private FileSystemEntryCache fsCache = null;
 
   // ... and their configuration entries.
   Entry cacheSoftReferenceConfigEntry = null;
   Entry cacheFIFOConfigEntry = null;
-  Entry cacheFSConfigEntry = null;
 
   // The entry cache order map sorted by the cache level.
   private SortedMap<Integer, EntryCache<? extends EntryCacheCfg>>
@@ -78,7 +74,6 @@ public class DefaultEntryCacheTestCase
   // Dummy test entries for each participating implementation.
   private ArrayList<Entry> testSoftRefEntriesList = null;
   private ArrayList<Entry> testFIFOEntriesList = null;
-  private ArrayList<Entry> testFSEntriesList = null;
 
   /**
    * Initialize the entry cache test.
@@ -127,31 +122,10 @@ public class DefaultEntryCacheTestCase
       "ds-cfg-enabled: true",
       "ds-cfg-include-filter: uid=fifo*",
       "ds-cfg-include-filter: uid=test2*",
-      "ds-cfg-exclude-filter: uid=test0*");
+      "ds-cfg-include-filter: uid=test0*");
     fifoCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
       FIFOEntryCacheCfgDefn.getInstance(), cacheFIFOConfigEntry));
     cacheOrderMap.put(2, fifoCache);
-
-    File cacheDirectory = TestCaseUtils.createTemporaryDirectory("opendj-test");
-    fsCache = new FileSystemEntryCache();
-    cacheFSConfigEntry = TestCaseUtils.makeEntry(
-      "dn: cn=File System,cn=Entry Caches,cn=config",
-      "objectClass: ds-cfg-file-system-entry-cache",
-      "objectClass: ds-cfg-entry-cache",
-      "objectClass: top",
-      "cn: File System",
-      "ds-cfg-cache-level: 3",
-      "ds-cfg-java-class: " +
-      "org.opends.server.extensions.FileSystemEntryCache",
-      "ds-cfg-enabled: true",
-      "ds-cfg-include-filter: uid=fs*",
-      "ds-cfg-include-filter: uid=test3*",
-      "ds-cfg-include-filter: uid=test0*",
-      "ds-cfg-cache-directory: " + cacheDirectory.getAbsolutePath());
-
-    fsCache.initializeEntryCache(AdminTestCaseUtils.getConfiguration(
-      FileSystemEntryCacheCfgDefn.getInstance(), cacheFSConfigEntry));
-    cacheOrderMap.put(3, fsCache);
 
     // Plug all cache implementations into default entry cache.
     final Method[] defaultCacheMethods =
@@ -220,18 +194,6 @@ public class DefaultEntryCacheTestCase
         "uid: fifo" + Integer.toString(i) + ".user" + Integer.toString(i))
       );
     }
-    testFSEntriesList = new ArrayList<Entry>(super.NUMTESTENTRIES);
-    for(int i = 0; i < super.NUMTESTENTRIES; i++ ) {
-      testFSEntriesList.add(TestCaseUtils.makeEntry(
-        "dn: uid=fs" + Integer.toString(i) + ".user" + Integer.toString(i)
-         + ",ou=test" + Integer.toString(i) + ",o=test",
-        "objectClass: person",
-        "objectClass: inetorgperson",
-        "objectClass: top",
-        "objectClass: organizationalperson",
-        "uid: fs" + Integer.toString(i) + ".user" + Integer.toString(i))
-      );
-    }
 
     // Force GC to make sure we have enough memory for
     // the cache capping constraints to work properly.
@@ -267,12 +229,6 @@ public class DefaultEntryCacheTestCase
     for (EntryCache<?> entryCache : cacheOrderMap.values()) {
       entryCache.finalizeEntryCache();
     }
-
-    // Remove default FS cache JE environment.
-    FileSystemEntryCacheCfg config = (FileSystemEntryCacheCfg)
-      AdminTestCaseUtils.getConfiguration(EntryCacheCfgDefn.getInstance(),
-      cacheFSConfigEntry);
-    TestCaseUtils.deleteDirectory(new File(config.getCacheDirectory()));
   }
 
 
@@ -455,7 +411,6 @@ public class DefaultEntryCacheTestCase
     for (int i = 0; i < NUMTESTENTRIES; i++) {
       super.cache.putEntry(testSoftRefEntriesList.get(i), b, i);
       super.cache.putEntry(testFIFOEntriesList.get(i), b, i);
-      super.cache.putEntry(testFSEntriesList.get(i), b, i);
     }
 
     // Ensure all test entries are available via default cache.
@@ -472,12 +427,6 @@ public class DefaultEntryCacheTestCase
         testFIFOEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
-      assertNotNull(super.cache.getEntry(
-        testFSEntriesList.get(0).getName()),
-        "Expected to find " +
-        testFSEntriesList.get(0).getName() +
-        " in the cache.  Cache contents:" +
-        ServerConstants.EOL + cache.toVerboseString());
     }
 
     // Ensure all test entries landed on their levels.
@@ -492,12 +441,6 @@ public class DefaultEntryCacheTestCase
         testFIFOEntriesList.get(0).getName()),
         "Expected to find " +
         testFIFOEntriesList.get(0).getName() +
-        " in the cache.  Cache contents:" +
-        ServerConstants.EOL + cache.toVerboseString());
-      assertNotNull(fsCache.getEntry(
-        testFSEntriesList.get(0).getName()),
-        "Expected to find " +
-        testFSEntriesList.get(0).getName() +
         " in the cache.  Cache contents:" +
         ServerConstants.EOL + cache.toVerboseString());
     }
