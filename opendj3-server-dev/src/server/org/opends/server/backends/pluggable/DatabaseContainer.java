@@ -183,7 +183,7 @@ public abstract class DatabaseContainer implements Closeable
    */
   protected boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
   {
-    boolean result = txn.delete(treeName, key);
+    boolean result = txn.remove(treeName, key);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(result, treeName, txn, key, null));
