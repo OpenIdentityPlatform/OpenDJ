@@ -28,11 +28,11 @@ package org.opends.server.backends.pluggable;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.backends.pluggable.BackendImpl.ReadableStorage;
-import org.opends.server.backends.pluggable.BackendImpl.Storage;
-import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
-import org.opends.server.backends.pluggable.BackendImpl.TreeName;
-import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.types.DN;
 
 import static org.opends.server.backends.pluggable.JebFormat.*;

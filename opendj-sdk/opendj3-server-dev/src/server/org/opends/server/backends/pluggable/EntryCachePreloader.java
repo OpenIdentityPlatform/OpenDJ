@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.backends.pluggable.BackendImpl.Cursor;
+import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Entry;
 

@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 
