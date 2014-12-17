@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.messages.UtilityMessages;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
@@ -49,11 +50,22 @@ import org.opends.server.core.DefaultCompressedSchema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LDIFImportResult;
+import org.opends.server.types.OpenDsException;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFReader;
+import org.opends.server.util.RuntimeInformation;
 
+import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.UtilityMessages.ERR_LDIF_SKIP;
+import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -88,6 +100,8 @@ public class RootContainer
   /** The compressed schema manager for this backend. */
   private CompressedSchema compressedSchema;
 
+  private File backendDirectory;
+
 
 
   /**
@@ -102,6 +116,8 @@ public class RootContainer
   {
     this.backend = backend;
     this.config = config;
+    this.backendDirectory = new File(getFileForPath(config.getDBDirectory()),
+        config.getBackendId());
 
     getMonitorProvider().enableFilterUseStats(config.isIndexFilterAnalyzerEnabled());
     getMonitorProvider().setMaxEntries(config.getIndexFilterAnalyzerMaxFilters());
@@ -114,23 +130,143 @@ public class RootContainer
     return storage;
   }
 
-  /**
-   * Opens the root container using the JE configuration object provided.
-   *
-   * @throws StorageRuntimeException       If a database error occurs when creating
-   *                                 the environment.
-   * @throws InitializationException If an initialization error occurs while
-   *                                 creating the environment.
-   * @throws ConfigException         If an configuration error occurs while
-   *                                 creating the environment.
-   */
-  public void open()
-      throws StorageRuntimeException, InitializationException, ConfigException
+  LDIFImportResult importLDIF(LDIFImportConfig importConfig)
+      throws DirectoryException
   {
-    // Determine the backend database directory.
-    File parentDirectory = getFileForPath(config.getDBDirectory());
-    File backendDirectory = new File(parentDirectory, config.getBackendId());
+    RuntimeInformation.logInfo();
+    if (!importConfig.appendToExistingData()
+        && (importConfig.clearBackend() || config.getBaseDN().size() <= 1))
+    {
+      removeFiles();
+    }
+    try
+    {
+      open();
+      try
+      {
+        final LDIFReader reader;
+        try
+        {
+          reader = new LDIFReader(importConfig);
+        }
+        catch (Exception e)
+        {
+          LocalizableMessage m = ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_READER.get(
+                           stackTraceToSingleLineString(e));
+          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+                                       m, e);
+        }
 
+        while (true)
+        {
+          final Entry entry;
+          try
+          {
+            entry = reader.readEntry();
+            if (entry == null)
+            {
+              break;
+            }
+          }
+          catch (LDIFException le)
+          {
+            if (!le.canContinueReading())
+            {
+              LocalizableMessage m = ERR_LDIF_BACKEND_ERROR_READING_LDIF
+                  .get(stackTraceToSingleLineString(le));
+              throw new DirectoryException(
+                  DirectoryServer.getServerErrorResultCode(), m, le);
+            }
+            continue;
+          }
+
+          final DN dn = entry.getName();
+          final EntryContainer ec = getEntryContainer(dn);
+          if (ec == null)
+          {
+            final LocalizableMessage m = ERR_LDIF_SKIP.get(dn);
+            logger.error(m);
+            reader.rejectLastEntry(m);
+            continue;
+          }
+
+          try
+          {
+            ec.addEntry(entry, null);
+          }
+          catch (DirectoryException e)
+          {
+            switch (e.getResultCode().asEnum())
+            {
+            case ENTRY_ALREADY_EXISTS:
+              // TODO: support replace of existing entries.
+              reader.rejectLastEntry(WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+              break;
+            case NO_SUCH_OBJECT:
+              reader.rejectLastEntry(ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(dn
+                  .parent()));
+              break;
+            default:
+              // Not sure why it failed.
+              reader.rejectLastEntry(e.getMessageObject());
+              break;
+            }
+          }
+        }
+        return new LDIFImportResult(reader.getEntriesRead(),
+            reader.getEntriesRejected(), reader.getEntriesIgnored());
+      }
+      finally
+      {
+        close();
+      }
+    }
+    catch (DirectoryException e)
+    {
+      logger.traceException(e);
+      throw e;
+    }
+    catch (OpenDsException e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(getServerErrorResultCode(),
+          e.getMessageObject());
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      throw new DirectoryException(getServerErrorResultCode(),
+          LocalizableMessage.raw(e.getMessage()));
+    }
+  }
+
+  private void removeFiles() throws StorageRuntimeException
+  {
+    if (!backendDirectory.isDirectory())
+    {
+      LocalizableMessage message = ERR_JEB_DIRECTORY_INVALID
+          .get(backendDirectory.getPath());
+      throw new StorageRuntimeException(message.toString());
+    }
+
+    try
+    {
+      File[] jdbFiles = backendDirectory.listFiles();
+      for (File f : jdbFiles)
+      {
+        f.delete();
+      }
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
+      throw new StorageRuntimeException(message.toString(), e);
+    }
+  }
+
+  void open() throws StorageRuntimeException, ConfigException
+  {
     // Create the directory if it doesn't exist.
     if (!backendDirectory.exists())
     {
@@ -186,9 +322,7 @@ public class RootContainer
       }
     }
 
-    // Open the database environment
-    storage = new PersistItStorage(backendDirectory, this.config);
-
+    storage = new PersistItStorage(backendDirectory, config);
     compressedSchema = new DefaultCompressedSchema();
     try
     {
@@ -296,12 +430,11 @@ public class RootContainer
   private void openAndRegisterEntryContainers(WriteableStorage txn, Set<DN> baseDNs)
       throws StorageRuntimeException, InitializationException, ConfigException
   {
-    EntryID id;
     EntryID highestID = null;
     for(DN baseDN : baseDNs)
     {
       EntryContainer ec = openEntryContainer(baseDN, null, txn);
-      id = ec.getHighestEntryID(txn);
+      EntryID id = ec.getHighestEntryID(txn);
       registerEntryContainer(baseDN, ec);
       if(highestID == null || id.compareTo(highestID) > 0)
       {

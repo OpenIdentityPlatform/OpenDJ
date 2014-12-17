@@ -31,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -57,11 +56,10 @@ import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
-import org.opends.server.util.RuntimeInformation;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
+import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -79,7 +77,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   private LocalDBBackendCfg cfg;
   /** The root JE container to use for this backend. */
   private RootContainer rootContainer;
-  
+
   // FIXME: this is broken. Replace with read-write lock.
   /** A count of the total operation threads currently in the backend. */
   private final AtomicInteger threadTotalCount = new AtomicInteger(0);
@@ -738,97 +736,16 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
       throws DirectoryException
   {
-    RuntimeInformation.logInfo();
-
-    // If the backend already has the root container open, we must use the same
-    // underlying root container
-    boolean openRootContainer = rootContainer == null;
-
-    // If the rootContainer is open, the backend is initialized by something else.
-    // We can't do import while the backend is online.
-    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
-    if(!openRootContainer)
+    /*
+     * If the rootContainer is open, the backend is initialized by something
+     * else. We can't do import while the backend is online.
+     */
+    if (rootContainer != null)
     {
-      throw new DirectoryException(errorRC, ERR_JEB_IMPORT_BACKEND_ONLINE.get());
+      throw new DirectoryException(getServerErrorResultCode(),
+          ERR_JEB_IMPORT_BACKEND_ONLINE.get());
     }
-
-    try
-    {
-      final EnvironmentConfig envConfig = getEnvConfigForImport();
-
-      if (!importConfig.appendToExistingData()
-          && (importConfig.clearBackend() || cfg.getBaseDN().size() <= 1))
-      {
-        // We have the writer lock on the environment, now delete the
-        // environment and re-open it. Only do this when we are
-        // importing to all the base DNs in the backend or if the backend only
-        // have one base DN.
-        File parentDirectory = getFileForPath(cfg.getDBDirectory());
-        File backendDirectory = new File(parentDirectory, cfg.getBackendId());
-        // If the backend does not exist the import will create it.
-        if (backendDirectory.exists())
-        {
-          EnvManager.removeFiles(backendDirectory.getPath());
-        }
-      }
-
-      throw new NotImplementedException();
-//      Importer importer = new Importer(importConfig, cfg, envConfig);
-//      rootContainer = initializeRootContainer();
-//      return importer.processImport(rootContainer);
-    }
-    catch (ExecutionException execEx)
-    {
-      logger.traceException(execEx);
-      if (execEx.getCause() instanceof DirectoryException)
-      {
-        throw ((DirectoryException) execEx.getCause());
-      }
-      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()));
-    }
-    catch (InterruptedException intEx)
-    {
-      logger.traceException(intEx);
-      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
-    }
-    catch (StorageRuntimeException e)
-    {
-      logger.traceException(e);
-      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()));
-    }
-    catch (InitializationException ie)
-    {
-      logger.traceException(ie);
-      throw new DirectoryException(errorRC, ie.getMessageObject());
-    }
-    catch (ConfigException ce)
-    {
-      logger.traceException(ce);
-      throw new DirectoryException(errorRC, ce.getMessageObject());
-    }
-    finally
-    {
-      // leave the backend in the same state.
-      try
-      {
-        if (rootContainer != null)
-        {
-          long startTime = System.currentTimeMillis();
-          rootContainer.close();
-          long finishTime = System.currentTimeMillis();
-          long closeTime = (finishTime - startTime) / 1000;
-          logger.info(NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE, closeTime);
-          rootContainer = null;
-        }
-
-        // Sync the environment to disk.
-        logger.info(NOTE_JEB_IMPORT_CLOSING_DATABASE);
-      }
-      catch (StorageRuntimeException de)
-      {
-        logger.traceException(de);
-      }
-    }
+    return new RootContainer(this, cfg).importLDIF(importConfig);
   }
 
   /**
@@ -987,7 +904,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
               diskMonitor.setFullThreshold(newCfg.getDiskFullThreshold());
               diskMonitor.setLowThreshold(newCfg.getDiskLowThreshold());
             }
-            
+
             // Put the new configuration in place.
             cfg = newCfg;
           }
@@ -1070,22 +987,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       throws ConfigException, InitializationException
   {
     return initializeRootContainer();
-  }
-
-  /**
-   * Clears all the entries from the backend.  This method is for test cases
-   * that use the JE backend.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   * @throws  StorageRuntimeException If an error occurs while removing the data.
-   */
-  public void clearBackend() throws ConfigException, StorageRuntimeException
-  {
-    // Determine the backend database directory.
-    File parentDirectory = getFileForPath(cfg.getDBDirectory());
-    File backendDirectory = new File(parentDirectory, cfg.getBackendId());
-    EnvManager.removeFiles(backendDirectory.getPath());
   }
 
   /**
