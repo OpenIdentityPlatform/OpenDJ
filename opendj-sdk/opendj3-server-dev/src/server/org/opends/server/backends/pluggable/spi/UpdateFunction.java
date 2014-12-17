@@ -23,20 +23,20 @@
  *
  *      Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 
-public interface WriteableStorage extends ReadableStorage
-{
-  void openTree(TreeName name);
-
-  void create(TreeName name, ByteSequence key, ByteSequence value);
-
-  boolean putIfAbsent(TreeName treeName, ByteSequence key, ByteSequence value);
-
-  void update(TreeName treeName, ByteSequence key, UpdateFunction f);
-
-  boolean delete(TreeName name, ByteSequence key);
+public interface UpdateFunction {
+    /**
+     * Computes the new value for a record based on the record's existing
+     * content.
+     *
+     * @param oldValue
+     *            The record's existing content, or {@code null} if the record
+     *            does not exist at the moment and is about to be created.
+     * @return The new value for the record, or {@code null} if the record
+     *         should be completely removed.
+     */
+    ByteSequence computeNewValue(ByteSequence oldValue);
 }
