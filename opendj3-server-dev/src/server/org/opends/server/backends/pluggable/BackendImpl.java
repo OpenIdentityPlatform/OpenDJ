@@ -79,10 +79,10 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   private LocalDBBackendCfg cfg;
   /** The root JE container to use for this backend. */
   private RootContainer rootContainer;
+  
+  // FIXME: this is broken. Replace with read-write lock.
   /** A count of the total operation threads currently in the backend. */
   private final AtomicInteger threadTotalCount = new AtomicInteger(0);
-  /** A count of the write operation threads currently in the backend. */
-  private final AtomicInteger threadWriteCount = new AtomicInteger(0);
   /** The base DNs defined for this backend instance. */
   private DN[] baseDNs;
 
@@ -99,33 +99,17 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
       OID_VLV_REQUEST_CONTROL));
 
-  /** Begin a Backend API method that reads the database. */
-  private void readerBegin()
+  /** Begin a Backend API method that accesses the database. */
+  private void accessBegin()
   {
     threadTotalCount.getAndIncrement();
   }
 
-  /** End a Backend API method that reads the database. */
-  private void readerEnd()
+  /** End a Backend API method that accesses the database. */
+  private void accessEnd()
   {
     threadTotalCount.getAndDecrement();
   }
-
-  /** Begin a Backend API method that writes the database. */
-  private void writerBegin()
-  {
-    threadTotalCount.getAndIncrement();
-    threadWriteCount.getAndIncrement();
-  }
-
-  /** End a Backend API method that writes the database. */
-  private void writerEnd()
-  {
-    threadWriteCount.getAndDecrement();
-    threadTotalCount.getAndDecrement();
-  }
-
-
 
   /**
    * Wait until there are no more threads accessing the database. It is assumed
@@ -309,7 +293,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
     // Make sure the thread counts are zero for next initialization.
     threadTotalCount.set(0);
-    threadWriteCount.set(0);
 
     // Log an informational message.
     logger.info(NOTE_BACKEND_OFFLINE, cfg.getBackendId());
@@ -476,7 +459,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       return -1;
     }
 
-    readerBegin();
+    accessBegin();
     ec.sharedLock.lock();
     try
     {
@@ -496,7 +479,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     finally
     {
       ec.sharedLock.unlock();
-      readerEnd();
+      accessEnd();
     }
   }
 
@@ -506,7 +489,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   @Override
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
-    readerBegin();
+    accessBegin();
 
     checkRootContainerInitialized();
     EntryContainer ec = rootContainer.getEntryContainer(entryDN);
@@ -524,7 +507,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     finally
     {
       ec.sharedLock.unlock();
-      readerEnd();
+      accessEnd();
     }
 
     return entry;
@@ -538,7 +521,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       throws DirectoryException, CanceledOperationException
   {
     checkDiskSpace(addOperation);
-    writerBegin();
+    accessBegin();
 
     checkRootContainerInitialized();
     EntryContainer ec = rootContainer.getEntryContainer(entry.getName());
@@ -555,7 +538,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     finally
     {
       ec.sharedLock.unlock();
-      writerEnd();
+      accessEnd();
     }
   }
 
@@ -567,7 +550,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       throws DirectoryException, CanceledOperationException
   {
     checkDiskSpace(deleteOperation);
-    writerBegin();
+    accessBegin();
 
     checkRootContainerInitialized();
     EntryContainer ec = rootContainer.getEntryContainer(entryDN);
@@ -584,7 +567,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     finally
     {
       ec.sharedLock.unlock();
-      writerEnd();
+      accessEnd();
     }
   }
 
@@ -597,7 +580,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       CanceledOperationException
   {
     checkDiskSpace(modifyOperation);
-    writerBegin();
+    accessBegin();
 
     checkRootContainerInitialized();
     EntryContainer ec = rootContainer.getEntryContainer(newEntry.getName());
@@ -615,7 +598,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     finally
     {
       ec.sharedLock.unlock();
-      writerEnd();
+      accessEnd();
     }
   }
 
@@ -628,7 +611,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       throws DirectoryException, CanceledOperationException
   {
     checkDiskSpace(modifyDNOperation);
-    writerBegin();
+    accessBegin();
 
     checkRootContainerInitialized();
     EntryContainer currentContainer = rootContainer.getEntryContainer(currentDN);
@@ -655,7 +638,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     finally
     {
       currentContainer.sharedLock.unlock();
-      writerEnd();
+      accessEnd();
     }
   }
 
@@ -666,7 +649,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public void search(SearchOperation searchOperation)
       throws DirectoryException, CanceledOperationException
   {
-    readerBegin();
+    accessBegin();
 
     checkRootContainerInitialized();
     EntryContainer ec = rootContainer.getEntryContainer(searchOperation.getBaseDN());
@@ -684,7 +667,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     finally
     {
       ec.sharedLock.unlock();
-      readerEnd();
+      accessEnd();
     }
   }
 
@@ -848,21 +831,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
   }
 
-  private EnvironmentConfig getEnvConfigForImport()
-  {
-    final EnvironmentConfig envConfig = new EnvironmentConfig();
-    envConfig.setAllowCreate(true);
-    envConfig.setTransactional(false);
-    envConfig.setDurability(Durability.COMMIT_NO_SYNC);
-    envConfig.setLockTimeout(0, TimeUnit.SECONDS);
-    envConfig.setTxnTimeout(0, TimeUnit.SECONDS);
-    envConfig.setConfigParam(CLEANER_MIN_FILE_UTILIZATION,
-        String.valueOf(cfg.getDBCleanerMinUtilization()));
-    envConfig.setConfigParam(LOG_FILE_MAX,
-        String.valueOf(cfg.getDBLogFileMax()));
-    return envConfig;
-  }
-
   /**
    * Verify the integrity of the backend instance.
    * @param verifyConfig The verify configuration.
@@ -895,84 +863,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     {
       logger.traceException(e);
       throw createDirectoryException(e);
-    }
-    finally
-    {
-      closeTemporaryRootContainer(openRootContainer);
-    }
-  }
-
-
-  /**
-   * Rebuild index(es) in the backend instance. Note that the server will not
-   * explicitly initialize this backend before calling this method.
-   * @param rebuildConfig The rebuild configuration.
-   * @throws  ConfigException  If an unrecoverable problem arises during
-   *                           initialization.
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public void rebuildBackend(RebuildConfig rebuildConfig)
-          throws InitializationException, ConfigException, DirectoryException
-  {
-    // If the backend already has the root container open, we must use the same
-    // underlying root container
-    boolean openRootContainer = mustOpenRootContainer();
-
-    /*
-     * If the rootContainer is open, the backend is initialized by something
-     * else. We can't do any rebuild of system indexes while others are using
-     * this backend.
-     */
-    final ResultCode errorRC = DirectoryServer.getServerErrorResultCode();
-    if(!openRootContainer && rebuildConfig.includesSystemIndex())
-    {
-      throw new DirectoryException(errorRC, ERR_JEB_REBUILD_BACKEND_ONLINE.get());
-    }
-
-    try
-    {
-      final EnvironmentConfig envConfig;
-      if (openRootContainer)
-      {
-        envConfig = getEnvConfigForImport();
-        rootContainer = initializeRootContainer();
-      }
-      else
-      {
-        envConfig = parseConfigEntry(cfg);
-
-      }
-      throw new NotImplementedException();
-//      final Importer importer = new Importer(rebuildConfig, cfg, envConfig);
-//      importer.rebuildIndexes(rootContainer);
-    }
-    catch (ExecutionException execEx)
-    {
-      logger.traceException(execEx);
-      throw new DirectoryException(errorRC, ERR_EXECUTION_ERROR.get(execEx.getMessage()));
-    }
-    catch (InterruptedException intEx)
-    {
-      logger.traceException(intEx);
-      throw new DirectoryException(errorRC, ERR_INTERRUPTED_ERROR.get(intEx.getMessage()));
-    }
-    catch (ConfigException ce)
-    {
-      logger.traceException(ce);
-      throw new DirectoryException(errorRC, ce.getMessageObject());
-    }
-    catch (StorageRuntimeException e)
-    {
-      logger.traceException(e);
-      throw new DirectoryException(errorRC, LocalizableMessage.raw(e.getMessage()));
-    }
-    catch (InitializationException e)
-    {
-      logger.traceException(e);
-      throw new InitializationException(e.getMessageObject());
     }
     finally
     {
