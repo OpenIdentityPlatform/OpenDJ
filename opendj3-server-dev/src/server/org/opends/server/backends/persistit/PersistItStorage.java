@@ -195,11 +195,22 @@ public final class PersistItStorage implements Storage {
         }
 
         @Override
-        public boolean delete(TreeName treeName, ByteSequence key) {
+        public boolean remove(TreeName treeName, ByteSequence key) {
             try {
                 final Exchange ex = getExchange(treeName);
                 ex.getKey().clear().append(key.toByteArray());
                 return ex.remove();
+            } catch (PersistitException e) {
+                throw new StorageRuntimeException(e);
+            }
+        }
+
+        @Override
+        public void delete(TreeName treeName, ByteSequence key) {
+            try {
+                final Exchange ex = getExchange(treeName);
+                ex.getKey().clear().append(key.toByteArray());
+                ex.remove();
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
             }
