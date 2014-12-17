@@ -70,8 +70,6 @@ import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 import org.opends.server.util.StaticUtils;
 
-import com.sleepycat.je.LockMode;
-
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -721,7 +719,7 @@ public class VLVIndex extends DatabaseContainer
     {
       debugBuilder.append("vlv=");
       debugBuilder.append("[INDEX:");
-      debugBuilder.append(treeName.replace(entryContainer.getDatabasePrefix() + "_", ""));
+      debugBuilder.append(treeName.getIndex());
       debugBuilder.append("]");
     }
 
@@ -837,7 +835,6 @@ public class VLVIndex extends DatabaseContainer
         Cursor cursor = openCursor(txn);
         try
         {
-          LockMode lockMode = LockMode.DEFAULT;
           ByteSequence vBytes = vlvRequest.getGreaterThanOrEqualAssertion();
           ByteStringBuilder keyBytes = new ByteStringBuilder(vBytes.length() + 4);
           keyBytes.appendBERLength(vBytes.length());
@@ -850,8 +847,7 @@ public class VLVIndex extends DatabaseContainer
             {
               logSearchKeyResult(cursor.getKey());
             }
-            SortValuesSet sortValuesSet =
- new SortValuesSet(cursor.getKey(), cursor.getValue(), this);
+            SortValuesSet sortValuesSet = new SortValuesSet(cursor.getKey(), cursor.getValue(), this);
 
             int adjustedTargetOffset = sortValuesSet.binarySearch(
                 -1, vlvRequest.getGreaterThanOrEqualAssertion());
@@ -1406,7 +1402,7 @@ public class VLVIndex extends DatabaseContainer
       ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(treeName));
       try
       {
-        state.putIndexTrustState(null, this, false);
+        state.putIndexTrustState(txn, this, false);
       }
       catch(StorageRuntimeException de)
       {

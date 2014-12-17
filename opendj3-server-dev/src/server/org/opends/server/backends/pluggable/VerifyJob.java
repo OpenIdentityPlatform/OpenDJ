@@ -62,9 +62,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-import com.sleepycat.je.EnvironmentStats;
-import com.sleepycat.je.StatsConfig;
-
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
 
@@ -290,14 +287,8 @@ public class VerifyJob
 
       // Start a timer for the progress report.
       Timer timer = new Timer();
-      TimerTask progressTask = new ProgressTask();
-      if (cleanMode)
-      {
-        // Create a new progressTask based on the index count.
-        progressTask = new ProgressTask(true);
-      }
-      timer.scheduleAtFixedRate(progressTask, progressInterval,
-                                progressInterval);
+      TimerTask progressTask = new ProgressTask(cleanMode, txn);
+      timer.scheduleAtFixedRate(progressTask, progressInterval, progressInterval);
 
       // Iterate through the index keys.
       try
@@ -685,8 +676,7 @@ public class VerifyJob
               errorCount++;
               if (logger.isTraceEnabled())
               {
-                logger.trace("File id2children has ID %d referencing " +
- "unknown ID %d%n", entryID, id);
+                logger.trace("File id2children has ID %d referencing unknown ID %d%n", entryID, id);
               }
               continue;
             }
@@ -1419,11 +1409,10 @@ public class VerifyJob
     {
       try
       {
-        List<Attribute> attrList =
-             entry.getAttribute(attrIndex.getAttributeType());
+        List<Attribute> attrList = entry.getAttribute(attrIndex.getAttributeType());
         if (attrList != null)
         {
-          verifyAttribute(attrIndex, entryID, attrList);
+          verifyAttribute(txn, attrIndex, entryID, attrList);
         }
       }
       catch (DirectoryException e)
@@ -1432,9 +1421,8 @@ public class VerifyJob
         {
           logger.traceException(e);
 
-          logger.trace("Error normalizing values of attribute %s in " +
-              "entry <%s>: %s.%n",
-                     attrIndex.getAttributeType(), entry.getName(), e.getMessageObject());
+          logger.trace("Error normalizing values of attribute %s in entry <%s>: %s.%n",
+              attrIndex.getAttributeType(), entry.getName(), e.getMessageObject());
         }
       }
     }
@@ -1485,16 +1473,14 @@ public class VerifyJob
    * @param attrList The attribute to be checked.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  private void verifyAttribute(AttributeIndex attrIndex, EntryID entryID,
-                              List<Attribute> attrList)
-       throws DirectoryException
+  private void verifyAttribute(ReadableStorage txn, AttributeIndex attrIndex, EntryID entryID, List<Attribute> attrList)
+      throws DirectoryException
   {
     if (attrList == null || attrList.isEmpty())
     {
       return;
     }
 
-    ReadableStorage txn = null; // FIXME JNR
     Index equalityIndex = attrIndex.getEqualityIndex();
     Index presenceIndex = attrIndex.getPresenceIndex();
     Index substringIndex = attrIndex.getSubstringIndex();
@@ -1607,9 +1593,7 @@ public class VerifyJob
    */
   private class ProgressTask extends TimerTask
   {
-    /**
-     * The total number of records to process.
-     */
+    /** The total number of records to process. */
     private long totalCount;
 
     /**
@@ -1618,15 +1602,8 @@ public class VerifyJob
      */
     private long previousCount;
 
-    /**
-     * The time in milliseconds of the previous progress report.
-     */
+    /** The time in milliseconds of the previous progress report. */
     private long previousTime;
-
-    /**
-     * The environment statistics at the time of the previous report.
-     */
-    private EnvironmentStats prevEnvStats;
 
     /**
      * The number of bytes in a megabyte.
@@ -1636,85 +1613,61 @@ public class VerifyJob
 
     /**
      * Create a new verify progress task.
-     * @throws StorageRuntimeException An error occurred while accessing the JE
-     * database.
-     */
-    public ProgressTask() throws StorageRuntimeException
-    {
-      previousTime = System.currentTimeMillis();
-      prevEnvStats =
-          rootContainer.getEnvironmentStats(new StatsConfig());
-      totalCount = rootContainer.getEntryContainer(
-        verifyConfig.getBaseDN()).getEntryCount();
-    }
-
-    /**
-     * Create a new verify progress task.
      * @param indexIterator boolean, indicates if the task is iterating
      * through indexes or the entries.
      * @throws StorageRuntimeException An error occurred while accessing the JE
      * database.
      */
-    private ProgressTask(boolean indexIterator) throws StorageRuntimeException
+    private ProgressTask(boolean indexIterator, ReadableStorage txn) throws StorageRuntimeException
     {
       previousTime = System.currentTimeMillis();
-      prevEnvStats = rootContainer.getEnvironmentStats(new StatsConfig());
 
       if (indexIterator)
       {
         if (verifyDN2ID)
         {
-          totalCount = dn2id.getRecordCount();
+          totalCount = dn2id.getRecordCount(txn);
         }
         else if (verifyID2Children)
         {
-          totalCount = id2c.getRecordCount();
+          totalCount = id2c.getRecordCount(txn);
         }
         else if (verifyID2Subtree)
         {
-          totalCount = id2s.getRecordCount();
+          totalCount = id2s.getRecordCount(txn);
         }
         else if(attrIndexList.size() > 0)
         {
           AttributeIndex attrIndex = attrIndexList.get(0);
           totalCount = 0;
-          if (attrIndex.getEqualityIndex() != null)
-          {
-            totalCount += attrIndex.getEqualityIndex().getRecordCount();
-          }
-          if (attrIndex.getPresenceIndex() != null)
-          {
-            totalCount += attrIndex.getPresenceIndex().getRecordCount();
-          }
-          if (attrIndex.getSubstringIndex() != null)
-          {
-            totalCount += attrIndex.getSubstringIndex().getRecordCount();
-          }
-          if (attrIndex.getOrderingIndex() != null)
-          {
-            totalCount += attrIndex.getOrderingIndex().getRecordCount();
-          }
-          if (attrIndex.getApproximateIndex() != null)
-          {
-            totalCount += attrIndex.getApproximateIndex().getRecordCount();
-          }
+          totalCount += getRecordCount(txn, attrIndex.getEqualityIndex());
+          totalCount += getRecordCount(txn, attrIndex.getPresenceIndex());
+          totalCount += getRecordCount(txn, attrIndex.getSubstringIndex());
+          totalCount += getRecordCount(txn, attrIndex.getOrderingIndex());
+          totalCount += getRecordCount(txn, attrIndex.getApproximateIndex());
           // TODO: Add support for Extended Matching Rules indexes.
         }
         else if (vlvIndexList.size() > 0)
         {
-          totalCount = vlvIndexList.get(0).getRecordCount();
+          totalCount = vlvIndexList.get(0).getRecordCount(txn);
         }
       }
       else
       {
-        totalCount = rootContainer.getEntryContainer(
-          verifyConfig.getBaseDN()).getEntryCount();
+        totalCount = rootContainer.getEntryContainer(verifyConfig.getBaseDN()).getEntryCount(txn);
       }
     }
 
-    /**
-     * The action to be performed by this timer task.
-     */
+    private long getRecordCount(ReadableStorage txn, Index index)
+    {
+      if (index != null)
+      {
+        return index.getRecordCount(txn);
+      }
+      return 0;
+    }
+
+    /** The action to be performed by this timer task. */
     @Override
     public void run()
     {
@@ -1737,20 +1690,10 @@ public class VerifyJob
         Runtime runtime = Runtime.getRuntime();
         long freeMemory = runtime.freeMemory() / bytesPerMegabyte;
 
-        EnvironmentStats envStats =
-            rootContainer.getEnvironmentStats(new StatsConfig());
-        long nCacheMiss =
-             envStats.getNCacheMiss() - prevEnvStats.getNCacheMiss();
-
+        // FIXME JNR compute the cache miss rate
         float cacheMissRate = 0;
-        if (deltaCount > 0)
-        {
-          cacheMissRate = nCacheMiss/(float)deltaCount;
-        }
 
         logger.debug(INFO_JEB_VERIFY_CACHE_AND_MEMORY_REPORT, freeMemory, cacheMissRate);
-
-        prevEnvStats = envStats;
       }
       catch (StorageRuntimeException e)
       {

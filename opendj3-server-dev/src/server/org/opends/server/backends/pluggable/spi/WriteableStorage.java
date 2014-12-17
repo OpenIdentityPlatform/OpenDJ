@@ -23,7 +23,6 @@
  *
  *      Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -32,6 +31,10 @@ public interface WriteableStorage extends ReadableStorage
 {
   void openTree(TreeName name);
 
+  void truncateTree(TreeName name);
+
+  void deleteTree(TreeName name);
+
   void create(TreeName name, ByteSequence key, ByteSequence value);
 
   boolean putIfAbsent(TreeName treeName, ByteSequence key, ByteSequence value);
@@ -39,6 +42,6 @@ public interface WriteableStorage extends ReadableStorage
   void update(TreeName treeName, ByteSequence key, UpdateFunction f);
 
   boolean remove(TreeName name, ByteSequence key);
-  
+
   void delete(TreeName name, ByteSequence key);
 }

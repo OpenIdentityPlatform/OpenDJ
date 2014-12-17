@@ -39,9 +39,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
-import com.sleepycat.je.PreloadConfig;
-import com.sleepycat.je.PreloadStats;
-
 /**
  * A null index which replaces id2children and id2subtree when they have been
  * disabled.
@@ -66,10 +63,10 @@ final class NullIndex extends Index
    * @throws StorageRuntimeException
    *           If an error occurs in the JE database.
    */
-  public NullIndex(TreeName name, Indexer indexer, State state, Storage storage,
+  public NullIndex(TreeName name, Indexer indexer, State state, Storage storage, WriteableStorage txn,
       EntryContainer entryContainer) throws StorageRuntimeException
   {
-    super(name, indexer, state, 0, 0, false, storage, entryContainer);
+    super(name, indexer, state, 0, 0, false, storage, txn, entryContainer);
   }
 
   /** {@inheritDoc} */
@@ -255,12 +252,4 @@ final class NullIndex extends Index
   {
     return 0;
   }
-
-  /** {@inheritDoc} */
-  @Override
-  public PreloadStats preload(PreloadConfig config) throws StorageRuntimeException
-  {
-    return new PreloadStats();
-  }
-
 }

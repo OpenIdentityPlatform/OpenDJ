@@ -23,7 +23,6 @@
  *
  *      Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
 import java.util.ArrayList;
@@ -76,20 +75,40 @@ public final class TreeName
     return new TreeName(Collections.singletonList(names.get(0)));
   }
 
-  public boolean isSuffixOf(TreeName tree)
+  public TreeName replaceSuffix(TreeName newSuffix)
   {
-    if (names.size() > tree.names.size())
+    if (names.size() == 0)
+    {
+      throw new IllegalStateException();
+    }
+    final ArrayList<String> newNames = new ArrayList<String>(names);
+    newNames.set(0, newSuffix.names.get(0));
+    return new TreeName(newNames);
+  }
+
+  public boolean isSuffixOf(TreeName treeName)
+  {
+    if (names.size() > treeName.names.size())
     {
       return false;
     }
     for (int i = 0; i < names.size(); i++)
     {
-      if (!tree.names.get(i).equals(names.get(i)))
+      if (!treeName.names.get(i).equals(names.get(i)))
       {
         return false;
       }
     }
     return true;
+  }
+
+  public TreeName getIndex()
+  {
+    if (names.size() == 1)
+    {
+      return null;
+    }
+    return new TreeName(names.subList(1, names.size()));
   }
 
   @Override
