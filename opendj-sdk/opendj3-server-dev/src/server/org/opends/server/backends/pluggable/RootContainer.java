@@ -383,61 +383,7 @@ public class RootContainer
       // is filled.
       try
       {
-        // Configure preload of Leaf Nodes (LNs) containing the data values.
-        PreloadConfig preloadConfig = new PreloadConfig();
-        preloadConfig.setLoadLNs(true);
-
-        logger.info(NOTE_JEB_CACHE_PRELOAD_STARTED, backend.getBackendID());
-
-        boolean isInterrupted = false;
-
-        long timeEnd = System.currentTimeMillis() + timeLimit;
-
-        for (DatabaseContainer db : dbList)
-        {
-          // Calculate the remaining time.
-          long timeRemaining = timeEnd - System.currentTimeMillis();
-          if (timeRemaining <= 0)
-          {
-            break;
-          }
-
-          preloadConfig.setMaxMillisecs(timeRemaining);
-          PreloadStats preloadStats = db.preload(preloadConfig);
-
-          if(logger.isTraceEnabled())
-          {
-            logger.trace("file=" + db.getName() + " LNs=" + preloadStats.getNLNsLoaded());
-          }
-
-          // Stop if the cache is full or the time limit has been exceeded.
-          PreloadStatus preloadStatus = preloadStats.getStatus();
-          if (preloadStatus != PreloadStatus.SUCCESS)
-          {
-            if (preloadStatus == PreloadStatus.EXCEEDED_TIME) {
-              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_TIME, backend.getBackendID(), db.getName());
-            } else if (preloadStatus == PreloadStatus.FILLED_CACHE) {
-              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_BY_SIZE, backend.getBackendID(), db.getName());
-            } else {
-              logger.info(NOTE_JEB_CACHE_PRELOAD_INTERRUPTED_UNKNOWN, backend.getBackendID(), db.getName());
-            }
-
-            isInterrupted = true;
-            break;
-          }
-
-          logger.info(NOTE_JEB_CACHE_DB_PRELOADED, db.getName());
-        }
-
-        if (!isInterrupted) {
-          logger.info(NOTE_JEB_CACHE_PRELOAD_DONE, backend.getBackendID());
-        }
-
-        // Log an informational message about the size of the cache.
-        EnvironmentStats stats = storage.getStats(new StatsConfig());
-        long total = stats.getCacheTotalBytes();
-
-        logger.info(NOTE_JEB_CACHE_SIZE_AFTER_PRELOAD, total / (1024 * 1024));
+        throw new NotImplementedException();
       }
       catch (StorageRuntimeException e)
       {
@@ -471,7 +417,8 @@ public class RootContainer
       }
     }
 
-    compressedSchema.close();
+    // FIXME JNR call close() for a DB stored compressed schema
+    // compressedSchema.close();
     config.removeLocalDBChangeListener(this);
 
     if (storage != null)
@@ -522,22 +469,6 @@ public class RootContainer
     }
 
     return ec;
-  }
-
-  /**
-   * Get the environment stats of the JE environment used in this root
-   * container.
-   *
-   * @param statsConfig The configuration to use for the EnvironmentStats
-   *                    object.
-   * @return The environment status of the JE environment.
-   * @throws StorageRuntimeException If an error occurs while retrieving the stats
-   *                           object.
-   */
-  public EnvironmentStats getEnvironmentStats(StatsConfig statsConfig)
-      throws StorageRuntimeException
-  {
-    return storage.getStats(statsConfig);
   }
 
   /**
@@ -676,7 +607,7 @@ public class RootContainer
 
     try
     {
-      ConfigurableEnvironment.parseConfigEntry(cfg);
+      // FIXME JNR validate database specific configuration
     }
     catch (Exception e)
     {

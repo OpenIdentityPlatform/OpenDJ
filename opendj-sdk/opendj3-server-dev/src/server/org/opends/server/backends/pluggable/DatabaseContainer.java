@@ -83,7 +83,7 @@ public abstract class DatabaseContainer implements Closeable
     txn.openTree(treeName);
     if (logger.isTraceEnabled())
     {
-      logger.trace("JE database %s opened. txnid=%d", treeName, txn.getId());
+      logger.trace("JE database %s opened. txn=%s", treeName, txn);
     }
   }
 
@@ -105,11 +105,7 @@ public abstract class DatabaseContainer implements Closeable
   @Override
   public synchronized void close() throws StorageRuntimeException
   {
-    if(dbConfig.getDeferredWrite())
-    {
-      treeName.sync();
-    }
-    treeName.close();
+    storage.closeTree(treeName);
     treeName = null;
 
     if(logger.isTraceEnabled())
@@ -213,12 +209,30 @@ public abstract class DatabaseContainer implements Closeable
    */
   public long getRecordCount(ReadableStorage txn) throws StorageRuntimeException
   {
-    long count = treeName.count();
+    long count = count(txn);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(true, treeName, null, null, null));
     }
     return count;
+  }
+
+  private long count(ReadableStorage txn)
+  {
+    final Cursor cursor = txn.openCursor(treeName);
+    try
+    {
+      long count = 0;
+      while (cursor.next())
+      {
+        count++;
+      }
+      return count;
+    }
+    finally
+    {
+      cursor.close();
+    }
   }
 
   /**
@@ -239,20 +253,6 @@ public abstract class DatabaseContainer implements Closeable
   public TreeName getName()
   {
     return treeName;
-  }
-
-  /**
-   * Preload the database into cache.
-   *
-   * @param config The preload configuration.
-   * @return Statistics about the preload process.
-   * @throws StorageRuntimeException If an JE database error occurs
-   * during the preload.
-   */
-  public PreloadStats preload(PreloadConfig config)
-      throws StorageRuntimeException
-  {
-    return treeName.preload(config);
   }
 
   /**
@@ -277,15 +277,8 @@ public abstract class DatabaseContainer implements Closeable
     builder.append(treeName);
     if (txn != null)
     {
-      builder.append(" txnid=");
-      try
-      {
-        builder.append(txn.getId());
-      }
-      catch (StorageRuntimeException de)
-      {
-        builder.append(de);
-      }
+      builder.append(" txn=");
+      builder.append(txn);
     }
     else
     {

@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -95,8 +94,6 @@ import org.opends.server.types.SortKey;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
-
-import com.sleepycat.je.TransactionConfig;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.pluggable.JebFormat.*;
@@ -499,19 +496,13 @@ public class EntryContainer
         // Use a null index and ensure that future attempts to use the real
         // subordinate indexes will fail.
         id2children = new NullIndex(databasePrefix.child(ID2CHILDREN_DATABASE_NAME),
-            new ID2CIndexer(), state, storage, this);
-        if (!storage.getConfig().getReadOnly())
-        {
-          state.putIndexTrustState(null, id2children, false);
-        }
+            new ID2CIndexer(), state, storage, txn, this);
+        state.putIndexTrustState(txn, id2children, false);
         id2children.open(txn); // No-op
 
         id2subtree = new NullIndex(databasePrefix.child(ID2SUBTREE_DATABASE_NAME),
-            new ID2SIndexer(), state, storage, this);
-        if (!storage.getConfig().getReadOnly())
-        {
-          state.putIndexTrustState(null, id2subtree, false);
-        }
+            new ID2SIndexer(), state, storage, txn, this);
+        state.putIndexTrustState(txn, id2subtree, false);
         id2subtree.open(txn); // No-op
 
         logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
@@ -1606,9 +1597,6 @@ public class EntryContainer
               addOperation.checkIfCanceled(true);
             }
 
-            // Commit the transaction.
-            EntryContainer.transactionCommit(txn);
-
             // Update the entry cache.
             EntryCache<?> entryCache = DirectoryServer.getEntryCache();
             if (entryCache != null)
@@ -1618,23 +1606,18 @@ public class EntryContainer
           }
           catch (StorageRuntimeException StorageRuntimeException)
           {
-            EntryContainer.transactionAbort(txn);
             throw StorageRuntimeException;
           }
           catch (DirectoryException directoryException)
           {
-            EntryContainer.transactionAbort(txn);
             throw directoryException;
           }
           catch (CanceledOperationException coe)
           {
-            EntryContainer.transactionAbort(txn);
             throw coe;
           }
           catch (Exception e)
           {
-            EntryContainer.transactionAbort(txn);
-
             String msg = e.getMessage();
             if (msg == null)
             {
@@ -1793,9 +1776,6 @@ public class EntryContainer
               deleteOperation.checkIfCanceled(true);
             }
 
-            // Commit the transaction.
-            EntryContainer.transactionCommit(txn);
-
             if (isSubtreeDelete)
             {
               deleteOperation.addAdditionalLogItem(unquotedKeyValue(getClass(), "deletedEntries",
@@ -1804,23 +1784,18 @@ public class EntryContainer
           }
           catch (StorageRuntimeException StorageRuntimeException)
           {
-            EntryContainer.transactionAbort(txn);
             throw StorageRuntimeException;
           }
           catch (DirectoryException directoryException)
           {
-            EntryContainer.transactionAbort(txn);
             throw directoryException;
           }
           catch (CanceledOperationException coe)
           {
-            EntryContainer.transactionAbort(txn);
             throw coe;
           }
           catch (Exception e)
           {
-            EntryContainer.transactionAbort(txn);
-
             String msg = e.getMessage();
             if (msg == null)
             {
@@ -2133,9 +2108,6 @@ public class EntryContainer
               modifyOperation.checkIfCanceled(true);
             }
 
-            // Commit the transaction.
-            EntryContainer.transactionCommit(txn);
-
             // Update the entry cache.
             EntryCache<?> entryCache = DirectoryServer.getEntryCache();
             if (entryCache != null)
@@ -2145,23 +2117,18 @@ public class EntryContainer
           }
           catch (StorageRuntimeException StorageRuntimeException)
           {
-            EntryContainer.transactionAbort(txn);
             throw StorageRuntimeException;
           }
           catch (DirectoryException directoryException)
           {
-            EntryContainer.transactionAbort(txn);
             throw directoryException;
           }
           catch (CanceledOperationException coe)
           {
-            EntryContainer.transactionAbort(txn);
             throw coe;
           }
           catch (Exception e)
           {
-            EntryContainer.transactionAbort(txn);
-
             String msg = e.getMessage();
             if (msg == null)
             {
@@ -2400,29 +2367,21 @@ public class EntryContainer
               // One last check before committing
               modifyDNOperation.checkIfCanceled(true);
             }
-
-            // Commit the transaction.
-            EntryContainer.transactionCommit(txn);
           }
           catch (StorageRuntimeException StorageRuntimeException)
           {
-            EntryContainer.transactionAbort(txn);
             throw StorageRuntimeException;
           }
           catch (DirectoryException directoryException)
           {
-            EntryContainer.transactionAbort(txn);
             throw directoryException;
           }
           catch (CanceledOperationException coe)
           {
-            EntryContainer.transactionAbort(txn);
             throw coe;
           }
           catch (Exception e)
           {
-            EntryContainer.transactionAbort(txn);
-
             String msg = e.getMessage();
             if (msg == null)
             {
@@ -2877,66 +2836,6 @@ public class EntryContainer
   }
 
   /**
-   * Begin a leaf transaction using the default configuration.
-   * Provides assertion debug logging.
-   * @return A JE transaction handle.
-   * @throws StorageRuntimeException If an error occurs while attempting to begin
-   * a new transaction.
-   */
-  public Transaction beginTransaction()
-  throws StorageRuntimeException
-  {
-    Transaction parentTxn = null;
-    TransactionConfig txnConfig = null;
-    Transaction txn = storage.beginTransaction(parentTxn, txnConfig);
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("beginTransaction", "begin txnid=" + txn.getId());
-    }
-    return txn;
-  }
-
-  /**
-   * Commit a transaction.
-   * Provides assertion debug logging.
-   * @param txn The JE transaction handle.
-   * @throws StorageRuntimeException If an error occurs while attempting to commit
-   * the transaction.
-   */
-  public static void transactionCommit(WriteableStorage txn)
-  throws StorageRuntimeException
-  {
-    if (txn != null)
-    {
-      txn.commit();
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("commit txnid=%d", txn.getId());
-      }
-    }
-  }
-
-  /**
-   * Abort a transaction.
-   * Provides assertion debug logging.
-   * @param txn The JE transaction handle.
-   * @throws StorageRuntimeException If an error occurs while attempting to abort the
-   * transaction.
-   */
-  public static void transactionAbort(WriteableStorage txn)
-  throws StorageRuntimeException
-  {
-    if (txn != null)
-    {
-      txn.abort();
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("abort txnid=%d", txn.getId());
-      }
-    }
-  }
-
-  /**
    * Delete this entry container from disk. The entry container should be
    * closed before calling this method.
    *
@@ -2950,7 +2849,7 @@ public class EntryContainer
 
     for (DatabaseContainer db : databases)
     {
-      storage.removeDatabase(txn, db.getName());
+      txn.deleteTree(db.getName());
     }
   }
 
@@ -2970,7 +2869,7 @@ public class EntryContainer
     }
 
     database.close();
-    storage.removeDatabase(txn, database.getName());
+    txn.deleteTree(database.getName());
     if(database instanceof Index)
     {
       state.removeIndexTrustState(txn, database);
@@ -2990,7 +2889,7 @@ public class EntryContainer
     attributeIndex.close();
     for (Index index : attributeIndex.getAllIndexes())
     {
-      storage.removeDatabase(txn, index.getName());
+      txn.deleteTree(index.getName());
       state.removeIndexTrustState(txn, index);
     }
   }
@@ -3014,12 +2913,10 @@ public class EntryContainer
    * @param newDatabasePrefix The new database prefix to use.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public void setDatabasePrefix(TreeName newDatabasePrefix) throws StorageRuntimeException, StorageRuntimeException
+  public void setDatabasePrefix(final TreeName newDatabasePrefix) throws StorageRuntimeException
   {
     final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
-
-    final TreeName newDbPrefix = newDatabasePrefix;
 
     // close the containers.
     for(DatabaseContainer db : databases)
@@ -3037,8 +2934,8 @@ public class EntryContainer
           for(DatabaseContainer db : databases)
           {
             TreeName oldName = db.getName();
-            String newName = oldName.replace(databasePrefix, newDbPrefix);
-            storage.renameDatabase(txn, oldName, newName);
+            TreeName newName = oldName.replaceSuffix(newDatabasePrefix);
+            txn.renameTree(oldName, newName);
           }
         }
       });
@@ -3050,11 +2947,9 @@ public class EntryContainer
           for (DatabaseContainer db : databases)
           {
             TreeName oldName = db.getName();
-            String newName = oldName.replace(databasePrefix, newDbPrefix);
+            TreeName newName = oldName.replaceSuffix(newDatabasePrefix);
             db.setName(newName);
           }
-
-          databasePrefix = newDbPrefix;
         }
       });
     }
@@ -3157,14 +3052,14 @@ public class EntryContainer
               // future attempts to use the real indexes will fail.
               id2children.close();
               id2children = new NullIndex(databasePrefix.child(ID2CHILDREN_DATABASE_NAME),
-                  new ID2CIndexer(), state, storage, EntryContainer.this);
-              state.putIndexTrustState(null, id2children, false);
+                  new ID2CIndexer(), state, storage, txn, EntryContainer.this);
+              state.putIndexTrustState(txn, id2children, false);
               id2children.open(txn); // No-op
 
               id2subtree.close();
               id2subtree = new NullIndex(databasePrefix.child(ID2SUBTREE_DATABASE_NAME),
-                  new ID2SIndexer(), state, storage, EntryContainer.this);
-              state.putIndexTrustState(null, id2subtree, false);
+                  new ID2SIndexer(), state, storage, txn, EntryContainer.this);
+              state.putIndexTrustState(txn, id2subtree, false);
               id2subtree.open(txn); // No-op
 
               logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, cfg.getBackendId());
@@ -3210,13 +3105,11 @@ public class EntryContainer
   /**
    * Clear the contents of this entry container.
    *
-   * @return The number of records deleted.
    * @throws StorageRuntimeException If an error occurs while removing the entry
    *                           container.
    */
-  public long clear() throws StorageRuntimeException
+  public void clear() throws StorageRuntimeException
   {
-    final AtomicLong count = new AtomicLong();
     try
     {
       storage.write(new WriteOperation()
@@ -3224,10 +3117,9 @@ public class EntryContainer
         @Override
         public void run(WriteableStorage txn) throws Exception
         {
-          count.set(clear0(txn));
+          clear0(txn);
         }
       });
-      return count.get();
     }
     catch (Exception e)
     {
@@ -3235,11 +3127,10 @@ public class EntryContainer
     }
   }
 
-  private long clear0(WriteableStorage txn) throws StorageRuntimeException
+  private void clear0(WriteableStorage txn) throws StorageRuntimeException
   {
     final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
-    long count = 0;
 
     for(DatabaseContainer db : databases)
     {
@@ -3249,7 +3140,7 @@ public class EntryContainer
     {
       for (DatabaseContainer db : databases)
       {
-        count += storage.truncateDatabase(txn, db.getName(), true);
+        txn.truncateTree(db.getName());
       }
     }
     finally
@@ -3267,8 +3158,6 @@ public class EntryContainer
         }
       }
     }
-
-    return count;
   }
 
   /**
@@ -3289,7 +3178,7 @@ public class EntryContainer
         {
           try
           {
-            storage.removeDatabase(txn, database.getName());
+            txn.deleteTree(database.getName());
           }
           finally
           {

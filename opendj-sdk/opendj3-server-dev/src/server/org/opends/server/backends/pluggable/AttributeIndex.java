@@ -672,7 +672,7 @@ public class AttributeIndex
     {
       final Set<MatchingRule> validRules = Collections.emptySet();
       final Set<String> validIndexIds = Collections.emptySet();
-      removeIndexesForExtensibleMatchingRules(validRules, validIndexIds);
+      removeIndexesForExtensibleMatchingRules(txn, validRules, validIndexIds);
       return;
     }
 
