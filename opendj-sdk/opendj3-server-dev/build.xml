@@ -680,7 +680,7 @@ Please:
       <fileset dir="${src.dir}">
         <include name="**/*.java"/>
         <exclude name="**/PublicAPI.java" />
-        <exclude name="${pluggablebackend.pkg}/*.java" />
+        <exclude name="${pluggablebackend.pkg}/**/*.java" />
         <exclude name="${persistit.pkg}/*.java" />
       </fileset>
       <formatter type="plain" />
