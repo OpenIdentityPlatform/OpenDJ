@@ -43,6 +43,7 @@
   <!-- General server-wide properties                                 -->
   <property name="src.dir"          location="src/server"              />
   <property name="pluggablebackend.pkg" value="org/opends/server/backends/pluggable" />
+  <property name="persistit.pkg"        value="org/opends/server/backends/persistit" />
   <property name="build.dir"        location="build"                   />
   <property name="classes.dir"      location="${build.dir}/classes"    />
   <property name="build.lib.dir"    location="${build.dir}/lib"        />
@@ -680,6 +681,7 @@ Please:
         <include name="**/*.java"/>
         <exclude name="**/PublicAPI.java" />
         <exclude name="${pluggablebackend.pkg}/*.java" />
+        <exclude name="${persistit.pkg}/*.java" />
       </fileset>
       <formatter type="plain" />
     </checkstyle>
@@ -758,7 +760,7 @@ Please:
     <mkdir dir="${build.lib.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         excludes="${pluggablebackend.pkg}/**"
+         excludes="${pluggablebackend.pkg}/**,${persistit.pkg}/**"
          destdir="${classes.dir}">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
@@ -1857,7 +1859,7 @@ Please:
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-        excludes="${pluggablebackend.pkg}/**"
+        excludes="${pluggablebackend.pkg}/**,${persistit.pkg}/**"
         destdir="${classes.dir}">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
