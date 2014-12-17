@@ -27,15 +27,11 @@
 package org.opends.server.backends.pluggable;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import java.util.zip.Adler32;
-import java.util.zip.CheckedInputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -67,8 +63,8 @@ import static org.opends.server.util.StaticUtils.*;
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
  */
-public class BackendImpl extends Backend<LocalDBBackendCfg>
-    implements ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator,
+public class BackendImpl extends Backend<LocalDBBackendCfg> implements
+    ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator,
     DiskSpaceMonitorHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -130,50 +126,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
   }
 
-  /**
-   * This method will attempt to checksum the current JE db environment by
-   * computing the Adler-32 checksum on the latest JE log file available.
-   *
-   * @return  The checksum of JE db environment or zero if checksum failed.
-   */
-  private long checksumDbEnv() {
-
-    File parentDirectory = getFileForPath(cfg.getDBDirectory());
-    File backendDirectory = new File(parentDirectory, cfg.getBackendId());
-
-    List<File> jdbFiles = new ArrayList<File>();
-    if(backendDirectory.isDirectory())
-    {
-      jdbFiles =
-          Arrays.asList(backendDirectory.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-              return name.endsWith(".jdb");
-            }
-          }));
-    }
-
-    if ( !jdbFiles.isEmpty() ) {
-      Collections.sort(jdbFiles, Collections.reverseOrder());
-      FileInputStream fis = null;
-      try {
-        fis = new FileInputStream(jdbFiles.get(0).toString());
-        CheckedInputStream cis = new CheckedInputStream(fis, new Adler32());
-        byte[] tempBuf = new byte[8192];
-        while (cis.read(tempBuf) >= 0) {
-        }
-
-        return cis.getChecksum().getValue();
-      } catch (Exception e) {
-        logger.traceException(e);
-      } finally {
-        close(fis);
-      }
-    }
-
-    return 0;
-  }
-
   /** {@inheritDoc} */
   @Override
   public void configureBackend(LocalDBBackendCfg cfg) throws ConfigException
@@ -189,9 +141,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public void initializeBackend()
       throws ConfigException, InitializationException
   {
-    // Checksum this db environment and register its offline state id/checksum.
-    DirectoryServer.registerOfflineBackendStateID(getBackendID(), checksumDbEnv());
-
     if (mustOpenRootContainer())
     {
       rootContainer = initializeRootContainer();
@@ -285,8 +234,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       logger.error(ERR_JEB_DATABASE_EXCEPTION, e.getMessage());
     }
 
-    // Checksum this db environment and register its offline state id/checksum.
-    DirectoryServer.registerOfflineBackendStateID(getBackendID(), checksumDbEnv());
     DirectoryServer.deregisterAlertGenerator(this);
 
     // Make sure the thread counts are zero for next initialization.

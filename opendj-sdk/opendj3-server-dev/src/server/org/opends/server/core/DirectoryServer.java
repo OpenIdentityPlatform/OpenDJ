@@ -775,13 +775,6 @@ public final class DirectoryServer
   /** The set of backends registered with the server. */
   private TreeMap<String, Backend<?>> backends;
 
-  /**
-   * The mapping between backends and their unique identifiers for their offline
-   * state, representing either checksum or other unique value to be used for
-   * detecting any offline modifications to a given backend.
-   */
-  private ConcurrentMap<String, Long> offlineBackendsStateIDs;
-
   /** The set of supported controls registered with the Directory Server. */
   private final TreeSet<String> supportedControls = new TreeSet<String>(Arrays.asList(
       OID_LDAP_ASSERTION,
@@ -1088,8 +1081,6 @@ public final class DirectoryServer
            new ConcurrentHashMap<String,
                     MonitorProvider<? extends MonitorProviderCfg>>();
       directoryServer.backends = new TreeMap<String, Backend<?>>();
-      directoryServer.offlineBackendsStateIDs =
-           new ConcurrentHashMap<String,Long>();
       directoryServer.backendInitializationListeners =
            new CopyOnWriteArraySet<BackendInitializationListener>();
       directoryServer.baseDnRegistry = new BaseDnRegistry();
@@ -1554,9 +1545,6 @@ public final class DirectoryServer
       // Check for and initialize user configured entry cache if any.
       // If not then stick with default entry cache initialized earlier.
       entryCacheConfigManager.initializeEntryCache();
-
-      // Reset the map as we can no longer guarantee offline state.
-      directoryServer.offlineBackendsStateIDs.clear();
 
       initializeExtendedOperations();
       initializeSASLMechanisms();
@@ -5185,37 +5173,6 @@ public final class DirectoryServer
         monitor.finalizeMonitorProvider();
         backend.setBackendMonitor(null);
       }
-    }
-  }
-
-
-
-  /**
-   * This method returns a map that contains a unique offline state id,
-   * such as checksum, for every server backend that has registered one.
-   *
-   * @return  <CODE>Map</CODE> backend to checksum map for offline state.
-   */
-  public static Map<String,Long> getOfflineBackendsStateIDs() {
-    return Collections.unmodifiableMap(directoryServer.offlineBackendsStateIDs);
-  }
-
-
-
-  /**
-   * This method allows any server backend to register its unique offline
-   * state, such as checksum, in a global map other server components can
-   * access to determine if any changes were made to given backend while
-   * offline.
-   *
-   * @param  backend  As returned by <CODE>getBackendID()</CODE> method.
-   *
-   * @param  id       Unique offline state identifier such as checksum.
-   */
-  public static void registerOfflineBackendStateID(String backend, long id) {
-    // Zero means failed checksum so just skip it.
-    if (id != 0) {
-      directoryServer.offlineBackendsStateIDs.put(backend, id);
     }
   }
 
