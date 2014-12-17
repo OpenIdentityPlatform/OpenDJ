@@ -34,8 +34,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
@@ -207,8 +207,7 @@ public class VerifyJob
                 entryContainer.getVLVIndex(lowerName.substring(4));
             if(vlvIndex == null)
             {
-              LocalizableMessage msg =
-                  ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
+              LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName.substring(4));
               throw new JebException(msg);
             }
 
@@ -216,15 +215,13 @@ public class VerifyJob
           }
           else
           {
-            AttributeType attrType =
-                DirectoryServer.getAttributeType(lowerName);
+            AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
             if (attrType == null)
             {
               LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
               throw new JebException(msg);
             }
-            AttributeIndex attrIndex =
-                entryContainer.getAttributeIndex(attrType);
+            AttributeIndex attrIndex = entryContainer.getAttributeIndex(attrType);
             if (attrIndex == null)
             {
               LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
@@ -235,9 +232,7 @@ public class VerifyJob
         }
       }
 
-      entryLimitMap =
-          new IdentityHashMap<Index,HashMap<ByteString,Long>>(
-              attrIndexList.size());
+      entryLimitMap = new IdentityHashMap<Index, HashMap<ByteString, Long>>(attrIndexList.size());
 
       // We will be updating these files independently of the indexes
       // so we need direct access to them rather than going through
@@ -252,14 +247,9 @@ public class VerifyJob
 
       // Start a timer for the progress report.
       Timer timer = new Timer();
-      TimerTask progressTask = new ProgressTask();
-      if (cleanMode)
-      {
-        // Create a new progressTask based on the index count.
-        progressTask = new ProgressTask(true);
-      }
-      timer.scheduleAtFixedRate(progressTask, progressInterval,
-                                progressInterval);
+      // Create a new progressTask based on the index count.
+      TimerTask progressTask = new ProgressTask(cleanMode);
+      timer.scheduleAtFixedRate(progressTask, progressInterval, progressInterval);
 
       // Iterate through the index keys.
       try
@@ -1629,9 +1619,7 @@ public class VerifyJob
    */
   private class ProgressTask extends TimerTask
   {
-    /**
-     * The total number of records to process.
-     */
+    /** The total number of records to process. */
     private long totalCount;
 
     /**
@@ -1640,14 +1628,9 @@ public class VerifyJob
      */
     private long previousCount;
 
-    /**
-     * The time in milliseconds of the previous progress report.
-     */
+    /** The time in milliseconds of the previous progress report. */
     private long previousTime;
-
-    /**
-     * The environment statistics at the time of the previous report.
-     */
+    /** The environment statistics at the time of the previous report. */
     private EnvironmentStats prevEnvStats;
 
     /**
@@ -1655,20 +1638,6 @@ public class VerifyJob
      * Note that 1024*1024 bytes may eventually become known as a mebibyte(MiB).
      */
     private static final int bytesPerMegabyte = 1024*1024;
-
-    /**
-     * Create a new verify progress task.
-     * @throws DatabaseException An error occurred while accessing the JE
-     * database.
-     */
-    public ProgressTask() throws DatabaseException
-    {
-      previousTime = System.currentTimeMillis();
-      prevEnvStats =
-          rootContainer.getEnvironmentStats(new StatsConfig());
-      totalCount = rootContainer.getEntryContainer(
-        verifyConfig.getBaseDN()).getEntryCount();
-    }
 
     /**
      * Create a new verify progress task.
@@ -1700,26 +1669,11 @@ public class VerifyJob
         {
           AttributeIndex attrIndex = attrIndexList.get(0);
           totalCount = 0;
-          if (attrIndex.getEqualityIndex() != null)
-          {
-            totalCount += attrIndex.getEqualityIndex().getRecordCount();
-          }
-          if (attrIndex.getPresenceIndex() != null)
-          {
-            totalCount += attrIndex.getPresenceIndex().getRecordCount();
-          }
-          if (attrIndex.getSubstringIndex() != null)
-          {
-            totalCount += attrIndex.getSubstringIndex().getRecordCount();
-          }
-          if (attrIndex.getOrderingIndex() != null)
-          {
-            totalCount += attrIndex.getOrderingIndex().getRecordCount();
-          }
-          if (attrIndex.getApproximateIndex() != null)
-          {
-            totalCount += attrIndex.getApproximateIndex().getRecordCount();
-          }
+          totalCount += getRecordCount(attrIndex.getEqualityIndex());
+          totalCount += getRecordCount(attrIndex.getPresenceIndex());
+          totalCount += getRecordCount(attrIndex.getSubstringIndex());
+          totalCount += getRecordCount(attrIndex.getOrderingIndex());
+          totalCount += getRecordCount(attrIndex.getApproximateIndex());
           // TODO: Add support for Extended Matching Rules indexes.
         }
         else if (vlvIndexList.size() > 0)
@@ -1734,9 +1688,12 @@ public class VerifyJob
       }
     }
 
-    /**
-     * The action to be performed by this timer task.
-     */
+    private long getRecordCount(Index index)
+    {
+      return index != null ? index.getRecordCount() : 0;
+    }
+
+    /** The action to be performed by this timer task. */
     @Override
     public void run()
     {
