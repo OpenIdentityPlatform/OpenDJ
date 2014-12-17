@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -41,7 +40,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
@@ -63,14 +62,14 @@ import static org.opends.server.util.StaticUtils.*;
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
  */
-public class BackendImpl extends Backend<LocalDBBackendCfg> implements
-    ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator,
+public class BackendImpl extends Backend<PersistitBackendCfg> implements
+    ConfigurationChangeListener<PersistitBackendCfg>, AlertGenerator,
     DiskSpaceMonitorHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The configuration of this JE backend. */
-  private LocalDBBackendCfg cfg;
+  /** The configuration of this backend. */
+  private PersistitBackendCfg cfg;
   /** The root JE container to use for this backend. */
   private RootContainer rootContainer;
 
@@ -128,7 +127,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(LocalDBBackendCfg cfg) throws ConfigException
+  public void configureBackend(PersistitBackendCfg cfg) throws ConfigException
   {
     Reject.ifNull(cfg);
 
@@ -191,7 +190,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg> implements
     //Register as an AlertGenerator.
     DirectoryServer.registerAlertGenerator(this);
     // Register this backend as a change listener.
-    cfg.addLocalDBChangeListener(this);
+    cfg.addPersistitChangeListener(this);
   }
 
   /** {@inheritDoc} */
@@ -199,7 +198,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg> implements
   public void finalizeBackend()
   {
     super.finalizeBackend();
-    cfg.removeLocalDBChangeListener(this);
+    cfg.removePersistitChangeListener(this);
 
     // Deregister our base DNs.
     for (DN dn : rootContainer.getBaseDNs())
@@ -793,7 +792,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationAcceptable(LocalDBBackendCfg config,
+  public boolean isConfigurationAcceptable(PersistitBackendCfg config,
                                            List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
@@ -804,24 +803,17 @@ public class BackendImpl extends Backend<LocalDBBackendCfg> implements
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      LocalDBBackendCfg cfg,
+      PersistitBackendCfg cfg,
       List<LocalizableMessage> unacceptableReasons)
   {
-    // Make sure that the logging level value is acceptable.
-    try {
-      Level.parse(cfg.getDBLoggingLevel());
-      return true;
-    } catch (Exception e) {
-      unacceptableReasons.add(ERR_JEB_INVALID_LOGGING_LEVEL.get(cfg.getDBLoggingLevel(), cfg.dn()));
-      return false;
-    }
+    return true;
   }
 
 
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(final LocalDBBackendCfg newCfg)
+  public ConfigChangeResult applyConfigurationChange(final PersistitBackendCfg newCfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     try

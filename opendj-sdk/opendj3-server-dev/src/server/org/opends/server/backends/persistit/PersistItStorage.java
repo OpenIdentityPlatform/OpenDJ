@@ -26,6 +26,10 @@
 
 package org.opends.server.backends.persistit;
 
+
+
+import static org.opends.server.util.StaticUtils.getFileForPath;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +41,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -172,7 +177,7 @@ public final class PersistItStorage implements Storage {
                 throw new StorageRuntimeException(e);
             }
         }
-        
+
         @Override
         public void update(TreeName treeName, ByteSequence key, UpdateFunction f)
         {
@@ -329,23 +334,25 @@ public final class PersistItStorage implements Storage {
         }
     }
 
-    private final File backendDirectory;
-    private final LocalDBBackendCfg config;
+
+
+  private File backendDirectory;
+  private PersistitBackendCfg config;
     private Persistit db;
     private final ConcurrentMap<TreeName, Volume> volumes = new ConcurrentHashMap<TreeName, Volume>();
     private Properties properties;
-
-    public PersistItStorage(File backendDirectory, LocalDBBackendCfg config) {
-        this.backendDirectory = backendDirectory;
-        this.config = config;
-    }
 
     private Volume getVolume(TreeName treeName) {
         return volumes.get(treeName.getSuffix());
     }
 
     @Override
-    public void initialize(Map<String, String> options) {
+  public void initialize(PersistitBackendCfg cfg)
+  {
+    this.config = cfg;
+    this.backendDirectory = new File(getFileForPath(config.getDBDirectory()),
+        config.getBackendId());
+
         properties = new Properties();
         properties.setProperty("datapath", backendDirectory.toString());
         properties.setProperty("logpath", backendDirectory.toString());
@@ -361,12 +368,6 @@ public final class PersistItStorage implements Storage {
                     + ",initialSize:50M"
                     + ",extensionSize:1M"
                     + ",maximumSize:10G");
-        }
-
-        if (options != null) {
-            for (Entry<String, String> entry : options.entrySet()) {
-                properties.setProperty(entry.getKey(), entry.getValue());
-            }
         }
     }
 

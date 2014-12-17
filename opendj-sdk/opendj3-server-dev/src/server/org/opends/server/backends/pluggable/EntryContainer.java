@@ -49,9 +49,9 @@ import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
+import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
@@ -108,7 +108,7 @@ import static org.opends.server.util.StaticUtils.*;
  * the guts of the backend API methods for LDAP operations.
  */
 public class EntryContainer
-    implements SuffixContainer, ConfigurationChangeListener<LocalDBBackendCfg>
+    implements SuffixContainer, ConfigurationChangeListener<PersistitBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -140,7 +140,7 @@ public class EntryContainer
   private final DN baseDN;
 
   /** The backend configuration. */
-  private LocalDBBackendCfg config;
+  private PersistitBackendCfg config;
 
   /** The JE database environment. */
   private final Storage storage;
@@ -441,7 +441,7 @@ public class EntryContainer
    * @throws ConfigException if a configuration related error occurs.
    */
   public EntryContainer(DN baseDN, TreeName databasePrefix, Backend<?> backend,
-      LocalDBBackendCfg config, Storage env, RootContainer rootContainer)
+      PersistitBackendCfg config, Storage env, RootContainer rootContainer)
           throws ConfigException
   {
     this.backend = backend;
@@ -451,15 +451,15 @@ public class EntryContainer
     this.rootContainer = rootContainer;
     this.databasePrefix = databasePrefix;
 
-    config.addLocalDBChangeListener(this);
+    config.addPersistitChangeListener(this);
 
     attributeJEIndexCfgManager = new AttributeJEIndexCfgManager();
-    config.addLocalDBIndexAddListener(attributeJEIndexCfgManager);
-    config.addLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
+    config.addBackendIndexAddListener(attributeJEIndexCfgManager);
+    config.addBackendIndexDeleteListener(attributeJEIndexCfgManager);
 
     vlvJEIndexCfgManager = new VLVJEIndexCfgManager();
-    config.addLocalDBVLVIndexAddListener(vlvJEIndexCfgManager);
-    config.addLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
+    config.addBackendVLVIndexAddListener(vlvJEIndexCfgManager);
+    config.addBackendVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
   /**
@@ -511,9 +511,9 @@ public class EntryContainer
       dn2uri = new DN2URI(databasePrefix.child(REFERRAL_DATABASE_NAME), storage, this);
       dn2uri.open(txn);
 
-      for (String idx : config.listLocalDBIndexes())
+      for (String idx : config.listBackendIndexes())
       {
-        LocalDBIndexCfg indexCfg = config.getLocalDBIndex(idx);
+        LocalDBIndexCfg indexCfg = config.getBackendIndex(idx);
 
         AttributeIndex index = new AttributeIndex(indexCfg, this, txn);
         index.open(txn);
@@ -524,9 +524,9 @@ public class EntryContainer
         attrIndexMap.put(indexCfg.getAttribute(), index);
       }
 
-      for(String idx : config.listLocalDBVLVIndexes())
+      for (String idx : config.listBackendVLVIndexes())
       {
-        LocalDBVLVIndexCfg vlvIndexCfg = config.getLocalDBVLVIndex(idx);
+        LocalDBVLVIndexCfg vlvIndexCfg = config.getBackendVLVIndex(idx);
 
         VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, storage, this, txn);
         vlvIndex.open(txn);
@@ -571,11 +571,11 @@ public class EntryContainer
     }
 
     // Deregister any listeners.
-    config.removeLocalDBChangeListener(this);
-    config.removeLocalDBIndexAddListener(attributeJEIndexCfgManager);
-    config.removeLocalDBIndexDeleteListener(attributeJEIndexCfgManager);
-    config.removeLocalDBVLVIndexAddListener(vlvJEIndexCfgManager);
-    config.removeLocalDBVLVIndexDeleteListener(vlvJEIndexCfgManager);
+    config.removePersistitChangeListener(this);
+    config.removeBackendIndexAddListener(attributeJEIndexCfgManager);
+    config.removeBackendIndexDeleteListener(attributeJEIndexCfgManager);
+    config.removeBackendVLVIndexAddListener(vlvJEIndexCfgManager);
+    config.removeBackendVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
   /**
@@ -3018,7 +3018,7 @@ public class EntryContainer
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      LocalDBBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+      PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     // This is always true because only all config attributes used
     // by the entry container should be validated by the admin framework.
@@ -3027,7 +3027,7 @@ public class EntryContainer
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(final LocalDBBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(final PersistitBackendCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
