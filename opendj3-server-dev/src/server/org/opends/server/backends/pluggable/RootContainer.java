@@ -36,7 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.messages.UtilityMessages;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.persistit.PersistItStorage;
@@ -74,7 +74,7 @@ import static org.opends.server.util.StaticUtils.*;
  * of the entry containers.
  */
 public class RootContainer
-     implements ConfigurationChangeListener<LocalDBBackendCfg>
+     implements ConfigurationChangeListener<PersistitBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -82,7 +82,7 @@ public class RootContainer
   private PersistItStorage storage; // FIXME JNR do not hardcode here
 
   /** The backend configuration. */
-  private LocalDBBackendCfg config;
+  private PersistitBackendCfg config;
 
   /** The backend to which this entry root container belongs. */
   private final Backend<?> backend;
@@ -112,7 +112,7 @@ public class RootContainer
    * @param backend A reference to the JE back end that is creating this
    *                root container.
    */
-  public RootContainer(Backend<?> backend, LocalDBBackendCfg config)
+  public RootContainer(Backend<?> backend, PersistitBackendCfg config)
   {
     this.backend = backend;
     this.config = config;
@@ -122,7 +122,7 @@ public class RootContainer
     getMonitorProvider().enableFilterUseStats(config.isIndexFilterAnalyzerEnabled());
     getMonitorProvider().setMaxEntries(config.getIndexFilterAnalyzerMaxFilters());
 
-    config.addLocalDBChangeListener(this);
+    config.addPersistitChangeListener(this);
   }
 
   PersistItStorage getStorage()
@@ -322,11 +322,11 @@ public class RootContainer
       }
     }
 
-    storage = new PersistItStorage(backendDirectory, config);
     compressedSchema = new DefaultCompressedSchema();
     try
     {
-      storage.initialize(null);
+      storage = new PersistItStorage();
+      storage.initialize(config);
       storage.open();
       storage.write(new WriteOperation()
       {
@@ -552,7 +552,7 @@ public class RootContainer
 
     // FIXME JNR call close() for a DB stored compressed schema
     // compressedSchema.close();
-    config.removeLocalDBChangeListener(this);
+    config.removePersistitChangeListener(this);
 
     if (storage != null)
     {
@@ -604,12 +604,14 @@ public class RootContainer
     return ec;
   }
 
+
+
   /**
    * Get the backend configuration used by this root container.
    *
-   * @return The JE backend configuration used by this root container.
+   * @return The backend configuration used by this root container.
    */
-  public LocalDBBackendCfg getConfiguration()
+  public PersistitBackendCfg getConfiguration()
   {
     return config;
   }
@@ -687,7 +689,7 @@ public class RootContainer
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      LocalDBBackendCfg cfg,
+      PersistitBackendCfg cfg,
       List<LocalizableMessage> unacceptableReasons)
   {
     boolean acceptable = true;
@@ -755,7 +757,7 @@ public class RootContainer
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(PersistitBackendCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 

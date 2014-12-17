@@ -27,11 +27,14 @@
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
-import java.util.Map;
+
+import org.opends.server.admin.std.server.PersistitBackendCfg;
+
+
 
 public interface Storage extends Closeable
 {
-  void initialize(Map<String, String> options) throws Exception;
+  void initialize(PersistitBackendCfg cfg) throws Exception;
 
   Importer startImport() throws Exception;
 
