@@ -1,3 +1,29 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+ * or http://forgerock.org/license/CDDLv1.0.html.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2014 ForgeRock AS
+ */
+
 package org.opends.server.backends.persistit;
 
 import java.io.File;
@@ -11,14 +37,14 @@ import java.util.concurrent.ConcurrentMap;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.backends.pluggable.BackendImpl.Cursor;
-import org.opends.server.backends.pluggable.BackendImpl.Importer;
-import org.opends.server.backends.pluggable.BackendImpl.ReadOperation;
-import org.opends.server.backends.pluggable.BackendImpl.Storage;
-import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
-import org.opends.server.backends.pluggable.BackendImpl.TreeName;
-import org.opends.server.backends.pluggable.BackendImpl.WriteOperation;
-import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Importer;
+import org.opends.server.backends.pluggable.spi.ReadOperation;
+import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
+import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.types.DN;
 
 import com.persistit.Exchange;
