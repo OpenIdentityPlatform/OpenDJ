@@ -3182,15 +3182,13 @@ public class EntryContainer
   /**
    * Clear the contents of this entry container.
    *
-   * @return The number of records deleted.
    * @throws DatabaseException If an error occurs while removing the entry
    *                           container.
    */
-  public long clear() throws DatabaseException
+  public void clear() throws DatabaseException
   {
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
-    long count = 0;
 
     for(DatabaseContainer db : databases)
     {
@@ -3206,7 +3204,7 @@ public class EntryContainer
         {
           for(DatabaseContainer db : databases)
           {
-            count += env.truncateDatabase(txn, db.getName(), true);
+            env.truncateDatabase(txn, db.getName(), false);
           }
 
           transactionCommit(txn);
@@ -3221,7 +3219,7 @@ public class EntryContainer
       {
         for(DatabaseContainer db : databases)
         {
-          count += env.truncateDatabase(null, db.getName(), true);
+          env.truncateDatabase(null, db.getName(), false);
         }
       }
     }
@@ -3268,8 +3266,6 @@ public class EntryContainer
         }
       }
     }
-
-    return count;
   }
 
   /**
