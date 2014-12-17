@@ -26,7 +26,6 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
@@ -42,8 +41,6 @@ import java.util.zip.CheckedInputStream;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
@@ -54,7 +51,9 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
+import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
@@ -75,197 +74,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     DiskSpaceMonitorHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  public interface Importer extends Closeable
-  {
-    void createTree(TreeName name);
-
-    void put(TreeName name, ByteSequence key, ByteSequence value);
-
-    @Override
-    void close();
-  }
-
-  public interface ReadOperation<T>
-  {
-    T run(ReadableStorage txn) throws Exception;
-  }
-
-  public interface ReadableStorage
-  {
-    ByteString get(TreeName name, ByteSequence key);
-
-    ByteString getRMW(TreeName name, ByteSequence key);
-
-    Cursor openCursor(TreeName name);
-
-    // TODO: contains, etc.
-  }
-
-  public interface Cursor extends Closeable
-  {
-    boolean positionToKey(ByteSequence key);
-
-    boolean positionToKeyOrNext(ByteSequence key);
-
-    boolean positionToLastKey();
-
-    boolean next();
-
-    boolean previous();
-
-    ByteString getKey();
-
-    ByteString getValue();
-
-    @Override
-    public void close();
-  }
-
-  public interface Storage extends Closeable
-  {
-    void initialize(Map<String, String> options) throws Exception;
-
-    Importer startImport() throws Exception;
-
-    void open() throws Exception;
-
-    <T> T read(ReadOperation<T> readTransaction) throws Exception;
-
-    void write(WriteOperation updateTransaction) throws Exception;
-
-    Cursor openCursor(TreeName name);
-
-    @Override
-    void close();
-  }
-
-  @SuppressWarnings("serial")
-  public static final class StorageRuntimeException extends RuntimeException
-  {
-
-    public StorageRuntimeException(final String message)
-    {
-      super(message);
-    }
-
-    public StorageRuntimeException(final String message, final Throwable cause)
-    {
-      super(message, cause);
-    }
-
-    public StorageRuntimeException(final Throwable cause)
-    {
-      super(cause);
-    }
-  }
-
-  /** Assumes name components don't contain a '/'. */
-  public static final class TreeName
-  {
-    public static TreeName of(final String... names)
-    {
-      return new TreeName(Arrays.asList(names));
-    }
-
-    private final List<String> names;
-    private final String s;
-
-    public TreeName(final List<String> names)
-    {
-      this.names = names;
-      final StringBuilder builder = new StringBuilder();
-      for (final String name : names)
-      {
-        builder.append('/');
-        builder.append(name);
-      }
-      this.s = builder.toString();
-    }
-
-    public List<String> getNames()
-    {
-      return names;
-    }
-
-    public TreeName child(final String name)
-    {
-      final List<String> newNames = new ArrayList<String>(names.size() + 1);
-      newNames.addAll(names);
-      newNames.add(name);
-      return new TreeName(newNames);
-    }
-
-    public TreeName getSuffix()
-    {
-      if (names.size() == 0)
-      {
-        throw new IllegalStateException();
-      }
-      return new TreeName(Collections.singletonList(names.get(0)));
-    }
-
-    public boolean isSuffixOf(TreeName tree)
-    {
-      if (names.size() > tree.names.size())
-      {
-        return false;
-      }
-      for (int i = 0; i < names.size(); i++)
-      {
-        if (!tree.names.get(i).equals(names.get(i)))
-        {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    @Override
-    public boolean equals(final Object obj)
-    {
-      if (this == obj)
-      {
-        return true;
-      }
-      else if (obj instanceof TreeName)
-      {
-        return s.equals(((TreeName) obj).s);
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-    @Override
-    public int hashCode()
-    {
-      return s.hashCode();
-    }
-
-    @Override
-    public String toString()
-    {
-      return s;
-    }
-  }
-
-  public interface WriteOperation
-  {
-    void run(WriteableStorage txn) throws Exception;
-  }
-
-  public interface WriteableStorage extends ReadableStorage
-  {
-    void openTree(TreeName name);
-
-    void put(TreeName name, ByteSequence key, ByteSequence value);
-
-    boolean putIfAbsent(TreeName treeName, ByteSequence key, ByteSequence value);
-
-    boolean remove(TreeName name, ByteSequence key);
-  }
 
   /** The configuration of this JE backend. */
   private LocalDBBackendCfg cfg;

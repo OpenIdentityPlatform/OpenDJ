@@ -31,7 +31,7 @@ import java.io.FilenameFilter;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 
 import static org.opends.messages.JebMessages.*;
 

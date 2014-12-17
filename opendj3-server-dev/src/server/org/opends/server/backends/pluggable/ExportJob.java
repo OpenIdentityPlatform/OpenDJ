@@ -34,9 +34,9 @@ import java.util.TimerTask;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.backends.pluggable.BackendImpl.Cursor;
-import org.opends.server.backends.pluggable.BackendImpl.Storage;
-import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.Cursor;
+import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFExportConfig;

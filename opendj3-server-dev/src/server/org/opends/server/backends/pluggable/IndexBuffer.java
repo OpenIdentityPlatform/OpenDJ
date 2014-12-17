@@ -34,8 +34,8 @@ import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.backends.pluggable.BackendImpl.StorageRuntimeException;
-import org.opends.server.backends.pluggable.BackendImpl.WriteableStorage;
+import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.types.DirectoryException;
 
 /**
