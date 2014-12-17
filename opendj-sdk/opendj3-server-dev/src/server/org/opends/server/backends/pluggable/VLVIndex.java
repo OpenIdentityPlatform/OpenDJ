@@ -424,7 +424,7 @@ public class VLVIndex extends DatabaseContainer
 
   private SortValuesSet getSortValuesSet(ReadableStorage txn, ByteString key, boolean isRMW)
   {
-    ByteString value = isRMW ? txn.getRMW(treeName, key) : txn.get(treeName, key);
+    ByteString value = isRMW ? txn.getRMW(treeName, key) : txn.read(treeName, key);
     if (value == null)
     {
       // There are no records in the database

@@ -463,12 +463,12 @@ public class ConfigurableEnvironment
     {
       if (MemoryBudget.getRuntimeMaxMemory() < cfg.getDBCacheSize()) {
         throw new ConfigException(
-            ERR_CONFIG_JEB_CACHE_SIZE_GREATER_THAN_JVM_HEAP.get(
+            ERR_CONFIG_JEB_CACHE_SIZE_GREATER_THAN_JVM_HEAP.read(
                 cfg.getDBCacheSize(), MemoryBudget.getRuntimeMaxMemory()));
       }
       if (cfg.getDBCacheSize() < MemoryBudget.MIN_MAX_MEMORY_SIZE) {
         throw new ConfigException(
-            ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.get(
+            ERR_CONFIG_JEB_CACHE_SIZE_TOO_SMALL.read(
                 cfg.getDBCacheSize(), MemoryBudget.MIN_MAX_MEMORY_SIZE));
       }
     }

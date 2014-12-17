@@ -116,7 +116,7 @@ public class State extends DatabaseContainer
   {
     ByteString key = keyForIndex(index);
 
-    txn.put(treeName, key, trusted ? trueBytes : falseBytes);
+    txn.create(treeName, key, trusted ? trueBytes : falseBytes);
   }
 
 }

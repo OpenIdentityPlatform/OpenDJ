@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.ByteString;
 
 public interface ReadableStorage
 {
-  ByteString get(TreeName name, ByteSequence key);
+  ByteString read(TreeName name, ByteSequence key);
 
   ByteString getRMW(TreeName name, ByteSequence key);
 
