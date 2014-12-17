@@ -43,6 +43,7 @@ import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.types.DN;
@@ -170,6 +171,27 @@ public final class PersistItStorage implements Storage {
             } catch (Exception e) {
                 throw new StorageRuntimeException(e);
             }
+        }
+        
+        @Override
+        public void update(TreeName treeName, ByteSequence key, UpdateFunction f)
+        {
+          try
+          {
+            final Exchange ex = getExchange(treeName);
+            ex.getKey().clear().append(key.toByteArray());
+            ex.fetch();
+            final Value value = ex.getValue();
+            final ByteSequence oldValue = value.isDefined() ? ByteString.wrap(value
+                .getByteArray()) : null;
+            final ByteSequence newValue = f.computeNewValue(oldValue);
+            ex.getValue().clear().putByteArray(newValue.toByteArray());
+            ex.store();
+          }
+          catch (Exception e)
+          {
+            throw new StorageRuntimeException(e);
+          }
         }
 
         @Override
