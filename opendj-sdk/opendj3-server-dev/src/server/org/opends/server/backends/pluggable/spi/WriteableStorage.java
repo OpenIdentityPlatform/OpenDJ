@@ -38,5 +38,7 @@ public interface WriteableStorage extends ReadableStorage
 
   void update(TreeName treeName, ByteSequence key, UpdateFunction f);
 
-  boolean delete(TreeName name, ByteSequence key);
+  boolean remove(TreeName name, ByteSequence key);
+  
+  void delete(TreeName name, ByteSequence key);
 }
