@@ -217,6 +217,7 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.VersionHandler;
 import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.forgerock.util.Reject.*;
@@ -7851,6 +7852,18 @@ public final class DirectoryServer
          new ArgumentParser("org.opends.server.core.DirectoryServer",
                             theToolDescription, false);
 
+    final VersionHandler versionHandler = new VersionHandler()
+    {
+      @Override
+      public void printVersion()
+      {
+        try
+        {
+          DirectoryServer.printVersion(System.out);
+        }
+        catch (Exception e){}
+      }
+    };
 
     // Initialize all the command-line argument types and register them with the
     // parser.
@@ -7929,6 +7942,7 @@ public final class DirectoryServer
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
+      argParser.setVersionHandler(versionHandler);
     }
     catch (ArgumentException ae)
     {
