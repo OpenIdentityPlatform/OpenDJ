@@ -130,6 +130,9 @@ public class ArgumentParser {
     /** Indicates whether the version argument was provided. */
     private boolean versionPresent;
 
+    /** The handler to call to print the product version. */
+    private VersionHandler versionHandler;
+
     /**
      * The set of arguments defined for this parser, referenced by short ID.
      */
@@ -958,11 +961,12 @@ public class ArgumentParser {
                         // usage information.
                         writeUsageToOutputStream();
                         return;
-                    } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
+                    } else if (versionHandler != null && OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
                         // "--version" will always be interpreted as requesting
                         // version information.
                         usageOrVersionDisplayed = true;
                         versionPresent = true;
+                        versionHandler.printVersion();
                         return;
                     } else {
                         // There is no such argument registered.
@@ -1035,13 +1039,14 @@ public class ArgumentParser {
                     if (argCharacter == '?') {
                         writeUsageToOutputStream();
                         return;
-                    } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION
+                    } else if (versionHandler != null && argCharacter == OPTION_SHORT_PRODUCT_VERSION
                             && !shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION)) {
                         // "-V" will always be interpreted as requesting
                         // version information except if it's already defined
                         // (e.g in ldap tools).
                         usageOrVersionDisplayed = true;
                         versionPresent = true;
+                        versionHandler.printVersion();
                         return;
                     } else {
                         // There is no such argument registered.
@@ -1310,6 +1315,16 @@ public class ArgumentParser {
     public void setUsageArgument(final Argument argument, final OutputStream outputStream) {
         usageArgument = argument;
         usageOutputStream = outputStream;
+    }
+
+    /**
+     * Sets the version handler which will be used to display the product version.
+     *
+     * @param handler
+     *            The version handler.
+     */
+    public void setVersionHandler(final VersionHandler handler) {
+        versionHandler = handler;
     }
 
     /**
