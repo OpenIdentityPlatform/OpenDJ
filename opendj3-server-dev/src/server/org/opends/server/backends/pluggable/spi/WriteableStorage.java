@@ -32,9 +32,9 @@ public interface WriteableStorage extends ReadableStorage
 {
   void openTree(TreeName name);
 
-  void put(TreeName name, ByteSequence key, ByteSequence value);
+  void create(TreeName name, ByteSequence key, ByteSequence value);
 
   boolean putIfAbsent(TreeName treeName, ByteSequence key, ByteSequence value);
 
-  boolean remove(TreeName name, ByteSequence key);
+  boolean delete(TreeName name, ByteSequence key);
 }

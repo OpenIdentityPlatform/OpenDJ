@@ -129,7 +129,7 @@ public abstract class DatabaseContainer implements Closeable
   protected void put(WriteableStorage txn, ByteSequence key, ByteSequence value)
       throws StorageRuntimeException
   {
-    txn.put(treeName, key, value);
+    txn.create(treeName, key, value);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(true, treeName, txn, key, value));
@@ -146,7 +146,7 @@ public abstract class DatabaseContainer implements Closeable
    */
   protected ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
   {
-    ByteString value = isRMW ? txn.get(treeName, key) : txn.getRMW(treeName, key);
+    ByteString value = isRMW ? txn.read(treeName, key) : txn.getRMW(treeName, key);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(value != null, treeName, txn, key, value));
@@ -183,7 +183,7 @@ public abstract class DatabaseContainer implements Closeable
    */
   protected boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
   {
-    boolean result = txn.remove(treeName, key);
+    boolean result = txn.delete(treeName, key);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(result, treeName, txn, key, null));

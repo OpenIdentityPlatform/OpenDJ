@@ -121,7 +121,7 @@ public final class PersistItStorage implements Storage {
         }
 
         @Override
-        public ByteString get(TreeName treeName, ByteSequence key) {
+        public ByteString read(TreeName treeName, ByteSequence key) {
             try {
                 final Exchange ex = getExchange(treeName);
                 ex.getKey().clear().append(key.toByteArray());
@@ -138,11 +138,11 @@ public final class PersistItStorage implements Storage {
 
         @Override
         public ByteString getRMW(TreeName treeName, ByteSequence key) {
-            return get(treeName, key);
+            return read(treeName, key);
         }
 
         @Override
-        public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
+        public void create(TreeName treeName, ByteSequence key, ByteSequence value) {
             try {
                 final Exchange ex = getExchange(treeName);
                 ex.getKey().clear().append(key.toByteArray());
@@ -173,7 +173,7 @@ public final class PersistItStorage implements Storage {
         }
 
         @Override
-        public boolean remove(TreeName treeName, ByteSequence key) {
+        public boolean delete(TreeName treeName, ByteSequence key) {
             try {
                 final Exchange ex = getExchange(treeName);
                 ex.getKey().clear().append(key.toByteArray());
