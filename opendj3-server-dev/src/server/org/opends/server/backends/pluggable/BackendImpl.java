@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
+import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
@@ -264,28 +264,28 @@ public class BackendImpl extends Backend<PersistitBackendCfg> implements
         return false;
       }
 
-      Set<LocalDBIndexCfgDefn.IndexType> indexTypes =
+      Set<BackendIndexCfgDefn.IndexType> indexTypes =
            ai.getConfiguration().getIndexType();
       switch (indexType)
       {
         case PRESENCE:
-          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.PRESENCE);
+          return indexTypes.contains(BackendIndexCfgDefn.IndexType.PRESENCE);
 
         case EQUALITY:
-          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.EQUALITY);
+          return indexTypes.contains(BackendIndexCfgDefn.IndexType.EQUALITY);
 
         case SUBSTRING:
         case SUBINITIAL:
         case SUBANY:
         case SUBFINAL:
-          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING);
+          return indexTypes.contains(BackendIndexCfgDefn.IndexType.SUBSTRING);
 
         case GREATER_OR_EQUAL:
         case LESS_OR_EQUAL:
-          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.ORDERING);
+          return indexTypes.contains(BackendIndexCfgDefn.IndexType.ORDERING);
 
         case APPROXIMATE:
-          return indexTypes.contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE);
+          return indexTypes.contains(BackendIndexCfgDefn.IndexType.APPROXIMATE);
 
         default:
           return false;

@@ -49,8 +49,8 @@ import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.LocalDBIndexCfg;
-import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
+import org.opends.server.admin.std.server.BackendIndexCfg;
+import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
@@ -175,12 +175,12 @@ public class EntryContainer
    * indexes used within this entry container.
    */
   private class AttributeJEIndexCfgManager implements
-  ConfigurationAddListener<LocalDBIndexCfg>,
-  ConfigurationDeleteListener<LocalDBIndexCfg>
+  ConfigurationAddListener<BackendIndexCfg>,
+  ConfigurationDeleteListener<BackendIndexCfg>
   {
     /** {@inheritDoc} */
     @Override
-    public boolean isConfigurationAddAcceptable(final LocalDBIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+    public boolean isConfigurationAddAcceptable(final BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
       try
       {
@@ -206,7 +206,7 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationAdd(final LocalDBIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationAdd(final BackendIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
       try
@@ -238,7 +238,7 @@ public class EntryContainer
     /** {@inheritDoc} */
     @Override
     public boolean isConfigurationDeleteAcceptable(
-        LocalDBIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+        BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
       // TODO: validate more before returning true?
       return true;
@@ -246,7 +246,7 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationDelete(final LocalDBIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationDelete(final BackendIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
 
@@ -283,13 +283,13 @@ public class EntryContainer
    * used within this entry container.
    */
   private class VLVJEIndexCfgManager implements
-  ConfigurationAddListener<LocalDBVLVIndexCfg>,
-  ConfigurationDeleteListener<LocalDBVLVIndexCfg>
+  ConfigurationAddListener<BackendVLVIndexCfg>,
+  ConfigurationDeleteListener<BackendVLVIndexCfg>
   {
     /** {@inheritDoc} */
     @Override
     public boolean isConfigurationAddAcceptable(
-        LocalDBVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+        BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
       try
       {
@@ -350,7 +350,7 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationAdd(final LocalDBVLVIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationAdd(final BackendVLVIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
       try
@@ -381,7 +381,7 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public boolean isConfigurationDeleteAcceptable(LocalDBVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+    public boolean isConfigurationDeleteAcceptable(BackendVLVIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
     {
       // TODO: validate more before returning true?
       return true;
@@ -389,7 +389,7 @@ public class EntryContainer
 
     /** {@inheritDoc} */
     @Override
-    public ConfigChangeResult applyConfigurationDelete(final LocalDBVLVIndexCfg cfg)
+    public ConfigChangeResult applyConfigurationDelete(final BackendVLVIndexCfg cfg)
     {
       final ConfigChangeResult ccr = new ConfigChangeResult();
       exclusiveLock.lock();
@@ -517,7 +517,7 @@ public class EntryContainer
 
       for (String idx : config.listBackendIndexes())
       {
-        LocalDBIndexCfg indexCfg = config.getBackendIndex(idx);
+        BackendIndexCfg indexCfg = config.getBackendIndex(idx);
 
         AttributeIndex index = new AttributeIndex(indexCfg, this, txn);
         index.open(txn);
@@ -530,7 +530,7 @@ public class EntryContainer
 
       for (String idx : config.listBackendVLVIndexes())
       {
-        LocalDBVLVIndexCfg vlvIndexCfg = config.getBackendVLVIndex(idx);
+        BackendVLVIndexCfg vlvIndexCfg = config.getBackendVLVIndex(idx);
 
         VLVIndex vlvIndex = new VLVIndex(vlvIndexCfg, state, storage, this, txn);
         vlvIndex.open(txn);

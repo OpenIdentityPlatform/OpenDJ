@@ -44,8 +44,8 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.SearchScope.Enum;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
-import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
+import org.opends.server.admin.std.meta.BackendVLVIndexCfgDefn.Scope;
+import org.opends.server.admin.std.server.BackendVLVIndexCfg;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.Storage;
@@ -85,7 +85,7 @@ import static org.opends.server.util.StaticUtils.*;
  * to its own key.
  */
 public class VLVIndex extends DatabaseContainer
-    implements ConfigurationChangeListener<LocalDBVLVIndexCfg>
+    implements ConfigurationChangeListener<BackendVLVIndexCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -109,7 +109,7 @@ public class VLVIndex extends DatabaseContainer
   private boolean rebuildRunning;
 
   /** The VLV vlvIndex configuration. */
-  private LocalDBVLVIndexCfg config;
+  private BackendVLVIndexCfg config;
 
   private DN baseDN;
   private SearchFilter filter;
@@ -129,7 +129,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
-  public VLVIndex(LocalDBVLVIndexCfg config, State state, Storage env,
+  public VLVIndex(BackendVLVIndexCfg config, State state, Storage env,
                   EntryContainer entryContainer, ReadableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
@@ -1197,7 +1197,7 @@ public class VLVIndex extends DatabaseContainer
   /** {@inheritDoc} */
   @Override
   public synchronized boolean isConfigurationChangeAcceptable(
-      LocalDBVLVIndexCfg cfg,
+      BackendVLVIndexCfg cfg,
       List<LocalizableMessage> unacceptableReasons)
   {
     try
@@ -1257,7 +1257,7 @@ public class VLVIndex extends DatabaseContainer
 
   /** {@inheritDoc} */
   @Override
-  public synchronized ConfigChangeResult applyConfigurationChange(final LocalDBVLVIndexCfg cfg)
+  public synchronized ConfigChangeResult applyConfigurationChange(final BackendVLVIndexCfg cfg)
   {
     try
     {
@@ -1278,7 +1278,7 @@ public class VLVIndex extends DatabaseContainer
     }
   }
 
-  private synchronized void applyConfigurationChange0(WriteableStorage txn, LocalDBVLVIndexCfg cfg,
+  private synchronized void applyConfigurationChange0(WriteableStorage txn, BackendVLVIndexCfg cfg,
       ConfigChangeResult ccr)
   {
     // Update base DN only if changed..
