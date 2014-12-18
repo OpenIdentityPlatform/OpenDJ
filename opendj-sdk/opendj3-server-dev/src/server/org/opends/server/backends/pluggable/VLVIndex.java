@@ -26,6 +26,9 @@
  */
 package org.opends.server.backends.pluggable;
 
+
+
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -89,12 +92,10 @@ public class VLVIndex extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /** The comparator for vlvIndex keys. */
-  public VLVKeyComparator comparator;
   /** The limit on the number of entry IDs that may be indexed by one key. */
   private int sortedSetCapacity = 4000;
   /** The SortOrder in use by this VLV index to sort the entries. */
-  public SortOrder sortOrder;
+  private SortOrder sortOrder;
 
   /** The cached count of entries in this index. */
   private final AtomicInteger count;
@@ -129,7 +130,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
-  public VLVIndex(BackendVLVIndexCfg config, State state, Storage env,
+  VLVIndex(BackendVLVIndexCfg config, State state, Storage env,
                   EntryContainer entryContainer, ReadableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
@@ -151,48 +152,7 @@ public class VLVIndex extends DatabaseContainer
       throw new ConfigException(msg);
     }
 
-    String[] sortAttrs = config.getSortOrder().split(" ");
-    SortKey[] sortKeys = new SortKey[sortAttrs.length];
-    MatchingRule[] orderingRules = new MatchingRule[sortAttrs.length];
-    boolean[] ascending = new boolean[sortAttrs.length];
-    for(int i = 0; i < sortAttrs.length; i++)
-    {
-      try
-      {
-        if(sortAttrs[i].startsWith("-"))
-        {
-          ascending[i] = false;
-          sortAttrs[i] = sortAttrs[i].substring(1);
-        }
-        else
-        {
-          ascending[i] = true;
-          if(sortAttrs[i].startsWith("+"))
-          {
-            sortAttrs[i] = sortAttrs[i].substring(1);
-          }
-        }
-      }
-      catch(Exception e)
-      {
-        throw new ConfigException(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
-      }
-
-      AttributeType attrType =
-          DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
-      if(attrType == null)
-      {
-        LocalizableMessage msg =
-            ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], treeName);
-        throw new ConfigException(msg);
-      }
-      sortKeys[i] = new SortKey(attrType, ascending[i]);
-      orderingRules[i] = attrType.getOrderingMatchingRule();
-    }
-
-    this.sortOrder = new SortOrder(sortKeys);
-    this.comparator = new VLVKeyComparator(orderingRules, ascending);
-
+    this.sortOrder = new SortOrder(parseSortKeys(config));
     this.state = state;
     this.trusted = state.getIndexTrustState(txn, this);
     if (!trusted && entryContainer.getHighestEntryID(txn).longValue() == 0)
@@ -204,6 +164,49 @@ public class VLVIndex extends DatabaseContainer
 
     this.count = new AtomicInteger(0);
     this.config.addChangeListener(this);
+  }
+
+  private SortKey[] parseSortKeys(BackendVLVIndexCfg config)
+      throws ConfigException
+  {
+    String[] sortAttrs = config.getSortOrder().split(" ");
+    SortKey[] sortKeys = new SortKey[sortAttrs.length];
+    for (int i = 0; i < sortAttrs.length; i++)
+    {
+      final boolean ascending;
+      try
+      {
+        if (sortAttrs[i].startsWith("-"))
+        {
+          ascending = false;
+          sortAttrs[i] = sortAttrs[i].substring(1);
+        }
+        else
+        {
+          ascending = true;
+          if (sortAttrs[i].startsWith("+"))
+          {
+            sortAttrs[i] = sortAttrs[i].substring(1);
+          }
+        }
+      }
+      catch (Exception e)
+      {
+        throw new ConfigException(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+            sortKeys[i], treeName));
+      }
+
+      AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i]
+          .toLowerCase());
+      if (attrType == null)
+      {
+        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(
+            sortAttrs[i], treeName);
+        throw new ConfigException(msg);
+      }
+      sortKeys[i] = new SortKey(attrType, ascending);
+    }
+    return sortKeys;
   }
 
   private SearchScope valueOf(Scope cfgScope)
@@ -394,7 +397,7 @@ public class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public SortValuesSet getSortValuesSet(ReadableStorage txn, long entryID,
+  private SortValuesSet getSortValuesSet(ReadableStorage txn, long entryID,
       ByteString[] values, AttributeType[] types) throws StorageRuntimeException,
       DirectoryException
   {
@@ -520,7 +523,7 @@ public class VLVIndex extends DatabaseContainer
 
     while(true)
     {
-      ByteString key;
+      final ByteString key;
       if(av != null)
       {
         if(dv != null)
@@ -1111,16 +1114,6 @@ public class VLVIndex extends DatabaseContainer
   }
 
   /**
-   * Get the sorted set capacity configured for this VLV index.
-   *
-   * @return The sorted set capacity.
-   */
-  public int getSortedSetCapacity()
-  {
-    return sortedSetCapacity;
-  }
-
-  /**
    * Indicates if the given entry should belong in this VLV index.
    *
    * @param entry The entry to check.
@@ -1154,43 +1147,14 @@ public class VLVIndex extends DatabaseContainer
       return false;
     }
 
-    String[] sortAttrs = cfg.getSortOrder().split(" ");
-    SortKey[] sortKeys = new SortKey[sortAttrs.length];
-    MatchingRule[] orderingRules = new MatchingRule[sortAttrs.length];
-    boolean[] ascending = new boolean[sortAttrs.length];
-    for(int i = 0; i < sortAttrs.length; i++)
+    try
     {
-      try
-      {
-        if(sortAttrs[i].startsWith("-"))
-        {
-          ascending[i] = false;
-          sortAttrs[i] = sortAttrs[i].substring(1);
-        }
-        else
-        {
-          ascending[i] = true;
-          if(sortAttrs[i].startsWith("+"))
-          {
-            sortAttrs[i] = sortAttrs[i].substring(1);
-          }
-        }
-      }
-      catch(Exception e)
-      {
-        unacceptableReasons.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
-        return false;
-      }
-
-      AttributeType attrType = DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
-      if(attrType == null)
-      {
-        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortAttrs[i], treeName);
-        unacceptableReasons.add(msg);
-        return false;
-      }
-      sortKeys[i] = new SortKey(attrType, ascending[i]);
-      orderingRules[i] = attrType.getOrderingMatchingRule();
+      parseSortKeys(cfg);
+    }
+    catch (ConfigException e)
+    {
+      unacceptableReasons.add(e.getMessageObject());
+      return false;
     }
 
     return true;
@@ -1268,50 +1232,15 @@ public class VLVIndex extends DatabaseContainer
     // Update the sort order only if changed.
     if (!config.getSortOrder().equals(cfg.getSortOrder()))
     {
-      String[] sortAttrs = cfg.getSortOrder().split(" ");
-      SortKey[] sortKeys = new SortKey[sortAttrs.length];
-      MatchingRule[] orderingRules = new MatchingRule[sortAttrs.length];
-      boolean[] ascending = new boolean[sortAttrs.length];
-      for(int i = 0; i < sortAttrs.length; i++)
+      try
       {
-        try
-        {
-          if(sortAttrs[i].startsWith("-"))
-          {
-            ascending[i] = false;
-            sortAttrs[i] = sortAttrs[i].substring(1);
-          }
-          else
-          {
-            ascending[i] = true;
-            if(sortAttrs[i].startsWith("+"))
-            {
-              sortAttrs[i] = sortAttrs[i].substring(1);
-            }
-          }
-        }
-        catch(Exception e)
-        {
-          ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
-          ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-        }
-
-        AttributeType attrType =
-            DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
-        if(attrType == null)
-        {
-          ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], treeName));
-          ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-        }
-        else
-        {
-          sortKeys[i] = new SortKey(attrType, ascending[i]);
-          orderingRules[i] = attrType.getOrderingMatchingRule();
-        }
+        this.sortOrder = new SortOrder(parseSortKeys(cfg));
       }
-
-      this.sortOrder = new SortOrder(sortKeys);
-      this.comparator = new VLVKeyComparator(orderingRules, ascending);
+      catch (ConfigException e)
+      {
+        ccr.addMessage(e.getMessageObject());
+        ccr.setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
+      }
 
       // We have to close the database and open it using the new comparator.
       entryContainer.exclusiveLock.lock();
@@ -1356,5 +1285,128 @@ public class VLVIndex extends DatabaseContainer
     }
 
     this.config = cfg;
+  }
+
+  /**
+   * Compares the contents in the provided values set with the given values to
+   * determine their relative order. A null value is always considered greater
+   * then a non null value. If all attribute values are the same, the entry ID
+   * will be used to determine the ordering. If the given attribute values array
+   * does not contain all the values in the sort order, any missing values will
+   * be considered as a unknown or wildcard value instead of a non existent
+   * value. When comparing partial information, only values available in both
+   * the values set and the given values will be used to determine the ordering.
+   * If all available information is the same, 0 will be returned.
+   *
+   * @param set
+   *          The sort values set to containing the values.
+   * @param index
+   *          The index of the values in the set.
+   * @param entryID
+   *          The entry ID to use in the comparison.
+   * @param values
+   *          The values to use in the comparison.
+   * @return A negative integer if the values in the set should come before the
+   *         given values in ascending order, a positive integer if the values
+   *         in the set should come after the given values in ascending order,
+   *         or zero if there is no difference between the values with regard to
+   *         ordering.
+   * @throws StorageRuntimeException
+   *           If an error occurs during an operation on a JE database.
+   * @throws DirectoryException
+   *           If an error occurs while trying to normalize the value (e.g., if
+   *           it is not acceptable for use with the associated equality
+   *           matching rule).
+   */
+  int compare(SortValuesSet set, int index, long entryID,
+      ByteSequence... values) throws StorageRuntimeException,
+      DirectoryException
+  {
+    SortKey[] sortKeys = sortOrder.getSortKeys();
+    for (int j = 0; j < sortKeys.length; j++)
+    {
+      MatchingRule orderingRule = sortKeys[j].getOrderingRule();
+      boolean ascending = sortKeys[j].ascending();
+
+      if (j >= values.length)
+      {
+        break;
+      }
+
+      ByteString b1Bytes = set.getValue((index * sortKeys.length) + j);
+      ByteString b2Bytes = null;
+
+      if (values[j] != null)
+      {
+        try
+        {
+          b2Bytes = orderingRule.normalizeAttributeValue(values[j]);
+        }
+        catch (DecodeException e)
+        {
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              e.getMessageObject(), e);
+        }
+      }
+
+      // A null value will always come after a non-null value.
+      if (b1Bytes == null)
+      {
+        if (b2Bytes == null)
+        {
+          continue;
+        }
+        else
+        {
+          return 1;
+        }
+      }
+      else if (b2Bytes == null)
+      {
+        return -1;
+      }
+
+      final Comparator<ByteSequence> comp = orderingRule.comparator();
+      final int result = ascending ? comp.compare(b1Bytes, b2Bytes) : comp
+          .compare(b2Bytes, b1Bytes);
+
+      if (result != 0)
+      {
+        return result;
+      }
+    }
+
+    if (entryID != -1)
+    {
+      // If we've gotten here, then we can't tell a difference between the sets
+      // of values, so sort based on entry ID.
+      return compare(set.getEntryIDs()[index], entryID);
+    }
+
+    // If we've gotten here, then we can't tell the difference between the sets
+    // of available values and the entry ID is not available. Just return 0.
+    return 0;
+  }
+
+  private int compare(long l1, long l2)
+  {
+    final long difference = l1 - l2;
+    if (difference < 0)
+    {
+      return -1;
+    }
+    else if (difference > 0)
+    {
+      return 1;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
+  SortOrder getSortOrder()
+  {
+    return sortOrder;
   }
 }
