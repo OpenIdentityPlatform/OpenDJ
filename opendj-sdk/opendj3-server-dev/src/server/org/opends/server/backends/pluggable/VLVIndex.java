@@ -255,24 +255,6 @@ public class VLVIndex extends DatabaseContainer
   /**
    * Update the vlvIndex for a new entry.
    *
-   * @param txn A database transaction, or null if none is required.
-   * @param entryID     The entry ID.
-   * @param entry       The entry to be indexed.
-   * @return True if the entry ID for the entry are added. False if
-   *         the entry ID already exists.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public boolean addEntry(WriteableStorage txn, EntryID entryID, Entry entry)
-      throws StorageRuntimeException, DirectoryException
-  {
-    return shouldInclude(entry)
-        && insertValues(txn, entryID.longValue(), entry);
-  }
-
-  /**
-   * Update the vlvIndex for a new entry.
-   *
    * @param buffer      The index buffer to buffer the changes.
    * @param entryID     The entry ID.
    * @param entry       The entry to be indexed.
@@ -287,7 +269,7 @@ public class VLVIndex extends DatabaseContainer
     if (shouldInclude(entry))
     {
       final SortValues sortValues = new SortValues(entryID, entry, sortOrder);
-      buffer.getVLVIndex(this).addValues(sortValues);
+      buffer.getBufferedVLVIndexValues(this).addValues(sortValues);
       return true;
     }
     return false;
@@ -309,7 +291,7 @@ public class VLVIndex extends DatabaseContainer
     if (shouldInclude(entry))
     {
       final SortValues sortValues = new SortValues(entryID, entry, sortOrder);
-      buffer.getVLVIndex(this).deleteValues(sortValues);
+      buffer.getBufferedVLVIndexValues(this).deleteValues(sortValues);
       return true;
     }
     return false;
@@ -474,47 +456,6 @@ public class VLVIndex extends DatabaseContainer
     SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
     int pos = valuesSet.binarySearch(entryID, values);
     return pos >= 0;
-  }
-
-  private boolean insertValues(WriteableStorage txn, long entryID, Entry entry)
-      throws StorageRuntimeException, DirectoryException
-  {
-    ByteString[] values = getSortValues(entry);
-    AttributeType[] types = getSortTypes();
-    ByteString key = encodeKey(entryID, values, types);
-
-    SortValuesSet sortValuesSet = getSortValuesSet(txn, key, true);
-    boolean success = sortValuesSet.add(entryID, values, types);
-
-    int newSize = sortValuesSet.size();
-    if(newSize >= sortedSetCapacity)
-    {
-      SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
-      put(txn, splitSortValuesSet); // splitAfter
-      put(txn, sortValuesSet); // after
-
-      if(logger.isTraceEnabled())
-      {
-        logger.trace("SortValuesSet with key %s has reached" +
-            " the entry size of %d. Spliting into two sets with " +
-            " keys %s and %s.", splitSortValuesSet.getKeySortValues(),
-                                newSize, sortValuesSet.getKeySortValues(),
-                                splitSortValuesSet.getKeySortValues());
-      }
-    }
-    else
-    {
-      ByteString after = sortValuesSet.toByteString();
-      put(txn, key, after);
-      // TODO: What about phantoms?
-    }
-
-    if(success)
-    {
-      count.getAndIncrement();
-    }
-
-    return success;
   }
 
   private void put(WriteableStorage txn, SortValuesSet set) throws DirectoryException
