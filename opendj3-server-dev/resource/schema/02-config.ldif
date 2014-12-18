@@ -5751,21 +5751,27 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.21
   STRUCTURAL
   X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.22
-  NAME 'ds-cfg-persistit-backend'
+  NAME 'ds-cfg-pluggable-backend'
   SUP ds-cfg-backend
   STRUCTURAL
-  MUST ds-cfg-db-directory
   MAY ( ds-cfg-index-entry-limit $
         ds-cfg-preload-time-limit $
         ds-cfg-entries-compressed $
         ds-cfg-compact-encoding $
         ds-cfg-index-filter-analyzer-enabled $
         ds-cfg-index-filter-analyzer-max-filters $
-        ds-cfg-subordinate-indexes-enabled $
-        ds-cfg-db-directory-permissions $
+        ds-cfg-subordinate-indexes-enabled )
+  X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.23
+  NAME 'ds-cfg-persistit-backend'
+  SUP ds-cfg-pluggable-backend
+  STRUCTURAL
+  MUST ds-cfg-db-directory
+  MAY ( ds-cfg-db-directory-permissions $
         ds-cfg-db-cache-percent $
         ds-cfg-db-cache-size $
         ds-cfg-db-txn-no-sync $
         ds-cfg-disk-full-threshold $
         ds-cfg-disk-low-threshold )
   X-ORIGIN 'OpenDJ Directory Server' )
+
