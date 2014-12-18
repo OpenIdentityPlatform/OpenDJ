@@ -224,11 +224,11 @@ public final class ServerManagementContext {
         throws PropertyException {
       // First check that the requested type of managed object
       // corresponds to the path.
-      AbstractManagedObjectDefinition<?, ?> supr = target
+      AbstractManagedObjectDefinition<?, ?> actual = target
           .getManagedObjectDefinition();
-      if (!supr.isParentOf(d)) {
+      if (!d.isParentOf(actual)) {
         throw PropertyException.defaultBehaviorException(
-            nextProperty, new DefinitionDecodingException(supr,
+            nextProperty, new DefinitionDecodingException(actual,
                 Reason.WRONG_TYPE_INFORMATION));
       }
 
