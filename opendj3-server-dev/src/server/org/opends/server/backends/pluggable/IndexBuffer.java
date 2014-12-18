@@ -57,8 +57,8 @@ public class IndexBuffer
       new LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>>();
 
   /** The buffered records stored as a set of buffered VLV values for each index. */
-  private final LinkedHashMap<VLVIndex, BufferedVLVValues> bufferedVLVIndexes =
-      new LinkedHashMap<VLVIndex, BufferedVLVValues>();
+  private final LinkedHashMap<VLVIndex, BufferedVLVIndexValues> bufferedVLVIndexes =
+      new LinkedHashMap<VLVIndex, BufferedVLVIndexValues>();
 
   /** A simple class representing a pair of added and deleted indexed IDs. */
   static class BufferedIndexValues
@@ -114,7 +114,7 @@ public class IndexBuffer
   }
 
   /** A simple class representing a pair of added and deleted VLV values. */
-  static class BufferedVLVValues
+  static class BufferedVLVIndexValues
   {
     private TreeSet<SortValues> addedValues;
     private TreeSet<SortValues> deletedValues;
@@ -182,12 +182,12 @@ public class IndexBuffer
    * @return The buffered VLV values or <code>null</code> if there are
    * no buffered VLV values for the specified VLV index.
    */
-  public BufferedVLVValues getVLVIndex(VLVIndex vlvIndex)
+  BufferedVLVIndexValues getBufferedVLVIndexValues(VLVIndex vlvIndex)
   {
-    BufferedVLVValues bufferedValues = bufferedVLVIndexes.get(vlvIndex);
+    BufferedVLVIndexValues bufferedValues = bufferedVLVIndexes.get(vlvIndex);
     if (bufferedValues == null)
     {
-      bufferedValues = new BufferedVLVValues();
+      bufferedValues = new BufferedVLVIndexValues();
       bufferedVLVIndexes.put(vlvIndex, bufferedValues);
     }
     return bufferedValues;
@@ -245,7 +245,7 @@ public class IndexBuffer
 
     for (VLVIndex vlvIndex : entryContainer.getVLVIndexes())
     {
-      BufferedVLVValues bufferedVLVValues = bufferedVLVIndexes.remove(vlvIndex);
+      BufferedVLVIndexValues bufferedVLVValues = bufferedVLVIndexes.remove(vlvIndex);
       if (bufferedVLVValues != null)
       {
         vlvIndex.updateIndex(txn, bufferedVLVValues.addedValues, bufferedVLVValues.deletedValues);
