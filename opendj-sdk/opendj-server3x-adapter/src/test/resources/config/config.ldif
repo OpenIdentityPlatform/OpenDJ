@@ -542,15 +542,6 @@ ds-cfg-enabled: false
 ds-cfg-cache-level: 2
 ds-cfg-java-class: org.opends.server.extensions.SoftReferenceEntryCache
 
-dn: cn=File System,cn=Entry Caches,cn=config
-objectClass: top
-objectClass: ds-cfg-entry-cache
-objectClass: ds-cfg-file-system-entry-cache
-cn: File System
-ds-cfg-enabled: false
-ds-cfg-cache-level: 3
-ds-cfg-java-class: org.opends.server.extensions.FileSystemEntryCache
-
 dn: cn=Extended Operations,cn=config
 objectClass: top
 objectClass: ds-cfg-branch
