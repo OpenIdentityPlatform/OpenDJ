@@ -965,7 +965,7 @@ public class VerifyJob
               continue;
             }
 
-            SortValues entryValues = new SortValues(id, entry, vlvIndex.sortOrder);
+            SortValues entryValues = new SortValues(id, entry, vlvIndex.getSortOrder());
             if(entryValues.compareTo(values) != 0)
             {
               errorCount++;

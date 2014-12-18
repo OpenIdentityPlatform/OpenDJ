@@ -135,7 +135,7 @@ public class SortValuesSet
       }
       return true;
     }
-    if (vlvIndex.comparator.compare(
+    if (vlvIndex.compare(
         this, entryIDs.length - 1, entryID, values) < 0)
     {
       long[] updatedEntryIDs = new long[entryIDs.length + 1];
@@ -421,7 +421,7 @@ public class SortValuesSet
     for(int j = entryIDs.length - 1; i <= j;)
     {
       int k = i + j >> 1;
-      int l = vlvIndex.comparator.compare(this, k, entryID, values);
+      int l = vlvIndex.compare(this, k, entryID, values);
       if (l < 0)
       {
         i = k + 1;
@@ -557,7 +557,7 @@ public class SortValuesSet
     }
 
     EntryID id = new EntryID(entryIDs[entryIDs.length - 1]);
-    SortKey[] sortKeys = vlvIndex.sortOrder.getSortKeys();
+    SortKey[] sortKeys = vlvIndex.getSortOrder().getSortKeys();
     int numValues = sortKeys.length;
     ByteString[] values = new ByteString[numValues];
     for (int i = (entryIDs.length - 1) * numValues, j = 0;
@@ -567,7 +567,7 @@ public class SortValuesSet
       values[j] = getValue(i);
     }
 
-    return new SortValues(id, values, vlvIndex.sortOrder);
+    return new SortValues(id, values, vlvIndex.getSortOrder());
   }
 
   /**
@@ -586,7 +586,7 @@ public class SortValuesSet
     }
 
     EntryID id = new EntryID(entryIDs[index]);
-    SortKey[] sortKeys = vlvIndex.sortOrder.getSortKeys();
+    SortKey[] sortKeys = vlvIndex.getSortOrder().getSortKeys();
     int numValues = sortKeys.length;
     ByteString[] values = new ByteString[numValues];
     for (int i = index * numValues, j = 0;
@@ -596,14 +596,14 @@ public class SortValuesSet
       values[j] = getValue(i);
     }
 
-    return new SortValues(id, values, vlvIndex.sortOrder);
+    return new SortValues(id, values, vlvIndex.getSortOrder());
   }
 
   private void updateValuesBytesOffsets()
   {
     valuesBytesOffsets = new int[entryIDs.length];
     int vBytesPos = 0;
-    int numAttributes = vlvIndex.sortOrder.getSortKeys().length;
+    int numAttributes = vlvIndex.getSortOrder().getSortKeys().length;
 
     for(int pos = 0; pos < entryIDs.length; pos++)
     {
@@ -644,7 +644,7 @@ public class SortValuesSet
     {
       updateValuesBytesOffsets();
     }
-    int numAttributes = vlvIndex.sortOrder.getSortKeys().length;
+    int numAttributes = vlvIndex.getSortOrder().getSortKeys().length;
     int vIndex = index / numAttributes;
     int vOffset = index % numAttributes;
     int vBytesPos = valuesBytesOffsets[vIndex];
