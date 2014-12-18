@@ -42,8 +42,8 @@ import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
-import org.opends.server.admin.std.server.LocalDBIndexCfg;
+import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
+import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
@@ -69,7 +69,7 @@ import static org.opends.server.util.StaticUtils.*;
  * then we would not need a separate ordering index.
  */
 public class AttributeIndex
-    implements ConfigurationChangeListener<LocalDBIndexCfg>, Closeable
+    implements ConfigurationChangeListener<BackendIndexCfg>, Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -114,7 +114,7 @@ public class AttributeIndex
   private final EntryContainer entryContainer;
 
   /** The attribute index configuration. */
-  private LocalDBIndexCfg indexConfig;
+  private BackendIndexCfg indexConfig;
 
   /** The mapping from names to indexes. */
   private final Map<String, Index> nameToIndexes = new HashMap<String, Index>();
@@ -132,7 +132,7 @@ public class AttributeIndex
    * @param entryContainer The entryContainer of this attribute index.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public AttributeIndex(LocalDBIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn) throws ConfigException
+  public AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn) throws ConfigException
   {
     this.entryContainer = entryContainer;
     this.indexConfig = indexConfig;
@@ -158,7 +158,7 @@ public class AttributeIndex
     }
   }
 
-  private Index newPresenceIndex(WriteableStorage txn, LocalDBIndexCfg cfg)
+  private Index newPresenceIndex(WriteableStorage txn, BackendIndexCfg cfg)
   {
     final AttributeType attrType = cfg.getAttribute();
     final TreeName indexName = getIndexName(attrType, IndexType.PRESENCE.toString());
@@ -239,7 +239,7 @@ public class AttributeIndex
     }
   }
 
-  private Index newAttributeIndex(WriteableStorage txn, LocalDBIndexCfg indexConfig,
+  private Index newAttributeIndex(WriteableStorage txn, BackendIndexCfg indexConfig,
       org.forgerock.opendj.ldap.spi.Indexer indexer)
   {
     final AttributeType attrType = indexConfig.getAttribute();
@@ -301,7 +301,7 @@ public class AttributeIndex
    * Get the JE index configuration used by this index.
    * @return The configuration in effect.
    */
-  public LocalDBIndexCfg getConfiguration()
+  public BackendIndexCfg getConfiguration()
   {
     return indexConfig;
   }
@@ -597,7 +597,7 @@ public class AttributeIndex
   /** {@inheritDoc} */
   @Override
   public synchronized boolean isConfigurationChangeAcceptable(
-      LocalDBIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
+      BackendIndexCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     if (!isIndexAcceptable(cfg, IndexType.EQUALITY, unacceptableReasons)
         || !isIndexAcceptable(cfg, IndexType.SUBSTRING, unacceptableReasons)
@@ -620,7 +620,7 @@ public class AttributeIndex
     return true;
   }
 
-  private boolean isIndexAcceptable(LocalDBIndexCfg cfg, IndexType indexType,
+  private boolean isIndexAcceptable(BackendIndexCfg cfg, IndexType indexType,
       List<LocalizableMessage> unacceptableReasons)
   {
     final String indexId = indexType.toString();
@@ -637,7 +637,7 @@ public class AttributeIndex
 
   /** {@inheritDoc} */
   @Override
-  public synchronized ConfigChangeResult applyConfigurationChange(final LocalDBIndexCfg cfg)
+  public synchronized ConfigChangeResult applyConfigurationChange(final BackendIndexCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     try
@@ -667,7 +667,7 @@ public class AttributeIndex
     return ccr;
   }
 
-  private void applyChangeToExtensibleIndexes(WriteableStorage txn, LocalDBIndexCfg cfg, ConfigChangeResult ccr)
+  private void applyChangeToExtensibleIndexes(WriteableStorage txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
   {
     final AttributeType attrType = cfg.getAttribute();
     if (!cfg.getIndexType().contains(IndexType.EXTENSIBLE))
@@ -775,7 +775,7 @@ public class AttributeIndex
     return rules;
   }
 
-  private void applyChangeToIndex(WriteableStorage txn, IndexType indexType, LocalDBIndexCfg cfg, ConfigChangeResult ccr)
+  private void applyChangeToIndex(WriteableStorage txn, IndexType indexType, BackendIndexCfg cfg, ConfigChangeResult ccr)
   {
     String indexId = indexType.toString();
     Index index = nameToIndexes.get(indexId);
@@ -806,7 +806,7 @@ public class AttributeIndex
     }
   }
 
-  private void applyChangeToPresenceIndex(WriteableStorage txn, LocalDBIndexCfg cfg, ConfigChangeResult ccr)
+  private void applyChangeToPresenceIndex(WriteableStorage txn, BackendIndexCfg cfg, ConfigChangeResult ccr)
   {
     final IndexType indexType = IndexType.PRESENCE;
     final String indexID = indexType.toString();
