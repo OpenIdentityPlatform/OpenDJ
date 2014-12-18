@@ -39,8 +39,8 @@
       <ldap:superior>ds-cfg-backend</ldap:superior>
     </ldap:object-class>
   </adm:profile>
-  <adm:relation name="backend-index" managed-object-name="local-db-index">
-    <adm:one-to-many naming-property="attribute" plural-name="backend-indexes">
+  <adm:relation name="backend-index">
+    <adm:one-to-many naming-property="attribute">
       <adm:default-managed-object name="aci">
         <adm:property name="index-type">
           <adm:value>presence</adm:value>
@@ -93,8 +93,8 @@
       </cli:relation>
     </adm:profile>
   </adm:relation>
-  <adm:relation name="backend-vlv-index" managed-object-name="local-db-vlv-index">
-    <adm:one-to-many naming-property="name" plural-name="backend-vlv-indexes"/>
+  <adm:relation name="backend-vlv-index">
+    <adm:one-to-many naming-property="name"/>
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=VLV Index</ldap:rdn-sequence>
     </adm:profile>
