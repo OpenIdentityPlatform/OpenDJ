@@ -168,7 +168,7 @@ public class EntryContainer
    * Prevents name clashes for common indexes (like id2entry) across multiple suffixes.
    * For example when a root container contains multiple suffixes.
    */
-  private TreeName databasePrefix;
+  private String databasePrefix;
 
   /**
    * This class is responsible for managing the configuration for attribute
@@ -440,7 +440,7 @@ public class EntryContainer
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public EntryContainer(DN baseDN, TreeName databasePrefix, Backend<?> backend,
+  public EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
       PersistitBackendCfg config, Storage env, RootContainer rootContainer)
           throws ConfigException
   {
@@ -462,6 +462,11 @@ public class EntryContainer
     config.addBackendVLVIndexDeleteListener(vlvJEIndexCfgManager);
   }
 
+  private TreeName getIndexName(String indexId)
+  {
+    return new TreeName(databasePrefix, indexId);
+  }
+
   /**
    * Opens the entryContainer for reading and writing.
    *
@@ -477,14 +482,13 @@ public class EntryContainer
             config.isCompactEncoding(),
             rootContainer.getCompressedSchema());
 
-      id2entry = new ID2Entry(databasePrefix.child(ID2ENTRY_DATABASE_NAME),
-          entryDataConfig, storage, this);
+      id2entry = new ID2Entry(getIndexName(ID2ENTRY_DATABASE_NAME), entryDataConfig, storage, this);
       id2entry.open(txn);
 
-      dn2id = new DN2ID(databasePrefix.child(DN2ID_DATABASE_NAME), storage, this);
+      dn2id = new DN2ID(getIndexName(DN2ID_DATABASE_NAME), storage, this);
       dn2id.open(txn);
 
-      state = new State(databasePrefix.child(STATE_DATABASE_NAME), storage, this);
+      state = new State(getIndexName(STATE_DATABASE_NAME), storage, this);
       state.open(txn);
 
       if (config.isSubordinateIndexesEnabled())
@@ -495,12 +499,12 @@ public class EntryContainer
       {
         // Use a null index and ensure that future attempts to use the real
         // subordinate indexes will fail.
-        id2children = new NullIndex(databasePrefix.child(ID2CHILDREN_DATABASE_NAME),
+        id2children = new NullIndex(getIndexName(ID2CHILDREN_DATABASE_NAME),
             new ID2CIndexer(), state, storage, txn, this);
         state.putIndexTrustState(txn, id2children, false);
         id2children.open(txn); // No-op
 
-        id2subtree = new NullIndex(databasePrefix.child(ID2SUBTREE_DATABASE_NAME),
+        id2subtree = new NullIndex(getIndexName(ID2SUBTREE_DATABASE_NAME),
             new ID2SIndexer(), state, storage, txn, this);
         state.putIndexTrustState(txn, id2subtree, false);
         id2subtree.open(txn); // No-op
@@ -508,7 +512,7 @@ public class EntryContainer
         logger.info(NOTE_JEB_SUBORDINATE_INDEXES_DISABLED, backend.getBackendID());
       }
 
-      dn2uri = new DN2URI(databasePrefix.child(REFERRAL_DATABASE_NAME), storage, this);
+      dn2uri = new DN2URI(getIndexName(REFERRAL_DATABASE_NAME), storage, this);
       dn2uri.open(txn);
 
       for (String idx : config.listBackendIndexes())
@@ -2901,7 +2905,7 @@ public class EntryContainer
    *
    * @return The container name for the base DN.
    */
-  public TreeName getDatabasePrefix()
+  public String getDatabasePrefix()
   {
     return databasePrefix;
   }
@@ -2910,10 +2914,10 @@ public class EntryContainer
    * Sets a new database prefix for this entry container and rename all
    * existing databases in use by this entry container.
    *
-   * @param newDatabasePrefix The new database prefix to use.
+   * @param newBaseDN The new database prefix to use.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public void setDatabasePrefix(final TreeName newDatabasePrefix) throws StorageRuntimeException
+  public void setDatabasePrefix(final String newBaseDN) throws StorageRuntimeException
   {
     final List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
@@ -2934,7 +2938,7 @@ public class EntryContainer
           for(DatabaseContainer db : databases)
           {
             TreeName oldName = db.getName();
-            TreeName newName = oldName.replaceSuffix(newDatabasePrefix);
+            TreeName newName = oldName.replaceBaseDN(newBaseDN);
             txn.renameTree(oldName, newName);
           }
         }
@@ -2947,7 +2951,7 @@ public class EntryContainer
           for (DatabaseContainer db : databases)
           {
             TreeName oldName = db.getName();
-            TreeName newName = oldName.replaceSuffix(newDatabasePrefix);
+            TreeName newName = oldName.replaceBaseDN(newBaseDN);
             db.setName(newName);
           }
         }
@@ -3051,13 +3055,13 @@ public class EntryContainer
               // Disabling subordinate indexes. Use a null index and ensure that
               // future attempts to use the real indexes will fail.
               id2children.close();
-              id2children = new NullIndex(databasePrefix.child(ID2CHILDREN_DATABASE_NAME),
+              id2children = new NullIndex(getIndexName(ID2CHILDREN_DATABASE_NAME),
                   new ID2CIndexer(), state, storage, txn, EntryContainer.this);
               state.putIndexTrustState(txn, id2children, false);
               id2children.open(txn); // No-op
 
               id2subtree.close();
-              id2subtree = new NullIndex(databasePrefix.child(ID2SUBTREE_DATABASE_NAME),
+              id2subtree = new NullIndex(getIndexName(ID2SUBTREE_DATABASE_NAME),
                   new ID2SIndexer(), state, storage, txn, EntryContainer.this);
               state.putIndexTrustState(txn, id2subtree, false);
               id2subtree.open(txn); // No-op
@@ -3229,7 +3233,7 @@ public class EntryContainer
 
   private Index newIndex(WriteableStorage txn, String name, Indexer indexer)
   {
-    final Index index = new Index(databasePrefix.child(name),
+    final Index index = new Index(getIndexName(name),
         indexer, state, config.getIndexEntryLimit(), 0, true, storage, txn, this);
     index.open(txn);
     if (!index.isTrusted())

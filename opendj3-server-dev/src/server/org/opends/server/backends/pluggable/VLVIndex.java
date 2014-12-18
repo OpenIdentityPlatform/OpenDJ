@@ -50,6 +50,7 @@ import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.controls.ServerSideSortRequestControl;
@@ -132,8 +133,7 @@ public class VLVIndex extends DatabaseContainer
                   EntryContainer entryContainer, ReadableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
-    super(entryContainer.getDatabasePrefix().child("vlv."+config.getName()),
-          env, entryContainer);
+    super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()), env, entryContainer);
 
     this.config = config;
     this.baseDN = config.getBaseDN();
@@ -719,7 +719,7 @@ public class VLVIndex extends DatabaseContainer
     {
       debugBuilder.append("vlv=");
       debugBuilder.append("[INDEX:");
-      debugBuilder.append(treeName.getIndex());
+      debugBuilder.append(treeName.getIndexId());
       debugBuilder.append("]");
     }
 

@@ -25,90 +25,33 @@
  */
 package org.opends.server.backends.pluggable.spi;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /** Assumes name components don't contain a '/'. */
 public final class TreeName
 {
-  public static TreeName of(final String... names)
-  {
-    return new TreeName(Arrays.asList(names));
-  }
-
-  private final List<String> names;
+  private final String baseDN;
+  private final String indexId;
   private final String s;
 
-  public TreeName(final List<String> names)
+  public TreeName(String baseDN, String indexId)
   {
-    this.names = names;
-    final StringBuilder builder = new StringBuilder();
-    for (final String name : names)
-    {
-      builder.append('/');
-      builder.append(name);
-    }
-    this.s = builder.toString();
+    this.baseDN = baseDN;
+    this.indexId = indexId;
+    this.s = '/' + baseDN + '/' + indexId;
   }
 
-  public List<String> getNames()
+  public String getBaseDN()
   {
-    return names;
+    return baseDN;
   }
 
-  public TreeName child(final String name)
+  public TreeName replaceBaseDN(String newBaseDN)
   {
-    final List<String> newNames = new ArrayList<String>(names.size() + 1);
-    newNames.addAll(names);
-    newNames.add(name);
-    return new TreeName(newNames);
+    return new TreeName(newBaseDN, indexId);
   }
 
-  public TreeName getSuffix()
+  public String getIndexId()
   {
-    if (names.size() == 0)
-    {
-      throw new IllegalStateException();
-    }
-    return new TreeName(Collections.singletonList(names.get(0)));
-  }
-
-  public TreeName replaceSuffix(TreeName newSuffix)
-  {
-    if (names.size() == 0)
-    {
-      throw new IllegalStateException();
-    }
-    final ArrayList<String> newNames = new ArrayList<String>(names);
-    newNames.set(0, newSuffix.names.get(0));
-    return new TreeName(newNames);
-  }
-
-  public boolean isSuffixOf(TreeName treeName)
-  {
-    if (names.size() > treeName.names.size())
-    {
-      return false;
-    }
-    for (int i = 0; i < names.size(); i++)
-    {
-      if (!treeName.names.get(i).equals(names.get(i)))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public TreeName getIndex()
-  {
-    if (names.size() == 1)
-    {
-      return null;
-    }
-    return new TreeName(names.subList(1, names.size()));
+    return indexId;
   }
 
   @Override

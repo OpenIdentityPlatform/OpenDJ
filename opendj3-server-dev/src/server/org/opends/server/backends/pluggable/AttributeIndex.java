@@ -250,7 +250,8 @@ public class AttributeIndex
 
   private TreeName getIndexName(AttributeType attrType, String indexID)
   {
-    return entryContainer.getDatabasePrefix().child(attrType.getNameOrOID() + "." + indexID);
+    final String attrIndexId = attrType.getNameOrOID() + "." + indexID;
+    return new TreeName(entryContainer.getDatabasePrefix(), attrIndexId);
   }
 
   /**
@@ -448,7 +449,7 @@ public class AttributeIndex
    * to both a lower bound and an upper bound.
    *
    * @param indexQueryFactory
-   *          The index query factory to use for the evaluation 
+   *          The index query factory to use for the evaluation
    * @param filter1
    *          The first filter, that is either a less-or-equal filter or a
    *          greater-or-equal filter.
