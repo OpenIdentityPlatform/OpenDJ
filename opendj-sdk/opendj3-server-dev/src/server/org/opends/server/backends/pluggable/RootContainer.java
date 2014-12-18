@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.messages.UtilityMessages;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.api.Backend;
@@ -43,7 +42,6 @@ import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
-import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.DefaultCompressedSchema;
@@ -64,8 +62,8 @@ import org.opends.server.util.RuntimeInformation;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.messages.UtilityMessages.ERR_LDIF_SKIP;
-import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -373,23 +371,10 @@ public class RootContainer
       databasePrefix = name;
     }
 
-    EntryContainer ec = new EntryContainer(baseDN, toSuffixName(databasePrefix),
+    EntryContainer ec = new EntryContainer(baseDN, storage.toSuffixName(databasePrefix),
                                            backend, config, storage, this);
     ec.open(txn);
     return ec;
-  }
-
-  /**
-   * Transform a database prefix string to one usable by the DB.
-   *
-   * @param databasePrefix
-   *          the database prefix
-   * @return a new string when non letter or digit characters have been replaced
-   *         with underscore
-   */
-  private TreeName toSuffixName(String databasePrefix)
-  {
-    return TreeName.of(storage.toSuffixName(databasePrefix));
   }
 
   /**

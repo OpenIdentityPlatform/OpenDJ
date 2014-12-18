@@ -46,8 +46,7 @@ public class DbPreloadComparator
    */
   static private int priority(DatabaseContainer database)
   {
-    TreeName name = database.getName();
-    String indexName = name.getIndex().toString();
+    String indexName = database.getName().getIndexId();
     if (indexName.endsWith(SuffixContainer.ID2ENTRY_INDEX_NAME))
     {
       return 1;

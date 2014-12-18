@@ -23,24 +23,19 @@
  *
  *      Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.persistit;
 
-
-
-import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
@@ -75,7 +70,6 @@ public final class PersistItStorage implements Storage {
         @Override
         public void createTree(TreeName treeName) {
             try {
-                // FIXME: how do we set the comparator?
                 final Tree tree = getVolume(treeName).getTree(treeName.toString(), true);
                 trees.put(treeName, tree);
             } catch (PersistitException e) {
@@ -336,14 +330,14 @@ public final class PersistItStorage implements Storage {
 
 
 
-  private File backendDirectory;
-  private PersistitBackendCfg config;
+    private File backendDirectory;
+    private PersistitBackendCfg config;
     private Persistit db;
-    private final ConcurrentMap<TreeName, Volume> volumes = new ConcurrentHashMap<TreeName, Volume>();
+    private final ConcurrentMap<String, Volume> volumes = new ConcurrentHashMap<String, Volume>();
     private Properties properties;
 
     private Volume getVolume(TreeName treeName) {
-        return volumes.get(treeName.getSuffix());
+        return volumes.get(treeName.getBaseDN());
     }
 
     @Override
@@ -385,8 +379,7 @@ public final class PersistItStorage implements Storage {
             db.initialize();
             for (DN baseDN : config.getBaseDN()) {
                 final String volumeName = toSuffixName(baseDN.toString());
-                final TreeName suffixName = TreeName.of(volumeName);
-                volumes.put(suffixName, db.loadVolume(volumeName));
+                volumes.put(volumeName, db.loadVolume(volumeName));
             }
         } catch (PersistitException e) {
             throw new StorageRuntimeException(e);
@@ -473,15 +466,6 @@ public final class PersistItStorage implements Storage {
             } finally {
                 txn.end();
             }
-        }
-    }
-
-    @Override
-    public Cursor openCursor(TreeName treeName) {
-        try {
-            return new CursorImpl(getExchange0(treeName, false));//FIXME JNR we must release the exchange
-        } catch (PersistitException e) {
-            throw new StorageRuntimeException(e);
         }
     }
 
