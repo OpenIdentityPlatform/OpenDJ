@@ -929,8 +929,8 @@ public class EntryContainer
             }
 
             // Create an index filter to get the search result candidate entries
-            IndexFilter indexFilter =
-                new IndexFilter(EntryContainer.this, searchOperation, debugBuffer, rootContainer.getMonitorProvider());
+            IndexFilter indexFilter = new IndexFilter(
+                EntryContainer.this, txn, searchOperation, debugBuffer, rootContainer.getMonitorProvider());
 
             // Evaluate the filter against the attribute indexes.
             entryIDList = indexFilter.evaluate();

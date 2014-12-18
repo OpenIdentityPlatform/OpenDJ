@@ -109,8 +109,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public EntryIDSet readRange(ByteSequence lower, ByteSequence upper,
-      boolean lowerIncluded, boolean upperIncluded)
+  public EntryIDSet readRange(ReadableStorage txn, ByteSequence lower, ByteSequence upper, boolean lowerIncluded,
+      boolean upperIncluded)
   {
     return new EntryIDSet();
   }
