@@ -305,7 +305,7 @@ public final class Upgrade
         copySchemaFile("03-pwpolicyextension.ldif"));
 
     register("3.0.0.10214",
-        modifyConfigEntry(INFO_UPGRADE_TASK_10214_1_SUMMARY.get(),
+        modifyConfigEntry(INFO_UPGRADE_TASK_10214_SUMMARY.get(),
           "(ds-cfg-java-class=org.opends.server.loggers.debug.TextDebugLogPublisher)",
           "delete:ds-cfg-java-class",
           "-",
@@ -313,12 +313,12 @@ public final class Upgrade
           "ds-cfg-java-class: org.opends.server.loggers.TextDebugLogPublisher"));
 
     register("3.0.0.10232",
-        modifyConfigEntry(INFO_UPGRADE_TASK_10232_1_SUMMARY.get(),
+        modifyConfigEntry(INFO_UPGRADE_TASK_10232_SUMMARY.get(),
           "(objectclass=ds-cfg-file-based-debug-log-publisher)",
           "delete:ds-cfg-default-debug-level"));
 
     register("3.0.0.10329",
-        modifyConfigEntry(INFO_UPGRADE_TASK_10329_1_SUMMARY.get(),
+        modifyConfigEntry(INFO_UPGRADE_TASK_10329_SUMMARY.get(),
             "&(objectclass=ds-cfg-file-based-error-log-publisher)(cn=File-Based Error Logger)",
             "delete:ds-cfg-default-severity",
             "ds-cfg-default-severity: severe-warning",
@@ -331,7 +331,7 @@ public final class Upgrade
             ));
 
     register("3.0.0.10339",
-        modifyConfigEntry(INFO_UPGRADE_TASK_10339_1_SUMMARY.get(),
+        modifyConfigEntry(INFO_UPGRADE_TASK_10339_SUMMARY.get(),
             "&(objectclass=ds-cfg-file-based-error-log-publisher)(cn=Replication Repair Logger)",
             "delete:ds-cfg-override-severity",
              "-",
@@ -379,15 +379,20 @@ public final class Upgrade
         deleteConfigEntry(INFO_UPGRADE_TASK_11237_3_SUMMARY.get(),
             "dn: cn=Workflow Elements,cn=config"));
     register("3.0.0.11239",
-        deleteConfigEntry(INFO_UPGRADE_TASK_11239_1_SUMMARY.get(),
+        deleteConfigEntry(INFO_UPGRADE_TASK_11239_SUMMARY.get(),
             "dn: cn=Network Group,cn=Plugins,cn=config"));
     register("3.0.0.11339",
-        deleteConfigEntry(INFO_UPGRADE_TASK_11339_1_SUMMARY.get(),
+        deleteConfigEntry(INFO_UPGRADE_TASK_11339_SUMMARY.get(),
             "dn: cn=Extensions,cn=config"));
 
     /** See OPENDJ-1637 */
     register("3.0.0.11260",
         rebuildAllIndexes(INFO_UPGRADE_TASK_11260_SUMMARY.get()));
+
+    /** See OPENDJ-1701 */
+    register("3.0.0.11476",
+        deleteConfigEntry(INFO_UPGRADE_TASK_11476_SUMMARY.get(),
+            "dn: cn=File System,cn=Entry Caches,cn=config"));
 
     /*
      * All upgrades will refresh the server configuration schema and generate
