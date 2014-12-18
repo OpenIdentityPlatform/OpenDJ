@@ -235,6 +235,33 @@ public final class PersistItStorage implements Storage {
                 db.releaseExchange(ex);
             }
         }
+
+        @Override
+        public void truncateTree(TreeName treeName) {
+            try {
+                getVolume(treeName).truncate();
+            } catch (PersistitException e) {
+                throw new StorageRuntimeException(e);
+            }
+        }
+
+        @Override
+        public void renameTree(TreeName oldTreeName, TreeName newTreeName) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void deleteTree(TreeName treeName) {
+            Exchange ex = null;
+            try {
+                ex = getExchange(treeName);
+                ex.removeTree();
+            } catch (PersistitException e) {
+                throw new StorageRuntimeException(e);
+            } finally {
+                db.releaseExchange(ex);
+            }
+        }
     }
 
     private final class CursorImpl implements Cursor {
@@ -471,5 +498,15 @@ public final class PersistItStorage implements Storage {
 
     private Exchange getExchange0(TreeName treeName, boolean create) throws PersistitException {
         return db.getExchange(getVolume(treeName), treeName.toString(), create);
+    }
+
+    @Override
+    public void closeTree(TreeName treeName) {
+        // nothing to do, in persistit you close the volume itself
+    }
+
+    @Override
+    public boolean isValid() {
+        return !db.isFatal();
     }
 }

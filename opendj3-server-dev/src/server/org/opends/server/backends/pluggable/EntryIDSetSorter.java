@@ -35,6 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
@@ -55,7 +56,7 @@ public class EntryIDSetSorter
    * Creates a new entry ID set which is a sorted representation of the provided
    * set using the given sort order.
    *
-   * @param  suffixContainer  The suffix container with which the ID list is associated.
+   * @param  entryContainer   The entry container with which the ID list is associated.
    * @param  entryIDSet       The entry ID set to be sorted.
    * @param  searchOperation  The search operation being processed.
    * @param  sortOrder        The sort order to use for the entry ID set.
@@ -67,7 +68,8 @@ public class EntryIDSetSorter
    *
    * @throws  DirectoryException  If an error occurs while performing the sort.
    */
-  public static EntryIDSet sort(EntryContainer suffixContainer,
+  public static EntryIDSet sort(EntryContainer entryContainer,
+                                ReadableStorage txn,
                                 EntryIDSet entryIDSet,
                                 SearchOperation searchOperation,
                                 SortOrder sortOrder,
@@ -88,7 +90,7 @@ public class EntryIDSetSorter
     {
       try
       {
-        Entry e = suffixContainer.getEntry(id);
+        Entry e = entryContainer.getEntry(txn, id);
         if (e.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(e))
         {
           sortMap.put(new SortValues(id, e, sortOrder), id);

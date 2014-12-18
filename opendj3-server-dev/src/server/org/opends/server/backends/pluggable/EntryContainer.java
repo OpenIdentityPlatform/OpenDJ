@@ -988,7 +988,7 @@ public class EntryContainer
                 // default ordering. VLV search request goes through as if
                 // this sort key was not found in the user entry.
                 entryIDList =
-                    EntryIDSetSorter.sort(EntryContainer.this, entryIDList, searchOperation,
+                    EntryIDSetSorter.sort(EntryContainer.this, txn, entryIDList, searchOperation,
                         sortRequest.getSortOrder(), vlvRequest);
                 if (sortRequest.containsSortKeys())
                 {
@@ -1236,7 +1236,7 @@ public class EntryContainer
           if (isInScope)
           {
             // Process the candidate entry.
-            final Entry entry = getEntry(entryID);
+            final Entry entry = getEntry(txn, entryID);
             if (entry != null)
             {
               lookthroughCount++;
@@ -1299,7 +1299,7 @@ public class EntryContainer
    * @throws DirectoryException
    *           If an error occurs retrieving the entry
    */
-  public Entry getEntry(EntryID entryID) throws DirectoryException
+  public Entry getEntry(ReadableStorage txn, EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
     final EntryCache entryCache = getEntryCache();
@@ -1309,7 +1309,7 @@ public class EntryContainer
       return cacheEntry;
     }
 
-    final Entry entry = id2entry.get(null, entryID, false);
+    final Entry entry = id2entry.get(txn, entryID, false);
     if (entry != null)
     {
       // Put the entry in the cache making sure not to overwrite a newer copy
@@ -1391,7 +1391,7 @@ public class EntryContainer
         Entry entry;
         try
         {
-          entry = getEntry(id);
+          entry = getEntry(txn, id);
         }
         catch (Exception e)
         {

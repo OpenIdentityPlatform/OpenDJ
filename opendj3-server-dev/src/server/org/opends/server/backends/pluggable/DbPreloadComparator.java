@@ -28,8 +28,6 @@ package org.opends.server.backends.pluggable;
 
 import java.util.Comparator;
 
-import org.opends.server.backends.pluggable.spi.TreeName;
-
 /**
  * This comparator is used to sort databases in order of priority
  * for preloading into the cache.

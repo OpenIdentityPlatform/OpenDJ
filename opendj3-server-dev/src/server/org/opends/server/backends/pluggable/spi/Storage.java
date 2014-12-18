@@ -23,14 +23,11 @@
  *
  *      Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
 
 import org.opends.server.admin.std.server.PersistitBackendCfg;
-
-
 
 public interface Storage extends Closeable
 {
@@ -43,6 +40,10 @@ public interface Storage extends Closeable
   <T> T read(ReadOperation<T> readTransaction) throws Exception;
 
   void write(WriteOperation updateTransaction) throws Exception;
+
+  void closeTree(TreeName treeName);
+
+  boolean isValid();
 
   @Override
   void close();

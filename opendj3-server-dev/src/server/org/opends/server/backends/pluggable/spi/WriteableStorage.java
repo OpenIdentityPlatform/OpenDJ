@@ -33,6 +33,8 @@ public interface WriteableStorage extends ReadableStorage
 
   void truncateTree(TreeName name);
 
+  void renameTree(TreeName oldName, TreeName newName);
+
   void deleteTree(TreeName name);
 
   void create(TreeName name, ByteSequence key, ByteSequence value);

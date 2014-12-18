@@ -106,7 +106,6 @@ public abstract class DatabaseContainer implements Closeable
   public synchronized void close() throws StorageRuntimeException
   {
     storage.closeTree(treeName);
-    treeName = null;
 
     if(logger.isTraceEnabled())
     {
