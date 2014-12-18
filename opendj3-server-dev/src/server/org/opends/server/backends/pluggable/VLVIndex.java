@@ -230,7 +230,7 @@ public class VLVIndex extends DatabaseContainer
     {
       while (cursor.next())
       {
-        count.getAndAdd(SortValuesSet.getEncodedSize(cursor.getValue(), 0));
+        count.getAndAdd(SortValuesSet.getEncodedSize(cursor.getValue()));
       }
     }
     finally
@@ -790,7 +790,7 @@ public class VLVIndex extends DatabaseContainer
             {
               logSearchKeyResult(cursor.getKey());
             }
-            long[] IDs = SortValuesSet.getEncodedIDs(cursor.getValue(), 0);
+            long[] IDs = SortValuesSet.getEncodedIDs(cursor.getValue());
             for(int i = startPos + selectedPos - cursorCount;
                 i < IDs.length && selectedPos < count;
                 i++, selectedPos++)
@@ -881,13 +881,13 @@ public class VLVIndex extends DatabaseContainer
 
               if(includedBeforeCount < beforeCount)
               {
-                lastIDs = SortValuesSet.getEncodedIDs(cursor.getValue(), 0);
+                lastIDs = SortValuesSet.getEncodedIDs(cursor.getValue());
                 lastOffset = lastIDs.length - 1;
                 targetOffset += lastIDs.length;
               }
               else
               {
-                targetOffset += SortValuesSet.getEncodedSize(cursor.getValue(), 0);
+                targetOffset += SortValuesSet.getEncodedSize(cursor.getValue());
               }
             }
 
@@ -920,7 +920,7 @@ public class VLVIndex extends DatabaseContainer
                 break;
               }
 
-              lastIDs = SortValuesSet.getEncodedIDs(cursor.getValue(), 0);
+              lastIDs = SortValuesSet.getEncodedIDs(cursor.getValue());
               lastOffset = 0;
               afterIDCount += lastIDs.length;
             }
@@ -964,7 +964,7 @@ public class VLVIndex extends DatabaseContainer
           {
             logSearchKeyResult(cursor.getKey());
           }
-          long[] ids = SortValuesSet.getEncodedIDs(cursor.getValue(), 0);
+          long[] ids = SortValuesSet.getEncodedIDs(cursor.getValue());
           idSets.add(ids);
           currentCount += ids.length;
         }

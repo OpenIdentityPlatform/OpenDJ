@@ -42,13 +42,10 @@ import org.opends.server.types.SortKey;
 public class SortValuesSet
 {
   private long[] entryIDs;
-
   private int[] valuesBytesOffsets;
   private byte[] valuesBytes;
-
   private ByteString key;
-
-  private VLVIndex vlvIndex;
+  private final VLVIndex vlvIndex;
 
   /**
    * Construct an empty sort values set with the given information.
@@ -57,11 +54,7 @@ public class SortValuesSet
    */
   public SortValuesSet(VLVIndex vlvIndex)
   {
-    this.key = ByteString.empty();
-    this.entryIDs = null;
-    this.valuesBytes = null;
-    this.valuesBytesOffsets = null;
-    this.vlvIndex = vlvIndex;
+    this(vlvIndex, ByteString.empty(), null, null, null);
   }
 
   /**
@@ -81,7 +74,7 @@ public class SortValuesSet
       return;
     }
 
-    entryIDs = getEncodedIDs(value, 0);
+    entryIDs = getEncodedIDs(value);
     int valuesBytesOffset = entryIDs.length * 8 + 4;
     int valuesBytesLength = value.length() - valuesBytesOffset;
     valuesBytes = new byte[valuesBytesLength];
@@ -90,8 +83,15 @@ public class SortValuesSet
     this.valuesBytesOffsets = null;
   }
 
-  private SortValuesSet()
-  {}
+  private SortValuesSet(VLVIndex vlvIndex, ByteString key, long[] entryIDs,
+      byte[] valuesBytes, int[] valuesBytesOffsets)
+  {
+    this.vlvIndex = vlvIndex;
+    this.key = key;
+    this.entryIDs = entryIDs;
+    this.valuesBytes = valuesBytes;
+    this.valuesBytesOffsets = valuesBytesOffsets;
+  }
 
   /**
    * Add the given entryID and values from these sort values.
@@ -329,19 +329,12 @@ public class SortValuesSet
               valuesBytesOffsets[updatedValuesBytesOffsets.length];
     }
 
-    SortValuesSet splitValuesSet = new SortValuesSet();
-
-    splitValuesSet.entryIDs = splitEntryIDs;
-    splitValuesSet.key = this.key;
-    splitValuesSet.valuesBytes = splitValuesBytes;
-    splitValuesSet.valuesBytesOffsets = splitValuesBytesOffsets;
-    splitValuesSet.vlvIndex = this.vlvIndex;
-
+    SortValuesSet splitValuesSet = new SortValuesSet(vlvIndex, key,
+        splitEntryIDs, splitValuesBytes, splitValuesBytesOffsets);
     entryIDs = updatedEntryIDs;
     valuesBytes = updatedValuesBytes;
     valuesBytesOffsets = updatedValuesBytesOffsets;
     key = null;
-
     return splitValuesSet;
   }
 
@@ -379,13 +372,12 @@ public class SortValuesSet
    * Get the size of the provided encoded set.
    *
    * @param bytes The encoded bytes of a SortValuesSet to decode the size from.
-   * @param offset The byte offset to start decoding.
    * @return The size of the provided encoded set.
    */
-  public static int getEncodedSize(ByteString bytes, int offset)
+  public static int getEncodedSize(ByteString bytes)
   {
     int v = 0;
-    for (int i = offset; i < offset + 4; i++)
+    for (int i = 0; i < 4; i++)
     {
       v <<= 8;
       v |= (bytes.byteAt(i) & 0xFF);
@@ -397,14 +389,12 @@ public class SortValuesSet
    * Get the IDs from the provided encoded set.
    *
    * @param bytes The encoded bytes of a SortValuesSet to decode the IDs from.
-   * @param offset The byte offset to start decoding.
    * @return The decoded IDs in the provided encoded set.
    */
-  public static long[] getEncodedIDs(ByteString bytes, int offset)
+  public static long[] getEncodedIDs(ByteString bytes)
   {
-    int length = getEncodedSize(bytes, offset) * 8;
-    int offset2 = offset + 4;
-    ByteString entryIDBytes = bytes.subSequence(offset2, offset2 + length);
+    int length = getEncodedSize(bytes) * 8;
+    ByteString entryIDBytes = bytes.subSequence(4, 4 + length);
     return JebFormat.entryIDListFromDatabase(entryIDBytes);
   }
 
