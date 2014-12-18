@@ -235,6 +235,11 @@ public class IndexBuffer
    */
   public void flush(WriteableStorage txn) throws StorageRuntimeException, DirectoryException
   {
+    /*
+     * FIXME: this seems like a surprising way to update the indexes. Why not
+     * store the buffered changes in a TreeMap in order to have a predictable
+     * iteration order?
+     */
     for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
     {
       for (Index index : attributeIndex.getAllIndexes())
