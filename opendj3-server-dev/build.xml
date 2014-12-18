@@ -760,7 +760,7 @@ Please:
     <mkdir dir="${build.lib.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-         excludes="${pluggablebackend.pkg}/**,${persistit.pkg}/**"
+         excludes="${pluggablebackend.pkg}/JECompressedSchema.java"
          destdir="${classes.dir}">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
@@ -1859,7 +1859,7 @@ Please:
     <mkdir dir="${classes.dir}" />
 
     <javac srcdir="${src.dir}:${admin.src.dir}:${msg.src.dir}:${msg.javagen.dir}:${ads.src.dir}:${quicksetup.src.dir}:${guitools.src.dir}"
-        excludes="${pluggablebackend.pkg}/**,${persistit.pkg}/**"
+        excludes="${pluggablebackend.pkg}/JECompressedSchema.java"
         destdir="${classes.dir}">
       <classpath>
         <fileset refid="opendj.runtime.jars"/>
