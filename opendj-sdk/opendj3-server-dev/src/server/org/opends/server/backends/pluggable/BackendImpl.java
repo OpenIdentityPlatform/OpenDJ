@@ -938,8 +938,20 @@ public class BackendImpl extends Backend<PersistitBackendCfg> implements
    */
   DirectoryException createDirectoryException(StorageRuntimeException e)
   {
-    if (true) { // FIXME JNR
-      throw new NotImplementedException();
+    if (true) // FIXME JNR
+    {
+      Throwable cause = e.getCause();
+      if (cause instanceof OpenDsException)
+      {
+        return new DirectoryException(
+            DirectoryServer.getServerErrorResultCode(), (OpenDsException) cause);
+      }
+      else
+      {
+        return new DirectoryException(
+            DirectoryServer.getServerErrorResultCode(),
+            LocalizableMessage.raw(e.getMessage()));
+      }
     }
     if (/*e instanceof EnvironmentFailureException && */ !rootContainer.isValid()) {
       LocalizableMessage message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
