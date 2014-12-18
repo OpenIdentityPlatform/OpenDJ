@@ -236,7 +236,7 @@ public class Index extends DatabaseContainer
                                            EntryIDSet addedIDs)
       throws StorageRuntimeException
   {
-    final ByteString value = read(txn, key, false);
+    final ByteString value = read(txn, key, true);
     if(value != null)
     {
       EntryIDSet entryIDList = computeEntryIDList(key, value, deletedIDs, addedIDs);
