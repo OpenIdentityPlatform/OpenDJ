@@ -35,7 +35,8 @@ import java.util.TimerTask;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.Cursor;
-import org.opends.server.backends.pluggable.spi.Storage;
+import org.opends.server.backends.pluggable.spi.ReadOperation;
+import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -95,14 +96,12 @@ public class ExportJob
        throws IOException, LDIFException, StorageRuntimeException
   {
     List<DN> includeBranches = exportConfig.getIncludeBranches();
-    DN baseDN;
-    ArrayList<EntryContainer> exportContainers =
-        new ArrayList<EntryContainer>();
+    final ArrayList<EntryContainer> exportContainers = new ArrayList<EntryContainer>();
 
     for (EntryContainer entryContainer : rootContainer.getEntryContainers())
     {
       // Skip containers that are not covered by the include branches.
-      baseDN = entryContainer.getBaseDN();
+      DN baseDN = entryContainer.getBaseDN();
 
       if (includeBranches == null || includeBranches.isEmpty())
       {
@@ -128,29 +127,40 @@ public class ExportJob
     // Start a timer for the progress report.
     Timer timer = new Timer();
     TimerTask progressTask = new ProgressTask();
-    timer.scheduleAtFixedRate(progressTask, progressInterval,
-                              progressInterval);
+    timer.scheduleAtFixedRate(progressTask, progressInterval, progressInterval);
 
     // Iterate through the containers.
     try
     {
-      for (EntryContainer exportContainer : exportContainers)
+      rootContainer.getStorage().read(new ReadOperation<Void>()
       {
-        if (exportConfig.isCancelled())
+        @Override
+        public Void run(ReadableStorage txn) throws Exception
         {
-          break;
-        }
+          for (EntryContainer exportContainer : exportContainers)
+          {
+            if (exportConfig.isCancelled())
+            {
+              break;
+            }
 
-        exportContainer.sharedLock.lock();
-        try
-        {
-          exportContainer(exportContainer);
+            exportContainer.sharedLock.lock();
+            try
+            {
+              exportContainer(txn, exportContainer);
+            }
+            finally
+            {
+              exportContainer.sharedLock.unlock();
+            }
+          }
+          return null;
         }
-        finally
-        {
-          exportContainer.sharedLock.unlock();
-        }
-      }
+      });
+    }
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
     }
     finally
     {
@@ -181,12 +191,10 @@ public class ExportJob
    * @throws  LDIFException  If an error occurs while trying to determine
    *                         whether to write an entry.
    */
-  private void exportContainer(EntryContainer entryContainer)
+  private void exportContainer(ReadableStorage txn, EntryContainer entryContainer)
        throws StorageRuntimeException, IOException, LDIFException
   {
-    Storage storage = entryContainer.getStorage();
-
-    Cursor cursor = storage.openCursor(entryContainer.getID2Entry().getName());
+    Cursor cursor = txn.openCursor(entryContainer.getID2Entry().getName());
     try
     {
       while (cursor.next())

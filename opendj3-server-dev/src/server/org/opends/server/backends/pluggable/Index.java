@@ -492,8 +492,8 @@ public class Index extends DatabaseContainer
    *                      specified.
    * @return The set of entry IDs.
    */
-  public EntryIDSet readRange(ByteSequence lower, ByteSequence upper,
-                               boolean lowerIncluded, boolean upperIncluded)
+  public EntryIDSet readRange(ReadableStorage txn,
+      ByteSequence lower, ByteSequence upper, boolean lowerIncluded, boolean upperIncluded)
   {
     // If this index is not trusted, then just return an undefined id set.
     if(rebuildRunning || !trusted)
@@ -508,7 +508,7 @@ public class Index extends DatabaseContainer
 
       ArrayList<EntryIDSet> lists = new ArrayList<EntryIDSet>();
 
-      Cursor cursor = storage.openCursor(treeName);
+      Cursor cursor = txn.openCursor(treeName);
       try
       {
         ByteSequence key = ByteString.empty();

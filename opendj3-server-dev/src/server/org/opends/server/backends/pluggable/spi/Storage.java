@@ -44,8 +44,6 @@ public interface Storage extends Closeable
 
   void write(WriteOperation updateTransaction) throws Exception;
 
-  Cursor openCursor(TreeName name);
-
   @Override
   void close();
 }

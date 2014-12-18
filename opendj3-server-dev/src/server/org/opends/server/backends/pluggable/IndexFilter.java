@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.opends.server.backends.pluggable.AttributeIndex.IndexFilterType;
+import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.FilterType;
@@ -51,10 +52,9 @@ public class IndexFilter
    */
   public static final int FILTER_CANDIDATE_THRESHOLD = 10;
 
-  /**
-   * The entry entryContainer holding the attribute indexes.
-   */
+  /** The entry container holding the attribute indexes. */
   private final EntryContainer entryContainer;
+  private final ReadableStorage txn;
 
   /**
    * The search operation provides the search base, scope and filter.
@@ -67,7 +67,6 @@ public class IndexFilter
    * how the indexed contributed to the search operation.
    */
   private final StringBuilder buffer;
-
   private final DatabaseEnvironmentMonitor monitor;
 
   /**
@@ -76,17 +75,15 @@ public class IndexFilter
    * @param entryContainer The entry entryContainer.
    * @param searchOp       The search operation to be evaluated.
    * @param monitor        The monitor to gather filter usage stats.
-   *
    * @param debugBuilder If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
    *                     to this search.
    */
-  public IndexFilter(EntryContainer entryContainer,
-                     SearchOperation searchOp,
-                     StringBuilder debugBuilder,
-                     DatabaseEnvironmentMonitor monitor)
+  public IndexFilter(EntryContainer entryContainer, ReadableStorage txn, SearchOperation searchOp,
+      StringBuilder debugBuilder, DatabaseEnvironmentMonitor monitor)
   {
     this.entryContainer = entryContainer;
+    this.txn = txn;
     this.searchOp = searchOp;
     this.buffer = debugBuilder;
     this.monitor = monitor;
@@ -265,7 +262,8 @@ public class IndexFilter
           continue;
         }
 
-        EntryIDSet set = attributeIndex.evaluateBoundedRange(filter1, filter2, buffer, monitor);
+        final IndexQueryFactoryImpl indexQueryFactory = new IndexQueryFactoryImpl(txn, attributeIndex);
+        EntryIDSet set = attributeIndex.evaluateBoundedRange(indexQueryFactory, filter1, filter2, buffer, monitor);
         if(monitor.isFilterUseEnabled() && set.isDefined())
         {
           monitor.updateStats(SearchFilter.createANDFilter(rangeList), set.size());
@@ -356,7 +354,8 @@ public class IndexFilter
     AttributeIndex attributeIndex = entryContainer.getAttributeIndex(filter.getAttributeType());
     if (attributeIndex != null)
     {
-      return attributeIndex.evaluateFilter(indexFilterType, filter, buffer, monitor);
+      final IndexQueryFactoryImpl indexQueryFactory = new IndexQueryFactoryImpl(txn, attributeIndex);
+      return attributeIndex.evaluateFilter(indexQueryFactory, indexFilterType, filter, buffer, monitor);
     }
 
     if (monitor.isFilterUseEnabled())
@@ -386,7 +385,8 @@ public class IndexFilter
     AttributeIndex attributeIndex = entryContainer.getAttributeIndex(extensibleFilter.getAttributeType());
     if (attributeIndex != null)
     {
-      return attributeIndex.evaluateExtensibleFilter(extensibleFilter, buffer, monitor);
+      final IndexQueryFactoryImpl indexQueryFactory = new IndexQueryFactoryImpl(txn, attributeIndex);
+      return attributeIndex.evaluateExtensibleFilter(indexQueryFactory, extensibleFilter, buffer, monitor);
     }
     return IndexQuery.createNullIndexQuery().evaluate(null);
   }

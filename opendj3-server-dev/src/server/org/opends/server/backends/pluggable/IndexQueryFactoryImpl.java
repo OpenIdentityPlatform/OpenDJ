@@ -27,12 +27,12 @@
 package org.opends.server.backends.pluggable;
 
 import java.util.Collection;
-import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.backends.pluggable.spi.ReadableStorage;
 
 import static org.opends.messages.JebMessages.*;
 
@@ -40,33 +40,28 @@ import static org.opends.messages.JebMessages.*;
  * This class is an implementation of IndexQueryFactory which creates
  * IndexQuery objects as part of the query of the JEB index.
  */
-public final class IndexQueryFactoryImpl implements
-    IndexQueryFactory<IndexQuery>
+public final class IndexQueryFactoryImpl implements IndexQueryFactory<IndexQuery>
 {
 
   private static final String PRESENCE_INDEX_KEY = "presence";
 
-  /**
-   * The Map containing the string type identifier and the corresponding index.
-   */
-  private final Map<String, Index> indexMap;
-  private final IndexingOptions indexingOptions;
+  private final ReadableStorage txn;
+  /** The Map containing the string type identifier and the corresponding index. */
+  private final AttributeIndex attributeIndex;
 
   /**
    * Creates a new IndexQueryFactoryImpl object.
    *
-   * @param indexMap
-   *          A map containing the index id and the corresponding index.
-   * @param indexingOptions
-   *          The options to use for indexing
+   * @param txn
+   *          The readable storage
+   * @param attributeIndex
+   *          The targeted attribute index
    */
-  public IndexQueryFactoryImpl(Map<String, Index> indexMap, IndexingOptions indexingOptions)
+  public IndexQueryFactoryImpl(ReadableStorage txn, AttributeIndex attributeIndex)
   {
-    this.indexMap = indexMap;
-    this.indexingOptions = indexingOptions;
+    this.txn = txn;
+    this.attributeIndex = attributeIndex;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -74,13 +69,12 @@ public final class IndexQueryFactoryImpl implements
   {
     return new IndexQuery()
       {
-
         @Override
         public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
           // Read the database and get Record for the key.
           // Select the right index to be used.
-          Index index = indexMap.get(indexID);
+          final Index index = attributeIndex.getIndexById(indexID);
           if (index == null)
           {
             if(debugMessage != null)
@@ -89,7 +83,8 @@ public final class IndexQueryFactoryImpl implements
             }
             return createMatchAllQuery().evaluate(debugMessage);
           }
-          EntryIDSet entrySet = index.readKey(key, null);
+
+          final EntryIDSet entrySet = index.readKey(key, null);
           if(debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);
@@ -99,8 +94,6 @@ public final class IndexQueryFactoryImpl implements
       };
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public IndexQuery createRangeMatchQuery(final String indexID,
@@ -109,12 +102,11 @@ public final class IndexQueryFactoryImpl implements
   {
     return new IndexQuery()
       {
-
         @Override
         public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
           // Find the right index.
-          Index index = indexMap.get(indexID);
+          final Index index = attributeIndex.getIndexById(indexID);
           if (index == null)
           {
             if(debugMessage != null)
@@ -123,7 +115,8 @@ public final class IndexQueryFactoryImpl implements
             }
             return createMatchAllQuery().evaluate(debugMessage);
           }
-        EntryIDSet entrySet = index.readRange(lowerBound, upperBound,
+
+          final EntryIDSet entrySet = index.readRange(txn, lowerBound, upperBound,
               includeLowerBound, includeUpperBound);
           if(debugMessage != null && !entrySet.isDefined())
           {
@@ -134,8 +127,6 @@ public final class IndexQueryFactoryImpl implements
       };
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public IndexQuery createIntersectionQuery(Collection<IndexQuery> subqueries)
@@ -143,16 +134,12 @@ public final class IndexQueryFactoryImpl implements
     return IndexQuery.createIntersectionIndexQuery(subqueries);
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public IndexQuery createUnionQuery(Collection<IndexQuery> subqueries)
   {
     return IndexQuery.createUnionIndexQuery(subqueries);
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -168,8 +155,8 @@ public final class IndexQueryFactoryImpl implements
         @Override
         public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
-        final String indexID = PRESENCE_INDEX_KEY;
-        final Index index = indexMap.get(indexID);
+          final String indexID = PRESENCE_INDEX_KEY;
+          final Index index = attributeIndex.getIndexById(indexID);
           if (index == null)
           {
             if(debugMessage != null)
@@ -179,7 +166,7 @@ public final class IndexQueryFactoryImpl implements
             return new EntryIDSet();
           }
 
-          EntryIDSet entrySet = index.readKey(PresenceIndexer.presenceKey, null);
+          final EntryIDSet entrySet = index.readKey(PresenceIndexer.presenceKey, null);
           if (debugMessage != null && !entrySet.isDefined())
           {
             updateStatsUndefinedResults(debugMessage, index);
@@ -209,6 +196,6 @@ public final class IndexQueryFactoryImpl implements
   @Override
   public IndexingOptions getIndexingOptions()
   {
-    return indexingOptions;
+    return attributeIndex.getIndexingOptions();
   }
 }

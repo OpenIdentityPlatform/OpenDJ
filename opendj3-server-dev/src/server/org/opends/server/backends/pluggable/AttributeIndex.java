@@ -118,7 +118,7 @@ public class AttributeIndex
 
   /** The mapping from names to indexes. */
   private final Map<String, Index> nameToIndexes = new HashMap<String, Index>();
-  private final IndexQueryFactory<IndexQuery> indexQueryFactory;
+  private final IndexingOptions indexingOptions;
 
   /**
    * The mapping from extensible index types (e.g. "substring" or "shared") to list of indexes.
@@ -144,8 +144,7 @@ public class AttributeIndex
     buildIndexes(txn, IndexType.APPROXIMATE);
     buildExtensibleIndexes(txn);
 
-    final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
-    indexQueryFactory = new IndexQueryFactoryImpl(nameToIndexes, config);
+    indexingOptions = new JEIndexConfig(indexConfig.getSubstringLength());
     extensibleIndexesMapping = computeExtensibleIndexesMapping();
   }
 
@@ -294,7 +293,7 @@ public class AttributeIndex
    */
   public IndexingOptions getIndexingOptions()
   {
-    return indexQueryFactory.getIndexingOptions();
+    return indexingOptions;
   }
 
   /**
@@ -318,10 +317,9 @@ public class AttributeIndex
   public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      index.addEntry(buffer, entryID, entry, options);
+      index.addEntry(buffer, entryID, entry, indexingOptions);
     }
   }
 
@@ -337,10 +335,9 @@ public class AttributeIndex
   public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws StorageRuntimeException, DirectoryException
   {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      index.removeEntry(buffer, entryID, entry, options);
+      index.removeEntry(buffer, entryID, entry, indexingOptions);
     }
   }
 
@@ -363,10 +360,9 @@ public class AttributeIndex
                           List<Modification> mods)
        throws StorageRuntimeException
   {
-    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods, options);
+      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods, indexingOptions);
     }
   }
 
@@ -451,6 +447,8 @@ public class AttributeIndex
    * Retrieve the entry IDs that might match two filters that restrict a value
    * to both a lower bound and an upper bound.
    *
+   * @param indexQueryFactory
+   *          The index query factory to use for the evaluation 
    * @param filter1
    *          The first filter, that is either a less-or-equal filter or a
    *          greater-or-equal filter.
@@ -466,8 +464,8 @@ public class AttributeIndex
    *          filter usage statistics.
    * @return The candidate entry IDs that might contain match both filters.
    */
-  public EntryIDSet evaluateBoundedRange(SearchFilter filter1, SearchFilter filter2, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
+  public EntryIDSet evaluateBoundedRange(IndexQueryFactory<IndexQuery> indexQueryFactory,
+      SearchFilter filter1, SearchFilter filter2, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     // TODO : this implementation is not optimal
     // as it implies two separate evaluations instead of a single one,
@@ -475,22 +473,24 @@ public class AttributeIndex
     // in IndexFilter#evaluateLogicalAndFilter method.
     // One solution could be to implement a boundedRangeAssertion that combine
     // the two operations in one.
-    EntryIDSet results = evaluate(filter1, debugBuffer, monitor);
-    EntryIDSet results2 = evaluate(filter2, debugBuffer, monitor);
+    EntryIDSet results = evaluate(indexQueryFactory, filter1, debugBuffer, monitor);
+    EntryIDSet results2 = evaluate(indexQueryFactory, filter2, debugBuffer, monitor);
     results.retainAll(results2);
     return results;
   }
 
-  private EntryIDSet evaluate(SearchFilter filter, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
+  private EntryIDSet evaluate(IndexQueryFactory<IndexQuery> indexQueryFactory, SearchFilter filter,
+      StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     boolean isLessOrEqual = filter.getFilterType() == FilterType.LESS_OR_EQUAL;
     IndexFilterType indexFilterType = isLessOrEqual ? IndexFilterType.LESS_OR_EQUAL : IndexFilterType.GREATER_OR_EQUAL;
-    return evaluateFilter(indexFilterType, filter, debugBuffer, monitor);
+    return evaluateFilter(indexQueryFactory, indexFilterType, filter, debugBuffer, monitor);
   }
 
   /**
    * Retrieve the entry IDs that might match a filter.
    *
+   * @param indexQueryFactory the index query factory to use for the evaluation
    * @param indexFilterType the index type filter
    * @param filter The filter.
    * @param debugBuffer If not null, a diagnostic string will be written
@@ -501,12 +501,12 @@ public class AttributeIndex
    * @return The candidate entry IDs that might contain a value
    *         that matches the filter type.
    */
-  public EntryIDSet evaluateFilter(IndexFilterType indexFilterType, SearchFilter filter, StringBuilder debugBuffer,
-      DatabaseEnvironmentMonitor monitor)
+  public EntryIDSet evaluateFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
+      SearchFilter filter, StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     try
     {
-      final IndexQuery indexQuery = getIndexQuery(indexFilterType, filter);
+      final IndexQuery indexQuery = getIndexQuery(indexQueryFactory, indexFilterType, filter);
       return evaluateIndexQuery(indexQuery, indexFilterType.toString(), filter, debugBuffer, monitor);
     }
     catch (DecodeException e)
@@ -516,7 +516,8 @@ public class AttributeIndex
     }
   }
 
-  private IndexQuery getIndexQuery(IndexFilterType indexFilterType, SearchFilter filter) throws DecodeException
+  private IndexQuery getIndexQuery(IndexQueryFactory<IndexQuery> indexQueryFactory, IndexFilterType indexFilterType,
+      SearchFilter filter) throws DecodeException
   {
     MatchingRule rule;
     Assertion assertion;
@@ -907,7 +908,7 @@ public class AttributeIndex
    * @return The equality index.
    */
   public Index getEqualityIndex() {
-    return nameToIndexes.get(IndexType.EQUALITY.toString());
+    return getIndexById(IndexType.EQUALITY.toString());
   }
 
   /**
@@ -916,7 +917,7 @@ public class AttributeIndex
    * @return The approximate index.
    */
   public Index getApproximateIndex() {
-    return nameToIndexes.get(IndexType.APPROXIMATE.toString());
+    return getIndexById(IndexType.APPROXIMATE.toString());
   }
 
   /**
@@ -925,7 +926,7 @@ public class AttributeIndex
    * @return  The ordering index.
    */
   public Index getOrderingIndex() {
-    return nameToIndexes.get(IndexType.ORDERING.toString());
+    return getIndexById(IndexType.ORDERING.toString());
   }
 
   /**
@@ -934,7 +935,7 @@ public class AttributeIndex
    * @return The substring index.
    */
   public Index getSubstringIndex() {
-    return nameToIndexes.get(IndexType.SUBSTRING.toString());
+    return getIndexById(IndexType.SUBSTRING.toString());
   }
 
   /**
@@ -943,7 +944,23 @@ public class AttributeIndex
    * @return The presence index.
    */
   public Index getPresenceIndex() {
-    return nameToIndexes.get(IndexType.PRESENCE.toString());
+    return getIndexById(IndexType.PRESENCE.toString());
+  }
+
+  /**
+   * Return the index identified by the provided identifier.
+   * <p>
+   * Common index identifiers are "presence", "equality", "substring",
+   * "ordering" and "approximate".
+   *
+   * @param indexId
+   *          the identifier of the requested index
+   * @return The index identified by the provided identifier, or null if no such
+   *         index exists
+   */
+  public Index getIndexById(String indexId)
+  {
+    return nameToIndexes.get(indexId);
   }
 
   /**
@@ -1003,6 +1020,7 @@ public class AttributeIndex
   /**
    * Retrieve the entry IDs that might match an extensible filter.
    *
+   * @param indexQueryFactory the index query factory to use for the evaluation
    * @param filter The extensible filter.
    * @param debugBuffer If not null, a diagnostic string will be written
    *                     which will help determine how the indexes contributed
@@ -1012,9 +1030,8 @@ public class AttributeIndex
    * @return The candidate entry IDs that might contain the filter
    *         assertion value.
    */
-  public EntryIDSet evaluateExtensibleFilter(SearchFilter filter,
-                                             StringBuilder debugBuffer,
-                                             DatabaseEnvironmentMonitor monitor)
+  public EntryIDSet evaluateExtensibleFilter(IndexQueryFactory<IndexQuery> indexQueryFactory, SearchFilter filter,
+      StringBuilder debugBuffer, DatabaseEnvironmentMonitor monitor)
   {
     //Get the Matching Rule OID of the filter.
     String matchRuleOID  = filter.getMatchingRuleID();
@@ -1029,7 +1046,7 @@ public class AttributeIndex
         || matchRuleOID.equalsIgnoreCase(eqRule.getNameOrOID()))
     {
       //No matching rule is defined; use the default equality matching rule.
-      return evaluateFilter(IndexFilterType.EQUALITY, filter, debugBuffer, monitor);
+      return evaluateFilter(indexQueryFactory, IndexFilterType.EQUALITY, filter, debugBuffer, monitor);
     }
 
     MatchingRule rule = DirectoryServer.getMatchingRule(matchRuleOID);
