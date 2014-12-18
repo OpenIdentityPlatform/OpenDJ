@@ -83,7 +83,7 @@
     <adm:default-behavior>
       <adm:inherited>
         <adm:relative property-name="index-entry-limit" offset="1"
-          managed-object-name="local-db-backend" />
+          managed-object-name="pluggable-backend" />
       </adm:inherited>
     </adm:default-behavior>
     <adm:syntax>
