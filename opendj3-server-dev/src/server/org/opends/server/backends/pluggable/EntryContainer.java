@@ -1971,8 +1971,27 @@ public class EntryContainer
    *                            the entry.
    * @throws StorageRuntimeException An error occurred during a database operation.
    */
-  public Entry getEntry(final DN entryDN)
-  throws StorageRuntimeException, DirectoryException
+  public Entry getEntry(final DN entryDN) throws StorageRuntimeException, DirectoryException
+  {
+    try
+    {
+      return storage.read(new ReadOperation<Entry>()
+      {
+        @Override
+        public Entry run(ReadableStorage txn) throws Exception
+        {
+          return getEntry0(txn, entryDN);
+        }
+      });
+    }
+    catch (Exception e)
+    {
+      throw new StorageRuntimeException(e);
+    }
+
+  }
+
+  private Entry getEntry0(ReadableStorage txn, final DN entryDN) throws StorageRuntimeException, DirectoryException
   {
     final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
     Entry entry = null;
@@ -1987,40 +2006,32 @@ public class EntryContainer
     {
       try
       {
-        return storage.read(new ReadOperation<Entry>()
+        // Read dn2id.
+        EntryID entryID = dn2id.get(txn, entryDN, false);
+        if (entryID == null)
         {
-          @Override
-          public Entry run(ReadableStorage txn) throws Exception
-          {
-            // Read dn2id.
-            EntryID entryID = dn2id.get(txn, entryDN, false);
-            if (entryID == null)
-            {
-              // The entryDN does not exist.
-              // Check for referral entries above the target entry.
-              dn2uri.targetEntryReferrals(txn, entryDN, null);
-              return null;
-            }
+          // The entryDN does not exist.
+          // Check for referral entries above the target entry.
+          dn2uri.targetEntryReferrals(txn, entryDN, null);
+          return null;
+        }
 
-            // Read id2entry.
-            Entry entry2 = id2entry.get(txn, entryID, false);
-            if (entry2 == null)
-            {
-              // The entryID does not exist.
-              throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ERR_JEB_MISSING_ID2ENTRY_RECORD
-                  .get(entryID));
-            }
+        // Read id2entry.
+        Entry entry2 = id2entry.get(txn, entryID, false);
+        if (entry2 == null)
+        {
+          // The entryID does not exist.
+          throw new DirectoryException(getServerErrorResultCode(), ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID));
+        }
 
-            // Put the entry in the cache making sure not to overwrite
-            // a newer copy that may have been inserted since the time
-            // we read the cache.
-            if (entryCache != null)
-            {
-              entryCache.putEntryIfAbsent(entry2, backend, entryID.longValue());
-            }
-            return entry2;
-          }
-        });
+        // Put the entry in the cache making sure not to overwrite
+        // a newer copy that may have been inserted since the time
+        // we read the cache.
+        if (entryCache != null)
+        {
+          entryCache.putEntryIfAbsent(entry2, backend, entryID.longValue());
+        }
+        return entry2;
       }
       catch (Exception e)
       {
@@ -3308,7 +3319,7 @@ public class EntryContainer
     Entry baseEntry = null;
     try
     {
-      baseEntry = getEntry(baseDN);
+      baseEntry = getEntry0(txn, baseDN);
     }
     catch (Exception e)
     {
