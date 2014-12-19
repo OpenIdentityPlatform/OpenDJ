@@ -313,7 +313,7 @@ public class DNTestCase extends SdkTestCase {
     /**
      * Superior test data provider.
      *
-     * @return The array of superior and subordindate DN Strings.
+     * @return The array of superior and subordinate DN Strings.
      */
     @DataProvider(name = "createSuperiorTestData")
     public Object[][] createSuperiorTestData() {
@@ -774,9 +774,7 @@ public class DNTestCase extends SdkTestCase {
         assertEquals(dn.isSubordinateOrEqualTo(other), e, sub + " isSubordinateOf " + base);
     }
 
-    /**
-     * Tests the supeiror dns.
-     */
+    /** Tests the superior dns. */
     @Test(dataProvider = "createSuperiorTestData")
     public void testSuperiorDN(final String base, final String sub, final boolean e)
             throws Exception {
