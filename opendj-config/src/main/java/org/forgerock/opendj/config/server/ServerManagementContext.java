@@ -56,6 +56,7 @@ import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
 import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.DefinitionDecodingException.Reason;
 import org.forgerock.opendj.config.DefinitionResolver;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.ManagedObjectDefinition;
@@ -68,7 +69,6 @@ import org.forgerock.opendj.config.Reference;
 import org.forgerock.opendj.config.RelationDefinition;
 import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
-import org.forgerock.opendj.config.DefinitionDecodingException.Reason;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -94,10 +94,7 @@ public final class ServerManagementContext {
      */
     private final class DefaultValueFinder<T> implements DefaultBehaviorProviderVisitor<T, Collection<T>, Void> {
 
-        /**
-         * Any exception that occurred whilst retrieving inherited default
-         * values.
-         */
+        /** Any exception that occurred whilst retrieving inherited default values. */
         private PropertyException exception;
 
         /**
@@ -118,6 +115,7 @@ public final class ServerManagementContext {
         }
 
         /** {@inheritDoc} */
+        @Override
         public Collection<T> visitAbsoluteInherited(AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(), d.getManagedObjectDefinition(),
@@ -129,11 +127,13 @@ public final class ServerManagementContext {
         }
 
         /** {@inheritDoc} */
+        @Override
         public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
 
         /** {@inheritDoc} */
+        @Override
         public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d, Void p) {
             Collection<String> stringValues = d.getDefaultValues();
             List<T> values = new ArrayList<T>(stringValues.size());
@@ -151,6 +151,7 @@ public final class ServerManagementContext {
         }
 
         /** {@inheritDoc} */
+        @Override
         public Collection<T> visitRelativeInherited(RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
             try {
                 return getInheritedProperty(d.getManagedObjectPath(nextPath), d.getManagedObjectDefinition(),
@@ -162,6 +163,7 @@ public final class ServerManagementContext {
         }
 
         /** {@inheritDoc} */
+        @Override
         public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d, Void p) {
             return Collections.emptySet();
         }
@@ -188,11 +190,10 @@ public final class ServerManagementContext {
         @SuppressWarnings("unchecked")
         private Collection<T> getInheritedProperty(ManagedObjectPath<?, ?> target,
             AbstractManagedObjectDefinition<?, ?> definition, String propertyName) {
-            // First check that the requested type of managed object
-            // corresponds to the path.
-            AbstractManagedObjectDefinition<?, ?> supr = target.getManagedObjectDefinition();
-            if (!supr.isParentOf(definition)) {
-                throw PropertyException.defaultBehaviorException(nextProperty, new DefinitionDecodingException(supr,
+            // First check that the requested type of managed object corresponds to the path.
+            AbstractManagedObjectDefinition<?, ?> actual = target.getManagedObjectDefinition();
+            if (!definition.isParentOf(actual)) {
+                throw PropertyException.defaultBehaviorException(nextProperty, new DefinitionDecodingException(actual,
                         Reason.WRONG_TYPE_INFORMATION));
             }
 
@@ -261,6 +262,7 @@ public final class ServerManagementContext {
         }
 
         /** {@inheritDoc} */
+        @Override
         public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
             String oc = LDAPProfile.getInstance().getObjectClass(d);
          // TODO : use the schema to get object class and check it in the entry
@@ -419,11 +421,10 @@ public final class ServerManagementContext {
     public <C extends ConfigurationClient, S extends Configuration, P> P getPropertyValue(
             ManagedObjectPath<C, S> path, PropertyDefinition<P> pd) throws ConfigException {
         SortedSet<P> values = getPropertyValues(path, pd);
-        if (values.isEmpty()) {
-            return null;
-        } else {
+        if (!values.isEmpty()) {
             return values.first();
         }
+        return null;
     }
 
     /**
@@ -465,8 +466,7 @@ public final class ServerManagementContext {
                     + definition.getName());
         }
 
-        // Determine the exact type of managed object referenced by the
-        // path.
+        // Determine the exact type of managed object referenced by the path.
         DN dn = DNBuilder.create(path);
         Entry configEntry = getManagedObjectConfigEntry(dn);
 
@@ -480,8 +480,7 @@ public final class ServerManagementContext {
         }
 
         // Make sure we use the correct property definition, the
-        // provided one might have been overridden in the resolved
-        // definition.
+        // provided one might have been overridden in the resolved definition.
         propertyDef = (PropertyDefinition<P>) managedObjDef.getPropertyDefinition(propertyDef.getName());
 
         List<String> attributeValues = getAttributeValues(managedObjDef, propertyDef, configEntry);
