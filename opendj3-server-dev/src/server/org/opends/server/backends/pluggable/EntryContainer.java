@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -1350,12 +1351,14 @@ public class EntryContainer
     boolean manageDsaIT = isManageDsaITOperation(searchOperation);
     boolean continueSearch = true;
 
+    // Set the starting value.
+    EntryID begin = null;
     if (pageRequest != null && pageRequest.getCookie().length() != 0)
     {
       // The cookie contains the ID of the next entry to be returned.
       try
       {
-        new EntryID(pageRequest.getCookie());
+        begin = new EntryID(pageRequest.getCookie());
       }
       catch (Exception e)
       {
@@ -1386,8 +1389,10 @@ public class EntryContainer
     // Iterate through the index candidates.
     if (continueSearch)
     {
-      for (EntryID id : entryIDList)
+      for (Iterator<EntryID> it = entryIDList.iterator(begin); it.hasNext();)
       {
+        final EntryID id = it.next();
+
         Entry entry;
         try
         {
