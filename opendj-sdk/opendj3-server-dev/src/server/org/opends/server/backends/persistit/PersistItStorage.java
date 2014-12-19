@@ -58,6 +58,36 @@ import com.persistit.exception.RollbackException;
 
 @SuppressWarnings("javadoc")
 public final class PersistItStorage implements Storage {
+  /*
+   * TODO: it would be nice to use the low-level key/value APIs. They seem quite
+   * inefficient at the moment for simple byte arrays.
+   */
+  private Key bytesToKey(Key key, ByteSequence bytes)
+  {
+    final byte[] tmp = bytes.toByteArray();
+    return key.clear().appendByteArray(tmp, 0, tmp.length);
+  }
+
+  private Value bytesToValue(Value value, ByteSequence bytes)
+  {
+    value.clear().putByteArray(bytes.toByteArray());
+    return value;
+  }
+
+  private ByteString valueToBytes(Value value)
+  {
+    if (value.isDefined())
+    {
+      return ByteString.wrap(value.getByteArray());
+    }
+    return null;
+  }
+
+  private ByteString keyToBytes(Key key)
+  {
+    return ByteString.wrap(key.reset().decodeByteArray());
+  }
+
     private final class ImporterImpl implements Importer {
         private final Map<TreeName, Tree> trees = new HashMap<TreeName, Tree>();
         private final TreeBuilder importer = new TreeBuilder(db);
@@ -76,15 +106,13 @@ public final class PersistItStorage implements Storage {
 
         @Override
         public void put(TreeName treeName, ByteSequence key, ByteSequence value) {
-            try {
-                final Tree tree = trees.get(treeName);
-                byte[] keyBytes = key.toByteArray();
-                importKey.clear().appendByteArray(keyBytes, 0, keyBytes.length);
-                importValue.clear().putByteArray(value.toByteArray());
-                importer.store(tree, importKey, importValue);
-            } catch (Exception e) {
-                throw new StorageRuntimeException(e);
-            }
+          try {
+            final Tree tree = trees.get(treeName);
+            importer.store(tree, bytesToKey(importKey, key),
+                bytesToValue(importValue, value));
+          } catch (Exception e) {
+            throw new StorageRuntimeException(e);
+          }
         }
 
         @Override
@@ -121,13 +149,9 @@ public final class PersistItStorage implements Storage {
         public ByteString read(TreeName treeName, ByteSequence key) {
             try {
                 final Exchange ex = getExchange(treeName);
-                ex.getKey().clear().append(key.toByteArray());
+                bytesToKey(ex.getKey(), key);
                 ex.fetch();
-                final Value value = ex.getValue();
-                if (value.isDefined()) {
-                    return ByteString.wrap(value.getByteArray());
-                }
-                return null;
+                return valueToBytes(ex.getValue());
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
             }
@@ -142,8 +166,8 @@ public final class PersistItStorage implements Storage {
         public void create(TreeName treeName, ByteSequence key, ByteSequence value) {
             try {
                 final Exchange ex = getExchange(treeName);
-                ex.getKey().clear().append(key.toByteArray());
-                ex.getValue().clear().putByteArray(value.toByteArray());
+                bytesToKey(ex.getKey(), key);
+                bytesToValue(ex.getValue(), value);
                 ex.store();
             } catch (Exception e) {
                 throw new StorageRuntimeException(e);
@@ -154,14 +178,15 @@ public final class PersistItStorage implements Storage {
         public boolean putIfAbsent(TreeName treeName, ByteSequence key, ByteSequence value) {
             try {
                 final Exchange ex = getExchange(treeName);
-                ex.getKey().clear().append(key.toByteArray());
+                bytesToKey(ex.getKey(), key);
                 ex.fetch();
                 // FIXME poor man's CAS: this will not work under high volume,
                 // but PersistIt does not provide APIs for this use case.
-                if (ex.isValueDefined()) {
+                final Value exValue = ex.getValue();
+                if (exValue.isDefined()) {
                     return false;
                 }
-                ex.getValue().clear().putByteArray(value.toByteArray());
+                bytesToValue(exValue, value);
                 ex.store();
                 return true;
             } catch (Exception e) {
@@ -175,11 +200,9 @@ public final class PersistItStorage implements Storage {
           try
           {
             final Exchange ex = getExchange(treeName);
-            ex.getKey().clear().append(key.toByteArray());
+            bytesToKey(ex.getKey(), key);
             ex.fetch();
-            final Value value = ex.getValue();
-            final ByteSequence oldValue = value.isDefined() ? ByteString.wrap(value
-                .getByteArray()) : null;
+            final ByteSequence oldValue = valueToBytes(ex.getValue());
             final ByteSequence newValue = f.computeNewValue(oldValue);
             ex.getValue().clear().putByteArray(newValue.toByteArray());
             ex.store();
@@ -194,7 +217,7 @@ public final class PersistItStorage implements Storage {
         public boolean remove(TreeName treeName, ByteSequence key) {
             try {
                 final Exchange ex = getExchange(treeName);
-                ex.getKey().clear().append(key.toByteArray());
+                bytesToKey(ex.getKey(), key);
                 return ex.remove();
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
@@ -205,7 +228,7 @@ public final class PersistItStorage implements Storage {
         public void delete(TreeName treeName, ByteSequence key) {
             try {
                 final Exchange ex = getExchange(treeName);
-                ex.getKey().clear().append(key.toByteArray());
+                bytesToKey(ex.getKey(), key);
                 ex.remove();
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
@@ -262,17 +285,24 @@ public final class PersistItStorage implements Storage {
     }
 
     private final class CursorImpl implements Cursor {
-
         private final Exchange ex;
         private boolean useCurrentKeyForNext = false;
+        private ByteString currentKey;
+        private ByteString currentValue;
 
         public CursorImpl(Exchange exchange) {
             this.ex = exchange;
         }
 
+        private void clearCurrentKeyAndValue() {
+          currentKey = null;
+          currentValue = null;
+        }
+
         @Override
         public boolean positionToKey(ByteSequence key) {
-            ex.getKey().clear().append(key.toByteArray());
+            clearCurrentKeyAndValue();
+            bytesToKey(ex.getKey(), key);
             try {
                 ex.fetch();
                 useCurrentKeyForNext = ex.getValue().isDefined();
@@ -285,7 +315,8 @@ public final class PersistItStorage implements Storage {
 
         @Override
         public boolean positionToKeyOrNext(ByteSequence key) {
-            ex.getKey().clear().append(key.toByteArray());
+            clearCurrentKeyAndValue();
+            bytesToKey(ex.getKey(), key);
             try {
                 ex.fetch();
                 if (ex.getValue().isDefined()) {
@@ -304,6 +335,7 @@ public final class PersistItStorage implements Storage {
         @Override
         public boolean positionToLastKey() {
             try {
+                clearCurrentKeyAndValue();
                 ex.getKey().to(Key.AFTER);
                 useCurrentKeyForNext = ex.previous() && ex.getValue().isDefined();
                 return useCurrentKeyForNext;
@@ -315,6 +347,7 @@ public final class PersistItStorage implements Storage {
 
         @Override
         public boolean next() {
+            clearCurrentKeyAndValue();
             if (useCurrentKeyForNext) {
                 useCurrentKeyForNext = false;
                 return true;
@@ -328,6 +361,7 @@ public final class PersistItStorage implements Storage {
 
         @Override
         public boolean previous() {
+            clearCurrentKeyAndValue();
             try {
                 return ex.previous();
             } catch (PersistitException e) {
@@ -337,12 +371,18 @@ public final class PersistItStorage implements Storage {
 
         @Override
         public ByteString getKey() {
-            return ByteString.wrap(ex.getKey().decodeByteArray());
+          if (currentKey == null) {
+            currentKey = keyToBytes(ex.getKey());
+          }
+          return currentKey;
         }
 
         @Override
         public ByteString getValue() {
-            return ByteString.wrap(ex.getValue().getByteArray());
+            if (currentValue == null) {
+              currentValue = valueToBytes(ex.getValue());
+            }
+            return currentValue;
         }
 
         @Override
@@ -373,7 +413,7 @@ public final class PersistItStorage implements Storage {
         properties.setProperty("journalpath", "${datapath}/dj_journal");
 
         properties.setProperty("volume.1",
-            "${datapath}/dj" 
+            "${datapath}/dj"
                 + ",create,pageSize:16K"
                 + ",initialSize:50M"
                 + ",extensionSize:1M"
