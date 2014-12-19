@@ -69,6 +69,9 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 {
   /** The logger of this class. */
   protected static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static final int MINIMUM_TRESHOLD_MSG_QUEUE_SIZE = 5;
+
   /**
    * UpdateMsg queue.
    */
@@ -174,8 +177,10 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
   private boolean isMsgQueueAboveThreshold()
   {
-    return msgQueue.count() > maxQueueSize
-        || msgQueue.bytesCount() > maxQueueBytesSize;
+    final long count = msgQueue.count();
+    // ensure there is a minimum number of messages in queue to avoid wrong behavior
+    return count > maxQueueSize
+        || (count >= MINIMUM_TRESHOLD_MSG_QUEUE_SIZE && msgQueue.bytesCount() > maxQueueBytesSize);
   }
 
   private boolean isMsgQueueBelowThreshold()
