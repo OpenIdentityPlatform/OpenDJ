@@ -3610,42 +3610,8 @@ public final class StaticUtils
     RDN rdn = dn.rdn();
     int numAVAs = rdn.getNumValues();
 
-    // If there is only one RDN attribute, then see which objectclass we should
-    // use.
-    ObjectClass structuralClass;
-    if (numAVAs == 1)
-    {
-      AttributeType attrType = rdn.getAttributeType(0);
-
-      if (attrType.hasName(ATTR_C))
-      {
-        structuralClass = DirectoryServer.getObjectClass(OC_COUNTRY, true);
-      }
-      else if (attrType.hasName(ATTR_DC))
-      {
-        structuralClass = DirectoryServer.getObjectClass(OC_DOMAIN, true);
-      }
-      else if (attrType.hasName(ATTR_O))
-      {
-        structuralClass = DirectoryServer.getObjectClass(OC_ORGANIZATION, true);
-      }
-      else if (attrType.hasName(ATTR_OU))
-      {
-        structuralClass =
-             DirectoryServer.getObjectClass(OC_ORGANIZATIONAL_UNIT_LC, true);
-      }
-      else
-      {
-        structuralClass =
-             DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC, true);
-      }
-    }
-    else
-    {
-      structuralClass =
-           DirectoryServer.getObjectClass(OC_UNTYPED_OBJECT_LC, true);
-    }
-
+    // If there is only one RDN attribute, then see which objectclass we should use.
+    ObjectClass structuralClass = DirectoryServer.getObjectClass(getObjectClassName(rdn, numAVAs));
 
     // Get the top and untypedObject classes to include in the entry.
     LinkedHashMap<ObjectClass,String> objectClasses =
@@ -3689,39 +3655,11 @@ public final class StaticUtils
       // Create the attribute and add it to the appropriate map.
       if (attrType.isOperational())
       {
-        List<Attribute> attrList = operationalAttributes.get(attrType);
-        if ((attrList == null) || attrList.isEmpty())
-        {
-          AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
-          builder.add(attrValue);
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(builder.toAttribute());
-          operationalAttributes.put(attrType, attrList);
-        }
-        else
-        {
-          AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
-          builder.add(attrValue);
-          attrList.set(0, builder.toAttribute());
-        }
+        addAttributeValue(operationalAttributes, attrType, attrName, attrValue);
       }
       else
       {
-        List<Attribute> attrList = userAttributes.get(attrType);
-        if ((attrList == null) || attrList.isEmpty())
-        {
-          AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
-          builder.add(attrValue);
-          attrList = new ArrayList<Attribute>(1);
-          attrList.add(builder.toAttribute());
-          userAttributes.put(attrType, attrList);
-        }
-        else
-        {
-          AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
-          builder.add(attrValue);
-          attrList.set(0, builder.toAttribute());
-        }
+        addAttributeValue(userAttributes, attrType, attrName, attrValue);
       }
     }
 
@@ -3730,7 +3668,50 @@ public final class StaticUtils
     return new Entry(dn, objectClasses, userAttributes, operationalAttributes);
   }
 
+  private static String getObjectClassName(RDN rdn, int numAVAs)
+  {
+    if (numAVAs == 1)
+    {
+      final AttributeType attrType = rdn.getAttributeType(0);
+      if (attrType.hasName(ATTR_C))
+      {
+        return OC_COUNTRY;
+      }
+      else if (attrType.hasName(ATTR_DC))
+      {
+        return OC_DOMAIN;
+      }
+      else if (attrType.hasName(ATTR_O))
+      {
+        return OC_ORGANIZATION;
+      }
+      else if (attrType.hasName(ATTR_OU))
+      {
+        return OC_ORGANIZATIONAL_UNIT_LC;
+      }
+    }
+    return OC_UNTYPED_OBJECT_LC;
+  }
 
+  private static void addAttributeValue(LinkedHashMap<AttributeType, List<Attribute>> attrs,
+      AttributeType attrType, String attrName, ByteString attrValue)
+  {
+    List<Attribute> attrList = attrs.get(attrType);
+    if ((attrList == null) || attrList.isEmpty())
+    {
+      AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
+      builder.add(attrValue);
+      attrList = new ArrayList<Attribute>(1);
+      attrList.add(builder.toAttribute());
+      attrs.put(attrType, attrList);
+    }
+    else
+    {
+      AttributeBuilder builder = new AttributeBuilder(attrList.get(0));
+      builder.add(attrValue);
+      attrList.set(0, builder.toAttribute());
+    }
+  }
 
   /**
    * Retrieves a user-friendly string that indicates the length of time (in
