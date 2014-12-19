@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.pluggable;
 
-
-
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -130,8 +128,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
-  VLVIndex(BackendVLVIndexCfg config, State state, Storage env,
-                  EntryContainer entryContainer, ReadableStorage txn)
+  VLVIndex(BackendVLVIndexCfg config, State state, Storage env, EntryContainer entryContainer, WriteableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
     super(new TreeName(entryContainer.getDatabasePrefix(), "vlv." + config.getName()), env, entryContainer);
@@ -159,7 +156,7 @@ public class VLVIndex extends DatabaseContainer
     {
       // If there are no entries in the entry container then there
       // is no reason why this vlvIndex can't be upgraded to trusted.
-      setTrusted(null, true);
+      setTrusted(txn, true);
     }
 
     this.count = new AtomicInteger(0);
