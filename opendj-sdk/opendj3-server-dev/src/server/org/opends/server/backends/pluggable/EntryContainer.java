@@ -1092,7 +1092,36 @@ public class EntryContainer
     }
     catch (Exception e)
     {
-      throw new StorageRuntimeException(e);
+      throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
+    }
+  }
+
+  private <E1 extends Exception, E2 extends Exception>
+      void throwAllowedExceptionTypes(Exception e, Class<E1> clazz1, Class<E2> clazz2)
+          throws E1, E2
+  {
+    throwIfPossible(e, clazz1, clazz2);
+    if (e.getCause() != null)
+    {
+      throwIfPossible(e.getCause(), clazz1, clazz2);
+    }
+    else if (e instanceof StorageRuntimeException)
+    {
+      throw (StorageRuntimeException) e;
+    }
+    throw new StorageRuntimeException(e);
+  }
+
+  private <E1 extends Exception, E2 extends Exception> void throwIfPossible(final Throwable cause, Class<E1> clazz1,
+      Class<E2> clazz2) throws E1, E2
+  {
+    if (clazz1.isAssignableFrom(cause.getClass()))
+    {
+      throw clazz1.cast(cause);
+    }
+    else if (clazz2.isAssignableFrom(cause.getClass()))
+    {
+      throw clazz2.cast(cause);
     }
   }
 

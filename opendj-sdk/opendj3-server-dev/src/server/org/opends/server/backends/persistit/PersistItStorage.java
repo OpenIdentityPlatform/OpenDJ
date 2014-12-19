@@ -259,7 +259,7 @@ public final class PersistItStorage implements Storage {
         @Override
         public void truncateTree(TreeName treeName) {
             try {
-                volume.truncate();
+                getExchange(treeName).removeAll();
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
             }
