@@ -197,10 +197,10 @@ public class LocalBackendWorkflowElement
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The backend's baseDN mapped by this object. */
-  private DN baseDN;
+  private final DN baseDN;
 
   /** the backend associated with the local workflow element. */
-  private Backend<?> backend;
+  private final Backend<?> backend;
 
   /** the set of local backend workflow elements registered with the server. */
   private static TreeMap<DN, LocalBackendWorkflowElement> registeredLocalBackends =
@@ -210,14 +210,14 @@ public class LocalBackendWorkflowElement
   private static final Object registeredLocalBackendsLock = new Object();
 
   /**
-   * Initializes a new instance of the local backend workflow element.
+   * Creates a new instance of the local backend workflow element.
    *
    * @param baseDN
    *          the backend's baseDN mapped by this object
    * @param backend
    *          the backend associated to that workflow element
    */
-  private void initialize(DN baseDN, Backend<?> backend)
+  public LocalBackendWorkflowElement(DN baseDN, Backend<?> backend)
   {
     this.baseDN = baseDN;
     this.backend  = backend;
@@ -236,16 +236,6 @@ public class LocalBackendWorkflowElement
   }
 
   /**
-   * Performs any finalization that might be required when this workflow element
-   * is unloaded. No action is taken in the default implementation.
-   */
-  public void finalizeWorkflowElement()
-  {
-    this.baseDN = null;
-    this.backend = null;
-  }
-
-  /**
    * Creates and registers a local backend with the server.
    *
    * @param baseDN
@@ -260,9 +250,7 @@ public class LocalBackendWorkflowElement
     LocalBackendWorkflowElement localBackend = registeredLocalBackends.get(baseDN);
     if (localBackend == null)
     {
-      localBackend = new LocalBackendWorkflowElement();
-      localBackend.initialize(baseDN, backend);
-
+      localBackend = new LocalBackendWorkflowElement(baseDN, backend);
       registerLocalBackend(localBackend);
     }
     return localBackend;
@@ -281,8 +269,6 @@ public class LocalBackendWorkflowElement
     deregisterLocalBackend(baseDN);
   }
 
-
-
   /**
    * Removes all the local backends that were registered with the server.
    * This function is intended to be called when the server is shutting down.
@@ -297,8 +283,6 @@ public class LocalBackendWorkflowElement
       }
     }
   }
-
-
 
   /**
    * Removes all the disallowed request controls from the provided operation.
