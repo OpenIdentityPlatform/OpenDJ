@@ -141,7 +141,8 @@ public abstract class DatabaseContainer implements Closeable
    */
   protected ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
   {
-    ByteString value = isRMW ? txn.read(treeName, key) : txn.getRMW(treeName, key);
+    ByteString value = isRMW ? txn.getRMW(treeName, key) : txn.read(treeName,
+        key);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(value != null, treeName, txn, key, value));
