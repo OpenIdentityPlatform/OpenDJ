@@ -554,7 +554,7 @@ public class DN2URI extends DatabaseContainer
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
     {
-      containsReferrals = containsReferrals(null);
+      containsReferrals = containsReferrals(txn);
     }
 
     if (containsReferrals == ConditionResult.FALSE)
