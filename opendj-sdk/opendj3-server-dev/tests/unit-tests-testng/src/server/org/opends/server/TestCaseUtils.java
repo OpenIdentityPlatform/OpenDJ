@@ -878,23 +878,48 @@ public final class TestCaseUtils {
    */
   public static void clearJEBackend(String backendId, String baseDN) throws Exception
   {
-    final BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(backendId);
-    final RootContainer rootContainer = backend.getRootContainer();
-    if (rootContainer != null)
+    Backend<?> b = DirectoryServer.getBackend(backendId);
+    if (clearBackend(b) && baseDN != null)
     {
-      for (EntryContainer ec : rootContainer.getEntryContainers())
-      {
-        ec.clear();
-        assertEquals(ec.getHighestEntryID().longValue(), 0L);
-      }
-      rootContainer.resetNextEntryID();
+      Entry e = createEntry(DN.valueOf(baseDN));
+      DirectoryServer.getBackend(backendId).addEntry(e, null);
+    }
+  }
 
-      if (baseDN != null)
+  private static boolean clearBackend(Backend<?> b)
+  {
+    if (b instanceof BackendImpl)
+    {
+      final BackendImpl backend = (BackendImpl) b;
+      final RootContainer rootContainer = backend.getRootContainer();
+      if (rootContainer != null)
       {
-        Entry e = createEntry(DN.valueOf(baseDN));
-        DirectoryServer.getBackend(backendId).addEntry(e, null);
+        for (EntryContainer ec : rootContainer.getEntryContainers())
+        {
+          ec.clear();
+          assertEquals(ec.getHighestEntryID().longValue(), 0L);
+        }
+        rootContainer.resetNextEntryID();
+        return true;
       }
     }
+    else if (b instanceof org.opends.server.backends.pluggable.BackendImpl)
+    {
+      final org.opends.server.backends.pluggable.BackendImpl backend =
+          (org.opends.server.backends.pluggable.BackendImpl) b;
+      final org.opends.server.backends.pluggable.RootContainer rootContainer = backend.getRootContainer();
+      if (rootContainer != null)
+      {
+        for (org.opends.server.backends.pluggable.EntryContainer ec : rootContainer.getEntryContainers())
+        {
+          ec.clear();
+          // assertEquals(ec.getHighestEntryID().longValue(), 0L);
+        }
+        rootContainer.resetNextEntryID();
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
