@@ -182,13 +182,13 @@ public abstract class Driver {
         /** Get an inherited property value. */
         @SuppressWarnings("unchecked")
         private Collection<T> getInheritedProperty(ManagedObjectPath<?, ?> target,
-                AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+                AbstractManagedObjectDefinition<?, ?> definition, String propertyName) {
             // First check that the requested type of managed object
             // corresponds to the path.
-            AbstractManagedObjectDefinition<?, ?> supr = target.getManagedObjectDefinition();
-            if (!supr.isParentOf(d)) {
-                throw PropertyException.defaultBehaviorException(nextProperty, new DefinitionDecodingException(supr,
-                    Reason.WRONG_TYPE_INFORMATION));
+            AbstractManagedObjectDefinition<?, ?> actual = target.getManagedObjectDefinition();
+            if (!definition.isParentOf(actual)) {
+                throw PropertyException.defaultBehaviorException(nextProperty,
+                        new DefinitionDecodingException(actual, Reason.WRONG_TYPE_INFORMATION));
             }
 
             // Save the current property in case of recursion.
@@ -201,7 +201,7 @@ public abstract class Driver {
                     // FIXME: we use the definition taken from the default
                     // behavior here when we should really use the exact
                     // definition of the component being created.
-                    PropertyDefinition<?> pdTmp = d.getPropertyDefinition(propertyName);
+                    PropertyDefinition<?> pdTmp = definition.getPropertyDefinition(propertyName);
                     pd2 = pd1.getClass().cast(pdTmp);
                 } catch (IllegalArgumentException e) {
                     throw new PropertyNotFoundException(propertyName);
