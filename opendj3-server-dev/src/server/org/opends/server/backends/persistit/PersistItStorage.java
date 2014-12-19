@@ -31,8 +31,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -46,7 +44,6 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
-import org.opends.server.types.DN;
 
 import com.persistit.Exchange;
 import com.persistit.Key;
@@ -70,7 +67,7 @@ public final class PersistItStorage implements Storage {
         @Override
         public void createTree(TreeName treeName) {
             try {
-                final Tree tree = getVolume(treeName).getTree(treeName.toString(), true);
+                final Tree tree = volume.getTree(treeName.toString(), true);
                 trees.put(treeName, tree);
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
@@ -239,7 +236,7 @@ public final class PersistItStorage implements Storage {
         @Override
         public void truncateTree(TreeName treeName) {
             try {
-                getVolume(treeName).truncate();
+                volume.truncate();
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
             }
@@ -356,22 +353,16 @@ public final class PersistItStorage implements Storage {
     }
 
 
-
     private File backendDirectory;
     private PersistitBackendCfg config;
     private Persistit db;
-    private final ConcurrentMap<String, Volume> volumes = new ConcurrentHashMap<String, Volume>();
+    private Volume volume;
     private Properties properties;
 
-    private Volume getVolume(TreeName treeName) {
-        return volumes.get(treeName.getBaseDN());
-    }
-
     @Override
-  public void initialize(PersistitBackendCfg cfg)
-  {
-    this.config = cfg;
-    this.backendDirectory = new File(getFileForPath(config.getDBDirectory()),
+    public void initialize(PersistitBackendCfg cfg) {
+        this.config = cfg;
+        this.backendDirectory = new File(getFileForPath(config.getDBDirectory()),
         config.getBackendId());
 
         properties = new Properties();
@@ -380,16 +371,13 @@ public final class PersistItStorage implements Storage {
         properties.setProperty("logfile", "${logpath}/dj_${timestamp}.log");
         properties.setProperty("buffer.count.16384", "64K");
         properties.setProperty("journalpath", "${datapath}/dj_journal");
-        int i = 1;
-        for (DN baseDN : config.getBaseDN()) {
-            // TODO use VolumeSpecification  Configuration.setVolumeList()?
-            properties.setProperty("volume." + i++,
-                "${datapath}/" + toSuffixName(baseDN.toString())
-                    + ",create,pageSize:16K"
-                    + ",initialSize:50M"
-                    + ",extensionSize:1M"
-                    + ",maximumSize:10G");
-        }
+
+        properties.setProperty("volume.1",
+            "${datapath}/dj" 
+                + ",create,pageSize:16K"
+                + ",initialSize:50M"
+                + ",extensionSize:1M"
+                + ",maximumSize:10G");
     }
 
     /**
@@ -404,10 +392,7 @@ public final class PersistItStorage implements Storage {
         try {
             db = new Persistit(properties);
             db.initialize();
-            for (DN baseDN : config.getBaseDN()) {
-                final String volumeName = toSuffixName(baseDN.toString());
-                volumes.put(volumeName, db.loadVolume(volumeName));
-            }
+            volume = db.loadVolume("dj");
         } catch (PersistitException e) {
             throw new StorageRuntimeException(e);
         }
@@ -497,7 +482,7 @@ public final class PersistItStorage implements Storage {
     }
 
     private Exchange getExchange0(TreeName treeName, boolean create) throws PersistitException {
-        return db.getExchange(getVolume(treeName), treeName.toString(), create);
+        return db.getExchange(volume, treeName.toString(), create);
     }
 
     @Override
