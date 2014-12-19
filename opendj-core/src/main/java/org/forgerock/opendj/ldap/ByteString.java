@@ -215,6 +215,32 @@ public final class ByteString implements ByteSequence {
     }
 
     /**
+     * Returns a byte string containing a subsequence of the contents of the
+     * provided byte array.
+     * <p>
+     * This method differs from {@link #wrap(byte[], int, int)} in that it
+     * defensively copies the provided byte array.
+     *
+     * @param bytes
+     *            The byte array to use.
+     * @param offset
+     *            The offset of the byte array to be used; must be non-negative
+     *            and no larger than {@code bytes.length} .
+     * @param length
+     *            The length of the byte array to be used; must be non-negative
+     *            and no larger than {@code bytes.length - offset}.
+     * @return A byte string containing a copy of the subsequence of the
+     *         provided byte array.
+     */
+    public static ByteString valueOf(final byte[] bytes, final int offset, final int length) {
+        checkArrayBounds(bytes, offset, length);
+        if (offset == length) {
+            return EMPTY;
+        }
+        return wrap(Arrays.copyOfRange(bytes, offset, offset + length));
+    }
+
+    /**
      * Returns a byte string containing the UTF-8 encoded bytes of the provided
      * char array.
      *
