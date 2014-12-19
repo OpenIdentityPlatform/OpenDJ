@@ -175,8 +175,9 @@ public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCas
             { "this is a string", "string*a*is*this", ConditionResult.FALSE },
             { "this is a string", "*\\00", ConditionResult.FALSE },
             { "this is a string", gen() + "*", ConditionResult.FALSE },
-            // initial longer than value
+            // initial substring longer than value
             { "tt", "this*", ConditionResult.FALSE },
+            // final substring longer than value
             { "tt", "*this", ConditionResult.FALSE },
         };
     }
