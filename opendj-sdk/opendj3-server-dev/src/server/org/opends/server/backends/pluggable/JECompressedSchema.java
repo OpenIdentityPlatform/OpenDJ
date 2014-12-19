@@ -42,10 +42,12 @@ import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
+import org.opends.server.backends.pluggable.spi.TreeName;
+import org.opends.server.backends.pluggable.spi.WriteOperation;
+import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.JebMessages.*;
 
@@ -62,12 +64,13 @@ public final class JECompressedSchema extends CompressedSchema
   /** The name of the database used to store compressed object class set definitions. */
   private static final String DB_NAME_OC = "compressed_object_classes";
 
-  /** The compressed attribute description schema database. */
-  private Database adDatabase;
+  /** The compressed attribute description schema tree. */
+  private static final TreeName adTreeName = new TreeName("compressed_schema", DB_NAME_AD);
+  /** The compressed object class set schema tree. */
+  private static final TreeName ocTreeName = new TreeName("compressed_schema", DB_NAME_OC);
+
   /** The environment in which the databases are held. */
-  private Storage environment;
-  /** The compressed object class set schema database. */
-  private Database ocDatabase;
+  private Storage storage;
 
   private final ByteStringBuilder storeAttributeWriterBuffer = new ByteStringBuilder();
   private final ASN1Writer storeAttributeWriter = ASN1.getWriter(storeAttributeWriterBuffer);
@@ -79,9 +82,10 @@ public final class JECompressedSchema extends CompressedSchema
   /**
    * Creates a new instance of this JE compressed schema manager.
    *
-   * @param environment
+   * @param storage
    *          A reference to the database environment in which the databases
    *          will be held.
+   * @param txn
    * @throws StorageRuntimeException
    *           If a database problem occurs while loading the compressed schema
    *           definitions from the database.
@@ -89,11 +93,11 @@ public final class JECompressedSchema extends CompressedSchema
    *           If an error occurs while loading and processing the compressed
    *           schema definitions.
    */
-  public JECompressedSchema(final Storage environment)
+  public JECompressedSchema(final Storage storage, WriteableStorage txn)
       throws StorageRuntimeException, InitializationException
   {
-    this.environment = environment;
-    load();
+    this.storage = storage;
+    load(txn);
   }
 
 
@@ -104,28 +108,11 @@ public final class JECompressedSchema extends CompressedSchema
    */
   public void close()
   {
-    close0(adDatabase);
-    close0(ocDatabase);
+    storage.closeTree(adTreeName);
+    storage.closeTree(ocTreeName);
 
-    adDatabase = null;
-    ocDatabase = null;
-    environment = null;
+    storage = null;
   }
-
-  private void close0(Database database)
-  {
-    try
-    {
-      database.sync();
-    }
-    catch (final Exception e)
-    {
-      // Ignore.
-    }
-    StaticUtils.close(database);
-  }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -143,7 +130,7 @@ public final class JECompressedSchema extends CompressedSchema
         storeAttributeWriter.writeOctetString(option);
       }
       storeAttributeWriter.writeEndSequence();
-      store(adDatabase, encodedAttribute, storeAttributeWriterBuffer);
+      store(adTreeName, encodedAttribute, storeAttributeWriterBuffer);
     }
     catch (final IOException e)
     {
@@ -167,7 +154,7 @@ public final class JECompressedSchema extends CompressedSchema
         storeObjectClassesWriter.writeOctetString(ocName);
       }
       storeObjectClassesWriter.writeEndSequence();
-      store(ocDatabase, encodedObjectClasses, storeObjectClassesWriterBuffer);
+      store(ocTreeName, encodedObjectClasses, storeObjectClassesWriterBuffer);
     }
     catch (final IOException e)
     {
@@ -186,17 +173,15 @@ public final class JECompressedSchema extends CompressedSchema
    * @throws InitializationException
    *           If an error occurs while loading and processing the definitions.
    */
-  private void load() throws StorageRuntimeException, InitializationException
+  private void load(WriteableStorage txn) throws StorageRuntimeException, InitializationException
   {
-    final DatabaseConfig dbConfig = JEBUtils.toDatabaseConfigNoDuplicates(environment);
-
-    adDatabase = environment.openDatabase(null, DB_NAME_AD, dbConfig);
-    ocDatabase = environment.openDatabase(null, DB_NAME_OC, dbConfig);
+    txn.openTree(adTreeName);
+    txn.openTree(ocTreeName);
 
     // Cursor through the object class database and load the object class set
     // definitions. At the same time, figure out the highest token value and
     // initialize the object class counter to one greater than that.
-    final Cursor ocCursor = ocDatabase.openCursor(null);
+    final Cursor ocCursor = txn.openCursor(ocTreeName);
     try
     {
       while (ocCursor.next())
@@ -226,7 +211,7 @@ public final class JECompressedSchema extends CompressedSchema
 
     // Cursor through the attribute description database and load the attribute
     // set definitions.
-    final Cursor adCursor = adDatabase.openCursor(null);
+    final Cursor adCursor = txn.openCursor(adTreeName);
     try
     {
       while (adCursor.next())
@@ -256,45 +241,42 @@ public final class JECompressedSchema extends CompressedSchema
     }
   }
 
-
-
-  private void store(final Database database, final byte[] key, final ByteStringBuilder value) throws DirectoryException
+  private void store(final TreeName treeName, final byte[] key, final ByteStringBuilder value)
+      throws DirectoryException
   {
-    if (!putNoOverwrite(database, key, value))
+    if (!putNoOverwrite(treeName, key, value))
     {
       final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_MULTIPLE_FAILURES.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
     }
   }
 
-  private boolean putNoOverwrite(final Database database, final byte[] key, final ByteStringBuilder value)
+  private boolean putNoOverwrite(final TreeName treeName, final byte[] key, final ByteStringBuilder value)
       throws DirectoryException
   {
     final ByteString keyEntry = ByteString.wrap(key);
     final ByteString valueEntry = ByteString.wrap(value.getBackingArray(), 0, value.length());
-    for (int i = 0; i < 3; i++)
+    try
     {
-      try
+      storage.write(new WriteOperation()
       {
-        final OperationStatus status = database.putNoOverwrite(null, keyEntry, valueEntry);
-        if (status != SUCCESS)
+        @Override
+        public void run(WriteableStorage txn) throws Exception
         {
-          final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(status);
-          throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
+          if (!txn.putIfAbsent(treeName, keyEntry, valueEntry))
+          {
+            final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_STATUS.get(false);
+            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m);
+          }
         }
-        return true;
-      }
-      catch (final LockConflictException ce)
-      {
-        continue;
-      }
-      catch (final StorageRuntimeException de)
-      {
-        final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(de.getMessage());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, de);
-      }
+      });
+      return true;
     }
-    return false;
+    catch (final Exception e)
+    {
+      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_STORE_EX.get(e.getMessage());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+    }
   }
 
 }

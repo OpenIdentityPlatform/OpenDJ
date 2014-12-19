@@ -44,7 +44,6 @@ import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
-import org.opends.server.core.DefaultCompressedSchema;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -94,9 +93,8 @@ public class RootContainer
   /** The cached value of the next entry identifier to be assigned. */
   private AtomicLong nextid = new AtomicLong(1);
 
-  // FIXME JNR Switch back to a database persisted implementation of CompressedSchema
   /** The compressed schema manager for this backend. */
-  private CompressedSchema compressedSchema;
+  private JECompressedSchema compressedSchema;
 
   private File backendDirectory;
 
@@ -320,7 +318,6 @@ public class RootContainer
       }
     }
 
-    compressedSchema = new DefaultCompressedSchema();
     try
     {
       storage = new PersistItStorage();
@@ -331,6 +328,7 @@ public class RootContainer
         @Override
         public void run(WriteableStorage txn) throws Exception
         {
+          compressedSchema = new JECompressedSchema(storage, txn);
           openAndRegisterEntryContainers(txn, config.getBaseDN());
         }
       });
@@ -535,8 +533,7 @@ public class RootContainer
       }
     }
 
-    // FIXME JNR call close() for a DB stored compressed schema
-    // compressedSchema.close();
+    compressedSchema.close();
     config.removePersistitChangeListener(this);
 
     if (storage != null)
