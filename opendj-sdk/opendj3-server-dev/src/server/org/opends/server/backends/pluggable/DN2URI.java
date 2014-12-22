@@ -580,7 +580,6 @@ public class DN2URI extends DatabaseContainer
     suffix.append((byte) 0x00);
     end.append((byte) 0x01);
 
-    ByteSequence startKey = suffix;
     try
     {
       final Cursor cursor = txn.openCursor(treeName);
@@ -588,23 +587,15 @@ public class DN2URI extends DatabaseContainer
       {
         // Initialize the cursor very close to the starting value then
         // step forward until we pass the ending value.
-        boolean success = cursor.positionToKey(startKey);
-        while (success)
+        boolean success = cursor.positionToKey(suffix);
+        while (success && cursor.getKey().compareTo(end) < 0)
         {
-          ByteString key = cursor.getKey();
-          int cmp = ByteSequence.COMPARATOR.compare(key, end);
-          if (cmp >= 0)
-          {
-            // We have gone past the ending value.
-            break;
-          }
-
           // We have found a subordinate referral.
-          DN dn = JebFormat.dnFromDNKey(key, entryContainer.getBaseDN());
+          DN dn = JebFormat.dnFromDNKey(cursor.getKey(), entryContainer.getBaseDN());
 
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
-              && JebFormat.findDNKeyParent(key) != baseDN.length())
+              && JebFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
           {
             continue;
           }
