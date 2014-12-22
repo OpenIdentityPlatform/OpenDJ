@@ -556,7 +556,7 @@ public class RootContainer
       // is filled.
       try
       {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("Not implemented exception");
       }
       catch (StorageRuntimeException e)
       {
