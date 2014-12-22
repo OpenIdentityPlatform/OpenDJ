@@ -1737,7 +1737,8 @@ public class EntryContainer
               boolean success = cursor.positionToKeyOrNext(startKey);
 
               // Step forward until the key is greater than the starting value.
-              while (success && ByteSequence.COMPARATOR.compare(startKey, suffix) <= 0)
+              while (success
+                  && ByteSequence.COMPARATOR.compare(cursor.getKey(), suffix) <= 0)
               {
                 success = cursor.next();
               }
