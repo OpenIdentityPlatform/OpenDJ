@@ -26,6 +26,13 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,13 +64,6 @@ import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.RuntimeInformation;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Wrapper class for the JE environment. Root container holds all the entry
@@ -126,12 +126,10 @@ public class RootContainer
     return storage;
   }
 
-  LDIFImportResult importLDIF(LDIFImportConfig importConfig)
-      throws DirectoryException
+  LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
     RuntimeInformation.logInfo();
-    if (!importConfig.appendToExistingData()
-        && (importConfig.clearBackend() || config.getBaseDN().size() <= 1))
+    if (importConfig.clearBackend())
     {
       removeFiles();
     }
@@ -195,12 +193,18 @@ public class RootContainer
             switch (e.getResultCode().asEnum())
             {
             case ENTRY_ALREADY_EXISTS:
-              // TODO: support replace of existing entries.
-              reader.rejectLastEntry(WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+              if (importConfig.replaceExistingEntries())
+              {
+                final Entry oldEntry = ec.getEntry(entry.getName());
+                ec.replaceEntry(oldEntry, entry, null);
+              }
+              else
+              {
+                reader.rejectLastEntry(WARN_JEB_IMPORT_ENTRY_EXISTS.get());
+              }
               break;
             case NO_SUCH_OBJECT:
-              reader.rejectLastEntry(ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(dn
-                  .parent()));
+              reader.rejectLastEntry(ERR_JEB_IMPORT_PARENT_NOT_FOUND.get(dn.parent()));
               break;
             default:
               // Not sure why it failed.
@@ -240,9 +244,8 @@ public class RootContainer
   {
     if (!backendDirectory.isDirectory())
     {
-      LocalizableMessage message = ERR_JEB_DIRECTORY_INVALID
-          .get(backendDirectory.getPath());
-      throw new StorageRuntimeException(message.toString());
+      LocalizableMessage msg = ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+      throw new StorageRuntimeException(msg.toString());
     }
 
     try
