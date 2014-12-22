@@ -241,7 +241,7 @@ public class Index extends DatabaseContainer
     {
       EntryIDSet entryIDList = computeEntryIDList(key, value, deletedIDs, addedIDs);
       ByteString after = entryIDList.toByteString();
-      if (after != null)
+      if (!after.isEmpty())
       {
         put(txn, key, after);
       }
@@ -455,7 +455,7 @@ public class Index extends DatabaseContainer
        throws StorageRuntimeException
   {
     ByteString value = entryIDList.toByteString();
-    if (value != null)
+    if (!value.isEmpty())
     {
       if (!entryIDList.isDefined())
       {

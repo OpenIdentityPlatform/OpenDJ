@@ -31,7 +31,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 /**
  * Represents a set of Entry IDs.  It can represent a set where the IDs are
@@ -90,10 +92,8 @@ public class EntryIDSet implements Iterable<EntryID>
     if (bytes == null)
     {
       values = new long[0];
-      return;
     }
-
-    if (bytes.length() == 0)
+    else if (bytes.length() == 0)
     {
       // Entry limit has exceeded and there is no encoded undefined set size.
       undefinedSize = Long.MAX_VALUE;
@@ -101,15 +101,28 @@ public class EntryIDSet implements Iterable<EntryID>
     else if ((bytes.byteAt(0) & 0x80) == 0x80)
     {
       // Entry limit has exceeded and there is an encoded undefined set size.
-      undefinedSize =
-          JebFormat.entryIDUndefinedSizeFromDatabase(bytes.toByteArray());
+      undefinedSize = bytes.length() == 8
+              ? bytes.toLong() & Long.MAX_VALUE // remove top bit
+              : Long.MAX_VALUE;
     }
     else
     {
       // Seems like entry limit has not been exceeded and the bytes is a
       // list of entry IDs.
-      values = JebFormat.entryIDListFromDatabase(bytes);
+      values = decodeEntryIDList(bytes);
     }
+  }
+
+  private long[] decodeEntryIDList(ByteString bytes)
+  {
+    final ByteSequenceReader reader = bytes.asReader();
+    final int count = bytes.length() / 8;
+    final long[] entryIDList = new long[count];
+    for (int i = 0; i < count; i++)
+    {
+      entryIDList[i] = reader.getLong();
+    }
+    return entryIDList;
   }
 
   /**
@@ -285,13 +298,19 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   public ByteString toByteString()
   {
-    if(isDefined())
+    if (isDefined())
     {
-      return ByteString.wrap(JebFormat.entryIDListToDatabase(values));
+      final ByteStringBuilder builder = new ByteStringBuilder(8 * values.length);
+      for (int i = 0; i < values.length; i++)
+      {
+        builder.append(values[i]);
+      }
+      return builder.toByteString();
     }
     else
     {
-      return ByteString.wrap(JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize));
+      // Set top bit.
+      return ByteString.valueOf(undefinedSize | Long.MIN_VALUE);
     }
   }
 

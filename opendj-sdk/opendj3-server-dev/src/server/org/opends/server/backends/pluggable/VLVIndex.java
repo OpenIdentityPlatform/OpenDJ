@@ -230,13 +230,19 @@ public class VLVIndex extends DatabaseContainer
     {
       while (cursor.next())
       {
-        count.getAndAdd(SortValuesSet.getEncodedSize(cursor.getValue()));
+        count.getAndAdd(getEncodedSize(cursor.getValue()));
       }
     }
     finally
     {
       cursor.close();
     }
+  }
+
+  // Matches encoding from SortValuesSet.
+  private int getEncodedSize(ByteString bytes)
+  {
+    return bytes.toInt();
   }
 
   /**
@@ -826,7 +832,7 @@ public class VLVIndex extends DatabaseContainer
               }
               else
               {
-                targetOffset += SortValuesSet.getEncodedSize(cursor.getValue());
+                targetOffset += getEncodedSize(cursor.getValue());
               }
             }
 
@@ -1090,15 +1096,13 @@ public class VLVIndex extends DatabaseContainer
       }
       else
       {
-        byte[] valueBytes = new byte[valueLength];
-        System.arraycopy(keyBytes, vBytesPos, valueBytes, 0, valueLength);
-        attributeValues[i] = ByteString.wrap(valueBytes);
+        attributeValues[i] = keyBytes.subSequence(vBytesPos, vBytesPos + valueLength);
       }
 
       vBytesPos += valueLength;
     }
 
-    final long id = JebFormat.toLong(keyBytes.toByteArray(), vBytesPos, keyBytes.length());
+    final long id = keyBytes.subSequence(vBytesPos, keyBytes.length()).toLong();
     return new SortValues(new EntryID(id), attributeValues, sortOrder);
   }
 

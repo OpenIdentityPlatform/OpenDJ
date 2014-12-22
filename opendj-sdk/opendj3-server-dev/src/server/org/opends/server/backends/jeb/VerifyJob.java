@@ -592,7 +592,6 @@ public class VerifyJob
 
         try
         {
-          JebFormat.entryIDListFromDatabase(data.getData());
           entryIDList = new EntryIDSet(key.getData(), data.getData());
         }
         catch (Exception e)
@@ -723,7 +722,6 @@ public class VerifyJob
         EntryIDSet entryIDList;
         try
         {
-          JebFormat.entryIDListFromDatabase(data.getData());
           entryIDList = new EntryIDSet(key.getData(), data.getData());
         }
         catch (Exception e)
@@ -1009,7 +1007,6 @@ public class VerifyJob
         EntryIDSet entryIDList;
         try
         {
-          JebFormat.entryIDListFromDatabase(data.getData());
           entryIDList = new EntryIDSet(key.getData(), data.getData());
         }
         catch (Exception e)
