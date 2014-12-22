@@ -519,9 +519,7 @@ public class Index extends DatabaseContainer
           success = cursor.positionToKeyOrNext(lower);
 
           // Advance past the lower bound if necessary.
-          if (success
-              && !lowerIncluded
-              && ByteSequence.COMPARATOR.compare(cursor.getKey(), lower) == 0)
+          if (success && !lowerIncluded && cursor.getKey().equals(lower))
           {
             // Do not include the lower value.
             success = cursor.next();
@@ -544,12 +542,13 @@ public class Index extends DatabaseContainer
           // Check against the upper bound if necessary
           if (upper.length() > 0)
           {
-            int cmp = ByteSequence.COMPARATOR.compare(cursor.getKey(), upper);
+            int cmp = cursor.getKey().compareTo(upper);
             if (cmp > 0 || (cmp == 0 && !upperIncluded))
             {
               break;
             }
           }
+
           EntryIDSet list = new EntryIDSet(cursor.getKey(), cursor.getValue());
           if (!list.isDefined())
           {

@@ -1224,8 +1224,6 @@ public class EntryContainer
       begin = suffix;
     }
 
-    ByteSequence startKey = begin;
-
     int lookthroughCount = 0;
     int lookthroughLimit = searchOperation.getClientConnection().getLookthroughLimit();
 
@@ -1235,30 +1233,21 @@ public class EntryContainer
       try
       {
         // Initialize the cursor very close to the starting value.
-        boolean success = cursor.positionToKeyOrNext(startKey);
+        boolean success = cursor.positionToKeyOrNext(begin);
 
         // Step forward until we pass the ending value.
-        while (success)
+        while (success && cursor.getKey().compareTo(end) < 0)
         {
-          if(lookthroughLimit > 0 && lookthroughCount > lookthroughLimit)
+          if (lookthroughLimit > 0 && lookthroughCount > lookthroughLimit)
           {
-            //Lookthrough limit exceeded
+            // Lookthrough limit exceeded
             searchOperation.setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
-            searchOperation.appendErrorMessage(
-                NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+            searchOperation.appendErrorMessage(NOTE_JEB_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
             return;
-          }
-          int cmp = ByteSequence.COMPARATOR.compare(cursor.getKey(), end);
-          if (cmp >= 0)
-          {
-            // We have gone past the ending value.
-            break;
           }
 
           // We have found a subordinate entry.
-
           EntryID entryID = new EntryID(cursor.getValue());
-
           boolean isInScope =
               searchScope != SearchScope.SINGLE_LEVEL
                   // Check if this entry is an immediate child.
@@ -1728,31 +1717,13 @@ public class EntryContainer
 
             int subordinateEntriesDeleted = 0;
 
-            ByteSequence startKey = suffix;
-
             Cursor cursor = dn2id.openCursor(txn);
             try
             {
-              // Initialize the cursor very close to the starting value.
-              boolean success = cursor.positionToKeyOrNext(startKey);
-
-              // Step forward until the key is greater than the starting value.
-              while (success
-                  && ByteSequence.COMPARATOR.compare(cursor.getKey(), suffix) <= 0)
-              {
-                success = cursor.next();
-              }
-
               // Step forward until we pass the ending value.
-              while (success)
+              boolean success = cursor.positionToKeyOrNext(suffix);
+              while (success && cursor.getKey().compareTo(end) < 0)
               {
-                int cmp = ByteSequence.COMPARATOR.compare(cursor.getKey(), end);
-                if (cmp >= 0)
-                {
-                  // We have gone past the ending value.
-                  break;
-                }
-
                 // We have found a subordinate entry.
                 if (!isSubtreeDelete)
                 {
@@ -2030,53 +2001,52 @@ public class EntryContainer
   private Entry getEntry0(ReadableStorage txn, final DN entryDN) throws StorageRuntimeException, DirectoryException
   {
     final EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-    Entry entry = null;
 
     // Try the entry cache first.
     if (entryCache != null)
     {
-      entry = entryCache.getEntry(entryDN);
+      final Entry entry = entryCache.getEntry(entryDN);
+      if (entry != null)
+      {
+        return entry;
+      }
     }
 
-    if (entry == null)
+    try
     {
-      try
+      // Read dn2id.
+      EntryID entryID = dn2id.get(txn, entryDN, false);
+      if (entryID == null)
       {
-        // Read dn2id.
-        EntryID entryID = dn2id.get(txn, entryDN, false);
-        if (entryID == null)
-        {
-          // The entryDN does not exist.
-          // Check for referral entries above the target entry.
-          dn2uri.targetEntryReferrals(txn, entryDN, null);
-          return null;
-        }
-
-        // Read id2entry.
-        Entry entry2 = id2entry.get(txn, entryID, false);
-        if (entry2 == null)
-        {
-          // The entryID does not exist.
-          throw new DirectoryException(getServerErrorResultCode(), ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID));
-        }
-
-        // Put the entry in the cache making sure not to overwrite
-        // a newer copy that may have been inserted since the time
-        // we read the cache.
-        if (entryCache != null)
-        {
-          entryCache.putEntryIfAbsent(entry2, backend, entryID.longValue());
-        }
-        return entry2;
+        // The entryDN does not exist.
+        // Check for referral entries above the target entry.
+        dn2uri.targetEntryReferrals(txn, entryDN, null);
+        return null;
       }
-      catch (Exception e)
+
+      // Read id2entry.
+      final Entry entry = id2entry.get(txn, entryID, false);
+      if (entry == null)
       {
-        // it is not very clean to specify twice the same exception but it saves me some code for now
-        throwAllowedExceptionTypes(e, DirectoryException.class, DirectoryException.class);
+        // The entryID does not exist.
+        throw new DirectoryException(getServerErrorResultCode(), ERR_JEB_MISSING_ID2ENTRY_RECORD.get(entryID));
       }
+
+      // Put the entry in the cache making sure not to overwrite
+      // a newer copy that may have been inserted since the time
+      // we read the cache.
+      if (entryCache != null)
+      {
+        entryCache.putEntryIfAbsent(entry, backend, entryID.longValue());
+      }
+      return entry;
     }
-
-    return entry;
+    catch (Exception e)
+    {
+      // it is not very clean to specify twice the same exception but it saves me some code for now
+      throwAllowedExceptionTypes(e, DirectoryException.class, DirectoryException.class);
+      return null; // unreachable
+    }
   }
 
   /**
@@ -2337,32 +2307,15 @@ public class EntryContainer
             suffix.append((byte) 0x00);
             end.append((byte) 0x01);
 
-            ByteSequence startKey = suffix;
-
             Cursor cursor = txn.openCursor(dn2id.getName());
             try
             {
-              // Initialize the cursor very close to the starting value.
-              boolean success = cursor.positionToKeyOrNext(startKey);
-
-              // Step forward until the key is greater than the starting value.
-              while (success && ByteSequence.COMPARATOR.compare(cursor.getKey(), suffix) <= 0)
-              {
-                success = cursor.next();
-              }
 
               // Step forward until we pass the ending value.
-              while (success)
+              boolean success = cursor.positionToKeyOrNext(suffix);
+              while (success && cursor.getKey().compareTo(end) < 0)
               {
-                int cmp = ByteSequence.COMPARATOR.compare(cursor.getKey(), end);
-                if (cmp >= 0)
-                {
-                  // We have gone past the ending value.
-                  break;
-                }
-
                 // We have found a subordinate entry.
-
                 EntryID oldID = new EntryID(cursor.getValue());
                 Entry oldEntry = id2entry.get(txn, oldID, false);
 
