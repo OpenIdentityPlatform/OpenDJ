@@ -26,6 +26,7 @@
  */
 package org.opends.server.backends.pluggable;
 
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -350,39 +351,15 @@ public class SortValuesSet
     {
       return null;
     }
-
-    byte[] entryIDBytes = JebFormat.entryIDListToDatabase(entryIDs);
-    byte[] concatBytes = new byte[entryIDBytes.length + valuesBytes.length + 4];
-    int v = entryIDs.length;
-
-    for (int j = 3; j >= 0; j--)
+    final ByteStringBuilder builder = new ByteStringBuilder(4 + entryIDs.length
+        * 8 + valuesBytes.length);
+    builder.append(entryIDs.length);
+    for (int i = 0; i < entryIDs.length; i++)
     {
-      concatBytes[j] = (byte) (v & 0xFF);
-      v >>>= 8;
+      builder.append(entryIDs[i]);
     }
-
-    System.arraycopy(entryIDBytes, 0, concatBytes, 4, entryIDBytes.length);
-    System.arraycopy(valuesBytes, 0, concatBytes, entryIDBytes.length+4,
-                     valuesBytes.length);
-
-    return ByteString.valueOf(concatBytes);
-  }
-
-  /**
-   * Get the size of the provided encoded set.
-   *
-   * @param bytes The encoded bytes of a SortValuesSet to decode the size from.
-   * @return The size of the provided encoded set.
-   */
-  public static int getEncodedSize(ByteString bytes)
-  {
-    int v = 0;
-    for (int i = 0; i < 4; i++)
-    {
-      v <<= 8;
-      v |= (bytes.byteAt(i) & 0xFF);
-    }
-    return v;
+    builder.append(valuesBytes);
+    return builder.toByteString();
   }
 
   /**
@@ -393,9 +370,14 @@ public class SortValuesSet
    */
   public static long[] getEncodedIDs(ByteString bytes)
   {
-    int length = getEncodedSize(bytes) * 8;
-    ByteString entryIDBytes = bytes.subSequence(4, 4 + length);
-    return JebFormat.entryIDListFromDatabase(entryIDBytes);
+    final ByteSequenceReader reader = bytes.asReader();
+    final int length = reader.getInt();
+    final long[] entryIDList = new long[length];
+    for (int i = 0; i < length; i++)
+    {
+      entryIDList[i] = reader.getLong();
+    }
+    return entryIDList;
   }
 
   /**

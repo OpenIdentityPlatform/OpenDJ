@@ -1783,7 +1783,7 @@ public class EntryContainer
                   }
                 }
 
-                deleteEntry(txn, indexBuffer, true, entryDN, startKey, entryID);
+                deleteEntry(txn, indexBuffer, true, entryDN, cursor.getKey(), entryID);
                 subordinateEntriesDeleted++;
 
                 if (deleteOperation != null)
@@ -1877,7 +1877,7 @@ public class EntryContainer
       ByteString value = dn2id.read(txn, leafDNKey, true);
       if (value == null)
       {
-        LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(leafDNKey);
+        LocalizableMessage message = ERR_JEB_DELETE_NO_SUCH_OBJECT.get(targetDN);
         DN matchedDN = getMatchedDN(baseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
       }
