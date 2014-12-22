@@ -27,6 +27,13 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.JebFormat.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.types.AdditionalLogItem.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,13 +102,6 @@ import org.opends.server.types.SortKey;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.pluggable.JebFormat.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.types.AdditionalLogItem.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Storage container for LDAP entries.  Each base DN of a JE backend is given
@@ -1669,7 +1669,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
-      throw new StorageRuntimeException(e);
+      throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
   }
 
@@ -1848,7 +1848,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
-      throw new StorageRuntimeException(e);
+      throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
   }
 
@@ -2021,9 +2021,10 @@ public class EntryContainer
     }
     catch (Exception e)
     {
-      throw new StorageRuntimeException(e);
+      // it is not very clean to specify twice the same exception but it saves me some code for now
+      throwAllowedExceptionTypes(e, DirectoryException.class, DirectoryException.class);
+      return null; // it can never happen
     }
-
   }
 
   private Entry getEntry0(ReadableStorage txn, final DN entryDN) throws StorageRuntimeException, DirectoryException
@@ -2070,7 +2071,8 @@ public class EntryContainer
       }
       catch (Exception e)
       {
-        throw new StorageRuntimeException(e);
+        // it is not very clean to specify twice the same exception but it saves me some code for now
+        throwAllowedExceptionTypes(e, DirectoryException.class, DirectoryException.class);
       }
     }
 
@@ -2193,7 +2195,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
-      throw new StorageRuntimeException(e);
+      throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
   }
 
@@ -2445,7 +2447,7 @@ public class EntryContainer
     }
     catch (Exception e)
     {
-      throw new StorageRuntimeException(e);
+      throwAllowedExceptionTypes(e, DirectoryException.class, CanceledOperationException.class);
     }
   }
 
