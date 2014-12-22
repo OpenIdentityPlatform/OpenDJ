@@ -110,32 +110,7 @@ public class BaseDnRegistry {
     // Check to see if the new base DN is subordinate to any other base DN
     // already defined.  If it is, then any other base DN(s) for the same
     // backend must also be subordinate to the same base DN.
-    Backend<?> superiorBackend = null;
-    DN      superiorBaseDN         ;
-    DN      parentDN        = baseDN.parent();
-    while (parentDN != null)
-    {
-      if (baseDNs.containsKey(parentDN))
-      {
-        superiorBaseDN  = parentDN;
-        superiorBackend = baseDNs.get(parentDN);
-
-        for (DN dn : otherBaseDNs)
-        {
-          if (! dn.isDescendantOf(superiorBaseDN))
-          {
-            LocalizableMessage message = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.
-                get(baseDN, backend.getBackendID(), dn);
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-          }
-        }
-
-        break;
-      }
-
-      parentDN = parentDN.parent();
-    }
-
+    final Backend<?> superiorBackend = getSuperiorBackend(baseDN, otherBaseDNs, backend.getBackendID());
     if (superiorBackend == null && backend.getParentBackend() != null)
     {
       LocalizableMessage message = ERR_REGISTER_BASEDN_NEW_BASE_NOT_SUBORDINATE.
@@ -151,7 +126,7 @@ public class BaseDnRegistry {
     for (DN dn : baseDNs.keySet())
     {
       Backend<?> b = baseDNs.get(dn);
-      parentDN = dn.parent();
+      DN parentDN = dn.parent();
       while (parentDN != null)
       {
         if (parentDN.equals(baseDN))
@@ -236,6 +211,33 @@ public class BaseDnRegistry {
     }
 
     return errors;
+  }
+
+  private Backend<?> getSuperiorBackend(DN baseDN, LinkedList<DN> otherBaseDNs, String backendID)
+      throws DirectoryException
+  {
+    Backend<?> superiorBackend = null;
+    DN parentDN = baseDN.parent();
+    while (parentDN != null)
+    {
+      if (baseDNs.containsKey(parentDN))
+      {
+        superiorBackend = baseDNs.get(parentDN);
+
+        for (DN dn : otherBaseDNs)
+        {
+          if (!dn.isDescendantOf(parentDN))
+          {
+            LocalizableMessage msg = ERR_REGISTER_BASEDN_DIFFERENT_PARENT_BASES.get(baseDN, backendID, dn);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
+          }
+        }
+        break;
+      }
+
+      parentDN = parentDN.parent();
+    }
+    return superiorBackend;
   }
 
 
