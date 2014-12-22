@@ -238,7 +238,12 @@ public final class PersistItStorage implements Storage {
         @Override
         public Cursor openCursor(TreeName treeName) {
             try {
-                return new CursorImpl(getExchange(treeName));
+              /*
+               * Acquire a new exchange for the cursor rather than using a cached
+               * exchange in order to avoid reentrant accesses to the same tree
+               * interfering with the cursor position.
+               */
+                return new CursorImpl(getExchange0(treeName, false));
             } catch (PersistitException e) {
                 throw new StorageRuntimeException(e);
             }
@@ -371,8 +376,11 @@ public final class PersistItStorage implements Storage {
 
         @Override
         public void close() {
-            // Exchange is released by StorageImpl.release()
-            // once the Read/Write Operation is closed
+            /*
+             * Release immediately because this exchange did not come from the txn
+             * cache.
+             */
+            db.releaseExchange(ex);
         }
     }
 
