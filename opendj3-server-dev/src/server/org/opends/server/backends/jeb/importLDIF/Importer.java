@@ -26,6 +26,14 @@
  */
 package org.opends.server.backends.jeb.importLDIF;
 
+import static com.sleepycat.je.EnvironmentConfig.*;
+
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -47,6 +55,8 @@ import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
+import org.opends.server.backends.jeb.RootContainer;
+import org.opends.server.backends.jeb.VLVIndex;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
@@ -56,14 +66,6 @@ import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
 import com.sleepycat.util.PackedInteger;
-
-import static com.sleepycat.je.EnvironmentConfig.*;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides the engine that performs both importing of LDIF files and
@@ -874,10 +876,12 @@ public final class Importer implements DiskSpaceMonitorHandler
       logger.info(NOTE_JEB_IMPORT_THREAD_COUNT, threadCount);
       initializeSuffixes();
       setIndexesTrusted(false);
-      long startTime = System.currentTimeMillis();
+
+      final long startTime = System.currentTimeMillis();
       phaseOne();
       isPhaseOneDone = true;
-      long phaseOneFinishTime = System.currentTimeMillis();
+      final long phaseOneFinishTime = System.currentTimeMillis();
+
       if (!skipDNValidation)
       {
         tmpEnv.shutdown();
@@ -886,22 +890,24 @@ public final class Importer implements DiskSpaceMonitorHandler
       {
         throw new InterruptedException("Import processing canceled.");
       }
-      long phaseTwoTime = System.currentTimeMillis();
+
+      final long phaseTwoTime = System.currentTimeMillis();
       phaseTwo();
       if (isCanceled)
       {
         throw new InterruptedException("Import processing canceled.");
       }
-      long phaseTwoFinishTime = System.currentTimeMillis();
+      final long phaseTwoFinishTime = System.currentTimeMillis();
+
       setIndexesTrusted(true);
       switchContainers();
       recursiveDelete(tempDir);
-      long finishTime = System.currentTimeMillis();
-      long importTime = finishTime - startTime;
-      float rate = 0;
+      final long finishTime = System.currentTimeMillis();
+      final long importTime = finishTime - startTime;
       logger.info(NOTE_JEB_IMPORT_PHASE_STATS, importTime / 1000,
               (phaseOneFinishTime - startTime) / 1000,
               (phaseTwoFinishTime - phaseTwoTime) / 1000);
+      float rate = 0;
       if (importTime > 0)
       {
         rate = 1000f * reader.getEntriesRead() / importTime;
@@ -3779,8 +3785,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       long entriesIgnored = reader.getEntriesIgnored();
       long entriesRejected = reader.getEntriesRejected();
       float rate = 1000f * deltaCount / deltaTime;
-      logger.info(NOTE_JEB_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored,
-              entriesRejected, 0, rate);
+      logger.info(NOTE_JEB_IMPORT_PROGRESS_REPORT, entriesRead, entriesIgnored, entriesRejected, rate);
       try
       {
         Runtime runTime = Runtime.getRuntime();
