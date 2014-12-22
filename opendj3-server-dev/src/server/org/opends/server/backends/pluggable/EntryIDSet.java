@@ -61,8 +61,7 @@ public class EntryIDSet implements Iterable<EntryID>
   /** Create a new undefined set. */
   public EntryIDSet()
   {
-    this.key = null;
-    this.undefinedSize = Long.MAX_VALUE;
+    this(Long.MAX_VALUE);
   }
 
   /**
@@ -74,18 +73,6 @@ public class EntryIDSet implements Iterable<EntryID>
   {
     this.key = null;
     this.undefinedSize = size;
-  }
-
-  /**
-   * Create a new entry ID set from the raw database value.
-   *
-   * @param keyBytes The database key that contains this value.
-   * @param bytes The database value, or null if there are no entry IDs.
-   */
-  public EntryIDSet(byte[] keyBytes, byte[] bytes)
-  {
-    this(keyBytes != null ? ByteString.wrap(keyBytes) : null,
-        bytes != null ? ByteString.wrap(bytes) : null);
   }
 
   /**
