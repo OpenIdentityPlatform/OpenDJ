@@ -239,11 +239,8 @@ public final class DirectoryServer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The singleton Directory Server instance.
-   */
+  /** The singleton Directory Server instance. */
   private static DirectoryServer directoryServer = new DirectoryServer();
-
 
 
   /**
@@ -274,21 +271,13 @@ public final class DirectoryServer
    * some incompatible arguments.
    */
   private static final int CHECK_ERROR = 1;
-  /**
-   * The server is already started.
-   */
+  /** The server is already started. */
   private static final int SERVER_ALREADY_STARTED = 98;
-  /**
-   * The server must be started as detached process.
-   */
+  /** The server must be started as detached process. */
   private static final int START_AS_DETACH = 99;
-  /**
-   * The server must be started as a non-detached process.
-   */
+  /** The server must be started as a non-detached process. */
   private static final int START_AS_NON_DETACH = 100;
-  /**
-   * The server must be started as a window service.
-   */
+  /** The server must be started as a window service. */
   private static final int START_AS_WINDOWS_SERVICE = 101;
   /**
    * The server must be started as detached and it is being called from the
@@ -311,41 +300,29 @@ public final class DirectoryServer
 
   /** The policy to use regarding single structural objectclass enforcement. */
   private AcceptRejectWarn singleStructuralClassPolicy;
-
   /** The policy to use regarding syntax enforcement. */
   private AcceptRejectWarn syntaxEnforcementPolicy;
 
   /** The account status notification handler config manager for the server. */
-  private AccountStatusNotificationHandlerConfigManager
-       accountStatusNotificationHandlerConfigManager;
+  private AccountStatusNotificationHandlerConfigManager accountStatusNotificationHandlerConfigManager;
 
   /** The default syntax to use for binary attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultBinarySyntax;
-
   /** The default syntax to use for Boolean attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultBooleanSyntax;
-
   /** The default syntax to use for DN attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultDNSyntax;
-
   /** The default syntax to use for integer attributes. */
   private AttributeSyntax<AttributeSyntaxCfg> defaultIntegerSyntax;
-
   /** The default syntax to use for string attributes. */
-  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg>
-               defaultStringSyntax;
+  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultStringSyntax;
 
-  /**
-   * The default attribute syntax to use for attributes with no defined syntax.
-   */
+  /** The default attribute syntax to use for attributes with no defined syntax. */
   private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax;
-
   /** The attribute type used to reference the "objectclass" attribute. */
   private AttributeType objectClassAttributeType;
-
   /** The authenticated users manager for the server. */
   private AuthenticatedUsers authenticatedUsers;
-
   /** The configuration manager that will handle the server backends. */
   private BackendConfigManager backendConfigManager;
 
@@ -375,10 +352,8 @@ public final class DirectoryServer
 
   /** Indicates whether the server has been bootstrapped. */
   private boolean isBootstrapped;
-
   /** Indicates whether the server is currently online. */
   private boolean isRunning;
-
   /** Indicates whether the server is currently in "lockdown mode". */
   private boolean lockdownMode;
 
@@ -2053,7 +2028,7 @@ public final class DirectoryServer
 
 
   /**
-   * Deegisters the provided backend initialization listener with the Directory
+   * Deregisters the provided backend initialization listener with the Directory
    * Server.
    *
    * @param  listener  The backend initialization listener to deregister with
@@ -3745,11 +3720,8 @@ public final class DirectoryServer
     }
 
 
-    logger.info(NOTE_SENT_ALERT_NOTIFICATION, generator.getClassName(), alertType,
-            alertMessage != null ?
-                    alertMessage.resourceName()+"-"+alertMessage.ordinal():
-                    "-1",
-            alertMessage);
+    String alertID = alertMessage != null ? alertMessage.resourceName() + "-" + alertMessage.ordinal() : "-1";
+    logger.info(NOTE_SENT_ALERT_NOTIFICATION, generator.getClassName(), alertType, alertID, alertMessage);
   }
 
 
@@ -5250,7 +5222,7 @@ public final class DirectoryServer
    * mappings use {@link #registerBaseDN(DN, Backend, boolean)} and
    * {@link #deregisterBaseDN(DN)}.
    *
-   * @return copy of the base DN regsitry
+   * @return copy of the base DN registry
    */
   public static BaseDnRegistry copyBaseDnRegistry()
   {
@@ -6727,10 +6699,10 @@ public final class DirectoryServer
   }
 
   /**
-   * Deregisters the provided nitialization completed listener with the
+   * Deregisters the provided initialization completed listener with the
    * Directory Server.
    *
-   * @param  listener  The nitialization completed listener to deregister with
+   * @param  listener  The initialization completed listener to deregister with
    *                   the Directory Server.
    */
   public static void deregisterInitializationCompletedListener(
@@ -7171,7 +7143,7 @@ public final class DirectoryServer
    * {@code startServer}.
    *
    * @return  The new Directory Server instance created during the
-   *          reinitialization process.
+   *          re-initialization process.
    *
    * @throws  InitializationException  If a problem occurs while trying to
    *                                   initialize the config handler or
@@ -7192,7 +7164,7 @@ public final class DirectoryServer
    * @param  config  The environment configuration for the Directory Server.
    *
    * @return  The new Directory Server instance created during the
-   *          reinitialization process.
+   *          re-initialization process.
    *
    * @throws  InitializationException  If a problem occurs while trying to
    *                                   initialize the config handler or
@@ -7257,7 +7229,7 @@ public final class DirectoryServer
    *
    * @return  The connection ID that should be used for this connection, or -1
    *          if the connection has been rejected for some reason (e.g., the
-   *          maximum numberof concurrent connections have already been
+   *          maximum number of concurrent connections have already been
    *          established).
    */
   public static long newConnectionAccepted(ClientConnection clientConnection)
