@@ -286,7 +286,6 @@ public final class PersistItStorage implements Storage {
 
     private final class CursorImpl implements Cursor {
         private final Exchange ex;
-        private boolean useCurrentKeyForNext = false;
         private ByteString currentKey;
         private ByteString currentValue;
 
@@ -305,10 +304,8 @@ public final class PersistItStorage implements Storage {
             bytesToKey(ex.getKey(), key);
             try {
                 ex.fetch();
-                useCurrentKeyForNext = ex.getValue().isDefined();
-                return useCurrentKeyForNext;
+        return ex.getValue().isDefined();
             } catch (PersistitException e) {
-                useCurrentKeyForNext = false;
                 throw new StorageRuntimeException(e);
             }
         }
@@ -319,15 +316,8 @@ public final class PersistItStorage implements Storage {
             bytesToKey(ex.getKey(), key);
             try {
                 ex.fetch();
-                if (ex.getValue().isDefined()) {
-                    useCurrentKeyForNext = true;
-                } else {
-                    // provided key does not exist, look for next key
-                    useCurrentKeyForNext = ex.next();
-                }
-                return useCurrentKeyForNext;
+        return ex.getValue().isDefined() || ex.next();
             } catch (PersistitException e) {
-                useCurrentKeyForNext = false;
                 throw new StorageRuntimeException(e);
             }
         }
@@ -337,10 +327,8 @@ public final class PersistItStorage implements Storage {
             try {
                 clearCurrentKeyAndValue();
                 ex.getKey().to(Key.AFTER);
-                useCurrentKeyForNext = ex.previous() && ex.getValue().isDefined();
-                return useCurrentKeyForNext;
+        return ex.previous();
             } catch (PersistitException e) {
-                useCurrentKeyForNext = false;
                 throw new StorageRuntimeException(e);
             }
         }
@@ -348,10 +336,6 @@ public final class PersistItStorage implements Storage {
         @Override
         public boolean next() {
             clearCurrentKeyAndValue();
-            if (useCurrentKeyForNext) {
-                useCurrentKeyForNext = false;
-                return true;
-            }
             try {
                 return ex.next();
             } catch (PersistitException e) {

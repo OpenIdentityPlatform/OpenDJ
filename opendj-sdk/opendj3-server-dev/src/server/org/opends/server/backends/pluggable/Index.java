@@ -511,41 +511,31 @@ public class Index extends DatabaseContainer
       Cursor cursor = txn.openCursor(treeName);
       try
       {
-        ByteSequence key = ByteString.empty();
         boolean success;
         // Set the lower bound if necessary.
         if (lower.length() > 0)
         {
           // Initialize the cursor to the lower bound.
-          key = lower;
-          success = cursor.positionToKeyOrNext(key);
+          success = cursor.positionToKeyOrNext(lower);
 
           // Advance past the lower bound if necessary.
           if (success
               && !lowerIncluded
-              && ByteSequence.COMPARATOR.compare(key, lower) == 0)
+              && ByteSequence.COMPARATOR.compare(cursor.getKey(), lower) == 0)
           {
             // Do not include the lower value.
             success = cursor.next();
-            if (success)
-            {
-              key = cursor.getKey();
-            }
           }
         }
         else
         {
           success = cursor.next();
-          if (success)
-          {
-            key = cursor.getKey();
-          }
         }
 
         if (!success)
         {
           // There are no values.
-          return new EntryIDSet(key, null);
+          return new EntryIDSet(lowerIncluded ? lower : null, null);
         }
 
         // Step through the keys until we hit the upper bound or the last key.
@@ -560,7 +550,7 @@ public class Index extends DatabaseContainer
               break;
             }
           }
-          EntryIDSet list = new EntryIDSet(key, cursor.getValue());
+          EntryIDSet list = new EntryIDSet(cursor.getKey(), cursor.getValue());
           if (!list.isDefined())
           {
             // There is no point continuing.

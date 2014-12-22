@@ -781,8 +781,7 @@ public class VLVIndex extends DatabaseContainer
           keyBytes.appendBERLength(vBytes.length());
           vBytes.copyTo(keyBytes);
 
-          boolean success = cursor.positionToKeyOrNext(keyBytes);
-          if (success)
+          if (cursor.positionToKeyOrNext(keyBytes))
           {
             if(logger.isTraceEnabled())
             {
@@ -814,8 +813,7 @@ public class VLVIndex extends DatabaseContainer
                 includedBeforeCount++;
               }
 
-              success = cursor.previous();
-              if (success)
+              if (!cursor.previous())
               {
                 break;
               }
@@ -850,13 +848,7 @@ public class VLVIndex extends DatabaseContainer
                 includedAfterCount++;
               }
 
-              if(includedAfterCount >= afterCount + 1)
-              {
-                break;
-              }
-
-              success = cursor.next();
-              if (success)
+              if (includedAfterCount >= afterCount + 1 || !cursor.next())
               {
                 break;
               }
