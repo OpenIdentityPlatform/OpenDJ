@@ -26,11 +26,17 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.*;
@@ -42,11 +48,14 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -60,12 +69,11 @@ import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.tools.LDIFModify;
@@ -77,12 +85,6 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 /**
  * This class defines a simple configuration handler for the Directory Server
  * that will read the server configuration from an LDIF file.
@@ -93,11 +95,7 @@ public class ConfigFileHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.ConfigFileHandler";
 
@@ -951,24 +949,9 @@ public class ConfigFileHandler
       if (parentEntry == null)
       {
         // The parent entry does not exist.  This is not allowed.
+        DN matchedDN = getMatchedDN(parentDN);
         LocalizableMessage message = ERR_CONFIG_FILE_ADD_NO_PARENT.get(entryDN, parentDN);
-
-        // Get the matched DN, if possible.
-        DN matchedDN = null;
-        parentDN = parentDN.parent();
-        while (parentDN != null)
-        {
-          if (configEntries.containsKey(parentDN))
-          {
-            matchedDN = parentDN;
-            break;
-          }
-
-          parentDN = parentDN.parent();
-        }
-
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                     matchedDN, null);
+        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
       }
 
 
@@ -1011,32 +994,15 @@ public class ConfigFileHandler
 
 
       // Notify all the add listeners that the entry has been added.
-      ResultCode    resultCode = ResultCode.SUCCESS;
-      List<LocalizableMessage> messages   = new LinkedList<LocalizableMessage>();
+      final ConfigChangeResult aggregatedResult = new ConfigChangeResult();
       for (ConfigAddListener l : addListeners)
       {
-        ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
-        if (result.getResultCode() != ResultCode.SUCCESS)
-        {
-          if (resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = result.getResultCode();
-          }
-
-          messages.addAll(result.getMessages());
-        }
-
-        handleConfigChangeResult(result, newEntry.getDN(),
-                                 l.getClass().getName(),
-                                 "applyConfigurationAdd");
+        final ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
+        aggregate(aggregatedResult, result);
+        handleConfigChangeResult(result, newEntry.getDN(), l.getClass().getName(), "applyConfigurationAdd");
       }
 
-      if (resultCode != ResultCode.SUCCESS)
-      {
-        String reasons = Utils.joinAsString(".  ", messages);
-        LocalizableMessage message = ERR_CONFIG_FILE_ADD_APPLY_FAILED.get(reasons);
-        throw new DirectoryException(resultCode, message);
-      }
+      throwIfUnsuccessful(aggregatedResult, ERR_CONFIG_FILE_ADD_APPLY_FAILED);
     }
   }
 
@@ -1068,23 +1034,7 @@ public class ConfigFileHandler
       ConfigEntry entry = configEntries.get(entryDN);
       if (entry == null)
       {
-        // Try to find the matched DN if possible.
-        DN matchedDN = null;
-        if (entryDN.isDescendantOf(configRootEntry.getDN()))
-        {
-          DN parentDN = entryDN.parent();
-          while (parentDN != null)
-          {
-            if (configEntries.containsKey(parentDN))
-            {
-              matchedDN = parentDN;
-              break;
-            }
-
-            parentDN = parentDN.parent();
-          }
-        }
-
+        DN matchedDN = getMatchedDNForDescendantOfConfig(entryDN);
         LocalizableMessage message = ERR_CONFIG_FILE_DELETE_NO_SUCH_ENTRY.get(entryDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
       }
@@ -1144,32 +1094,15 @@ public class ConfigFileHandler
 
 
       // Notify all the delete listeners that the entry has been removed.
-      ResultCode    resultCode = ResultCode.SUCCESS;
-      List<LocalizableMessage> messages   = new LinkedList<LocalizableMessage>();
+      final ConfigChangeResult aggregatedResult = new ConfigChangeResult();
       for (ConfigDeleteListener l : deleteListeners)
       {
-        ConfigChangeResult result = l.applyConfigurationDelete(entry);
-        if (result.getResultCode() != ResultCode.SUCCESS)
-        {
-          if (resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = result.getResultCode();
-          }
-
-          messages.addAll(result.getMessages());
-        }
-
-        handleConfigChangeResult(result, entry.getDN(),
-                                 l.getClass().getName(),
-                                 "applyConfigurationDelete");
+        final ConfigChangeResult result = l.applyConfigurationDelete(entry);
+        aggregate(aggregatedResult, result);
+        handleConfigChangeResult(result, entry.getDN(), l.getClass().getName(), "applyConfigurationDelete");
       }
 
-      if (resultCode != ResultCode.SUCCESS)
-      {
-        String reasons = Utils.joinAsString(".  ", messages);
-        LocalizableMessage message = ERR_CONFIG_FILE_DELETE_APPLY_FAILED.get(reasons);
-        throw new DirectoryException(resultCode, message);
-      }
+      throwIfUnsuccessful(aggregatedResult, ERR_CONFIG_FILE_DELETE_APPLY_FAILED);
     }
   }
 
@@ -1229,23 +1162,7 @@ public class ConfigFileHandler
       ConfigEntry currentEntry = configEntries.get(entryDN);
       if (currentEntry == null)
       {
-        // Try to find the matched DN if possible.
-        DN matchedDN = null;
-        if (entryDN.isDescendantOf(configRootEntry.getDN()))
-        {
-          DN parentDN = entryDN.parent();
-          while (parentDN != null)
-          {
-            if (configEntries.containsKey(parentDN))
-            {
-              matchedDN = parentDN;
-              break;
-            }
-
-            parentDN = parentDN.parent();
-          }
-        }
-
+        DN matchedDN = getMatchedDNForDescendantOfConfig(entryDN);
         LocalizableMessage message = ERR_CONFIG_FILE_MODIFY_NO_SUCH_ENTRY.get(entryDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
       }
@@ -1290,32 +1207,39 @@ public class ConfigFileHandler
 
 
       // Notify all the change listeners of the update.
-      ResultCode   resultCode  = ResultCode.SUCCESS;
-      List<LocalizableMessage> messages   = new LinkedList<LocalizableMessage>();
+      final ConfigChangeResult aggregatedResult = new ConfigChangeResult();
       for (ConfigChangeListener l : changeListeners)
       {
-        ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
-        if (result.getResultCode() != ResultCode.SUCCESS)
-        {
-          if (resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = result.getResultCode();
-          }
-
-          messages.addAll(result.getMessages());
-        }
-
-        handleConfigChangeResult(result, currentEntry.getDN(),
-                                 l.getClass().getName(),
-                                 "applyConfigurationChange");
+        final ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
+        aggregate(aggregatedResult, result);
+        handleConfigChangeResult(result, currentEntry.getDN(), l.getClass().getName(), "applyConfigurationChange");
       }
 
-      if (resultCode != ResultCode.SUCCESS)
+      throwIfUnsuccessful(aggregatedResult, ERR_CONFIG_FILE_MODIFY_APPLY_FAILED);
+    }
+  }
+
+  private void aggregate(final ConfigChangeResult aggregatedResult, ConfigChangeResult newResult)
+  {
+    if (newResult.getResultCode() != ResultCode.SUCCESS)
+    {
+      if (aggregatedResult.getResultCode() == ResultCode.SUCCESS)
       {
-        String reasons = Utils.joinAsString(".  ", messages);
-        LocalizableMessage message = ERR_CONFIG_FILE_MODIFY_APPLY_FAILED.get(reasons);
-        throw new DirectoryException(resultCode, message);
+        aggregatedResult.setResultCode(newResult.getResultCode());
       }
+
+      aggregatedResult.getMessages().addAll(newResult.getMessages());
+    }
+  }
+
+  private void throwIfUnsuccessful(final ConfigChangeResult aggregatedResult, Arg1<Object> errMsg)
+      throws DirectoryException
+  {
+    if (aggregatedResult.getResultCode() != ResultCode.SUCCESS)
+    {
+      String reasons = Utils.joinAsString(".  ", aggregatedResult.getMessages());
+      LocalizableMessage message = errMsg.get(reasons);
+      throw new DirectoryException(aggregatedResult.getResultCode(), message);
     }
   }
 
@@ -1367,25 +1291,9 @@ public class ConfigFileHandler
     ConfigEntry baseEntry = configEntries.get(baseDN);
     if (baseEntry == null)
     {
+      DN matchedDN = getMatchedDNForDescendantOfConfig(baseDN);
       LocalizableMessage message = ERR_CONFIG_FILE_SEARCH_NO_SUCH_BASE.get(baseDN);
-      DN matchedDN = null;
-      if (baseDN.isDescendantOf(configRootEntry.getDN()))
-      {
-        DN parentDN = baseDN.parent();
-        while (parentDN != null)
-        {
-          if (configEntries.containsKey(parentDN))
-          {
-            matchedDN = parentDN;
-            break;
-          }
-
-          parentDN = parentDN.parent();
-        }
-      }
-
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-                                   matchedDN, null);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
 
 
@@ -1445,6 +1353,30 @@ public class ConfigFileHandler
         LocalizableMessage message = ERR_CONFIG_FILE_SEARCH_INVALID_SCOPE.get(scope);
         throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
     }
+  }
+
+  private DN getMatchedDNForDescendantOfConfig(DN dn)
+  {
+    if (dn.isDescendantOf(configRootEntry.getDN()))
+    {
+      return getMatchedDN(dn);
+    }
+    return null;
+  }
+
+  private DN getMatchedDN(DN dn)
+  {
+    DN parentDN = dn.parent();
+    while (parentDN != null)
+    {
+      if (configEntries.containsKey(parentDN))
+      {
+        return parentDN;
+      }
+
+      parentDN = parentDN.parent();
+    }
+    return null;
   }
 
 
@@ -2391,7 +2323,6 @@ public class ConfigFileHandler
     {
       removeBackup(backupDirectory, backupID);
     }
-
   }
 
   /** {@inheritDoc} */
@@ -2930,9 +2861,8 @@ public class ConfigFileHandler
 
     ResultCode    resultCode          = result.getResultCode();
     boolean       adminActionRequired = result.adminActionRequired();
-    List<LocalizableMessage> messages            = result.getMessages();
 
-    String messageBuffer = Utils.joinAsString("  ", messages);
+    String messageBuffer = Utils.joinAsString("  ", result.getMessages());
     if (resultCode != ResultCode.SUCCESS)
     {
       logger.error(ERR_CONFIG_CHANGE_RESULT_ERROR, className, methodName,
