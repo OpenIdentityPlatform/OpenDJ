@@ -26,6 +26,7 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.replication.server.changelog.file.LogFileTest.*;
@@ -39,7 +40,9 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
+import org.opends.server.replication.server.changelog.file.Log.LogRotationParameters;
 import org.opends.server.replication.server.changelog.file.LogFileTest.FailingStringRecordParser;
+import org.opends.server.replication.server.changelog.file.Record.Mapper;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -51,6 +54,8 @@ public class LogTest extends DirectoryServerTestCase
 {
   // Use a directory dedicated to this test class
   private static final File LOG_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
+
+  private static final long NO_TIME_BASED_LOG_ROTATION = 0;
 
   @BeforeMethod
   public void initialize() throws Exception
@@ -79,9 +84,12 @@ public class LogTest extends DirectoryServerTestCase
     // This allow to ensure rotation mechanism is thoroughly tested
     // Some tests rely on having 2 records per log file (especially the purge tests), so take care
     // if this value has to be changed
-    int sizeLimitPerFileInBytes = 30;
+    final int sizeLimitPerFileInBytes = 30;
+    final LogRotationParameters rotationParams = new LogRotationParameters(sizeLimitPerFileInBytes,
+        NO_TIME_BASED_LOG_ROTATION, NO_TIME_BASED_LOG_ROTATION);
+    final ReplicationEnvironment replicationEnv = mock(ReplicationEnvironment.class);
 
-    return Log.openLog(LOG_DIRECTORY, parser, sizeLimitPerFileInBytes);
+    return Log.openLog(replicationEnv, LOG_DIRECTORY, parser, rotationParams);
   }
 
   @Test
@@ -366,8 +374,11 @@ public class LogTest extends DirectoryServerTestCase
     Log<String, String> writeLog = null;
     try
     {
-      long sizeOf1MB = 1024*1024;
-      writeLog = Log.openLog(LOG_DIRECTORY, LogFileTest.RECORD_PARSER, sizeOf1MB);
+      long sizeOf10MB = 10*1024*1024;
+      final LogRotationParameters rotationParams = new LogRotationParameters(sizeOf10MB, NO_TIME_BASED_LOG_ROTATION,
+          NO_TIME_BASED_LOG_ROTATION);
+      final ReplicationEnvironment replicationEnv = mock(ReplicationEnvironment.class);
+      writeLog = Log.openLog(replicationEnv, LOG_DIRECTORY, LogFileTest.RECORD_PARSER, rotationParams);
 
       for (int i = 1; i < 1000000; i++)
       {
@@ -514,12 +525,10 @@ public class LogTest extends DirectoryServerTestCase
   public void testPurge(String purgeKey, Record<String,String> firstRecordExpectedAfterPurge,
       int cursorStartIndex, int cursorEndIndex) throws Exception
   {
-    Log<String, String> log = null;
+    Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
     DBCursor<Record<String, String>> cursor = null;
     try
     {
-      log = openLog(LogFileTest.RECORD_PARSER);
-
       log.purgeUpTo(purgeKey);
 
       cursor = log.getCursor();
@@ -530,6 +539,51 @@ public class LogTest extends DirectoryServerTestCase
     finally
     {
       StaticUtils.close(cursor, log);
+    }
+  }
+
+  static final Mapper<String, Integer> MAPPER = new Record.Mapper<String, Integer>()
+      {
+        @Override
+        public Integer map(String value)
+        {
+          // extract numeric value, e.g. from "value10" return 10
+          return Integer.valueOf(value.substring("value".length()));
+        }
+      };
+
+  @DataProvider
+  Object[][] findBoundaryKeyData()
+  {
+    return new Object[][] {
+       // limit value, expected key
+       { 0, null },
+       { 1, "key001" },
+       { 2, "key001" },
+       { 3, "key003" },
+       { 4, "key003" },
+       { 5, "key005" },
+       { 6, "key005" },
+       { 7, "key007" },
+       { 8, "key007" },
+       { 9, "key009" },
+       { 10, "key009" },
+       { 11, "key009" },
+       { 12, "key009" },
+    };
+  }
+
+  @Test(dataProvider = "findBoundaryKeyData")
+  public void testFindBoundaryKeyFromRecord(int limitValue, String expectedKey) throws Exception
+  {
+    Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
+    try
+    {
+      assertThat(log.findBoundaryKeyFromRecord(MAPPER, limitValue)).isEqualTo(expectedKey);
+    }
+    finally
+    {
+      StaticUtils.close(log);
     }
   }
 

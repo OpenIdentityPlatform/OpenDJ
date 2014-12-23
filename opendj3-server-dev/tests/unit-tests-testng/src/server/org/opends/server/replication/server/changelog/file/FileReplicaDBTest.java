@@ -34,6 +34,7 @@ import org.assertj.core.api.SoftAssertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.time.TimeService;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
@@ -423,7 +424,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100000, 10);
 
       testRoot = createCleanDir();
-      dbEnv = new ReplicationEnvironment(testRoot.getPath(), replicationServer);
+      dbEnv = new ReplicationEnvironment(testRoot.getPath(), replicationServer, TimeService.SYSTEM);
       replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
 
       // Populate the db with 'max' msg

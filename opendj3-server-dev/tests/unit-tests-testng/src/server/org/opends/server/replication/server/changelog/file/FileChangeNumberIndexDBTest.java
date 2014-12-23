@@ -37,7 +37,6 @@ import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -137,23 +136,12 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-
   /**
-   * This test makes basic operations of a ChangeNumberIndexDB:
-   * <ol>
-   * <li>create the db</li>
-   * <li>add records</li>
-   * <li>read them with a cursor</li>
-   * <li>set a very short trim period</li>
-   * <li>wait for the db to be trimmed / here since the changes are not stored
-   * in the replication changelog, the ChangeNumberIndexDB will be cleared.</li>
-   * </ol>
+   * This test verifies purge is working by relying on a very short purge delay.
+   * The purge can be done only if there is at least one read-only log file, so
+   * this test ensures the rotation happens, using the rotation based on time.
    */
-  // TODO : this works only if we ensure that there is a rotation of ahead log file
-  // at the right place. First two records are 37 and 76 bytes long,
-  // so it means : 37 < max file size < 113 to have the last record alone in the ahead log file
-  // Re-enable this test when max file size is customizable for log
-  @Test(enabled=false)
+  @Test
   public void testPurge() throws Exception
   {
     ReplicationServer replicationServer = null;
@@ -163,49 +151,32 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
       final ChangelogDB changelogDB = replicationServer.getChangelogDB();
       changelogDB.setPurgeDelay(0); // disable purging
 
-      // Prepare data to be stored in the db
-      DN baseDN1 = DN.valueOf("o=test1");
-      DN baseDN2 = DN.valueOf("o=test2");
-      DN baseDN3 = DN.valueOf("o=test3");
-
-      CSN[] csns = generateCSNs(1, 0, 3);
-
       // Add records
+      DN[] baseDNs = { DN.valueOf("o=test1"), DN.valueOf("o=test2"), DN.valueOf("o=test3"), DN.valueOf("o=test4") };
+      CSN[] csns = generateCSNs(1, 0, 4);
       final FileChangeNumberIndexDB cnIndexDB = getCNIndexDB(replicationServer);
-      long cn1 = addRecord(cnIndexDB, baseDN1, csns[0]);
-                 addRecord(cnIndexDB, baseDN2, csns[1]);
-      long cn3 = addRecord(cnIndexDB, baseDN3, csns[2]);
+      long cn0 = addRecord(cnIndexDB, baseDNs[0], csns[0]);
+                 addRecord(cnIndexDB, baseDNs[1], csns[1]);
+      long cn2 = addRecord(cnIndexDB, baseDNs[2], csns[2]);
 
-      // The ChangeNumber should not get purged
-      final long oldestCN = cnIndexDB.getOldestRecord().getChangeNumber();
-      assertEquals(oldestCN, cn1);
-      assertEquals(cnIndexDB.getNewestRecord().getChangeNumber(), cn3);
+      // The CN DB should not be purged at this point
+      assertEquals(cnIndexDB.getOldestRecord().getChangeNumber(), cn0);
+      assertEquals(cnIndexDB.getNewestRecord().getChangeNumber(), cn2);
 
-      DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(oldestCN);
-      try
-      {
-        assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[0], baseDN1);
-        assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[1], baseDN2);
-        assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[2], baseDN3);
-        assertFalse(cursor.next());
-      }
-      finally
-      {
-        StaticUtils.close(cursor);
-      }
+      // change the purge delay to a very short time
+      changelogDB.setPurgeDelay(5);
+      Thread.sleep(50);
+      // add a new record to force the rotation of the log
+      addRecord(cnIndexDB, baseDNs[3], csns[3]);
 
-      // Now test that purging removes all changes but the last one
-      changelogDB.setPurgeDelay(1);
+      // Now all changes should have been purged but the last one
       int count = 0;
       while (cnIndexDB.count() > 1 && count < 100)
       {
         Thread.sleep(10);
         count++;
       }
-      assertOnlyNewestRecordIsLeft(cnIndexDB, 3);
+      assertOnlyNewestRecordIsLeft(cnIndexDB, 4);
     }
     finally
     {

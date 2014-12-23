@@ -59,6 +59,16 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
   /** The parser of records stored in this ChangeNumberIndexDB. */
   static final RecordParser<Long, ChangeNumberIndexRecord> RECORD_PARSER = new ChangeNumberIndexDBParser();
 
+  static final Record.Mapper<ChangeNumberIndexRecord, CSN> MAPPER_TO_CSN =
+      new Record.Mapper<ChangeNumberIndexRecord, CSN>()
+      {
+        @Override
+        public CSN map(ChangeNumberIndexRecord value)
+        {
+          return value.getCSN();
+        }
+      };
+
   /** The log in which records are persisted. */
   private final Log<Long, ChangeNumberIndexRecord> log;
 
@@ -231,8 +241,14 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
     {
       return null;
     }
-    final Record<Long, ChangeNumberIndexRecord> record = log.purgeUpTo(purgeCSN.getTime());
-    return record != null ? record.getValue().getCSN() : null;
+    // Retrieve the oldest change number that must not be purged
+    final Long purgeChangeNumber = log.findBoundaryKeyFromRecord(MAPPER_TO_CSN, purgeCSN);
+    if (purgeChangeNumber != null)
+    {
+      final Record<Long, ChangeNumberIndexRecord> record = log.purgeUpTo(purgeChangeNumber);
+      return record != null ? record.getValue().getCSN() : null;
+    }
+    return null;
   }
 
   /**

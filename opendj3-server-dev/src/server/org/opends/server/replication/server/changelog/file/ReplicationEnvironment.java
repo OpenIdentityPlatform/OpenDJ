@@ -46,13 +46,16 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.time.TimeService;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.file.Log.LogRotationParameters;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
@@ -67,7 +70,8 @@ import static org.opends.messages.ReplicationMessages.*;
  * created :
  * <ul>
  * <li>A "changenumberindex" directory containing the log files for
- * ChangeNumberIndexDB</li>
+ * ChangeNumberIndexDB, and a file named "rotationtime[millis].last" where [millis] is
+ * the time of the last log file rotation in milliseconds</li>
  * <li>A "domains.state" file containing a mapping of each domain DN to an id. The
  * id is used to name the corresponding domain directory.</li>
  * <li>One directory per domain, named after "[id].domain" where [id] is the id
@@ -76,7 +80,7 @@ import static org.opends.messages.ReplicationMessages.*;
  * <p>
  * Each domain directory contains the following directories and files :
  * <ul>
- * <li>A "generation_[id].id" file, where [id] is the generation id</li>
+ * <li>A "generation[id].id" file, where [id] is the generation id</li>
  * <li>One directory per server id, named after "[id].server" where [id] is the
  * id of the server.</li>
  * </ul>
@@ -100,6 +104,7 @@ import static org.opends.messages.ReplicationMessages.*;
  * |   \---changenumberindex
  * |      \--- head.log [contains last records written]
  * |      \--- 1_50.log [contains records with keys in interval [1, 50]]
+ * |      \--- rtime198745512.last
  * |   \---1.domain
  * |       \---generation1.id
  * |       \---22.server
@@ -119,7 +124,9 @@ class ReplicationEnvironment
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private static final long MAX_LOG_FILE_SIZE_IN_BYTES = 10*1024*1024;
+  private static final long CN_INDEX_DB_MAX_LOG_FILE_SIZE_IN_BYTES = 1024 * 1024;
+
+  private static final long REPLICA_DB_MAX_LOG_FILE_SIZE_IN_BYTES = 10 * CN_INDEX_DB_MAX_LOG_FILE_SIZE_IN_BYTES;
 
   private static final int NO_GENERATION_ID = -1;
 
@@ -129,9 +136,13 @@ class ReplicationEnvironment
 
   static final String REPLICA_OFFLINE_STATE_FILENAME = "offline.state";
 
+  static final String LAST_ROTATION_TIME_FILE_PREFIX = "rotationtime";
+
+  static final String LAST_ROTATION_TIME_FILE_SUFFIX = ".ms";
+
   private static final String DOMAIN_STATE_SEPARATOR = ":";
 
-  private static final String DOMAIN_SUFFIX = ".domain";
+  private static final String DOMAIN_SUFFIX = ".dom";
 
   private static final String SERVER_ID_SUFFIX = ".server";
 
@@ -170,6 +181,17 @@ class ReplicationEnvironment
     }
   };
 
+  private static final FileFilter LAST_ROTATION_TIME_FILE_FILTER = new FileFilter()
+  {
+    @Override
+    public boolean accept(File file)
+    {
+      return file.isFile()
+          && file.getName().startsWith(LAST_ROTATION_TIME_FILE_PREFIX)
+          && file.getName().endsWith(LAST_ROTATION_TIME_FILE_SUFFIX);
+    }
+  };
+
   /** Root path where the replication log is stored. */
   private final String replicationRootPath;
   /**
@@ -181,8 +203,16 @@ class ReplicationEnvironment
    */
   private final ChangelogState changelogState;
 
-  /** The list of logs that are in use. */
-  private final List<Log<?, ?>> logs = new CopyOnWriteArrayList<Log<?, ?>>();
+  /** The list of logs that are in use for Replica DBs. */
+  private final List<Log<CSN, UpdateMsg>> logsReplicaDB = new CopyOnWriteArrayList<Log<CSN, UpdateMsg>>();
+
+  /**
+   * The list of logs that are in use for the CN Index DB.
+   * There is a single CN Index DB for a ReplicationServer, but there can be multiple references opened on it.
+   * This is the responsability of Log class to handle properly these multiple references.
+   */
+  private List<Log<Long, ChangeNumberIndexRecord>> logsCNIndexDB =
+      new CopyOnWriteArrayList<Log<Long, ChangeNumberIndexRecord>>();;
 
   /**
    * Maps each domain DN to a domain id that is used to name directory in file system.
@@ -205,6 +235,22 @@ class ReplicationEnvironment
 
   private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
 
+  /** The time service used for timing. */
+  private final TimeService timeService;
+
+  /**
+   * For CN Index DB, a log file can be rotated once it has exceeded a given time interval.
+   * <p>
+   * It is disabled if the interval is equals to zero.
+   * The interval can be modified at any time.
+   */
+  private long cnIndexDBRotationInterval;
+
+  /**
+   * For CN Index DB, the last time a log file was rotated.
+   * It is persisted to file each time it changes and read at server start. */
+  private long cnIndexDBLastRotationTime;
+
   /**
    * Creates the replication environment.
    *
@@ -212,15 +258,34 @@ class ReplicationEnvironment
    *          Root path where replication log is stored.
    * @param replicationServer
    *          The underlying replication server.
+   * @param timeService
+   *          Time service to use for timing.
    * @throws ChangelogException
    *           If an error occurs during initialization.
    */
   ReplicationEnvironment(final String rootPath,
-      final ReplicationServer replicationServer) throws ChangelogException
+      final ReplicationServer replicationServer, final TimeService timeService) throws ChangelogException
   {
     this.replicationRootPath = rootPath;
     this.replicationServer = replicationServer;
+    this.timeService = timeService;
     this.changelogState = readOnDiskChangelogState();
+    this.cnIndexDBLastRotationTime = readOnDiskLastRotationTime();
+  }
+
+  /**
+   * Sets the rotation time interval of a log file for the CN Index DB.
+   *
+   * @param timeInterval
+   *          time interval for rotation of a log file.
+   */
+  void setCNIndexDBRotationInterval(long timeInterval)
+  {
+    cnIndexDBRotationInterval = timeInterval;
+    for (Log<Long, ChangeNumberIndexRecord> log : logsCNIndexDB)
+    {
+      log.setRotationInterval(cnIndexDBRotationInterval);
+    }
   }
 
   /**
@@ -254,6 +319,16 @@ class ReplicationEnvironment
   ChangelogState getChangelogState()
   {
     return changelogState;
+  }
+
+  /**
+   * Return the last rotation time for CN Index DB log files.
+   *
+   * @return the last rotation time in millis
+   */
+  long getCnIndexDBLastRotationTime()
+  {
+    return cnIndexDBLastRotationTime;
   }
 
   /**
@@ -299,7 +374,8 @@ class ReplicationEnvironment
         ensureGenerationIdFileExists(generationIdPath);
         changelogState.setDomainGenerationId(domainDN, generationId);
 
-        return openLog(serverIdPath, FileReplicaDB.RECORD_PARSER);
+        return openLog(serverIdPath, FileReplicaDB.RECORD_PARSER,
+            new LogRotationParameters(REPLICA_DB_MAX_LOG_FILE_SIZE_IN_BYTES, 0, 0), logsReplicaDB);
       }
     }
     catch (Exception e)
@@ -325,7 +401,9 @@ class ReplicationEnvironment
     final File path = getCNIndexDBPath();
     try
     {
-      return openLog(path, FileChangeNumberIndexDB.RECORD_PARSER);
+      final LogRotationParameters rotationParams = new LogRotationParameters(CN_INDEX_DB_MAX_LOG_FILE_SIZE_IN_BYTES,
+          cnIndexDBRotationInterval, cnIndexDBLastRotationTime);
+      return openLog(path, FileChangeNumberIndexDB.RECORD_PARSER, rotationParams, logsCNIndexDB);
     }
     catch (Exception e)
     {
@@ -344,7 +422,8 @@ class ReplicationEnvironment
   {
     if (isShuttingDown.compareAndSet(false, true))
     {
-      logs.clear();
+      logsReplicaDB.clear();
+      logsCNIndexDB.clear();
     }
   }
 
@@ -405,6 +484,25 @@ class ReplicationEnvironment
       final File generationIdPath = getGenerationIdPath(domainId, NO_GENERATION_ID);
       ensureGenerationIdFileExists(generationIdPath);
       changelogState.setDomainGenerationId(baseDN, NO_GENERATION_ID);
+    }
+  }
+
+  /**
+   * Notify that log file has been rotated for provided log.
+   *
+   * The last rotation time is persisted to a file and read at startup time.
+   *
+   * @param log
+   *          the log that has a file rotated.
+   * @throws ChangelogException
+   *            If a problem occurs
+   */
+  void notifyLogFileRotation(Log<?, ?> log) throws ChangelogException
+  {
+    // only CN Index DB log rotation time is persisted
+    if (logsCNIndexDB.contains(log))
+    {
+      updateCNIndexDBLastRotationTime(timeService.now());
     }
   }
 
@@ -654,16 +752,17 @@ class ReplicationEnvironment
   }
 
   /** Open a log from the provided path and record parser. */
-  private <K extends Comparable<K>, V> Log<K, V> openLog(final File serverIdPath, final RecordParser<K, V> parser)
-      throws ChangelogException
+  private <K extends Comparable<K>, V> Log<K, V> openLog(final File serverIdPath, final RecordParser<K, V> parser,
+      LogRotationParameters rotationParams, List<Log<K, V>> logsCache) throws ChangelogException
   {
     checkShutDownBeforeOpening(serverIdPath);
 
-    final Log<K, V> log = Log.openLog(serverIdPath, parser, MAX_LOG_FILE_SIZE_IN_BYTES);
+    final Log<K, V> log = Log.openLog(this, serverIdPath, parser, rotationParams);
 
     checkShutDownAfterOpening(serverIdPath, log);
 
-    logs.add(log);
+    logsCache.add(log);
+
     return log;
   }
 
@@ -718,6 +817,46 @@ class ReplicationEnvironment
     return (generationIds != null && generationIds.length > 0) ? generationIds[0] : null;
   }
 
+  /**
+   * Retrieve the last rotation time from the disk.
+   *
+   * @return the last rotation time in millis (which is the current time if no
+   *         rotation file is found or if a problem occurs).
+   */
+  private long readOnDiskLastRotationTime()
+  {
+    try
+    {
+      final File file = retrieveLastRotationTimeFile();
+      if (file != null)
+      {
+        final String filename = file.getName();
+        final String value = filename.substring(LAST_ROTATION_TIME_FILE_PREFIX.length(),
+            filename.length() - LAST_ROTATION_TIME_FILE_SUFFIX.length());
+        return Long.valueOf(value);
+      }
+    }
+    catch (Exception e)
+    {
+      logger.trace(LocalizableMessage.raw("Error when retrieving last log file rotation time from file"), e);
+    }
+    // Default to current time
+    return timeService.now();
+  }
+
+  /**
+   * Retrieve the file named after the last rotation time from the provided
+   * directory.
+   *
+   * @return the last rotation time file or {@code null} if the corresponding file
+   *         can't be found
+   */
+  private File retrieveLastRotationTimeFile()
+  {
+    File[] files = getCNIndexDBPath().listFiles(LAST_ROTATION_TIME_FILE_FILTER);
+    return (files != null && files.length > 0) ? files[0] : null;
+  }
+
   private File getDomainPath(final String domainId)
   {
     return new File(replicationRootPath, domainId + DOMAIN_SUFFIX);
@@ -748,9 +887,16 @@ class ReplicationEnvironment
     return new File(replicationRootPath, CN_INDEX_DB_DIRNAME);
   }
 
+  private File getLastRotationTimePath(long lastRotationTime)
+  {
+    return new File(getCNIndexDBPath(),
+        LAST_ROTATION_TIME_FILE_PREFIX + lastRotationTime + LAST_ROTATION_TIME_FILE_SUFFIX);
+  }
+
   private void closeLog(final Log<?, ?> log)
   {
-    logs.remove(log);
+    logsReplicaDB.remove(log);
+    logsCNIndexDB.remove(log);
     log.close();
   }
 
@@ -787,6 +933,30 @@ class ReplicationEnvironment
             ERR_CHANGELOG_UNABLE_TO_CREATE_SERVER_ID_DIRECTORY.get(serverIdPath.getPath(), 0));
       }
     }
+  }
+
+  private void updateCNIndexDBLastRotationTime(final long lastRotationTime) throws ChangelogException {
+    final File previousRotationFile = retrieveLastRotationTimeFile();
+    final File newRotationFile = getLastRotationTimePath(lastRotationTime);
+    try
+    {
+      newRotationFile.createNewFile();
+    }
+    catch (IOException e)
+    {
+      throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_CREATE_LAST_LOG_ROTATION_TIME_FILE.get(
+          newRotationFile.getPath(), lastRotationTime), e);
+    }
+    if (previousRotationFile != null)
+    {
+      final boolean isDeleted = previousRotationFile.delete();
+      if (!isDeleted)
+      {
+        throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_DELETE_LAST_LOG_ROTATION_TIME_FILE.get(
+            previousRotationFile.getPath()));
+      }
+    }
+    cnIndexDBLastRotationTime = lastRotationTime;
   }
 
   private void ensureGenerationIdFileExists(final File generationIdPath)
