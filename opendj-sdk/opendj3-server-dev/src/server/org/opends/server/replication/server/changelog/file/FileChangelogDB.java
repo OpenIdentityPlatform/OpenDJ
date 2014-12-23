@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.util.time.TimeService;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.ChangelogBackend;
@@ -296,7 +297,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     try
     {
       final File dbDir = getFileForPath(config.getReplicationDBDirectory());
-      replicationEnv = new ReplicationEnvironment(dbDir.getAbsolutePath(), replicationServer);
+      replicationEnv = new ReplicationEnvironment(dbDir.getAbsolutePath(), replicationServer, TimeService.SYSTEM);
       final ChangelogState changelogState = replicationEnv.getChangelogState();
       initializeToChangelogState(changelogState);
       if (config.isComputeChangeNumber())
@@ -574,6 +575,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   public void setPurgeDelay(final long purgeDelayInMillis)
   {
     this.purgeDelayInMillis = purgeDelayInMillis;
+
+    // Rotation time interval for CN Index DB log file
+    // needs to be a fraction of the purge delay
+    // to ensure there is at least one file to purge
+    replicationEnv.setCNIndexDBRotationInterval(purgeDelayInMillis / 2);
+
     if (purgeDelayInMillis > 0)
     {
       final ChangelogDBPurger newPurger = new ChangelogDBPurger();

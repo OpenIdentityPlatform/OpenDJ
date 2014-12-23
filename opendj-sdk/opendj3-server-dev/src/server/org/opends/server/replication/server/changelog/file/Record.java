@@ -35,6 +35,18 @@ package org.opends.server.replication.server.changelog.file;
  */
 class Record<K, V>
 {
+  /** Map the record value to another value. */
+  static interface Mapper<V, V2> {
+      /**
+       * Map a record value to another value.
+       *
+       * @param value
+       *          The value to map
+       * @return the new value
+       */
+      V2 map(V value);
+  }
+
   private final K key;
   private final V value;
 
