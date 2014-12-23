@@ -26,6 +26,8 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.JebMessages.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -48,8 +50,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.JebMessages.*;
 
 /**
  * Represents an index implemented by a JE database in which each key maps to
@@ -666,8 +666,7 @@ public class Index extends DatabaseContainer
                           List<Modification> mods, IndexingOptions options)
       throws StorageRuntimeException
   {
-    TreeMap<ByteString, Boolean> modifiedKeys =
-        new TreeMap<ByteString, Boolean>(ByteSequence.COMPARATOR);
+    TreeMap<ByteString, Boolean> modifiedKeys = new TreeMap<ByteString, Boolean>();
     indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, options);
 
     for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())

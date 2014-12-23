@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -209,7 +208,7 @@ public class IndexBuffer
     TreeMap<ByteString, BufferedIndexValues> bufferedOperations = bufferedIndexes.get(index);
     if (bufferedOperations == null)
     {
-      bufferedOperations = new TreeMap<ByteString, BufferedIndexValues>(ByteSequence.COMPARATOR);
+      bufferedOperations = new TreeMap<ByteString, BufferedIndexValues>();
       bufferedIndexes.put(index, bufferedOperations);
     }
     else
