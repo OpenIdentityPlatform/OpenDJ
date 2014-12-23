@@ -25,13 +25,17 @@
  */
 package org.opends.server.backends.persistit;
 
-import static org.opends.server.util.StaticUtils.*;
+import static com.persistit.Transaction.CommitPolicy.GROUP;
+import static com.persistit.Transaction.CommitPolicy.SOFT;
+import static java.util.Arrays.asList;
+import static org.opends.messages.JebMessages.NOTE_PERSISTIT_MEMORY_CFG;
+import static org.opends.server.util.StaticUtils.getFileForPath;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
@@ -45,6 +49,8 @@ import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 
+import com.persistit.Configuration;
+import com.persistit.Configuration.BufferPoolConfiguration;
 import com.persistit.Exchange;
 import com.persistit.Key;
 import com.persistit.Persistit;
@@ -53,12 +59,17 @@ import com.persistit.Tree;
 import com.persistit.TreeBuilder;
 import com.persistit.Value;
 import com.persistit.Volume;
+import com.persistit.VolumeSpecification;
 import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
 
 @SuppressWarnings("javadoc")
 public final class PersistItStorage implements Storage
 {
+  private static final String VOLUME_NAME = "dj";
+  /** The buffer / page size used by the PersistIt storage. */
+  private static final int BUFFER_SIZE = 16 * 1024;
+
   private final class CursorImpl implements Cursor
   {
     private ByteString currentKey;
@@ -466,11 +477,12 @@ public final class PersistItStorage implements Storage
     }
   }
 
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private File backendDirectory;
-  private PersistitBackendCfg config;
   private Persistit db;
-  private Properties properties;
   private Volume volume;
+  private Configuration dbCfg;
+  private PersistitBackendCfg config;
 
   @Override
   public void close()
@@ -498,19 +510,30 @@ public final class PersistItStorage implements Storage
   @Override
   public void initialize(final PersistitBackendCfg cfg)
   {
-    this.config = cfg;
-    this.backendDirectory = new File(getFileForPath(config.getDBDirectory()),
-        config.getBackendId());
+    backendDirectory = new File(getFileForPath(cfg.getDBDirectory()), cfg.getBackendId());
+    config = cfg;
+    dbCfg = new Configuration();
+    dbCfg.setLogFile(new File(backendDirectory, VOLUME_NAME + ".log").getPath());
+    dbCfg.setJournalPath(new File(backendDirectory, VOLUME_NAME + "_journal").getPath());
+    dbCfg.setVolumeList(asList(new VolumeSpecification(new File(
+        backendDirectory, VOLUME_NAME).getPath(), null, BUFFER_SIZE, 4096,
+        Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
+    final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg();
+    bufferPoolCfg.setMaximumCount(Integer.MAX_VALUE);
+    if (cfg.getDBCacheSize() > 0l)
+    {
+      bufferPoolCfg.setMaximumMemory(cfg.getDBCacheSize());
+    }
+    else
+    {
+      bufferPoolCfg.setFraction(cfg.getDBCachePercent() / 100.0f);
+    }
+    dbCfg.setCommitPolicy(cfg.isDBTxnNoSync() ? SOFT : GROUP);
+  }
 
-    properties = new Properties();
-    properties.setProperty("datapath", backendDirectory.toString());
-    properties.setProperty("logpath", backendDirectory.toString());
-    properties.setProperty("logfile", "${logpath}/dj_${timestamp}.log");
-    properties.setProperty("buffer.count.16384", "64K");
-    properties.setProperty("journalpath", "${datapath}/dj_journal");
-    properties.setProperty("volume.1", "${datapath}/dj"
-        + ",create,pageSize:16K" + ",initialSize:50M" + ",extensionSize:1M"
-        + ",maximumSize:10G");
+  private BufferPoolConfiguration getBufferPoolCfg()
+  {
+    return dbCfg.getBufferPoolMap().get(BUFFER_SIZE);
   }
 
   @Override
@@ -524,9 +547,15 @@ public final class PersistItStorage implements Storage
   {
     try
     {
-      db = new Persistit(properties);
+      db = new Persistit(dbCfg);
+
+      final long bufferCount = getBufferPoolCfg().computeBufferCount(db.getAvailableHeap());
+      final long totalSize = bufferCount * BUFFER_SIZE / 1024;
+      logger.info(NOTE_PERSISTIT_MEMORY_CFG, config.getBackendId(),
+          bufferCount, BUFFER_SIZE, totalSize);
+
       db.initialize();
-      volume = db.loadVolume("dj");
+      volume = db.loadVolume(VOLUME_NAME);
     }
     catch (final PersistitException e)
     {

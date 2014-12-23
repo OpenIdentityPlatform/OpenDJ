@@ -185,7 +185,7 @@
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>false</adm:value>
+        <adm:value>true</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
