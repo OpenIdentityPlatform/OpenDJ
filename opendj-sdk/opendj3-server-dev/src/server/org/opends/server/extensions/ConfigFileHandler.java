@@ -995,11 +995,14 @@ public class ConfigFileHandler
 
       // Notify all the add listeners that the entry has been added.
       final ConfigChangeResult aggregatedResult = new ConfigChangeResult();
-      for (ConfigAddListener l : addListeners)
+      for (ConfigAddListener l : addListeners) // This is an iterator over a COWArrayList
       {
-        final ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
-        aggregate(aggregatedResult, result);
-        handleConfigChangeResult(result, newEntry.getDN(), l.getClass().getName(), "applyConfigurationAdd");
+        if (addListeners.contains(l))
+        { // ignore listeners that deregistered themselves
+          final ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
+          aggregate(aggregatedResult, result);
+          handleConfigChangeResult(result, newEntry.getDN(), l.getClass().getName(), "applyConfigurationAdd");
+        }
       }
 
       throwIfUnsuccessful(aggregatedResult, ERR_CONFIG_FILE_ADD_APPLY_FAILED);
@@ -1095,11 +1098,14 @@ public class ConfigFileHandler
 
       // Notify all the delete listeners that the entry has been removed.
       final ConfigChangeResult aggregatedResult = new ConfigChangeResult();
-      for (ConfigDeleteListener l : deleteListeners)
+      for (ConfigDeleteListener l : deleteListeners) // This is an iterator over a COWArrayList
       {
-        final ConfigChangeResult result = l.applyConfigurationDelete(entry);
-        aggregate(aggregatedResult, result);
-        handleConfigChangeResult(result, entry.getDN(), l.getClass().getName(), "applyConfigurationDelete");
+        if (deleteListeners.contains(l))
+        { // ignore listeners that deregistered themselves
+          final ConfigChangeResult result = l.applyConfigurationDelete(entry);
+          aggregate(aggregatedResult, result);
+          handleConfigChangeResult(result, entry.getDN(), l.getClass().getName(), "applyConfigurationDelete");
+        }
       }
 
       throwIfUnsuccessful(aggregatedResult, ERR_CONFIG_FILE_DELETE_APPLY_FAILED);
@@ -1208,11 +1214,14 @@ public class ConfigFileHandler
 
       // Notify all the change listeners of the update.
       final ConfigChangeResult aggregatedResult = new ConfigChangeResult();
-      for (ConfigChangeListener l : changeListeners)
+      for (ConfigChangeListener l : changeListeners) // This is an iterator over a COWArrayList
       {
-        final ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
-        aggregate(aggregatedResult, result);
-        handleConfigChangeResult(result, currentEntry.getDN(), l.getClass().getName(), "applyConfigurationChange");
+        if (changeListeners.contains(l))
+        { // ignore listeners that deregistered themselves
+          final ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
+          aggregate(aggregatedResult, result);
+          handleConfigChangeResult(result, currentEntry.getDN(), l.getClass().getName(), "applyConfigurationChange");
+        }
       }
 
       throwIfUnsuccessful(aggregatedResult, ERR_CONFIG_FILE_MODIFY_APPLY_FAILED);
@@ -1378,8 +1387,6 @@ public class ConfigFileHandler
     }
     return null;
   }
-
-
 
   /**
    * Performs a subtree search starting at the provided base entry, returning
