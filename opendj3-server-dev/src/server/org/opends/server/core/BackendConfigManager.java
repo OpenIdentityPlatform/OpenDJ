@@ -26,7 +26,10 @@
  */
 package org.opends.server.core;
 
-import java.util.ArrayList;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -55,10 +58,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.WritabilityMode;
-
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -402,10 +401,7 @@ public class BackendConfigManager implements
   {
     DN                 backendDN           = cfg.dn();
     Backend<?>         backend             = registeredBackends.get(backendDN);
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See if the entry contains an attribute that indicates whether the
     // backend should be enabled.
@@ -457,7 +453,7 @@ public class BackendConfigManager implements
             // FIXME -- Do we need to send an admin alert?
           }
 
-          return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+          return ccr;
         } // else already disabled, no need to do anything.
       }
     }
@@ -465,10 +461,10 @@ public class BackendConfigManager implements
     {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(
-              backendDN, stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_BACKEND_UNABLE_TO_DETERMINE_ENABLED_STATE.get(backendDN,
+          stackTraceToSingleLineString(e)));
+      return ccr;
     }
 
 
@@ -497,26 +493,26 @@ public class BackendConfigManager implements
           // It appears to be a valid backend class.  We'll return that the
           // change is successful, but indicate that some administrative
           // action is required.
-          messages.add(NOTE_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS.get(
+          ccr.addMessage(NOTE_CONFIG_BACKEND_ACTION_REQUIRED_TO_CHANGE_CLASS.get(
               backendDN, backend.getClass().getName(), className));
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
         else
         {
           // It is not a valid backend class.  This is an error.
-          messages.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
+          ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          ccr.addMessage(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
         }
-        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        return ccr;
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
-        messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
                 className, backendDN, stackTraceToSingleLineString(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        return ccr;
       }
     }
 
@@ -532,9 +528,9 @@ public class BackendConfigManager implements
       catch (Exception e)
       {
         // It is not a valid backend class.  This is an error.
-        messages.add(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_CONFIG_BACKEND_CLASS_NOT_BACKEND.get(className, backendDN));
+        return ccr;
       }
 
 
@@ -555,10 +551,10 @@ public class BackendConfigManager implements
           logger.error(message);
           // FIXME -- Do we need to send an admin alert?
 
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-          adminActionRequired = true;
-          messages.add(message);
-          return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+          ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(message);
+          return ccr;
         }
       }
       catch (Exception e)
@@ -570,10 +566,10 @@ public class BackendConfigManager implements
         logger.error(message);
         // FIXME -- Do we need to send an admin alert?
 
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        adminActionRequired = true;
-        messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(message);
+        return ccr;
       }
 
 
@@ -585,9 +581,9 @@ public class BackendConfigManager implements
       {
         logger.traceException(e);
 
-        messages.add(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
                 className, backendDN, stackTraceToSingleLineString(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
 
         try
         {
@@ -608,7 +604,7 @@ public class BackendConfigManager implements
           // FIXME -- Do we need to send an admin alert?
         }
 
-        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        return ccr;
       }
 
 
@@ -634,21 +630,20 @@ public class BackendConfigManager implements
         logger.warn(message);
 
         // FIXME -- Do we need to send an admin alert?
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(message);
+        return ccr;
       }
 
 
       registeredBackends.put(backendDN, backend);
     }
-    else if (resultCode == ResultCode.SUCCESS && backend != null)
+    else if (ccr.getResultCode() == ResultCode.SUCCESS && backend != null)
     {
       backend.setWritabilityMode(writabilityMode);
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -734,9 +729,7 @@ public class BackendConfigManager implements
   public ConfigChangeResult applyConfigurationAdd(BackendCfg cfg)
   {
     DN                backendDN           = cfg.dn();
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Register as a change listener for this backend entry so that we will
@@ -753,8 +746,8 @@ public class BackendConfigManager implements
       // indicate that it won't be enabled and return.
       LocalizableMessage message = INFO_CONFIG_BACKEND_DISABLED.get(backendDN);
       logger.debug(message);
-      messages.add(message);
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      ccr.addMessage(message);
+      return ccr;
     }
 
 
@@ -766,8 +759,8 @@ public class BackendConfigManager implements
     {
       LocalizableMessage message = WARN_CONFIG_BACKEND_DUPLICATE_BACKEND_ID.get(backendDN, backendID);
       logger.warn(message);
-      messages.add(message);
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      ccr.addMessage(message);
+      return ccr;
     }
 
 
@@ -789,10 +782,10 @@ public class BackendConfigManager implements
     {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(
           className, backendDN, stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -814,10 +807,10 @@ public class BackendConfigManager implements
         logger.error(message);
         // FIXME -- Do we need to send an admin alert?
 
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        adminActionRequired = true;
-        messages.add(message);
-        return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(message);
+        return ccr;
       }
     }
     catch (Exception e)
@@ -829,10 +822,10 @@ public class BackendConfigManager implements
       logger.error(message);
       // FIXME -- Do we need to send an admin alert?
 
-      resultCode = ResultCode.CONSTRAINT_VIOLATION;
-      adminActionRequired = true;
-      messages.add(message);
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(message);
+      return ccr;
     }
 
 
@@ -845,9 +838,9 @@ public class BackendConfigManager implements
     {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(
               className, backendDN, stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
 
       try
       {
@@ -866,7 +859,7 @@ public class BackendConfigManager implements
         // FIXME -- Do we need to send an admin alert?
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -893,13 +886,13 @@ public class BackendConfigManager implements
       logger.error(message);
 
       // FIXME -- Do we need to send an admin alert?
-      messages.add(message);
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(message);
+      return ccr;
     }
 
     registeredBackends.put(backendDN, backend);
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   @SuppressWarnings("unchecked")
@@ -961,17 +954,14 @@ public class BackendConfigManager implements
   public ConfigChangeResult applyConfigurationDelete(BackendCfg configEntry)
   {
     DN                backendDN           = configEntry.dn();
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See if this backend config manager has a backend registered with the
     // provided DN.  If not, then we don't care if the entry is deleted.
     Backend<?> backend = registeredBackends.get(backendDN);
     if (backend == null)
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     // See if the backend has any subordinate backends.  If so, then it is not
@@ -979,8 +969,9 @@ public class BackendConfigManager implements
     Backend<?>[] subBackends = backend.getSubordinateBackends();
     if (subBackends != null && subBackends.length > 0)
     {
-      messages.add(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
-      return new ConfigChangeResult(UNWILLING_TO_PERFORM, adminActionRequired, messages);
+      ccr.setResultCode(UNWILLING_TO_PERFORM);
+      ccr.addMessage(NOTE_CONFIG_BACKEND_CANNOT_REMOVE_BACKEND_WITH_SUBORDINATES.get(backendDN));
+      return ccr;
     }
 
     registeredBackends.remove(backendDN);
@@ -1022,7 +1013,7 @@ public class BackendConfigManager implements
       // FIXME -- Do we need to send an admin alert?
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })
