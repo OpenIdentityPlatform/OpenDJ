@@ -25,7 +25,7 @@
  */
 package org.opends.server.backends.persistit;
 
-import static org.opends.server.util.StaticUtils.getFileForPath;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.HashMap;
@@ -73,10 +73,7 @@ public final class PersistItStorage implements Storage
     @Override
     public void close()
     {
-      /*
-       * Release immediately because this exchange did not come from the txn
-       * cache.
-       */
+      // Release immediately because this exchange did not come from the txn cache
       db.releaseExchange(ex);
     }
 
@@ -340,11 +337,13 @@ public final class PersistItStorage implements Storage
     {
       try
       {
+        // There is no CAS (Compare And Swap) operation to do here :)
+        // Following code is fine because Persistit provides snapshot isolation.
+        // If another thread tries to update the same key, we'll get a RollbackException
+        // And the write operation will be retried (see write() method in this class)
         final Exchange ex = getExchange(treeName);
         bytesToKey(ex.getKey(), key);
         ex.fetch();
-        // FIXME poor man's CAS: this will not work under high volume,
-        // but PersistIt does not provide APIs for this use case.
         final Value exValue = ex.getValue();
         if (exValue.isDefined())
         {
