@@ -26,31 +26,31 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LDIFBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a backend implementation that stores the underlying data
@@ -1280,8 +1280,7 @@ public class LDIFBackend
     // We don't actually need to do anything in response to this.  However, if
     // the base DNs or LDIF file are different from what we're currently using
     // then indicate that admin action is required.
-    boolean adminActionRequired = false;
-    LinkedList<LocalizableMessage> messages = new LinkedList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     if (ldifFilePath != null)
     {
@@ -1289,20 +1288,19 @@ public class LDIFBackend
       File newLDIF     = getFileForPath(configuration.getLDIFFile());
       if (! currentLDIF.equals(newLDIF))
       {
-        messages.add(INFO_LDIF_BACKEND_LDIF_FILE_CHANGED.get());
-        adminActionRequired = true;
+        ccr.addMessage(INFO_LDIF_BACKEND_LDIF_FILE_CHANGED.get());
+        ccr.setAdminActionRequired(true);
       }
     }
 
     if (baseDNSet != null && !baseDNSet.equals(configuration.getBaseDN()))
     {
-      messages.add(INFO_LDIF_BACKEND_BASE_DN_CHANGED.get());
-      adminActionRequired = true;
+      ccr.addMessage(INFO_LDIF_BACKEND_BASE_DN_CHANGED.get());
+      ccr.setAdminActionRequired(true);
     }
 
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                  messages);
+    return ccr;
   }
 
   /** {@inheritDoc} */

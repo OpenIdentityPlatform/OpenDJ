@@ -1976,7 +1976,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       {
         exclusiveLock.unlock();
       }
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 

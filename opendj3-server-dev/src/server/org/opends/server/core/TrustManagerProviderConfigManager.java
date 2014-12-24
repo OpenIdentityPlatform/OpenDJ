@@ -179,15 +179,13 @@ public class TrustManagerProviderConfigManager
   public ConfigChangeResult applyConfigurationAdd(
                                   TrustManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     TrustManagerProvider provider = null;
@@ -201,22 +199,18 @@ public class TrustManagerProviderConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       providers.put(configuration.dn(), provider);
       DirectoryServer.registerTrustManagerProvider(configuration.dn(),
                                                    provider);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -241,9 +235,7 @@ public class TrustManagerProviderConfigManager
   public ConfigChangeResult applyConfigurationDelete(
                                  TrustManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     DirectoryServer.deregisterTrustManagerProvider(configuration.dn());
 
@@ -253,7 +245,7 @@ public class TrustManagerProviderConfigManager
       provider.finalizeTrustManagerProvider();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -293,9 +285,7 @@ public class TrustManagerProviderConfigManager
   public ConfigChangeResult applyConfigurationChange(
                                  TrustManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing provider if it's already enabled.
@@ -317,7 +307,7 @@ public class TrustManagerProviderConfigManager
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -331,10 +321,10 @@ public class TrustManagerProviderConfigManager
     {
       if (! className.equals(existingProvider.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     TrustManagerProvider provider = null;
@@ -344,22 +334,17 @@ public class TrustManagerProviderConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       providers.put(configuration.dn(), provider);
-      DirectoryServer.registerTrustManagerProvider(configuration.dn(),
-                                                   provider);
+      DirectoryServer.registerTrustManagerProvider(configuration.dn(), provider);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

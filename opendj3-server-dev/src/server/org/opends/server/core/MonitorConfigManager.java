@@ -26,32 +26,28 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.MonitorProviderCfgDefn;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.MonitorProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the set of monitor
@@ -146,6 +142,7 @@ public class MonitorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
                       MonitorProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -175,18 +172,17 @@ public class MonitorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  MonitorProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     MonitorProvider<? extends MonitorProviderCfg> monitor = null;
@@ -200,21 +196,17 @@ public class MonitorConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       monitors.put(configuration.dn(), monitor);
       DirectoryServer.registerMonitorProvider(monitor);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -222,6 +214,7 @@ public class MonitorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       MonitorProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -235,12 +228,11 @@ public class MonitorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  MonitorProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     MonitorProvider<?> monitor = monitors.remove(configuration.dn());
     if (monitor != null)
@@ -249,7 +241,7 @@ public class MonitorConfigManager
       monitor.finalizeMonitorProvider();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -257,6 +249,7 @@ public class MonitorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       MonitorProviderCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -286,13 +279,11 @@ public class MonitorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  MonitorProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Get the existing monitor provider if it's already enabled.
     MonitorProvider<?> existingMonitor = monitors.get(configuration.dn());
@@ -311,7 +302,7 @@ public class MonitorConfigManager
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -325,10 +316,10 @@ public class MonitorConfigManager
     {
       if (! className.equals(existingMonitor.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     MonitorProvider<? extends MonitorProviderCfg> monitor = null;
@@ -338,21 +329,17 @@ public class MonitorConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       monitors.put(configuration.dn(), monitor);
       DirectoryServer.registerMonitorProvider(monitor);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

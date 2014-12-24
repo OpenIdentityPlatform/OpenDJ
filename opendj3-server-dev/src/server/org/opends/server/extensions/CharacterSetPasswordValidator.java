@@ -25,29 +25,27 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CharacterSetPasswordValidatorCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.ExtensionMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.server.util.StaticUtils.*;
-
-
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryConfig;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
 
 /**
  * This class provides an OpenDJ password validator that may be used to ensure
@@ -502,6 +500,7 @@ public class CharacterSetPasswordValidator
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       CharacterSetPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -526,13 +525,11 @@ public class CharacterSetPasswordValidator
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                       CharacterSetPasswordValidatorCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Make sure that we can process the defined character sets.  If so, then
     // activate the new configuration.
@@ -543,11 +540,10 @@ public class CharacterSetPasswordValidator
     }
     catch (Exception e)
     {
-      resultCode = DirectoryConfig.getServerErrorResultCode();
-      messages.add(getExceptionMessage(e));
+      ccr.setResultCode(DirectoryConfig.getServerErrorResultCode());
+      ccr.addMessage(getExceptionMessage(e));
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

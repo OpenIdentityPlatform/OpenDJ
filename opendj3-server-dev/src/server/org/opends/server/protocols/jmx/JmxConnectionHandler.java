@@ -26,9 +26,12 @@
  */
 package org.opends.server.protocols.jmx;
 
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.types.HostPort.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,21 +39,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ServerShutdownListener;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.types.HostPort.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a connection handler that will be used for
@@ -74,10 +75,6 @@ public final class JmxConnectionHandler extends
    */
   public static final String TRUST_MANAGER_ARRAY_KEY =
     "org.opends.server.protocol.jmx.ssl.trust.manager.array";
-
-  /** The fully-qualified name of this class. */
-  private static final String CLASS_NAME =
-    "org.opends.server.protocols.jmx.JMXConnectionHandler";
 
   /** The list of active client connection. */
   private final List<ClientConnection> connectionList;
@@ -115,9 +112,7 @@ public final class JmxConnectionHandler extends
   @Override
   public ConfigChangeResult applyConfigurationChange(
       JMXConnectionHandlerCfg config) {
-    // Create variables to include in the response.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Determine whether or not the RMI connection needs restarting.
     boolean rmiConnectorRestart = false;
@@ -166,8 +161,8 @@ public final class JmxConnectionHandler extends
       }
       catch (RuntimeException e)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(LocalizableMessage.raw(e.getMessage()));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(LocalizableMessage.raw(e.getMessage()));
       }
     }
 
@@ -181,8 +176,7 @@ public final class JmxConnectionHandler extends
       System.setProperty(key, value);
     }
 
-    // Return configuration result.
-    return new ConfigChangeResult(resultCode, false, messages);
+    return ccr;
   }
 
 

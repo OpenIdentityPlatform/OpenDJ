@@ -131,7 +131,7 @@ public class AttributeCleanupPlugin extends
       }
 
       /* Update was successful, no restart required. */
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
     finally
     {

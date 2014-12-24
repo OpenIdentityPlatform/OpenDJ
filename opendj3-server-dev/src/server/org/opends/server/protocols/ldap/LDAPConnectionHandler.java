@@ -45,13 +45,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AddressMask;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.QueueingStrategy;
@@ -59,10 +61,8 @@ import org.opends.server.core.WorkQueueStrategy;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.extensions.TLSByteChannel;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 
@@ -306,10 +306,7 @@ public final class LDAPConnectionHandler extends
   public ConfigChangeResult applyConfigurationChange(
       LDAPConnectionHandlerCfg config)
   {
-    // Create variables to include in the response.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Note that the following properties cannot be modified:
     //
@@ -344,9 +341,9 @@ public final class LDAPConnectionHandler extends
     catch (DirectoryException e)
     {
       logger.traceException(e);
-      messages.add(e.getMessageObject());
-      return new ConfigChangeResult(e.getResultCode(), adminActionRequired,
-          messages);
+      ccr.setResultCode(e.getResultCode());
+      ccr.addMessage(e.getMessageObject());
+      return ccr;
     }
 
     if (config.isAllowLDAPV2())
@@ -358,7 +355,7 @@ public final class LDAPConnectionHandler extends
       DirectoryServer.deregisterSupportedLDAPVersion(2, this);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private void configureSSL(LDAPConnectionHandlerCfg config)

@@ -355,13 +355,11 @@ public class CoreConfigManager
   @Override
   public ConfigChangeResult applyConfigurationChange(GlobalCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    List<LocalizableMessage>      messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     applyGlobalConfiguration(configuration);
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
 

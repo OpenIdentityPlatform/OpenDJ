@@ -26,7 +26,8 @@
  */
 package org.opends.server.extensions;
 
-
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,31 +40,25 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AccountStatusNotificationHandlerCfg;
-import org.opends.server.admin.std.server.
-            SMTPAccountStatusNotificationHandlerCfg;
+import org.opends.server.admin.std.server.SMTPAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Utils;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.EMailMessage;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides an implementation of an account status notification
@@ -129,6 +124,7 @@ public class SMTPAccountStatusNotificationHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeStatusNotificationHandler(
                    SMTPAccountStatusNotificationHandlerCfg configuration)
          throws ConfigException, InitializationException
@@ -484,6 +480,7 @@ public class SMTPAccountStatusNotificationHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg
                            configuration,
@@ -499,6 +496,7 @@ public class SMTPAccountStatusNotificationHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleStatusNotification(AccountStatusNotification notification)
   {
     SMTPAccountStatusNotificationHandlerCfg config = currentConfig;
@@ -664,6 +662,7 @@ public class SMTPAccountStatusNotificationHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       SMTPAccountStatusNotificationHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -724,9 +723,11 @@ public class SMTPAccountStatusNotificationHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               SMTPAccountStatusNotificationHandlerCfg configuration)
   {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       HashMap<AccountStatusNotificationType,String> subjects =
@@ -738,18 +739,13 @@ public class SMTPAccountStatusNotificationHandler
       currentConfig = configuration;
       subjectMap    = subjects;
       templateMap   = templates;
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
     catch (ConfigException ce)
     {
       logger.traceException(ce);
-
-      LinkedList<LocalizableMessage> messageList = new LinkedList<LocalizableMessage>();
-      messageList.add(ce.getMessageObject());
-
-      return new ConfigChangeResult(ResultCode.UNWILLING_TO_PERFORM, false,
-                                    messageList);
+      ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+      ccr.addMessage(ce.getMessageObject());
     }
+    return ccr;
   }
 }
-

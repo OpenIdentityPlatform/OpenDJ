@@ -51,7 +51,6 @@ import org.opends.server.authorization.dseecompat.PatternDN;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -1027,7 +1026,7 @@ abstract class AbstractTextAccessLogPublisher
       // Rebuild the filter using the new configuration and criteria.
       buildFilters();
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 
@@ -1065,7 +1064,7 @@ abstract class AbstractTextAccessLogPublisher
       // Rebuild the filter using the new configuration and criteria.
       buildFilters();
       configuration.addChangeListener(this);
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 
@@ -1079,7 +1078,7 @@ abstract class AbstractTextAccessLogPublisher
     {
       // Rebuild the filter using the new configuration and criteria.
       buildFilters();
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 
@@ -1093,7 +1092,7 @@ abstract class AbstractTextAccessLogPublisher
     {
       // Rebuild the filter using the new configuration and criteria.
       buildFilters();
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 

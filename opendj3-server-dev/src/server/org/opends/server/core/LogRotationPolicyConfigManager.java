@@ -25,12 +25,10 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.loggers.RotationPolicy;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -130,10 +128,7 @@ public class LogRotationPolicyConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogRotationPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     try
     {
@@ -143,17 +138,17 @@ public class LogRotationPolicyConfigManager implements
     }
     catch (ConfigException e) {
       logger.traceException(e);
-      messages.add(e.getMessageObject());
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.addMessage(e.getMessageObject());
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     } catch (Exception e) {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY.get(config.dn(),
+      ccr.addMessage(ERR_CONFIG_ROTATION_POLICY_CANNOT_CREATE_POLICY.get(config.dn(),
               stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**
@@ -163,10 +158,7 @@ public class LogRotationPolicyConfigManager implements
   public ConfigChangeResult applyConfigurationDelete(
       LogRotationPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     RotationPolicy policy = DirectoryServer.getRotationPolicy(config.dn());
     if(policy != null)
@@ -176,10 +168,10 @@ public class LogRotationPolicyConfigManager implements
     else
     {
       // TODO: Add message and check for usage
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**
@@ -200,20 +192,17 @@ public class LogRotationPolicyConfigManager implements
   public ConfigChangeResult applyConfigurationChange(
       LogRotationPolicyCfg configuration)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     RotationPolicy policy =
         DirectoryServer.getRotationPolicy(configuration.dn());
     String className = configuration.getJavaClass();
     if(!className.equals(policy.getClass().getName()))
     {
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private boolean isJavaClassAcceptable(LogRotationPolicyCfg config,

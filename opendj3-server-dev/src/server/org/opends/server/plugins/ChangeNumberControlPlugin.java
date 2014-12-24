@@ -47,7 +47,6 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
@@ -294,7 +293,7 @@ public final class ChangeNumberControlPlugin
                                  ChangeNumberControlPluginCfg configuration)
   {
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
   /**

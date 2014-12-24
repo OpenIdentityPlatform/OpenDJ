@@ -26,31 +26,30 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Utils;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.SASLMechanismHandlerCfgDefn;
-import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.SASLMechanismHandlerCfgDefn;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.SASLMechanismHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of SASL
@@ -149,6 +148,7 @@ public class SASLConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
                       SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -178,18 +178,17 @@ public class SASLConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
               SASLMechanismHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     SASLMechanismHandler handler = null;
@@ -203,20 +202,16 @@ public class SASLConfigManager implements
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       handlers.put(configuration.dn(), handler);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -224,6 +219,7 @@ public class SASLConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -238,12 +234,11 @@ public class SASLConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
               SASLMechanismHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     SASLMechanismHandler handler = handlers.remove(configuration.dn());
     if (handler != null)
@@ -251,7 +246,7 @@ public class SASLConfigManager implements
       handler.finalizeSASLMechanismHandler();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -259,6 +254,7 @@ public class SASLConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -288,12 +284,11 @@ public class SASLConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               SASLMechanismHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing handler if it's already enabled.
@@ -313,7 +308,7 @@ public class SASLConfigManager implements
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -327,10 +322,10 @@ public class SASLConfigManager implements
     {
       if (! className.equals(existingHandler.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     SASLMechanismHandler handler = null;
@@ -340,20 +335,16 @@ public class SASLConfigManager implements
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       handlers.put(configuration.dn(), handler);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

@@ -4882,9 +4882,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   public ConfigChangeResult applyConfigurationChange(
        SchemaBackendCfg backendCfg)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Check to see if we should apply a new set of base DNs.
@@ -4901,10 +4899,9 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       logger.traceException(e);
 
-
-      messages.add(ERR_SCHEMA_CANNOT_DETERMINE_BASE_DN.get(
+      ccr.addMessage(ERR_SCHEMA_CANNOT_DETERMINE_BASE_DN.get(
           configEntryDN, getExceptionMessage(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       newBaseDNs = null;
     }
 
@@ -4946,13 +4943,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
+      ccr.addMessage(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
           configEntryDN, stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       // Get an array containing the new base DNs to use.
       DN[] dnArray = new DN[newBaseDNs.size()];
@@ -4977,14 +4974,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         try
         {
           DirectoryServer.deregisterBaseDN(dn);
-          messages.add(INFO_SCHEMA_DEREGISTERED_BASE_DN.get(dn));
+          ccr.addMessage(INFO_SCHEMA_DEREGISTERED_BASE_DN.get(dn));
         }
         catch (Exception e)
         {
           logger.traceException(e);
 
-          messages.add(ERR_SCHEMA_CANNOT_DEREGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.addMessage(ERR_SCHEMA_CANNOT_DEREGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
 
@@ -4994,14 +4991,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         try
         {
           DirectoryServer.registerBaseDN(dn, this, true);
-          messages.add(INFO_SCHEMA_REGISTERED_BASE_DN.get(dn));
+          ccr.addMessage(INFO_SCHEMA_REGISTERED_BASE_DN.get(dn));
         }
         catch (Exception e)
         {
           logger.traceException(e);
 
-          messages.add(ERR_SCHEMA_CANNOT_REGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.addMessage(ERR_SCHEMA_CANNOT_REGISTER_BASE_DN.get(dn, getExceptionMessage(e)));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
 
@@ -5011,12 +5008,12 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
       userDefinedAttributes = newUserAttrs;
       LocalizableMessage message = INFO_SCHEMA_USING_NEW_USER_ATTRS.get();
-      messages.add(message);
+      ccr.addMessage(message);
     }
 
 
     currentConfig = backendCfg;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

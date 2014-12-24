@@ -26,35 +26,34 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.security.sasl.*;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.DigestMD5SASLMechanismHandlerCfgDefn.*;
+import org.opends.server.admin.std.meta.DigestMD5SASLMechanismHandlerCfgDefn.QualityOfProtection;
 import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class provides an implementation of a SASL mechanism that authenticates
@@ -218,6 +217,7 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       DigestMD5SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -229,13 +229,11 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
           DigestMD5SASLMechanismHandlerCfg configuration)
   {
-      ResultCode        resultCode          = ResultCode.SUCCESS;
-      boolean           adminActionRequired = false;
-
-      ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+      final ConfigChangeResult ccr = new ConfigChangeResult();
       try {
           DN identityMapperDN = configuration.getIdentityMapperDN();
           identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
@@ -254,11 +252,10 @@ public class DigestMD5SASLMechanismHandler
           this.configuration  = configuration;
       } catch (UnknownHostException unhe) {
           logger.traceException(unhe);
-          resultCode = ResultCode.OPERATIONS_ERROR;
-          messages.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(unhe)));
-          return new ConfigChangeResult(resultCode,adminActionRequired, messages);
+          ccr.setResultCode(ResultCode.OPERATIONS_ERROR);
+          ccr.addMessage(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(unhe)));
       }
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
   }
 
 

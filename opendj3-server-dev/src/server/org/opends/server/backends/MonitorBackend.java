@@ -109,9 +109,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   public ConfigChangeResult applyConfigurationChange(
       final MonitorBackendCfg backendCfg)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    final boolean adminActionRequired = false;
-    final ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Check to see if there is a new set of user-defined attributes.
     final ArrayList<Attribute> userAttrs = new ArrayList<Attribute>();
@@ -146,18 +144,17 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
+      ccr.addMessage(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
           configEntryDN, stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
     userDefinedAttributes = userAttrs;
 
-    final LocalizableMessage message = INFO_MONITOR_USING_NEW_USER_ATTRS.get();
-    messages.add(message);
+    ccr.addMessage(INFO_MONITOR_USING_NEW_USER_ATTRS.get());
 
     currentConfig = backendCfg;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /** {@inheritDoc} */

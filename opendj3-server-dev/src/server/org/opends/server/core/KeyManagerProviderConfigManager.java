@@ -178,15 +178,13 @@ public class  KeyManagerProviderConfigManager
   public ConfigChangeResult applyConfigurationAdd(
           KeyManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     KeyManagerProvider provider = null;
@@ -200,21 +198,17 @@ public class  KeyManagerProviderConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       providers.put(configuration.dn(), provider);
       DirectoryServer.registerKeyManagerProvider(configuration.dn(), provider);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -239,9 +233,7 @@ public class  KeyManagerProviderConfigManager
   public ConfigChangeResult applyConfigurationDelete(
                                  KeyManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     DirectoryServer.deregisterKeyManagerProvider(configuration.dn());
 
@@ -251,7 +243,7 @@ public class  KeyManagerProviderConfigManager
       provider.finalizeKeyManagerProvider();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -291,9 +283,7 @@ public class  KeyManagerProviderConfigManager
   public ConfigChangeResult applyConfigurationChange(
                                  KeyManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing provider if it's already enabled.
@@ -315,7 +305,7 @@ public class  KeyManagerProviderConfigManager
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -329,10 +319,10 @@ public class  KeyManagerProviderConfigManager
     {
       if (! className.equals(existingProvider.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     KeyManagerProvider provider = null;
@@ -342,21 +332,17 @@ public class  KeyManagerProviderConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       providers.put(configuration.dn(), provider);
       DirectoryServer.registerKeyManagerProvider(configuration.dn(), provider);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

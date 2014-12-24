@@ -32,26 +32,22 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
-import org.opends.server.admin.std.server.PasswordPolicyCfg;
-import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.GeneralizedTime;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-
-
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.StateUpdateFailurePolicy;
+import org.opends.server.admin.std.server.PasswordPolicyCfg;
+import org.opends.server.api.*;
+import org.opends.server.types.*;
 
 /**
  * This class is the interface between the password policy configurable
@@ -109,44 +105,39 @@ public final class PasswordPolicyFactory implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void finalizeAuthenticationPolicy()
     {
       configuration.removePasswordPolicyChangeListener(this);
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
-    public ConfigChangeResult applyConfigurationChange(
-        PasswordPolicyCfg configuration)
+    /** {@inheritDoc} */
+    @Override
+    public ConfigChangeResult applyConfigurationChange(PasswordPolicyCfg configuration)
     {
-      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+      final ConfigChangeResult ccr = new ConfigChangeResult();
       try
       {
         updateConfiguration(configuration, true);
-        return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
       }
       catch (ConfigException ce)
       {
-        messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ce.getMessage()));
-        return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false, messages);
+        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ce.getMessage()));
       }
       catch (InitializationException ie)
       {
-        messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+        ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
             configuration.dn(), ie.getMessage()));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), false, messages);
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
       catch (Exception e)
       {
-        messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+        ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
             configuration.dn(), stackTraceToSingleLineString(e)));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), false, messages);
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
+      return ccr;
     }
 
 
@@ -154,6 +145,7 @@ public final class PasswordPolicyFactory implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationChangeAcceptable(
         PasswordPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
@@ -456,6 +448,7 @@ public final class PasswordPolicyFactory implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public Set<String> getDeprecatedPasswordStorageSchemes()
     {
       return deprecatedStorageSchemes;
@@ -466,6 +459,7 @@ public final class PasswordPolicyFactory implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public DN getDN()
     {
       return configuration.dn();
@@ -563,6 +557,7 @@ public final class PasswordPolicyFactory implements
      *
      * @return A string representation of this password policy.
      */
+    @Override
     public String toString()
     {
       StringBuilder buffer = new StringBuilder();

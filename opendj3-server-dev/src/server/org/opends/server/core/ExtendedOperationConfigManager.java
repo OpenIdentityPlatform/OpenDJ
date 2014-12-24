@@ -26,13 +26,15 @@
  */
 package org.opends.server.core;
 
-import java.util.ArrayList;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -42,13 +44,9 @@ import org.opends.server.admin.std.meta.ExtendedOperationHandlerCfgDefn;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of extended
@@ -140,20 +138,15 @@ public class ExtendedOperationConfigManager implements
   public ConfigChangeResult applyConfigurationDelete(
        ExtendedOperationHandlerCfg configuration)
   {
-    ResultCode resultCode          = ResultCode.SUCCESS;
-    boolean    adminActionRequired = false;
-
-
-    // See if the entry is registered as an extended operation handler.  If so,
-    // deregister it and finalize the handler.
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    // See if the entry is registered as an extended operation handler.
+    // If so, deregister it and finalize the handler.
     ExtendedOperationHandler handler = handlers.remove(configuration.dn());
     if (handler != null)
     {
       handler.finalizeExtendedOperationHandler();
     }
-
-
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+    return ccr;
   }
 
   /**
@@ -185,10 +178,7 @@ public class ExtendedOperationConfigManager implements
     DN dn = configuration.dn();
     ExtendedOperationHandler handler = handlers.get(dn);
 
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See whether the handler should be enabled.
     if (handler == null) {
@@ -204,14 +194,14 @@ public class ExtendedOperationConfigManager implements
         } catch (ConfigException e) {
           logger.traceException(e);
 
-          messages.add(e.getMessageObject());
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.addMessage(e.getMessageObject());
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         } catch (Exception e) {
           logger.traceException(e);
 
-          messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
+          ccr.addMessage(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
               configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
     } else {
@@ -223,7 +213,7 @@ public class ExtendedOperationConfigManager implements
         // change to take effect.
         String className = configuration.getJavaClass();
         if (!className.equals(handler.getClass().getName())) {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
       } else {
         // We need to disable the connection handler.
@@ -234,9 +224,7 @@ public class ExtendedOperationConfigManager implements
       }
     }
 
-    // Return the configuration result.
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return ccr;
   }
 
   /**
@@ -257,10 +245,7 @@ public class ExtendedOperationConfigManager implements
   public ConfigChangeResult applyConfigurationAdd(
        ExtendedOperationHandlerCfg configuration)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Register as a change listener for this connection handler entry
     // so that we will be notified of any changes that may be made to
@@ -284,22 +269,20 @@ public class ExtendedOperationConfigManager implements
       {
         logger.traceException(e);
 
-        messages.add(e.getMessageObject());
-        resultCode = DirectoryServer.getServerErrorResultCode();
+        ccr.addMessage(e.getMessageObject());
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
-        messages.add(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
+        ccr.addMessage(ERR_CONFIG_EXTOP_INITIALIZATION_FAILED.get(
             configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
     }
 
-    // Return the configuration result.
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return ccr;
   }
 
   /**

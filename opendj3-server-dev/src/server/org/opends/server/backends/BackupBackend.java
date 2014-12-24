@@ -1087,10 +1087,7 @@ public class BackupBackend
   @Override
   public ConfigChangeResult applyConfigurationChange(BackupBackendCfg cfg)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     Set<String> values = cfg.getBackupDirectory();
     backupDirectories = new LinkedHashMap<File,CachedBackupDirectory>(values.size());
@@ -1101,7 +1098,7 @@ public class BackupBackend
     }
 
     currentConfig = cfg;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

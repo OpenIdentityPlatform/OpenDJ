@@ -31,7 +31,6 @@ package org.opends.server.extensions;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -581,15 +580,12 @@ public class CRAMMD5SASLMechanismHandler
   public ConfigChangeResult applyConfigurationChange(
               CramMD5SASLMechanismHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     DN identityMapperDN = configuration.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     currentConfig  = configuration;
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

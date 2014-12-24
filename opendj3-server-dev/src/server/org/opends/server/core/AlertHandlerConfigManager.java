@@ -170,15 +170,13 @@ public class AlertHandlerConfigManager
   @Override
   public ConfigChangeResult applyConfigurationAdd(AlertHandlerCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     AlertHandler alertHandler = null;
@@ -192,21 +190,17 @@ public class AlertHandlerConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       alertHandlers.put(configuration.dn(), alertHandler);
       DirectoryServer.registerAlertHandler(alertHandler);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -233,9 +227,7 @@ public class AlertHandlerConfigManager
   public ConfigChangeResult applyConfigurationDelete(
                                  AlertHandlerCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     AlertHandler alertHandler = alertHandlers.remove(configuration.dn());
     if (alertHandler != null)
@@ -244,7 +236,7 @@ public class AlertHandlerConfigManager
       alertHandler.finalizeAlertHandler();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -285,9 +277,7 @@ public class AlertHandlerConfigManager
   public ConfigChangeResult applyConfigurationChange(
                                  AlertHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing alert handler if it's already enabled.
@@ -309,7 +299,7 @@ public class AlertHandlerConfigManager
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -323,10 +313,10 @@ public class AlertHandlerConfigManager
     {
       if (! className.equals(existingHandler.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     AlertHandler alertHandler = null;
@@ -336,21 +326,17 @@ public class AlertHandlerConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       alertHandlers.put(configuration.dn(), alertHandler);
       DirectoryServer.registerAlertHandler(alertHandler);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

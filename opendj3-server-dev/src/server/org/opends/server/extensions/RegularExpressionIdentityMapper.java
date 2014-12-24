@@ -26,6 +26,10 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -51,11 +55,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
 
 /**
  * This class provides an implementation of a Directory Server identity mapper
@@ -368,10 +368,7 @@ public class RegularExpressionIdentityMapper
   public ConfigChangeResult applyConfigurationChange(
               RegularExpressionIdentityMapperCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     Pattern newMatchPattern = null;
     try
@@ -380,11 +377,8 @@ public class RegularExpressionIdentityMapper
     }
     catch (PatternSyntaxException pse)
     {
-      LocalizableMessage message = ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(
-                      configuration.getMatchPattern(),
-                                  pse.getMessage());
-      messages.add(message);
-      resultCode = ResultCode.CONSTRAINT_VIOLATION;
+      ccr.addMessage(ERR_REGEXMAP_INVALID_MATCH_PATTERN.get(configuration.getMatchPattern(), pse.getMessage()));
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
     }
 
     String newReplacePattern = configuration.getReplacePattern();
@@ -398,7 +392,7 @@ public class RegularExpressionIdentityMapper
          configuration.getMatchAttribute().toArray(new AttributeType[0]);
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       attributeTypes = newAttributeTypes;
       currentConfig  = configuration;
@@ -406,8 +400,6 @@ public class RegularExpressionIdentityMapper
       replacePattern = newReplacePattern;
     }
 
-
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

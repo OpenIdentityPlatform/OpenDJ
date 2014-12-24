@@ -41,8 +41,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
-
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.io.ASN1Reader;
@@ -148,7 +146,7 @@ public class CertificateSyntax
       CertificateAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

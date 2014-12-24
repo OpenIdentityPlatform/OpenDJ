@@ -48,7 +48,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -73,7 +72,7 @@ public final class AggregationServerTest extends AdminTestCase {
     @Override
     public ConfigChangeResult applyConfigurationChange(
         TestChildCfg configuration) {
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 
@@ -103,7 +102,7 @@ public final class AggregationServerTest extends AdminTestCase {
     @Override
     public ConfigChangeResult applyConfigurationDelete(
         TestChildCfg configuration) {
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 

@@ -27,9 +27,12 @@
  */
 package org.opends.server.backends.jeb;
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.Closeable;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -39,7 +42,6 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -53,10 +55,6 @@ import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.DatabaseException;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Class representing an attribute index.
@@ -674,33 +672,30 @@ public class AttributeIndex
   @Override
   public synchronized ConfigChangeResult applyConfigurationChange(LocalDBIndexCfg cfg)
   {
-    // this method is not perf sensitive, using an AtomicBoolean will not hurt
-    AtomicBoolean adminActionRequired = new AtomicBoolean(false);
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
-      applyChangeToPresenceIndex(cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.EQUALITY, cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.SUBSTRING, cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.ORDERING, cfg, adminActionRequired, messages);
-      applyChangeToIndex(IndexType.APPROXIMATE, cfg, adminActionRequired, messages);
-      applyChangeToExtensibleIndexes(cfg, adminActionRequired, messages);
+      applyChangeToPresenceIndex(cfg, ccr);
+      applyChangeToIndex(IndexType.EQUALITY, cfg, ccr);
+      applyChangeToIndex(IndexType.SUBSTRING, cfg, ccr);
+      applyChangeToIndex(IndexType.ORDERING, cfg, ccr);
+      applyChangeToIndex(IndexType.APPROXIMATE, cfg, ccr);
+      applyChangeToExtensibleIndexes(cfg, ccr);
 
       extensibleIndexesMapping = computeExtensibleIndexesMapping();
       indexConfig = cfg;
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired.get(), messages);
+      return ccr;
     }
     catch(Exception e)
     {
-      messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(
-          DirectoryServer.getServerErrorResultCode(), adminActionRequired.get(), messages);
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
+      return ccr;
     }
   }
 
-  private void applyChangeToExtensibleIndexes(LocalDBIndexCfg cfg,
-      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private void applyChangeToExtensibleIndexes(LocalDBIndexCfg cfg, final ConfigChangeResult ccr)
   {
     final AttributeType attrType = cfg.getAttribute();
     if (!cfg.getIndexType().contains(IndexType.EXTENSIBLE))
@@ -732,7 +727,7 @@ public class AttributeIndex
         if (!nameToIndexes.containsKey(indexId))
         {
           Index index = newAttributeIndex(cfg, indexer);
-          openIndex(index, adminActionRequired, messages);
+          openIndex(index, ccr);
           nameToIndexes.put(indexId, index);
         }
         else
@@ -740,8 +735,8 @@ public class AttributeIndex
           Index index = nameToIndexes.get(indexId);
           if (index.setIndexEntryLimit(indexEntryLimit))
           {
-            adminActionRequired.set(true);
-            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+            ccr.setAdminActionRequired(true);
+            ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
           }
           if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
           {
@@ -807,8 +802,7 @@ public class AttributeIndex
     return rules;
   }
 
-  private void applyChangeToIndex(IndexType indexType, LocalDBIndexCfg cfg,
-      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private void applyChangeToIndex(IndexType indexType, LocalDBIndexCfg cfg, final ConfigChangeResult ccr)
   {
     String indexId = indexType.toString();
     Index index = nameToIndexes.get(indexId);
@@ -824,7 +818,7 @@ public class AttributeIndex
       for (org.forgerock.opendj.ldap.spi.Indexer indexer : matchingRule.getIndexers())
       {
         index = newAttributeIndex(cfg, indexer);
-        openIndex(index, adminActionRequired, messages);
+        openIndex(index, ccr);
         nameToIndexes.put(indexId, index);
       }
     }
@@ -833,14 +827,13 @@ public class AttributeIndex
       // already exists. Just update index entry limit.
       if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
-        adminActionRequired.set(true);
-        messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
     }
   }
 
-  private void applyChangeToPresenceIndex(LocalDBIndexCfg cfg, AtomicBoolean adminActionRequired,
-      ArrayList<LocalizableMessage> messages)
+  private void applyChangeToPresenceIndex(LocalDBIndexCfg cfg, final ConfigChangeResult ccr)
   {
     final IndexType indexType = IndexType.PRESENCE;
     final String indexID = indexType.toString();
@@ -854,7 +847,7 @@ public class AttributeIndex
     if (index == null)
     {
       index = newPresenceIndex(cfg);
-      openIndex(index, adminActionRequired, messages);
+      openIndex(index, ccr);
       nameToIndexes.put(indexID, index);
     }
     else
@@ -862,8 +855,8 @@ public class AttributeIndex
       // already exists. Just update index entry limit.
       if (index.setIndexEntryLimit(cfg.getIndexEntryLimit()))
       {
-        adminActionRequired.set(true);
-        messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(index.getName()));
       }
     }
   }
@@ -885,14 +878,14 @@ public class AttributeIndex
     }
   }
 
-  private void openIndex(Index index, AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private void openIndex(Index index, final ConfigChangeResult ccr)
   {
     index.open();
 
     if (!index.isTrusted())
     {
-      adminActionRequired.set(true);
-      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
   }
 

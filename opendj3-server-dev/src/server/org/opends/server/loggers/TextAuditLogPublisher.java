@@ -33,7 +33,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -44,7 +43,6 @@ import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
@@ -59,10 +57,7 @@ public final class TextAuditLogPublisher extends
 {
 
   private TextWriter writer;
-
   private FileBasedAuditLogPublisherCfg cfg;
-
-
 
   /**
    * {@inheritDoc}
@@ -71,10 +66,7 @@ public final class TextAuditLogPublisher extends
   public ConfigChangeResult applyConfigurationChange(
       FileBasedAuditLogPublisherCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     File logFile = getFileForPath(config.getLogFile());
     FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -145,7 +137,7 @@ public final class TextAuditLogPublisher extends
         if ((cfg.isAsynchronous() && config.isAsynchronous())
             && (cfg.getQueueSize() != config.getQueueSize()))
         {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
 
         cfg = config;
@@ -153,12 +145,12 @@ public final class TextAuditLogPublisher extends
     }
     catch (Exception e)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn(), stackTraceToSingleLineString(e)));
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

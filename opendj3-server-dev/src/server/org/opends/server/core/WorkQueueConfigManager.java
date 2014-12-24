@@ -25,11 +25,9 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -142,10 +140,7 @@ public class WorkQueueConfigManager
   @Override
   public ConfigChangeResult applyConfigurationChange(WorkQueueCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // If the work queue class has been changed, then we should warn the user
     // that it won't take effect until the server is restarted.
@@ -153,15 +148,10 @@ public class WorkQueueConfigManager
     String workQueueClass = configuration.getJavaClass();
     if (! workQueueClass.equals(workQueue.getClass().getName()))
     {
-      messages.add(INFO_CONFIG_WORK_QUEUE_CLASS_CHANGE_REQUIRES_RESTART.get(
-              workQueue.getClass().getName(),
-              workQueueClass));
-
-      adminActionRequired = true;
+      ccr.addMessage(INFO_CONFIG_WORK_QUEUE_CLASS_CHANGE_REQUIRES_RESTART.get(
+              workQueue.getClass().getName(), workQueueClass));
+      ccr.setAdminActionRequired(true);
     }
-
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

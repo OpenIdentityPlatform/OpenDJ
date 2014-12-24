@@ -29,7 +29,6 @@ package org.opends.server.loggers;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -37,18 +36,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg3;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.LogPublisherCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 /**
@@ -262,10 +261,7 @@ public abstract class AbstractLogger
   @Override
   public ConfigChangeResult applyConfigurationAdd(C config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     config.addChangeListener((ConfigurationChangeListener) this);
 
@@ -278,18 +274,18 @@ public abstract class AbstractLogger
       catch(ConfigException e)
       {
         LocalizedLogger.getLoggerForThisClass().traceException(e);
-        messages.add(e.getMessageObject());
-        resultCode = DirectoryServer.getServerErrorResultCode();
+        ccr.addMessage(e.getMessageObject());
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
       catch (Exception e)
       {
         LocalizedLogger.getLoggerForThisClass().traceException(e);
-        messages.add(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
+        ccr.addMessage(ERR_CONFIG_LOGGER_CANNOT_CREATE_LOGGER.get(
             config.dn(), stackTraceToSingleLineString(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
     }
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private P findLogPublisher(DN dn)
@@ -310,10 +306,7 @@ public abstract class AbstractLogger
   @Override
   public ConfigChangeResult applyConfigurationChange(C config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     P logPublisher = findLogPublisher(config.dn());
     if(logPublisher == null)
@@ -336,7 +329,7 @@ public abstract class AbstractLogger
         String className = config.getJavaClass();
         if(!className.equals(logPublisher.getClass().getName()))
         {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
       }
       else
@@ -346,7 +339,7 @@ public abstract class AbstractLogger
       }
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**
@@ -365,9 +358,7 @@ public abstract class AbstractLogger
   @Override
   public ConfigChangeResult applyConfigurationDelete(C config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     P logPublisher = findLogPublisher(config.dn());
     if(logPublisher != null)
@@ -376,10 +367,10 @@ public abstract class AbstractLogger
     }
     else
     {
-      resultCode = ResultCode.NO_SUCH_OBJECT;
+      ccr.setResultCode(ResultCode.NO_SUCH_OBJECT);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+    return ccr;
   }
 
   private boolean isJavaClassAcceptable(C config,

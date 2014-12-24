@@ -33,7 +33,6 @@ import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +41,6 @@ import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
@@ -296,9 +294,7 @@ public class TextErrorLogPublisher
   @Override
   public ConfigChangeResult applyConfigurationChange(FileBasedErrorLogPublisherCfg config)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     setDefaultSeverities(config.getDefaultSeverity());
 
@@ -310,8 +306,8 @@ public class TextErrorLogPublisher
         int equalPos = overrideSeverity.indexOf('=');
         if (equalPos < 0)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity));
         } else
         {
           String category = overrideSeverity.substring(0, equalPos);
@@ -348,8 +344,8 @@ public class TextErrorLogPublisher
           }
           catch(Exception e)
           {
-            resultCode = DirectoryServer.getServerErrorResultCode();
-            messages.add(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
+            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+            ccr.addMessage(WARN_ERROR_LOGGER_INVALID_CATEGORY.get(category));
           }
         }
       }
@@ -419,7 +415,7 @@ public class TextErrorLogPublisher
             && config.isAsynchronous()
             && currentConfig.getQueueSize() != config.getQueueSize())
         {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
 
         currentConfig = config;
@@ -427,12 +423,12 @@ public class TextErrorLogPublisher
     }
     catch(Exception e)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn(), stackTraceToSingleLineString(e)));
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private void setDefaultSeverities(Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs)

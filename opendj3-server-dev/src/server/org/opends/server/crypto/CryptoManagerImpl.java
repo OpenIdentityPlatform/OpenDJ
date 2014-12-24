@@ -452,8 +452,7 @@ public class CryptoManagerImpl
     preferredCipherTransformation = cfg.getCipherTransformation();
     preferredCipherTransformationKeyLengthBits = cfg.getCipherKeyLength();
     preferredKeyWrappingTransformation = cfg.getKeyWrappingTransformation();
-    return new ConfigChangeResult(ResultCode.SUCCESS, false,
-        new ArrayList<LocalizableMessage>());
+    return new ConfigChangeResult();
   }
 
 
@@ -466,21 +465,16 @@ public class CryptoManagerImpl
   private TrustStoreBackend getTrustStoreBackend()
        throws ConfigException
   {
-    Backend b = DirectoryServer.getBackend(
-         ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
+    Backend<?> b = DirectoryServer.getBackend(ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
     if (b == null)
     {
-      LocalizableMessage msg =
-           ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(
-                ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
-      throw new ConfigException(msg);
+      throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_NOT_ENABLED.get(
+            ConfigConstants.ID_ADS_TRUST_STORE_BACKEND));
     }
     if (!(b instanceof TrustStoreBackend))
     {
-      LocalizableMessage msg =
-           ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_WRONG_CLASS.get(
-                ConfigConstants.ID_ADS_TRUST_STORE_BACKEND);
-      throw new ConfigException(msg);
+      throw new ConfigException(ERR_CRYPTOMGR_ADS_TRUST_STORE_BACKEND_WRONG_CLASS.get(
+            ConfigConstants.ID_ADS_TRUST_STORE_BACKEND));
     }
     return (TrustStoreBackend)b;
   }

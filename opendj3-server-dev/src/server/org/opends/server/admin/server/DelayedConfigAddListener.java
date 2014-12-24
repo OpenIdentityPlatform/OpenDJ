@@ -26,8 +26,6 @@
  */
 package org.opends.server.admin.server;
 
-
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.api.ConfigAddListener;
@@ -37,9 +35,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
 
 /**
  * A configuration add listener which will monitor a parent entry to
@@ -138,7 +134,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
       }
     }
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.Backend;
@@ -698,8 +697,7 @@ public class RootContainer
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     try
     {
@@ -723,8 +721,8 @@ public class RootContainer
             if (!param.isMutable()) {
               String oldValue = oldEnvConfig.getConfigParam(param.getName());
               if (!oldValue.equalsIgnoreCase(jePropertyValue)) {
-                adminActionRequired = true;
-                messages.add(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(jePropertyName));
+                ccr.setAdminActionRequired(true);
+                ccr.addMessage(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(jePropertyName));
                 if(logger.isTraceEnabled()) {
                   logger.trace("The change to the following property " +
                     "will take effect when the component is restarted: " +
@@ -745,16 +743,16 @@ public class RootContainer
             String newValue = newEnvConfig.getConfigParam(param.getName());
             if (!oldValue.equalsIgnoreCase(newValue))
             {
-              adminActionRequired = true;
+              ccr.setAdminActionRequired(true);
               String configAttr = ConfigurableEnvironment.
                   getAttributeForProperty(param.getName());
               if (configAttr != null)
               {
-                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(configAttr));
+                ccr.addMessage(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(configAttr));
               }
               else
               {
-                messages.add(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(param.getName()));
+                ccr.addMessage(NOTE_JEB_CONFIG_ATTR_REQUIRES_RESTART.get(param.getName()));
               }
               if(logger.isTraceEnabled())
               {
@@ -784,25 +782,21 @@ public class RootContainer
         {
           if(!backendDirectory.mkdirs())
           {
-            messages.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(),
-                adminActionRequired,
-                messages);
+            ccr.addMessage(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
+            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+            return ccr;
           }
         }
         //Make sure the directory is valid.
         else if (!backendDirectory.isDirectory())
         {
-          messages.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
-          return new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(),
-              adminActionRequired,
-              messages);
+          ccr.addMessage(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          return ccr;
         }
 
-        adminActionRequired = true;
-        messages.add(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(
                         this.config.getDBDirectory(), cfg.getDBDirectory()));
       }
 
@@ -818,11 +812,9 @@ public class RootContainer
         }
         catch(Exception e)
         {
-          messages.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
-          return new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(),
-              adminActionRequired,
-              messages);
+          ccr.addMessage(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          return ccr;
         }
 
         //Make sure the mode will allow the server itself access to
@@ -831,12 +823,10 @@ public class RootContainer
             !backendPermission.isOwnerReadable() ||
             !backendPermission.isOwnerExecutable())
         {
-          messages.add(ERR_CONFIG_BACKEND_INSANE_MODE.get(
+          ccr.addMessage(ERR_CONFIG_BACKEND_INSANE_MODE.get(
               cfg.getDBDirectoryPermissions()));
-          return new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(),
-              adminActionRequired,
-              messages);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          return ccr;
         }
 
         // Get the backend database backendDirectory permissions and apply
@@ -868,13 +858,12 @@ public class RootContainer
     }
     catch (Exception e)
     {
-      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                   adminActionRequired,
-                                   messages);
+      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      return ccr;
     }
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+    return ccr;
   }
 
   /**

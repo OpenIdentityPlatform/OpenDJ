@@ -45,7 +45,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
@@ -346,7 +345,7 @@ public final class LastModPlugin
                                  LastModPluginCfg configuration)
   {
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
 

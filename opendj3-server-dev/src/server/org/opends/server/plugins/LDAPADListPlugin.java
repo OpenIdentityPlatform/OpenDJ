@@ -44,7 +44,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -273,7 +272,7 @@ public final class LDAPADListPlugin
                                       configuration)
   {
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
 

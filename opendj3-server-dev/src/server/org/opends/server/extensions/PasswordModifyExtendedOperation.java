@@ -26,6 +26,12 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -33,17 +39,18 @@ import java.util.concurrent.locks.Lock;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
 import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
@@ -55,13 +62,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements the password modify extended operation defined in RFC
@@ -1246,9 +1246,7 @@ public class PasswordModifyExtendedOperation
   public ConfigChangeResult applyConfigurationChange(
        PasswordModifyExtendedOperationHandlerCfg config)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Make sure that the specified identity mapper is OK.
@@ -1260,23 +1258,21 @@ public class PasswordModifyExtendedOperation
       mapper   = DirectoryServer.getIdentityMapper(mapperDN);
       if (mapper == null)
       {
-        resultCode = ResultCode.CONSTRAINT_VIOLATION;
-
-        messages.add(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(mapperDN, config.dn()));
+        ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_EXTOP_PASSMOD_NO_SUCH_ID_MAPPER.get(mapperDN, config.dn()));
       }
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      messages.add(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(config.dn(), getExceptionMessage(e)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_EXTOP_PASSMOD_CANNOT_DETERMINE_ID_MAPPER.get(config.dn(), getExceptionMessage(e)));
     }
 
 
     // If all of the changes were acceptable, then apply them.
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       if (! identityMapperDN.equals(mapperDN))
       {
@@ -1289,7 +1285,7 @@ public class PasswordModifyExtendedOperation
     // Save this configuration for future reference.
     currentConfig = config;
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /** {@inheritDoc} */

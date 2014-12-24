@@ -26,6 +26,11 @@
  */
 package org.opends.server.protocols.http;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -54,6 +59,8 @@ import org.forgerock.json.resource.ConnectionFactory;
 import org.forgerock.json.resource.Resources;
 import org.forgerock.json.resource.Router;
 import org.forgerock.json.resource.servlet.HttpServlet;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.rest2ldap.AuthorizationPolicy;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
@@ -73,21 +80,14 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.HTTPConnectionHandlerCfg;
 import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
 import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a connection handler that will be used for communicating
@@ -212,14 +212,12 @@ public class HTTPConnectionHandler extends
   public ConfigChangeResult applyConfigurationChange(
       HTTPConnectionHandlerCfg config)
   {
-    // Create variables to include in the response.
-    boolean adminActionRequired = false;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     if (anyChangeRequiresRestart(config))
     {
-      adminActionRequired = true;
-      messages.add(ERR_CONNHANDLER_CONFIG_CHANGES_REQUIRE_RESTART.get("HTTP"));
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(ERR_CONNHANDLER_CONFIG_CHANGES_REQUIRE_RESTART.get("HTTP"));
     }
 
     // Reconfigure SSL if needed.
@@ -230,9 +228,9 @@ public class HTTPConnectionHandler extends
     catch (DirectoryException e)
     {
       logger.traceException(e);
-      messages.add(e.getMessageObject());
-      return new ConfigChangeResult(e.getResultCode(), adminActionRequired,
-          messages);
+      ccr.setResultCode(e.getResultCode());
+      ccr.addMessage(e.getMessageObject());
+      return ccr;
     }
 
     if (config.isEnabled() && this.currentConfig.isEnabled() && isListening())
@@ -255,8 +253,7 @@ public class HTTPConnectionHandler extends
     this.currentConfig = config;
     this.enabled = this.currentConfig.isEnabled();
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-        messages);
+    return ccr;
   }
 
   private boolean anyChangeRequiresRestart(HTTPConnectionHandlerCfg newCfg)

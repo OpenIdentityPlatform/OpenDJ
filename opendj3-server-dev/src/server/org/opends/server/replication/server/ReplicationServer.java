@@ -26,6 +26,10 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
@@ -59,10 +63,6 @@ import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredica
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.*;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * ReplicationServer Listener. This singleton is the main object of the
@@ -869,12 +869,10 @@ public final class ReplicationServer
   public ConfigChangeResult applyConfigurationChange(
       ReplicationServerCfg configuration)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Some of those properties change don't need specific code.
-    // They will be applied for next connections. Some others have immediate
-    // effect
+    // They will be applied for next connections. Some others have immediate effect
     final Set<HostPort> oldRSAddresses = getConfiguredRSAddresses();
 
     final ReplicationServerCfg oldConfig = this.config;
@@ -897,7 +895,7 @@ public final class ReplicationServer
       catch (ChangelogException e)
       {
         logger.traceException(e);
-        resultCode = ResultCode.OPERATIONS_ERROR;
+        ccr.setResultCode(ResultCode.OPERATIONS_ERROR);
       }
     }
 
@@ -962,9 +960,9 @@ public final class ReplicationServer
     final String newDir = config.getReplicationDBDirectory();
     if (newDir != null && !newDir.equals(oldConfig.getReplicationDBDirectory()))
     {
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+    return ccr;
   }
 
   /**

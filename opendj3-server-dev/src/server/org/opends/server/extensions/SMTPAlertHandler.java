@@ -36,7 +36,6 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.admin.std.server.SMTPAlertHandlerCfg;
@@ -225,8 +224,6 @@ public class SMTPAlertHandler
                                  SMTPAlertHandlerCfg configuration)
   {
     currentConfig = configuration;
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
-

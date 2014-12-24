@@ -247,7 +247,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
         } else {
           // The dependent entry was not found.
           configEntry.deregisterChangeListener(this);
-          return new ConfigChangeResult(ResultCode.SUCCESS, false);
+          return new ConfigChangeResult();
         }
       }
 
@@ -296,7 +296,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends
         if (configEntry.getDN().equals(dn)) {
           finalizeChangeListener();
         }
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+        return new ConfigChangeResult();
       }
 
 

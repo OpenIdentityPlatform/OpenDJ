@@ -33,7 +33,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -52,8 +51,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
-
-
 
 /**
  * This class provides an implementation of a SASL mechanism that uses
@@ -562,18 +559,13 @@ public class PlainSASLMechanismHandler
   public ConfigChangeResult applyConfigurationChange(
               PlainSASLMechanismHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Get the identity mapper that should be used to find users.
     DN identityMapperDN = configuration.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     currentConfig  = configuration;
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

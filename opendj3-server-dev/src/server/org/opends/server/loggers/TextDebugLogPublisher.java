@@ -28,7 +28,6 @@ package org.opends.server.loggers;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +46,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -235,10 +233,7 @@ public class TextDebugLogPublisher
   public ConfigChangeResult applyConfigurationChange(
       FileBasedDebugLogPublisherCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     addTraceSettings(null, getDefaultSettings(config));
     DebugLogger.updateTracerSettings();
@@ -310,7 +305,7 @@ public class TextDebugLogPublisher
         if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&
             (currentConfig.getQueueSize() != config.getQueueSize()))
         {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
 
         currentConfig = config;
@@ -318,12 +313,12 @@ public class TextDebugLogPublisher
     }
     catch(Exception e)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn(), stackTraceToSingleLineString(e)));
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private TraceSettings getDefaultSettings(FileBasedDebugLogPublisherCfg config)
@@ -363,16 +358,11 @@ public class TextDebugLogPublisher
   @Override
   public ConfigChangeResult applyConfigurationAdd(DebugTargetCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     addTraceSettings(config.getDebugScope(), new TraceSettings(config));
 
     DebugLogger.updateTracerSettings();
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 
   /**
@@ -381,16 +371,11 @@ public class TextDebugLogPublisher
   @Override
   public ConfigChangeResult applyConfigurationDelete(DebugTargetCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     removeTraceSettings(config.getDebugScope());
 
     DebugLogger.updateTracerSettings();
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 
   /**

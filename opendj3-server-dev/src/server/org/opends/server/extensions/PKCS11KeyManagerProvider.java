@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -53,10 +52,7 @@ import org.opends.server.util.StaticUtils;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a key manager provider that will access keys stored on a
@@ -367,10 +363,7 @@ public class PKCS11KeyManagerProvider
   public ConfigChangeResult applyConfigurationChange(
                                  PKCS11KeyManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Get the PIN needed to access the contents of the keystore file.
     //
@@ -392,9 +385,8 @@ public class PKCS11KeyManagerProvider
 
       if (pinStr == null)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(propertyName, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_PKCS11_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(propertyName, configEntryDN));
       }
       else
       {
@@ -408,9 +400,8 @@ public class PKCS11KeyManagerProvider
 
       if (pinStr == null)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_PKCS11_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, configEntryDN));
       }
       else
       {
@@ -424,9 +415,8 @@ public class PKCS11KeyManagerProvider
 
       if (!pinFile.exists())
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_PKCS11_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, configEntryDN));
       }
       else
       {
@@ -438,8 +428,8 @@ public class PKCS11KeyManagerProvider
         }
         catch (IOException ioe)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_PKCS11_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
               fileName, configEntryDN, getExceptionMessage(ioe)));
         }
         finally
@@ -449,8 +439,8 @@ public class PKCS11KeyManagerProvider
 
         if (pinStr == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_PKCS11_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, configEntryDN));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_PKCS11_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, configEntryDN));
         }
         else
         {
@@ -463,14 +453,12 @@ public class PKCS11KeyManagerProvider
       newPIN = configuration.getKeyStorePin().toCharArray();
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       currentConfig = configuration;
       keyStorePIN   = newPIN;
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

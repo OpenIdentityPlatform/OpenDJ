@@ -31,7 +31,6 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
-
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
@@ -82,17 +81,18 @@ public class ReplicationServerListener
   @Override
   public ConfigChangeResult applyConfigurationAdd(ReplicationServerCfg cfg)
   {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       replicationServer = new ReplicationServer(cfg, dsrsShutdownSync);
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
     }
     catch (ConfigException e)
     {
       // we should never get to this point because the configEntry has
       // already been validated in configAddisAcceptable
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false);
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
     }
+    return ccr;
   }
 
   /** {@inheritDoc} */
@@ -124,7 +124,7 @@ public class ReplicationServerListener
     {
       replicationServer.remove();
     }
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
   /** {@inheritDoc} */

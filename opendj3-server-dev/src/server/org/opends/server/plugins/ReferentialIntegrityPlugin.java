@@ -27,13 +27,18 @@
  */
 package org.opends.server.plugins;
 
+import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -67,18 +72,12 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.types.operation.SubordinateModifyDNOperation;
-
-import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a Directory Server post operation plugin that performs
@@ -203,9 +202,7 @@ public class ReferentialIntegrityPlugin
   public ConfigChangeResult applyConfigurationChange(
           ReferentialIntegrityPluginCfg newConfiguration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     //Load base DNs from new configuration.
     LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>();
@@ -259,10 +256,8 @@ public class ReferentialIntegrityPlugin
     String newLogFileName=newConfiguration.getLogFile();
     if(logFileName != null && !logFileName.equals(newLogFileName))
     {
-      adminActionRequired=true;
-      messages.add(
-           INFO_PLUGIN_REFERENT_LOGFILE_CHANGE_REQUIRES_RESTART.get(logFileName,
-                newLogFileName));
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(INFO_PLUGIN_REFERENT_LOGFILE_CHANGE_REQUIRES_RESTART.get(logFileName, newLogFileName));
     }
 
     //Switch to the new lists.
@@ -273,11 +268,13 @@ public class ReferentialIntegrityPlugin
     //If the plugin is enabled and the interval has changed, process that
     //change. The change might start or stop the background processing thread.
     long newInterval=newConfiguration.getUpdateInterval();
-    if(newConfiguration.isEnabled() && newInterval != interval)
-      processIntervalChange(newInterval, messages);
+    if (newConfiguration.isEnabled() && newInterval != interval)
+    {
+      processIntervalChange(newInterval, ccr.getMessages());
+    }
 
     currentConfiguration = newConfiguration;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -528,7 +525,7 @@ public class ReferentialIntegrityPlugin
   }
 
   /**
-   * Process the specifed new interval value. This processing depends on what
+   * Process the specified new interval value. This processing depends on what
    * the current interval value is and new value will be. The values have been
    * checked for equality at this point and are not equal.
    *
@@ -545,10 +542,9 @@ public class ReferentialIntegrityPlugin
    *
    * @param msgs An array list of messages that thread stop and start messages
    *             can be added to.
-   *
    */
-  private void processIntervalChange(long newInterval,
-                                     ArrayList<LocalizableMessage> msgs) {
+  private void processIntervalChange(long newInterval, List<LocalizableMessage> msgs)
+  {
     if(interval == 0) {
       DirectoryServer.registerShutdownListener(this);
       interval=newInterval;

@@ -25,15 +25,12 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
 
 import static org.opends.messages.ExtensionMessages.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -50,9 +47,6 @@ import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 
 /**
  * This class defines an account status notification handler that will write
@@ -197,21 +191,11 @@ public class ErrorLogAccountStatusNotificationHandler
       ErrorLogAccountStatusNotificationHandlerCfg configuration
       )
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        resultCode, adminActionRequired, messages
-        );
+    // Initialize the set of notification types that should generate log messages.
+    boolean applyChanges =false;
+    processNotificationHandlerConfig (configuration, applyChanges);
 
-    // Initialize the set of notification types that should generate log
-    // messages.
-    boolean applyChanges = false;
-    processNotificationHandlerConfig (
-        configuration, applyChanges
-        );
-
-    return changeResult;
+    return new ConfigChangeResult();
   }
 
 

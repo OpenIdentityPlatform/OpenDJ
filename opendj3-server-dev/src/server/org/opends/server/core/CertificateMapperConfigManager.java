@@ -26,31 +26,30 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Utils;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.CertificateMapperCfgDefn;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.CertificateMapper;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of
@@ -68,8 +67,10 @@ public class CertificateMapperConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated
-  // certificate mappers.
+  /**
+   * A mapping between the DNs of the config entries and the associated
+   * certificate mappers.
+   */
   private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
 
   private final ServerContext serverContext;
@@ -141,11 +142,8 @@ public class CertificateMapperConfigManager
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(
                       CertificateMapperCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -170,23 +168,18 @@ public class CertificateMapperConfigManager
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  CertificateMapperCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     CertificateMapper certificateMapper = null;
@@ -200,29 +193,21 @@ public class CertificateMapperConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       certificateMappers.put(configuration.dn(), certificateMapper);
-      DirectoryServer.registerCertificateMapper(configuration.dn(),
-                                                certificateMapper);
+      DirectoryServer.registerCertificateMapper(configuration.dn(), certificateMapper);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       CertificateMapperCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -232,17 +217,12 @@ public class CertificateMapperConfigManager
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  CertificateMapperCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     DirectoryServer.deregisterCertificateMapper(configuration.dn());
 
@@ -253,14 +233,11 @@ public class CertificateMapperConfigManager
       certificateMapper.finalizeCertificateMapper();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       CertificateMapperCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -285,17 +262,12 @@ public class CertificateMapperConfigManager
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  CertificateMapperCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing mapper if it's already enabled.
@@ -319,7 +291,7 @@ public class CertificateMapperConfigManager
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -333,10 +305,10 @@ public class CertificateMapperConfigManager
     {
       if (! className.equals(existingMapper.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     CertificateMapper certificateMapper = null;
@@ -346,22 +318,17 @@ public class CertificateMapperConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       certificateMappers.put(configuration.dn(), certificateMapper);
-      DirectoryServer.registerCertificateMapper(configuration.dn(),
-                                                certificateMapper);
+      DirectoryServer.registerCertificateMapper(configuration.dn(), certificateMapper);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

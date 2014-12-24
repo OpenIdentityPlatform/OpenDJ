@@ -41,7 +41,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 
 
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -372,7 +371,7 @@ public class TelephoneNumberSyntax
     currentConfig = configuration;
     strictMode = configuration.isStrictFormat();
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

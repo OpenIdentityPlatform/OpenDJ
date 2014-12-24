@@ -28,7 +28,6 @@ package org.opends.server.loggers;
 import static org.opends.messages.LoggerMessages.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,7 +38,6 @@ import org.opends.server.admin.std.server.SizeLimitLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class implements a retention policy based on the amount of
@@ -60,6 +58,7 @@ public class SizeBasedRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeLogRetentionPolicy(
       SizeLimitLogRetentionPolicyCfg config)
   {
@@ -73,6 +72,7 @@ public class SizeBasedRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRetentionPolicyCfg config,
       List<LocalizableMessage> unacceptableReasons)
@@ -84,23 +84,20 @@ public class SizeBasedRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRetentionPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     this.size = config.getDiskSpaceUsed();
     this.config = config;
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
       throws DirectoryException
   {
@@ -148,6 +145,7 @@ public class SizeBasedRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
     return "Size Based Retention Policy " + config.dn().toString();

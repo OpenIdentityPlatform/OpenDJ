@@ -26,6 +26,10 @@
  */
 package org.opends.server.core;
 
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +37,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -43,13 +49,7 @@ import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.forgerock.opendj.adapter.server3x.Converters.from;
 
 /**
  * This class defines a utility that will be used to manage the set of
@@ -234,15 +234,13 @@ public class VirtualAttributeConfigManager
   public ConfigChangeResult applyConfigurationAdd(
                                  VirtualAttributeCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     // Make sure that we can parse all of the search filters.
@@ -251,17 +249,14 @@ public class VirtualAttributeConfigManager
     Set<SearchFilter> filters = buildFilters(configuration, reasons);
     if (!reasons.isEmpty())
     {
-      messages.addAll(reasons.keySet());
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-      }
+      ccr.getMessages().addAll(reasons.keySet());
+      ccr.setResultCodeIfSuccess(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
     }
 
     // Get the name of the class and make sure we can instantiate it as a
     // certificate mapper.
     VirtualAttributeProvider<? extends VirtualAttributeCfg> provider = null;
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       String className = configuration.getJavaClass();
       try
@@ -270,18 +265,18 @@ public class VirtualAttributeConfigManager
       }
       catch (InitializationException ie)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(ie.getMessageObject());
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ie.getMessageObject());
       }
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       VirtualAttributeRule rule = createRule(configuration, provider, filters);
       rules.put(configuration.dn(), rule);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /** {@inheritDoc} */
@@ -299,9 +294,7 @@ public class VirtualAttributeConfigManager
   public ConfigChangeResult applyConfigurationDelete(
                                  VirtualAttributeCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     VirtualAttributeRule rule = rules.remove(configuration.dn());
     if (rule != null)
@@ -309,7 +302,7 @@ public class VirtualAttributeConfigManager
       rule.getProvider().finalizeVirtualAttributeProvider();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /** {@inheritDoc} */
@@ -358,9 +351,7 @@ public class VirtualAttributeConfigManager
   public ConfigChangeResult applyConfigurationChange(
                                  VirtualAttributeCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing rule if it's already enabled.
@@ -377,7 +368,7 @@ public class VirtualAttributeConfigManager
         existingRule.getProvider().finalizeVirtualAttributeProvider();
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -387,17 +378,14 @@ public class VirtualAttributeConfigManager
     Set<SearchFilter> filters = buildFilters(configuration, reasons);
     if (!reasons.isEmpty())
     {
-      messages.addAll(reasons.keySet());
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-      }
+      ccr.getMessages().addAll(reasons.keySet());
+      ccr.setResultCodeIfSuccess(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
     }
 
     // Get the name of the class and make sure we can instantiate it as a
     // certificate mapper.
     VirtualAttributeProvider<? extends VirtualAttributeCfg> provider = null;
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       String className = configuration.getJavaClass();
       try
@@ -406,12 +394,12 @@ public class VirtualAttributeConfigManager
       }
       catch (InitializationException ie)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(ie.getMessageObject());
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ie.getMessageObject());
       }
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       VirtualAttributeRule rule = createRule(configuration, provider, filters);
       rules.put(configuration.dn(), rule);
@@ -421,7 +409,7 @@ public class VirtualAttributeConfigManager
       }
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

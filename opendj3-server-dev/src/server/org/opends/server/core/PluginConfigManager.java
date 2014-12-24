@@ -26,12 +26,18 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -47,14 +53,8 @@ import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -4751,15 +4751,13 @@ public class PluginConfigManager
   public ConfigChangeResult applyConfigurationAdd(
                                  PluginCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     // Create a set of plugin types for the plugin.
@@ -4780,20 +4778,16 @@ public class PluginConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       registerPlugin(plugin, configuration.dn(), pluginTypes);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -4819,13 +4813,11 @@ public class PluginConfigManager
   public ConfigChangeResult applyConfigurationDelete(
                                  PluginCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     deregisterPlugin(configuration.dn());
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -4875,9 +4867,7 @@ public class PluginConfigManager
   public ConfigChangeResult applyConfigurationChange(
                                  PluginCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing plugin if it's already enabled.
@@ -4894,7 +4884,7 @@ public class PluginConfigManager
         deregisterPlugin(configuration.dn());
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -4909,13 +4899,13 @@ public class PluginConfigManager
     {
       if (! className.equals(existingPlugin.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
       existingPlugin.setInvokeForInternalOperations(
                           configuration.isInvokeForInternalOperations());
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     // Create a set of plugin types for the plugin.
@@ -4933,20 +4923,16 @@ public class PluginConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       registerPlugin(plugin, configuration.dn(), pluginTypes);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private void registerSkippedPreOperationPlugins(int i,

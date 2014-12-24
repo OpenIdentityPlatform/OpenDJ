@@ -138,7 +138,7 @@ public class PBKDF2PasswordStorageScheme
       PBKDF2PasswordStorageSchemeCfg configuration)
   {
     this.config = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
   /** {@inheritDoc} */

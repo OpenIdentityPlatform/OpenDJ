@@ -25,22 +25,17 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.RootDNCfgDefn;
 import org.opends.server.admin.std.server.RootDNCfg;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 
 /**
  * This class defines a data structure that is used to handle changes to the set
@@ -67,6 +62,7 @@ public class RootPrivilegeChangeListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(RootDNCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -79,13 +75,12 @@ public class RootPrivilegeChangeListener
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(RootDNCfg configuration)
   {
     setDefaultRootPrivileges(configuration);
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
-
-
 
   /**
    * Retrieves the set of privileges that will be automatically granted to root

@@ -26,7 +26,13 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.util.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -62,9 +68,6 @@ import org.opends.server.types.SortOrder;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class represents a VLV index. Each database record is a sorted list
@@ -1300,22 +1303,20 @@ public class VLVIndex extends DatabaseContainer
   public synchronized ConfigChangeResult applyConfigurationChange(
       LocalDBVLVIndexCfg cfg)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Update base DN only if changed..
     if(!config.getBaseDN().equals(cfg.getBaseDN()))
     {
       this.baseDN = cfg.getBaseDN();
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
     // Update scope only if changed.
     if(!config.getScope().equals(cfg.getScope()))
     {
       this.scope = SearchScope.valueOf(cfg.getScope().name());
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
     // Update sort set capacity only if changed.
@@ -1327,7 +1328,7 @@ public class VLVIndex extends DatabaseContainer
       // we will lazyly update the sorted sets.
       if (config.getMaxBlockSize() < cfg.getMaxBlockSize())
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
     }
 
@@ -1337,18 +1338,13 @@ public class VLVIndex extends DatabaseContainer
       try
       {
         this.filter = SearchFilter.createFilterFromString(cfg.getFilter());
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
       catch(Exception e)
       {
-        LocalizableMessage msg = ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
-                config.getFilter(), name,
-                stackTraceToSingleLineString(e));
-        messages.add(msg);
-        if(resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-        }
+        ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER.get(
+            config.getFilter(), name, stackTraceToSingleLineString(e)));
+        ccr.setResultCodeIfSuccess(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
       }
     }
 
@@ -1379,22 +1375,16 @@ public class VLVIndex extends DatabaseContainer
         }
         catch(Exception e)
         {
-          messages.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
-          if(resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-          }
+          ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
+          ccr.setResultCodeIfSuccess(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         }
 
         AttributeType attrType =
             DirectoryServer.getAttributeType(sortAttrs[i].toLowerCase());
         if(attrType == null)
         {
-          messages.add(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
-          if(resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-          }
+          ccr.addMessage(ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR.get(sortKeys[i], name));
+          ccr.setResultCodeIfSuccess(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
         }
         else
         {
@@ -1416,40 +1406,34 @@ public class VLVIndex extends DatabaseContainer
       }
       catch(DatabaseException de)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        if(resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
       finally
       {
         entryContainer.exclusiveLock.unlock();
       }
 
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
 
-    if(adminActionRequired)
+    if (ccr.adminActionRequired())
     {
       trusted = false;
-      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name));
+      ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name));
       try
       {
         state.putIndexTrustState(null, this, false);
       }
       catch(DatabaseException de)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        if(resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
     }
 
     this.config = cfg;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }

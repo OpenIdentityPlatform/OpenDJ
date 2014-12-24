@@ -900,9 +900,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   @Override
   public ConfigChangeResult applyConfigurationChange(TrustStoreBackendCfg cfg)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     DN configEntryDN = cfg.dn();
 
     // Get the path to the trust store file.
@@ -910,9 +908,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     File f = getFileForPath(newTrustStoreFile);
     if (! (f.exists() && f.isFile()))
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      messages.add(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
     }
 
 
@@ -932,8 +929,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     {
       logger.traceException(kse);
 
-      messages.add(ERR_TRUSTSTORE_INVALID_TYPE.get(newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.addMessage(ERR_TRUSTSTORE_INVALID_TYPE.get(newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
 
@@ -982,8 +979,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
             }
             catch (Exception e)
             {
-              resultCode = DirectoryServer.getServerErrorResultCode();
-              messages.add(ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(newPINFile, configEntryDN));
+              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_CANNOT_CREATE.get(newPINFile, configEntryDN));
             }
           }
           else
@@ -998,8 +995,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
             }
             catch (IOException ioe)
             {
-              resultCode = DirectoryServer.getServerErrorResultCode();
-              messages.add(ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(
+              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_CANNOT_READ.get(
                   newPINFile, configEntryDN, getExceptionMessage(ioe)));
             }
             finally
@@ -1009,8 +1006,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
             if (pinStr == null)
             {
-              resultCode = DirectoryServer.getServerErrorResultCode();
-              messages.add(ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(newPINFile, configEntryDN));
+              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+              ccr.addMessage(ERR_TRUSTSTORE_PIN_FILE_EMPTY.get(newPINFile, configEntryDN));
             }
             else
             {
@@ -1024,8 +1021,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
         String pinStr = System.getenv(newPINEnVar);
         if (pinStr == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(newPINEnVar, configEntryDN));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(newPINEnVar, configEntryDN));
         }
         else
         {
@@ -1038,8 +1035,8 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
       String pinStr = System.getProperty(newPINProperty);
       if (pinStr == null)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(newPINProperty, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(newPINProperty, configEntryDN));
       }
       else
       {
@@ -1048,7 +1045,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     }
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       trustStoreFile = newTrustStoreFile;
       trustStoreType = newTrustStoreType;
@@ -1060,8 +1057,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
                                   new String(trustStorePIN));
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**

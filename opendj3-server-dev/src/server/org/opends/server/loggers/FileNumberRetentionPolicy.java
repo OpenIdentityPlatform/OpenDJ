@@ -38,7 +38,6 @@ import org.opends.server.admin.std.server.FileCountLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 
 /**
@@ -82,15 +81,9 @@ public class FileNumberRetentionPolicy implements
   public ConfigChangeResult applyConfigurationChange(
       FileCountLogRetentionPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     this.numFiles = config.getNumberOfFiles();
     this.config = config;
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 
   /**

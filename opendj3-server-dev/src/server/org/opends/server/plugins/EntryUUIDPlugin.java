@@ -44,7 +44,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PreOperationAddOperation;
 
 import static org.opends.messages.PluginMessages.*;
@@ -273,7 +272,7 @@ public final class EntryUUIDPlugin
                                  EntryUUIDPluginCfg configuration)
   {
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
 

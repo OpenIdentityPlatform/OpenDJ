@@ -29,7 +29,6 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +37,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UniqueCharactersPasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -170,15 +168,13 @@ public class UniqueCharactersPasswordValidator
   public ConfigChangeResult applyConfigurationChange(
                       UniqueCharactersPasswordValidatorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // For this password validator, we will always be able to successfully apply
     // the new configuration.
     currentConfig = configuration;
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
 

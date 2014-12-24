@@ -96,7 +96,7 @@ public final class EntityTagVirtualAttributeProvider extends
       final EntityTagVirtualAttributeCfg configuration)
   {
     this.config = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

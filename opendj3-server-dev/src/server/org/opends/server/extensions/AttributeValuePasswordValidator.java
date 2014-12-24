@@ -25,11 +25,9 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
+
 import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -38,11 +36,9 @@ import org.opends.server.admin.std.server.AttributeValuePasswordValidatorCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
 
 /**
  * This class provides an OpenDS password validator that may be used to ensure
@@ -233,14 +229,7 @@ public class AttributeValuePasswordValidator
   public ConfigChangeResult applyConfigurationChange(
                       AttributeValuePasswordValidatorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
-
     currentConfig = configuration;
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 }
-
