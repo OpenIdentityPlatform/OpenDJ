@@ -371,18 +371,14 @@ public class ImportTask extends Task
             // The include branches span across multiple backends.
             LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
                 includeBranch.toNormalizedString(), backend.getBackendID());
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
+            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
         else
         {
           // The include branch is not associated with any backend.
-          LocalizableMessage message =
-              ERR_NO_BACKENDS_FOR_BASE.get(includeBranch
-                  .toNormalizedString());
-          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-              message);
+          LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(includeBranch.toNormalizedString());
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
     }
@@ -455,33 +451,8 @@ public class ImportTask extends Task
   {
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.
-    HashSet<AttributeType> excludeAttributes =
-         new HashSet<AttributeType>(excludeAttributeStrings.size());
-    for (String attrName : excludeAttributeStrings)
-    {
-      String        lowerName = attrName.toLowerCase();
-      AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attrName);
-      }
-
-      excludeAttributes.add(attrType);
-    }
-
-    HashSet<AttributeType> includeAttributes =
-         new HashSet<AttributeType>(includeAttributeStrings.size());
-    for (String attrName : includeAttributeStrings)
-    {
-      String        lowerName = attrName.toLowerCase();
-      AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-      if (attrType == null)
-      {
-        attrType = DirectoryServer.getDefaultAttributeType(attrName);
-      }
-
-      includeAttributes.add(attrType);
-    }
+    HashSet<AttributeType> excludeAttributes = toAttributeTypes(excludeAttributeStrings);
+    HashSet<AttributeType> includeAttributes = toAttributeTypes(includeAttributeStrings);
 
     ArrayList<SearchFilter> excludeFilters =
          new ArrayList<SearchFilter>(excludeFilterStrings.size());
@@ -905,5 +876,22 @@ public class ImportTask extends Task
     // Clean up after the import by closing the import config.
     importConfig.close();
     return getFinalTaskState();
+  }
+
+  private HashSet<AttributeType> toAttributeTypes(ArrayList<String> attrNames)
+  {
+    final HashSet<AttributeType> attrTypes = new HashSet<AttributeType>(attrNames.size());
+    for (String attrName : attrNames)
+    {
+      String lowerName = attrName.toLowerCase();
+      AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+      if (attrType == null)
+      {
+        attrType = DirectoryServer.getDefaultAttributeType(attrName);
+      }
+
+      attrTypes.add(attrType);
+    }
+    return attrTypes;
   }
 }
