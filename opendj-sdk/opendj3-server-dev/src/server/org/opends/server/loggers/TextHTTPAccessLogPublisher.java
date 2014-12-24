@@ -41,10 +41,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedHTTPAccessLogPublisherCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;
@@ -52,7 +52,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.TimeThread;
 
 /**
@@ -120,10 +119,7 @@ public final class TextHTTPAccessLogPublisher extends
   public ConfigChangeResult applyConfigurationChange(
       final FileBasedHTTPAccessLogPublisherCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     final File logFile = getFileForPath(config.getLogFile());
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -216,7 +212,7 @@ public final class TextHTTPAccessLogPublisher extends
         if (cfg.isAsynchronous() && config.isAsynchronous()
             && cfg.getQueueSize() != config.getQueueSize())
         {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
 
         if (!config.getLogRecordTimeFormat().equals(timeStampFormat))
@@ -230,20 +226,20 @@ public final class TextHTTPAccessLogPublisher extends
         LocalizableMessage errorMessage = validateLogFormat(logFormatFields);
         if (errorMessage != null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          adminActionRequired = true;
-          messages.add(errorMessage);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(errorMessage);
         }
       }
     }
     catch (final Exception e)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn(), stackTraceToSingleLineString(e)));
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

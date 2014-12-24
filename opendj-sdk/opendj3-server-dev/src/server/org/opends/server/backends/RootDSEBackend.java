@@ -26,6 +26,12 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -61,12 +67,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend to hold the Directory Server root DSE.  It is a
@@ -1087,9 +1087,7 @@ public class RootDSEBackend
   @Override
   public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Check to see if we should apply a new set of base DNs.
@@ -1111,12 +1109,8 @@ public class RootDSEBackend
           if (backend == null)
           {
             // This is not fine.  We can't use a suffix that doesn't exist.
-            messages.add(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
-
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = DirectoryServer.getServerErrorResultCode();
-            }
+            ccr.addMessage(WARN_ROOTDSE_NO_BACKEND_FOR_SUBORDINATE_BASE.get(baseDN));
+            ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
           }
           else
           {
@@ -1129,14 +1123,9 @@ public class RootDSEBackend
     {
       logger.traceException(e);
 
-      LocalizableMessage message = WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
-              stackTraceToSingleLineString(e));
-      messages.add(message);
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(WARN_ROOTDSE_SUBORDINATE_BASE_EXCEPTION.get(
+              stackTraceToSingleLineString(e)));
 
       subBases = null;
     }
@@ -1156,41 +1145,41 @@ public class RootDSEBackend
     {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
+      ccr.addMessage(ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY.get(
               configEntryDN, stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       subordinateBaseDNs = subBases;
 
       if (subordinateBaseDNs == null)
       {
-        messages.add(INFO_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS.get());
+        ccr.addMessage(INFO_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS.get());
       }
       else
       {
         String basesStr = "{ " + Utils.joinAsString(", ", subordinateBaseDNs.keySet()) + " }";
-        messages.add(INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(basesStr));
+        ccr.addMessage(INFO_ROOTDSE_USING_NEW_SUBORDINATE_BASE_DNS.get(basesStr));
       }
 
 
       if (showAllAttributes != newShowAll)
       {
         showAllAttributes = newShowAll;
-        messages.add(INFO_ROOTDSE_UPDATED_SHOW_ALL_ATTRS.get(
+        ccr.addMessage(INFO_ROOTDSE_UPDATED_SHOW_ALL_ATTRS.get(
                 ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES, showAllAttributes));
       }
 
 
       userDefinedAttributes = userAttrs;
-      messages.add(INFO_ROOTDSE_USING_NEW_USER_ATTRS.get());
+      ccr.addMessage(INFO_ROOTDSE_USING_NEW_USER_ATTRS.get());
     }
 
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /** {@inheritDoc} */

@@ -511,7 +511,7 @@ public final class SevenBitCleanPlugin
                                  SevenBitCleanPluginCfg configuration)
   {
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
 

@@ -27,9 +27,19 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import javax.security.auth.x500.X500Principal;
 
@@ -47,12 +57,16 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.internal.SearchRequest;
-import static org.opends.server.protocols.internal.Requests.*;
-import org.opends.server.types.*;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.IndexType;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.RDN;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
 
 /**
  * This class implements a very simple Directory Server certificate mapper that
@@ -449,9 +463,7 @@ mapLoop:
               SubjectAttributeToUserAttributeCertificateMapperCfg
                    configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get and validate the subject attribute to user attribute mappings.
@@ -464,13 +476,10 @@ mapLoop:
       int colonPos = lowerMap.indexOf(':');
       if (colonPos <= 0)
       {
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        }
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
 
 
-        messages.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
+        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
         break;
       }
 
@@ -478,13 +487,10 @@ mapLoop:
       String userAttrName = lowerMap.substring(colonPos+1).trim();
       if ((certAttrName.length() == 0) || (userAttrName.length() == 0))
       {
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        }
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
 
 
-        messages.add(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
+        ccr.addMessage(ERR_SATUACM_INVALID_MAP_FORMAT.get(configEntryDN, mapStr));
         break;
       }
 
@@ -493,13 +499,8 @@ mapLoop:
 
       if (newAttributeMap.containsKey(certAttrName))
       {
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        }
-
-
-        messages.add(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(configEntryDN, certAttrName));
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_SATUACM_DUPLICATE_CERT_ATTR.get(configEntryDN, certAttrName));
         break;
       }
 
@@ -507,13 +508,8 @@ mapLoop:
            DirectoryServer.getAttributeType(userAttrName, false);
       if (userAttrType == null)
       {
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.CONSTRAINT_VIOLATION;
-        }
-
-
-        messages.add(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, configEntryDN, userAttrName));
+        ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
+        ccr.addMessage(ERR_SATUACM_NO_SUCH_ATTR.get(mapStr, configEntryDN, userAttrName));
         break;
       }
 
@@ -521,13 +517,10 @@ mapLoop:
       {
         if (attrType.equals(userAttrType))
         {
-          if (resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = ResultCode.CONSTRAINT_VIOLATION;
-          }
+          ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
 
 
-          messages.add(ERR_SATUACM_DUPLICATE_USER_ATTR.get(configEntryDN, attrType.getNameOrOID()));
+          ccr.addMessage(ERR_SATUACM_DUPLICATE_USER_ATTR.get(configEntryDN, attrType.getNameOrOID()));
           break mapLoop;
         }
       }
@@ -552,20 +545,20 @@ mapLoop:
         {
           LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
               configuration.dn(), t.getNameOrOID(), b.getBackendID());
-          messages.add(message);
+          ccr.addMessage(message);
           logger.error(message);
         }
       }
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       attributeMap  = newAttributeMap;
       currentConfig = configuration;
     }
 
 
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+   return ccr;
   }
 
 

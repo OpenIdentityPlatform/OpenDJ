@@ -32,7 +32,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
@@ -330,7 +329,7 @@ public class DirectoryStringSyntax
     currentConfig = configuration;
     allowZeroLengthValues = configuration.isAllowZeroLengthValues();
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

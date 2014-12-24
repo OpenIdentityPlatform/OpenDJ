@@ -25,11 +25,8 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
-
-import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -56,10 +53,7 @@ import org.opends.server.util.ExpirationCheckTrustManager;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a trust manager provider that will reference certificates
@@ -462,9 +456,7 @@ public class FileBasedTrustManagerProvider
   public ConfigChangeResult applyConfigurationChange(
                                  FileBasedTrustManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the path to the trust store file.
@@ -472,14 +464,11 @@ public class FileBasedTrustManagerProvider
     File f = getFileForPath(newTrustStoreFile);
     if (! (f.exists() && f.isFile()))
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      messages.add(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));
     }
 
-
-    // Get the trust store type.  If none is specified, then use the default
-    // type.
+    // Get the trust store type.  If none is specified, then use the default type.
     String newTrustStoreType = configuration.getTrustStoreType();
     if (newTrustStoreType == null)
     {
@@ -494,8 +483,9 @@ public class FileBasedTrustManagerProvider
     {
       logger.traceException(kse);
 
-      messages.add(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.addMessage(ERR_FILE_TRUSTMANAGER_INVALID_TYPE.get(
+          newTrustStoreType, configEntryDN, getExceptionMessage(kse)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
 
@@ -534,9 +524,8 @@ public class FileBasedTrustManagerProvider
           File pinFile = getFileForPath(newPINFile);
           if (! pinFile.exists())
           {
-            resultCode = DirectoryServer.getServerErrorResultCode();
-
-            messages.add(ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(newPINFile, configEntryDN));
+            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+            ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_NO_SUCH_FILE.get(newPINFile, configEntryDN));
           }
           else
           {
@@ -550,8 +539,8 @@ public class FileBasedTrustManagerProvider
             }
             catch (IOException ioe)
             {
-              resultCode = DirectoryServer.getServerErrorResultCode();
-              messages.add(ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.get(
+              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+              ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_FILE_CANNOT_READ.get(
                   newPINFile, configEntryDN, getExceptionMessage(ioe)));
             }
             finally
@@ -561,9 +550,8 @@ public class FileBasedTrustManagerProvider
 
             if (pinStr == null)
             {
-              resultCode = DirectoryServer.getServerErrorResultCode();
-
-              messages.add(ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(newPINFile, configEntryDN));
+              ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+              ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_FILE_EMPTY.get(newPINFile, configEntryDN));
             }
             else
             {
@@ -577,9 +565,8 @@ public class FileBasedTrustManagerProvider
         String pinStr = System.getenv(newPINEnVar);
         if (pinStr == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(newPINEnVar, configEntryDN));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_ENVAR_NOT_SET.get(newPINEnVar, configEntryDN));
         }
         else
         {
@@ -592,9 +579,8 @@ public class FileBasedTrustManagerProvider
       String pinStr = System.getProperty(newPINProperty);
       if (pinStr == null)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(newPINProperty, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_TRUSTMANAGER_PIN_PROPERTY_NOT_SET.get(newPINProperty, configEntryDN));
       }
       else
       {
@@ -603,7 +589,7 @@ public class FileBasedTrustManagerProvider
     }
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       trustStoreFile = newTrustStoreFile;
       trustStoreType = newTrustStoreType;
@@ -611,8 +597,6 @@ public class FileBasedTrustManagerProvider
       currentConfig  = configuration;
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

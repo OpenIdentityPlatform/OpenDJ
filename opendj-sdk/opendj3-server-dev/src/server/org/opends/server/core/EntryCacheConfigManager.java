@@ -30,7 +30,6 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -305,10 +304,7 @@ public class EntryCacheConfigManager
       }
     }
 
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     // If an entry cache was installed then remove it.
     if (!configuration.isEnabled())
@@ -414,14 +410,9 @@ public class EntryCacheConfigManager
    * {@inheritDoc}
    */
   @Override
-  public ConfigChangeResult applyConfigurationAdd(
-      EntryCacheCfg configuration
-      )
+  public ConfigChangeResult applyConfigurationAdd(EntryCacheCfg configuration)
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     // Register a change listener with it so we can be notified of changes
     // to it over time.
@@ -479,10 +470,7 @@ public class EntryCacheConfigManager
       entryCache = cacheOrderMap.get(configuration.getCacheLevel());
     }
 
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     // If the entry cache was installed then remove it.
     if (entryCache != null)

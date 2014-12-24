@@ -26,9 +26,6 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.util.Utils;
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -36,6 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -45,11 +45,9 @@ import org.opends.server.admin.std.meta.PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class defines a utility that will be used to manage the set of password
@@ -138,6 +136,7 @@ public class PasswordStorageSchemeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       PasswordStorageSchemeCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -171,21 +170,17 @@ public class PasswordStorageSchemeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       PasswordStorageSchemeCfg configuration
       )
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     // Get the configuration entry DN and the associated
     // password storage scheme class.
     DN configEntryDN = configuration.dn();
-    PasswordStorageScheme storageScheme = storageSchemes.get(
-        configEntryDN
-        );
+    PasswordStorageScheme storageScheme = storageSchemes.get(configEntryDN);
 
     // If the new configuration has the password storage scheme disabled,
     // then remove it from the mapping list and clean it.
@@ -236,6 +231,7 @@ public class PasswordStorageSchemeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       PasswordStorageSchemeCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -278,14 +274,12 @@ public class PasswordStorageSchemeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       PasswordStorageSchemeCfg configuration
       )
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     // Register a change listener with it so we can be notified of changes
     // to it over time.
@@ -316,6 +310,7 @@ public class PasswordStorageSchemeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       PasswordStorageSchemeCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -330,14 +325,12 @@ public class PasswordStorageSchemeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       PasswordStorageSchemeCfg configuration
       )
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     uninstallPasswordStorageScheme (configuration.dn());
 

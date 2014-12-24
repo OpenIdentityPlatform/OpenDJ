@@ -26,12 +26,15 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -44,11 +47,7 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.SubentryChangeListener;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of password
@@ -205,32 +204,32 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
    * {@inheritDoc}
    */
   @Override
-  public ConfigChangeResult applyConfigurationAdd(
-      AuthenticationPolicyCfg configuration)
+  public ConfigChangeResult applyConfigurationAdd(AuthenticationPolicyCfg configuration)
   {
     // See if we can create a password policy from the provided configuration
     // entry. If so, then register it with the Directory Server.
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       createAuthenticationPolicy(configuration);
-      return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
     }
     catch (ConfigException ce)
     {
-      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ce.getMessage()));
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false, messages);
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ce.getMessage()));
     }
     catch (InitializationException ie)
     {
-      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ie.getMessage()));
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(), false, messages);
+      ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), ie.getMessage()));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
     catch (Exception e)
     {
-      messages.add(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(configuration.dn(), stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(), false, messages);
+      ccr.addMessage(ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
+          configuration.dn(), stackTraceToSingleLineString(e)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
+    return ccr;
   }
 
 
@@ -247,15 +246,12 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // a policy is not removed when referenced by a user entry (either
     // directly or via a virtual attribute).
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
-    if ((defaultPolicyDN != null) && defaultPolicyDN.equals(configuration.dn()))
+    if (defaultPolicyDN != null && defaultPolicyDN.equals(configuration.dn()))
     {
       unacceptableReason.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(defaultPolicyDN));
       return false;
     }
-    else
-    {
-      return true;
-    }
+    return true;
   }
 
 
@@ -264,25 +260,24 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
    * {@inheritDoc}
    */
   @Override
-  public ConfigChangeResult applyConfigurationDelete(
-      AuthenticationPolicyCfg configuration)
+  public ConfigChangeResult applyConfigurationDelete(AuthenticationPolicyCfg configuration)
   {
     // We'll allow the policy to be removed as long as it isn't the default.
     // FIXME: something like a referential integrity check is needed to ensure
     // a policy is not removed when referenced by a user entry (either
     // directly or via a virtual attribute).
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>(1);
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     DN policyDN = configuration.dn();
     DN defaultPolicyDN = DirectoryServer.getDefaultPasswordPolicyDN();
-    if ((defaultPolicyDN != null) && defaultPolicyDN.equals(policyDN))
+    if (defaultPolicyDN != null && defaultPolicyDN.equals(policyDN))
     {
-      messages.add(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(defaultPolicyDN));
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false, messages);
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      ccr.addMessage(WARN_CONFIG_PWPOLICY_CANNOT_DELETE_DEFAULT_POLICY.get(defaultPolicyDN));
+      return ccr;
     }
     DirectoryServer.deregisterAuthenticationPolicy(policyDN);
-    messages.add(INFO_CONFIG_PWPOLICY_REMOVED_POLICY.get(policyDN));
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
+    ccr.addMessage(INFO_CONFIG_PWPOLICY_REMOVED_POLICY.get(policyDN));
+    return ccr;
   }
 
 

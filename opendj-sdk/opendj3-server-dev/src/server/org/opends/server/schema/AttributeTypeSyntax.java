@@ -1491,7 +1491,7 @@ public class AttributeTypeSyntax
     currentConfig = configuration;
     stripMinimumUpperBound = configuration.isStripSyntaxMinUpperBound();
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 
@@ -1508,7 +1508,7 @@ public class AttributeTypeSyntax
 
   /**
    * Boolean that indicates that the minimum upper bound value should be
-   * stripped from the Attrbute Type Syntax Description.
+   * stripped from the Attribute Type Syntax Description.
    *
    * @return True if the minimum upper bound value should be stripped.
    */

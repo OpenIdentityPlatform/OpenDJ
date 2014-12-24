@@ -40,9 +40,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 import static org.opends.messages.SchemaMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -290,7 +287,7 @@ public class JPEGSyntax
               JPEGAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

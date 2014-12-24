@@ -26,30 +26,29 @@
  */
 package org.opends.server.loggers;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.*;
+import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.LogFormat;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides the implementation of the access logger used by the
@@ -111,10 +110,7 @@ public final class TextAccessLogPublisher extends
   public ConfigChangeResult applyConfigurationChange(
       final FileBasedAccessLogPublisherCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     final File logFile = getFileForPath(config.getLogFile());
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -203,7 +199,7 @@ public final class TextAccessLogPublisher extends
         if ((cfg.isAsynchronous() && config.isAsynchronous())
             && (cfg.getQueueSize() != config.getQueueSize()))
         {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
 
         if (!config.getLogRecordTimeFormat().equals(timeStampFormat))
@@ -219,12 +215,12 @@ public final class TextAccessLogPublisher extends
     }
     catch (final Exception e)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_CONFIG_LOGGING_CANNOT_CREATE_WRITER.get(
           config.dn(), stackTraceToSingleLineString(e)));
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

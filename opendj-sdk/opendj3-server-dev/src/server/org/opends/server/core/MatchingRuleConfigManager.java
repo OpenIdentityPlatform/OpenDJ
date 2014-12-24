@@ -26,6 +26,9 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,7 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -52,9 +54,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MatchingRuleUse;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of matching
@@ -183,15 +182,13 @@ public class MatchingRuleConfigManager
   @Override
   public ConfigChangeResult applyConfigurationAdd(MatchingRuleCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     MatchingRuleFactory<?> factory = null;
@@ -203,36 +200,25 @@ public class MatchingRuleConfigManager
     {
       factory = loadMatchingRuleFactory(className, configuration, true);
 
-      try
+      for (MatchingRule matchingRule: factory.getMatchingRules())
       {
-        for(MatchingRule matchingRule: factory.getMatchingRules())
-        {
-          DirectoryServer.registerMatchingRule(matchingRule, false);
-        }
-        matchingRuleFactories.put(configuration.dn(),factory);
+        DirectoryServer.registerMatchingRule(matchingRule, false);
       }
-      catch (DirectoryException de)
-      {
-        messages.add(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
-            configuration.dn(), de.getMessageObject()));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
-      }
+      matchingRuleFactories.put(configuration.dn(),factory);
+    }
+    catch (DirectoryException de)
+    {
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(
+          configuration.dn(), de.getMessageObject()));
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -301,9 +287,7 @@ public class MatchingRuleConfigManager
   @Override
   public ConfigChangeResult applyConfigurationDelete(MatchingRuleCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     MatchingRuleFactory<?> factory = matchingRuleFactories.remove(configuration.dn());
     if (factory != null)
@@ -315,7 +299,7 @@ public class MatchingRuleConfigManager
       factory.finalizeMatchingRule();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -406,9 +390,7 @@ public class MatchingRuleConfigManager
   public ConfigChangeResult applyConfigurationChange(
                                  MatchingRuleCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
    // Get the existing matching rule factory if it's already enabled.
@@ -429,7 +411,7 @@ public class MatchingRuleConfigManager
         matchingRuleFactories.remove(configuration.dn());
         existingFactory.finalizeMatchingRule();
       }
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -443,10 +425,10 @@ public class MatchingRuleConfigManager
     {
       if (! className.equals(existingFactory.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     MatchingRuleFactory<?> factory = null;
@@ -454,35 +436,24 @@ public class MatchingRuleConfigManager
     {
       factory = loadMatchingRuleFactory(className, configuration, true);
 
-      try
+      for (MatchingRule matchingRule: factory.getMatchingRules())
       {
-        for(MatchingRule matchingRule: factory.getMatchingRules())
-        {
-          DirectoryServer.registerMatchingRule(matchingRule, false);
-        }
-        matchingRuleFactories.put(configuration.dn(), factory);
+        DirectoryServer.registerMatchingRule(matchingRule, false);
       }
-      catch (DirectoryException de)
-      {
-        messages.add(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(configuration.dn(), de.getMessageObject()));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
-      }
+      matchingRuleFactories.put(configuration.dn(), factory);
+    }
+    catch (DirectoryException de)
+    {
+      ccr.addMessage(WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(configuration.dn(), de.getMessageObject()));
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

@@ -167,8 +167,7 @@ public class EntryContainer
     @Override
     public ConfigChangeResult applyConfigurationAdd(LocalDBIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+      final ConfigChangeResult ccr = new ConfigChangeResult();
 
       try
       {
@@ -176,20 +175,18 @@ public class EntryContainer
         index.open();
         if(!index.isTrusted())
         {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-              cfg.getAttribute().getNameOrOID()));
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(cfg.getAttribute().getNameOrOID()));
         }
         attrIndexMap.put(cfg.getAttribute(), index);
       }
       catch(Exception e)
       {
-        messages.add(LocalizableMessage.raw(e.getLocalizedMessage()));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.addMessage(LocalizableMessage.raw(e.getLocalizedMessage()));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
 
     /** {@inheritDoc} */
@@ -205,8 +202,7 @@ public class EntryContainer
     @Override
     public ConfigChangeResult applyConfigurationDelete(LocalDBIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+      final ConfigChangeResult ccr = new ConfigChangeResult();
 
       exclusiveLock.lock();
       try
@@ -217,16 +213,15 @@ public class EntryContainer
       }
       catch(DatabaseException de)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
       finally
       {
         exclusiveLock.unlock();
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
   }
 
@@ -304,8 +299,7 @@ public class EntryContainer
     @Override
     public ConfigChangeResult applyConfigurationAdd(LocalDBVLVIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+      final ConfigChangeResult ccr = new ConfigChangeResult();
 
       try
       {
@@ -313,20 +307,19 @@ public class EntryContainer
         vlvIndex.open();
         if(!vlvIndex.isTrusted())
         {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
               cfg.getName()));
         }
         vlvIndexMap.put(cfg.getName().toLowerCase(), vlvIndex);
       }
       catch(Exception e)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
 
     /** {@inheritDoc} */
@@ -343,8 +336,7 @@ public class EntryContainer
     @Override
     public ConfigChangeResult applyConfigurationDelete(LocalDBVLVIndexCfg cfg)
     {
-      boolean adminActionRequired = false;
-      List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+      final ConfigChangeResult ccr = new ConfigChangeResult();
 
       exclusiveLock.lock();
       try
@@ -356,16 +348,15 @@ public class EntryContainer
       }
       catch(DatabaseException de)
       {
-        messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        return new ConfigChangeResult(
-            DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+        ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
       finally
       {
         exclusiveLock.unlock();
       }
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+      return ccr;
     }
 
   }
@@ -3098,8 +3089,7 @@ public class EntryContainer
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     exclusiveLock.lock();
     try
@@ -3135,14 +3125,14 @@ public class EntryContainer
       {
         if (id2children.setIndexEntryLimit(cfg.getIndexEntryLimit()))
         {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2children.getName()));
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2children.getName()));
         }
 
         if (id2subtree.setIndexEntryLimit(cfg.getIndexEntryLimit()))
         {
-          adminActionRequired = true;
-          messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2subtree.getName()));
+          ccr.setAdminActionRequired(true);
+          ccr.addMessage(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(id2subtree.getName()));
         }
       }
 
@@ -3154,16 +3144,15 @@ public class EntryContainer
     }
     catch (DatabaseException e)
     {
-      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-          false, messages);
+      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
     finally
     {
       exclusiveLock.unlock();
     }
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired, messages);
+    return ccr;
   }
 
   /**

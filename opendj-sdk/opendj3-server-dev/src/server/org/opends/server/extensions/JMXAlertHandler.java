@@ -25,10 +25,8 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,14 +60,9 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
-
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class provides an implementation of a Directory Server alert handler
@@ -83,9 +76,7 @@ public class JMXAlertHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.JMXAlertHandler";
 
@@ -407,8 +398,6 @@ public class JMXAlertHandler
                                         JMXAlertHandlerCfg configuration)
   {
     currentConfig = configuration;
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
-

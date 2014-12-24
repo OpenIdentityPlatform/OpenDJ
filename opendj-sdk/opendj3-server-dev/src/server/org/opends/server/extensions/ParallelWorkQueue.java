@@ -26,10 +26,9 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -38,21 +37,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ParallelWorkQueueCfg;
 import org.opends.server.api.WorkQueue;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.ParallelWorkQueueMonitor;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 
 /**
  * This class defines a data structure for storing and interacting with the
@@ -488,7 +485,6 @@ public class ParallelWorkQueue
   public ConfigChangeResult applyConfigurationChange(
                                  ParallelWorkQueueCfg configuration)
   {
-    ArrayList<LocalizableMessage> resultMessages = new ArrayList<LocalizableMessage>();
     int newNumThreads =
         computeNumWorkerThreads(configuration.getNumWorkerThreads());
 
@@ -526,7 +522,7 @@ public class ParallelWorkQueue
         }
       }
     }
-    return new ConfigChangeResult(ResultCode.SUCCESS, false, resultMessages);
+    return new ConfigChangeResult();
   }
 
 

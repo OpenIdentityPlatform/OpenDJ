@@ -30,6 +30,7 @@ package org.opends.server.extensions;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -40,19 +41,19 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TraditionalWorkQueueCfg;
 import org.opends.server.api.WorkQueue;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.TraditionalWorkQueueMonitor;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;
-import org.forgerock.opendj.ldap.ResultCode;
 
 
 
@@ -660,7 +661,6 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   public ConfigChangeResult applyConfigurationChange(
       TraditionalWorkQueueCfg configuration)
   {
-    ArrayList<LocalizableMessage> resultMessages = new ArrayList<LocalizableMessage>();
     int newNumThreads =
         computeNumWorkerThreads(configuration.getNumWorkerThreads());
     int newMaxCapacity = configuration.getMaxWorkQueueCapacity();
@@ -773,7 +773,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
       }
     }
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false, resultMessages);
+    return new ConfigChangeResult();
   }
 
 

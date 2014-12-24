@@ -225,14 +225,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public ConfigChangeResult applyConfigurationAdd(
                                  GroupImplementationCfg configuration)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, false, messages);
+      return ccr;
     }
 
     Group<?> group = null;
@@ -242,18 +241,18 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     catch (InitializationException ie)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ie.getMessageObject());
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       groupImplementations.put(configuration.dn(), group);
     }
 
     // FIXME -- We need to make sure to find all groups of this type in the
     // server before returning.
-    return new ConfigChangeResult(resultCode, false, messages);
+    return ccr;
   }
 
 
@@ -276,8 +275,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public ConfigChangeResult applyConfigurationDelete(
                                  GroupImplementationCfg configuration)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     Group<?> group = groupImplementations.remove(configuration.dn());
     if (group != null)
@@ -303,7 +301,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       group.finalizeGroupImplementation();
     }
 
-    return new ConfigChangeResult(resultCode, false, messages);
+    return ccr;
   }
 
 
@@ -336,9 +334,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public ConfigChangeResult applyConfigurationChange(
                                  GroupImplementationCfg configuration)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     // Get the existing group implementation if it's already enabled.
     Group<?> existingGroup = groupImplementations.get(configuration.dn());
 
@@ -373,7 +369,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -387,10 +383,10 @@ public class GroupManager extends InternalDirectoryServerPlugin
     {
       if (! className.equals(existingGroup.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     Group<?> group = null;
@@ -400,19 +396,18 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     catch (InitializationException ie)
     {
-      resultCode = DirectoryServer.getServerErrorResultCode();
-      messages.add(ie.getMessageObject());
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       groupImplementations.put(configuration.dn(), group);
     }
 
     // FIXME -- We need to make sure to find all groups of this type in the
     // server before returning.
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

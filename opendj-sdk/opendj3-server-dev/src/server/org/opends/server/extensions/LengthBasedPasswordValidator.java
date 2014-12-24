@@ -25,10 +25,8 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
-
 import java.util.List;
 import java.util.Set;
 
@@ -38,11 +36,9 @@ import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
 
 /**
  * This class provides a password validator that can ensure that the provided
@@ -183,10 +179,7 @@ public class LengthBasedPasswordValidator extends
   public ConfigChangeResult applyConfigurationChange(
               LengthBasedPasswordValidatorCfg configuration)
   {
-    // We will always accept the proposed configuration if it's gotten to this
-    // point.
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
-

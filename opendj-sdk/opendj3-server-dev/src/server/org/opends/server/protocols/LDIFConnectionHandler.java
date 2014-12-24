@@ -54,7 +54,6 @@ import org.opends.server.types.HostPort;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Operation;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
@@ -69,8 +68,6 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines an LDIF connection handler, which can be used to watch for
  * new LDIF files to be placed in a specified directory.  If a new LDIF file is
@@ -82,9 +79,7 @@ public final class LDIFConnectionHandler
        implements ConfigurationChangeListener<LDIFConnectionHandlerCfg>,
                   AlertGenerator
 {
-  /**
-   * The debug log tracer for this class.
-   */
+  /** The debug log tracer for this class. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
@@ -623,7 +618,7 @@ public final class LDIFConnectionHandler
     File newLDIFDirectory = new File(configuration.getLDIFDirectory());
     this.ldifDirectory = newLDIFDirectory;
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

@@ -27,7 +27,6 @@
 package org.opends.server.extensions;
 
 import java.security.cert.Certificate;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -376,9 +375,7 @@ public class ExternalSASLMechanismHandler
   public ConfigChangeResult applyConfigurationChange(
               ExternalSASLMechanismHandlerCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // See if we should attempt to validate client certificates against those in
@@ -410,15 +407,14 @@ public class ExternalSASLMechanismHandler
     }
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       validationPolicy         = newValidationPolicy;
       certificateAttributeType = newCertificateType;
       currentConfig            = configuration;
     }
 
-
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
 

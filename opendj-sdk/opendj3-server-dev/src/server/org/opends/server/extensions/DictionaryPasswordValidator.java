@@ -26,32 +26,27 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DictionaryPasswordValidatorCfg;
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ExtensionMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides an OpenDS password validator that may be used to ensure
@@ -252,6 +247,7 @@ public class DictionaryPasswordValidator
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       DictionaryPasswordValidatorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -286,16 +282,13 @@ public class DictionaryPasswordValidator
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                       DictionaryPasswordValidatorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
-
     // Make sure we can load the dictionary.  If we can, then activate the new
     // configuration.
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       dictionary    = loadDictionary(configuration);
@@ -303,11 +296,10 @@ public class DictionaryPasswordValidator
     }
     catch (Exception e)
     {
-      resultCode = DirectoryConfig.getServerErrorResultCode();
-      messages.add(getExceptionMessage(e));
+      ccr.setResultCode(DirectoryConfig.getServerErrorResultCode());
+      ccr.addMessage(getExceptionMessage(e));
     }
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private boolean isDictionaryBased(String password,

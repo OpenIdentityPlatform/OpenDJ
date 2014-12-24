@@ -26,7 +26,6 @@
  */
 package org.opends.server.schema;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +39,6 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -192,9 +190,7 @@ public final class CollationMatchingRuleFactory extends
   public ConfigChangeResult applyConfigurationChange(
       CollationMatchingRuleCfg configuration)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     if (!configuration.isEnabled()
         || currentConfig.isEnabled() != configuration.isEnabled())
@@ -204,7 +200,7 @@ public final class CollationMatchingRuleFactory extends
       // 2. There is a change in the enable status
       // i.e. (disable->enable or enable->disable). In this case, the
       // ConfigManager will have already created the new Factory object.
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     // Since we have come here it means that this Factory is enabled and
@@ -239,11 +235,11 @@ public final class CollationMatchingRuleFactory extends
     {
       LocalizableMessage message =
           WARN_CONFIG_SCHEMA_MR_CONFLICTING_MR.get(configuration.dn(), de.getMessageObject());
-      adminActionRequired = true;
-      messages.add(message);
+      ccr.setAdminActionRequired(true);
+      ccr.addMessage(message);
     }
     currentConfig = configuration;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**

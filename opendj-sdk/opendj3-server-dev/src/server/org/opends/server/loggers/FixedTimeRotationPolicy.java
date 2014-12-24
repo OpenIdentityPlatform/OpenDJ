@@ -25,7 +25,6 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -35,13 +34,10 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.TimeThread;
 
-
 /**
- * This class implements a rotation policy based on fixed
- * day/time of day.
+ * This class implements a rotation policy based on fixed day/time of day.
  */
 public class FixedTimeRotationPolicy implements
     RotationPolicy<FixedTimeLogRotationPolicyCfg>,
@@ -86,10 +82,7 @@ public class FixedTimeRotationPolicy implements
   public ConfigChangeResult applyConfigurationChange(
       FixedTimeLogRotationPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     rotationTimes = new int[config.getTimeOfDay().size()];
 
@@ -101,7 +94,7 @@ public class FixedTimeRotationPolicy implements
 
     Arrays.sort(rotationTimes);
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**

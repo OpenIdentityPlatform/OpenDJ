@@ -26,7 +26,6 @@
  */
 package org.opends.server.core;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.admin.std.server.LogRetentionPolicyCfg;
@@ -34,7 +33,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.LogRetentionPolicyCfgDefn;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -131,10 +129,7 @@ public class LogRetentionPolicyConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogRetentionPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     try
     {
@@ -144,17 +139,17 @@ public class LogRetentionPolicyConfigManager implements
     }
     catch (ConfigException e) {
       logger.traceException(e);
-      messages.add(e.getMessageObject());
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.addMessage(e.getMessageObject());
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     } catch (Exception e) {
       logger.traceException(e);
 
-      messages.add(ERR_CONFIG_RETENTION_POLICY_CANNOT_CREATE_POLICY.get(
+      ccr.addMessage(ERR_CONFIG_RETENTION_POLICY_CANNOT_CREATE_POLICY.get(
           config.dn(),stackTraceToSingleLineString(e)));
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**
@@ -164,10 +159,7 @@ public class LogRetentionPolicyConfigManager implements
   public ConfigChangeResult applyConfigurationDelete(
       LogRetentionPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     RetentionPolicy policy = DirectoryServer.getRetentionPolicy(config.dn());
     if(policy != null)
@@ -177,10 +169,10 @@ public class LogRetentionPolicyConfigManager implements
     else
     {
       // TODO: Add message and check for usage
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**
@@ -201,20 +193,17 @@ public class LogRetentionPolicyConfigManager implements
   public ConfigChangeResult applyConfigurationChange(
       LogRetentionPolicyCfg configuration)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     RetentionPolicy policy =
         DirectoryServer.getRetentionPolicy(configuration.dn());
     String className = configuration.getJavaClass();
     if(!className.equals(policy.getClass().getName()))
     {
-      adminActionRequired = true;
+      ccr.setAdminActionRequired(true);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   private boolean isJavaClassAcceptable(LogRetentionPolicyCfg config,

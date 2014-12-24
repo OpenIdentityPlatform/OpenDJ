@@ -25,36 +25,28 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
+import static org.opends.messages.ConfigMessages.*;
 
-
-
-
-
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.RootDNCfg;
 import org.opends.server.admin.std.server.RootDNUserCfg;
-import org.opends.server.admin.server.ServerManagementContext;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the set of root
@@ -171,6 +163,7 @@ public class RootDNConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(RootDNUserCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
   {
@@ -196,13 +189,12 @@ public class RootDNConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(RootDNUserCfg configuration)
   {
     configuration.addChangeListener(this);
 
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     HashSet<DN> altBindDNs = new HashSet<DN>();
     for (DN altBindDN : configuration.getAlternateBindDN())
@@ -216,8 +208,8 @@ public class RootDNConfigManager
       {
         // This shouldn't happen, since the set of DNs should have already been
         // validated.
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(de.getMessageObject());
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(de.getMessageObject());
 
         for (DN dn : altBindDNs)
         {
@@ -227,13 +219,13 @@ public class RootDNConfigManager
       }
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       DirectoryServer.registerRootDN(configuration.dn());
       alternateBindDNs.put(configuration.dn(), altBindDNs);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -241,6 +233,7 @@ public class RootDNConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(RootDNUserCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -252,15 +245,14 @@ public class RootDNConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  RootDNUserCfg configuration)
   {
     DirectoryServer.deregisterRootDN(configuration.dn());
     configuration.removeChangeListener(this);
 
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     HashSet<DN> altBindDNs = alternateBindDNs.remove(configuration.dn());
     if (altBindDNs != null)
@@ -271,7 +263,7 @@ public class RootDNConfigManager
       }
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -279,6 +271,7 @@ public class RootDNConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(RootDNUserCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -306,12 +299,11 @@ public class RootDNConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  RootDNUserCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     HashSet<DN> setDNs = new HashSet<DN>();
     HashSet<DN> addDNs = new HashSet<DN>();
@@ -345,8 +337,8 @@ public class RootDNConfigManager
       {
         // This shouldn't happen, since the set of DNs should have already been
         // validated.
-        resultCode = DirectoryServer.getServerErrorResultCode();
-        messages.add(de.getMessageObject());
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(de.getMessageObject());
 
         for (DN addedDN : addedDNs)
         {
@@ -369,12 +361,12 @@ public class RootDNConfigManager
       }
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       alternateBindDNs.put(configuration.dn(), setDNs);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
 

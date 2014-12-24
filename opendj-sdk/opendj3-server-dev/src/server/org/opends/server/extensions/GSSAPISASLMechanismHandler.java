@@ -29,7 +29,7 @@ package org.opends.server.extensions;
 
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.config.ConfigConstants.CONFIG_DIR_NAME;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -39,7 +39,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -51,27 +50,24 @@ import javax.security.auth.login.LoginException;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 
-import org.ietf.jgss.GSSException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.ietf.jgss.GSSException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.
-  GSSAPISASLMechanismHandlerCfgDefn.QualityOfProtection;
+import org.opends.server.admin.std.meta.GSSAPISASLMechanismHandlerCfgDefn.QualityOfProtection;
 import org.opends.server.admin.std.server.GSSAPISASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 
 /**
  * This class provides an implementation of a SASL mechanism that
@@ -191,6 +187,7 @@ public class GSSAPISASLMechanismHandler extends
    * @throws UnsupportedCallbackException
    *           if an error occurs.
    */
+  @Override
   public void handle(Callback[] callbacks) throws UnsupportedCallbackException
   {
   }
@@ -473,6 +470,7 @@ private void clearProperties() {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       GSSAPISASLMechanismHandlerCfg newConfiguration,
       List<LocalizableMessage> unacceptableReasons) {
@@ -523,11 +521,10 @@ private void clearProperties() {
   /**
    * {@inheritDoc}
    */
-  public ConfigChangeResult applyConfigurationChange(
-      GSSAPISASLMechanismHandlerCfg newConfiguration) {
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
+  @Override
+  public ConfigChangeResult applyConfigurationChange(GSSAPISASLMechanismHandlerCfg newConfiguration)
+  {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       logout();
@@ -537,21 +534,21 @@ private void clearProperties() {
     }
     catch (InitializationException ex) {
       logger.traceException(ex);
-      messages.add(ex.getMessageObject());
+      ccr.addMessage(ex.getMessageObject());
       clearProperties();
-      resultCode = ResultCode.OTHER;
+      ccr.setResultCode(ResultCode.OTHER);
     } catch (UnknownHostException ex) {
       logger.traceException(ex);
-      messages.add(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(ex)));
+      ccr.addMessage(ERR_SASL_CANNOT_GET_SERVER_FQDN.get(configEntryDN, getExceptionMessage(ex)));
       clearProperties();
-      resultCode = ResultCode.OTHER;
+      ccr.setResultCode(ResultCode.OTHER);
     } catch (IOException ex) {
       logger.traceException(ex);
-      messages.add(ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(getExceptionMessage(ex)));
+      ccr.addMessage(ERR_SASLGSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(getExceptionMessage(ex)));
       clearProperties();
-      resultCode = ResultCode.OTHER;
+      ccr.setResultCode(ResultCode.OTHER);
     }
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 /**

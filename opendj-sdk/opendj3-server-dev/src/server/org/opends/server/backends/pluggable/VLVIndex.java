@@ -1245,10 +1245,7 @@ public class VLVIndex extends DatabaseContainer
       catch (StorageRuntimeException de)
       {
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        if (ccr.getResultCode() == ResultCode.SUCCESS)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        }
+        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
       finally
       {
@@ -1270,10 +1267,7 @@ public class VLVIndex extends DatabaseContainer
       catch(StorageRuntimeException de)
       {
         ccr.addMessage(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-        if (ccr.getResultCode() == ResultCode.SUCCESS)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-        }
+        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
     }
 

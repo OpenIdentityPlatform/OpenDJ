@@ -334,17 +334,12 @@ public class ExactMatchIdentityMapper
   public ConfigChangeResult applyConfigurationChange(
               ExactMatchIdentityMapperCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     attributeTypes =
          configuration.getMatchAttribute().toArray(new AttributeType[0]);
     currentConfig = configuration;
 
-
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+   return ccr;
   }
 }
-

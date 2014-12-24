@@ -27,27 +27,30 @@
 package org.opends.server.loggers;
 
 
-import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.FilePermission;
-import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.util.TimeThread;
-
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.messages.LoggerMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import java.io.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Calendar;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.FilePermission;
+import org.opends.server.util.TimeThread;
 
 /**
  * A MultiFileTextWriter is a specialized TextWriter which supports publishing
@@ -349,6 +352,7 @@ class MultifileTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       SizeLimitLogRotationPolicyCfg config, List<LocalizableMessage> unacceptableReasons)
   {
@@ -359,6 +363,7 @@ class MultifileTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRotationPolicyCfg config)
   {
@@ -390,8 +395,7 @@ class MultifileTextWriter
 
     sizeLimit = newSizeLimit;
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false,
-                                  new ArrayList<LocalizableMessage>());
+    return new ConfigChangeResult();
   }
 
   /**
@@ -414,6 +418,7 @@ class MultifileTextWriter
      * the run method of the rotaterThread. It wakes up periodically and checks
      * whether the file needs to be rotated based on the rotation policy.
      */
+    @Override
     public void run()
     {
       while(!isShuttingDown())
@@ -474,6 +479,7 @@ class MultifileTextWriter
    *
    * @return  The human-readable name for this shutdown listener.
    */
+  @Override
   public String getShutdownListenerName()
   {
     return "MultifileTextWriter Thread " + name;
@@ -486,6 +492,7 @@ class MultifileTextWriter
    *
    * @param  reason  The human-readable reason for the shutdown.
    */
+  @Override
   public void processServerShutdown(LocalizableMessage reason)
   {
     stopRequested = true;
@@ -525,6 +532,7 @@ class MultifileTextWriter
   /**
    * Shutdown the text writer.
    */
+  @Override
   public void shutdown()
   {
     processServerShutdown(null);
@@ -546,6 +554,7 @@ class MultifileTextWriter
    *
    * @param record the log record to write.
    */
+  @Override
   public void writeRecord(String record)
   {
     // Assume each character is 1 byte ASCII
@@ -597,6 +606,7 @@ class MultifileTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public void flush()
   {
     try

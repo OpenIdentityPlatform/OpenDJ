@@ -26,14 +26,17 @@
  */
 package org.opends.server.core;
 
-import java.util.ArrayList;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -45,15 +48,10 @@ import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ConnectionHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the
@@ -94,14 +92,10 @@ public class ConnectionHandlerConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationAdd(
       ConnectionHandlerCfg configuration) {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Register as a change listener for this connection handler entry
-    // so that we will be notified of any changes that may be made to
-    // it.
+    // so that we will be notified of any changes that may be made to it.
     configuration.addChangeListener(this);
 
     // Ignore this connection handler if it is disabled.
@@ -123,18 +117,17 @@ public class ConnectionHandlerConfigManager implements
       } catch (ConfigException e) {
         logger.traceException(e);
 
-        messages.add(e.getMessageObject());
-        resultCode = DirectoryServer.getServerErrorResultCode();
+        ccr.addMessage(e.getMessageObject());
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       } catch (Exception e) {
         logger.traceException(e);
-        messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+        ccr.addMessage(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
             configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-        resultCode = DirectoryServer.getServerErrorResultCode();
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
     }
 
-    // Return the configuration result.
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -150,10 +143,7 @@ public class ConnectionHandlerConfigManager implements
     DN dn = configuration.dn();
     ConnectionHandler<?> connectionHandler = connectionHandlers.get(dn);
 
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See whether the connection handler should be enabled.
     if (connectionHandler == null) {
@@ -174,14 +164,14 @@ public class ConnectionHandlerConfigManager implements
         } catch (ConfigException e) {
           logger.traceException(e);
 
-          messages.add(e.getMessageObject());
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(e.getMessageObject());
         } catch (Exception e) {
           logger.traceException(e);
 
-          messages.add(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
+          ccr.addMessage(ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
               configuration.getJavaClass(), dn, stackTraceToSingleLineString(e)));
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
     } else {
@@ -193,7 +183,7 @@ public class ConnectionHandlerConfigManager implements
         // change to take effect.
         String className = configuration.getJavaClass();
         if (!className.equals(connectionHandler.getClass().getName())) {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
       } else {
         // We need to disable the connection handler.
@@ -207,9 +197,7 @@ public class ConnectionHandlerConfigManager implements
       }
     }
 
-    // Return the configuration result.
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return ccr;
   }
 
 
@@ -220,10 +208,7 @@ public class ConnectionHandlerConfigManager implements
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       ConnectionHandlerCfg configuration) {
-
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See if the entry is registered as a connection handler. If so,
     // deregister and stop it. We'll try to leave any established
@@ -238,7 +223,7 @@ public class ConnectionHandlerConfigManager implements
               INFO_CONNHANDLER_CLOSED_BY_DELETE.get());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+    return ccr;
   }
 
 

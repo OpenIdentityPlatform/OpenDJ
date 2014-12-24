@@ -32,16 +32,12 @@ import org.opends.server.admin.std.server.SizeLimitLogRotationPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.config.server.ConfigException;
 
-
 import java.util.List;
-import java.util.ArrayList;
 
 /**
- * This class implements a rotation policy based on the size of the
- * file.
+ * This class implements a rotation policy based on the size of the file.
  */
 public class SizeBasedRotationPolicy implements
     RotationPolicy<SizeLimitLogRotationPolicyCfg>,
@@ -79,16 +75,10 @@ public class SizeBasedRotationPolicy implements
   public ConfigChangeResult applyConfigurationChange(
       SizeLimitLogRotationPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     sizeLimit = config.getFileSizeLimit();
-
     currentConfig = config;
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 
   /**
@@ -101,9 +91,7 @@ public class SizeBasedRotationPolicy implements
   public boolean rotateFile(RotatableLogFile writer)
   {
     long fileSize = writer.getBytesWritten();
-
     return fileSize >= sizeLimit;
   }
 
 }
-

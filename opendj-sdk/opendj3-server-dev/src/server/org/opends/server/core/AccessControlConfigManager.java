@@ -26,6 +26,10 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -43,14 +48,9 @@ import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AlertGenerator;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class manages the application-wide access-control configuration.
@@ -344,8 +344,7 @@ public final class AccessControlConfigManager
   public ConfigChangeResult applyConfigurationChange(
                                  AccessControlHandlerCfg configuration)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     try
     {
@@ -354,16 +353,16 @@ public final class AccessControlConfigManager
     }
     catch (ConfigException e)
     {
-      messages.add(e.getMessageObject());
-      resultCode = ResultCode.CONSTRAINT_VIOLATION;
+      ccr.addMessage(e.getMessageObject());
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
     }
     catch (InitializationException e)
     {
-      messages.add(e.getMessageObject());
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.addMessage(e.getMessageObject());
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-    return new ConfigChangeResult(resultCode, false, messages);
+    return ccr;
   }
 
 

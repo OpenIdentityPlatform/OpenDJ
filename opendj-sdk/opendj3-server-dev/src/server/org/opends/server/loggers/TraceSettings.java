@@ -27,18 +27,15 @@
 
 package org.opends.server.loggers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
- * This class encapsulates the trace settings in effect at a given traceing
- * scope.
+ * This class encapsulates the trace settings in effect at a given tracing scope.
  */
 public class TraceSettings implements
     ConfigurationChangeListener<DebugTargetCfg>
@@ -205,11 +202,7 @@ public class TraceSettings implements
    */
   public ConfigChangeResult applyConfigurationChange(DebugTargetCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages =
-        new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // We can assume that the target scope did not change since its the
     // naming attribute. Changing it would result in a modify DN.
@@ -223,7 +216,7 @@ public class TraceSettings implements
 
     this.currentConfig = config;
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**

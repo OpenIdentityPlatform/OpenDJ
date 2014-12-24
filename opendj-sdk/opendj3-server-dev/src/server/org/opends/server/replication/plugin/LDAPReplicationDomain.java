@@ -26,6 +26,17 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.replication.plugin.EntryHistorical.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.service.ReplicationMonitor.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -90,17 +101,6 @@ import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
-
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.replication.plugin.EntryHistorical.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.replication.service.ReplicationMonitor.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  *  This class implements the bulk part of the Directory Server side
@@ -3850,16 +3850,16 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
     solveConflictFlag = isSolveConflict(configuration);
 
+    final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       storeECLConfiguration(configuration);
     }
     catch(Exception e)
     {
-      return new ConfigChangeResult(ResultCode.OTHER, false);
+      ccr.setResultCode(ResultCode.OTHER);
     }
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return ccr;
   }
 
   /** {@inheritDoc} */

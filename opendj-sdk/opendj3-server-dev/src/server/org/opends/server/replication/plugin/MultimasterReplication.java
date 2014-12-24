@@ -26,6 +26,11 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.plugin.ReplicationRepairRequestControl.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -77,11 +82,6 @@ import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.replication.plugin.ReplicationRepairRequestControl.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 /**
  * This class is used to load the Replication code inside the JVM
  * and to trigger initialization of the replication.
@@ -126,7 +126,7 @@ public class MultimasterReplication
   private static int replayThreadNumber = 10;
 
   /**
-   * enum that symbolizes the state of the multimaster replication.
+   * Enum that symbolizes the state of the multimaster replication.
    */
   private static enum State
   {
@@ -375,6 +375,7 @@ public class MultimasterReplication
   public ConfigChangeResult applyConfigurationAdd(
      ReplicationDomainCfg configuration)
   {
+    ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
       LDAPReplicationDomain rd = createNewDomain(configuration);
@@ -385,13 +386,13 @@ public class MultimasterReplication
           rd.shutdown();
         }
       }
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
     } catch (ConfigException e)
     {
       // we should never get to this point because the configEntry has
       // already been validated in isConfigurationAddAcceptable()
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false);
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
     }
+    return ccr;
   }
 
   /** {@inheritDoc} */
@@ -753,7 +754,7 @@ public class MultimasterReplication
   {
     deleteDomain(configuration.getBaseDN());
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
   /** {@inheritDoc} */
@@ -815,7 +816,7 @@ public class MultimasterReplication
     connectionTimeoutMS = (int) Math.min(configuration.getConnectionTimeout(),
         Integer.MAX_VALUE);
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
   /** {@inheritDoc} */
@@ -896,14 +897,20 @@ public class MultimasterReplication
       }
     }
     // if state is STOPPING, then we need to return from this method
+    final LDAPReplicationDomain domain = getDomain(baseDN);
+    return domain != null && domain.isECLEnabled();
+  }
+
+  private static LDAPReplicationDomain getDomain(DN baseDN)
+  {
     for (LDAPReplicationDomain domain : domains.values())
     {
-      if (domain.isECLEnabled() && domain.getBaseDN().equals(baseDN))
+      if (domain.getBaseDN().equals(baseDN))
       {
-        return true;
+        return domain;
       }
     }
-    return false;
+    return null;
   }
 
   /**

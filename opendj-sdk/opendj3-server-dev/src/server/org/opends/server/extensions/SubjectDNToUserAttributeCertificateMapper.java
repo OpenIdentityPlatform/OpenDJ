@@ -301,7 +301,7 @@ public class SubjectDNToUserAttributeCertificateMapper
                    configuration)
   {
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
 

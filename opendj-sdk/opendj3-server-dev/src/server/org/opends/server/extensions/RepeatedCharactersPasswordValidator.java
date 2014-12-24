@@ -29,7 +29,6 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +37,6 @@ import org.opends.server.admin.std.server.
             RepeatedCharactersPasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -180,15 +178,9 @@ public class RepeatedCharactersPasswordValidator
   public ConfigChangeResult applyConfigurationChange(
                       RepeatedCharactersPasswordValidatorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
     // For this password validator, we will always be able to successfully apply
     // the new configuration.
     currentConfig = configuration;
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 }
-

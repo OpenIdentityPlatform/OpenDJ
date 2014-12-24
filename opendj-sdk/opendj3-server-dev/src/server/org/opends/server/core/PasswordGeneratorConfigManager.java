@@ -26,14 +26,18 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Utils;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -43,14 +47,9 @@ import org.opends.server.admin.std.meta.PasswordGeneratorCfgDefn;
 import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.PasswordGenerator;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of password
@@ -145,6 +144,7 @@ public class PasswordGeneratorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       PasswordGeneratorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -173,12 +173,11 @@ public class PasswordGeneratorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordGeneratorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing generator if it's already enabled.
@@ -202,7 +201,7 @@ public class PasswordGeneratorConfigManager
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -216,10 +215,10 @@ public class PasswordGeneratorConfigManager
     {
       if (! className.equals(existingGenerator.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     PasswordGenerator<? extends PasswordGeneratorCfg>
@@ -230,26 +229,23 @@ public class PasswordGeneratorConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       passwordGenerators.put(configuration.dn(), passwordGenerator);
       DirectoryServer.registerPasswordGenerator(configuration.dn(),
                                                 passwordGenerator);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
                       PasswordGeneratorCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -278,18 +274,17 @@ public class PasswordGeneratorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  PasswordGeneratorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     PasswordGenerator<? extends PasswordGeneratorCfg>
@@ -304,27 +299,24 @@ public class PasswordGeneratorConfigManager
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       passwordGenerators.put(configuration.dn(), passwordGenerator);
       DirectoryServer.registerPasswordGenerator(configuration.dn(),
                                                 passwordGenerator);
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       PasswordGeneratorCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
@@ -336,15 +328,14 @@ public class PasswordGeneratorConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       PasswordGeneratorCfg configuration)
   {
-    ResultCode resultCode          = ResultCode.SUCCESS;
-    boolean    adminActionRequired = false;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
-
-    // See if the entry is registered as a password generator.  If so,
-    // deregister it and stop the generator.
+    // See if the entry is registered as a password generator.
+    // If so, deregister it and stop the generator.
     PasswordGenerator generator = passwordGenerators.remove(configuration.dn());
     if (generator != null)
     {
@@ -353,8 +344,7 @@ public class PasswordGeneratorConfigManager
       generator.finalizePasswordGenerator();
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+    return ccr;
   }
 
   /**

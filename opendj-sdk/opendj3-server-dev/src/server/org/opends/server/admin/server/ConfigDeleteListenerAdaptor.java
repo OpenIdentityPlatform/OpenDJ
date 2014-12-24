@@ -171,7 +171,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
       DN expectedDN = DNBuilder.create(childPath);
       if (!configEntry.getDN().equals(expectedDN)) {
         // Doesn't apply to us.
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+        return new ConfigChangeResult();
       }
     }
 

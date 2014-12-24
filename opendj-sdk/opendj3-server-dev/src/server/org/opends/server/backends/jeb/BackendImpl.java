@@ -26,6 +26,14 @@
  */
 package org.opends.server.backends.jeb;
 
+import static com.sleepycat.je.EnvironmentConfig.*;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -57,14 +65,6 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentFailureException;
-
-import static com.sleepycat.je.EnvironmentConfig.*;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
@@ -1028,8 +1028,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg newCfg)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     try
     {
@@ -1040,7 +1039,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
         // Check for changes to the base DNs.
         removeDeletedBaseDNs(newBaseDNs);
-        ConfigChangeResult failure = createNewBaseDNs(newBaseDNsArray, messages);
+        ConfigChangeResult failure = createNewBaseDNs(newBaseDNsArray, ccr);
         if (failure != null)
         {
           return failure;
@@ -1061,12 +1060,11 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
     catch (Exception e)
     {
-      messages.add(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      return new ConfigChangeResult(
-          DirectoryServer.getServerErrorResultCode(), false, messages);
+      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
-    return new ConfigChangeResult(resultCode, false, messages);
+    return ccr;
   }
 
   private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs) throws DirectoryException
@@ -1084,7 +1082,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     }
   }
 
-  private ConfigChangeResult createNewBaseDNs(DN[] newBaseDNsArray, ArrayList<LocalizableMessage> messages)
+  private ConfigChangeResult createNewBaseDNs(DN[] newBaseDNsArray, final ConfigChangeResult ccr)
   {
     for (DN baseDN : newBaseDNsArray)
     {
@@ -1101,9 +1099,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         {
           logger.traceException(e);
 
-          ResultCode resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
-          return new ConfigChangeResult(resultCode, false, messages);
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseDN, e));
+          return ccr;
         }
       }
     }

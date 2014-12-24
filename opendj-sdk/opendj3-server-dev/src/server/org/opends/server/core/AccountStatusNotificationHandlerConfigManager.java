@@ -26,12 +26,15 @@
  */
 package org.opends.server.core;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -42,13 +45,9 @@ import org.opends.server.admin.std.meta.AccountStatusNotificationHandlerCfgDefn;
 import org.opends.server.admin.std.server.AccountStatusNotificationHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of account
@@ -182,16 +181,11 @@ public class AccountStatusNotificationHandlerConfigManager
       AccountStatusNotificationHandlerCfg configuration
       )
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     // Get the configuration entry DN and the associated handler class.
     DN configEntryDN = configuration.dn();
-    AccountStatusNotificationHandler handler = notificationHandlers.get(
-        configEntryDN
-        );
+    AccountStatusNotificationHandler handler = notificationHandlers.get(configEntryDN);
 
     // If the new configuration has the notification handler disabled,
     // then remove it from the mapping list and clean it.
@@ -290,10 +284,7 @@ public class AccountStatusNotificationHandlerConfigManager
       AccountStatusNotificationHandlerCfg configuration
       )
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
 
     // Register a change listener with it so we can be notified of changes
     // to it over time.
@@ -343,14 +334,8 @@ public class AccountStatusNotificationHandlerConfigManager
       AccountStatusNotificationHandlerCfg configuration
       )
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
-
     uninstallNotificationHandler (configuration.dn());
-
-    return changeResult;
+    return new ConfigChangeResult();
   }
 
 

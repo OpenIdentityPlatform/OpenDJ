@@ -26,7 +26,8 @@
  */
 package org.opends.server.extensions;
 
-
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,20 +36,16 @@ import java.util.SortedSet;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PasswordGeneratorCfg;
 import org.opends.server.admin.std.server.RandomPasswordGeneratorCfg;
 import org.opends.server.api.PasswordGenerator;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides an implementation of a Directory Server password
@@ -241,6 +238,7 @@ public class RandomPasswordGenerator
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              generate the password.
    */
+  @Override
   public ByteString generatePassword(Entry userEntry)
          throws DirectoryException
   {
@@ -276,6 +274,7 @@ public class RandomPasswordGenerator
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       RandomPasswordGeneratorCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -377,12 +376,11 @@ public class RandomPasswordGenerator
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       RandomPasswordGeneratorCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the character sets for use in generating the password.  At least one
@@ -395,12 +393,8 @@ public class RandomPasswordGenerator
       newEncodedCharacterSets = configuration.getPasswordCharacterSet();
       if (newEncodedCharacterSets.size() == 0)
       {
-        messages.add(ERR_RANDOMPWGEN_NO_CHARSETS.get(configEntryDN));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.OBJECTCLASS_VIOLATION;
-        }
+        ccr.addMessage(ERR_RANDOMPWGEN_NO_CHARSETS.get(configEntryDN));
+        ccr.setResultCodeIfSuccess(ResultCode.OBJECTCLASS_VIOLATION);
       }
       else
       {
@@ -409,12 +403,8 @@ public class RandomPasswordGenerator
         {
           if (charsets.containsKey(s.getName()))
           {
-            messages.add(ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(configEntryDN, s.getName()));
-
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
-            }
+            ccr.addMessage(ERR_RANDOMPWGEN_CHARSET_NAME_CONFLICT.get(configEntryDN, s.getName()));
+            ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
           }
           else
           {
@@ -425,24 +415,15 @@ public class RandomPasswordGenerator
     }
     catch (ConfigException ce)
     {
-      messages.add(ce.getMessageObject());
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-      }
+      ccr.addMessage(ce.getMessageObject());
+      ccr.setResultCodeIfSuccess(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      messages.add(ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(
-              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
+      ccr.addMessage(ERR_RANDOMPWGEN_CANNOT_DETERMINE_CHARSETS.get(getExceptionMessage(e)));
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
     }
 
 
@@ -471,12 +452,8 @@ public class RandomPasswordGenerator
           NamedCharacterSet charset = charsets.get(name);
           if (charset == null)
           {
-            messages.add(ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(newFormatString, name));
-
-            if (resultCode == ResultCode.SUCCESS)
-            {
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
-            }
+            ccr.addMessage(ERR_RANDOMPWGEN_UNKNOWN_CHARSET.get(newFormatString, name));
+            ccr.setResultCodeIfSuccess(ResultCode.CONSTRAINT_VIOLATION);
           }
           else
           {
@@ -488,12 +465,8 @@ public class RandomPasswordGenerator
         {
           logger.traceException(e);
 
-          messages.add(ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(newFormatString));
-
-          if (resultCode == ResultCode.SUCCESS)
-          {
-            resultCode = DirectoryServer.getServerErrorResultCode();
-          }
+          ccr.addMessage(ERR_RANDOMPWGEN_INVALID_PWFORMAT.get(newFormatString));
+          ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
         }
       }
     }
@@ -501,18 +474,13 @@ public class RandomPasswordGenerator
     {
       logger.traceException(e);
 
-      messages.add(ERR_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT.get(
-              getExceptionMessage(e)));
-
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
+      ccr.addMessage(ERR_RANDOMPWGEN_CANNOT_DETERMINE_PWFORMAT.get(getExceptionMessage(e)));
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
     }
 
 
     // If everything looks OK, then apply the changes.
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       synchronized (generatorLock)
       {
@@ -532,8 +500,6 @@ public class RandomPasswordGenerator
       }
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

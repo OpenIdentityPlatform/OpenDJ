@@ -184,7 +184,7 @@ public class UserDefinedVirtualAttributeProvider
     // Just accept the new configuration as-is.
     currentConfig = configuration;
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
 

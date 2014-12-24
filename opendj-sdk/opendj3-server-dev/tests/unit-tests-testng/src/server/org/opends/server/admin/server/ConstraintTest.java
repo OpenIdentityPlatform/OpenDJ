@@ -72,7 +72,7 @@ public final class ConstraintTest extends AdminTestCase {
     /** {@inheritDoc} */
     @Override
     public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 
@@ -98,7 +98,7 @@ public final class ConstraintTest extends AdminTestCase {
     @Override
     public ConfigChangeResult applyConfigurationDelete(
         TestChildCfg configuration) {
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 
@@ -124,7 +124,7 @@ public final class ConstraintTest extends AdminTestCase {
     @Override
     public ConfigChangeResult applyConfigurationChange(
         TestChildCfg configuration) {
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 

@@ -61,7 +61,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * Aggregation property definition.
@@ -272,7 +271,7 @@ public final class AggregationPropertyDefinition
         ServerManagedObject<? extends S> mo) {
       try {
         if (targetIsEnabledCondition.evaluate(mo)) {
-          return new ConfigChangeResult(ResultCode.SUCCESS, false);
+          return new ConfigChangeResult();
         }
       } catch (ConfigException e) {
         // This should not happen - ignore it and throw an exception
@@ -361,7 +360,7 @@ public final class AggregationPropertyDefinition
         throw new IllegalStateException("Attempting to delete a referenced "
             + relationDefinition.getChildDefinition().getUserFriendlyName());
       } else {
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+        return new ConfigChangeResult();
       }
     }
 

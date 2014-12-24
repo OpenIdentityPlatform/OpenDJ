@@ -25,35 +25,27 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
-import org.forgerock.i18n.LocalizableMessage;
-
-
+import static org.opends.messages.PluginMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.ProfilerPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.DirectoryConfig;
 import org.opends.server.util.TimeThread;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.PluginMessages.*;
-
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a Directory Server startup plugin that will register
@@ -240,6 +232,7 @@ public final class ProfilerPlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       ProfilerPluginCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -289,12 +282,11 @@ public final class ProfilerPlugin
    * @return Returns information about the result of changing the
    *         configuration.
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  ProfilerPluginCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     currentConfig = configuration;
 
@@ -312,11 +304,11 @@ public final class ProfilerPlugin
                  new ProfilerThread(configuration.getProfileSampleInterval());
             profilerThread.start();
 
-            messages.add(INFO_PLUGIN_PROFILER_STARTED_PROFILING.get(configEntryDN));
+            ccr.addMessage(INFO_PLUGIN_PROFILER_STARTED_PROFILING.get(configEntryDN));
           }
           else
           {
-            messages.add(INFO_PLUGIN_PROFILER_ALREADY_PROFILING.get(configEntryDN));
+            ccr.addMessage(INFO_PLUGIN_PROFILER_ALREADY_PROFILING.get(configEntryDN));
           }
         }
         break;
@@ -328,13 +320,13 @@ public final class ProfilerPlugin
         {
           if (profilerThread == null)
           {
-            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(configEntryDN));
+            ccr.addMessage(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(configEntryDN));
           }
           else
           {
             profilerThread.stopProfiling();
 
-            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(configEntryDN));
+            ccr.addMessage(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(configEntryDN));
 
             String filename =
                  getFileForPath(
@@ -345,16 +337,15 @@ public final class ProfilerPlugin
             {
               profilerThread.writeCaptureData(filename);
 
-              messages.add(INFO_PLUGIN_PROFILER_WROTE_PROFILE_DATA.get(configEntryDN, filename));
+              ccr.addMessage(INFO_PLUGIN_PROFILER_WROTE_PROFILE_DATA.get(configEntryDN, filename));
             }
             catch (Exception e)
             {
               logger.traceException(e);
 
-              messages.add(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.get(configEntryDN, filename,
-                      stackTraceToSingleLineString(e)));
-
-              resultCode = DirectoryConfig.getServerErrorResultCode();
+              ccr.addMessage(ERR_PLUGIN_PROFILER_CANNOT_WRITE_PROFILE_DATA.get(
+                  configEntryDN, filename, stackTraceToSingleLineString(e)));
+              ccr.setResultCode(DirectoryConfig.getServerErrorResultCode());
             }
 
             profilerThread = null;
@@ -369,13 +360,13 @@ public final class ProfilerPlugin
         {
           if (profilerThread == null)
           {
-            messages.add(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(configEntryDN));
+            ccr.addMessage(INFO_PLUGIN_PROFILER_NOT_RUNNING.get(configEntryDN));
           }
           else
           {
             profilerThread.stopProfiling();
 
-            messages.add(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(configEntryDN));
+            ccr.addMessage(INFO_PLUGIN_PROFILER_STOPPED_PROFILING.get(configEntryDN));
 
             profilerThread = null;
           }
@@ -383,7 +374,6 @@ public final class ProfilerPlugin
         break;
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

@@ -26,6 +26,11 @@
  */
 package org.opends.server.backends.task;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.security.MessageDigest;
@@ -40,28 +45,23 @@ import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TaskBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides an implementation of a Directory Server backend that may
@@ -1869,9 +1869,7 @@ public class TaskBackend
   @Override
   public ConfigChangeResult applyConfigurationChange(TaskBackendCfg configEntry)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     String tmpBackingFile = taskBackingFile;
@@ -1884,27 +1882,26 @@ public class TaskBackend
           File f = getFileForPath(tmpBackingFile);
           if (f.exists())
           {
-            messages.add(ERR_TASKBE_BACKING_FILE_EXISTS.get(tmpBackingFile));
-            resultCode = ResultCode.CONSTRAINT_VIOLATION;
+            ccr.addMessage(ERR_TASKBE_BACKING_FILE_EXISTS.get(tmpBackingFile));
+            ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
           }
           else
           {
             File p = f.getParentFile();
             if (p == null)
             {
-              messages.add(ERR_TASKBE_INVALID_BACKING_FILE_PATH.get(
-                      tmpBackingFile));
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
+              ccr.addMessage(ERR_TASKBE_INVALID_BACKING_FILE_PATH.get(tmpBackingFile));
+              ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             }
             else if (! p.exists())
             {
-              messages.add(ERR_TASKBE_BACKING_FILE_MISSING_PARENT.get(p, tmpBackingFile));
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
+              ccr.addMessage(ERR_TASKBE_BACKING_FILE_MISSING_PARENT.get(p, tmpBackingFile));
+              ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             }
             else if (! p.isDirectory())
             {
-              messages.add(ERR_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY.get(p, tmpBackingFile));
-              resultCode = ResultCode.CONSTRAINT_VIOLATION;
+              ccr.addMessage(ERR_TASKBE_BACKING_FILE_PARENT_NOT_DIRECTORY.get(p, tmpBackingFile));
+              ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
             }
           }
         }
@@ -1914,24 +1911,22 @@ public class TaskBackend
     {
       logger.traceException(e);
 
-      messages.add(ERR_TASKBE_ERROR_GETTING_BACKING_FILE.get(
-              getExceptionMessage(e)));
-
-      resultCode = DirectoryServer.getServerErrorResultCode();
+      ccr.addMessage(ERR_TASKBE_ERROR_GETTING_BACKING_FILE.get(getExceptionMessage(e)));
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
 
 
     long tmpRetentionTime = configEntry.getTaskRetentionTime();
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       // Everything looks OK, so apply the changes.
       if (retentionTime != tmpRetentionTime)
       {
         retentionTime = tmpRetentionTime;
 
-        messages.add(INFO_TASKBE_UPDATED_RETENTION_TIME.get(retentionTime));
+        ccr.addMessage(INFO_TASKBE_UPDATED_RETENTION_TIME.get(retentionTime));
       }
 
 
@@ -1940,7 +1935,7 @@ public class TaskBackend
         taskBackingFile = tmpBackingFile;
         taskScheduler.writeState();
 
-        messages.add(INFO_TASKBE_UPDATED_BACKING_FILE.get(taskBackingFile));
+        ccr.addMessage(INFO_TASKBE_UPDATED_BACKING_FILE.get(taskBackingFile));
       }
     }
 
@@ -1962,7 +1957,7 @@ public class TaskBackend
 
 
     currentConfig = configEntry;
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

@@ -33,7 +33,6 @@ import java.util.Set;
 import org.opends.server.api.PasswordValidator;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.LevenshteinDistance;
 import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
@@ -149,7 +148,6 @@ public class SimilarityBasedPasswordValidator extends
               SimilarityBasedPasswordValidatorCfg configuration)
   {
     currentConfig = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
-

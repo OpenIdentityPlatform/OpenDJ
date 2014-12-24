@@ -154,7 +154,7 @@ public class ExamplePlugin extends
     this.config = config;
 
     // Update was successfull, no restart required.
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

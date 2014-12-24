@@ -655,7 +655,7 @@ public final class SambaPasswordPlugin extends
     // No validation required and no restart required.
     config = newConfig;
 
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

@@ -41,7 +41,6 @@ import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class implements a retention policy based on the free disk space
@@ -88,15 +87,10 @@ public class FreeDiskSpaceRetentionPolicy implements
   public ConfigChangeResult applyConfigurationChange(
       FreeDiskSpaceLogRetentionPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     this.freeDiskSpace = config.getFreeDiskSpace();
     this.config = config;
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 
   /**

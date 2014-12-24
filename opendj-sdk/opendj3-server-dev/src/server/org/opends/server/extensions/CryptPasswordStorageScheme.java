@@ -27,7 +27,6 @@
  */
 package org.opends.server.extensions;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -530,22 +529,12 @@ public class CryptPasswordStorageScheme
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                       CryptPasswordStorageSchemeCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    List<LocalizableMessage>     messages            = new ArrayList<LocalizableMessage>();
-
-
     currentConfig = configuration;
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 }

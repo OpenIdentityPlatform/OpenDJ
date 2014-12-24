@@ -28,12 +28,13 @@ package org.opends.server.core;
 
 import static org.opends.messages.ConfigMessages.*;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
@@ -43,7 +44,6 @@ import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
 import org.opends.server.admin.std.server.LogPublisherCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.loggers.AbstractLogger;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.DebugLogger;
@@ -51,8 +51,6 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
 
 /**
  * This class defines a utility that will be used to manage the set of loggers
@@ -66,7 +64,6 @@ public class LoggerConfigManager implements
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
 
   private final ServerContext serverContext;
 
@@ -200,74 +197,57 @@ public class LoggerConfigManager implements
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(LogPublisherCfg config,
                                               List<LocalizableMessage> unacceptableReasons)
   {
     AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
-    if (instance != null)
-    {
-      return instance.isConfigurationAddAcceptable(config, unacceptableReasons);
-    }
-    return false;
+    return instance != null
+        && instance.isConfigurationAddAcceptable(config, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(LogPublisherCfg config)
   {
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>(1);
-    AbstractLogger instance = getLoggerInstance(config, messages);
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    AbstractLogger instance = getLoggerInstance(config, ccr.getMessages());
     if (instance != null)
     {
       return instance.applyConfigurationAdd(config);
     }
     else
     {
-      boolean adminActionRequired = false;
-      ResultCode resultCode = ResultCode.UNWILLING_TO_PERFORM;
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+      return ccr;
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(LogPublisherCfg config,
                                               List<LocalizableMessage> unacceptableReasons)
   {
     AbstractLogger instance = getLoggerInstance(config, unacceptableReasons);
-    if (instance != null)
-    {
-      return instance.isConfigurationDeleteAcceptable(config,
-          unacceptableReasons);
-    }
-    return false;
+    return instance != null
+        && instance.isConfigurationDeleteAcceptable(config, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(LogPublisherCfg config)
   {
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>(1);
-    AbstractLogger instance = getLoggerInstance(config, messages);
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    AbstractLogger instance = getLoggerInstance(config, ccr.getMessages());
     if (instance != null)
     {
       return instance.applyConfigurationDelete(config);
     }
     else
     {
-      boolean           adminActionRequired = false;
-      ResultCode resultCode = ResultCode.UNWILLING_TO_PERFORM;
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      ccr.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+      return ccr;
     }
   }
 }

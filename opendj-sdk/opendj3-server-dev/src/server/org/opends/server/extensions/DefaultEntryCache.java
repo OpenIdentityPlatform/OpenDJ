@@ -26,28 +26,24 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.EntryCache;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class defines the default entry cache which acts as an arbiter for
@@ -65,8 +61,10 @@ public class DefaultEntryCache
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-  // The entry cache order array reflects all currently configured and
-  // active entry cache implementations in cache level specific order.
+  /**
+   * The entry cache order array reflects all currently configured and
+   * active entry cache implementations in cache level specific order.
+   */
   private static EntryCache<? extends EntryCacheCfg>[] cacheOrder =
     new EntryCache<?>[0];
 
@@ -83,10 +81,7 @@ public class DefaultEntryCache
     DirectoryServer.registerBackendInitializationListener(this);
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeEntryCache(EntryCacheCfg configEntry)
          throws ConfigException, InitializationException
@@ -94,10 +89,7 @@ public class DefaultEntryCache
     // No implementation required.
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeEntryCache()
   {
@@ -108,10 +100,7 @@ public class DefaultEntryCache
     cacheOrder = new EntryCache<?>[0];
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean containsEntry(DN entryDN)
   {
@@ -128,10 +117,7 @@ public class DefaultEntryCache
     return false;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getEntry(Backend backend, long entryID)
   {
@@ -152,10 +138,7 @@ public class DefaultEntryCache
     return null;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
   {
@@ -176,11 +159,7 @@ public class DefaultEntryCache
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getEntryID(DN entryDN)
   {
@@ -195,11 +174,7 @@ public class DefaultEntryCache
     return -1;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getEntryDN(Backend backend, long entryID)
   {
@@ -214,11 +189,7 @@ public class DefaultEntryCache
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
@@ -233,11 +204,7 @@ public class DefaultEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
@@ -253,11 +220,7 @@ public class DefaultEntryCache
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeEntry(DN entryDN)
   {
@@ -269,11 +232,7 @@ public class DefaultEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clear()
   {
@@ -282,11 +241,7 @@ public class DefaultEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clearBackend(Backend backend)
   {
@@ -295,11 +250,7 @@ public class DefaultEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clearSubtree(DN baseDN)
   {
@@ -308,11 +259,7 @@ public class DefaultEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleLowMemory()
   {
@@ -321,11 +268,7 @@ public class DefaultEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
@@ -336,42 +279,26 @@ public class DefaultEntryCache
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      EntryCacheCfg configuration
-      )
+  public ConfigChangeResult applyConfigurationChange(EntryCacheCfg configuration)
   {
     // No implementation required.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>()
-        );
-
-    return changeResult;
+    return new ConfigChangeResult();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();
 
-    // The sum of cache hits of all active entry cache
-    // implementations.
-    Long entryCacheHits = new Long(0);
+    // The sum of cache hits of all active entry cache implementations.
+    long entryCacheHits = 0;
     // Common for all active entry cache implementations.
-    Long entryCacheMisses = new Long(cacheMisses.longValue());
-    // The sum of cache counts of all active entry cache
-    // implementations.
-    Long currentEntryCacheCount = new Long(0);
+    long entryCacheMisses = cacheMisses.longValue();
+    // The sum of cache counts of all active entry cache implementations.
+    long currentEntryCacheCount = 0;
 
     for (EntryCache<?> entryCache : cacheOrder) {
       // Get cache hits and counts from every active cache.
@@ -395,28 +322,19 @@ public class DefaultEntryCache
     return attrs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Long getCacheCount()
   {
-    Long cacheCount = new Long(0);
-
+    long cacheCount = 0;
     for (EntryCache<?> entryCache : cacheOrder) {
       cacheCount += entryCache.getCacheCount();
     }
-
     return cacheCount;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String toVerboseString()
   {
     StringBuilder sb = new StringBuilder();
@@ -429,7 +347,7 @@ public class DefaultEntryCache
       }
     }
     String verboseString = sb.toString();
-    return (verboseString.length() > 0 ? verboseString : null);
+    return verboseString.length() > 0 ? verboseString : null;
   }
 
 
@@ -490,9 +408,9 @@ public class DefaultEntryCache
   public void performBackendFinalizationProcessing(Backend backend)
   {
     // Do not clear any backends if the server is shutting down.
-    if ( !(DirectoryServer.getInstance().isShuttingDown()) ) {
+    if (!DirectoryServer.getInstance().isShuttingDown())
+    {
       clearBackend(backend);
     }
   }
 }
-

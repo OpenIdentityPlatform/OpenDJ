@@ -36,7 +36,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -434,9 +433,7 @@ public class FileBasedKeyManagerProvider
   public ConfigChangeResult applyConfigurationChange(
                                  FileBasedKeyManagerProviderCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the path to the key store file.
@@ -446,19 +443,16 @@ public class FileBasedKeyManagerProvider
       File f = getFileForPath(newKeyStoreFile);
       if (!(f.exists() && f.isFile()))
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(
-            newKeyStoreFile, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(newKeyStoreFile, configEntryDN));
       }
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-      messages.add(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ERR_FILE_KEYMANAGER_CANNOT_DETERMINE_FILE.get(
           configEntryDN, getExceptionMessage(e)));
     }
 
@@ -475,9 +469,8 @@ public class FileBasedKeyManagerProvider
       {
         logger.traceException(kse);
 
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_INVALID_TYPE.get(
             configuration.getKeyStoreType(), configEntryDN, getExceptionMessage(kse)));
       }
     }
@@ -502,9 +495,8 @@ public class FileBasedKeyManagerProvider
 
       if (pinStr == null)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_PROPERTY_NOT_SET.get(
             propertyName, configEntryDN));
       }
       else
@@ -519,10 +511,8 @@ public class FileBasedKeyManagerProvider
 
       if (pinStr == null)
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(
-            enVarName, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_ENVAR_NOT_SET.get(enVarName, configEntryDN));
       }
       else
       {
@@ -536,10 +526,8 @@ public class FileBasedKeyManagerProvider
 
       if (!pinFile.exists())
       {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-
-        messages.add(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(
-            fileName, configEntryDN));
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+        ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_NO_SUCH_FILE.get(fileName, configEntryDN));
       }
       else
       {
@@ -551,9 +539,8 @@ public class FileBasedKeyManagerProvider
         }
         catch (IOException ioe)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_FILE_CANNOT_READ.get(
               fileName, configEntryDN, getExceptionMessage(ioe)));
         }
         finally
@@ -563,10 +550,8 @@ public class FileBasedKeyManagerProvider
 
         if (pinStr == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(
-              fileName, configEntryDN));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_FILE_KEYMANAGER_PIN_FILE_EMPTY.get(fileName, configEntryDN));
         }
         else
         {
@@ -579,7 +564,7 @@ public class FileBasedKeyManagerProvider
       newPIN = configuration.getKeyStorePin().toCharArray();
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       currentConfig = configuration;
       keyStorePIN   = newPIN;
@@ -587,8 +572,6 @@ public class FileBasedKeyManagerProvider
       keyStoreType  = newKeyStoreType;
     }
 
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-

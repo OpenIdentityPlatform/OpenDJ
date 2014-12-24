@@ -768,7 +768,7 @@ public class UniqueAttributePlugin
                                  UniqueAttributePluginCfg newConfiguration)
   {
     currentConfiguration = newConfiguration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

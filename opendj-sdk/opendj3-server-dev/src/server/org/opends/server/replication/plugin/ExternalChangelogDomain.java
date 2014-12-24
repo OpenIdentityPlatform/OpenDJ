@@ -83,7 +83,7 @@ public class ExternalChangelogDomain
     domain.setEclIncludes(domain.getServerId(),
         configuration.getECLInclude(),
         configuration.getECLIncludeForDeletes());
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 
@@ -107,7 +107,7 @@ public class ExternalChangelogDomain
     this.isEnabled = configuration.isEnabled();
     domain.changeConfig(configuration.getECLInclude(),
         configuration.getECLIncludeForDeletes());
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
   private ConfigChangeResult setDomain(ExternalChangelogDomainCfg configuration)
@@ -124,7 +124,9 @@ public class ExternalChangelogDomain
     }
     catch (Exception e)
     {
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false);
+      final ConfigChangeResult ccr = new ConfigChangeResult();
+      ccr.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      return ccr;
     }
   }
 
@@ -162,8 +164,7 @@ public class ExternalChangelogDomain
   public ConfigChangeResult applyConfigurationDelete(
       ExternalChangelogDomainCfg configuration)
   {
-    // nothing to do
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
   /**

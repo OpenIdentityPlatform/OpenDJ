@@ -26,13 +26,15 @@
  */
 package org.opends.server.core;
 
-import java.util.ArrayList;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -42,13 +44,9 @@ import org.opends.server.admin.std.meta.SynchronizationProviderCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -150,10 +148,7 @@ public class SynchronizationProviderConfigManager
   public ConfigChangeResult applyConfigurationChange(
       SynchronizationProviderCfg configuration)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Attempt to get the existing synchronization provider. This will only
     // succeed if it is currently enabled.
@@ -187,17 +182,17 @@ public class SynchronizationProviderConfigManager
           if (logger.isTraceEnabled())
           {
             logger.traceException(e);
-            messages.add(e.getMessageObject());
-            resultCode = DirectoryServer.getServerErrorResultCode();
+            ccr.addMessage(e.getMessageObject());
+            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
           }
         }
         catch (Exception e)
         {
           logger.traceException(e);
 
-          messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
+          ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
               configuration.getJavaClass(), configuration.dn()));
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
     }
@@ -213,7 +208,7 @@ public class SynchronizationProviderConfigManager
         String className = configuration.getJavaClass();
         if (!className.equals(provider.getClass().getName()))
         {
-          adminActionRequired = true;
+          ccr.setAdminActionRequired(true);
         }
       }
       else
@@ -226,9 +221,7 @@ public class SynchronizationProviderConfigManager
         registeredProviders.remove(dn);
       }
     }
-    // Return the configuration result.
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return ccr;
   }
 
 
@@ -261,10 +254,7 @@ public class SynchronizationProviderConfigManager
   public ConfigChangeResult applyConfigurationAdd(
     SynchronizationProviderCfg configuration)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Register as a change listener for this synchronization provider entry
     // so that we will be notified if when it is disabled or enabled.
@@ -292,23 +282,21 @@ public class SynchronizationProviderConfigManager
         if (logger.isTraceEnabled())
         {
           logger.traceException(e);
-          messages.add(e.getMessageObject());
-          resultCode = DirectoryServer.getServerErrorResultCode();
+          ccr.addMessage(e.getMessageObject());
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         }
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
-        messages.add(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
+        ccr.addMessage(ERR_CONFIG_SYNCH_ERROR_INITIALIZING_PROVIDER.get(
             configuration.getJavaClass(), configuration.dn()));
-        resultCode = DirectoryServer.getServerErrorResultCode();
+        ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       }
     }
 
-    // Return the configuration result.
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return ccr;
   }
 
 
@@ -443,9 +431,7 @@ public class SynchronizationProviderConfigManager
   public ConfigChangeResult applyConfigurationDelete(
       SynchronizationProviderCfg configuration)
   {
-    //  Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // See if the entry is registered as a synchronization provider. If so,
     // deregister and stop it.
@@ -456,7 +442,7 @@ public class SynchronizationProviderConfigManager
       DirectoryServer.deregisterSynchronizationProvider(provider);
       provider.finalizeSynchronizationProvider();
     }
-    return new ConfigChangeResult(resultCode, adminActionRequired);
+    return ccr;
   }
 
 

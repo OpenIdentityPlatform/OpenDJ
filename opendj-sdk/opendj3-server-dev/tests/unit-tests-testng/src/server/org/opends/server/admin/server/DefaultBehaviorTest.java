@@ -45,13 +45,10 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-
 
 /**
  * Test cases for default behavior on the server-side.
@@ -82,7 +79,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      * {@inheritDoc}
      */
     public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return new ConfigChangeResult();
     }
 
 
@@ -139,9 +136,8 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationChange(
-        TestChildCfg configuration) {
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
+      return new ConfigChangeResult();
     }
 
 

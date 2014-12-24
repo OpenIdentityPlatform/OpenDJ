@@ -336,9 +336,7 @@ public class FingerprintCertificateMapper
   public ConfigChangeResult applyConfigurationChange(
               FingerprintCertificateMapperCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the algorithm that will be used to generate the fingerprint.
@@ -354,7 +352,7 @@ public class FingerprintCertificateMapper
     }
 
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       fingerprintAlgorithm = newFingerprintAlgorithm;
       currentConfig        = configuration;
@@ -376,12 +374,11 @@ public class FingerprintCertificateMapper
       {
         LocalizableMessage message = WARN_SATUACM_ATTR_UNINDEXED.get(
             configuration.dn(), t.getNameOrOID(), b.getBackendID());
-        messages.add(message);
+        ccr.addMessage(message);
         logger.error(message);
       }
     }
 
-   return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+   return ccr;
   }
 }
-

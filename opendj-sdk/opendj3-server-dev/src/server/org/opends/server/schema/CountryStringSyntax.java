@@ -39,15 +39,11 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.PrintableString.*;
 import static org.opends.server.schema.SchemaConstants.*;
-
 
 /**
  * This class defines the country string attribute syntax, which should be a
@@ -156,7 +152,7 @@ public class CountryStringSyntax
       CountryStringAttributeSyntaxCfg configuration)
   {
     this.config = configuration;
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 
 

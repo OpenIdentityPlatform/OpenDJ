@@ -26,36 +26,35 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.AttributeSyntaxCfgDefn;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.util.Utils;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of attribute
- * syntaxes defined in the Directory Server.  It wil initialize the syntaxes
+ * syntaxes defined in the Directory Server.  It will initialize the syntaxes
  * when the server starts, and then will manage any additions, removals, or
  * modifications to any syntaxes while the server is running.
  */
@@ -156,6 +155,7 @@ public class AttributeSyntaxConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
                       AttributeSyntaxCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -185,18 +185,17 @@ public class AttributeSyntaxConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  AttributeSyntaxCfg configuration)
   {
-    ResultCode         resultCode          = ResultCode.SUCCESS;
-    boolean            adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     AttributeSyntax syntax = null;
@@ -215,26 +214,18 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        messages.add(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+        ccr.addMessage(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
                 configuration.dn(), de.getMessageObject()));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
+        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -242,6 +233,7 @@ public class AttributeSyntaxConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       AttributeSyntaxCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -275,12 +267,11 @@ public class AttributeSyntaxConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  AttributeSyntaxCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     AttributeSyntax syntax = syntaxes.remove(configuration.dn());
     if (syntax != null)
@@ -289,7 +280,7 @@ public class AttributeSyntaxConfigManager
       syntax.finalizeSyntax();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 
@@ -297,6 +288,7 @@ public class AttributeSyntaxConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       AttributeSyntaxCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -348,12 +340,11 @@ public class AttributeSyntaxConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AttributeSyntaxCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
 
     // Get the existing syntax if it's already enabled.
@@ -375,7 +366,7 @@ public class AttributeSyntaxConfigManager
         }
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
 
@@ -389,10 +380,10 @@ public class AttributeSyntaxConfigManager
     {
       if (! className.equals(existingSyntax.getClass().getName()))
       {
-        adminActionRequired = true;
+        ccr.setAdminActionRequired(true);
       }
 
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return ccr;
     }
 
     AttributeSyntax syntax = null;
@@ -407,26 +398,18 @@ public class AttributeSyntaxConfigManager
       }
       catch (DirectoryException de)
       {
-        messages.add(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
+        ccr.addMessage(WARN_CONFIG_SCHEMA_SYNTAX_CONFLICTING_SYNTAX.get(
                 configuration.dn(), de.getMessageObject()));
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-        }
+        ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
       }
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
-      messages.add(ie.getMessageObject());
+      ccr.setResultCodeIfSuccess(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(ie.getMessageObject());
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 
 

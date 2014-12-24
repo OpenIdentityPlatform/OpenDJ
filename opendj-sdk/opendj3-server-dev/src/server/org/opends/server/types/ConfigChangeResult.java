@@ -66,20 +66,6 @@ public final class ConfigChangeResult
   }
 
   /**
-   * Creates a new config change result object with the provided information.
-   *
-   * @param  resultCode           The result code for this config change result.
-   * @param  adminActionRequired  Indicates whether administrative
-   *                              action is required for one or more
-   *                              of the changes to take effect.
-   */
-  public ConfigChangeResult(ResultCode resultCode,
-                            boolean adminActionRequired)
-  {
-    this(resultCode, adminActionRequired, new ArrayList<LocalizableMessage>());
-  }
-
-  /**
    * Creates a new config change result object with the provided
    * information.
    *
@@ -111,17 +97,29 @@ public final class ConfigChangeResult
     return resultCode;
   }
 
-
-
   /**
    * Specifies the result code for this config change result.
    *
-   * @param  resultCode  The result code for this config change
-   *                     result.
+   * @param  resultCode  The result code for this config change result.
    */
   public void setResultCode(ResultCode resultCode)
   {
     this.resultCode = resultCode;
+  }
+
+  /**
+   * Sets the provided result code for this config change result if the current result code is
+   * success.
+   *
+   * @param newResultCode
+   *          The new result code for this config change result.
+   */
+  public void setResultCodeIfSuccess(ResultCode newResultCode)
+  {
+    if (getResultCode() == ResultCode.SUCCESS)
+    {
+      setResultCode(newResultCode);
+    }
   }
 
   /**
@@ -143,8 +141,7 @@ public final class ConfigChangeResult
    *
    * @param  adminActionRequired  Specifies whether administrative
    *                              action is required before one or
-   *                              more of the changes will take
-   *                              effect.
+   *                              more of the changes will take effect.
    */
   public void setAdminActionRequired(boolean adminActionRequired)
   {

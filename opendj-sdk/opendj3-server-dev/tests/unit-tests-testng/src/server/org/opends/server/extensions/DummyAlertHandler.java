@@ -26,21 +26,17 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.i18n.LocalizableMessage;
-
 
 /**
  * This class implements a Directory Server alert handler that only provides a
@@ -50,28 +46,21 @@ public class DummyAlertHandler
        implements AlertHandler<AlertHandlerCfg>,
                   ConfigurationChangeListener<AlertHandlerCfg>
 {
-  // The current configuration for this alert handler.
+  /** The current configuration for this alert handler. */
   private AlertHandlerCfg currentConfig;
 
-  // The number of times this alert handler has been invoked.
+  /** The number of times this alert handler has been invoked. */
   private static AtomicInteger alertCount = new AtomicInteger(0);
 
-
-  /**
-   * Creates a new instance of this SMTP alert handler.
-   */
+  /** Creates a new instance of this SMTP alert handler. */
   public DummyAlertHandler()
   {
     super();
-
     // All initialization should be done in the initializeAlertHandler method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeAlertHandler(AlertHandlerCfg configuration)
        throws ConfigException, InitializationException
   {
@@ -79,49 +68,35 @@ public class DummyAlertHandler
     currentConfig = configuration;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public AlertHandlerCfg getAlertHandlerConfiguration()
   {
     return currentConfig;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAcceptable(AlertHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void finalizeAlertHandler()
   {
     // No action is required.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void sendAlertNotification(AlertGenerator generator, String alertType,
                                     LocalizableMessage alertMessage)
   {
     alertCount.incrementAndGet();
   }
-
-
 
   /**
    * Retrieves the number of times that this alert handler has been invoked.
@@ -133,28 +108,20 @@ public class DummyAlertHandler
     return alertCount.get();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AlertHandlerCfg configuration)
   {
     currentConfig = configuration;
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult();
   }
 }
-

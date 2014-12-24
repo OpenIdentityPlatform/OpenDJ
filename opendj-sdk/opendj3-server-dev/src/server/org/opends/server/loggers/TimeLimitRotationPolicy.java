@@ -31,11 +31,7 @@ import org.opends.server.util.TimeThread;
 import org.opends.server.admin.std.server.TimeLimitLogRotationPolicyCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * This class implements a fixed time based rotation policy.
@@ -67,20 +63,12 @@ public class TimeLimitRotationPolicy implements
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ConfigChangeResult applyConfigurationChange(
       TimeLimitLogRotationPolicyCfg config)
   {
-    // Default result code.
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     timeInterval = config.getRotationInterval();
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult();
   }
 
 
@@ -88,7 +76,7 @@ public class TimeLimitRotationPolicy implements
    * This method indicates if the log file should be
    * rotated or not.
    *
-   * @param writer The mutli file text writer written the log file.
+   * @param writer The multi file text writer written the log file.
    * @return true if the file should be rotated, false otherwise.
    */
   public boolean rotateFile(RotatableLogFile writer)
@@ -100,4 +88,3 @@ public class TimeLimitRotationPolicy implements
   }
 
 }
-

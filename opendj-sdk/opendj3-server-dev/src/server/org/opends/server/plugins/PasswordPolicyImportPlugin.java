@@ -34,7 +34,6 @@ import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -693,10 +692,7 @@ policyLoop:
   public ConfigChangeResult applyConfigurationChange(
                                  PasswordPolicyImportPluginCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<LocalizableMessage> messages            = new ArrayList<LocalizableMessage>();
-
+    final ConfigChangeResult ccr = new ConfigChangeResult();
 
     // Get the set of default password storage schemes for auth password
     // attributes.
@@ -722,9 +718,8 @@ policyLoop:
                   AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1);
         if (defaultAuthSchemes[0] == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_AUTH_SCHEMES.get(
                   AUTH_PASSWORD_SCHEME_NAME_SALTED_SHA_1));
         }
       }
@@ -739,13 +734,13 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultAuthSchemes[i] == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(schemeDN));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_PLUGIN_PWIMPORT_NO_SUCH_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         else if (! defaultAuthSchemes[i].supportsAuthPasswordSyntax())
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeDN));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_AUTH_SCHEME.get(schemeDN));
         }
         i++;
       }
@@ -774,9 +769,8 @@ policyLoop:
                   toLowerCase(STORAGE_SCHEME_NAME_SALTED_SHA_1));
         if (defaultUserSchemes[0] == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-
-          messages.add(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_PLUGIN_PWIMPORT_NO_DEFAULT_USER_SCHEMES.get(
                   STORAGE_SCHEME_NAME_SALTED_SHA_1));
         }
       }
@@ -791,20 +785,19 @@ policyLoop:
              DirectoryServer.getPasswordStorageScheme(schemeDN);
         if (defaultUserSchemes[i] == null)
         {
-          resultCode = DirectoryServer.getServerErrorResultCode();
-          messages.add(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeDN));
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_PLUGIN_PWIMPORT_INVALID_DEFAULT_USER_SCHEME.get(schemeDN));
         }
         i++;
       }
     }
 
-    if (resultCode == ResultCode.SUCCESS)
+    if (ccr.getResultCode() == ResultCode.SUCCESS)
     {
       defaultAuthPasswordSchemes = defaultAuthSchemes;
       defaultUserPasswordSchemes = defaultUserSchemes;
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return ccr;
   }
 }
-
