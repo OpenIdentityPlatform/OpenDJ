@@ -847,7 +847,7 @@ public final class AVA implements Comparable<AVA> {
         final boolean hasAttributeName = !attributeType.getNames().isEmpty();
         final boolean isHumanReadable = attributeType.getSyntax().isHumanReadable();
         if (!hasAttributeName || !isHumanReadable) {
-            builder.append(value.toHexString(AVA.HEX_STRING_SEPARATOR));
+            builder.append(value.toPercentHexString());
         } else {
             // try to decode value as UTF-8 string
             final CharBuffer buffer = CharBuffer.allocate(value.length());
@@ -861,10 +861,10 @@ public final class AVA implements Comparable<AVA> {
                     builder.append(val);
                 } catch (UnsupportedEncodingException e) {
                     // should never happen
-                    builder.append(value.toHexString(AVA.HEX_STRING_SEPARATOR));
+                    builder.append(value.toPercentHexString());
                 }
             } else {
-                builder.append(value.toHexString(AVA.HEX_STRING_SEPARATOR));
+                builder.append(value.toPercentHexString());
             }
         }
         return builder;

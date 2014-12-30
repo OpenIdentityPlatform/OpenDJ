@@ -756,23 +756,26 @@ public final class ByteString implements ByteSequence {
      *         using hexadecimal characters.
      */
     public String toHexString() {
-        return toHexString(' ');
+        StringBuilder builder = new StringBuilder((length - 1) * 3 + 2);
+        builder.append(StaticUtils.byteToHex(buffer[offset]));
+        for (int i = 1; i < length; i++) {
+            builder.append(' ');
+            builder.append(StaticUtils.byteToHex(buffer[offset + i]));
+        }
+        return builder.toString();
     }
 
     /**
      * Returns a string representation of the contents of this byte sequence
-     * using hexadecimal characters and the provided separator between each byte.
+     * using hexadecimal characters and a percent prefix (#) before each char.
      *
-     * @param separator
-     *          Character used to separate each byte
      * @return A string representation of the contents of this byte sequence
-     *         using hexadecimal characters.
+     *         using percent + hexadecimal characters.
      */
-    public String toHexString(char separator) {
-        StringBuilder builder = new StringBuilder((length - 1) * 3 + 2);
-        builder.append(StaticUtils.byteToHex(buffer[offset]));
-        for (int i = 1; i < length; i++) {
-            builder.append(separator);
+    public String toPercentHexString() {
+        StringBuilder builder = new StringBuilder(length * 3);
+        for (int i = 0; i < length; i++) {
+            builder.append('%');
             builder.append(StaticUtils.byteToHex(buffer[offset + i]));
         }
         return builder.toString();
