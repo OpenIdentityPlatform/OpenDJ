@@ -69,8 +69,6 @@ import com.forgerock.opendj.util.SubstringReader;
  */
 public final class AVA implements Comparable<AVA> {
 
-    private static final char HEX_STRING_SEPARATOR = '%';
-
     /**
      * Parses the provided LDAP string representation of an AVA using the
      * default schema.
