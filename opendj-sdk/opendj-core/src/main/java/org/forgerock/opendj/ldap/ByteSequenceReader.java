@@ -393,6 +393,25 @@ public final class ByteSequenceReader {
     }
 
     /**
+     * Returns the number of bytes between the current position and the position of first occurence of provided byte.
+     *
+     * @param b
+     *          the byte to look for
+     * @return the number of bytes between current position and position of provided byte
+     * @throws IndexOutOfBoundsException
+     *           if the byte to look for is not present in this sequence
+     */
+    public int remainingUpTo(byte b)
+    {
+      int length = 0;
+      while (peek(length) != b)
+      {
+        length++;
+      }
+      return length;
+    }
+
+    /**
      * Rewinds this reader's position to zero.
      * <p>
      * An invocation of this method of the form:
