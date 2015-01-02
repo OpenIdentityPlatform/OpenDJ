@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -1258,11 +1258,11 @@ public class ImportLDIF extends TaskTool {
         !clearBackend.isPresent())
     {
       StringBuilder builder = new StringBuilder();
-      builder.append(backend.getBaseDNs()[0].toNormalizedString());
+      builder.append(backend.getBaseDNs()[0].toString());
       for(int i = 1; i < backend.getBaseDNs().length; i++)
       {
         builder.append(" / ");
-        builder.append(backend.getBaseDNs()[i].toNormalizedString());
+        builder.append(backend.getBaseDNs()[i].toString());
       }
       LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
               builder, clearBackend.getLongIdentifier());
@@ -1306,7 +1306,7 @@ public class ImportLDIF extends TaskTool {
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toNormalizedString(), backendID.getValue());
+          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toString(), backendID.getValue());
           return 1;
         }
       }

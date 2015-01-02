@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -2324,7 +2324,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     attributes.add(Attributes.create("replication-server-port",
         String.valueOf(localReplicationServer.getReplicationPort())));
     attributes.add(Attributes.create("domain-name",
-        baseDN.toNormalizedString()));
+        baseDN.toString()));
     attributes.add(Attributes.create("generation-id",
         baseDN + " " + generationId));
 

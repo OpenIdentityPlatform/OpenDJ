@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -73,8 +73,8 @@ public class EntryDNVirtualAttributeProvider
   @Override()
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    String normDNString = entry.getName().toNormalizedString();
-    return Attributes.create(rule.getAttributeType(), normDNString);
+    String dnString = entry.getName().toString();
+    return Attributes.create(rule.getAttributeType(), dnString);
   }
 
   /** {@inheritDoc} */
@@ -166,8 +166,7 @@ public class EntryDNVirtualAttributeProvider
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
   {
-    return isSearchable(rule.getAttributeType(), searchOperation.getFilter(),
-                        0);
+    return isSearchable(rule.getAttributeType(), searchOperation.getFilter(), 0);
   }
 
 

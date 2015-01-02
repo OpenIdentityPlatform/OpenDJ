@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -1279,16 +1279,16 @@ public final class ReplicationServer
    * Returns the newest cookie value.
    *
    * @param excludedBaseDNs
-   *          The list of baseDNs excluded from ECL.
+   *          The set of baseDNs excluded from ECL.
    * @return the newest cookie value.
    */
-  public MultiDomainServerState getNewestECLCookie(Set<String> excludedBaseDNs)
+  public MultiDomainServerState getNewestECLCookie(Set<DN> excludedBaseDNs)
   {
     // Initialize start state for all running domains with empty state
     final MultiDomainServerState result = new MultiDomainServerState();
     for (ReplicationServerDomain rsDomain : getReplicationServerDomains())
     {
-      if (!contains(excludedBaseDNs, rsDomain.getBaseDN().toNormalizedString()))
+      if (!excludedBaseDNs.contains(rsDomain.getBaseDN()))
       {
         final ServerState latestDBServerState = rsDomain.getLatestServerState();
         if (!latestDBServerState.isEmpty())
@@ -1298,11 +1298,6 @@ public final class ReplicationServer
       }
     }
     return result;
-  }
-
-  private boolean contains(Set<String> col, String elem)
-  {
-    return col != null && col.contains(elem);
   }
 
   /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -346,7 +346,7 @@ public class ImportTask extends Task
         StringBuilder builder = new StringBuilder();
         for(DN dn : backend.getBaseDNs())
         {
-          builder.append(dn.toNormalizedString());
+          builder.append(dn.toString());
           builder.append(" ");
         }
         LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
@@ -370,14 +370,14 @@ public class ImportTask extends Task
           {
             // The include branches span across multiple backends.
             LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
-                includeBranch.toNormalizedString(), backend.getBackendID());
+                includeBranch.toString(), backend.getBackendID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
           }
         }
         else
         {
           // The include branch is not associated with any backend.
-          LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(includeBranch.toNormalizedString());
+          LocalizableMessage message = ERR_NO_BACKENDS_FOR_BASE.get(includeBranch.toString());
           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
         }
       }
@@ -395,7 +395,7 @@ public class ImportTask extends Task
       if (!Backend.handlesEntry(includeBranch, defaultIncludeBranches, excludeBranches))
       {
         LocalizableMessage message = ERR_LDIFIMPORT_INVALID_INCLUDE_BASE.get(
-            includeBranch.toNormalizedString(), backend.getBackendID());
+            includeBranch.toString(), backend.getBackendID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -539,11 +539,11 @@ public class ImportTask extends Task
           backend.getBaseDNs().length > 1 && !clearBackend)
       {
         StringBuilder builder = new StringBuilder();
-        builder.append(backend.getBaseDNs()[0].toNormalizedString());
+        builder.append(backend.getBaseDNs()[0].toString());
         for(int i = 1; i < backend.getBaseDNs().length; i++)
         {
           builder.append(" / ");
-          builder.append(backend.getBaseDNs()[i].toNormalizedString());
+          builder.append(backend.getBaseDNs()[i].toString());
         }
         logger.error(ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND, builder, ATTR_IMPORT_CLEAR_BACKEND);
         return TaskState.STOPPED_BY_ERROR;
@@ -564,8 +564,7 @@ public class ImportTask extends Task
           else if(backend != locatedBackend)
           {
             // The include branches span across multiple backends.
-            logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch
-                .toNormalizedString(), backend.getBackendID());
+            logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toString(), backend.getBackendID());
             return TaskState.STOPPED_BY_ERROR;
           }
         }
@@ -640,7 +639,7 @@ public class ImportTask extends Task
         if (! Backend.handlesEntry(includeBranch, defaultIncludeBranches,
                                    excludeBranches))
         {
-          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toNormalizedString(), backend.getBackendID());
+          logger.error(ERR_LDIFIMPORT_INVALID_INCLUDE_BASE, includeBranch.toString(), backend.getBackendID());
           return TaskState.STOPPED_BY_ERROR;
         }
       }

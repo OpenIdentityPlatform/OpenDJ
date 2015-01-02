@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -74,7 +74,6 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.backends.jeb.JebFormat.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -653,7 +652,7 @@ public class DBTest
       for(EntryContainer ec : rc.getEntryContainers())
       {
         builder.startRow();
-        builder.appendCell(ec.getBaseDN().toNormalizedString());
+        builder.appendCell(ec.getBaseDN().toString());
         builder.appendCell(ec.getDatabasePrefix());
         builder.appendCell(ec.getEntryCount());
         count++;
@@ -750,7 +749,7 @@ public class DBTest
         if(ec == null)
         {
           printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
-              base.toNormalizedString(), backend.getBackendID()));
+              base.toString(), backend.getBackendID()));
           return 1;
         }
 
@@ -761,7 +760,7 @@ public class DBTest
         for(EntryContainer ec : rc.getEntryContainers())
         {
           builder.startRow();
-          builder.appendCell("Base DN: " + ec.getBaseDN().toNormalizedString());
+          builder.appendCell("Base DN: " + ec.getBaseDN().toString());
           count = appendDatabaseContainerRows(builder, ec, count);
         }
       }
@@ -922,7 +921,7 @@ public class DBTest
       if(ec == null)
       {
         printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
-            base.toNormalizedString(), backend.getBackendID()));
+            base.toString(), backend.getBackendID()));
         return 1;
       }
 
@@ -1109,7 +1108,7 @@ public class DBTest
       if(ec == null)
       {
         printMessage(ERR_DBTEST_NO_ENTRY_CONTAINERS_FOR_BASE_DN.get(
-            base.toNormalizedString(), backend.getBackendID()));
+            base.toString(), backend.getBackendID()));
         return 1;
       }
 
@@ -1130,7 +1129,7 @@ public class DBTest
       if(databaseContainer == null)
       {
         printMessage(ERR_DBTEST_NO_DATABASE_CONTAINERS_FOR_NAME.get(
-            databaseName.getValue(), base.toNormalizedString(),
+            databaseName.getValue(), base.toString(),
             backend.getBackendID()));
         return 1;
       }
@@ -1253,7 +1252,7 @@ public class DBTest
               {
                 try
                 {
-                  formatedKey = dnFromDNKey(key.getData(), ec.getBaseDN()).toNormalizedString();
+                  formatedKey = ByteString.valueOf(key.getData()).toHexString() + ec.getBaseDN();
                   keyLabel = INFO_LABEL_DBTEST_ENTRY_DN.get();
                 }
                 catch(Exception e)
@@ -1489,8 +1488,7 @@ public class DBTest
         || databaseContainer instanceof DN2URI)
     {
       // Encode the value as a DN
-      return StaticUtils.getBytes(
-          DN.valueOf(value).toNormalizedString());
+      return DN.valueOf(value).toIrreversibleNormalizedByteString().toByteArray();
     }
     else if(databaseContainer instanceof ID2Entry)
     {

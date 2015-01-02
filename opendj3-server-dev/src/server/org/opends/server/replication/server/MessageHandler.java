@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -566,7 +566,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   protected String getBaseDNString()
   {
-    return baseDN.toNormalizedString();
+    return baseDN.toString();
   }
 
   /**
@@ -643,7 +643,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     else
     {
       this.baseDN = baseDN;
-      setDomain(!"cn=changelog".equals(baseDN.toNormalizedString())
+      setDomain(!"cn=changelog".equals(baseDN.toIrreversibleReadableString())
           && isDataServer);
     }
   }

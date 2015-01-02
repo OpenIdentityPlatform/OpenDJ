@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  *      Portions copyright 2011 profiq s.r.o.
  */
 package org.opends.server.plugins;
@@ -875,8 +875,7 @@ public class ReferentialIntegrityPlugin
         setupWriter();
         for(Map.Entry<DN,DN> mapEntry : modDNmap.entrySet())
         {
-          writer.write(mapEntry.getKey().toNormalizedString() + "\t" +
-                  mapEntry.getValue().toNormalizedString());
+          writer.write(mapEntry.getKey().toString() + "\t" + mapEntry.getValue().toString());
           writer.newLine();
         }
         writer.flush();
@@ -904,7 +903,7 @@ public class ReferentialIntegrityPlugin
         setupWriter();
         for (DN deletedEntryDN : deleteDNset)
         {
-          writer.write(deletedEntryDN.toNormalizedString());
+          writer.write(deletedEntryDN.toString());
           writer.newLine();
         }
         writer.flush();

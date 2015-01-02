@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -587,7 +587,7 @@ public class BackendConfigManagerTestCase
         buffer.append("___");
       }
 
-      String ndn = dn.toNormalizedString();
+      String ndn = dn.toIrreversibleReadableString();
       for (int i=0; i < ndn.length(); i++)
       {
         char c = ndn.charAt(i);

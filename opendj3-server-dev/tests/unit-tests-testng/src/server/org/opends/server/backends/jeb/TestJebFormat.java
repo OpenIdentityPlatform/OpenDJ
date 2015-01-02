@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -41,6 +41,8 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.backends.jeb.JebFormat.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -429,8 +431,7 @@ public class TestJebFormat extends JebTestCase {
    */
   @Test()
   public void testEntryToAndFromDatabase() throws Exception {
-    // Make sure that the server is up and running.
-    TestCaseUtils.startServer();
+    ensureTheServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -501,8 +502,7 @@ public class TestJebFormat extends JebTestCase {
    */
   @Test()
   public void testEntryToAndFromDatabaseV1() throws Exception {
-    // Make sure that the server is up and running.
-    TestCaseUtils.startServer();
+    ensureTheServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -551,8 +551,7 @@ public class TestJebFormat extends JebTestCase {
   @Test(dataProvider = "encodeConfigs")
   public void testEntryToAndFromDatabaseV2(EntryEncodeConfig config)
          throws Exception {
-    // Make sure that the server is up and running.
-    TestCaseUtils.startServer();
+    ensureTheServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -583,8 +582,7 @@ public class TestJebFormat extends JebTestCase {
   @Test(dataProvider = "encodeConfigs")
   public void testEntryToAndFromDatabaseV3(EntryEncodeConfig config)
          throws Exception {
-    // Make sure that the server is up and running.
-    TestCaseUtils.startServer();
+    ensureTheServerIsUpAndRunning();
 
     // Convert the test LDIF string to a byte array
     byte[] originalLDIFBytes = StaticUtils.getBytes(ldifString);
@@ -604,5 +602,31 @@ public class TestJebFormat extends JebTestCase {
       assertEquals(entryBefore, entryAfterV3);
     }
     reader.close();
+  }
+
+  @DataProvider
+  private Object[][] findDnKeyParentData()
+  {
+    return new Object[][]
+    {
+      // dn, expected length of parent
+      { "dc=example", 0 },
+      { "dc=example,dc=com", 7 },
+      { "dc=example,dc=com\\,org", 11 },
+
+    };
+  }
+
+  @Test(dataProvider="findDnKeyParentData")
+  public void testFindDnKeyParent(String dn, int expectedLength) throws Exception
+  {
+    ensureTheServerIsUpAndRunning();
+    byte[] dnKey = dnToDNKey(DN.valueOf(dn), 0);
+    assertThat(findDNKeyParent(dnKey)).isEqualTo(expectedLength);
+  }
+
+  private void ensureTheServerIsUpAndRunning() throws Exception
+  {
+    TestCaseUtils.startServer();
   }
 }

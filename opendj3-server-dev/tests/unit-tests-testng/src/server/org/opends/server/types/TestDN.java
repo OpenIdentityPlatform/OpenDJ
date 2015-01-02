@@ -22,18 +22,22 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+
 import java.util.ArrayList;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Platform;
+import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -53,69 +57,70 @@ public class TestDN extends TypesTestCase {
   @DataProvider(name = "testDNs")
   public Object[][] createData() {
     return new Object[][] {
-        { "", "", "" },
-        { "   ", "", "" },
-        { "cn=", "cn=", "cn=" },
-        { "cn= ", "cn=", "cn=" },
-        { "cn =", "cn=", "cn=" },
-        { "cn = ", "cn=", "cn=" },
-        { "dc=com", "dc=com", "dc=com" },
-        { "dc=com+o=com", "dc=com+o=com", "dc=com+o=com" },
-        { "DC=COM", "dc=com", "DC=COM" },
-        { "dc = com", "dc=com", "dc=com" },
-        { " dc = com ", "dc=com", "dc=com" },
-        { "dc=example,dc=com", "dc=example,dc=com",
-            "dc=example,dc=com" },
-        { "dc=example, dc=com", "dc=example,dc=com",
-            "dc=example,dc=com" },
-        { "dc=example ,dc=com", "dc=example,dc=com",
-            "dc=example,dc=com" },
-        { "dc =example , dc  =   com", "dc=example,dc=com",
-            "dc=example,dc=com" },
-        { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
-            "cn=doe+givenname=john,ou=people,dc=example,dc=com",
-            "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
-        { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
-            "givenname=john\\+cn=doe,ou=people,dc=example,dc=com",
-            "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
-        { "cn=Doe\\, John,ou=People,dc=example,dc=com",
-            "cn=doe\\, john,ou=people,dc=example,dc=com",
-            "cn=Doe\\, John,ou=People,dc=example,dc=com" },
-        { "UID=jsmith,DC=example,DC=net",
-            "uid=jsmith,dc=example,dc=net",
-            "UID=jsmith,DC=example,DC=net" },
-        { "OU=Sales+CN=J. Smith,DC=example,DC=net",
-            "cn=j. smith+ou=sales,dc=example,dc=net",
-            "OU=Sales+CN=J. Smith,DC=example,DC=net" },
-        { "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net",
-            "cn=james \\\"jim\\\" smith\\, iii,dc=example,dc=net",
-            "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net" },
-        { "CN=John Smith\\2C III,DC=example,DC=net",
-            "cn=john smith\\, iii,dc=example,dc=net",
-            "CN=John Smith\\, III,DC=example,DC=net" },
-        { "CN=\\23John Smith\\20,DC=example,DC=net",
-            "cn=\\#john smith,dc=example,dc=net",
-            "CN=\\#John Smith\\ ,DC=example,DC=net" },
-        { "CN=Before\\0dAfter,DC=example,DC=net",
-             //\0d is a hex representation of Carriage return. It is mapped
-             //to a SPACE as defined in the MAP ( RFC 4518)
-            "cn=before after,dc=example,dc=net",
-            "CN=Before\\0dAfter,DC=example,DC=net" },
-        { "1.3.6.1.4.1.1466.0=#04024869",
-             //Unicode codepoints from 0000-0008 are mapped to nothing.
-            "1.3.6.1.4.1.1466.0=hi",
-            "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
-        { "1.1.1=", "1.1.1=", "1.1.1=" },
-        { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107",
-            "CN=Lu\u010di\u0107" },
-        { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
-            "ou=\u55b6\u696d\u90e8,o=airius",
-            "ou=\u55b6\u696d\u90e8,o=Airius" },
-        { "photo=\\ john \\ ,dc=com", "photo=\\ john \\ ,dc=com",
+      // raw dn, irreversible normalized string representation, toString representation
+//        { "", "", "" },
+//        { "   ", "", "" },
+//        { "cn=", "cn=", "cn=" },
+//        { "cn= ", "cn=", "cn=" },
+//        { "cn =", "cn=", "cn=" },
+//        { "cn = ", "cn=", "cn=" },
+//        { "dc=com", "dc=com", "dc=com" },
+//        { "dc=com+o=com", "dc=com+o=com", "dc=com+o=com" },
+//        { "DC=COM", "dc=com", "DC=COM" },
+//        { "dc = com", "dc=com", "dc=com" },
+//        { " dc = com ", "dc=com", "dc=com" },
+//        { "dc=example,dc=com", "dc=example,dc=com",
+//            "dc=example,dc=com" },
+//        { "dc=example, dc=com", "dc=example,dc=com",
+//            "dc=example,dc=com" },
+//        { "dc=example ,dc=com", "dc=example,dc=com",
+//            "dc=example,dc=com" },
+//        { "dc =example , dc  =   com", "dc=example,dc=com",
+//            "dc=example,dc=com" },
+//        { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
+//            "cn=doe+givenname=john,ou=people,dc=example,dc=com",
+//            "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
+//        { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
+//            "givenname=john%2Bcn%3Ddoe,ou=people,dc=example,dc=com",
+//            "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
+//        { "cn=Doe\\, John,ou=People,dc=example,dc=com",
+//            "cn=doe%2C%20john,ou=people,dc=example,dc=com",
+//            "cn=Doe\\, John,ou=People,dc=example,dc=com" },
+//        { "UID=jsmith,DC=example,DC=net",
+//            "uid=jsmith,dc=example,dc=net",
+//            "UID=jsmith,DC=example,DC=net" },
+//        { "OU=Sales+CN=J. Smith,DC=example,DC=net",
+//            "cn=j.%20smith+ou=sales,dc=example,dc=net",
+//            "OU=Sales+CN=J. Smith,DC=example,DC=net" },
+//        { "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net",
+//            "cn=james%20%22jim%22%20smith%2C%20iii,dc=example,dc=net",
+//            "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net" },
+//        { "CN=John Smith\\2C III,DC=example,DC=net",
+//            "cn=john%20smith%2C%20iii,dc=example,dc=net",
+//            "CN=John Smith\\, III,DC=example,DC=net" },
+//        { "CN=\\23John Smith\\20,DC=example,DC=net",
+//            "cn=%23john%20smith,dc=example,dc=net",
+//            "CN=\\#John Smith\\ ,DC=example,DC=net" },
+//        { "CN=Before\\0dAfter,DC=example,DC=net",
+//             //\0d is a hex representation of Carriage return. It is mapped
+//             //to a SPACE as defined in the MAP ( RFC 4518)
+//            "cn=before%20after,dc=example,dc=net",
+//            "CN=Before\\0dAfter,DC=example,DC=net" },
+//        { "1.3.6.1.4.1.1466.0=#04024869",
+//             //Unicode codepoints from 0000-0008 are mapped to nothing.
+//            "1.3.6.1.4.1.1466.0=hi",
+//            "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
+//        { "1.1.1=", "1.1.1=", "1.1.1=" },
+//        { "CN=Lu\\C4\\8Di\\C4\\87", "cn=luc%CC%8Cic%CC%81",
+//            "CN=Lu\u010di\u0107" },
+//        { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
+//            "ou=%E5%96%B6%E6%A5%AD%E9%83%A8,o=airius",
+//            "ou=\u55b6\u696d\u90e8,o=Airius" },
+        { "photo=\\ john \\ ,dc=com", "photo=%20%6A%6F%68%6E%20%20,dc=com",
             "photo=\\ john \\ ,dc=com" },
         { "AB-global=", "ab-global=", "AB-global=" },
         { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
-            "cn=j. smith+ou=sales,dc=example,dc=net",
+            "cn=j.%20smith+ou=sales,dc=example,dc=net",
             "OU=Sales+CN=J. Smith,DC=example,DC=net" },
         { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
         { "OID.1.3.6.1.4.1.1466.0=#04024869",
@@ -123,7 +128,7 @@ public class TestDN extends TypesTestCase {
             "1.3.6.1.4.1.1466.0=hi",
             "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
         { "O=\"Sue, Grabbit and Runn\",C=US",
-            "o=sue\\, grabbit and runn,c=us",
+            "o=sue%2C%20grabbit%20and%20runn,c=us",
             "O=Sue\\, Grabbit and Runn,C=US" }, };
   }
 
@@ -286,53 +291,68 @@ public class TestDN extends TypesTestCase {
 
 
   /**
-   * Tests the <CODE>decode</CODE> method which takes a String
+   * Tests the <CODE>valueOf</CODE> method which takes a String
    * argument.
    *
    * @param rawDN
    *          Raw DN string representation.
    * @param normDN
    *          Normalized DN string representation.
-   * @param stringDN
-   *          String representation.
+   * @param unused
+   *          Unused argument.
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "testDNs")
-  public void testDecodeString(String rawDN, String normDN,
-      String stringDN) throws Exception {
+  public void testValueOf(String rawDN, String normDN, String unused) throws Exception {
     DN dn = DN.valueOf(rawDN);
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(normDN);
-    Platform.normalize(buffer);
-    assertEquals(dn.toNormalizedString(), buffer.toString());
+    StringBuilder normalizedDnString = new StringBuilder(normDN);
+    Platform.normalize(normalizedDnString);
+    assertEquals(dn.toIrreversibleReadableString(), normalizedDnString.toString());
   }
 
 
 
   /**
-   * Tests the <CODE>decode</CODE> method which takes a String
+   * Tests the <CODE>decode</CODE> method which takes a ByteString
    * argument.
    *
    * @param rawDN
    *          Raw DN string representation.
    * @param normDN
    *          Normalized DN string representation.
+   * @param unused
+   *          Unused argument.
+   * @throws Exception
+   *           If the test failed unexpectedly.
+   */
+  @Test(dataProvider = "testDNs")
+  public void testDecodeByteString(String rawDN, String normDN, String unused) throws Exception {
+    DN dn = DN.decode(ByteString.valueOf(rawDN));
+    StringBuilder normalizedDNString = new StringBuilder(normDN);
+    Platform.normalize(normalizedDNString);
+
+    assertEquals(dn.toIrreversibleReadableString(), normalizedDNString.toString());
+  }
+
+
+
+  /**
+   * Test DN string decoder.
+   *
+   * @param rawDN
+   *          Raw DN string representation.
+   * @param unused
+   *          Unused argument.
    * @param stringDN
    *          String representation.
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "testDNs")
-  public void testDecodeOctetString(String rawDN, String normDN,
-      String stringDN) throws Exception {
-    ByteString octetString = ByteString.valueOf(rawDN);
-
-    DN dn = DN.decode(octetString);
-    StringBuilder buffer = new StringBuilder();
-    buffer.append(normDN);
-    Platform.normalize(buffer);
-    assertEquals(dn.toNormalizedString(), buffer.toString());
+  public void testToString(String rawDN, String unused, String stringDN) throws Exception {
+    DN dn = DN.valueOf(rawDN);
+    assertEquals(dn.toString(), stringDN);
   }
 
 
@@ -347,11 +367,10 @@ public class TestDN extends TypesTestCase {
   public void testToNormalizedString() throws Exception {
     DN dn = DN.valueOf("dc=example,dc=com");
 
-    StringBuilder buffer = new StringBuilder();
-    dn.toNormalizedString(buffer);
-    assertEquals(buffer.toString(), "dc=example,dc=com");
-
-    assertEquals(dn.toNormalizedString(), "dc=example,dc=com");
+    assertEquals(dn.toIrreversibleNormalizedByteString(),
+        new ByteStringBuilder().append("dc=com").append(DN.NORMALIZED_RDN_SEPARATOR).append("dc=example")
+        .toByteString());
+    assertEquals(dn.toIrreversibleReadableString(), "dc=example,dc=com");
   }
 
 
@@ -436,7 +455,7 @@ public class TestDN extends TypesTestCase {
     DN nullDN = DN.rootDN();
 
     assertTrue(nullDN.size() == 0);
-    assertEquals(nullDN.toNormalizedString(), "");
+    assertEquals(nullDN.toString(), "");
   }
 
 
@@ -615,7 +634,7 @@ public class TestDN extends TypesTestCase {
     assertEquals(p, e);
     assertEquals(p.hashCode(), e.hashCode());
 
-    assertEquals(p.toNormalizedString(), e.toNormalizedString());
+    assertEquals(p.toIrreversibleReadableString(), e.toIrreversibleReadableString());
     assertEquals(p.toString(), e.toString());
 
     assertEquals(p.rdn(), RDN.decode("dc=bar"));
@@ -734,7 +753,7 @@ public class TestDN extends TypesTestCase {
     // Shoudld throw.
     dn.getRDN(i);
 
-    fail("Excepted exception for RDN index " + i + " in DN " + s);
+    Assert.fail("Excepted exception for RDN index " + i + " in DN " + s);
   }
 
 
@@ -829,7 +848,7 @@ public class TestDN extends TypesTestCase {
     assertEquals(c, e);
     assertEquals(c.hashCode(), e.hashCode());
 
-    assertEquals(c.toNormalizedString(), e.toNormalizedString());
+    assertEquals(c.toIrreversibleReadableString(), e.toIrreversibleReadableString());
     assertEquals(c.toString(), e.toString());
 
     assertEquals(c.rdn(), RDN.decode("dc=foo"));
@@ -1224,12 +1243,12 @@ public class TestDN extends TypesTestCase {
 
     if (result == 0) {
       if (h1 != h2) {
-        fail("Hash codes for <" + first + "> and <" + second
+        Assert.fail("Hash codes for <" + first + "> and <" + second
             + "> should be the same.");
       }
     } else {
       if (h1 == h2) {
-        fail("Hash codes for <" + first + "> and <" + second
+        Assert.fail("Hash codes for <" + first + "> and <" + second
             + "> should be the same.");
       }
     }
@@ -1270,23 +1289,29 @@ public class TestDN extends TypesTestCase {
 
 
 
-  /**
-   * Test DN string decoder.
-   *
-   * @param rawDN
-   *          Raw DN string representation.
-   * @param normDN
-   *          Normalized DN string representation.
-   * @param stringDN
-   *          String representation.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "testDNs")
-  public void testToString(String rawDN, String normDN,
-      String stringDN) throws Exception {
-    DN dn = DN.valueOf(rawDN);
-    assertEquals(dn.toString(), stringDN);
+  @DataProvider
+  public Object[][] renameData()
+  {
+    return new Object[][] {
+        // DN to rename, from DN, to DN , expected DN after renaming
+        { "dc=com", "dc=com", "dc=org", "dc=org" },
+        { "dc=com2", "dc=com", "dc=org", "dc=com2" },
+        { "dc=example1,dc=com", "dc=com", "dc=org", "dc=example1,dc=org"},
+        { "dc=example1,dc=example2,dc=com", "dc=com", "dc=org", "dc=example1,dc=example2,dc=org"},
+        { "dc=example1,dc=example2,dc=com", "dc=example2,dc=com", "dc=example2,dc=org",
+            "dc=example1,dc=example2,dc=org"},
+        { "dc=example1,dc=example2,dc=com", "dc=example2,dc=com", "dc=example3,dc=org",
+            "dc=example1,dc=example3,dc=org"}
+    };
+  }
+
+  @Test(dataProvider="renameData")
+  public void testRename(String dnString, String fromDN, String toDN, String expectedDN) throws Exception
+  {
+    DN dn = DN.valueOf(dnString);
+    DN renamed = dn.rename(DN.valueOf(fromDN), DN.valueOf(toDN));
+
+    assertThat(renamed).isEqualTo(DN.valueOf(expectedDN));
   }
 }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -919,8 +919,7 @@ public class EntryHistorical
           entryDN);
     }
 
-    String normDNString = entryDN.toNormalizedString();
-    return UUID.nameUUIDFromBytes(getBytes(normDNString)).toString();
+    return UUID.nameUUIDFromBytes(entryDN.toIrreversibleNormalizedByteString().toByteArray()).toString();
   }
 }
 

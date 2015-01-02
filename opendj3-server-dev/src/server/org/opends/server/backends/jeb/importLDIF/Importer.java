@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb.importLDIF;
 
@@ -746,7 +746,8 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           // Create a temp entry container
           sourceEntryContainer = entryContainer;
-          entryContainer = rootContainer.openEntryContainer(baseDN, baseDN.toNormalizedString() + "_importTmp");
+          entryContainer = rootContainer.openEntryContainer(baseDN, baseDN.toIrreversibleReadableString()
+              + "_importTmp");
         }
       }
     }
@@ -987,7 +988,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         needRegisterContainer.unlock();
         EntryContainer newEC = suffix.getEntryContainer();
         newEC.lock();
-        newEC.setDatabasePrefix(baseDN.toNormalizedString());
+        newEC.setDatabasePrefix(baseDN.toIrreversibleReadableString());
         newEC.unlock();
         rootContainer.registerEntryContainer(baseDN, newEC);
       }
@@ -4276,17 +4277,22 @@ public final class Importer implements DiskSpaceMonitorHandler
     public boolean insert(DN dn, DatabaseEntry val, DatabaseEntry key)
         throws JebException
     {
-      byte[] dnBytes = StaticUtils.getBytes(dn.toNormalizedString());
-      int len = PackedInteger.getWriteIntLength(dnBytes.length);
-      byte[] dataBytes = new byte[dnBytes.length + len];
-      int pos = PackedInteger.writeInt(dataBytes, 0, dnBytes.length);
-      System.arraycopy(dnBytes, 0, dataBytes, pos, dnBytes.length);
+      // Use a compact representation for key
+      byte[] dnBytesForKey = dn.toIrreversibleNormalizedByteString().toByteArray();
+      key.setData(hashCode(dnBytesForKey));
+
+      // Use a reversible representation for value
+      byte[] dnBytesForValue = StaticUtils.getBytes(dn.toString());
+      int len = PackedInteger.getWriteIntLength(dnBytesForValue.length);
+      byte[] dataBytes = new byte[dnBytesForValue.length + len];
+      int pos = PackedInteger.writeInt(dataBytes, 0, dnBytesForValue.length);
+      System.arraycopy(dnBytesForValue, 0, dataBytes, pos, dnBytesForValue.length);
       val.setData(dataBytes);
-      key.setData(hashCode(dnBytes));
-      return insert(key, val, dnBytes);
+
+      return insert(key, val, dnBytesForValue);
     }
 
-    private boolean insert(DatabaseEntry key, DatabaseEntry val, byte[] dnBytes)
+    private boolean insert(DatabaseEntry key, DatabaseEntry val, byte[] dnBytesForValue)
         throws JebException
     {
       Cursor cursor = null;
@@ -4302,9 +4308,9 @@ public final class Importer implements DiskSpaceMonitorHandler
           {
             throw new JebException(LocalizableMessage.raw("Search DN cache failed."));
           }
-          if (!isDNMatched(dns, dnBytes))
+          if (!isDNMatched(dns, dnBytesForValue))
           {
-            addDN(dns, cursor, dnBytes);
+            addDN(dns, cursor, dnBytesForValue);
             return true;
           }
           return false;
@@ -4318,17 +4324,17 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     /** Add the DN to the DNs as because of a hash collision. */
-    private void addDN(DatabaseEntry val, Cursor cursor, byte[] dnBytes)
+    private void addDN(DatabaseEntry val, Cursor cursor, byte[] dnBytesForValue)
         throws JebException
     {
       byte[] bytes = val.getData();
-      int pLen = PackedInteger.getWriteIntLength(dnBytes.length);
-      int totLen = bytes.length + pLen + dnBytes.length;
+      int pLen = PackedInteger.getWriteIntLength(dnBytesForValue.length);
+      int totLen = bytes.length + pLen + dnBytesForValue.length;
       byte[] newRec = new byte[totLen];
       System.arraycopy(bytes, 0, newRec, 0, bytes.length);
       int pos = bytes.length;
-      pos = PackedInteger.writeInt(newRec, pos, dnBytes.length);
-      System.arraycopy(dnBytes, 0, newRec, pos, dnBytes.length);
+      pos = PackedInteger.writeInt(newRec, pos, dnBytesForValue.length);
+      System.arraycopy(dnBytesForValue, 0, newRec, pos, dnBytesForValue.length);
       DatabaseEntry newVal = new DatabaseEntry(newRec);
       OperationStatus status = cursor.putCurrent(newVal);
       if (status != OperationStatus.SUCCESS)
@@ -4371,14 +4377,15 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       Cursor cursor = null;
       DatabaseEntry key = new DatabaseEntry();
-      byte[] dnBytes = StaticUtils.getBytes(dn.toNormalizedString());
-      key.setData(hashCode(dnBytes));
+      byte[] dnBytesForKey = dn.toIrreversibleNormalizedByteString().toByteArray();
+      key.setData(hashCode(dnBytesForKey));
       try
       {
         cursor = dnCache.openCursor(null, CursorConfig.DEFAULT);
         DatabaseEntry dns = new DatabaseEntry();
         OperationStatus status = cursor.getSearchKey(key, dns, LockMode.DEFAULT);
-        return status == OperationStatus.SUCCESS && isDNMatched(dns, dnBytes);
+        byte[] dnBytesForValue = StaticUtils.getBytes(dn.toString());
+        return status == OperationStatus.SUCCESS && isDNMatched(dns, dnBytesForValue);
       }
       finally
       {

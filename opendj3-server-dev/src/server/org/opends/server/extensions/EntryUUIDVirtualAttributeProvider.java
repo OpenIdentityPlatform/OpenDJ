@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -81,10 +81,13 @@ public class EntryUUIDVirtualAttributeProvider
   @Override()
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    String normDNString = entry.getName().toNormalizedString();
-    String uuidString =
-         UUID.nameUUIDFromBytes(getBytes(normDNString)).toString();
-    return Attributes.create(rule.getAttributeType(), uuidString);
+    return Attributes.create(rule.getAttributeType(), getUUIDString(entry));
+  }
+
+  private String getUUIDString(Entry entry)
+  {
+    ByteString normDN = entry.getName().toIrreversibleNormalizedByteString();
+    return UUID.nameUUIDFromBytes(normDN.toByteArray()).toString();
   }
 
   /** {@inheritDoc} */
@@ -99,14 +102,10 @@ public class EntryUUIDVirtualAttributeProvider
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
-    MatchingRule matchingRule =
-        rule.getAttributeType().getEqualityMatchingRule();
+    MatchingRule matchingRule = rule.getAttributeType().getEqualityMatchingRule();
     try
     {
-      String normalizedDN = entry.getName().toNormalizedString();
-      String uuidString =
-           UUID.nameUUIDFromBytes(getBytes(normalizedDN)).toString();
-
+      String uuidString = getUUIDString(entry);
       ByteString normValue = matchingRule.normalizeAttributeValue(value);
       return uuidString.equals(normValue.toString());
     }

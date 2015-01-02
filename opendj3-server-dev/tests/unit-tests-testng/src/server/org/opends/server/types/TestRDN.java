@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -195,50 +195,37 @@ public final class TestRDN extends TypesTestCase {
   @DataProvider(name = "testRDNs")
   public Object[][] createData() {
     return new Object[][] {
-        { "dc=hello world", "dc=hello world", "dc=hello world" },
-        { "dc =hello world", "dc=hello world", "dc=hello world" },
-        { "dc  =hello world", "dc=hello world", "dc=hello world" },
-        { "dc= hello world", "dc=hello world", "dc=hello world" },
-        { "dc=  hello world", "dc=hello world", "dc=hello world" },
+        { "dc=hello world", "dc=hello%20world", "dc=hello world" },
+        { "dc =hello world", "dc=hello%20world", "dc=hello world" },
+        { "dc  =hello world", "dc=hello%20world", "dc=hello world" },
+        { "dc= hello world", "dc=hello%20world", "dc=hello world" },
+        { "dc=  hello world", "dc=hello%20world", "dc=hello world" },
         { "undefined=hello", "undefined=hello", "undefined=hello" },
-        { "DC=HELLO WORLD", "dc=hello world", "DC=HELLO WORLD" },
-        { "dc = hello    world", "dc=hello world",
-            "dc=hello    world" },
-        { "   dc = hello world   ", "dc=hello world",
-            "dc=hello world" },
-        { "givenName=John+cn=Doe", "cn=doe+givenname=john",
-            "givenName=John+cn=Doe" },
-        { "givenName=John\\+cn=Doe", "givenname=john\\+cn=doe",
-            "givenName=John\\+cn=Doe" },
-        { "cn=Doe\\, John", "cn=doe\\, john", "cn=Doe\\, John" },
-        { "OU=Sales+CN=J. Smith", "cn=j. smith+ou=sales",
-            "OU=Sales+CN=J. Smith" },
-        { "CN=James \\\"Jim\\\" Smith\\, III",
-            "cn=james \\\"jim\\\" smith\\, iii",
+        { "DC=HELLO WORLD", "dc=hello%20world", "DC=HELLO WORLD" },
+        { "dc = hello    world", "dc=hello%20world", "dc=hello    world" },
+        { "   dc = hello world   ", "dc=hello%20world",  "dc=hello world" },
+        { "givenName=John+cn=Doe", "cn=doe+givenname=john", "givenName=John+cn=Doe" },
+        { "givenName=John\\+cn=Doe", "givenname=john%2Bcn%3Ddoe", "givenName=John\\+cn=Doe" },
+        { "cn=Doe\\, John", "cn=doe%2C%20john", "cn=Doe\\, John" },
+        { "OU=Sales+CN=J. Smith", "cn=j.%20smith+ou=sales","OU=Sales+CN=J. Smith" },
+        { "CN=James \\\"Jim\\\" Smith\\, III", "cn=james%20%22jim%22%20smith%2C%20iii",
             "CN=James \\\"Jim\\\" Smith\\, III" },
             //\0d is a hex representation of Carriage return. It is mapped
              //to a SPACE as defined in the MAP ( RFC 4518)
-        { "CN=Before\\0dAfter", "cn=before after",
-            "CN=Before\\0dAfter" },
+        { "CN=Before\\0dAfter", "cn=before%20after", "CN=Before\\0dAfter" },
         { "1.3.6.1.4.1.1466.0=#04024869",
             //Unicode codepoints from 0000-0008 are mapped to nothing.
-            "1.3.6.1.4.1.1466.0=hi",
-            "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
-        { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107",
-            "CN=Lu\u010di\u0107" },
-        { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8",
-            "ou=\u55b6\u696d\u90e8",
-            "ou=\u55b6\u696d\u90e8" },
-        { "photo=\\ john \\ ", "photo=\\ john \\ ",
-            "photo=\\ john \\ " },
+            "1.3.6.1.4.1.1466.0=hi", "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
+        { "CN=Lu\\C4\\8Di\\C4\\87", "cn=luc%CC%8Cic%CC%81", "CN=Lu\u010di\u0107" },
+        { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8", "ou=%E5%96%B6%E6%A5%AD%E9%83%A8", "ou=\u55b6\u696d\u90e8" },
+        { "photo=\\ john \\ ", "photo=%20%6A%6F%68%6E%20%20", "photo=\\ john \\ " },
      //   { "AB-global=", "ab-global=", "AB-global=" },
         { "cn=John+a=", "a=+cn=john", "cn=John+a=" },
         { "OID.1.3.6.1.4.1.1466.0=#04024869",
             //Unicode codepoints from 0000-0008 are mapped to nothing.
             "1.3.6.1.4.1.1466.0=hi",
             "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
-        { "O=\"Sue, Grabbit and Runn\"", "o=sue\\, grabbit and runn",
-            "O=Sue\\, Grabbit and Runn" }, };
+        { "O=\"Sue, Grabbit and Runn\"", "o=sue%2C%20grabbit%20and%20runn", "O=Sue\\, Grabbit and Runn" }, };
   }
 
 
@@ -256,8 +243,7 @@ public final class TestRDN extends TypesTestCase {
    *           If the test failed unexpectedly.
    */
   @Test(dataProvider = "testRDNs")
-  public void testDecodeString(String rawRDN, String normRDN,
-      String stringRDN) throws Exception {
+  public void testNormalizeToReadableString(String rawRDN, String normRDN, String stringRDN) throws Exception {
     RDN rdn = RDN.decode(rawRDN);
     StringBuilder buffer = new StringBuilder();
     buffer.append(normRDN);

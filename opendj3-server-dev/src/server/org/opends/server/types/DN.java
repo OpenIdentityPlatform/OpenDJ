@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -37,6 +37,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
 
 import static org.forgerock.util.Reject.*;
@@ -70,7 +71,14 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public static final DN NULL_DN = new DN();
 
+  /** RDN separator for normalized byte string of a DN. */
+  public static final byte NORMALIZED_RDN_SEPARATOR = 0x00;
 
+  /** AVA separator for normalized byte string of a DN. */
+  public static final byte NORMALIZED_AVA_SEPARATOR = 0x01;
+
+  /** Escape byte for normalized byte string of a DN. */
+  public static final byte NORMALIZED_ESC_BYTE = 0x02;
 
   /**
    * The serial version identifier required to satisfy the compiler
@@ -95,8 +103,8 @@ public final class DN implements Comparable<DN>, Serializable
   /** The string representation of this DN. */
   private String dnString;
 
-  /** The normalized string representation of this DN. */
-  private String normalizedDN;
+  /** The irreversible normalized byte string representation of this DN. */
+  private ByteString normalizedDN;
 
 
 
@@ -248,6 +256,38 @@ public final class DN implements Comparable<DN>, Serializable
     else
     {
       return rdnComponents[0];
+    }
+  }
+
+  /**
+   * Returns a copy of this DN whose parent DN, {@code fromDN}, has been renamed
+   * to the new parent DN, {@code toDN}. If this DN is not subordinate or equal
+   * to {@code fromDN} then this DN is returned (i.e. the DN is not renamed).
+   *
+   * @param fromDN
+   *          The old parent DN.
+   * @param toDN
+   *          The new parent DN.
+   * @return The renamed DN, or this DN if no renaming was performed.
+   */
+  public DN rename(final DN fromDN, final DN toDN)
+  {
+    Reject.ifNull(fromDN, toDN);
+
+    if (!isDescendantOf(fromDN))
+    {
+      return this;
+    }
+    else if (equals(fromDN))
+    {
+      return toDN;
+    }
+    else
+    {
+      final int sizeOfRdns = size() - fromDN.size();
+      RDN[] childRdns = new RDN[sizeOfRdns];
+      System.arraycopy(rdnComponents, 0, childRdns, 0, sizeOfRdns);
+      return toDN.concat(childRdns);
     }
   }
 
@@ -586,6 +626,7 @@ public final class DN implements Comparable<DN>, Serializable
       b = ' ';
       while (dnReader.remaining() > 0 && (b = dnReader.get()) == ' ')
       {}
+
 
       if(b == ' ')
       {
@@ -2652,13 +2693,10 @@ public final class DN implements Comparable<DN>, Serializable
    * Retrieves a normalized representation of the DN with the provided
    * components.
    *
-   * @param  rdnComponents  The RDN components for which to obtain the
-   *                        normalized string representation.
-   *
    * @return  The normalized string representation of the provided RDN
    *          components.
    */
-  private static String normalize(RDN[] rdnComponents)
+  public String toIrreversibleReadableString()
   {
     if (rdnComponents.length == 0)
     {
@@ -2666,67 +2704,51 @@ public final class DN implements Comparable<DN>, Serializable
     }
 
     StringBuilder buffer = new StringBuilder();
-    rdnComponents[0].toNormalizedString(buffer);
+    rdnComponents[0].toNormalizedReadableString(buffer);
 
     for (int i=1; i < rdnComponents.length; i++)
     {
       buffer.append(',');
-      rdnComponents[i].toNormalizedString(buffer);
+      rdnComponents[i].toNormalizedReadableString(buffer);
     }
 
     return buffer.toString();
   }
 
-
-
   /**
-   * Retrieves a normalized string representation of this DN. This method should
-   * be used over {@link #toString()} when the resulting String is to be used as
-   * a key in a Map.
+   * Returns the irreversible normalized byte string representation of a DN,
+   * suitable for equality and comparisons, and providing a natural hierarchical
+   * ordering, but not usable as a valid DN nor reversible to a valid DN.
    * <p>
-   * Normalization involves:
-   * <ol>
-   * <li>sorting AVAs (e.g. "sn=swift+cn=matt" is greater than
-   * "cn=matt+sn=swift")</li>
-   * <li>normalizing attribute names (e.g. "commonName" is converted to "cn")
-   * </li>
-   * <li>normalizing attribute values (e.g. converting to lowercase)</li>
-   * </ol>
-   * Where AVA stands for "Attribute Value Assertion".
-   * <p>
-   * Remember that:
-   * <ul>
-   * <li>a DN is made of one or several RDNs</li>
-   * <li>an RDN is made of one or several AVA</li>
-   * <li>an AVA is a attribute type and an attribute value</li>
-   * </ul>
+   * This representation should be used only when a byte string representation
+   * is needed and when no reversibility to a valid DN is needed. Always consider
+   * using a {@code CompactDn} as an alternative.
    *
-   * @return A normalized string representation of this DN.
+   * @return The normalized byte string representation of the provided DN, not
+   *         usable as a valid DN
    */
-  public String toNormalizedString()
+  public ByteString toIrreversibleNormalizedByteString()
   {
-    if(normalizedDN == null)
+    if (normalizedDN == null)
     {
-      normalizedDN = normalize(this.rdnComponents);
+      if (numComponents == 0)
+      {
+        normalizedDN = ByteString.empty();
+      }
+      else
+      {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        rdnComponents[numComponents - 1].toNormalizedByteString(builder);
+        for (int i = numComponents - 2; i >= 0; i--)
+        {
+          builder.append(NORMALIZED_RDN_SEPARATOR);
+          rdnComponents[i].toNormalizedByteString(builder);
+        }
+        normalizedDN = builder.toByteString();
+      }
     }
     return normalizedDN;
   }
-
-
-
-  /**
-   * Appends a normalized string representation of this DN to the
-   * provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
-   */
-  public void toNormalizedString(StringBuilder buffer)
-  {
-    buffer.append(toNormalizedString());
-  }
-
-
 
   /**
    * Compares this DN with the provided DN based on a natural order. This order

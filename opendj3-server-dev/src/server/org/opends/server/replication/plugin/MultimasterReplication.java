@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -852,16 +852,18 @@ public class MultimasterReplication
    * Gets the Set of domain baseDN which are disabled for the external changelog.
    *
    * @return The Set of domain baseDNs which are disabled for the external changelog.
+   * @throws DirectoryException
+   *            if a problem occurs
    */
-  public static Set<String> getExcludedChangelogDomains()
+  public static Set<DN> getExcludedChangelogDomains() throws DirectoryException
   {
-    final Set<String> disabledBaseDNs = new HashSet<String>(domains.size() + 1);
-    disabledBaseDNs.add(DN_EXTERNAL_CHANGELOG_ROOT);
+    final Set<DN> disabledBaseDNs = new HashSet<DN>(domains.size() + 1);
+    disabledBaseDNs.add(DN.valueOf(DN_EXTERNAL_CHANGELOG_ROOT));
     for (LDAPReplicationDomain domain : domains.values())
     {
       if (!domain.isECLEnabled())
       {
-        disabledBaseDNs.add(domain.getBaseDN().toNormalizedString());
+        disabledBaseDNs.add(domain.getBaseDN());
       }
     }
     return disabledBaseDNs;

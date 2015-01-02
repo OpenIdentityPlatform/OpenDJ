@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -804,30 +804,15 @@ public class GroupManager extends InternalDirectoryServerPlugin
     try
     {
       Set<Group<?>> groupSet = new HashSet<Group<?>>();
-      groupInstances.removeSubtree(oldEntry.getName(), groupSet);
-      String oldDNString = oldEntry.getName().toNormalizedString();
-      String newDNString = newEntry.getName().toNormalizedString();
+      final DN oldDN = oldEntry.getName();
+      final DN newDN = newEntry.getName();
+      groupInstances.removeSubtree(oldDN, groupSet);
       for (Group<?> group : groupSet)
       {
-        StringBuilder builder = new StringBuilder(
-                group.getGroupDN().toNormalizedString());
-        int oldDNIndex = builder.lastIndexOf(oldDNString);
-        builder.replace(oldDNIndex, builder.length(), newDNString);
-        String groupDNString = builder.toString();
-        DN groupDN;
-        try
-        {
-          groupDN = DN.valueOf(groupDNString);
-        }
-        catch (DirectoryException de)
-        {
-          // Should not happen but if it does all we
-          // can do here is debug log it and continue.
-          logger.traceException(de);
-          continue;
-        }
-        group.setGroupDN(groupDN);
-        groupInstances.put(groupDN, group);
+        final DN groupDN = group.getGroupDN();
+        final DN renamedGroupDN = groupDN.rename(oldDN, newDN);
+        group.setGroupDN(renamedGroupDN);
+        groupInstances.put(renamedGroupDN, group);
       }
       if (!groupSet.isEmpty())
       {
