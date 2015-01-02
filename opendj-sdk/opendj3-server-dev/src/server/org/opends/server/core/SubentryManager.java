@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -190,7 +190,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * Add a given entry to this subentry manager.
    * @param entry to add.
    */
-  private void addSubEntry(Entry entry) throws DirectoryException
+  private void addSubentry(Entry entry) throws DirectoryException
   {
     SubEntry subEntry = new SubEntry(entry);
     SubtreeSpecification subSpec =
@@ -233,7 +233,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * Remove a given entry from this subentry manager.
    * @param entry to remove.
    */
-  private void removeSubEntry(Entry entry)
+  private void removeSubentry(Entry entry)
   {
     lock.writeLock().lock();
     try
@@ -368,7 +368,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           try
           {
-            addSubEntry(entry);
+            addSubentry(entry);
 
             // Notify change listeners.
             for (SubentryChangeListener changeListener :
@@ -708,7 +708,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
       {
         try
         {
-          addSubEntry(entry);
+          addSubentry(entry);
 
           // Notify change listeners.
           for (SubentryChangeListener changeListener :
@@ -745,7 +745,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     {
       for (SubEntry subEntry : dit2SubEntry.getSubtree(entry.getName()))
       {
-        removeSubEntry(subEntry.getEntry());
+        removeSubentry(subEntry.getEntry());
 
         // Notify change listeners.
         for (SubentryChangeListener changeListener :
@@ -777,14 +777,14 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     {
       if (oldEntry.isSubentry() || oldEntry.isLDAPSubentry())
       {
-        removeSubEntry(oldEntry);
+        removeSubentry(oldEntry);
         notify = true;
       }
       if (newEntry.isSubentry() || newEntry.isLDAPSubentry())
       {
         try
         {
-          addSubEntry(newEntry);
+          addSubentry(newEntry);
           notify = true;
         }
         catch (Exception e)
@@ -819,31 +819,24 @@ public class SubentryManager extends InternalDirectoryServerPlugin
     }
   }
 
-  private void doPostModifyDN(Entry oldEntry, Entry newEntry)
+  private void doPostModifyDN(final Entry oldEntry, final Entry newEntry)
   {
-    String oldDNString = oldEntry.getName().toNormalizedString();
-    String newDNString = newEntry.getName().toNormalizedString();
-
     lock.writeLock().lock();
     try
     {
-      Collection<SubEntry> setToDelete =
-              dit2SubEntry.getSubtree(oldEntry.getName());
+      Collection<SubEntry> setToDelete = dit2SubEntry.getSubtree(oldEntry.getName());
       for (SubEntry subentry : setToDelete)
       {
-        removeSubEntry(subentry.getEntry());
-        oldEntry = subentry.getEntry();
+        final Entry currentSubentry = subentry.getEntry();
+        removeSubentry(currentSubentry);
+
+        Entry renamedSubentry = null;
         try
         {
-          StringBuilder builder = new StringBuilder(
-              subentry.getEntry().getName().toNormalizedString());
-          int oldDNIndex = builder.lastIndexOf(oldDNString);
-          builder.replace(oldDNIndex, builder.length(),
-                  newDNString);
-          String subentryDNString = builder.toString();
-          newEntry = subentry.getEntry().duplicate(false);
-          newEntry.setDN(DN.valueOf(subentryDNString));
-          addSubEntry(newEntry);
+          renamedSubentry = currentSubentry.duplicate(false);
+          final DN renamedDN = currentSubentry.getName().rename(oldEntry.getName(), newEntry.getName());
+          renamedSubentry.setDN(renamedDN);
+          addSubentry(renamedSubentry);
         }
         catch (Exception e)
         {
@@ -857,8 +850,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
         {
           try
           {
-            changeListener.handleSubentryModify(
-                    oldEntry, newEntry);
+            changeListener.handleSubentryModify(currentSubentry, renamedSubentry);
           }
           catch (Exception e)
           {
@@ -1017,18 +1009,14 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * {@inheritDoc}
    */
   @Override
-  public PreOperation doPreOperation(
-          PreOperationModifyDNOperation modifyDNOperation)
+  public PreOperation doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
-    Entry oldEntry = modifyDNOperation.getOriginalEntry();
-    Entry newEntry = modifyDNOperation.getUpdatedEntry();
-    String oldDNString = oldEntry.getName().toNormalizedString();
-    String newDNString = newEntry.getName().toNormalizedString();
     boolean hasSubentryWritePrivilege = false;
 
     lock.readLock().lock();
     try
     {
+      final Entry oldEntry = modifyDNOperation.getOriginalEntry();
       Collection<SubEntry> setToDelete =
               dit2SubEntry.getSubtree(oldEntry.getName());
       for (SubEntry subentry : setToDelete)
@@ -1049,30 +1037,18 @@ public class SubentryManager extends InternalDirectoryServerPlugin
             hasSubentryWritePrivilege = true;
           }
         }
-        oldEntry = subentry.getEntry();
-        try
-        {
-          StringBuilder builder = new StringBuilder(
-              subentry.getEntry().getName().toNormalizedString());
-          int oldDNIndex = builder.lastIndexOf(oldDNString);
-          builder.replace(oldDNIndex, builder.length(),
-                  newDNString);
-          String subentryDNString = builder.toString();
-          newEntry = subentry.getEntry().duplicate(false);
-          newEntry.setDN(DN.valueOf(subentryDNString));
-        }
-        catch (Exception e)
-        {
-          // Shouldnt happen.
-          logger.traceException(e);
-        }
-        for (SubentryChangeListener changeListener :
-                changeListeners)
+
+        final Entry newEntry = modifyDNOperation.getUpdatedEntry();
+        final Entry currentSubentry = subentry.getEntry();
+        final Entry renamedSubentry = currentSubentry.duplicate(false);
+        final DN renamedDN = currentSubentry.getName().rename(oldEntry.getName(), newEntry.getName());
+        renamedSubentry.setDN(renamedDN);
+
+        for (SubentryChangeListener changeListener : changeListeners)
         {
           try
           {
-            changeListener.checkSubentryModifyAcceptable(
-                    oldEntry, newEntry);
+            changeListener.checkSubentryModifyAcceptable(currentSubentry, renamedSubentry);
           }
           catch (DirectoryException de)
           {

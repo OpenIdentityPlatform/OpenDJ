@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.backends;
 
@@ -29,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -745,12 +744,7 @@ public class ChangelogBackend extends Backend<Configuration>
    */
   private static Set<DN> getExcludedBaseDNs() throws DirectoryException
   {
-    final Set<DN> excludedDNs = new HashSet<DN>();
-    for (String dn : getExcludedChangelogDomains())
-    {
-      excludedDNs.add(DN.valueOf(dn));
-    }
-    return excludedDNs;
+    return getExcludedChangelogDomains();
   }
 
   /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -97,7 +97,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
       new Object[] { DN.valueOf("cn=schema") },
       new Object[] { DN.valueOf("cn=tasks") },
       new Object[] { DN.valueOf("cn=monitor") },
-      new Object[] { DN.valueOf("cn=backups") }
+      new Object[] { DN.valueOf("cn=backups") },
     };
   }
 
@@ -116,8 +116,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testGetEntry(DN entryDN)
          throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(
-                             getBytes(entryDN.toNormalizedString())).toString();
+    String uuidString = UUID.nameUUIDFromBytes(entryDN.toIrreversibleNormalizedByteString().toByteArray()).toString();
 
     Entry e = DirectoryServer.getEntry(entryDN);
     assertNotNull(e);
@@ -294,8 +293,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
   public void testSearchEntryUUIDAttrInMatchingFilter(DN entryDN)
          throws Exception
   {
-    String uuidString = UUID.nameUUIDFromBytes(
-                             getBytes(entryDN.toNormalizedString())).toString();
+    String uuidString = UUID.nameUUIDFromBytes(entryDN.toIrreversibleNormalizedByteString().toByteArray()).toString();
 
     final SearchRequest request = newSearchRequest(entryDN, SearchScope.BASE_OBJECT, "(entryUUID=" + uuidString + ")")
         .addAttribute("entryuuid");

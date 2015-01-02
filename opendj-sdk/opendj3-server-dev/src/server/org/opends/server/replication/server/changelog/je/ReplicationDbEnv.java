@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -37,8 +37,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -293,10 +291,10 @@ public class ReplicationDbEnv
         }
         else if (prefix.equals(OFFLINE_TAG))
         {
-          final String[] str = stringKey.split(FIELD_SEPARATOR, 3);
+          final String[] str = stringData.split(FIELD_SEPARATOR, 3);
+          long timestamp = toLong(str[0]);
           final int serverId = toInt(str[1]);
           final DN baseDN = DN.valueOf(str[2]);
-          long timestamp = ByteString.wrap(entry.getValue()).asReader().getLong();
           if (logger.isTraceEnabled())
           {
             debug("has read replica offline: baseDN=" + baseDN + " serverId="
@@ -481,8 +479,9 @@ public class ReplicationDbEnv
    */
   static Entry<String, String> toReplicaEntry(DN baseDN, int serverId)
   {
-    final String key = serverId + FIELD_SEPARATOR + baseDN.toNormalizedString();
-    return new SimpleImmutableEntry<String, String>(key, key);
+    final String key = serverId + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString();
+    final String value = serverId + FIELD_SEPARATOR + baseDN.toString();
+    return new SimpleImmutableEntry<String, String>(key, value);
   }
 
   /**
@@ -497,11 +496,10 @@ public class ReplicationDbEnv
    */
   static Entry<byte[], byte[]> toGenIdEntry(DN baseDN, long generationId)
   {
-    final String normDn = baseDN.toNormalizedString();
-    final String key = GENERATION_ID_TAG + FIELD_SEPARATOR + normDn;
+    final String key = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString();
     final String data = GENERATION_ID_TAG + FIELD_SEPARATOR + generationId
-        + FIELD_SEPARATOR + normDn;
-    return new SimpleImmutableEntry<byte[], byte[]>(toBytes(key),toBytes(data));
+        + FIELD_SEPARATOR + baseDN.toString();
+    return new SimpleImmutableEntry<byte[], byte[]>(toBytes(key), toBytes(data));
   }
 
   /**
@@ -513,9 +511,7 @@ public class ReplicationDbEnv
    */
   static Entry<byte[], byte[]> toByteArray(Entry<String, String> entry)
   {
-    return new SimpleImmutableEntry<byte[], byte[]>(
-        toBytes(entry.getKey()),
-        toBytes(entry.getValue()));
+    return new SimpleImmutableEntry<byte[], byte[]>(toBytes(entry.getKey()), toBytes(entry.getValue()));
   }
 
   /**
@@ -530,10 +526,11 @@ public class ReplicationDbEnv
    */
   static Entry<byte[], byte[]> toReplicaOfflineEntry(DN baseDN, CSN offlineCSN)
   {
-    final byte[] key = toReplicaOfflineKey(baseDN, offlineCSN.getServerId());
-    final ByteStringBuilder data = new ByteStringBuilder(8); // store a long
-    data.append(offlineCSN.getTime());
-    return new SimpleImmutableEntry<byte[], byte[]>(key, data.toByteArray());
+    final int serverId = offlineCSN.getServerId();
+    final byte[] key = toReplicaOfflineKey(baseDN, serverId);
+    final byte[] data = toBytes(String.valueOf(offlineCSN.getTime()) + FIELD_SEPARATOR + serverId
+        + FIELD_SEPARATOR + baseDN.toString());
+    return new SimpleImmutableEntry<byte[], byte[]>(key, data);
   }
 
   /**
@@ -547,7 +544,7 @@ public class ReplicationDbEnv
    */
   private static byte[] toReplicaOfflineKey(DN baseDN, int serverId)
   {
-    return toBytes(OFFLINE_TAG + FIELD_SEPARATOR + serverId + FIELD_SEPARATOR + baseDN.toNormalizedString());
+    return toBytes(OFFLINE_TAG + FIELD_SEPARATOR + serverId + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString());
   }
 
   /** Returns an entry with the provided key and a null value. */

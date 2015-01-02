@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -118,7 +118,8 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
       assertTrue(bindResponse.getResultCode() == okCode.intValue());
-      assertTrue(bindResponse.getMatchedDN().toNormalizedString().equals(responseDn.toNormalizedString()));
+      assertTrue(bindResponse.getMatchedDN().toIrreversibleNormalizedByteString()
+          .equals(responseDn.toIrreversibleNormalizedByteString()));
       assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
       assertNull(bindResponse.getReferralURLs());
       assertNull(bindResponse.getServerSASLCredentials());
@@ -165,7 +166,8 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
       assertTrue(bindResponse.getResultCode() == okCode.intValue());
-      assertTrue(bindResponse.getMatchedDN().toNormalizedString().equals(responseDn.toNormalizedString()));
+      assertTrue(bindResponse.getMatchedDN().toIrreversibleNormalizedByteString().equals(
+          responseDn.toIrreversibleNormalizedByteString()));
       assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
       assertNull(bindResponse.getReferralURLs());
       assertNull(bindResponse.getServerSASLCredentials());

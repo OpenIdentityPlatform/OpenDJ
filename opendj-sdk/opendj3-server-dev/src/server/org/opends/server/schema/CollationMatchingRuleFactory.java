@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -158,7 +158,7 @@ public final class CollationMatchingRuleFactory extends
       {
         // This locale is not supported by JVM.
         logger.error(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE,
-                collation, configuration.dn().toNormalizedString(), languageTag);
+                collation, configuration.dn().toString(), languageTag);
       }
     }
 
@@ -284,7 +284,7 @@ public final class CollationMatchingRuleFactory extends
       {
         LocalizableMessage msg =
             WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
-                collation, configuration.dn().toNormalizedString(),
+                collation, configuration.dn().toString(),
                 languageTag);
         unacceptableReasons.add(msg);
         configAcceptable = false;

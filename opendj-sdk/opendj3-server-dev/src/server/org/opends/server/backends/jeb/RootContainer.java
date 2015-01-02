@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -233,7 +233,7 @@ public class RootContainer
     String databasePrefix;
     if(name == null || name.equals(""))
     {
-      databasePrefix = baseDN.toNormalizedString();
+      databasePrefix = baseDN.toIrreversibleReadableString();
     }
     else
     {

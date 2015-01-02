@@ -22,19 +22,21 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Pair;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
@@ -51,15 +53,21 @@ import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class represents the referral database which contains URIs from referral
- * entries.  The key is the DN of the referral entry and the value is that of a
- * labeled URI in the ref attribute for that entry. Duplicate keys are permitted
- * since a referral entry can contain multiple values of the ref attribute.  Key
- * order is the same as in the DN database so that all referrals in a subtree
- * can be retrieved by cursoring through a range of the records.
+ * entries.
+ * <p>
+ * The key is the DN of the referral entry and the value is that of a pair
+ * (labeled URI in the ref attribute for that entry, DN). The DN must be
+ * duplicated in the value because the key is suitable for comparisons but is
+ * not reversible to a valid DN. Duplicate keys are permitted since a referral
+ * entry can contain multiple values of the ref attribute. Key order is the same
+ * as in the DN database so that all referrals in a subtree can be retrieved by
+ * cursoring through a range of the records.
  */
 public class DN2URI extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static final byte STRING_SEPARATOR = (byte) 0x00;
 
   /**
    * The key comparator used for the DN database.
@@ -124,9 +132,8 @@ public class DN2URI extends DatabaseContainer
        throws DatabaseException
   {
     byte[] normDN = JebFormat.dnToDNKey(dn, prefixRDNComponents);
-    byte[] URIBytes = StaticUtils.getBytes(labeledURI);
     DatabaseEntry key = new DatabaseEntry(normDN);
-    DatabaseEntry data = new DatabaseEntry(URIBytes);
+    DatabaseEntry data = new DatabaseEntry(encodeURIAndDN(labeledURI, dn));
 
     // The JE insert method does not permit duplicate keys so we must use the
     // put method.
@@ -136,6 +143,40 @@ public class DN2URI extends DatabaseContainer
       return true;
     }
     return false;
+  }
+
+  private byte[] encodeURIAndDN(String labeledURI, DN dn)
+  {
+    return new ByteStringBuilder()
+      .append(labeledURI)
+      .append(STRING_SEPARATOR)
+      .append(dn.toString())
+      .toByteArray();
+  }
+
+  private Pair<String, DN> decodeURIAndDN(byte[] data) throws DirectoryException {
+    try {
+      final ByteSequenceReader reader = ByteString.valueOf(data).asReader();
+      final String labeledURI = reader.getString(getNextStringLength(reader));
+      // skip the string separator
+      reader.skip(1);
+      final DN dn = DN.valueOf(reader.getString(reader.remaining()));
+      return Pair.of(labeledURI, dn);
+    }
+    catch (Exception e) {
+       throw new DirectoryException(ResultCode.OPERATIONS_ERROR, ERR_JEB_DATABASE_EXCEPTION.get(e));
+    }
+  }
+
+  /** Returns the length of next string by looking for the zero byte used as separator. */
+  private int getNextStringLength(ByteSequenceReader reader)
+  {
+    int length = 0;
+    while (reader.peek(length) != STRING_SEPARATOR)
+    {
+      length++;
+    }
+    return length;
   }
 
   /**
@@ -528,7 +569,8 @@ public class DN2URI extends DatabaseContainer
             Set<String> labeledURIs = new LinkedHashSet<String>(cursor.count());
             do
             {
-              String labeledURI = new String(data.getData(), "UTF-8");
+              final Pair<String, DN> uriAndDN = decodeURIAndDN(data.getData());
+              final String labeledURI = uriAndDN.getFirst();
               labeledURIs.add(labeledURI);
               status = cursor.getNextDup(key, data, DEFAULT);
             } while (status == OperationStatus.SUCCESS);
@@ -543,10 +585,6 @@ public class DN2URI extends DatabaseContainer
       }
     }
     catch (DatabaseException e)
-    {
-      logger.traceException(e);
-    }
-    catch (UnsupportedEncodingException e)
     {
       logger.traceException(e);
     }
@@ -584,8 +622,7 @@ public class DN2URI extends DatabaseContainer
      * find subordinates of the base entry from the top of the tree
      * downwards.
      */
-    byte[] baseDN = JebFormat.dnToDNKey(searchOp.getBaseDN(),
-                                          prefixRDNComponents);
+    byte[] baseDN = JebFormat.dnToDNKey(searchOp.getBaseDN(), prefixRDNComponents);
     final byte special = 0x00;
     byte[] suffix = Arrays.copyOf(baseDN, baseDN.length+1);
     suffix[suffix.length - 1] = special;
@@ -622,7 +659,9 @@ public class DN2URI extends DatabaseContainer
           }
 
           // We have found a subordinate referral.
-          DN dn = dnFromDNKey(key.getData(), entryContainer.getBaseDN());
+          final Pair<String, DN> uriAndDN = decodeURIAndDN(data.getData());
+          final String labeledURI = uriAndDN.getFirst();
+          final DN dn = uriAndDN.getSecond();
 
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
@@ -636,7 +675,6 @@ public class DN2URI extends DatabaseContainer
           do
           {
             // Remove the label part of the labeled URI if there is a label.
-            String labeledURI = new String(data.getData(), "UTF-8");
             String uri = labeledURI;
             int i = labeledURI.indexOf(' ');
             if (i != -1)
@@ -696,10 +734,6 @@ public class DN2URI extends DatabaseContainer
       }
     }
     catch (DatabaseException e)
-    {
-      logger.traceException(e);
-    }
-    catch (UnsupportedEncodingException e)
     {
       logger.traceException(e);
     }

@@ -22,10 +22,16 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -54,6 +60,8 @@ public final class RDN
        implements Comparable<RDN>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  private static final char HEX_STRING_SEPARATOR = '%';
 
   /** The set of attribute types for the elements in this RDN. */
   private AttributeType[] attributeTypes;
@@ -1002,7 +1010,7 @@ public final class RDN
   {
     if (normalizedRDN == null)
     {
-      toNormalizedString(new StringBuilder());
+      toNormalizedReadableString(new StringBuilder());
     }
     return normalizedRDN;
   }
@@ -1015,7 +1023,7 @@ public final class RDN
    *
    * @param  buffer  The buffer to which to append the information.
    */
-  public void toNormalizedString(StringBuilder buffer)
+  void toNormalizedReadableString(StringBuilder buffer)
   {
     if (normalizedRDN != null)
     {
@@ -1023,25 +1031,24 @@ public final class RDN
       return;
     }
 
-    boolean bufferEmpty = (buffer.length() == 0);
+    boolean providedBufferIsEmpty = (buffer.length() == 0);
 
     if (attributeNames.length == 1)
     {
-      getNormalizedAVAString(0, buffer);
+      normalizeAVAToReadableString(0, buffer);
     }
     else
     {
-      // normalization sorts RDNs alphabetically
-      SortedSet<String> rdnElementStrings = new TreeSet<String>();
-
+      // Normalization sorts RDNs alphabetically
+      SortedSet<String> avaStrings = new TreeSet<String>();
       for (int i=0; i < attributeNames.length; i++)
       {
-        StringBuilder b2 = new StringBuilder();
-        getNormalizedAVAString(i, b2);
-        rdnElementStrings.add(b2.toString());
+        StringBuilder builder = new StringBuilder();
+        normalizeAVAToReadableString(i, builder);
+        avaStrings.add(builder.toString());
       }
 
-      Iterator<String> iterator = rdnElementStrings.iterator();
+      Iterator<String> iterator = avaStrings.iterator();
       buffer.append(iterator.next());
       while (iterator.hasNext())
       {
@@ -1050,40 +1057,167 @@ public final class RDN
       }
     }
 
-    if (bufferEmpty)
+    if (providedBufferIsEmpty)
     {
       normalizedRDN = buffer.toString();
     }
   }
 
+  /**
+   * Adds a normalized byte string representation of this RDN to the provided builder.
+   *
+   * @param builder
+   *           Builder to add this representation to.
+   * @return the builder
+   */
+  public ByteStringBuilder toNormalizedByteString(ByteStringBuilder builder) {
+    if (attributeNames.length == 1)
+    {
+      normalizeAVAToByteString(0, builder);
+    }
+    else
+    {
+      // Normalization sorts RDNs
+      SortedSet<ByteString> avaStrings = new TreeSet<ByteString>();
+      for (int i = 0; i < attributeNames.length; i++)
+      {
+        ByteStringBuilder b = new ByteStringBuilder();
+        normalizeAVAToByteString(i, b);
+        avaStrings.add(b.toByteString());
+      }
+
+      Iterator<ByteString> iterator = avaStrings.iterator();
+      builder.append(iterator.next());
+      while (iterator.hasNext())
+      {
+        builder.append(DN.NORMALIZED_AVA_SEPARATOR);
+        builder.append(iterator.next());
+      }
+    }
+    return builder;
+  }
+
+  /**
+   * Adds a normalized byte string representation of the AVA corresponding to provided position
+   * in this RDN to the provided builder.
+   *
+   * @param position
+   *           Position of AVA in this RDN
+   * @param builder
+   *           Builder to add the representation to.
+   * @return the builder
+   */
+  ByteStringBuilder normalizeAVAToByteString(int position, final ByteStringBuilder builder)
+  {
+    builder.append(attributeTypes[position].getNormalizedPrimaryNameOrOID());
+    builder.append("=");
+    final ByteString value = getEqualityNormalizedValue(position);
+    if (value.length() > 0)
+    {
+      builder.append(escapeBytes(value));
+    }
+    return builder;
+  }
+
+  /**
+   * Return a new byte string with bytes 0x00, 0x01 and 0x02 escaped.
+   * <p>
+   * These bytes are reserved to represent respectively the RDN separator, the
+   * AVA separator and the escape byte in a normalized byte string.
+   */
+  private ByteString escapeBytes(final ByteString value)
+  {
+    if (!needEscaping(value))
+    {
+      return value;
+    }
+
+    final ByteStringBuilder builder = new ByteStringBuilder();
+    for (int i = 0; i < value.length(); i++)
+    {
+      final byte b = value.byteAt(i);
+      if (isByteToEscape(b))
+      {
+        builder.append(DN.NORMALIZED_ESC_BYTE);
+      }
+      builder.append(b);
+    }
+    return builder.toByteString();
+  }
+
+  private boolean needEscaping(final ByteString value)
+  {
+    boolean needEscaping = false;
+    for (int i = 0; i < value.length(); i++)
+    {
+      final byte b = value.byteAt(i);
+      if (isByteToEscape(b))
+      {
+        needEscaping = true;
+        break;
+      }
+    }
+    return needEscaping;
+  }
+
+  private boolean isByteToEscape(final byte b)
+  {
+    return b == DN.NORMALIZED_RDN_SEPARATOR || b == DN.NORMALIZED_AVA_SEPARATOR || b == DN.NORMALIZED_ESC_BYTE;
+  }
 
 
   /**
    * Appends a normalized string representation of this RDN to the
    * provided buffer.
    *
-   * @param  pos  The position of the attribute type and value to
+   * @param  position  The position of the attribute type and value to
    *              retrieve.
-   * @param  buffer  The buffer to which to append the information.
+   * @param  builder  The buffer to which to append the information.
+   * @return the builder
    */
-  public void getNormalizedAVAString(int pos, StringBuilder buffer)
+  private StringBuilder normalizeAVAToReadableString(int position, StringBuilder builder)
   {
-      AttributeType type = attributeTypes[pos];
-      buffer.append(type.getNormalizedPrimaryNameOrOID());
-      buffer.append('=');
+      builder.append(attributeTypes[position].getNormalizedPrimaryNameOrOID());
+      builder.append('=');
 
-      ByteString value = attributeValues[pos];
-      try
+      ByteString value = getEqualityNormalizedValue(position);
+      if (value.length() == 0)
       {
-        MatchingRule rule = type.getEqualityMatchingRule();
-        ByteString normValue = rule.normalizeAttributeValue(value);
-        buffer.append(getDNValue(normValue));
+        return builder;
       }
-      catch (Exception e)
+      final boolean hasAttributeName = attributeTypes[position].getPrimaryName() != null;
+      final boolean isHumanReadable = attributeTypes[position].getSyntax().isHumanReadable();
+      if (!hasAttributeName || !isHumanReadable)
       {
-        logger.traceException(e);
-        buffer.append(getDNValue(value));
+        builder.append(value.toPercentHexString());
       }
+      else
+      {
+        // try to decode value as UTF-8 string
+        final CharBuffer buffer = CharBuffer.allocate(value.length());
+        final CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder()
+            .onMalformedInput(CodingErrorAction.REPORT)
+            .onUnmappableCharacter(CodingErrorAction.REPORT);
+        if (value.copyTo(buffer, decoder))
+        {
+          try
+          {
+            // URL encoding encodes space char as '+' instead of using hex code
+            final String val = URLEncoder.encode(buffer.toString(), "UTF-8").replaceAll("\\+", "%20");
+            builder.append(val);
+          }
+          catch (UnsupportedEncodingException e)
+          {
+            // should never happen
+            builder.append(value.toPercentHexString());
+          }
+        }
+        else
+        {
+          builder.append(value.toPercentHexString());
+        }
+      }
+      return builder;
   }
 
   /**

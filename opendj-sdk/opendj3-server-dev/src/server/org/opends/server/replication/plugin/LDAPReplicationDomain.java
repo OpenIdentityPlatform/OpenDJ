@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -2225,7 +2225,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (markConflict)
     {
       Attribute attr =
-          Attributes.create(attrType, targetDN.toNormalizedString());
+          Attributes.create(attrType, targetDN.toString());
       newOp.addModification(new Modification(ModificationType.REPLACE, attr));
     }
     else
@@ -2954,7 +2954,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       {
         addConflict(msg);
         String conflictRDN =
-            generateConflictRDN(entryUUID, msg.getDN().toNormalizedString());
+            generateConflictRDN(entryUUID, msg.getDN().toString());
         msg.setDN(DN.valueOf(conflictRDN));
         numUnresolvedNamingConflicts.incrementAndGet();
         return false;
@@ -3054,7 +3054,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     // create new internal modify operation and run it.
     AttributeType attrType = DirectoryServer.getAttributeType(DS_SYNC_CONFLICT,
         true);
-    Attribute attr = Attributes.create(attrType, conflictDN.toNormalizedString());
+    Attribute attr = Attributes.create(attrType, conflictDN.toString());
     List<Modification> mods =
         newList(new Modification(ModificationType.REPLACE, attr));
 
@@ -3087,7 +3087,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    */
   private void addConflict(AddMsg msg) throws DecodeException
   {
-    String normalizedDN = msg.getDN().toNormalizedString();
+    String normalizedDN = msg.getDN().toString();
 
     // Generate an alert to let the administrator know that some
     // conflict could not be solved.

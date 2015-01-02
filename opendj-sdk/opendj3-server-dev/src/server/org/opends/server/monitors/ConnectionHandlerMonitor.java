@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -148,8 +148,7 @@ public class ConnectionHandlerMonitor
     LinkedList<Attribute> attrs = new LinkedList<Attribute>();
 
     // Configuration DN
-    attrs.add(Attributes.create(configDnType, String.valueOf(
-            connectionHandler.getComponentEntryDN().toNormalizedString())));
+    attrs.add(Attributes.create(configDnType, String.valueOf(connectionHandler.getComponentEntryDN().toString())));
 
     int numConnections = 0;
     LinkedList<ClientConnection> conns = new LinkedList<ClientConnection>(

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -146,7 +146,7 @@ public class JebFormat
   {
     if (!rdn.isMultiValued())
     {
-      rdn.toNormalizedString(buffer);
+      rdn.toString(buffer);
     }
     else
     {
@@ -155,7 +155,6 @@ public class JebFormat
       for (int i=0; i < rdn.getNumValues(); i++)
       {
         StringBuilder b2 = new StringBuilder();
-        rdn.getNormalizedAVAString(i, b2);
         rdnElementStrings.add(b2.toString());
       }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -172,7 +172,7 @@ public class LightweightServerHandler
     final ReplicationServerDomain domain = replServerHandler.getDomain();
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
     attributes.add(Attributes.create("domain-name",
-        domain.getBaseDN().toNormalizedString()));
+        domain.getBaseDN().toString()));
     attributes.add(Attributes.create("connected-to",
         replServerHandler.getMonitorInstanceName()));
 

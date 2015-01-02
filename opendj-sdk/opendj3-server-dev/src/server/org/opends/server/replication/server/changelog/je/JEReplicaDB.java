@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -293,7 +293,7 @@ class JEReplicaDB
     {
       final List<Attribute> attributes = new ArrayList<Attribute>();
       create(attributes, "replicationServer-database",String.valueOf(serverId));
-      create(attributes, "domain-name", baseDN.toNormalizedString());
+      create(attributes, "domain-name", baseDN.toString());
       final CSNLimits limits = csnLimits;
       if (limits.oldestCSN != null)
       {

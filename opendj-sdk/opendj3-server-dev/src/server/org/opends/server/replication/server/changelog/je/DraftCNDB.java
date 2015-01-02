@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -88,7 +88,7 @@ public class DraftCNDB
     {
       final long changeNumber = record.getChangeNumber();
       DatabaseEntry key = new ReplicationDraftCNKey(changeNumber);
-      DatabaseEntry data = new DraftCNData(changeNumber, record.getBaseDN().toNormalizedString(), record.getCSN());
+      DatabaseEntry data = new DraftCNData(changeNumber, record.getBaseDN().toString(), record.getCSN());
 
       // Use a transaction so that we can override durability.
       Transaction txn = null;

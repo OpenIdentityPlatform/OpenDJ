@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.server.core;
@@ -403,7 +403,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   {
     InternalClientConnection conn = getRootConnection();
     List<RawModification> mods = newRawModifications(DELETE, attrType);
-    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toNormalizedString()), mods);
+    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toString()), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -411,7 +411,7 @@ public class SubentryManagerTestCase extends CoreTestCase
   {
     InternalClientConnection conn = getRootConnection();
     List<RawModification> mods = newRawModifications(REPLACE, attrType, newValue);
-    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toNormalizedString()), mods);
+    ModifyOperation modifyOperation = conn.processModify(ByteString.valueOf(e.getName().toString()), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 

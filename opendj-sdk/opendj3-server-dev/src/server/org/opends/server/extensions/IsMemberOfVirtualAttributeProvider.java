@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -260,10 +260,10 @@ public class IsMemberOfVirtualAttributeProvider
     {
       // Check for nested groups to see if we need to keep track of returned entries
       List<DN> nestedGroupsDNs = group.getNestedGroupDNs();
-      HashSet<String> returnedDNs = null;
+      Set<ByteString> returnedDNs = null;
       if (!nestedGroupsDNs.isEmpty())
       {
-        returnedDNs = new HashSet<String>();
+        returnedDNs = new HashSet<ByteString>();
       }
       if (!returnGroupMembers(searchOperation, group.getMembers(), returnedDNs))
       {
@@ -289,7 +289,7 @@ public class IsMemberOfVirtualAttributeProvider
    *
    * @param searchOperation the search operation being processed.
    * @param memberList the list of members of the group being processed.
-   * @param returnedDNs a set to store the DNs of entries already returned,
+   * @param returnedDNs a set to store the normalized DNs of entries already returned,
    *                    null if there's no need to track for entries.
    * @return  <CODE>true</CODE> if the caller should continue processing the
    *          search request and sending additional entries and references, or
@@ -299,7 +299,7 @@ public class IsMemberOfVirtualAttributeProvider
    *          the entry to the client and the search should be terminated.
    */
   private boolean returnGroupMembers(SearchOperation searchOperation,
-                                  MemberList memberList, Set<String> returnedDNs)
+                                  MemberList memberList, Set<ByteString> returnedDNs)
           throws DirectoryException
   {
     DN baseDN = searchOperation.getBaseDN();
@@ -313,8 +313,9 @@ public class IsMemberOfVirtualAttributeProvider
         if (e.matchesBaseAndScope(baseDN, scope) &&
             filter.matchesEntry(e))
         {
-          if (returnedDNs == null
-              || returnedDNs.add(e.getName().toNormalizedString()))
+          // The set of returned DNs is only used for detecting set membership
+          // so it's ok to use the irreversible representation of the DN
+          if (returnedDNs == null || returnedDNs.add(e.getName().toIrreversibleNormalizedByteString()))
           {
             if (!searchOperation.returnEntry(e, null))
             {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
@@ -2117,7 +2117,7 @@ public class ReplicationBroker
     if (heartbeatInterval > 0)
     {
       heartbeatMonitor = new HeartbeatMonitor(getServerId(), rs.getServerId(),
-          getBaseDN().toNormalizedString(), rs.session, heartbeatInterval);
+          getBaseDN().toString(), rs.session, heartbeatInterval);
       heartbeatMonitor.start();
     }
   }

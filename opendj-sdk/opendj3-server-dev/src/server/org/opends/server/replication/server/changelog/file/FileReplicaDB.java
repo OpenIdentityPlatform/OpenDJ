@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -269,7 +269,7 @@ class FileReplicaDB
     {
       final List<Attribute> attributes = new ArrayList<Attribute>();
       create(attributes, "replicationServer-database",String.valueOf(serverId));
-      create(attributes, "domain-name", baseDN.toNormalizedString());
+      create(attributes, "domain-name", baseDN.toString());
       final CSNLimits limits = csnLimits;
       if (limits.oldestCSN != null)
       {

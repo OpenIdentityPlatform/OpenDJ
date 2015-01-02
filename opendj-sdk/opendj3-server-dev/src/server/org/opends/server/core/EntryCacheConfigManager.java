@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -76,9 +77,8 @@ public class EntryCacheConfigManager
   private SortedMap<Integer, EntryCache> cacheOrderMap =
       new TreeMap<Integer, EntryCache>();
 
-  // The entry cache name to level map.
-  private HashMap<String, Integer>
-    cacheNameToLevelMap = new HashMap<String, Integer>();
+  /** The entry cache name to level map. The key is a byte string representation of the name (DN). */
+  private Map<ByteString,Integer> cacheNameToLevelMap = new HashMap<ByteString, Integer>();
 
   // Global entry cache monitor provider name.
   private static final String
@@ -255,19 +255,20 @@ public class EntryCacheConfigManager
       status = false;
     }
 
-    if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty() &&
-      (cacheNameToLevelMap.get(
-       configuration.dn().toNormalizedString()) != null)) {
-      int currentCacheLevel = cacheNameToLevelMap.get(
-        configuration.dn().toNormalizedString());
+    if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty())
+    {
+      final ByteString normDN = configuration.dn().toIrreversibleNormalizedByteString();
+      if (cacheNameToLevelMap.containsKey(normDN)) {
+        int currentCacheLevel = cacheNameToLevelMap.get(normDN);
 
-      // Check if there any existing cache at the same level.
-      if ((currentCacheLevel != configuration.getCacheLevel()) &&
-        (cacheOrderMap.containsKey(configuration.getCacheLevel()))) {
-        unacceptableReasons.add(
-          ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
-            configuration.dn(), configuration.getCacheLevel()));
-        status = false;
+        // Check if there any existing cache at the same level.
+        if ((currentCacheLevel != configuration.getCacheLevel()) &&
+          (cacheOrderMap.containsKey(configuration.getCacheLevel()))) {
+          unacceptableReasons.add(
+            ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
+              configuration.dn(), configuration.getCacheLevel()));
+          status = false;
+        }
       }
     }
 
@@ -287,20 +288,20 @@ public class EntryCacheConfigManager
 
     // If we this entry cache is already installed and active it
     // should be present in the cache maps, if so use it.
-    if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty() &&
-      (cacheNameToLevelMap.get(
-       configuration.dn().toNormalizedString()) != null)) {
-      int currentCacheLevel = cacheNameToLevelMap.get(
-        configuration.dn().toNormalizedString());
-      entryCache = cacheOrderMap.get(currentCacheLevel);
+    if (!cacheOrderMap.isEmpty() && !cacheNameToLevelMap.isEmpty()) {
+      final ByteString normDN = configuration.dn().toIrreversibleNormalizedByteString();
+      if (cacheNameToLevelMap.containsKey(normDN))
+      {
+        int currentCacheLevel = cacheNameToLevelMap.get(normDN);
+        entryCache = cacheOrderMap.get(currentCacheLevel);
 
-      // Check if the existing cache just shifted its level.
-      if (currentCacheLevel != configuration.getCacheLevel()) {
-        // Update the maps then.
-        cacheOrderMap.remove(currentCacheLevel);
-        cacheOrderMap.put(configuration.getCacheLevel(), entryCache);
-        cacheNameToLevelMap.put(configuration.dn().toNormalizedString(),
-          configuration.getCacheLevel());
+        // Check if the existing cache just shifted its level.
+        if (currentCacheLevel != configuration.getCacheLevel()) {
+          // Update the maps then.
+          cacheOrderMap.remove(currentCacheLevel);
+          cacheOrderMap.put(configuration.getCacheLevel(), entryCache);
+          cacheNameToLevelMap.put(normDN, configuration.getCacheLevel());
+        }
       }
     }
 
@@ -484,7 +485,7 @@ public class EntryCacheConfigManager
       }
       entryCache.finalizeEntryCache();
       cacheOrderMap.remove(configuration.getCacheLevel());
-      cacheNameToLevelMap.remove(configuration.dn().toNormalizedString());
+      cacheNameToLevelMap.remove(configuration.dn().toIrreversibleNormalizedByteString());
 
       // Push any changes made to the cache order map.
       setCacheOrder(cacheOrderMap);
@@ -530,7 +531,7 @@ public class EntryCacheConfigManager
 
     // Add this entry cache to the current cache config maps.
     cacheOrderMap.put(configuration.getCacheLevel(), entryCache);
-    cacheNameToLevelMap.put(configuration.dn().toNormalizedString(),
+    cacheNameToLevelMap.put(configuration.dn().toIrreversibleNormalizedByteString(),
       configuration.getCacheLevel());
 
     // Push any changes made to the cache order map.

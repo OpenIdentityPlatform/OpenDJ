@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -268,8 +268,8 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
 
     Entry oldEntry = op.getOriginalEntry();
     Entry newEntry = op.getUpdatedEntry();
-    String oldDNString = oldEntry.getName().toNormalizedString();
-    String newDNString = newEntry.getName().toNormalizedString();
+    DN oldDN = oldEntry.getName();
+    DN newDN = newEntry.getName();
 
     // Identify any client connections that may be authenticated
     // or authorized as the user whose entry has been modified
@@ -295,7 +295,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
             authNDN = conn.getAuthenticationInfo().getAuthenticationDN();
             try
             {
-              newAuthNDN = getNewAuthDN(authNDN, oldDNString, newDNString);
+              newAuthNDN = authNDN.rename(oldDN, newDN);
             }
             catch (Exception e)
             {
@@ -308,7 +308,7 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
             authZDN = conn.getAuthenticationInfo().getAuthorizationDN();
             try
             {
-              newAuthZDN = getNewAuthDN(authZDN, oldDNString, newDNString);
+              newAuthZDN = authZDN.rename(oldDN, newDN);
             }
             catch (Exception e)
             {
@@ -352,17 +352,6 @@ public class AuthenticatedUsers extends InternalDirectoryServerPlugin
       lock.writeLock().unlock();
     }
     return PostResponse.continueOperationProcessing();
-  }
-
-  private DN getNewAuthDN(DN authDN, String oldDNString, String newDNString) throws DirectoryException
-  {
-    // FIXME once we move to the SDK:
-    // Matt suggests we should be using the following code here:
-    // return authDN.rename(oldDNString, newDNString);
-    final StringBuilder builder = new StringBuilder(authDN.toNormalizedString());
-    final int oldDNIndex = builder.lastIndexOf(oldDNString);
-    builder.replace(oldDNIndex, builder.length(), newDNString);
-    return DN.valueOf(builder.toString());
   }
 }
 
