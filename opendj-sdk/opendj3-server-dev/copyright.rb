@@ -2,7 +2,7 @@
 
 require 'fileutils'
 
-# Automate copyright update with year 2014, using 'svn status' to retrieve modified files.
+# Automate copyright update with year 2015, using 'svn status' to retrieve modified files.
 # Only modified files (with 'M' mark) are updated.
 #
 class Copyright
@@ -45,8 +45,8 @@ class Copyright
     pattern = /(^\s+\*\s+)Copyright (\d+) ForgeRock,? AS/i
     mdata = content.match(pattern)
     if !mdata.nil?
-      if  mdata[2]!="2014"
-        replace = '\1Portions Copyright \2-2014 ForgeRock AS'
+      if  mdata[2]!="2015"
+        replace = '\1Copyright \2-2015 ForgeRock AS'
         is_replaced = content.gsub!(pattern, replace)
       else
         is_replaced = true # no action needed
@@ -55,13 +55,13 @@ class Copyright
 
     # handle FG copyright with 2 dates
     pattern = /(^\s+\*\s+)Copyright (\d+)-(\d+) ForgeRock,? AS/i
-    replace = '\1Portions Copyright \2-2014 ForgeRock AS'
+    replace = '\1Copyright \2-2015 ForgeRock AS'
     is_replaced = content.gsub!(pattern, replace)
 
     if is_replaced.nil?
       # handle FG portions copyright with 2 dates
       pattern = /(^\s+\*\s+)Portions Copyright (\d+)-(\d+) ForgeRock,? AS/i
-      replace = '\1Portions Copyright \2-2014 ForgeRock AS'
+      replace = '\1Portions Copyright \2-2015 ForgeRock AS'
       is_replaced = content.gsub!(pattern, replace)
     end
 
@@ -69,14 +69,14 @@ class Copyright
       # handle FG portions copyright with 1 date
       pattern = /(^\s+\*\s+)Portions Copyright (\d+) ForgeRock,? AS/i
       mdata = content.match(pattern)
-      if !mdata.nil? && mdata[2]!="2014"
-        replace = '\1Portions Copyright \2-2014 ForgeRock AS'
+      if !mdata.nil? && mdata[2]!="2015"
+        replace = '\1Portions Copyright \2-2015 ForgeRock AS'
         is_replaced = content.gsub!(pattern, replace)
       end
       if is_replaced.nil?
         # Handle no FG portions
         pattern = /(^\s+\*)(\s+)Copyright (\d+-?\d*)\s(.*)$\n\s+\*\/$/i
-        replace = '\1\2Copyright \3 \4' + "\n\\1\\2Portions Copyright 2014 ForgeRock AS\n\\1/"
+        replace = '\1\2Copyright \3 \4' + "\n\\1\\2Portions Copyright 2015 ForgeRock AS\n\\1/"
         is_replaced = content.gsub!(pattern, replace)
       end
     end
