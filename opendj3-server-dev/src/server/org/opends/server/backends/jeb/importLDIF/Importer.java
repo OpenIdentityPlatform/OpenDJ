@@ -4308,9 +4308,9 @@ public final class Importer implements DiskSpaceMonitorHandler
           {
             throw new JebException(LocalizableMessage.raw("Search DN cache failed."));
           }
-          if (!isDNMatched(dns, dnBytesForValue))
+          if (!isDNMatched(dns.getData(), dnBytesForValue))
           {
-            addDN(dns, cursor, dnBytesForValue);
+            addDN(dns.getData(), cursor, dnBytesForValue);
             return true;
           }
           return false;
@@ -4324,16 +4324,13 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     /** Add the DN to the DNs as because of a hash collision. */
-    private void addDN(DatabaseEntry val, Cursor cursor, byte[] dnBytesForValue)
-        throws JebException
+    private void addDN(byte[] readDnBytes, Cursor cursor, byte[] dnBytesForValue) throws JebException
     {
-      byte[] bytes = val.getData();
       int pLen = PackedInteger.getWriteIntLength(dnBytesForValue.length);
-      int totLen = bytes.length + pLen + dnBytesForValue.length;
+      int totLen = readDnBytes.length + pLen + dnBytesForValue.length;
       byte[] newRec = new byte[totLen];
-      System.arraycopy(bytes, 0, newRec, 0, bytes.length);
-      int pos = bytes.length;
-      pos = PackedInteger.writeInt(newRec, pos, dnBytesForValue.length);
+      System.arraycopy(readDnBytes, 0, newRec, 0, readDnBytes.length);
+      int pos = PackedInteger.writeInt(newRec, readDnBytes.length, dnBytesForValue.length);
       System.arraycopy(dnBytesForValue, 0, newRec, pos, dnBytesForValue.length);
       DatabaseEntry newVal = new DatabaseEntry(newRec);
       OperationStatus status = cursor.putCurrent(newVal);
@@ -4343,19 +4340,15 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    /**
-     * Return true if the specified DN is in the DNs saved as a result of hash collisions.
-     */
-    private boolean isDNMatched(DatabaseEntry dns, byte[] dnBytes)
+    /** Return true if the specified DN is in the DNs saved as a result of hash collisions. */
+    private boolean isDNMatched(byte[] readDnBytes, byte[] dnBytes)
     {
       int pos = 0;
-      byte[] bytes = dns.getData();
-      while (pos < dns.getData().length)
+      while (pos < readDnBytes.length)
       {
-        int pLen = PackedInteger.getReadIntLength(bytes, pos);
-        int len = PackedInteger.readInt(bytes, pos);
-        if (indexComparator.compare(bytes, pos + pLen, len, dnBytes,
-            dnBytes.length) == 0)
+        int pLen = PackedInteger.getReadIntLength(readDnBytes, pos);
+        int len = PackedInteger.readInt(readDnBytes, pos);
+        if (indexComparator.compare(readDnBytes, pos + pLen, len, dnBytes, dnBytes.length) == 0)
         {
           return true;
         }
@@ -4385,7 +4378,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         DatabaseEntry dns = new DatabaseEntry();
         OperationStatus status = cursor.getSearchKey(key, dns, LockMode.DEFAULT);
         byte[] dnBytesForValue = StaticUtils.getBytes(dn.toString());
-        return status == OperationStatus.SUCCESS && isDNMatched(dns, dnBytesForValue);
+        return status == OperationStatus.SUCCESS && isDNMatched(dns.getData(), dnBytesForValue);
       }
       finally
       {
