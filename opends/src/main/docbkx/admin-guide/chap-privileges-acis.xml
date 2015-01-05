@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-privileges-acis'
@@ -161,13 +161,16 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <secondary>Targets</secondary>
    </indexterm>
    
-   <para>The seven types of ACI targets identify the objects to which the ACI
-   applies.</para>
+   <para>
+    The seven types of ACI targets identify the objects to which the ACI applies.
+    Most expressions allow you to use
+    either <literal>=</literal> to specify that the target should match the value
+    or <literal>!=</literal> to specify that the target should not match the value.
+   </para>
    
    <variablelist>
     <varlistentry>
-     <term><literal>(target = "ldap:///<replaceable>DN</replaceable>")</literal></term>
-     <term><literal>(target != "ldap:///<replaceable>DN</replaceable>")</literal></term>
+     <term><literal>(target [!]= "ldap:///<replaceable>DN</replaceable>")</literal></term>
      <listitem>
       <para>Sets the scope to the entry with distinguished name
       <replaceable>DN</replaceable>, and to child entries.</para>
@@ -185,8 +188,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>(targetattr = "<replaceable>attr-list</replaceable>")</literal></term>
-     <term><literal>(targetattr != "<replaceable>attr-list</replaceable>")</literal></term>
+     <term><literal>(targetattr [!]= "<replaceable>attr-list</replaceable>")</literal></term>
      <listitem>
       <para>Replace <replaceable>attr-list</replaceable> with a list of
       attribute type names, such as <literal>userPassword</literal>, separating
@@ -205,8 +207,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>(targetfilter = "<replaceable>ldap-filter</replaceable>")</literal></term>
-     <term><literal>(targetfilter != "<replaceable>ldap-filter</replaceable>")</literal></term>
+     <term><literal>(targetfilter [!]= "<replaceable>ldap-filter</replaceable>")</literal></term>
      <listitem>
       <para>Sets the scope to match the <replaceable>ldap-filter</replaceable>
       dynamically, as in an LDAP search. The
@@ -214,8 +215,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>(targattrfilters = "<replaceable>expression</replaceable>")</literal></term>
-     <term><literal>(targattrfilters != "<replaceable>expression</replaceable>")</literal></term>
+     <term><literal>(targattrfilters [!]= "<replaceable>expression</replaceable>")</literal></term>
      <listitem>
       <para>Use this target specification when managing changes made to
       particular attributes.</para>
@@ -248,8 +248,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>(targetcontrol = "<replaceable>OID</replaceable>")</literal></term>
-     <term><literal>(targetcontrol != "<replaceable>OID</replaceable>")</literal></term>
+     <term><literal>(targetcontrol [!]= "<replaceable>OID</replaceable>")</literal></term>
      <listitem>
       <para>Replace <replaceable>OID</replaceable> with the object identifier
       for the LDAP control to target. Separate multiple OIDs with ||.</para>
@@ -258,8 +257,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>(extop = "<replaceable>OID</replaceable>")</literal></term>
-     <term><literal>(extop != "<replaceable>OID</replaceable>")</literal></term>
+     <term><literal>(extop [!]= "<replaceable>OID</replaceable>")</literal></term>
      <listitem>
       <para>Replace <replaceable>OID</replaceable> with the object identifier
       for the extended operation to target. Separate multiple OIDs with ||.</para>
@@ -378,15 +376,20 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
     <secondary>Subjects</secondary>
    </indexterm>
    
-   <para>ACI subjects match characteristics of the client connection to the
-   server. Use subjects to restrict whether the ACI applies depending on who
-   connected, and when, where, and how they connected.</para>
+   <para>
+    ACI subjects match characteristics of the client connection to the server.
+    Use subjects to restrict whether the ACI applies
+    depending on who connected, and when, where, and how they connected.
+    Most expressions allow you to use
+    either <literal>=</literal> to specify
+    that the subject condition should match the value
+    or <literal>!=</literal> to specify
+    that the subject condition should not match the value.
+   </para>
 
    <variablelist>
     <varlistentry>
-     <term><literal>authmethod = "none|simple|ssl|sasl <replaceable
-     >mech</replaceable>"</literal></term>
-     <term><literal>authmethod != "none|simple|ssl|sasl <replaceable
+     <term><literal>authmethod [!]= "none|simple|ssl|sasl <replaceable
      >mech</replaceable>"</literal></term>
      <listitem>
       <para>Here you use <literal>none</literal> to mean do not check,
@@ -398,9 +401,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>dayofweek = "<replaceable>day</replaceable>[, <replaceable
-     >day</replaceable> &#8230;]"</literal></term>
-     <term><literal>dayofweek != "<replaceable>day</replaceable>[, <replaceable
+     <term><literal>dayofweek [!]= "<replaceable>day</replaceable>[, <replaceable
      >day</replaceable> &#8230;]"</literal></term>
      <listitem>
       <para>Replace <replaceable>day</replaceable> with one of
@@ -410,17 +411,14 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>dns = "<replaceable>hostname</replaceable>"</literal></term>
-     <term><literal>dns != "<replaceable>hostname</replaceable>"</literal></term>
+     <term><literal>dns [!]= "<replaceable>hostname</replaceable>"</literal></term>
      <listitem>
       <para>You can use asterisks, *, to replace name components, such as
       <literal>dns = "*.myCompany.com"</literal>.</para>
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>groupdn = "ldap:///<replaceable
-     >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> &#8230;]"</literal></term>
-     <term><literal>groupdn != "ldap:///<replaceable
+     <term><literal>groupdn [!]= "ldap:///<replaceable
      >DN</replaceable>[|| ldap:///<replaceable>DN</replaceable> &#8230;]"</literal></term>
      <listitem>
       <para>Replace <replaceable>DN</replaceable> with the distinguished name
@@ -428,8 +426,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>ip = "<replaceable>addresses</replaceable>"</literal></term>
-     <term><literal>ip != "<replaceable>addresses</replaceable>"</literal></term>
+     <term><literal>ip [!]= "<replaceable>addresses</replaceable>"</literal></term>
      <listitem>
       <para>Here <replaceable>addresses</replaceable> can be specified for
       IPv4 or IPv6. IPv6 addresses are specified in brackets as
@@ -468,18 +465,11 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>userattr = "<replaceable>attr</replaceable>#<replaceable
+     <term><literal>userattr [!]= "<replaceable>attr</replaceable>#<replaceable
      >value</replaceable>"</literal></term>
-     <term><literal>userattr != "<replaceable>attr</replaceable>#<replaceable
-     >value</replaceable>"</literal></term>
-     <term><literal>userattr = <replaceable
+     <term><literal>userattr [!]= <replaceable
      >ldap-url</replaceable>#LDAPURL"</literal></term>
-     <term><literal>userattr != <replaceable
-     >ldap-url</replaceable>#LDAPURL"</literal></term>
-     <term><literal>userattr = "[parent[<replaceable
-     >child-level</replaceable>]. ]<replaceable>attr</replaceable
-     >#GROUPDN|USERDN"</literal></term>
-     <term><literal>userattr != "[parent[<replaceable
+     <term><literal>userattr [!]= "[parent[<replaceable
      >child-level</replaceable>]. ]<replaceable>attr</replaceable
      >#GROUPDN|USERDN"</literal></term>
      <listitem>
@@ -507,9 +497,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      </listitem>
     </varlistentry>
     <varlistentry>
-     <term><literal>userdn = "<replaceable>ldap-url++</replaceable>[|| <replaceable
-     >ldap-url++</replaceable> &#8230;]"</literal></term>
-     <term><literal>userdn != "<replaceable>ldap-url++</replaceable>[|| <replaceable
+     <term><literal>userdn [!]= "<replaceable>ldap-url++</replaceable>[|| <replaceable
      >ldap-url++</replaceable> &#8230;]"</literal></term>
      <listitem>
       <para>To match the bind DN, replace <replaceable>ldap-url++</replaceable>
