@@ -26,6 +26,8 @@
  */
 package org.opends.server.extensions;
 
+import static org.opends.messages.ExtensionMessages.*;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -34,17 +36,14 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
+import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.VirtualAttributeRule;
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a virtual attribute provider that is meant to serve the
