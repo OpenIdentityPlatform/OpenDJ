@@ -22,9 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.service;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -51,10 +55,6 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test the Generic Replication Service.
@@ -218,7 +218,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
     catch (TimeoutException ex)
     {
       // This exception may only be raised if assured replication is enabled
-      logger.info(NOTE_DS_ACK_TIMEOUT, domain.getBaseDNString(), domain.getAssuredTimeout(), updateMsg);
+      logger.info(NOTE_DS_ACK_TIMEOUT, domain.getBaseDN(), domain.getAssuredTimeout(), updateMsg);
     }
   }
 

@@ -88,15 +88,6 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.RDN;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
@@ -349,8 +340,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     protected ServerStateFlush()
     {
-      super("Replica DS(" + getServerId()
-          + ") state checkpointer for domain \"" + getBaseDNString() + "\"");
+      super("Replica DS(" + getServerId() + ") state checkpointer for domain \"" + getBaseDN() + "\"");
     }
 
     /** {@inheritDoc} */
@@ -395,9 +385,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     protected RSUpdater(CSN replServerMaxCSN)
     {
-      super("Replica DS(" + getServerId()
-          + ") missing change publisher for domain \"" + getBaseDNString()
-          + "\"");
+      super("Replica DS(" + getServerId() + ") missing change publisher for domain \"" + getBaseDN() + "\"");
       this.startCSN = replServerMaxCSN;
     }
 
@@ -432,7 +420,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * Log an error for the repair tool
            * that will need to re-synchronize the servers.
            */
-          logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDNString());
+          logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
         }
       }
       catch (Exception e)
@@ -444,7 +432,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Log an error for the repair tool
          * that will need to re-synchronize the servers.
          */
-        logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDNString());
+        logger.error(ERR_CANNOT_RECOVER_CHANGES, getBaseDN());
       }
       finally
       {
@@ -485,8 +473,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     Backend<?> backend = getBackend();
     if (backend == null)
     {
-      throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(
-                                  getBaseDNString()));
+      throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(getBaseDN()));
     }
 
     try
@@ -495,7 +482,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch (DirectoryException e)
     {
-      logger.error(ERR_LOADING_GENERATION_ID, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
     }
 
     /*
@@ -580,7 +567,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as normally already called without problem in
       // isConfigurationChangeAcceptable or isConfigurationAcceptable
       // if we come up to this method
-      logger.info(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, getBaseDN(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -598,7 +585,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch  (ConfigException e)
     {
       // Should not happen
-      logger.info(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, getBaseDN(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -647,9 +634,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // Read config stored in domain root entry
     if (logger.isTraceEnabled())
     {
-      logger.trace(
-          "Attempt to read the potential fractional config in domain root "
-              + "entry " + getBaseDNString());
+      logger.trace("Attempt to read the potential fractional config in domain root entry " + getBaseDN());
     }
 
     // Search the domain root entry that is used to save the generation id
@@ -660,9 +645,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (search.getResultCode() != ResultCode.SUCCESS
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
-      logger.error(ERR_SEARCHING_GENERATION_ID,
-          search.getResultCode().getName() + " " + search.getErrorMessage(),
-          getBaseDNString());
+      String errorMsg = search.getResultCode().getName() + " " + search.getErrorMessage();
+      logger.error(ERR_SEARCHING_GENERATION_ID, errorMsg, getBaseDN());
       return false;
     }
 
@@ -706,9 +690,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         if (attr.size() > 1)
         {
-          logger.error(ERR_LOADING_GENERATION_ID,
-              getBaseDNString(),
-              "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString());
+          String errorMsg = "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString();
+          logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), errorMsg);
         }
       }
     }
@@ -1435,7 +1418,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch(DirectoryException e)
     {
-      logger.info(NOTE_ERR_FRACTIONAL, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.info(NOTE_ERR_FRACTIONAL, getBaseDN(), stackTraceToSingleLineString(e));
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
     }
     Set<ObjectClass> entryClasses = entryToModify.getObjectClasses().keySet();
@@ -1512,12 +1495,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     switch (importErrorMessageId)
     {
     case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
-      msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(
-          getBaseDNString(), ieCtx.getImportSource());
+      msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(getBaseDN(), ieCtx.getImportSource());
       break;
     case IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL:
-      msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(
-          getBaseDNString(), ieCtx.getImportSource());
+      msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(getBaseDN(), ieCtx.getImportSource());
       break;
     }
     ieCtx.setException(new DirectoryException(UNWILLING_TO_PERFORM, msg));
@@ -1538,8 +1519,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (target == RoutableMsg.ALL_SERVERS && fractionalConfig.isFractional())
     {
-      LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
-            getBaseDNString(), getServerId());
+      LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(getBaseDN(), getServerId());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
@@ -1560,7 +1540,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!deleteOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDN());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1631,7 +1611,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!addOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDN());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1658,8 +1638,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          */
         if (fractionalFilterOperation(addOperation, false))
         {
-          LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            getBaseDNString(), addOperation);
+          LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(getBaseDN(), addOperation);
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -1761,7 +1740,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!modifyDNOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDN());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1786,8 +1765,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          */
         if (fractionalFilterOperation(modifyDNOperation, false))
         {
-          LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            getBaseDNString(), modifyDNOperation);
+          LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(getBaseDN(), modifyDNOperation);
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -1879,7 +1857,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!modifyOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
+      LocalizableMessage msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDN());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1919,8 +1897,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           case FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES:
             // Some attributes not compliant with fractional configuration :
             // forbid the operation
-            LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-              getBaseDNString(), modifyOperation);
+            LocalizableMessage msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(getBaseDN(), modifyOperation);
             return new SynchronizationProviderResult.StopProcessing(
               ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -2082,7 +2059,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         } catch (TimeoutException ex)
         {
           // This exception may only be raised if assured replication is enabled
-          logger.info(NOTE_DS_ACK_TIMEOUT, getBaseDNString(), getAssuredTimeout(), msg);
+          logger.info(NOTE_DS_ACK_TIMEOUT, getBaseDN(), getAssuredTimeout(), msg);
         }
       }
 
@@ -2921,7 +2898,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
         String conflictRDN =
             generateConflictRDN(entryUUID, op.getEntryDN().rdn().toString());
-        msg.setDN(DN.valueOf(conflictRDN + "," + getBaseDNString()));
+        msg.setDN(DN.valueOf(conflictRDN + "," + getBaseDN()));
         // reset the parent entryUUID so that the check done is the
         // handleConflict phase does not fail.
         msg.setParentEntryUUID(null);
@@ -3198,7 +3175,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
        * not available, log an error and retry upon timeout
        * should we stop the modifications ?
        */
-      logger.error(ERR_LOADING_GENERATION_ID, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
       return;
     }
 
@@ -3270,7 +3247,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       if (result != ResultCode.SUCCESS)
       {
-        logger.error(ERR_UPDATING_GENERATION_ID, result.getName(), getBaseDNString());
+        logger.error(ERR_UPDATING_GENERATION_ID, result.getName(), getBaseDN());
       }
     }
     else
@@ -3293,8 +3270,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   {
     if (logger.isTraceEnabled())
     {
-      logger.trace("Attempt to read generation ID from DB "
-          + getBaseDNString());
+      logger.trace("Attempt to read generation ID from DB " + getBaseDN());
     }
 
     /*
@@ -3318,9 +3294,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     {
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
       {
-        logger.error(ERR_SEARCHING_GENERATION_ID,
-            search.getResultCode().getName() + " " + search.getErrorMessage(),
-            getBaseDNString());
+        String errorMsg = search.getResultCode().getName() + " " + search.getErrorMessage();
+        logger.error(ERR_SEARCHING_GENERATION_ID, errorMsg, getBaseDN());
       }
     }
     else
@@ -3338,9 +3313,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
           Attribute attr = attrs.get(0);
           if (attr.size()>1)
           {
-            logger.error(ERR_LOADING_GENERATION_ID,
-                getBaseDNString(),
-                "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString());
+            String errorMsg = "#Values=" + attr.size() + " Must be exactly 1 in entry " + resultEntry.toLDIFString();
+            logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), errorMsg);
           }
           else if (attr.size() == 1)
           {
@@ -3351,7 +3325,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
             }
             catch(Exception e)
             {
-              logger.error(ERR_LOADING_GENERATION_ID, getBaseDNString(), stackTraceToSingleLineString(e));
+              logger.error(ERR_LOADING_GENERATION_ID, getBaseDN(), stackTraceToSingleLineString(e));
             }
           }
         }
@@ -3365,8 +3339,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       if (logger.isTraceEnabled())
       {
-        logger.trace("Generation ID created for domain baseDN="
-            + getBaseDNString() + " generationId=" + aGenerationId);
+        logger.trace("Generation ID created for domain baseDN=" + getBaseDN() + " generationId=" + aGenerationId);
       }
     }
     else
@@ -3374,8 +3347,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       generationIdSavedStatus = true;
       if (logger.isTraceEnabled())
       {
-        logger.trace("Generation ID successfully read from domain baseDN="
-            + getBaseDNString() + " generationId=" + aGenerationId);
+        logger.trace("Generation ID successfully read from domain baseDN=" + getBaseDN()
+            + " generationId=" + aGenerationId);
       }
     }
     return aGenerationId;
@@ -3390,9 +3363,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     state.save();
   }
 
-  /**
-   * Do whatever is needed when a backup is finished.
-   */
+  /** Do whatever is needed when a backup is finished. */
   void backupEnd()
   {
     // Nothing is needed at the moment
@@ -4008,7 +3979,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     catch (Exception e)
     {
       throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-          "Replication Domain on " + getBaseDNString(), stackTraceToSingleLineString(e)), e);
+          "Replication Domain on " + getBaseDN(), stackTraceToSingleLineString(e)), e);
     }
   }
 
@@ -4037,7 +4008,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     if (forceBadDataSet)
     {
       signalNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
-      logger.info(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC, getBaseDNString());
+      logger.info(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC, getBaseDN());
       return; // Do not send changes to the replication server
     }
 
@@ -4075,7 +4046,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       }
     } catch (Exception e)
     {
-      logger.error(ERR_PUBLISHING_FAKE_OPS, getBaseDNString(), stackTraceToSingleLineString(e));
+      logger.error(ERR_PUBLISHING_FAKE_OPS, getBaseDN(), stackTraceToSingleLineString(e));
     }
   }
 
@@ -4403,12 +4374,11 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     catch (Exception e)
     {
       LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(
-          getBaseDNString(), getServerId(), sourceString, stackTraceToSingleLineString(e));
+          getBaseDN(), getServerId(), sourceString, stackTraceToSingleLineString(e));
       throw new DirectoryException(ResultCode.OTHER, message, e);
     }
 
-    LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(
-        getBaseDNString(), getServerId(), source, "");
+    LocalizableMessage message = ERR_INVALID_IMPORT_SOURCE.get(getBaseDN(), getServerId(), source, "");
     throw new DirectoryException(ResultCode.OTHER, message);
   }
 
@@ -5007,7 +4977,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       long endDate) throws DirectoryException
   {
      logger.trace("[PURGE] purgeConflictsHistorical "
-         + "on domain: " + getBaseDNString()
+         + "on domain: " + getBaseDN()
          + "endDate:" + new Date(endDate)
          + "lastCSNPurgedFromHist: "
          + lastCSNPurgedFromHist.toStringUI());

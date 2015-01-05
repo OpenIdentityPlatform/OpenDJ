@@ -22,24 +22,29 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
+
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -49,21 +54,17 @@ import org.forgerock.opendj.ldap.ResultCode;
 public class SetGenerationIdTask extends Task
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private String  domainString            = null;
-  private ReplicationDomain domain        = null;
-  private Long generationId = null;
+  private String  domainString;
+  private ReplicationDomain domain;
+  private Long generationId;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_SET_GENERATION_ID_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTask() throws DirectoryException
   {
@@ -76,10 +77,9 @@ public class SetGenerationIdTask extends Task
     Entry taskEntry = getTaskEntry();
 
     // Retrieves the eventual generation-ID
-    AttributeType typeNewValue =
-      getAttributeType(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE, true);
+    AttributeType typeNewValue = getAttributeType(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE, true);
     List<Attribute> attrList = taskEntry.getAttribute(typeNewValue);
-    if ((attrList != null) && !attrList.isEmpty())
+    if (attrList != null && !attrList.isEmpty())
     {
       try
       {
@@ -90,15 +90,12 @@ public class SetGenerationIdTask extends Task
         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_GENERATION_ID.get());
         mb.append(e.getMessage());
-        throw new DirectoryException(ResultCode.CLIENT_SIDE_PARAM_ERROR,
-            mb.toMessage());
+        throw new DirectoryException(ResultCode.CLIENT_SIDE_PARAM_ERROR, mb.toMessage());
       }
     }
 
     // Retrieves the replication domain
-    AttributeType typeDomainBase =
-      getAttributeType(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN, true);
-
+    AttributeType typeDomainBase = getAttributeType(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN, true);
     attrList = taskEntry.getAttribute(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
 
@@ -116,16 +113,13 @@ public class SetGenerationIdTask extends Task
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {
     if (logger.isTraceEnabled())
     {
-      logger.trace("setGenerationIdTask is starting on domain %s"
-              + domain.getBaseDNString());
+      logger.trace("setGenerationIdTask is starting on domain %s" + domain.getBaseDN());
     }
 
     try

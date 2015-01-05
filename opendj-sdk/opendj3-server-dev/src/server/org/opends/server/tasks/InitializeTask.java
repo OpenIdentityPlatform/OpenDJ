@@ -22,23 +22,28 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;
+
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -54,31 +59,19 @@ public class InitializeTask extends Task
   private LDAPReplicationDomain domain;
   private TaskState initState;
 
-  /**
-   * The total number of entries expected to be processed when this import will
-   * end successfully.
-   */
-  private long total = 0;
+  /** The total number of entries expected to be processed when this import will end successfully. */
+  private long total;
+  /** The number of entries still to be processed for this import to be completed. */
+  private long left;
+  private LocalizableMessage taskCompletionError;
 
-  /**
-   * The number of entries still to be processed for this import to be
-   * completed.
-   */
-  private long left = 0;
-
-  private LocalizableMessage taskCompletionError = null;
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_INITIALIZE_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override public void initializeTask() throws DirectoryException
   {
     if (TaskState.isDone(getTaskState()))
@@ -123,16 +116,13 @@ public class InitializeTask extends Task
     replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(0));
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {
     if (logger.isTraceEnabled())
     {
-      logger.trace("[IE] InitializeTask is starting on domain: %s "
-          + " from source:%d", domain.getBaseDNString(), source);
+      logger.trace("[IE] InitializeTask is starting on domain: %s from source:%d", domain.getBaseDN(), source);
     }
     initState = getTaskState();
     try
@@ -146,19 +136,18 @@ public class InitializeTask extends Task
         while (initState == TaskState.RUNNING)
         {
           initState.wait(1000);
-          replaceAttributeValue(
-              ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
-          replaceAttributeValue(
-              ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
+          replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
+          replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
         }
       }
       replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(left));
-      replaceAttributeValue(
-          ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
+      replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(total-left));
 
       // Error raised at completion time
       if (taskCompletionError != null)
+      {
         logger.error(taskCompletionError);
+      }
 
     }
     catch(InterruptedException ie) {}
@@ -185,9 +174,13 @@ public class InitializeTask extends Task
     try
     {
       if (de == null)
+      {
         initState =  TaskState.COMPLETED_SUCCESSFULLY;
+      }
       else
+      {
         taskCompletionError = de.getMessageObject();
+      }
     }
     finally
     {
