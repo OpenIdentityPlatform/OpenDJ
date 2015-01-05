@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.messages.ReplicationMessages.*;
+
 import java.util.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -39,9 +41,6 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is used to store historical information that is
@@ -97,13 +96,13 @@ public class EntryHistorical
    * an entry that has no historical attribute and after the last
    * historical has been purged.
    */
-  private CSN oldestCSN = null;
+  private CSN oldestCSN;
 
   /**
    * For stats/monitoring purpose, the number of historical values
    * purged the last time a purge has been applied on this entry historical.
    */
-  private int lastPurgedValuesCount = 0;
+  private int lastPurgedValuesCount;
 
 
   /**
@@ -146,10 +145,10 @@ public class EntryHistorical
    */
 
   /** The date when the entry was added. */
-  private CSN entryADDDate = null;
+  private CSN entryADDDate;
 
   /** The date when the entry was last renamed. */
-  private CSN entryMODDNDate = null;
+  private CSN entryMODDNDate;
 
   /**
    * Contains Historical information for each attribute sorted by attribute
@@ -158,9 +157,7 @@ public class EntryHistorical
   private HashMap<AttributeType,AttrHistoricalWithOptions> attributesHistorical
     = new HashMap<AttributeType,AttrHistoricalWithOptions>();
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -244,7 +241,9 @@ public class EntryHistorical
         // (eventually read from the provided modification)
         AttrHistorical attrHist = getOrCreateAttrHistorical(mod);
         if (attrHist != null)
+        {
           attrHist.processLocalOrNonConflictModification(csn, mod);
+        }
       }
     }
 
@@ -423,7 +422,9 @@ public class EntryHistorical
     // the potentially set purge delay.
     this.lastPurgedValuesCount = 0;
     if (purgeDelayInMillisec>0)
+    {
       purgeDate = TimeThread.getTime() - purgeDelayInMillisec;
+    }
 
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
@@ -597,15 +598,22 @@ public class EntryHistorical
   public CSN getDNDate()
   {
     if (entryADDDate == null)
+    {
       return entryMODDNDate;
-
+    }
     if (entryMODDNDate == null)
+    {
       return entryADDDate;
+    }
 
     if (entryMODDNDate.isOlderThan(entryADDDate))
+    {
       return entryMODDNDate;
+    }
     else
+    {
       return entryADDDate;
+    }
   }
 
   /**
@@ -859,8 +867,7 @@ public class EntryHistorical
   public static boolean isHistoricalAttribute(Attribute attr)
   {
     AttributeType attrType = attr.getAttributeType();
-    return
-      attrType.getNameOrOID().equals(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+    return EntryHistorical.HISTORICAL_ATTRIBUTE_NAME.equals(attrType.getNameOrOID());
   }
 
   /**
@@ -873,7 +880,9 @@ public class EntryHistorical
   {
     if (csn != null
         && (this.oldestCSN == null || csn.isOlderThan(this.oldestCSN)))
+    {
       this.oldestCSN = csn;
+    }
   }
 
   /**
