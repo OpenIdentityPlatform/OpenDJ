@@ -26,20 +26,21 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import java.io.Closeable;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.replication.server.changelog.api.*;
-
-import com.sleepycat.je.*;
-
 import static com.sleepycat.je.LockMode.*;
 import static com.sleepycat.je.OperationStatus.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+
+import java.io.Closeable;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+
+import com.sleepycat.je.*;
 
 /**
  * This class implements the interface between the underlying database
@@ -88,7 +89,7 @@ public class DraftCNDB
     {
       final long changeNumber = record.getChangeNumber();
       DatabaseEntry key = new ReplicationDraftCNKey(changeNumber);
-      DatabaseEntry data = new DraftCNData(changeNumber, record.getBaseDN().toString(), record.getCSN());
+      DatabaseEntry data = new DraftCNData(changeNumber, record.getBaseDN(), record.getCSN());
 
       // Use a transaction so that we can override durability.
       Transaction txn = null;
