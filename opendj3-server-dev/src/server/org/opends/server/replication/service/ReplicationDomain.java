@@ -26,6 +26,10 @@
  */
 package org.opends.server.replication.service;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.common.AssuredMode.*;
+import static org.opends.server.replication.common.StatusMachine.*;
+
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,10 +56,6 @@ import org.opends.server.tasks.InitializeTask;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.replication.common.AssuredMode.*;
-import static org.opends.server.replication.common.StatusMachine.*;
 
 /**
  * This class should be used as a base for Replication implementations.
@@ -434,7 +434,7 @@ public abstract class ReplicationDomain
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(initStatus))
     {
-      logger.error(ERR_DS_INVALID_INIT_STATUS, initStatus, getBaseDNString(), getServerId());
+      logger.error(ERR_DS_INVALID_INIT_STATUS, initStatus, getBaseDN(), getServerId());
     }
     else
     {
@@ -462,7 +462,7 @@ public abstract class ReplicationDomain
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      logger.error(ERR_DS_INVALID_REQUESTED_STATUS, reqStatus, getBaseDNString(), getServerId());
+      logger.error(ERR_DS_INVALID_REQUESTED_STATUS, reqStatus, getBaseDN(), getServerId());
       return;
     }
 
@@ -522,16 +522,6 @@ public abstract class ReplicationDomain
   public DN getBaseDN()
   {
     return config.getBaseDN();
-  }
-
-  /**
-   * Gets the baseDN of this domain.
-   *
-   * @return The baseDN for this domain.
-   */
-  public String getBaseDNString()
-  {
-    return getBaseDN().toString();
   }
 
   /**
@@ -1460,7 +1450,7 @@ public abstract class ReplicationDomain
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL,
-          countEntries(), getBaseDNString(), getServerId());
+          countEntries(), getBaseDN(), getServerId());
 
       ieCtx.startList.addAll(getReplicaInfos().keySet());
 
@@ -1476,7 +1466,7 @@ public abstract class ReplicationDomain
     else
     {
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START, countEntries(),
-          getBaseDNString(), getServerId(), serverToInitialize);
+          getBaseDN(), getServerId(), serverToInitialize);
 
       ieCtx.startList.add(serverToInitialize);
 
@@ -1526,8 +1516,7 @@ public abstract class ReplicationDomain
         {
           throw new DirectoryException(
               ResultCode.OTHER,
-              ERR_INIT_NO_SUCCESS_START_FROM_SERVERS.get(getBaseDNString(),
-                  ieCtx.failureList));
+              ERR_INIT_NO_SUCCESS_START_FROM_SERVERS.get(getBaseDN(), ieCtx.failureList));
         }
 
         exportBackend(new BufferedOutputStream(new ReplOutputStream(this)));
@@ -1633,12 +1622,12 @@ public abstract class ReplicationDomain
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL,
-          getBaseDNString(), getServerId(), cause);
+          getBaseDN(), getServerId(), cause);
     }
     else
     {
       logger.info(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END,
-          getBaseDNString(), getServerId(), serverToInitialize, cause);
+          getBaseDN(), getServerId(), serverToInitialize, cause);
     }
 
 
@@ -1974,9 +1963,8 @@ public abstract class ReplicationDomain
               && getConnectedRemoteDS(ieCtx.importSource) == null)
           {
             LocalizableMessage errMsg = ERR_INIT_EXPORTER_DISCONNECTION.get(
-                getBaseDNString(), getServerId(), ieCtx.importSource);
-            ieCtx.setExceptionIfNoneSet(new DirectoryException(
-                ResultCode.OTHER, errMsg));
+                getBaseDN(), getServerId(), ieCtx.importSource);
+            ieCtx.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER, errMsg));
             return null;
           }
         }
@@ -2171,7 +2159,7 @@ public abstract class ReplicationDomain
     }
 
     LocalizableMessage errMsg = !broker.isConnected()
-        ? ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDNString())
+        ? ERR_INITIALIZATION_FAILED_NOCONN.get(getBaseDN())
         : null;
 
     /*
@@ -2252,7 +2240,7 @@ public abstract class ReplicationDomain
     try
     {
       // Log starting
-      logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START, getBaseDNString(),
+      logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START, getBaseDN(),
           initTargetMsgReceived.getSenderID(), getServerId());
 
       // Go into full update status
@@ -2384,9 +2372,9 @@ public abstract class ReplicationDomain
       }
       finally
       {
+        String errorMsg = ieCtx.getException() != null ? ieCtx.getException().getLocalizedMessage() : "";
         logger.info(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END,
-            getBaseDNString(), initTargetMsgReceived.getSenderID(), getServerId(),
-            (ieCtx.getException() != null ? ieCtx.getException().getLocalizedMessage() : ""));
+            getBaseDN(), initTargetMsgReceived.getSenderID(), getServerId(), errorMsg);
         releaseIEContext();
       } // finally
     } // finally
@@ -2501,7 +2489,7 @@ public abstract class ReplicationDomain
     }
     if (!allSet)
     {
-      LocalizableMessage message = ERR_RESET_GENERATION_ID_FAILED.get(getBaseDNString());
+      LocalizableMessage message = ERR_RESET_GENERATION_ID_FAILED.get(getBaseDN());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
   }
@@ -2568,7 +2556,7 @@ public abstract class ReplicationDomain
 
     if (!isConnected())
     {
-      LocalizableMessage message = ERR_RESET_GENERATION_CONN_ERR_ID.get(getBaseDNString(),
+      LocalizableMessage message = ERR_RESET_GENERATION_CONN_ERR_ID.get(getBaseDN(),
           getServerId(), genIdMessage.getGenerationId());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -2948,7 +2936,7 @@ public abstract class ReplicationDomain
     synchronized (sessionLock)
     {
       final String threadName = "Replica DS(" + getServerId()
-          + ") listener for domain \"" + getBaseDNString() + "\"";
+          + ") listener for domain \"" + getBaseDN() + "\"";
 
       listenerThread = new DirectoryThread(new Runnable()
       {

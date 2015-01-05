@@ -22,27 +22,28 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+
 import java.io.IOException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 /**
  * This class defines a server handler, which handles all interaction with a
@@ -53,10 +54,7 @@ public class ReplicationServerHandler extends ServerHandler
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-  /**
-   * Properties filled only if remote server is a RS.
-   */
+  /** Properties filled only if remote server is a RS. */
   private String serverAddressURL;
   /**
    * this collection will contain as many elements as there are
@@ -514,7 +512,7 @@ public class ReplicationServerHandler extends ServerHandler
        * replicationServerDomain.setGenerationId(generationId, false);
        */
       logger.warn(WARN_BAD_GENERATION_ID_FROM_RS, serverId, session.getReadableRemoteAddress(), generationId,
-          getBaseDNString(), getReplicationServerId(), localGenerationId);
+          getBaseDN(), getReplicationServerId(), localGenerationId);
     }
   }
 

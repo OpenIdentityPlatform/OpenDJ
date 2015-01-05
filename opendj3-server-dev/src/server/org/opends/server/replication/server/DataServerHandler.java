@@ -22,23 +22,24 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import java.io.IOException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import java.util.*;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.replication.common.*;
-import org.opends.server.replication.protocol.*;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.replication.common.StatusMachine.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
+
+import java.io.IOException;
+import java.util.*;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.replication.common.*;
+import org.opends.server.replication.protocol.*;
+import org.opends.server.types.*;
 
 /**
  * This class defines a server handler, which handles all interaction with a
@@ -102,10 +103,9 @@ public class DataServerHandler extends ServerHandler
     if (event == StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT
         && status == ServerStatus.FULL_UPDATE_STATUS)
     {
-      // Prevent useless error message (full update status cannot lead to bad
-      // gen status)
+      // Prevent useless error message (full update status cannot lead to bad gen status)
       logger.info(NOTE_BAD_GEN_ID_IN_FULL_UPDATE, replicationServer.getServerId(),
-              getBaseDNString(), serverId, generationId, newGenId);
+          getBaseDN(), serverId, generationId, newGenId);
       return;
     }
 
@@ -132,7 +132,7 @@ public class DataServerHandler extends ServerHandler
       if (logger.isTraceEnabled())
       {
         logger.trace("In RS " + replicationServer.getServerId()
-            + ", DS " + getServerId() + " for baseDN=" + getBaseDNString()
+            + ", DS " + getServerId() + " for baseDN=" + getBaseDN()
             + " has already generation id " + newGenId
             + " so no ChangeStatusMsg sent to him.");
       }
@@ -146,10 +146,9 @@ public class DataServerHandler extends ServerHandler
     if (logger.isTraceEnabled())
     {
       logger.trace("In RS " + replicationServer.getServerId()
-          + ", closing connection to DS " + getServerId() + " for baseDN="
-          + getBaseDNString() + " to force reconnection as new local"
-          + " generationId and remote one match and DS is in bad gen id: "
-          + newGenId);
+          + ", closing connection to DS " + getServerId() + " for baseDN=" + getBaseDN()
+          + " to force reconnection as new local generationId"
+          + " and remote one match and DS is in bad gen id: " + newGenId);
     }
 
     // Connection closure must not be done calling RSD.stopHandler() as it
@@ -214,7 +213,7 @@ public class DataServerHandler extends ServerHandler
     {
       logger.trace("In RS " + replicationServer.getServerId()
           + " Sending change status " + origin + " to " + getServerId()
-          + " for baseDN=" + getBaseDNString() + ":\n" + csMsg);
+          + " for baseDN=" + getBaseDN() + ":\n" + csMsg);
     }
 
     session.publish(csMsg);
@@ -599,8 +598,7 @@ public class DataServerHandler extends ServerHandler
       if (generationId != localGenerationId)
       {
         logger.warn(WARN_BAD_GENERATION_ID_FROM_DS, serverId, session.getReadableRemoteAddress(),
-            generationId, getBaseDNString(),
-            getReplicationServerId(), localGenerationId);
+            generationId, getBaseDN(), getReplicationServerId(), localGenerationId);
       }
     }
     else
@@ -611,8 +609,7 @@ public class DataServerHandler extends ServerHandler
         // If the LDAP server has already sent changes
         // it is not expected to connect to an empty RS
         logger.warn(WARN_BAD_GENERATION_ID_FROM_DS, serverId, session.getReadableRemoteAddress(),
-            generationId, getBaseDNString(),
-            getReplicationServerId(), localGenerationId);
+            generationId, getBaseDN(), getReplicationServerId(), localGenerationId);
       }
       else
       {
@@ -620,8 +617,7 @@ public class DataServerHandler extends ServerHandler
         // WARNING: Must be done before computing topo message to send
         // to peer server as topo message must embed valid generation id
         // for our server
-        oldGenerationId =
-            replicationServerDomain.changeGenerationId(generationId);
+        oldGenerationId = replicationServerDomain.changeGenerationId(generationId);
       }
     }
     return startSessionMsg;

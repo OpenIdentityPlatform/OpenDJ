@@ -26,6 +26,10 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.types.Attributes.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -47,10 +51,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.types.Attributes.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a buffering/producer/consumer mechanism of
@@ -557,16 +557,6 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   protected DN getBaseDN()
   {
     return baseDN;
-  }
-
-  /**
-   * Get the baseDN for this handler as a String.
-   *
-   * @return The name of the baseDN.
-   */
-  protected String getBaseDNString()
-  {
-    return baseDN.toString();
   }
 
   /**

@@ -22,25 +22,30 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -56,17 +61,13 @@ public class InitializeTargetTask extends Task
   private int target;
   private long total;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getDisplayName() {
     return TaskMessages.INFO_TASK_INITIALIZE_TARGET_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTask() throws DirectoryException
   {
@@ -78,10 +79,8 @@ public class InitializeTargetTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase =
-      getAttributeType(ATTR_TASK_INITIALIZE_TARGET_DOMAIN_DN, true);
-    AttributeType typeScope =
-      getAttributeType(ATTR_TASK_INITIALIZE_TARGET_SCOPE, true);
+    AttributeType typeDomainBase = getAttributeType(ATTR_TASK_INITIALIZE_TARGET_DOMAIN_DN, true);
+    AttributeType typeScope = getAttributeType(ATTR_TASK_INITIALIZE_TARGET_SCOPE, true);
 
     List<Attribute> attrList = taskEntry.getAttribute(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
@@ -108,15 +107,14 @@ public class InitializeTargetTask extends Task
     setTotal(0);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected TaskState runTask()
   {
     if (logger.isTraceEnabled())
-      logger.trace("[IE] InitializeTargetTask is starting on domain: "
-          + domain.getBaseDNString());
+    {
+      logger.trace("[IE] InitializeTargetTask is starting on domain: " + domain.getBaseDN());
+    }
 
     try
     {

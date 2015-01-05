@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -34,11 +34,25 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationDomain;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 @SuppressWarnings("javadoc")
 public class DummyReplicationDomain extends ReplicationDomain
 {
+
+  private static DN baseDN;
+  static
+  {
+    try
+    {
+      baseDN = DN.valueOf("cn=DummyReplicationDomain");
+    }
+    catch (DirectoryException e)
+    {
+      throw new RuntimeException(e);
+    }
+  }
 
   public DummyReplicationDomain(long generationId)
   {
@@ -46,9 +60,9 @@ public class DummyReplicationDomain extends ReplicationDomain
   }
 
   @Override
-  public String getBaseDNString()
+  public DN getBaseDN()
   {
-    return "DummyReplicationDomain";
+    return baseDN;
   }
 
   @Override

@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import java.io.IOException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import static org.opends.messages.ReplicationMessages.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -37,18 +37,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.opends.messages.ReplicationMessages.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class defines a server handler  :
@@ -510,7 +512,7 @@ public abstract class ServerHandler extends MessageHandler
     List<Attribute> attributes = super.getMonitorData();
 
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name", getBaseDNString()));
+    attributes.add(Attributes.create("domain-name", String.valueOf(getBaseDN())));
 
     // Deprecated
     attributes.add(Attributes.create("max-waiting-changes", String
@@ -789,10 +791,7 @@ public abstract class ServerHandler extends MessageHandler
     if (!lockAcquired)
     {
       LocalizableMessage message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
-          getBaseDNString(),
-          serverId,
-          session.getReadableRemoteAddress(),
-          getReplicationServerId());
+          getBaseDN(), serverId, session.getReadableRemoteAddress(), getReplicationServerId());
       throw new DirectoryException(ResultCode.OTHER, message);
     }
   }
@@ -1199,9 +1198,9 @@ public abstract class ServerHandler extends MessageHandler
     if (isDataServer())
     {
       return ERR_DS_BADLY_DISCONNECTED.get(getReplicationServerId(),
-          getServerId(), session.getReadableRemoteAddress(), getBaseDNString());
+          getServerId(), session.getReadableRemoteAddress(), getBaseDN());
     }
     return ERR_RS_BADLY_DISCONNECTED.get(getReplicationServerId(),
-        getServerId(), session.getReadableRemoteAddress(), getBaseDNString());
+        getServerId(), session.getReadableRemoteAddress(), getBaseDN());
   }
 }
