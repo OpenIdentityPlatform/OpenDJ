@@ -22,31 +22,30 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS.
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.je;
+
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.UnsupportedEncodingException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 import com.sleepycat.je.DatabaseEntry;
 
-import static org.opends.server.util.StaticUtils.*;
-
 /**
- * SuperClass of DatabaseEntry used for data stored in the DraftCNDB.
+ * Subclass of DatabaseEntry used for data stored in the DraftCNDB.
  */
 public class DraftCNData extends DatabaseEntry
 {
   private static final String FIELD_SEPARATOR = "!";
-
   private static final String EMPTY_STRING_PREVIOUS_COOKIE = "";
-
   private static final long serialVersionUID = 1L;
 
   private long changeNumber;
@@ -62,7 +61,7 @@ public class DraftCNData extends DatabaseEntry
    * @param csn
    *          The replication CSN
    */
-  public DraftCNData(long changeNumber, String baseDN, CSN csn)
+  public DraftCNData(long changeNumber, DN baseDN, CSN csn)
   {
     this.changeNumber = changeNumber;
     // Although the previous cookie is not used any more, we need
