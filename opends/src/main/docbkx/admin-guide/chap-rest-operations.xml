@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013-2014 ForgeRock AS
+  !      Copyright 2013-2015 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-rest-operations'
@@ -997,12 +997,170 @@ $ <userinput>curl \
   <title>Querying Resource Collections</title>
 
   <para>To query resource collections, perform an HTTP GET with a
-  <literal>_queryFilter=<replaceable>filter</replaceable></literal> parameter
+  <literal>_queryFilter=<replaceable>expression</replaceable></literal> parameter
   in your query string.</para>
 
+  <para>
+   The following listing summarizes the string representation
+   for the filter expression.
+   Continue reading for additional explanation.
+  </para>
+
+  <programlisting language="none">
+Expr           = OrExpr
+OrExpr         = AndExpr ( 'or' AndExpr ) *
+AndExpr        = NotExpr ( 'and' NotExpr ) *
+NotExpr        = '!' PrimaryExpr | PrimaryExpr
+PrimaryExpr    = '(' Expr ')' | ComparisonExpr | PresenceExpr | LiteralExpr
+ComparisonExpr = Pointer OpName JsonValue
+PresenceExpr   = Pointer 'pr'
+LiteralExpr    = 'true' | 'false'
+Pointer        = JSON pointer
+OpName         = 'eq' |  # equal to
+                 'co' |  # contains
+                 'sw' |  # starts with
+                 'lt' |  # less than
+                 'le' |  # less than or equal to
+                 'gt' |  # greater than
+                 'ge' |  # greater than or equal to
+                 STRING  # extended operator
+JsonValue      = NUMBER | BOOLEAN | '"' UTF8STRING '"'
+STRING         = ASCII string not containing white-space
+UTF8STRING     = UTF-8 string possibly containing white-space
+  </programlisting>
+
+  <para>
+   The following table shows some LDAP search filters
+   with corresponding query filter expressions.
+  </para>
+
+  <table pgwide="1">
+   <title>LDAP Search and REST Query Filters</title>
+
+   <tgroup cols="2">
+
+    <colspec colnum="1" colwidth="1*" />
+    <colspec colnum="2" colwidth="1*" />
+
+    <thead>
+     <row>
+      <entry>
+       LDAP Filter
+      </entry>
+
+      <entry>
+       REST Filter
+      </entry>
+     </row>
+    </thead>
+
+    <tbody>
+     <row>
+      <entry>
+       (&amp;)
+      </entry>
+
+      <entry>
+       _queryFilter=true
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (uid=*)
+      </entry>
+
+      <entry>
+       _queryFilter=_id+pr
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (uid=bjensen)
+      </entry>
+
+      <entry>
+       _queryFilter=_id+eq+"bjensen"
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (uid=*jensen*)
+      </entry>
+
+      <entry>
+       _queryFilter=_id+co+"jensen"
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (uid=jensen*)
+      </entry>
+
+      <entry>
+       _queryFilter=_id+sw+"jensen"
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (&amp;(uid=*jensen*)(cn=babs*))
+      </entry>
+
+      <entry>
+       _queryFilter=(_id+co+"jensen"+and+displayName+sw+"babs")
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (|(uid=*jensen*)(cn=sam*))
+      </entry>
+
+      <entry>
+       _queryFilter=(_id+co+"jensen"+or+displayName+sw+"sam")
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (!(uid=*jensen*))
+      </entry>
+
+      <entry>
+       _queryFilter=!(_id+co+"jensen")
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (uid&lt;=jensen)
+      </entry>
+
+      <entry>
+       _queryFilter=_id+le+"jensen"
+      </entry>
+     </row>
+
+     <row>
+      <entry>
+       (uid>=jensen)
+      </entry>
+
+      <entry>
+       _queryFilter=_id+ge+"jensen"
+      </entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
+
   <variablelist>
-   <para>For query operations, your <replaceable>filter</replaceable>
-   expressions are constructed from the following building blocks.
+   <para>For query operations, your filter <replaceable>expression</replaceable>
+   is constructed from the following building blocks.
    Make sure you URL encode the filter expressions, which are shown here
    without URL encoding to make them easier to read.</para>
 
