@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
+
+import static org.opends.messages.JebMessages.*;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -43,11 +46,7 @@ import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
 
-import static org.opends.messages.JebMessages.*;
-
-/**
- * This class is used to run an index verification process on the backend.
- */
+/** This class is used to run an index verification process on the backend. */
 public class VerifyJob
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -95,14 +94,9 @@ public class VerifyJob
   /** The subtree database. */
   private Index id2s;
 
-  /**
-   * A list of the attribute indexes to be verified.
-   */
+  /** A list of the attribute indexes to be verified. */
   private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
-
-  /**
-   * A list of the VLV indexes to be verified.
-   */
+  /** A list of the VLV indexes to be verified. */
   private final ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
 
   /**
@@ -135,8 +129,8 @@ public class VerifyJob
     entryContainer.sharedLock.lock();
     try
     {
-      ArrayList<String> completeList = verifyConfig.getCompleteList();
-      ArrayList<String> cleanList = verifyConfig.getCleanList();
+      final List<String> completeList = verifyConfig.getCompleteList();
+      final List<String> cleanList = verifyConfig.getCleanList();
 
       boolean cleanMode = false;
       if (completeList.isEmpty() && cleanList.isEmpty())
@@ -151,7 +145,7 @@ public class VerifyJob
       }
       else
       {
-        ArrayList<String> list;
+        final List<String> list;
         if (!completeList.isEmpty())
         {
           list = completeList;
