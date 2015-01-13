@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2014 ForgeRock AS.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
+
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 import java.util.List;
 
@@ -36,8 +38,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.server.config.server.CoreSchemaCfg;
 import org.opends.server.types.InitializationException;
-
-import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 
 /**
  * Provides the core schema, which includes core matching rules and syntaxes.
@@ -156,8 +156,9 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
     final boolean isUpdated = schemaUpdater.updateSchema(currentSchemaBuilder);
 
     // TODO : fix result code + log an error in case of failure
-    final ResultCode code = isUpdated ? ResultCode.SUCCESS : ResultCode.OTHER;
-    return new ConfigChangeResult(code, false);
+    final ConfigChangeResult result = new ConfigChangeResult();
+    result.setResultCode(isUpdated ? ResultCode.SUCCESS : ResultCode.OTHER);
+    return result;
   }
 
 }

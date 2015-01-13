@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -206,7 +206,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
       thenReturn(true);
     when(listener.applyConfigurationAdd(any(Entry.class))).
-      thenReturn(new ConfigChangeResult(ResultCode.SUCCESS, false));
+      thenReturn(new ConfigChangeResult());
 
     configHandler.addEntry(new LinkedHashMapEntry(dn));
 
@@ -229,13 +229,15 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   @Test(expectedExceptions=DirectoryException.class)
   public void testAddListenerWithAddEntryWhenFailureApplyingConfig() throws Exception
   {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    ccr.setResultCode(ResultCode.OTHER);
     ConfigurationHandler configHandler = getConfigurationHandler();
     ConfigAddListener listener = mock(ConfigAddListener.class);
     configHandler.registerAddListener(DN_SCHEMA_PROVIDERS, listener);
     when(listener.configAddIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
       thenReturn(true);
     when(listener.applyConfigurationAdd(any(Entry.class))).
-      thenReturn(new ConfigChangeResult(ResultCode.OTHER, false));
+      thenReturn(ccr);
 
     configHandler.addEntry(new LinkedHashMapEntry("cn=New schema provider,cn=Schema Providers,cn=config"));
   }
@@ -284,7 +286,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
       thenReturn(true);
     when(listener.applyConfigurationDelete(any(Entry.class))).
-      thenReturn(new ConfigChangeResult(ResultCode.SUCCESS, false));
+      thenReturn(new ConfigChangeResult());
 
     configHandler.deleteEntry(DN_CORE_SCHEMA);
 
@@ -310,12 +312,15 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   {
     ConfigurationHandler configHandler = getConfigurationHandler();
 
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    ccr.setResultCode(ResultCode.OTHER);
+
     ConfigDeleteListener listener = mock(ConfigDeleteListener.class);
     configHandler.registerDeleteListener(DN_SCHEMA_PROVIDERS, listener);
     when(listener.configDeleteIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
       thenReturn(true);
     when(listener.applyConfigurationDelete(any(Entry.class))).
-      thenReturn(new ConfigChangeResult(ResultCode.OTHER, false));
+      thenReturn(ccr);
 
     configHandler.deleteEntry(DN_CORE_SCHEMA);
   }
@@ -344,7 +349,7 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
     when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
       thenReturn(true);
     when(listener.applyConfigurationChange(any(Entry.class))).
-      thenReturn(new ConfigChangeResult(ResultCode.SUCCESS, false));
+      thenReturn(new ConfigChangeResult());
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,
@@ -378,12 +383,15 @@ public class ConfigurationHandlerTestCase extends CoreTestCase
   {
     ConfigurationHandler configHandler = getConfigurationHandler();
 
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+    ccr.setResultCode(ResultCode.OTHER);
+
     ConfigChangeListener listener = mock(ConfigChangeListener.class);
     configHandler.registerChangeListener(DN_CORE_SCHEMA, listener);
     when(listener.configChangeIsAcceptable(any(Entry.class), any(LocalizableMessageBuilder.class))).
       thenReturn(true);
     when(listener.applyConfigurationChange(any(Entry.class))).
-      thenReturn(new ConfigChangeResult(ResultCode.OTHER, false));
+      thenReturn(ccr);
     Entry oldEntry = configHandler.getEntry(DN_CORE_SCHEMA);
 
     configHandler.replaceEntry(oldEntry,
