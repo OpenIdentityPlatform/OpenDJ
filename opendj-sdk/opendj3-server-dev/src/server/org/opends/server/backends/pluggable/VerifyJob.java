@@ -25,6 +25,10 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
+
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.backends.pluggable.JebFormat.*;
+
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,12 +66,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.backends.pluggable.JebFormat.*;
-
-/**
- * This class is used to run an index verification process on the backend.
- */
+/** This class is used to run an index verification process on the backend. */
 public class VerifyJob
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -115,14 +114,9 @@ public class VerifyJob
   /** The subtree database. */
   private Index id2s;
 
-  /**
-   * A list of the attribute indexes to be verified.
-   */
+  /** A list of the attribute indexes to be verified. */
   private final ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
-
-  /**
-   * A list of the VLV indexes to be verified.
-   */
+  /** A list of the VLV indexes to be verified. */
   private final ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
 
   /**
@@ -174,8 +168,8 @@ public class VerifyJob
     entryContainer.sharedLock.lock();
     try
     {
-      ArrayList<String> completeList = verifyConfig.getCompleteList();
-      ArrayList<String> cleanList = verifyConfig.getCleanList();
+      final List<String> completeList = verifyConfig.getCompleteList();
+      final List<String> cleanList = verifyConfig.getCleanList();
 
       boolean cleanMode = false;
       if (completeList.isEmpty() && cleanList.isEmpty())
@@ -190,7 +184,7 @@ public class VerifyJob
       }
       else
       {
-        ArrayList<String> list;
+        final List<String> list;
         if (!completeList.isEmpty())
         {
           list = completeList;
@@ -1255,7 +1249,7 @@ public class VerifyJob
       {
         try
         {
-          ConditionResult cr = id2c.containsID(null, parentID.toByteString(), entryID);
+          ConditionResult cr = id2c.containsID(txn, parentID.toByteString(), entryID);
           if (cr == ConditionResult.FALSE)
           {
             if (logger.isTraceEnabled())
@@ -1319,8 +1313,7 @@ public class VerifyJob
       {
         try
         {
-          ConditionResult cr;
-          cr = id2s.containsID(null, id.toByteString(), entryID);
+          ConditionResult cr = id2s.containsID(txn, id.toByteString(), entryID);
           if (cr == ConditionResult.FALSE)
           {
             if (logger.isTraceEnabled())
@@ -1429,8 +1422,8 @@ public class VerifyJob
       try
       {
         if (vlvIndex.shouldInclude(entry)
-            && !vlvIndex.containsValues(null, entryID.longValue(),
-                    vlvIndex.getSortValues(entry), vlvIndex.getSortTypes()))
+            && !vlvIndex.containsValues(
+                    txn, entryID.longValue(), vlvIndex.getSortValues(entry), vlvIndex.getSortTypes()))
         {
           if(logger.isTraceEnabled())
           {
