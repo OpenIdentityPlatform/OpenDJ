@@ -22,9 +22,15 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -51,12 +58,6 @@ import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
@@ -82,9 +83,7 @@ public class BackendImpl extends Backend<PersistitBackendCfg> implements
   private MonitorProvider<?> rootContainerMonitor;
   private DiskSpaceMonitor diskMonitor;
 
-  /**
-   * The controls supported by this backend.
-   */
+  /** The controls supported by this backend. */
   private static final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
       OID_SUBTREE_DELETE_CONTROL,
       OID_PAGED_RESULTS_CONTROL,

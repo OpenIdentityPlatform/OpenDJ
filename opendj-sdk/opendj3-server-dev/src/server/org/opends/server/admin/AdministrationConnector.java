@@ -40,6 +40,7 @@ import javax.naming.ldap.Rdn;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -57,7 +58,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.SynchronousStrategy;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
-import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;

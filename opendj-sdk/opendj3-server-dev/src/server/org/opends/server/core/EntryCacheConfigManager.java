@@ -48,7 +48,7 @@ import org.opends.server.config.ConfigEntry;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 

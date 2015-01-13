@@ -22,19 +22,15 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.server;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.admin.Configuration;
-import org.opends.server.types.ConfigChangeResult;
-
-
 
 /**
  * This interface defines the methods that a Directory Server
@@ -62,8 +58,6 @@ public interface ConfigurationChangeListener<T extends Configuration> {
    */
   public boolean isConfigurationChangeAcceptable(T configuration,
       List<LocalizableMessage> unacceptableReasons);
-
-
 
   /**
    * Applies the configuration changes to this change listener.

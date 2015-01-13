@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
+
+import static org.opends.messages.PluginMessages.*;
 
 import java.util.List;
 import java.util.Set;
@@ -37,6 +39,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -46,8 +49,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
-
-import static org.opends.messages.PluginMessages.*;
 
 /**
  * This class implements a Directory Server plugin that can be used to ensure
@@ -59,17 +60,11 @@ public final class SevenBitCleanPlugin
        extends DirectoryServerPlugin<SevenBitCleanPluginCfg>
        implements ConfigurationChangeListener<SevenBitCleanPluginCfg>
 {
-  /**
-   * The bitmask that will be used to make the comparisons.
-   */
-  private static final byte MASK = (byte) 0x7F;
+  /** The bitmask that will be used to make the comparisons. */
+  private static final byte MASK = 0x7F;
 
-
-
-  // The current configuration for this plugin.
+  /** The current configuration for this plugin. */
   private SevenBitCleanPluginCfg currentConfig;
-
-
 
   /**
    * Creates a new instance of this Directory Server plugin.  Every plugin must

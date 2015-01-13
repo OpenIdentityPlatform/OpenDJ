@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011-2012 profiq s.r.o.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.plugins;
 
@@ -47,6 +47,7 @@ import org.opends.server.admin.std.server.SambaPasswordPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.core.DirectoryServer;

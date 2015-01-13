@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,17 +39,15 @@ import org.testng.annotations.Test;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.meta.
-            RepeatedCharactersPasswordValidatorCfgDefn;
-import org.opends.server.admin.std.server.
-            RepeatedCharactersPasswordValidatorCfg;
+import org.opends.server.admin.std.meta.RepeatedCharactersPasswordValidatorCfgDefn;
+import org.opends.server.admin.std.server.RepeatedCharactersPasswordValidatorCfg;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -57,10 +55,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
-
-import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the repeated characters password validator.
@@ -73,7 +67,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -270,7 +264,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordIsAcceptable2Consecutive()
          throws Exception
   {
@@ -339,7 +333,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordIsAcceptable3Consecutive()
          throws Exception
   {
@@ -407,7 +401,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordIsAcceptableCaseSensitive()
          throws Exception
   {
@@ -476,7 +470,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordIsAcceptableCaseInsensitive()
          throws Exception
   {
@@ -543,7 +537,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordIsAcceptableUnlimitedRepeats()
          throws Exception
   {
@@ -611,7 +605,7 @@ public class RepeatedCharactersPasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordIsAcceptableConfigurationChange()
          throws Exception
   {

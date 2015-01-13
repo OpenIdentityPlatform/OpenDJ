@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  *
  */
 package org.opends.server.schema;
 
-
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 import java.util.List;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -39,13 +40,10 @@ import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.types.ConfigChangeResult;
-import static org.opends.messages.SchemaMessages.*;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.server.schema.SchemaConstants.*;
-
 
 /**
  * This class implements the JPEG attribute syntax.  This is actually

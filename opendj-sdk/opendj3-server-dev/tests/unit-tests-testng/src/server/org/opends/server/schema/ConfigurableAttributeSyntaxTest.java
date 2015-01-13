@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -39,7 +39,7 @@ import org.opends.server.admin.std.meta.TelephoneNumberAttributeSyntaxCfgDefn;
 import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.testng.annotations.DataProvider;

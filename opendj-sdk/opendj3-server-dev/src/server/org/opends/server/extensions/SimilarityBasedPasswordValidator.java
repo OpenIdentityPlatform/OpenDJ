@@ -22,25 +22,25 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
+
+import static org.opends.messages.ExtensionMessages.*;
 
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.api.PasswordValidator;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.PasswordValidator;
+import org.opends.server.types.*;
 import org.opends.server.util.LevenshteinDistance;
 import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-
-import static org.opends.messages.ExtensionMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-
 
 /**
  * This class provides a password validator that can ensure that the provided

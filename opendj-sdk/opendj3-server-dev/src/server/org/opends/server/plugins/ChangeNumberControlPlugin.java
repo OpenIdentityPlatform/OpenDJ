@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.plugins;
@@ -45,7 +45,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.operation.PostOperationAddOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
