@@ -22,37 +22,33 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.server;
-
-
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.DefinitionDecodingException;
+import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
-
-
 
 /**
  * An adaptor class which converts {@link ConfigAddListener} callbacks
@@ -161,6 +157,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry) {
     if (optionalRelation != null) {
       // Optional managed objects are located directly beneath the
@@ -174,8 +171,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
       }
     }
 
-    // Cached objects are guaranteed to be from previous acceptable
-    // callback.
+    // Cached objects are guaranteed to be from previous acceptable callback.
     ConfigChangeResult result = listener
         .applyConfigurationAdd(cachedManagedObject);
 
@@ -203,6 +199,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();

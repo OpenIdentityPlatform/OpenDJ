@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -35,7 +35,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 
 /**

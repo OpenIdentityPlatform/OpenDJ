@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.plugins;
-
-
 
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -51,6 +49,7 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicy;
@@ -61,7 +60,6 @@ import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
-
 
 /**
  * This class implements a Directory Server plugin that performs various

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -37,7 +37,7 @@ import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.DSRSShutdownSync;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 
 /**
  * This class is used to create and object that can

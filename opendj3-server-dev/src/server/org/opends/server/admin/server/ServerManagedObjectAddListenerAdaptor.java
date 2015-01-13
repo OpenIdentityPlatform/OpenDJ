@@ -22,19 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.server;
-
-
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.admin.Configuration;
-import org.opends.server.types.ConfigChangeResult;
-
-
 
 /**
  * An adaptor class which converts
@@ -69,6 +65,7 @@ final class ServerManagedObjectAddListenerAdaptor<T extends Configuration>
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       ServerManagedObject<? extends T> mo) {
     return listener.applyConfigurationAdd(mo.getConfiguration());
@@ -91,6 +88,7 @@ final class ServerManagedObjectAddListenerAdaptor<T extends Configuration>
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {
     return listener.isConfigurationAddAcceptable(mo.getConfiguration(),

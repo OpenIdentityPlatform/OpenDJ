@@ -46,7 +46,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 

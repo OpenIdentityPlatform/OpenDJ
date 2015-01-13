@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
-
-
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +41,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
@@ -52,7 +51,6 @@ import org.opends.server.types.operation.PreOperationModifyOperation;
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.TimeThread.*;
-
 
 /**
  * This class implements a Directory Server plugin that will add the

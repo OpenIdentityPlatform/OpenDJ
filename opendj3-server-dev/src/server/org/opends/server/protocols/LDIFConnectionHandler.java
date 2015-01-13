@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols;
-
-
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +44,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
 import org.opends.server.types.ExistingFileBehavior;

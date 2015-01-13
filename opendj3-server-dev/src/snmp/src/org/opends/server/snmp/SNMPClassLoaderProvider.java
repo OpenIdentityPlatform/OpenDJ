@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.snmp;
 
 import com.sun.management.comm.CommunicatorServer;
 
 import java.io.File;
-
 
 import com.sun.management.comm.SnmpV3AdaptorServer;
 import com.sun.management.snmp.InetAddressAcl;
@@ -46,7 +45,7 @@ import javax.management.ObjectName;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.util.StaticUtils;
 import org.forgerock.util.Reject;
 

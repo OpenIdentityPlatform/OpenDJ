@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -50,7 +50,7 @@ import org.opends.server.api.WorkQueue;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.TraditionalWorkQueueMonitor;
 import org.opends.server.types.CancelRequest;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;

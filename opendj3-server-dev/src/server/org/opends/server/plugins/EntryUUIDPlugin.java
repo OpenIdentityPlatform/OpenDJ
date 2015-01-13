@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.admin.server.ConfigurationChangeListener;

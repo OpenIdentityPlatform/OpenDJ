@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.backends;
 
@@ -39,6 +39,7 @@ import org.opends.server.admin.std.server.MonitorBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;

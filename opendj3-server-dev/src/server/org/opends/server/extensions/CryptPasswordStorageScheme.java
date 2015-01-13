@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS
+ *      Portions Copyright 2010-2015 ForgeRock AS
  *      Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
  */
 package org.opends.server.extensions;
@@ -36,6 +36,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;

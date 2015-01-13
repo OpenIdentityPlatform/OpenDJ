@@ -22,16 +22,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
-
-
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.opends.server.config.ConfigEntry;
 
 /**
  * This interface defines the methods that a Directory Server
@@ -63,8 +60,6 @@ public interface ConfigAddListener
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
                       LocalizableMessageBuilder unacceptableReason);
 
-
-
   /**
    * Attempts to apply a new configuration based on the provided added
    * entry.
@@ -75,7 +70,5 @@ public interface ConfigAddListener
    * @return  Information about the result of processing the
    *          configuration change.
    */
-  public ConfigChangeResult applyConfigurationAdd(
-                                 ConfigEntry configEntry);
+  public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry);
 }
-

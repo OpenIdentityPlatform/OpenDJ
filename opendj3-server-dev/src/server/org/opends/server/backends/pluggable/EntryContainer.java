@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions copyright 2013 Manuel Gaupp
  */
 package org.opends.server.backends.pluggable;
@@ -88,7 +88,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;

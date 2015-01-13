@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  *      Portions Copyright 2013-2014 Manuel Gaupp
  */
 package org.opends.server.schema;
@@ -40,7 +40,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.io.ASN1Reader;
