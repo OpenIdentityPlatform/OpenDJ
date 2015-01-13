@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -48,7 +48,7 @@ public final class ConfigChangeResult
    * A set of messages describing the changes that were made, any action that
    * may be required, or any problems that were encountered.
    */
-  private final List<LocalizableMessage> messages;
+  private final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
   /**
    * Indicates whether one or more of the changes requires administrative action
@@ -57,34 +57,12 @@ public final class ConfigChangeResult
   private boolean adminActionRequired;
 
   /** The result code to return to the client from this configuration change. */
-  private ResultCode resultCode;
+  private ResultCode resultCode = ResultCode.SUCCESS;
 
   /** Creates a new mutable config change result object. */
   public ConfigChangeResult()
   {
-    this(ResultCode.SUCCESS, false, new ArrayList<LocalizableMessage>());
-  }
-
-  /**
-   * Creates a new config change result object with the provided
-   * information.
-   *
-   * @param  resultCode           The result code for this config
-   *                              change result.
-   * @param  adminActionRequired  Indicates whether administrative
-   *                              action is required for one or more
-   *                              of the changes to take effect.
-   * @param  messages             A set of messages that provide
-   *                              additional information about the
-   *                              change processing.
-   */
-  public ConfigChangeResult(ResultCode resultCode,
-                            boolean adminActionRequired,
-                            List<LocalizableMessage> messages)
-  {
-    this.resultCode          = resultCode;
-    this.adminActionRequired = adminActionRequired;
-    this.messages            = messages;
+    super();
   }
 
   /**

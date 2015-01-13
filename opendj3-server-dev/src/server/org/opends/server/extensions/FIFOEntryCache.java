@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
+
+import static org.opends.messages.ExtensionMessages.*;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -33,14 +35,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
@@ -48,10 +51,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LockManager;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.Attribute;
 import org.opends.server.util.ServerConstants;
-
-import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class defines a Directory Server entry cache that uses a FIFO to keep
@@ -90,61 +90,52 @@ public class FIFOEntryCache
    */
   private static final Runtime runtime = Runtime.getRuntime();
 
-  // The mapping between entry backends/IDs and entries.
-  private HashMap<Backend,HashMap<Long,CacheEntry>> idMap;
+  /** The mapping between entry backends/IDs and entries. */
+  private HashMap<Backend<?>, HashMap<Long, CacheEntry>> idMap;
 
-  // The mapping between DNs and entries.
+  /** The mapping between DNs and entries. */
   private LinkedHashMap<DN,CacheEntry> dnMap;
 
-  // The lock used to provide threadsafe access when changing the contents of
-  // the cache.
+  /**
+   * The lock used to provide threadsafe access when changing the contents of
+   * the cache.
+   */
   private ReentrantReadWriteLock cacheLock;
   private Lock cacheWriteLock;
   private Lock cacheReadLock;
 
-  // The maximum amount of memory in bytes that the JVM will be allowed to use
-  // before we need to start purging entries.
+  /**
+   * The maximum amount of memory in bytes that the JVM will be allowed to use
+   * before we need to start purging entries.
+   */
   private long maxAllowedMemory;
 
-  // The maximum number of entries that may be held in the cache.
+  /** The maximum number of entries that may be held in the cache. */
   private long maxEntries;
 
-  // Currently registered configuration object.
+  /** Currently registered configuration object. */
   private FIFOEntryCacheCfg registeredConfiguration;
 
-  // The maximum length of time to try to obtain a lock before giving
-  // up.
+  /** The maximum length of time to try to obtain a lock before giving up. */
   private long lockTimeout = LockManager.DEFAULT_TIMEOUT;
 
-
-
-  /**
-   * Creates a new instance of this FIFO entry cache.
-   */
+  /** Creates a new instance of this FIFO entry cache. */
   public FIFOEntryCache()
   {
     super();
-
-
     // All initialization should be performed in the initializeEntryCache.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void initializeEntryCache(
-      FIFOEntryCacheCfg configuration
-      )
+  public void initializeEntryCache(FIFOEntryCacheCfg configuration)
       throws ConfigException, InitializationException
   {
     registeredConfiguration = configuration;
     configuration.addFIFOChangeListener (this);
 
     // Initialize the cache structures.
-    idMap     = new HashMap<Backend,HashMap<Long,CacheEntry>>();
+    idMap     = new HashMap<Backend<?>, HashMap<Long, CacheEntry>>();
     dnMap     = new LinkedHashMap<DN,CacheEntry>();
 
     // Initialize locks.
@@ -165,11 +156,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeEntryCache()
   {
@@ -191,11 +178,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean containsEntry(DN entryDN)
   {
@@ -212,11 +195,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
   {
@@ -238,11 +217,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getEntryID(DN entryDN)
   {
@@ -250,21 +225,13 @@ public class FIFOEntryCache
     cacheReadLock.lock();
     try {
       CacheEntry e = dnMap.get(entryDN);
-      if (e == null) {
-        return -1;
-      } else {
-        return e.getEntryID();
-      }
+      return e != null ? e.getEntryID() : -1;
     } finally {
       cacheReadLock.unlock();
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getEntryDN(Backend backend, long entryID)
   {
@@ -284,11 +251,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void putEntry(Entry entry, Backend backend, long entryID)
   {
@@ -379,10 +342,10 @@ public class FIFOEntryCache
         // cache.  If so, then see if we have exceeded it and we need to purge
         // entries until we're within the limit.
         int entryCount = dnMap.size();
-        if ((maxEntries > 0) && (entryCount > maxEntries))
+        if (maxEntries > 0 && entryCount > maxEntries)
         {
           Iterator<CacheEntry> iterator = dnMap.values().iterator();
-          while (iterator.hasNext() && (entryCount > maxEntries))
+          while (iterator.hasNext() && entryCount > maxEntries)
           {
             CacheEntry ce = iterator.next();
             iterator.remove();
@@ -408,11 +371,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean putEntryIfAbsent(Entry entry, Backend backend, long entryID)
   {
@@ -492,10 +451,10 @@ public class FIFOEntryCache
         // cache.  If so, then see if we have exceeded it and we need to purge
         // entries until we're within the limit.
         int entryCount = dnMap.size();
-        if ((maxEntries > 0) && (entryCount > maxEntries))
+        if (maxEntries > 0 && entryCount > maxEntries)
         {
           Iterator<CacheEntry> iterator = dnMap.values().iterator();
-          while (iterator.hasNext() && (entryCount > maxEntries))
+          while (iterator.hasNext() && entryCount > maxEntries)
           {
             CacheEntry ce = iterator.next();
             iterator.remove();
@@ -529,11 +488,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeEntry(DN entryDN)
   {
@@ -588,11 +543,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clear()
   {
@@ -623,11 +574,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clearBackend(Backend backend)
   {
@@ -682,11 +629,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void clearSubtree(DN baseDN)
   {
@@ -793,11 +736,7 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void handleLowMemory()
   {
@@ -821,7 +760,7 @@ public class FIFOEntryCache
       {
         int numToDrop = numEntries / 10;
         Iterator<CacheEntry> iterator = dnMap.values().iterator();
-        while (iterator.hasNext() && (numToDrop > 0))
+        while (iterator.hasNext() && numToDrop > 0)
         {
           CacheEntry entry = iterator.next();
           iterator.remove();
@@ -848,12 +787,8 @@ public class FIFOEntryCache
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAcceptable(EntryCacheCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
@@ -861,11 +796,7 @@ public class FIFOEntryCache
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       FIFOEntryCacheCfg configuration,
@@ -884,15 +815,9 @@ public class FIFOEntryCache
     return errorHandler.getIsAcceptable();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-      FIFOEntryCacheCfg configuration
-      )
+  public ConfigChangeResult applyConfigurationChange(      FIFOEntryCacheCfg configuration      )
   {
     boolean applyChanges = true;
     ArrayList<LocalizableMessage> errorMessages = new ArrayList<LocalizableMessage>();
@@ -906,13 +831,10 @@ public class FIFOEntryCache
       processEntryCacheConfig (configuration, applyChanges, errorHandler);
     }
 
-    boolean adminActionRequired = errorHandler.getIsAdminActionRequired();
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        errorHandler.getResultCode(),
-        adminActionRequired,
-        errorHandler.getErrorMessages()
-        );
-
+    final ConfigChangeResult changeResult = new ConfigChangeResult();
+    changeResult.setResultCode(errorHandler.getResultCode());
+    changeResult.setAdminActionRequired(errorHandler.getIsAdminActionRequired());
+    changeResult.getMessages().addAll(errorHandler.getErrorMessages());
     return changeResult;
   }
 
@@ -935,23 +857,18 @@ public class FIFOEntryCache
       )
   {
     // Local variables to read configuration.
-    DN                    newConfigEntryDN;
-    long                  newLockTimeout;
-    long                  newMaxEntries;
-    int                   newMaxMemoryPercent;
-    long                  newMaxAllowedMemory;
     HashSet<SearchFilter> newIncludeFilters = null;
     HashSet<SearchFilter> newExcludeFilters = null;
 
     // Read configuration.
-    newConfigEntryDN = configuration.dn();
-    newLockTimeout   = configuration.getLockTimeout();
-    newMaxEntries    = configuration.getMaxEntries();
+    DN newConfigEntryDN = configuration.dn();
+    long newLockTimeout = configuration.getLockTimeout();
+    long newMaxEntries  = configuration.getMaxEntries();
 
     // Maximum memory the cache can use.
-    newMaxMemoryPercent = configuration.getMaxMemoryPercent();
-    long maxJvmHeapSize = Runtime.getRuntime().maxMemory();
-    newMaxAllowedMemory = (maxJvmHeapSize / 100) * newMaxMemoryPercent;
+    int newMaxMemoryPercent  = configuration.getMaxMemoryPercent();
+    long maxJvmHeapSize      = Runtime.getRuntime().maxMemory();
+    long newMaxAllowedMemory = (maxJvmHeapSize / 100) * newMaxMemoryPercent;
 
     // Get include and exclude filters.
     switch (errorHandler.getConfigPhase())
@@ -987,11 +904,7 @@ public class FIFOEntryCache
     return errorHandler.getIsAcceptable();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ArrayList<Attribute> getMonitorData()
   {
@@ -999,16 +912,15 @@ public class FIFOEntryCache
 
     try {
       attrs = EntryCacheCommon.getGenericMonitorData(
-        new Long(cacheHits.longValue()),
+        Long.valueOf(cacheHits.longValue()),
         // If cache misses is maintained by default cache
         // get it from there and if not point to itself.
         DirectoryServer.getEntryCache().getCacheMisses(),
         null,
-        new Long(maxAllowedMemory),
-        new Long(dnMap.size()),
-        (((maxEntries != Integer.MAX_VALUE) &&
-          (maxEntries != Long.MAX_VALUE)) ?
-           new Long(maxEntries) : new Long(0))
+        Long.valueOf(maxAllowedMemory),
+        Long.valueOf(dnMap.size()),
+        Long.valueOf(
+            (maxEntries != Integer.MAX_VALUE && maxEntries != Long.MAX_VALUE) ? maxEntries : 0)
         );
     } catch (Exception e) {
       logger.traceException(e);
@@ -1017,29 +929,21 @@ public class FIFOEntryCache
     return attrs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Long getCacheCount()
   {
-    return new Long(dnMap.size());
+    return Long.valueOf(dnMap.size());
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toVerboseString()
   {
     StringBuilder sb = new StringBuilder();
 
     Map<DN,CacheEntry> dnMapCopy;
-    Map<Backend,HashMap<Long,CacheEntry>> idMapCopy;
+    Map<Backend<?>, HashMap<Long, CacheEntry>> idMapCopy;
 
     // Grab cache lock to prevent any modifications
     // to the cache maps until a snapshot is taken.
@@ -1049,26 +953,27 @@ public class FIFOEntryCache
       // modifications in case of any access order maps, make copies
       // instead.
       dnMapCopy = new LinkedHashMap<DN,CacheEntry>(dnMap);
-      idMapCopy = new HashMap<Backend,HashMap<Long,CacheEntry>>(idMap);
+      idMapCopy = new HashMap<Backend<?>, HashMap<Long, CacheEntry>>(idMap);
     } finally {
       cacheWriteLock.unlock();
     }
 
     // Check dnMap first.
     for (DN dn : dnMapCopy.keySet()) {
-      sb.append(dn.toString());
+      final CacheEntry cacheEntry = dnMapCopy.get(dn);
+      sb.append(dn);
       sb.append(":");
-      sb.append((dnMapCopy.get(dn) != null ?
-          Long.toString(dnMapCopy.get(dn).getEntryID()) : null));
+      sb.append(cacheEntry != null ?
+          Long.toString(cacheEntry.getEntryID()) : null);
       sb.append(":");
-      sb.append((dnMapCopy.get(dn) != null ?
-          dnMapCopy.get(dn).getBackend().getBackendID() : null));
+      sb.append(cacheEntry != null ?
+          cacheEntry.getBackend().getBackendID() : null);
       sb.append(ServerConstants.EOL);
     }
 
     // See if there is anything on idMap that is not reflected on
     // dnMap in case maps went out of sync.
-    for (Backend backend : idMapCopy.keySet()) {
+    for (Backend<?> backend : idMapCopy.keySet()) {
       for (Long id : idMapCopy.get(backend).keySet()) {
         final CacheEntry cacheEntry = idMapCopy.get(backend).get(id);
         if (cacheEntry == null || !dnMapCopy.containsKey(cacheEntry.getDN())) {
@@ -1083,9 +988,6 @@ public class FIFOEntryCache
     }
 
     String verboseString = sb.toString();
-
-    return (verboseString.length() > 0 ? verboseString : null);
+    return verboseString.length() > 0 ? verboseString : null;
   }
-
 }
-
