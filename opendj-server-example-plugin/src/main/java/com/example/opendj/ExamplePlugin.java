@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package com.example.opendj;
 
@@ -31,7 +31,6 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import com.example.opendj.server.ExamplePluginCfg;
 
@@ -55,7 +54,7 @@ public class ExamplePlugin implements ConfigurationChangeListener<ExamplePluginC
         // The new configuration has already been validated.
 
         // Update was successful, no restart required.
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+        return new ConfigChangeResult();
     }
 
     /** {@inheritDoc} */

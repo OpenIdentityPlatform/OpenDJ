@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -159,12 +160,11 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends AbstractCo
             DN expectedDN = DNBuilder.create(childPath);
             if (!configEntry.getName().equals(expectedDN)) {
                 // Doesn't apply to us.
-                return new ConfigChangeResult(ResultCode.SUCCESS, false);
+                return new ConfigChangeResult();
             }
         }
 
-        // Cached objects are guaranteed to be from previous acceptable
-        // callback.
+        // Cached objects are guaranteed to be from previous acceptable callback
         ConfigChangeResult result = listener.applyConfigurationAdd(cachedManagedObject);
 
         // Now apply post constraint call-backs.

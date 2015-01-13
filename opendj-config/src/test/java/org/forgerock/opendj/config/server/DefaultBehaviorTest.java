@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -47,7 +48,6 @@ import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.mockito.ArgumentCaptor;
 import org.testng.Assert;
@@ -67,7 +67,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         private TestChildCfg childCfg;
 
         public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
-            return new ConfigChangeResult(ResultCode.SUCCESS, false);
+            return new ConfigChangeResult();
         }
 
         /** Gets the child configuration checking that it has the expected name. */
@@ -89,7 +89,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         private TestChildCfg childCfg;
 
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
-            return new ConfigChangeResult(ResultCode.SUCCESS, false);
+            return new ConfigChangeResult();
         }
 
         /** Gets the child configuration checking that it has the expected name. */

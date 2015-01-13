@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -108,7 +109,8 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
     /**
      * Create a new configuration delete listener adaptor for an optional
      * relation.
-     * @param serverContext TODO
+     * @param serverContext
+     *            The server context.
      * @param path
      *            The managed object path of the parent.
      * @param relation
@@ -129,7 +131,8 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
 
     /**
      * Create a new configuration delete listener adaptor for an set relation.
-     * @param serverContext TODO
+     * @param serverContext
+     *            The server context.
      * @param path
      *            The managed object path of the parent.
      * @param relation
@@ -159,7 +162,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
             DN expectedDN = DNBuilder.create(childPath);
             if (!configEntry.getName().equals(expectedDN)) {
                 // Doesn't apply to us.
-                return new ConfigChangeResult(ResultCode.SUCCESS, false);
+                return new ConfigChangeResult();
             }
         }
 

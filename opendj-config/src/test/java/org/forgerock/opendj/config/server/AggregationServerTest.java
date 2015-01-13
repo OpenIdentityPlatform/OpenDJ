@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -54,7 +54,6 @@ import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.server.config.client.ConnectionHandlerCfgClient;
@@ -78,7 +77,7 @@ public final class AggregationServerTest extends AdminTestCase {
     private static final class DummyChangeListener implements ConfigurationChangeListener<TestChildCfg> {
 
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
-            return new ConfigChangeResult(ResultCode.SUCCESS, false);
+            return new ConfigChangeResult();
         }
 
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
@@ -93,7 +92,7 @@ public final class AggregationServerTest extends AdminTestCase {
     private static final class DummyDeleteListener implements ConfigurationDeleteListener<TestChildCfg> {
 
         public ConfigChangeResult applyConfigurationDelete(TestChildCfg configuration) {
-            return new ConfigChangeResult(ResultCode.SUCCESS, false);
+            return new ConfigChangeResult();
         }
 
         public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,

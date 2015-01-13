@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -45,7 +46,6 @@ import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldif.LDIF;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.AfterClass;
@@ -62,7 +62,7 @@ public final class ConstraintTest extends AdminTestCase {
     private static class AddListener implements ConfigurationAddListener<TestChildCfg> {
 
         public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
-            return new ConfigChangeResult(ResultCode.SUCCESS, false);
+            return new ConfigChangeResult();
         }
 
         public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
@@ -74,7 +74,7 @@ public final class ConstraintTest extends AdminTestCase {
     private static class DeleteListener implements ConfigurationDeleteListener<TestChildCfg> {
 
         public ConfigChangeResult applyConfigurationDelete(TestChildCfg configuration) {
-            return new ConfigChangeResult(ResultCode.SUCCESS, false);
+            return new ConfigChangeResult();
         }
 
         public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
@@ -87,7 +87,7 @@ public final class ConstraintTest extends AdminTestCase {
     private static class ChangeListener implements ConfigurationChangeListener<TestChildCfg> {
 
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
-            return new ConfigChangeResult(ResultCode.SUCCESS, false);
+            return new ConfigChangeResult();
         }
 
         public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,

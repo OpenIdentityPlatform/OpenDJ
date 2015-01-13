@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -41,7 +42,7 @@ public final class ConfigChangeResult {
      * A set of messages describing the changes that were made, any
      * action that may be required, or any problems that were encountered.
      */
-    private List<LocalizableMessage> messages;
+    private List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     /**
      * Indicates whether one or more of the changes requires
@@ -52,39 +53,13 @@ public final class ConfigChangeResult {
     /**
      * The result code to return to the client from this configuration change.
      */
-    private ResultCode resultCode;
+    private ResultCode resultCode = ResultCode.SUCCESS;
 
     /**
      * Creates a new config change result object with the provided information.
-     *
-     * @param resultCode
-     *            The result code for this config change result.
-     * @param adminActionRequired
-     *            Indicates whether administrative action is required for one or
-     *            more of the changes to take effect.
      */
-    public ConfigChangeResult(ResultCode resultCode, boolean adminActionRequired) {
-        this.resultCode = resultCode;
-        this.adminActionRequired = adminActionRequired;
-        this.messages = new ArrayList<LocalizableMessage>();
-    }
-
-    /**
-     * Creates a new config change result object with the provided information.
-     *
-     * @param resultCode
-     *            The result code for this config change result.
-     * @param adminActionRequired
-     *            Indicates whether administrative action is required for one or
-     *            more of the changes to take effect.
-     * @param messages
-     *            A set of messages that provide additional information about
-     *            the change processing.
-     */
-    public ConfigChangeResult(ResultCode resultCode, boolean adminActionRequired, List<LocalizableMessage> messages) {
-        this.resultCode = resultCode;
-        this.adminActionRequired = adminActionRequired;
-        this.messages = messages;
+    public ConfigChangeResult() {
+        // nothing more to do
     }
 
     /**
@@ -158,6 +133,7 @@ public final class ConfigChangeResult {
      *
      * @return A string representation of this config change result.
      */
+    @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
         toString(buffer);

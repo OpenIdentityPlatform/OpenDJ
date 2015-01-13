@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -63,7 +63,6 @@ import org.forgerock.opendj.config.server.ServerManagedObjectChangeListener;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.LdapException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * Aggregation property definition.
@@ -245,7 +244,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         public ConfigChangeResult applyConfigurationChange(ServerManagedObject<? extends S> mo) {
             try {
                 if (targetIsEnabledCondition.evaluate(mo)) {
-                    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+                    return new ConfigChangeResult();
                 }
             } catch (ConfigException e) {
                 // This should not happen - ignore it and throw an exception
@@ -323,7 +322,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 throw new IllegalStateException("Attempting to delete a referenced "
                     + relationDefinition.getChildDefinition().getUserFriendlyName());
             } else {
-                return new ConfigChangeResult(ResultCode.SUCCESS, false);
+                return new ConfigChangeResult();
             }
         }
 
