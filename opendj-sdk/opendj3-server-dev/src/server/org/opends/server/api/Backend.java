@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -62,7 +62,6 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented for a Directory Server backend.
@@ -93,9 +92,7 @@ public abstract class Backend<C extends Configuration>
   /** The backend monitor associated with this backend. */
   private BackendMonitor backendMonitor;
 
-  /**
-   * Indicates whether this is a private backend or one that holds user data.
-   */
+  /** Indicates whether this is a private backend or one that holds user data. */
   private boolean isPrivateBackend;
 
   /** The unique identifier for this backend. */
@@ -118,8 +115,6 @@ public abstract class Backend<C extends Configuration>
    *                      If there is an error in the configuration.
    */
   public abstract void configureBackend(C cfg) throws ConfigException;
-
-
 
   /**
    * Indicates whether the provided configuration is acceptable for
@@ -150,8 +145,6 @@ public abstract class Backend<C extends Configuration>
     return true;
   }
 
-
-
   /**
    * Initializes this backend based on the information provided
    * when the backend was configured.
@@ -169,8 +162,6 @@ public abstract class Backend<C extends Configuration>
    */
   public abstract void initializeBackend()
          throws ConfigException, InitializationException;
-
-
 
   /**
    * Performs any necessary work to finalize this backend, including
@@ -196,8 +187,6 @@ public abstract class Backend<C extends Configuration>
     persistentSearches.clear();
   }
 
-
-
   /**
    * Retrieves the set of base-level DNs that may be used within this
    * backend.
@@ -206,8 +195,6 @@ public abstract class Backend<C extends Configuration>
    *          backend.
    */
   public abstract DN[] getBaseDNs();
-
-
 
   /**
    * Attempts to pre-load all the entries stored within this backend
@@ -221,10 +208,7 @@ public abstract class Backend<C extends Configuration>
    * @throws  UnsupportedOperationException if backend does not
    *          support this operation.
    */
-  public abstract void preloadEntryCache()
-    throws UnsupportedOperationException;
-
-
+  public abstract void preloadEntryCache() throws UnsupportedOperationException;
 
   /**
    * Indicates whether the data associated with this backend may be
@@ -238,8 +222,6 @@ public abstract class Backend<C extends Configuration>
    *          remote.
    */
   public abstract boolean isLocal();
-
-
 
   /**
    * Indicates whether search operations which target the specified
@@ -265,10 +247,7 @@ public abstract class Backend<C extends Configuration>
    *          specified attribute in the indicated manner should be
    *          considered indexed, or {@code false} if not.
    */
-  public abstract boolean isIndexed(AttributeType attributeType,
-                                    IndexType indexType);
-
-
+  public abstract boolean isIndexed(AttributeType attributeType, IndexType indexType);
 
   /**
    * Indicates whether extensible match search operations that target
@@ -289,8 +268,6 @@ public abstract class Backend<C extends Configuration>
   {
     return false; // FIXME This should be overridden by the JE Backend at least!
   }
-
-
 
   /**
    * Indicates whether a subtree search using the provided filter
@@ -387,8 +364,6 @@ public abstract class Backend<C extends Configuration>
     }
   }
 
-
-
   /**
    * Retrieves the requested entry from this backend.  Note that the
    * caller must hold a read or write lock on the specified DN.
@@ -401,10 +376,7 @@ public abstract class Backend<C extends Configuration>
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              retrieve the entry.
    */
-  public abstract Entry getEntry(DN entryDN)
-         throws DirectoryException;
-
-
+  public abstract Entry getEntry(DN entryDN) throws DirectoryException;
 
   /**
    * Indicates whether the requested entry has any subordinates.
@@ -419,10 +391,7 @@ public abstract class Backend<C extends Configuration>
    * @throws DirectoryException  If a problem occurs while trying to
    *                              retrieve the entry.
    */
-  public abstract ConditionResult hasSubordinates(DN entryDN)
-        throws DirectoryException;
-
-
+  public abstract ConditionResult hasSubordinates(DN entryDN) throws DirectoryException;
 
   /**
    * Retrieves the number of subordinates for the requested entry.
@@ -441,10 +410,7 @@ public abstract class Backend<C extends Configuration>
    * @throws DirectoryException  If a problem occurs while trying to
    *                              retrieve the entry.
    */
-  public abstract long numSubordinates(DN entryDN, boolean subtree)
-      throws DirectoryException;
-
-
+  public abstract long numSubordinates(DN entryDN, boolean subtree) throws DirectoryException;
 
   /**
    * Indicates whether an entry with the specified DN exists in the
@@ -462,13 +428,10 @@ public abstract class Backend<C extends Configuration>
    * @throws  DirectoryException  If a problem occurs while trying to
    *                              make the determination.
    */
-  public boolean entryExists(DN entryDN)
-         throws DirectoryException
+  public boolean entryExists(DN entryDN) throws DirectoryException
   {
     return getEntry(entryDN) != null;
   }
-
-
 
   /**
    * Adds the provided entry to this backend.  This method must ensure
@@ -489,11 +452,8 @@ public abstract class Backend<C extends Configuration>
    *                                       cancel or abandon the add
    *                                       operation.
    */
-  public abstract void addEntry(Entry entry,
-                                AddOperation addOperation)
+  public abstract void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException, CanceledOperationException;
-
-
 
   /**
    * Removes the specified entry from this backend.  This method must
@@ -518,11 +478,8 @@ public abstract class Backend<C extends Configuration>
    *                                       cancel or abandon the
    *                                       delete operation.
    */
-  public abstract void deleteEntry(DN entryDN,
-                                   DeleteOperation deleteOperation)
+  public abstract void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException, CanceledOperationException;
-
-
 
   /**
    * Replaces the specified entry with the provided entry in this
@@ -549,8 +506,6 @@ public abstract class Backend<C extends Configuration>
       ModifyOperation modifyOperation) throws DirectoryException,
       CanceledOperationException;
 
-
-
   /**
    * Moves and/or renames the provided entry in this backend, altering
    * any subordinate entries as necessary. This must ensure that an
@@ -573,11 +528,8 @@ public abstract class Backend<C extends Configuration>
    *           If this backend noticed and reacted to a request to
    *           cancel or abandon the modify DN operation.
    */
-  public abstract void renameEntry(DN currentDN, Entry entry,
-                            ModifyDNOperation modifyDNOperation)
+  public abstract void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
          throws DirectoryException, CanceledOperationException;
-
-
 
   /**
    * Processes the specified search in this backend.  Matching entries
@@ -598,8 +550,6 @@ public abstract class Backend<C extends Configuration>
   public abstract void search(SearchOperation searchOperation)
          throws DirectoryException, CanceledOperationException;
 
-
-
   /**
    * Retrieves the OIDs of the controls that may be supported by this
    * backend.
@@ -608,8 +558,6 @@ public abstract class Backend<C extends Configuration>
    *          backend.
    */
   public abstract Set<String> getSupportedControls();
-
-
 
   /**
    * Indicates whether this backend supports the specified control.
@@ -626,8 +574,6 @@ public abstract class Backend<C extends Configuration>
     return supportedControls != null && supportedControls.contains(controlOID);
   }
 
-
-
   /**
    * Retrieves the OIDs of the features that may be supported by this
    * backend.
@@ -636,8 +582,6 @@ public abstract class Backend<C extends Configuration>
    *          backend.
    */
   public abstract Set<String> getSupportedFeatures();
-
-
 
   /**
    * Indicates whether this backend supports the specified feature.
@@ -654,8 +598,6 @@ public abstract class Backend<C extends Configuration>
     return supportedFeatures != null && supportedFeatures.contains(featureOID);
   }
 
-
-
   /**
    * Indicates whether this backend provides a mechanism to export the
    * data it contains to an LDIF file.
@@ -664,8 +606,6 @@ public abstract class Backend<C extends Configuration>
    *          mechanism, or {@code false} if not.
    */
   public abstract boolean supportsLDIFExport();
-
-
 
   /**
    * Exports the contents of this backend to LDIF.  This method should
@@ -679,10 +619,7 @@ public abstract class Backend<C extends Configuration>
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the LDIF export.
    */
-  public abstract void exportLDIF(LDIFExportConfig exportConfig)
-         throws DirectoryException;
-
-
+  public abstract void exportLDIF(LDIFExportConfig exportConfig) throws DirectoryException;
 
   /**
    * Indicates whether this backend provides a mechanism to import its
@@ -692,8 +629,6 @@ public abstract class Backend<C extends Configuration>
    *          mechanism, or {@code false} if not.
    */
   public abstract boolean supportsLDIFImport();
-
-
 
   /**
    * Imports information from an LDIF file into this backend.  This
@@ -709,11 +644,8 @@ public abstract class Backend<C extends Configuration>
    * @throws  DirectoryException  If a problem occurs while performing
    *                              the LDIF import.
    */
-  public abstract LDIFImportResult importLDIF(
-                                        LDIFImportConfig importConfig)
+  public abstract LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException;
-
-
 
   /**
    * Indicates whether this backend provides a backup mechanism of any
@@ -728,8 +660,6 @@ public abstract class Backend<C extends Configuration>
    *          mechanism, or {@code false} if it does not.
    */
   public abstract boolean supportsBackup();
-
-
 
   /**
    * Indicates whether this backend provides a mechanism to perform a
@@ -747,10 +677,7 @@ public abstract class Backend<C extends Configuration>
    *          performing backups with the provided configuration, or
    *          {@code false} if not.
    */
-  public abstract boolean supportsBackup(BackupConfig backupConfig,
-                               StringBuilder unsupportedReason);
-
-
+  public abstract boolean supportsBackup(BackupConfig backupConfig, StringBuilder unsupportedReason);
 
   /**
    * Creates a backup of the contents of this backend in a form that
@@ -768,8 +695,6 @@ public abstract class Backend<C extends Configuration>
   public abstract void createBackup(BackupConfig backupConfig)
          throws DirectoryException;
 
-
-
   /**
    * Removes the specified backup if it is possible to do so.
    *
@@ -785,11 +710,8 @@ public abstract class Backend<C extends Configuration>
    *                              there are other backups that are
    *                              dependent upon it).
    */
-  public abstract void removeBackup(BackupDirectory backupDirectory,
-                                    String backupID)
+  public abstract void removeBackup(BackupDirectory backupDirectory, String backupID)
          throws DirectoryException;
-
-
 
   /**
    * Indicates whether this backend provides a mechanism to restore a
@@ -799,8 +721,6 @@ public abstract class Backend<C extends Configuration>
    *          restoring backups, or {@code false} if not.
    */
   public abstract boolean supportsRestore();
-
-
 
   /**
    * Restores a backup of the contents of this backend.  This method
@@ -817,8 +737,6 @@ public abstract class Backend<C extends Configuration>
   public abstract void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException;
 
-
-
   /**
    * Retrieves the unique identifier for this backend.
    *
@@ -829,8 +747,6 @@ public abstract class Backend<C extends Configuration>
     return backendID;
   }
 
-
-
   /**
    * Specifies the unique identifier for this backend.
    *
@@ -840,8 +756,6 @@ public abstract class Backend<C extends Configuration>
   {
     this.backendID = backendID;
   }
-
-
 
   /**
    * Indicates whether this backend holds private data or user data.
@@ -854,8 +768,6 @@ public abstract class Backend<C extends Configuration>
     return isPrivateBackend;
   }
 
-
-
   /**
    * Specifies whether this backend holds private data or user data.
    *
@@ -866,8 +778,6 @@ public abstract class Backend<C extends Configuration>
   {
     this.isPrivateBackend = isPrivateBackend;
   }
-
-
 
   /**
    * Retrieves the writability mode for this backend.
@@ -884,14 +794,10 @@ public abstract class Backend<C extends Configuration>
    *
    * @param  writabilityMode  The writability mode for this backend.
    */
-  public final void setWritabilityMode(
-                         WritabilityMode writabilityMode)
+  public final void setWritabilityMode(WritabilityMode writabilityMode)
   {
-    this.writabilityMode =
-        writabilityMode != null ? writabilityMode : WritabilityMode.ENABLED;
+    this.writabilityMode = writabilityMode != null ? writabilityMode : WritabilityMode.ENABLED;
   }
-
-
 
   /**
    * Retrieves the backend monitor that is associated with this
@@ -951,8 +857,6 @@ public abstract class Backend<C extends Configuration>
     this.backendMonitor = backendMonitor;
   }
 
-
-
   /**
    * Retrieves the total number of entries contained in this backend,
    * if that information is available.
@@ -961,8 +865,6 @@ public abstract class Backend<C extends Configuration>
    *          or -1 if that information is not available.
    */
   public abstract long getEntryCount();
-
-
 
   /**
    * Retrieves the parent backend for this backend.
@@ -975,22 +877,15 @@ public abstract class Backend<C extends Configuration>
     return parentBackend;
   }
 
-
-
   /**
    * Specifies the parent backend for this backend.
    *
    * @param  parentBackend  The parent backend for this backend.
    */
-  public final void setParentBackend(Backend<?> parentBackend)
+  public final synchronized void setParentBackend(Backend<?> parentBackend)
   {
-    synchronized (this)
-    {
-      this.parentBackend = parentBackend;
-    }
+    this.parentBackend = parentBackend;
   }
-
-
 
   /**
    * Retrieves the set of subordinate backends for this backend.
@@ -1003,21 +898,15 @@ public abstract class Backend<C extends Configuration>
     return subordinateBackends;
   }
 
-
-
   /**
    * Specifies the set of subordinate backends for this backend.
    *
    * @param  subordinateBackends  The set of subordinate backends for
    *                              this backend.
    */
-  public final void setSubordinateBackends(
-                         Backend<?>[] subordinateBackends)
+  public final synchronized void setSubordinateBackends(Backend<?>[] subordinateBackends)
   {
-    synchronized (this)
-    {
-      this.subordinateBackends = subordinateBackends;
-    }
+    this.subordinateBackends = subordinateBackends;
   }
 
   /**
@@ -1028,28 +917,22 @@ public abstract class Backend<C extends Configuration>
    *                             subordinate backends for this
    *                             backend.
    */
-  public final void addSubordinateBackend(Backend<?> subordinateBackend)
+  public final synchronized void addSubordinateBackend(Backend<?> subordinateBackend)
   {
-    synchronized (this)
+    LinkedHashSet<Backend<?>> backendSet = new LinkedHashSet<Backend<?>>();
+
+    for (Backend<?> b : subordinateBackends)
     {
-      LinkedHashSet<Backend<?>> backendSet = new LinkedHashSet<Backend<?>>();
+      backendSet.add(b);
+    }
 
-      for (Backend<?> b : subordinateBackends)
-      {
-        backendSet.add(b);
-      }
-
-      if (backendSet.add(subordinateBackend))
-      {
-        Backend<?>[] newSubordinateBackends =
-             new Backend[backendSet.size()];
-        backendSet.toArray(newSubordinateBackends);
-        subordinateBackends = newSubordinateBackends;
-      }
+    if (backendSet.add(subordinateBackend))
+    {
+      Backend<?>[] newSubordinateBackends = new Backend[backendSet.size()];
+      backendSet.toArray(newSubordinateBackends);
+      subordinateBackends = newSubordinateBackends;
     }
   }
-
-
 
   /**
    * Removes the provided backend from the set of subordinate backends
@@ -1059,38 +942,30 @@ public abstract class Backend<C extends Configuration>
    *                             subordinate backends for this
    *                             backend.
    */
-  public final void removeSubordinateBackend(
-                         Backend<?> subordinateBackend)
+  public final synchronized void removeSubordinateBackend(Backend<?> subordinateBackend)
   {
-    synchronized (this)
+    ArrayList<Backend<?>> backendList = new ArrayList<Backend<?>>(subordinateBackends.length);
+
+    boolean found = false;
+    for (Backend<?> b : subordinateBackends)
     {
-      ArrayList<Backend<?>> backendList =
-           new ArrayList<Backend<?>>(subordinateBackends.length);
-
-      boolean found = false;
-      for (Backend<?> b : subordinateBackends)
+      if (b.equals(subordinateBackend))
       {
-        if (b.equals(subordinateBackend))
-        {
-          found = true;
-        }
-        else
-        {
-          backendList.add(b);
-        }
+        found = true;
       }
-
-      if (found)
+      else
       {
-        Backend<?>[] newSubordinateBackends =
-             new Backend[backendList.size()];
-        backendList.toArray(newSubordinateBackends);
-        subordinateBackends = newSubordinateBackends;
+        backendList.add(b);
       }
     }
+
+    if (found)
+    {
+      Backend<?>[] newSubordinateBackends = new Backend[backendList.size()];
+      backendList.toArray(newSubordinateBackends);
+      subordinateBackends = newSubordinateBackends;
+    }
   }
-
-
 
   /**
    * Indicates whether this backend should be used to handle
@@ -1121,8 +996,6 @@ public abstract class Backend<C extends Configuration>
     return false;
   }
 
-
-
   /**
    * Indicates whether a backend should be used to handle operations
    * for the provided entry given the set of base DNs and exclude DNs.
@@ -1136,36 +1009,31 @@ public abstract class Backend<C extends Configuration>
    * @return  {@code true} if the backend should handle operations for
    *          the provided entry, or {@code false} if it does not.
    */
-  public static final boolean handlesEntry(DN entryDN,
-                                           List<DN> baseDNs,
-                                           List<DN> excludeDNs)
+  public static final boolean handlesEntry(DN entryDN, List<DN> baseDNs, List<DN> excludeDNs)
   {
     for (DN baseDN : baseDNs)
     {
-      if (entryDN.isDescendantOf(baseDN))
+      if (entryDN.isDescendantOf(baseDN) && !isExcluded(excludeDNs, entryDN))
       {
-        if (excludeDNs == null || excludeDNs.isEmpty())
-        {
-          return true;
-        }
-
-        boolean isExcluded = false;
-        for (DN excludeDN : excludeDNs)
-        {
-          if (entryDN.isDescendantOf(excludeDN))
-          {
-            isExcluded = true;
-            break;
-          }
-        }
-
-        if (! isExcluded)
-        {
-          return true;
-        }
+        return true;
       }
     }
+    return false;
+  }
 
+  private static boolean isExcluded(List<DN> excludeDNs, DN entryDN)
+  {
+    if (excludeDNs == null || excludeDNs.isEmpty())
+    {
+      return false;
+    }
+    for (DN excludeDN : excludeDNs)
+    {
+      if (entryDN.isDescendantOf(excludeDN))
+      {
+        return true;
+      }
+    }
     return false;
   }
 }
