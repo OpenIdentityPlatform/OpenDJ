@@ -42,7 +42,7 @@ public final class ConfigChangeResult {
      * A set of messages describing the changes that were made, any
      * action that may be required, or any problems that were encountered.
      */
-    private List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
+    private final List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
 
     /**
      * Indicates whether one or more of the changes requires
@@ -79,6 +79,19 @@ public final class ConfigChangeResult {
      */
     public void setResultCode(ResultCode resultCode) {
         this.resultCode = resultCode;
+    }
+
+    /**
+     * Sets the provided result code for this config change result
+     * if the current result code is success.
+     *
+     * @param newResultCode
+     *          The new result code for this config change result.
+     */
+    public void setResultCodeIfSuccess(ResultCode newResultCode) {
+        if (getResultCode() == ResultCode.SUCCESS) {
+            setResultCode(newResultCode);
+        }
     }
 
     /**
@@ -155,11 +168,8 @@ public final class ConfigChangeResult {
         buffer.append(", messages={");
 
         if (!messages.isEmpty()) {
-            Iterator<LocalizableMessage> iterator = messages.iterator();
-
-            LocalizableMessage firstMessage = iterator.next();
-            buffer.append(firstMessage);
-
+            final Iterator<LocalizableMessage> iterator = messages.iterator();
+            buffer.append(iterator.next());
             while (iterator.hasNext()) {
                 buffer.append(",");
                 buffer.append(iterator.next());
