@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -220,7 +221,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
                 } else {
                     // The dependent entry was not found.
                     configRepository.deregisterChangeListener(configEntry.getName(), this);
-                    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+                    return new ConfigChangeResult();
                 }
             }
 
@@ -265,7 +266,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
                 if (configEntry.getName().equals(dn)) {
                     finalizeChangeListener();
                 }
-                return new ConfigChangeResult(ResultCode.SUCCESS, false);
+                return new ConfigChangeResult();
             }
 
             public boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {

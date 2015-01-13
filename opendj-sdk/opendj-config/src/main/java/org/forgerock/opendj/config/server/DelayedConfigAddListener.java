@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.server;
 
@@ -32,7 +33,6 @@ import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 /**
@@ -136,7 +136,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
             }
         }
 
-        return new ConfigChangeResult(ResultCode.SUCCESS, false);
+        return new ConfigChangeResult();
     }
 
     /** {@inheritDoc} */
