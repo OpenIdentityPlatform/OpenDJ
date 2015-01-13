@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -32,41 +32,38 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.naming.ldap.Rdn;
 
-import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AddressMask;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn.
-  SSLClientAuthPolicy;
+import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn.SSLClientAuthPolicy;
 import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.KeyManagerProviderCfg;
 import org.opends.server.admin.std.server.FileBasedKeyManagerProviderCfg;
 import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
+import org.opends.server.admin.std.server.KeyManagerProviderCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.server.TrustManagerProviderCfg;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.SynchronousStrategy;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.util.CertificateManager;
-import org.opends.server.util.SetupUtils;
-import org.opends.server.admin.std.server.TrustManagerProviderCfg;
-import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilePermission;
+import org.opends.server.types.InitializationException;
+import org.opends.server.util.CertificateManager;
+import org.opends.server.util.SetupUtils;
 
 /**
  * This class is a wrapper on top of LDAPConnectionHandler to manage
@@ -77,73 +74,46 @@ public final class AdministrationConnector implements
     ConfigurationChangeListener<AdministrationConnectorCfg>
 {
 
-  /**
-   * Default Administration Connector port.
-   */
+  /** Default Administration Connector port. */
   public static final int DEFAULT_ADMINISTRATION_CONNECTOR_PORT = 4444;
-
-  /**
-   * Validity (in days) of the generated certificate.
-   */
+  /** Validity (in days) of the generated certificate. */
   public static final int ADMIN_CERT_VALIDITY = 20 * 365;
 
-  // Friendly name of the administration connector
+  /** Friendly name of the administration connector. */
   private static final String FRIENDLY_NAME = "Administration Connector";
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private LDAPConnectionHandler adminConnectionHandler;
+  private AdministrationConnectorCfg config;
 
-  private AdministrationConnectorCfg config; //
-
-  // Predefined values for Administration Connector configuration
-  //
+  /** Predefined values for Administration Connector configuration. */
   private static final String ADMIN_CLASS_NAME =
     "org.opends.server.protocols.ldap.LDAPConnectionHandler";
 
   private static final boolean ADMIN_ALLOW_LDAP_V2 = false;
-
   private static final boolean ADMIN_ALLOW_START_TLS = false;
 
-  private static final SortedSet<AddressMask> ADMIN_ALLOWED_CLIENT =
-    new TreeSet<AddressMask>();
-
-  private static final SortedSet<AddressMask> ADMIN_DENIED_CLIENT =
-    new TreeSet<AddressMask>();
+  private static final SortedSet<AddressMask> ADMIN_ALLOWED_CLIENT = new TreeSet<AddressMask>();
+  private static final SortedSet<AddressMask> ADMIN_DENIED_CLIENT = new TreeSet<AddressMask>();
 
   private static final boolean ADMIN_ENABLED = true;
-
   private static final boolean ADMIN_KEEP_STATS = true;
-
   private static final boolean ADMIN_USE_SSL = true;
 
   private static final int ADMIN_ACCEPT_BACKLOG = 128;
-
   private static final boolean ADMIN_ALLOW_TCP_REUSE_ADDRESS = true;
 
-  private static final long ADMIN_MAX_BLOCKED_WRITE_TIME_LIMIT = 120000; // 2mn
-
-  private static final int ADMIN_MAX_REQUEST_SIZE = 5000000; // 5 Mb
-
+  /** 2mn. */
+  private static final long ADMIN_MAX_BLOCKED_WRITE_TIME_LIMIT = 120000;
+  /** 5 Mb. */
+  private static final int ADMIN_MAX_REQUEST_SIZE = 5000000;
   private static final int ADMIN_WRITE_BUFFER_SIZE = 4096;
-
   private static final int ADMIN_NUM_REQUEST_HANDLERS = 1;
-
   private static final boolean ADMIN_SEND_REJECTION_NOTICE = true;
-
   private static final boolean ADMIN_USE_TCP_KEEP_ALIVE = true;
-
   private static final boolean ADMIN_USE_TCP_NO_DELAY = true;
-
   private static final SSLClientAuthPolicy ADMIN_SSL_CLIENT_AUTH_POLICY =
     SSLClientAuthPolicy.DISABLED;
-
-  private static final SortedSet<String> ADMIN_SSL_CIPHER_SUITE =
-    new TreeSet<String>();
-
-  private static final SortedSet<String> ADMIN_SSL_PROTOCOL =
-    new TreeSet<String>();
-
-
 
   /**
    * Initializes this administration connector provider based on the
@@ -172,8 +142,7 @@ public final class AdministrationConnector implements
     LDAPConnectionHandlerCfg ldapConnectionHandlerCfg =
       new FakeLDAPConnectionHandlerCfg(config);
 
-    // Administration Connector uses the LDAP connection handler
-    // implementation
+    // Administration Connector uses the LDAP connection handler implementation
     adminConnectionHandler = new LDAPConnectionHandler(
         new SynchronousStrategy(), FRIENDLY_NAME);
     adminConnectionHandler
@@ -185,34 +154,24 @@ public final class AdministrationConnector implements
   }
 
 
-
-  /**
-   * Create an instance of the administration connector.
-   */
+  /** Create an instance of the administration connector. */
   public AdministrationConnector()
   {
     // Do nothing.
   }
 
-
-
   /**
-   * Retrieves the connection handler linked to this administration
-   * connector.
+   * Retrieves the connection handler linked to this administration connector.
    *
-   * @return The connection handler linked to this administration
-   *         connector.
+   * @return The connection handler linked to this administration connector.
    */
   public LDAPConnectionHandler getConnectionHandler()
   {
     return adminConnectionHandler;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       AdministrationConnectorCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -223,367 +182,260 @@ public final class AdministrationConnector implements
         unacceptableReasons);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       AdministrationConnectorCfg configuration)
   {
-    return new ConfigChangeResult(ResultCode.SUCCESS, true,
-        new ArrayList<LocalizableMessage>());
+    return new ConfigChangeResult();
   }
 
 
 
   /**
-   * This private class implements a fake LDAP connection Handler
-   * configuration. This allows to re-use the LDAPConnectionHandler as
-   * it is.
+   * This private class implements a fake LDAP connection Handler configuration.
+   * This allows to re-use the LDAPConnectionHandler as it is.
    */
   private static class FakeLDAPConnectionHandlerCfg implements
       LDAPConnectionHandlerCfg
   {
-
     private final AdministrationConnectorCfg config;
-
-
 
     public FakeLDAPConnectionHandlerCfg(AdministrationConnectorCfg config)
     {
       this.config = config;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Class<? extends LDAPConnectionHandlerCfg> configurationClass()
     {
       return LDAPConnectionHandlerCfg.class;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void addLDAPChangeListener(
         ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener)
     {
       // do nothing. change listener already added.
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void removeLDAPChangeListener(
         ConfigurationChangeListener<LDAPConnectionHandlerCfg> listener)
     {
       // do nothing. change listener already added.
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public int getAcceptBacklog()
     {
       return ADMIN_ACCEPT_BACKLOG;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isAllowLDAPV2()
     {
       return ADMIN_ALLOW_LDAP_V2;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isAllowStartTLS()
     {
       return ADMIN_ALLOW_START_TLS;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isAllowTCPReuseAddress()
     {
       return ADMIN_ALLOW_TCP_REUSE_ADDRESS;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String getJavaClass()
     {
       return ADMIN_CLASS_NAME;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isKeepStats()
     {
       return ADMIN_KEEP_STATS;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String getKeyManagerProvider()
     {
       return config.getKeyManagerProvider();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public DN getKeyManagerProviderDN()
     {
       return config.getKeyManagerProviderDN();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public SortedSet<InetAddress> getListenAddress()
     {
       return config.getListenAddress();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public int getListenPort()
     {
       return config.getListenPort();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public long getMaxBlockedWriteTimeLimit()
     {
       return ADMIN_MAX_BLOCKED_WRITE_TIME_LIMIT;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public long getMaxRequestSize()
     {
       return ADMIN_MAX_REQUEST_SIZE;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public long getBufferSize()
     {
       return ADMIN_WRITE_BUFFER_SIZE;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Integer getNumRequestHandlers()
     {
       return ADMIN_NUM_REQUEST_HANDLERS;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isSendRejectionNotice()
     {
       return ADMIN_SEND_REJECTION_NOTICE;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String getSSLCertNickname()
     {
       return config.getSSLCertNickname();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public SortedSet<String> getSSLCipherSuite()
     {
       return config.getSSLCipherSuite();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public SSLClientAuthPolicy getSSLClientAuthPolicy()
     {
       return ADMIN_SSL_CLIENT_AUTH_POLICY;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public SortedSet<String> getSSLProtocol()
     {
       return config.getSSLProtocol();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String getTrustManagerProvider()
     {
       return config.getTrustManagerProvider();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public DN getTrustManagerProviderDN()
     {
       return config.getTrustManagerProviderDN();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isUseSSL()
     {
       return ADMIN_USE_SSL;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isUseTCPKeepAlive()
     {
       return ADMIN_USE_TCP_KEEP_ALIVE;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isUseTCPNoDelay()
     {
       return ADMIN_USE_TCP_NO_DELAY;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void addChangeListener(
         ConfigurationChangeListener<ConnectionHandlerCfg> listener)
     {
       // do nothing. change listener already added.
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void removeChangeListener(
         ConfigurationChangeListener<ConnectionHandlerCfg> listener)
     {
       // do nothing. change listener already added.
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public SortedSet<AddressMask> getAllowedClient()
     {
       return ADMIN_ALLOWED_CLIENT;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public SortedSet<AddressMask> getDeniedClient()
     {
       return ADMIN_DENIED_CLIENT;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean isEnabled()
     {
       return ADMIN_ENABLED;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public DN dn()
     {
       return config.dn();
@@ -768,17 +620,17 @@ public final class AdministrationConnector implements
       KeyManagerProviderCfg keyConfig, TrustManagerProviderCfg trustConfig)
   {
     if (keyConfig.isEnabled()
-        && (keyConfig instanceof FileBasedKeyManagerProviderCfg)
+        && keyConfig instanceof FileBasedKeyManagerProviderCfg
         && trustConfig.isEnabled()
-        && (trustConfig instanceof FileBasedTrustManagerProviderCfg))
+        && trustConfig instanceof FileBasedTrustManagerProviderCfg)
     {
       FileBasedKeyManagerProviderCfg fileKeyConfig =
           (FileBasedKeyManagerProviderCfg) keyConfig;
       boolean pinIsProvidedByFileOnly =
-          (fileKeyConfig.getKeyStorePinFile() != null)
-              && (fileKeyConfig.getKeyStorePin() == null)
-              && (fileKeyConfig.getKeyStorePinEnvironmentVariable() == null)
-              && (fileKeyConfig.getKeyStorePinProperty() == null);
+          fileKeyConfig.getKeyStorePinFile() != null
+              && fileKeyConfig.getKeyStorePin() == null
+              && fileKeyConfig.getKeyStorePinEnvironmentVariable() == null
+              && fileKeyConfig.getKeyStorePinProperty() == null;
       return !pinIsProvidedByFileOnly;
     }
     return true;
