@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  *      Portions copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.schema.CollationMatchingRulesImpl.*;
+import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.TimeBasedMatchingRulesImpl.*;
 
@@ -35,12 +36,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TreeMap;
 
 final class CoreSchemaImpl {
@@ -72,8 +71,6 @@ final class CoreSchemaImpl {
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("OpenDJ Directory Server"));
 
     private static final String EMPTY_STRING = "".intern();
-
-    private static final Set<String> EMPTY_STRING_SET = Collections.emptySet();
 
     private static final Schema SINGLETON;
 
@@ -337,10 +334,13 @@ final class CoreSchemaImpl {
                 .singletonList("authPassword"), "password authentication information", false, null,
                 EMR_AUTH_PASSWORD_EXACT_OID, null, null, null, SYNTAX_AUTH_PASSWORD_OID, false,
                 false, false, AttributeUsage.USER_APPLICATIONS, RFC3112_ORIGIN, false);
-        builder.addObjectClass("1.3.6.1.4.1.4203.1.4.7", Collections
-                .singletonList("authPasswordObject"), "authentication password mix in class",
-                false, EMPTY_STRING_SET, EMPTY_STRING_SET, Collections.singleton("authPassword"),
-                ObjectClassType.AUXILIARY, RFC3112_ORIGIN, false);
+        builder.buildObjectClass("1.3.6.1.4.1.4203.1.4.7")
+                .names("authPasswordObject")
+                .type(AUXILIARY)
+                .description("authentication password mix in class")
+                .optionalAttributes("authPassword")
+                .extraProperties(RFC3112_ORIGIN)
+                .addToSchema();
     }
 
     private static void addRFC4519(final SchemaBuilder builder) {
@@ -540,229 +540,137 @@ final class CoreSchemaImpl {
                 SYNTAX_BIT_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
                 RFC4519_ORIGIN, false);
 
-        Set<String> attrs = new HashSet<String>();
-        attrs.add("seeAlso");
-        attrs.add("ou");
-        attrs.add("l");
-        attrs.add("description");
+        builder.buildObjectClass("2.5.6.11")
+                .names("applicationProcess")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("cn")
+                .optionalAttributes("seeAlso", "ou", "l", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.11", Collections.singletonList("applicationProcess"),
-                EMPTY_STRING, false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections
-                        .singleton("cn"), attrs, ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.2")
+                .names("country")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("c")
+                .optionalAttributes("searchGuide", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        attrs = new HashSet<String>();
-        attrs.add("searchGuide");
-        attrs.add("description");
+        builder.buildObjectClass("1.3.6.1.4.1.1466.344")
+                .names("dcObject")
+                .type(AUXILIARY)
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("dc")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.2", Collections.singletonList("country"), EMPTY_STRING,
-                false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections.singleton("c"),
-                attrs, ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.14")
+                .names("device")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("cn")
+                .optionalAttributes("serialNumber", "seeAlso", "owner", "ou", "o", "l", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("1.3.6.1.4.1.1466.344", Collections.singletonList("dcObject"),
-                EMPTY_STRING, false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections
-                        .singleton("dc"), EMPTY_STRING_SET, ObjectClassType.AUXILIARY,
-                RFC4519_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.9")
+                .names("groupOfNames")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("member", "cn")
+                .optionalAttributes("businessCategory", "seeAlso", "owner", "ou", "o", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        attrs = new HashSet<String>();
-        attrs.add("serialNumber");
-        attrs.add("seeAlso");
-        attrs.add("owner");
-        attrs.add("ou");
-        attrs.add("o");
-        attrs.add("l");
-        attrs.add("description");
+        builder.buildObjectClass("2.5.6.17")
+                .names("groupOfUniqueNames")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("member", "cn")
+                .optionalAttributes("businessCategory", "seeAlso", "owner", "ou", "o", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.14", Collections.singletonList("device"), EMPTY_STRING,
-                false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections.singleton("cn"),
-                attrs, ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.3")
+                .names("locality")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .optionalAttributes("street", "seeAlso", "searchGuide", "st", "l", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        Set<String> must = new HashSet<String>();
-        must.add("member");
-        must.add("cn");
+        builder.buildObjectClass("2.5.6.4")
+                .names("organization")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("o")
+                .optionalAttributes("userPassword", "searchGuide", "seeAlso", "businessCategory", "x121Address",
+                        "registeredAddress", "destinationIndicator", "preferredDeliveryMethod", "telexNumber",
+                        "teletexTerminalIdentifier", "telephoneNumber", "internationalISDNNumber",
+                        "facsimileTelephoneNumber", "street", "postOfficeBox", "postalCode", "postalAddress",
+                        "physicalDeliveryOfficeName", "st", "l", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        attrs = new HashSet<String>();
-        attrs.add("businessCategory");
-        attrs.add("seeAlso");
-        attrs.add("owner");
-        attrs.add("ou");
-        attrs.add("o");
-        attrs.add("description");
+        builder.buildObjectClass("2.5.6.7")
+                .names("organizationalPerson")
+                .superiorObjectClasses("person")
+                .optionalAttributes("title", "x121Address", "registeredAddress", "destinationIndicator",
+                        "preferredDeliveryMethod", "telexNumber", "teletexTerminalIdentifier", "telephoneNumber",
+                        "internationalISDNNumber", "facsimileTelephoneNumber", "street", "postOfficeBox",
+                        "postalCode", "postalAddress", "physicalDeliveryOfficeName", "ou", "st", "l")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.9", Collections.singletonList("groupOfNames"), EMPTY_STRING,
-                false, Collections.singleton(TOP_OBJECTCLASS_NAME), must, attrs,
-                ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.8")
+                .names("organizationalRole")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("cn")
+                .optionalAttributes("x121Address", "registeredAddress", "destinationIndicator",
+                        "preferredDeliveryMethod", "telexNumber", "teletexTerminalIdentifier", "telephoneNumber",
+                        "internationalISDNNumber", "facsimileTelephoneNumber", "seeAlso", "roleOccupant",
+                        "preferredDeliveryMethod", "street", "postOfficeBox", "postalCode", "postalAddress",
+                        "physicalDeliveryOfficeName", "ou", "st", "l", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        attrs = new HashSet<String>();
-        attrs.add("businessCategory");
-        attrs.add("seeAlso");
-        attrs.add("owner");
-        attrs.add("ou");
-        attrs.add("o");
-        attrs.add("description");
+        builder.buildObjectClass("2.5.6.5")
+                .names("organizationalUnit")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("ou")
+                .optionalAttributes("businessCategory", "description", "destinationIndicator",
+                        "facsimileTelephoneNumber", "internationalISDNNumber", "l", "physicalDeliveryOfficeName",
+                        "postalAddress", "postalCode", "postOfficeBox", "preferredDeliveryMethod",
+                        "registeredAddress", "searchGuide", "seeAlso", "st", "street", "telephoneNumber",
+                        "teletexTerminalIdentifier", "telexNumber", "userPassword", "x121Address")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.17", Collections.singletonList("groupOfUniqueNames"),
-                EMPTY_STRING, false, Collections.singleton(TOP_OBJECTCLASS_NAME), must, attrs,
-                ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.6")
+                .names("person")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("userPassword", "telephoneNumber", "destinationIndicator", "seeAlso", "description")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        attrs = new HashSet<String>();
-        attrs.add("street");
-        attrs.add("seeAlso");
-        attrs.add("searchGuide");
-        attrs.add("st");
-        attrs.add("l");
-        attrs.add("description");
+        builder.buildObjectClass("2.5.6.10")
+                .names("residentialPerson")
+                .superiorObjectClasses("person")
+                .requiredAttributes("l")
+                .optionalAttributes("businessCategory", "x121Address", "registeredAddress", "destinationIndicator",
+                        "preferredDeliveryMethod", "telexNumber", "teletexTerminalIdentifier", "telephoneNumber",
+                        "internationalISDNNumber", "facsimileTelephoneNumber", "preferredDeliveryMethod", "street",
+                        "postOfficeBox", "postalCode", "postalAddress", "physicalDeliveryOfficeName", "st", "l")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.3", Collections.singletonList("locality"), EMPTY_STRING,
-                false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET, attrs,
-                ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
-
-        attrs = new HashSet<String>();
-        attrs.add("userPassword");
-        attrs.add("searchGuide");
-        attrs.add("seeAlso");
-        attrs.add("businessCategory");
-        attrs.add("x121Address");
-        attrs.add("registeredAddress");
-        attrs.add("destinationIndicator");
-        attrs.add("preferredDeliveryMethod");
-        attrs.add("telexNumber");
-        attrs.add("teletexTerminalIdentifier");
-        attrs.add("telephoneNumber");
-        attrs.add("internationalISDNNumber");
-        attrs.add("facsimileTelephoneNumber");
-        attrs.add("street");
-        attrs.add("postOfficeBox");
-        attrs.add("postalCode");
-        attrs.add("postalAddress");
-        attrs.add("physicalDeliveryOfficeName");
-        attrs.add("st");
-        attrs.add("l");
-        attrs.add("description");
-
-        builder.addObjectClass("2.5.6.4", Collections.singletonList("organization"), EMPTY_STRING,
-                false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections.singleton("o"),
-                attrs, ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
-
-        attrs = new HashSet<String>();
-        attrs.add("title");
-        attrs.add("x121Address");
-        attrs.add("registeredAddress");
-        attrs.add("destinationIndicator");
-        attrs.add("preferredDeliveryMethod");
-        attrs.add("telexNumber");
-        attrs.add("teletexTerminalIdentifier");
-        attrs.add("telephoneNumber");
-        attrs.add("internationalISDNNumber");
-        attrs.add("facsimileTelephoneNumber");
-        attrs.add("street");
-        attrs.add("postOfficeBox");
-        attrs.add("postalCode");
-        attrs.add("postalAddress");
-        attrs.add("physicalDeliveryOfficeName");
-        attrs.add("ou");
-        attrs.add("st");
-        attrs.add("l");
-
-        builder.addObjectClass("2.5.6.7", Collections.singletonList("organizationalPerson"),
-                EMPTY_STRING, false, Collections.singleton("person"), EMPTY_STRING_SET, attrs,
-                ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
-
-        attrs = new HashSet<String>();
-        attrs.add("x121Address");
-        attrs.add("registeredAddress");
-        attrs.add("destinationIndicator");
-        attrs.add("preferredDeliveryMethod");
-        attrs.add("telexNumber");
-        attrs.add("teletexTerminalIdentifier");
-        attrs.add("telephoneNumber");
-        attrs.add("internationalISDNNumber");
-        attrs.add("facsimileTelephoneNumber");
-        attrs.add("seeAlso");
-        attrs.add("roleOccupant");
-        attrs.add("preferredDeliveryMethod");
-        attrs.add("street");
-        attrs.add("postOfficeBox");
-        attrs.add("postalCode");
-        attrs.add("postalAddress");
-        attrs.add("physicalDeliveryOfficeName");
-        attrs.add("ou");
-        attrs.add("st");
-        attrs.add("l");
-        attrs.add("description");
-
-        builder.addObjectClass("2.5.6.8", Collections.singletonList("organizationalRole"),
-                EMPTY_STRING, false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections
-                        .singleton("cn"), attrs, ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
-
-        attrs = new HashSet<String>();
-        attrs.add("businessCategory");
-        attrs.add("description");
-        attrs.add("destinationIndicator");
-        attrs.add("facsimileTelephoneNumber");
-        attrs.add("internationalISDNNumber");
-        attrs.add("l");
-        attrs.add("physicalDeliveryOfficeName");
-        attrs.add("postalAddress");
-        attrs.add("postalCode");
-        attrs.add("postOfficeBox");
-        attrs.add("preferredDeliveryMethod");
-        attrs.add("registeredAddress");
-        attrs.add("searchGuide");
-        attrs.add("seeAlso");
-        attrs.add("st");
-        attrs.add("street");
-        attrs.add("telephoneNumber");
-        attrs.add("teletexTerminalIdentifier");
-        attrs.add("telexNumber");
-        attrs.add("userPassword");
-        attrs.add("x121Address");
-
-        builder.addObjectClass("2.5.6.5", Collections.singletonList("organizationalUnit"),
-                EMPTY_STRING, false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections
-                        .singleton("ou"), attrs, ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
-
-        must = new HashSet<String>();
-        must.add("sn");
-        must.add("cn");
-
-        attrs = new HashSet<String>();
-        attrs.add("userPassword");
-        attrs.add("telephoneNumber");
-        attrs.add("destinationIndicator");
-        attrs.add("seeAlso");
-        attrs.add("description");
-
-        builder.addObjectClass("2.5.6.6", Collections.singletonList("person"), EMPTY_STRING, false,
-                Collections.singleton(TOP_OBJECTCLASS_NAME), must, attrs,
-                ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
-
-        attrs = new HashSet<String>();
-        attrs.add("businessCategory");
-        attrs.add("x121Address");
-        attrs.add("registeredAddress");
-        attrs.add("destinationIndicator");
-        attrs.add("preferredDeliveryMethod");
-        attrs.add("telexNumber");
-        attrs.add("teletexTerminalIdentifier");
-        attrs.add("telephoneNumber");
-        attrs.add("internationalISDNNumber");
-        attrs.add("facsimileTelephoneNumber");
-        attrs.add("preferredDeliveryMethod");
-        attrs.add("street");
-        attrs.add("postOfficeBox");
-        attrs.add("postalCode");
-        attrs.add("postalAddress");
-        attrs.add("physicalDeliveryOfficeName");
-        attrs.add("st");
-        attrs.add("l");
-
-        builder.addObjectClass("2.5.6.10", Collections.singletonList("residentialPerson"),
-                EMPTY_STRING, false, Collections.singleton("person"), Collections.singleton("l"),
-                attrs, ObjectClassType.STRUCTURAL, RFC4519_ORIGIN, false);
-
-        builder.addObjectClass("1.3.6.1.1.3.1", Collections.singletonList("uidObject"),
-                EMPTY_STRING, false, Collections.singleton(TOP_OBJECTCLASS_NAME), Collections
-                        .singleton("uid"), attrs, ObjectClassType.AUXILIARY, RFC4519_ORIGIN, false);
+        builder.buildObjectClass("1.3.6.1.1.3.1")
+                .names("uidObject")
+                .type(AUXILIARY)
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("uid")
+                .optionalAttributes("businessCategory", "x121Address", "registeredAddress", "destinationIndicator",
+                        "preferredDeliveryMethod", "telexNumber", "teletexTerminalIdentifier", "telephoneNumber",
+                        "internationalISDNNumber", "facsimileTelephoneNumber", "preferredDeliveryMethod", "street",
+                        "postOfficeBox", "postalCode", "postalAddress", "physicalDeliveryOfficeName", "st", "l")
+                .extraProperties(RFC4519_ORIGIN)
+                .addToSchema();
     }
 
     private static void addRFC4523(final SchemaBuilder builder) {
@@ -811,53 +719,79 @@ final class CoreSchemaImpl {
                 null, null, SYNTAX_CERTLIST_OID, false, false, false,
                 AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
 
-        builder.addObjectClass("2.5.6.21", Collections.singletonList("pkiUser"),
-                "X.509 PKI User", false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET,
-                Collections.singleton("userCertificate"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.21")
+                .names("pkiUser")
+                .type(AUXILIARY)
+                .description("X.509 PKI User")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .optionalAttributes("userCertificate")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
 
-        Set<String> attrs = new HashSet<String>();
-        attrs.add("cACertificate");
-        attrs.add("certificateRevocationList");
-        attrs.add("authorityRevocationList");
-        attrs.add("crossCertificatePair");
+        builder.buildObjectClass("2.5.6.22")
+                .names("pkiCA")
+                .type(AUXILIARY)
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .description("X.509 PKI Certificate Authority")
+                .optionalAttributes("cACertificate", "certificateRevocationList",
+                    "authorityRevocationList", "crossCertificatePair")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.22", Collections.singletonList("pkiCA"),
-                "X.509 PKI Certificate Authority", false, Collections.singleton(TOP_OBJECTCLASS_NAME),
-                EMPTY_STRING_SET, attrs, ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.19")
+                .names("cRLDistributionPoint")
+                .description("X.509 CRL distribution point")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("cn")
+                .optionalAttributes("certificateRevocationList", "authorityRevocationList", "deltaRevocationList")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
 
-        attrs = new HashSet<String>();
-        attrs.add("certificateRevocationList");
-        attrs.add("authorityRevocationList");
-        attrs.add("deltaRevocationList");
+        builder.buildObjectClass("2.5.6.23")
+                .names("deltaCRL")
+                .type(AUXILIARY)
+                .description("X.509 delta CRL")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .optionalAttributes("deltaRevocationList")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.19", Collections.singletonList("cRLDistributionPoint"),
-                "X.509 CRL distribution point", false, Collections.singleton(TOP_OBJECTCLASS_NAME),
-                Collections.singleton("cn"), attrs, ObjectClassType.STRUCTURAL, RFC4523_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.15")
+                .names("strongAuthenticationUser")
+                .type(AUXILIARY)
+                .description("X.521 strong authentication user")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("userCertificate")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.23", Collections.singletonList("deltaCRL"),
-                "X.509 delta CRL", false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET,
-                Collections.singleton("deltaRevocationList"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
-        builder.addObjectClass("2.5.6.15", Collections.singletonList("strongAuthenticationUser"),
-                "X.521 strong authentication user", false, Collections.singleton(TOP_OBJECTCLASS_NAME),
-                Collections.singleton("userCertificate"), EMPTY_STRING_SET, ObjectClassType.AUXILIARY,
-                RFC4523_ORIGIN, false);
-        builder.addObjectClass("2.5.6.18", Collections.singletonList("userSecurityInformation"),
-                "X.521 user security information", false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET,
-                Collections.singleton("supportedAlgorithms"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.18")
+                .names("userSecurityInformation")
+                .type(AUXILIARY)
+                .description("X.521 user security information")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .optionalAttributes("supportedAlgorithms")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
 
-        attrs = new HashSet<String>();
-        attrs.add("authorityRevocationList");
-        attrs.add("certificateRevocationList");
-        attrs.add("cACertificate");
+        builder.buildObjectClass("2.5.6.16")
+                .names("certificationAuthority")
+                .type(AUXILIARY)
+                .description("X.509 certificate authority")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("authorityRevocationList", "certificateRevocationList", "cACertificate")
+                .optionalAttributes("crossCertificatePair")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.16", Collections.singletonList("certificationAuthority"),
-                "X.509 certificate authority", false, Collections.singleton(TOP_OBJECTCLASS_NAME), attrs,
-                Collections.singleton("crossCertificatePair"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
-
-        builder.addObjectClass("2.5.6.16.2", Collections.singletonList("certificationAuthority-V2"),
-                "X.509 certificate authority, version 2", false, Collections.singleton("certificationAuthority"),
-                EMPTY_STRING_SET, Collections.singleton("deltaRevocationList"), ObjectClassType.AUXILIARY,
-                RFC4523_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.16.2")
+                .names("certificationAuthority-V2")
+                .type(AUXILIARY)
+                .description("X.509 certificate authority, version 2")
+                .superiorObjectClasses("certificationAuthority")
+                .optionalAttributes("deltaRevocationList")
+                .extraProperties(RFC4523_ORIGIN)
+                .addToSchema();
     }
 
     private static void addRFC4530(final SchemaBuilder builder) {
@@ -1267,32 +1201,36 @@ final class CoreSchemaImpl {
     }
 
     private static void defaultObjectClasses(final SchemaBuilder builder) {
-        builder.addObjectClass(TOP_OBJECTCLASS_OID,
-                Collections.singletonList(TOP_OBJECTCLASS_NAME), TOP_OBJECTCLASS_DESCRIPTION,
-                false, EMPTY_STRING_SET, Collections.singleton("objectClass"), EMPTY_STRING_SET,
-                ObjectClassType.ABSTRACT, RFC4512_ORIGIN, false);
+        builder.buildObjectClass(TOP_OBJECTCLASS_OID)
+                .names(TOP_OBJECTCLASS_NAME)
+                .type(ABSTRACT)
+                .description(TOP_OBJECTCLASS_DESCRIPTION)
+                .requiredAttributes("objectClass")
+                .extraProperties(RFC4512_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass("2.5.6.1", Collections.singletonList("alias"), EMPTY_STRING, false,
-                Collections.singleton("top"), Collections.singleton("aliasedObjectName"),
-                EMPTY_STRING_SET, ObjectClassType.STRUCTURAL, RFC4512_ORIGIN, false);
+        builder.buildObjectClass("2.5.6.1")
+                .names("alias")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("aliasedObjectName")
+                .extraProperties(RFC4512_ORIGIN)
+                .addToSchema();
 
-        builder.addObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID, Collections
-                .singletonList(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME), EMPTY_STRING, false,
-                Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET, EMPTY_STRING_SET,
-                ObjectClassType.AUXILIARY, RFC4512_ORIGIN, false);
+        builder.buildObjectClass(EXTENSIBLE_OBJECT_OBJECTCLASS_OID)
+                .names(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME)
+                .type(AUXILIARY)
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .extraProperties(RFC4512_ORIGIN)
+                .addToSchema();
 
-        final Set<String> subschemaAttrs = new HashSet<String>();
-        subschemaAttrs.add("dITStructureRules");
-        subschemaAttrs.add("nameForms");
-        subschemaAttrs.add("ditContentRules");
-        subschemaAttrs.add("objectClasses");
-        subschemaAttrs.add("attributeTypes");
-        subschemaAttrs.add("matchingRules");
-        subschemaAttrs.add("matchingRuleUse");
-
-        builder.addObjectClass("2.5.20.1", Collections.singletonList("subschema"), EMPTY_STRING,
-                false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET,
-                subschemaAttrs, ObjectClassType.AUXILIARY, RFC4512_ORIGIN, false);
+        builder.buildObjectClass("2.5.20.1")
+                .names("subschema")
+                .type(AUXILIARY)
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .optionalAttributes("dITStructureRules", "nameForms", "ditContentRules", "objectClasses",
+                    "attributeTypes", "matchingRules", "matchingRuleUse")
+                .extraProperties(RFC4512_ORIGIN)
+                .addToSchema();
     }
 
     private static void defaultSyntaxes(final SchemaBuilder builder) {

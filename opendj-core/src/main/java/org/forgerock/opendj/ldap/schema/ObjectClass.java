@@ -22,24 +22,31 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_NAME;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
-
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.util.Reject;
+
+import static java.util.Arrays.*;
+import static java.util.Collections.*;
+
+import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class defines a data structure for storing and interacting with an
@@ -51,6 +58,308 @@ import org.forgerock.util.Reject;
  * accessed via their getters or via the {@link #toString()} methods.
  */
 public final class ObjectClass extends SchemaElement {
+
+    /** A fluent API for incrementally constructing object classes. */
+    public static final class Builder extends SchemaElementBuilder<Builder> {
+        private boolean isObsolete;
+        private final List<String> names = new LinkedList<String>();
+        private String oid;
+        private final Set<String> optionalAttributes = new LinkedHashSet<String>();
+        private final Set<String> requiredAttributes = new LinkedHashSet<String>();
+        private final Set<String> superiorClasses = new LinkedHashSet<String>();
+        private ObjectClassType type = null;
+
+        Builder(final ObjectClass oc, final SchemaBuilder builder) {
+            super(builder, oc);
+            this.oid = oc.oid;
+            this.names.addAll(oc.names);
+            this.isObsolete = oc.isObsolete;
+            this.type = oc.objectClassType;
+            this.superiorClasses.addAll(oc.superiorClassOIDs);
+            this.requiredAttributes.addAll(oc.requiredAttributeOIDs);
+            this.optionalAttributes.addAll(optionalAttributes);
+        }
+
+        Builder(final String oid, final SchemaBuilder builder) {
+            super(builder);
+            oid(oid);
+        }
+
+        /**
+         * Adds this object class to the schema overwriting any existing object class
+         * with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addObjectClass(new ObjectClass(this), true);
+        }
+
+        /**
+         * Adds this object class to the schema, throwing an
+         * {@code  ConflictingSchemaElementException} if there is an existing
+         * object class with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing object class with the same numeric
+         *             OID.
+         */
+        public SchemaBuilder addToSchema() {
+            return getSchemaBuilder().addObjectClass(new ObjectClass(this), false);
+        }
+
+        @Override
+        public Builder description(final String description) {
+            return description0(description);
+        }
+
+        @Override
+        public Builder extraProperties(final Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(final String extensionName, final String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final Collection<String> names) {
+            this.names.addAll(names);
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final String... names) {
+            return names(asList(names));
+        }
+
+        /**
+         * Specifies whether this schema element is obsolete.
+         *
+         * @param isObsolete
+         *            {@code true} if this schema element is obsolete
+         *            (default is {@code false}).
+         * @return This builder.
+         */
+        public Builder obsolete(final boolean isObsolete) {
+            this.isObsolete = isObsolete;
+            return this;
+        }
+
+        /**
+         * Sets the numeric OID which uniquely identifies this object class.
+         *
+         * @param oid
+         *            The numeric OID.
+         * @return This builder.
+         */
+        public Builder oid(final String oid) {
+            this.oid = oid;
+            return this;
+        }
+
+        /**
+         * Adds the provided optional attributes.
+         *
+         * @param attributeNamesOrOIDs
+         *      The list of optional attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder optionalAttributes(final Collection<String> attributeNamesOrOIDs) {
+            this.optionalAttributes.addAll(attributeNamesOrOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided optional attributes.
+         *
+         * @param attributeNamesOrOIDs
+         *      The list of optional attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder optionalAttributes(final String... attributeNamesOrOIDs) {
+            this.optionalAttributes.addAll(asList(attributeNamesOrOIDs));
+            return this;
+        }
+
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
+        @Override
+        public Builder removeExtraProperty(final String extensionName, final String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
+        }
+
+        /**
+         * Removes all user defined names.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllNames() {
+            this.names.clear();
+            return this;
+        }
+
+        /**
+         * Removes all optional attributes.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllOptionalAttributes() {
+            this.optionalAttributes.clear();
+            return this;
+        }
+
+        /**
+         * Removes all required attributes.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllRequiredAttributes() {
+            this.requiredAttributes.clear();
+            return this;
+        }
+
+        /**
+         * Removes all superior object class.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllSuperiorObjectClass() {
+            this.superiorClasses.clear();
+            return this;
+        }
+
+        /**
+         * Removes the provided user defined name.
+         *
+         * @param name
+         *            The user defined name to be removed.
+         * @return This builder.
+         */
+        public Builder removeName(String name) {
+            this.names.remove(name);
+            return this;
+        }
+
+        /**
+         * Removes the provided optional attribute.
+         *
+         * @param attributeNameOrOID
+         *            The optional attribute name or OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeOptionalAttribute(String attributeNameOrOID) {
+            this.optionalAttributes.remove(attributeNameOrOID);
+            return this;
+        }
+
+        /**
+         * Removes the provided required attribute.
+         *
+         * @param attributeNameOrOID
+         *            The provided required attribute name or OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeRequiredAttribute(String attributeNameOrOID) {
+            this.optionalAttributes.remove(attributeNameOrOID);
+            return this;
+        }
+
+        /**
+         * Removes the provided superior object class.
+         *
+         * @param objectClassNameOrOID
+         *            The superior object class name or OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeSuperiorObjectClass(String objectClassNameOrOID) {
+            this.superiorClasses.remove(objectClassNameOrOID);
+            return this;
+        }
+
+        /**
+         * Adds the provided required attributes.
+         *
+         * @param attributeNamesOrOIDs
+         *      The list of required attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder requiredAttributes(final Collection<String> attributeNamesOrOIDs) {
+            this.requiredAttributes.addAll(attributeNamesOrOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided required attributes.
+         *
+         * @param attributeNamesOrOIDs
+         *      The list of required attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder requiredAttributes(final String... attributeNamesOrOIDs) {
+            this.requiredAttributes.addAll(asList(attributeNamesOrOIDs));
+            return this;
+        }
+
+        /**
+         * Adds the provided superior object classes.
+         *
+         * @param objectClassNamesOrOIDs
+         *      The list of superior object classes names or OIDs.
+         * @return This builder.
+         */
+        public Builder superiorObjectClasses(final Collection<String> objectClassNamesOrOIDs) {
+            this.superiorClasses.addAll(objectClassNamesOrOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided superior object classes.
+         *
+         * @param objectClassNamesOrOIDs
+         *      The list of superior object classes names or OIDs.
+         * @return This builder.
+         */
+        public Builder superiorObjectClasses(final String... objectClassNamesOrOIDs) {
+            this.superiorClasses.addAll(asList(objectClassNamesOrOIDs));
+            return this;
+        }
+
+        /**
+         * Sets the type of this object class.
+         *
+         * @param type
+         *      The object class type.
+         * @return This builder.
+         */
+        public Builder type(final ObjectClassType type) {
+            this.type = type;
+            return this;
+        }
+    }
+
     /** The OID that may be used to reference this definition. */
     private final String oid;
 
@@ -72,34 +381,17 @@ public final class ObjectClass extends SchemaElement {
     /** The set of optional attribute types for this objectclass. */
     private final Set<String> optionalAttributeOIDs;
 
-    private Set<ObjectClass> superiorClasses = Collections.emptySet();
-    private Set<AttributeType> declaredRequiredAttributes = Collections.emptySet();
-    private Set<AttributeType> requiredAttributes = Collections.emptySet();
-    private Set<AttributeType> declaredOptionalAttributes = Collections.emptySet();
-    private Set<AttributeType> optionalAttributes = Collections.emptySet();
+    private Set<ObjectClass> superiorClasses = emptySet();
+    private Set<AttributeType> declaredRequiredAttributes = emptySet();
+    private Set<AttributeType> requiredAttributes = emptySet();
+    private Set<AttributeType> declaredOptionalAttributes = emptySet();
+    private Set<AttributeType> optionalAttributes = emptySet();
 
     /** Indicates whether or not validation has been performed. */
     private boolean needsValidating = true;
 
     /** The indicates whether or not validation failed. */
     private boolean isValid;
-
-    ObjectClass(final String oid, final List<String> names, final String description,
-            final boolean obsolete, final Set<String> superiorClassOIDs,
-            final Set<String> requiredAttributeOIDs, final Set<String> optionalAttributeOIDs,
-            final ObjectClassType objectClassType, final Map<String, List<String>> extraProperties,
-            final String definition) {
-        super(description, extraProperties, definition);
-
-        Reject.ifNull(oid, names, superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs, objectClassType);
-        this.oid = oid;
-        this.names = names;
-        this.isObsolete = obsolete;
-        this.superiorClassOIDs = superiorClassOIDs;
-        this.objectClassType = objectClassType;
-        this.requiredAttributeOIDs = requiredAttributeOIDs;
-        this.optionalAttributeOIDs = optionalAttributeOIDs;
-    }
 
     /**
      * Construct a extensibleObject object class where the set of allowed
@@ -111,15 +403,31 @@ public final class ObjectClass extends SchemaElement {
      * @param extraProperties
      *            The map of "extra" properties for this schema definition
      */
-    ObjectClass(final String description, final Map<String, List<String>> extraProperties) {
-        super(description, extraProperties, null);
-        this.oid = EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-        this.names = Collections.singletonList(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME);
-        this.isObsolete = false;
-        this.superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
-        this.objectClassType = ObjectClassType.AUXILIARY;
-        this.requiredAttributeOIDs = Collections.emptySet();
-        this.optionalAttributeOIDs = Collections.emptySet();
+    static ObjectClass newExtensibleObjectObjectClass(final String description,
+        final Map<String, List<String>> extraProperties, final SchemaBuilder builder) {
+        return new ObjectClass(new Builder(EXTENSIBLE_OBJECT_OBJECTCLASS_OID, builder)
+               .description(description)
+               .extraProperties(extraProperties)
+               .names(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME)
+               .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+               .type(AUXILIARY));
+    }
+
+
+    private ObjectClass(final Builder builder) {
+        super(builder);
+
+        if (builder.oid == null || builder.oid.isEmpty()) {
+            throw new IllegalArgumentException("An OID must be specified.");
+        }
+
+        this.oid = builder.oid;
+        this.names = unmodifiableCopyOfList(builder.names);
+        this.isObsolete = builder.isObsolete;
+        this.superiorClassOIDs = unmodifiableCopyOfSet(builder.superiorClasses);
+        this.objectClassType = builder.type;
+        this.requiredAttributeOIDs = unmodifiableCopyOfSet(builder.requiredAttributes);
+        this.optionalAttributeOIDs = unmodifiableCopyOfSet(builder.optionalAttributes);
     }
 
     /**
@@ -198,8 +506,7 @@ public final class ObjectClass extends SchemaElement {
      * @return The objectclass type for this objectclass.
      */
     public ObjectClassType getObjectClassType() {
-
-        return objectClassType;
+        return objectClassType != null ? objectClassType : STRUCTURAL;
     }
 
     /**
@@ -208,7 +515,6 @@ public final class ObjectClass extends SchemaElement {
      * @return The OID for this schema definition.
      */
     public String getOID() {
-
         return oid;
     }
 
@@ -356,12 +662,6 @@ public final class ObjectClass extends SchemaElement {
         return isRequired(attributeType) || isOptional(attributeType);
     }
 
-    ObjectClass duplicate() {
-        return new ObjectClass(oid, names, getDescription(), isObsolete, superiorClassOIDs,
-                requiredAttributeOIDs, optionalAttributeOIDs, objectClassType,
-                getExtraProperties(), toString());
-    }
-
     @Override
     void toStringContent(final StringBuilder buffer) {
         buffer.append(oid);
@@ -473,7 +773,7 @@ public final class ObjectClass extends SchemaElement {
 
         // Init a flag to check to inheritance from top (only needed for
         // structural object classes) per RFC 4512
-        boolean derivesTop = objectClassType != ObjectClassType.STRUCTURAL;
+        boolean derivesTop = getObjectClassType() != ObjectClassType.STRUCTURAL;
 
         if (!superiorClassOIDs.isEmpty()) {
             superiorClasses = new HashSet<ObjectClass>(superiorClassOIDs.size());
@@ -491,14 +791,15 @@ public final class ObjectClass extends SchemaElement {
 
                 // Make sure that the inheritance configuration is acceptable.
                 final ObjectClassType superiorType = superiorClass.getObjectClassType();
-                switch (objectClassType) {
+                final ObjectClassType type = getObjectClassType();
+                switch (type) {
                 case ABSTRACT:
                     // Abstract classes may only inherit from other abstract
                     // classes.
                     if (superiorType != ObjectClassType.ABSTRACT) {
                         final LocalizableMessage message =
                                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1.get(
-                                        getNameOrOID(), objectClassType.toString(), superiorType
+                                        getNameOrOID(), type.toString(), superiorType
                                                 .toString(), superiorClass.getNameOrOID());
                         failValidation(invalidSchemaElements, warnings, message);
                         return false;
@@ -513,7 +814,7 @@ public final class ObjectClass extends SchemaElement {
                             && superiorType != ObjectClassType.AUXILIARY) {
                         final LocalizableMessage message =
                                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1.get(
-                                        getNameOrOID(), objectClassType.toString(), superiorType
+                                        getNameOrOID(), type.toString(), superiorType
                                                 .toString(), superiorClass.getNameOrOID());
                         failValidation(invalidSchemaElements, warnings, message);
                         return false;
@@ -527,7 +828,7 @@ public final class ObjectClass extends SchemaElement {
                             && superiorType != ObjectClassType.STRUCTURAL) {
                         final LocalizableMessage message =
                                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1.get(
-                                        getNameOrOID(), objectClassType.toString(), superiorType
+                                        getNameOrOID(), type.toString(), superiorType
                                                 .toString(), superiorClass.getNameOrOID());
                         failValidation(invalidSchemaElements, warnings, message);
                         return false;
