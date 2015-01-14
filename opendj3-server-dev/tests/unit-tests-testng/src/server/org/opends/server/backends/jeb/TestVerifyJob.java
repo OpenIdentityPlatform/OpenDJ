@@ -36,7 +36,7 @@ import java.util.List;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
-import org.opends.server.backends.pluggable.VerifyConfig;
+import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -77,6 +77,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ConditionResult.*;
 import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.backends.pluggable.SuffixContainer.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
 import static org.opends.server.types.Attributes.*;
@@ -96,11 +97,6 @@ public class TestBackendImpl extends JebTestCase {
   private List<Entry> additionalEntries;
   private Entry replaceEntry;
   private Entry newTop;
-
-  /**
-   * The attribute used to return a search index debug string to the client.
-   */
-  public static final String ATTR_DEBUG_SEARCH_INDEX = "debugsearchindex";
 
   @BeforeClass
   public void setUp() throws Exception {
