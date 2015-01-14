@@ -41,7 +41,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.Configuration;
-import org.opends.server.backends.pluggable.VerifyConfig;
+import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
