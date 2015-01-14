@@ -761,9 +761,8 @@ public final class ObjectClass extends SchemaElement {
 
     boolean validate(final Schema schema, final List<ObjectClass> invalidSchemaElements,
             final List<LocalizableMessage> warnings) {
-        // Avoid validating this schema element more than once. This may occur
-        // if
-        // multiple object classes specify the same superior.
+        // Avoid validating this schema element more than once.
+        // This may occur if multiple object classes specify the same superior.
         if (!needsValidating) {
             return isValid;
         }
@@ -794,8 +793,7 @@ public final class ObjectClass extends SchemaElement {
                 final ObjectClassType type = getObjectClassType();
                 switch (type) {
                 case ABSTRACT:
-                    // Abstract classes may only inherit from other abstract
-                    // classes.
+                    // Abstract classes may only inherit from other abstract classes.
                     if (superiorType != ObjectClassType.ABSTRACT) {
                         final LocalizableMessage message =
                                 WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_TYPE1.get(
@@ -808,8 +806,7 @@ public final class ObjectClass extends SchemaElement {
 
                 case AUXILIARY:
                     // Auxiliary classes may only inherit from abstract classes
-                    // or
-                    // other auxiliary classes.
+                    // or other auxiliary classes.
                     if (superiorType != ObjectClassType.ABSTRACT
                             && superiorType != ObjectClassType.AUXILIARY) {
                         final LocalizableMessage message =
@@ -837,14 +834,13 @@ public final class ObjectClass extends SchemaElement {
                 }
 
                 // All existing structural object classes defined in this schema
-                // are implicitly guaranteed to inherit from top
+                // are implicitly guaranteed to inherit from top.
                 if (!derivesTop && superiorType == ObjectClassType.STRUCTURAL) {
                     derivesTop = true;
                 }
 
                 // First ensure that the superior has been validated and fail if
-                // it is
-                // invalid.
+                // it is invalid.
                 if (!superiorClass.validate(schema, invalidSchemaElements, warnings)) {
                     final LocalizableMessage message =
                             WARN_ATTR_SYNTAX_OBJECTCLASS_INVALID_SUPERIOR_CLASS.get(getNameOrOID(),
@@ -906,9 +902,7 @@ public final class ObjectClass extends SchemaElement {
                         attributeType = schema.getAttributeType(requiredAttribute);
                     } catch (final UnknownSchemaElementException e) {
                         // This isn't good because it means that the objectclass
-                        // requires an attribute type that we don't know
-                        // anything
-                        // about.
+                        // requires an attribute type that we don't know anything about.
                         final LocalizableMessage message =
                                 WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_REQUIRED_ATTR1.get(
                                         getNameOrOID(), requiredAttribute);
@@ -933,9 +927,7 @@ public final class ObjectClass extends SchemaElement {
                         attributeType = schema.getAttributeType(optionalAttribute);
                     } catch (final UnknownSchemaElementException e) {
                         // This isn't good because it means that the objectclass
-                        // requires an attribute type that we don't know
-                        // anything
-                        // about.
+                        // requires an attribute type that we don't know anything about.
                         final LocalizableMessage message =
                                 WARN_ATTR_SYNTAX_OBJECTCLASS_UNKNOWN_OPTIONAL_ATTR1.get(
                                         getNameOrOID(), optionalAttribute);
