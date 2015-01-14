@@ -26,6 +26,8 @@
  */
 package org.opends.server.api;
 
+import static org.opends.messages.BackendMessages.*;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,8 +38,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.Configuration;
+import org.opends.server.backends.pluggable.VerifyConfig;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -646,6 +650,37 @@ public abstract class Backend<C extends Configuration>
    */
   public abstract LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException;
+
+  /**
+   * Indicates whether this backend supports indexing attributes to speed up searches.
+   *
+   * @return {@code true} if this backend supports indexing attributes, {@code false} otherwise
+   */
+  public boolean supportsIndexing()
+  {
+    return false;
+  }
+
+  /**
+   * Verify the integrity of the backend instance.
+   *
+   * @param verifyConfig
+   *          The verify configuration.
+   * @return The results of the operation.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises during initialization.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not related to the server
+   *           configuration.
+   * @throws DirectoryException
+   *           If a Directory Server error occurs.
+   */
+  public long verifyBackend(VerifyConfig verifyConfig)
+      throws InitializationException, ConfigException, DirectoryException
+  {
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_INDEXES_NOT_SUPPORTED.get(getBackendID()));
+  }
 
   /**
    * Indicates whether this backend provides a backup mechanism of any

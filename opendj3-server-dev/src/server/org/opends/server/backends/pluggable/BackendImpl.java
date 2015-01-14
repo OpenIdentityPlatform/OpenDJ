@@ -693,19 +693,16 @@ public class BackendImpl extends Backend<PersistitBackendCfg> implements
     return new RootContainer(this, cfg).importLDIF(importConfig);
   }
 
-  /**
-   * Verify the integrity of the backend instance.
-   * @param verifyConfig The verify configuration.
-   * @param statEntry Optional entry to save stats into.
-   * @return The error count.
-   * @throws  ConfigException  If an unrecoverable problem arises during
-   *                           initialization.
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public long verifyBackend(VerifyConfig verifyConfig, Entry statEntry)
+  /** {@inheritDoc} */
+  @Override
+  public boolean supportsIndexing()
+  {
+    return true;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long verifyBackend(VerifyConfig verifyConfig)
       throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
@@ -719,7 +716,7 @@ public class BackendImpl extends Backend<PersistitBackendCfg> implements
       }
 
       VerifyJob verifyJob = new VerifyJob(verifyConfig);
-      return verifyJob.verifyBackend(rootContainer, statEntry);
+      return verifyJob.verifyBackend(rootContainer);
     }
     catch (StorageRuntimeException e)
     {
