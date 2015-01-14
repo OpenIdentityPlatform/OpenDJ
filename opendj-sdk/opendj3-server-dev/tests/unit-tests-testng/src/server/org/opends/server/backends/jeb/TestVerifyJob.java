@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
+
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,6 +35,8 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.Backend;
+import org.opends.server.backends.pluggable.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
@@ -46,21 +51,16 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
-
 @SuppressWarnings("javadoc")
 public class TestVerifyJob extends JebTestCase
 {
   /** Root suffix for verify backend. */
   private static String suffix="dc=verify,dc=jeb";
   private static  String vBranch="ou=verify tests," + suffix;
-  private  String beID="verifyRoot";
+  private  String backendID = "verifyRoot";
   private  String numUsersLine="define numusers= #numEntries#";
-  /** Attribute type in stat entry containing error count. */
-  private  String errorCount="verify-error-count";
   private  DN[] baseDNs;
-  private BackendImpl be;
+  private Backend<?> backend;
   private EntryContainer eContainer;
   private DN2ID dn2id;
   private ID2Entry id2entry;
@@ -134,7 +134,7 @@ public class TestVerifyJob extends JebTestCase
   @BeforeClass
   public void setup() throws Exception {
     TestCaseUtils.startServer();
-    TestCaseUtils.enableBackend(beID);
+    TestCaseUtils.enableBackend(backendID);
     baseDNs = new DN[] {
          DN.valueOf(suffix)
     };
@@ -142,8 +142,8 @@ public class TestVerifyJob extends JebTestCase
 
   @AfterClass
   public void cleanUp() throws Exception {
-    TestCaseUtils.clearJEBackend(beID);
-    TestCaseUtils.disableBackend(beID);
+    TestCaseUtils.clearJEBackend(backendID);
+    TestCaseUtils.disableBackend(backendID);
   }
 
   /**
@@ -158,10 +158,8 @@ public class TestVerifyJob extends JebTestCase
     cleanAndLoad(9);
     VerifyConfig verifyConfig = new VerifyConfig();
     verifyConfig.setBaseDN(baseDNs[0]);
-    Entry statEntry=bldStatEntry("");
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.verifyBackend(verifyConfig, statEntry);
-    assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+    backend = DirectoryServer.getBackend(backendID);
+    assertEquals(backend.verifyBackend(verifyConfig), 0);
   }
 
   /**
@@ -177,10 +175,8 @@ public class TestVerifyJob extends JebTestCase
     verifyConfig.setBaseDN(baseDNs[0]);
     verifyConfig.addCleanIndex("telephoneNumber");
     verifyConfig.addCleanIndex("givenName");
-    Entry statEntry=bldStatEntry("");
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.verifyBackend(verifyConfig, statEntry);
-    assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+    backend = DirectoryServer.getBackend(backendID);
+    assertEquals(backend.verifyBackend(verifyConfig), 0);
   }
 
   /**
@@ -196,10 +192,8 @@ public class TestVerifyJob extends JebTestCase
     VerifyConfig verifyConfig = new VerifyConfig();
     verifyConfig.setBaseDN(baseDNs[0]);
     verifyConfig.addCleanIndex(index);
-    Entry statEntry=bldStatEntry("");
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.verifyBackend(verifyConfig, statEntry);
-    assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+    backend = DirectoryServer.getBackend(backendID);
+    assertEquals(backend.verifyBackend(verifyConfig), 0);
   }
 
   /*
@@ -448,10 +442,9 @@ public class TestVerifyJob extends JebTestCase
       //Add entry with short id
       byte[] shortBytes = new byte[3];
       DatabaseEntry key= new DatabaseEntry(shortBytes);
-      Entry testEntry=bldStatEntry(junkDN);
-      ByteString entryBytes =
-           ID2Entry.entryToDatabase(testEntry,
-                                     new DataConfig(false, false, null));
+      Entry testEntry = buildEntry(junkDN);
+      DataConfig dataConfig = new DataConfig(false, false, null);
+      ByteString entryBytes = ID2Entry.entryToDatabase(testEntry, dataConfig);
       DatabaseEntry data= new DatabaseEntry(entryBytes.toByteArray());
       assertEquals(id2entry.put(txn, key, data), OperationStatus.SUCCESS);
 
@@ -770,10 +763,8 @@ public class TestVerifyJob extends JebTestCase
     VerifyConfig verifyConfig = new VerifyConfig();
     verifyConfig.setBaseDN(baseDNs[0]);
     verifyConfig.addCleanIndex("userPassword");
-    Entry statEntry=bldStatEntry("");
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.verifyBackend(verifyConfig, statEntry);
-    assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+    backend = DirectoryServer.getBackend(backendID);
+    assertEquals(backend.verifyBackend(verifyConfig), 0);
   }
 
   /**
@@ -786,9 +777,8 @@ public class TestVerifyJob extends JebTestCase
     VerifyConfig verifyConfig = new VerifyConfig();
     verifyConfig.setBaseDN(baseDNs[0]);
     verifyConfig.addCleanIndex(badIndexName);
-    Entry statEntry=bldStatEntry("");
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.verifyBackend(verifyConfig, statEntry);
+    backend = DirectoryServer.getBackend(backendID);
+    backend.verifyBackend(verifyConfig);
   }
 
   /* end tests */
@@ -805,7 +795,7 @@ public class TestVerifyJob extends JebTestCase
   private DatabaseEntry addID2EntryReturnKey(String dn, long id, boolean trashFormat)
        throws Exception {
     DatabaseEntry key= new EntryID(id).getDatabaseEntry();
-    Entry testEntry=bldStatEntry(dn);
+    Entry testEntry = buildEntry(dn);
     DataConfig dataConfig = new DataConfig(false, false, null);
     byte []entryBytes = ID2Entry.entryToDatabase(testEntry, dataConfig).toByteArray();
     if(trashFormat)
@@ -861,9 +851,7 @@ public class TestVerifyJob extends JebTestCase
     {
       verifyConfig.addCleanIndex(indexToDo);
     }
-    Entry statEntry=bldStatEntry("");
-    be.verifyBackend(verifyConfig, statEntry);
-    assertEquals(getStatEntryCount(statEntry, errorCount), expectedErrors);
+    assertEquals(backend.verifyBackend(verifyConfig), expectedErrors);
   }
 
 
@@ -877,8 +865,8 @@ public class TestVerifyJob extends JebTestCase
    */
   private void preTest(int numEntries) throws Exception {
     cleanAndLoad(numEntries);
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    RootContainer rContainer = be.getRootContainer();
+    backend = DirectoryServer.getBackend(backendID);
+    RootContainer rContainer = ((BackendImpl) backend).getRootContainer();
     eContainer= rContainer.getEntryContainer(DN.valueOf(suffix));
     id2child=eContainer.getID2Children();
     id2entry=eContainer.getID2Entry();
@@ -893,7 +881,7 @@ public class TestVerifyJob extends JebTestCase
    * @throws Exception if the entries are not loaded or created.
    */
   private void cleanAndLoad(int numEntries) throws Exception {
-    TestCaseUtils.clearJEBackend(beID);
+    TestCaseUtils.clearJEBackend(backendID);
     template[2]=numUsersLine;
     template[2]=
          template[2].replaceAll("#numEntries#", String.valueOf(numEntries));
@@ -901,32 +889,13 @@ public class TestVerifyJob extends JebTestCase
   }
 
   /**
-   * Gets information from the stat entry and returns that value as a Long.
-   * @param e entry to search.
-   * @param type attribute type
-   * @return Long
-   * @throws NumberFormatException if the attribute value cannot be parsed.
-   */
-  private long getStatEntryCount(Entry e, String type)
-       throws NumberFormatException {
-    AttributeType attrType = DirectoryServer.getAttributeType(type);
-    if (attrType == null)
-    {
-      attrType = DirectoryServer.getDefaultAttributeType(type);
-    }
-    List<Attribute> attrList = e.getAttribute(attrType, null);
-    ByteString v = attrList.get(0).iterator().next();
-    return Long.parseLong(v.toString());
-  }
-
-  /**
-   * Builds an entry suitable for using in the verify job to gather statistics about
-   * the verify.
+   * Builds an entry.
+   *
    * @param dn to put into the entry.
-   * @return a suitable entry.
-   * @throws DirectoryException if the cannot be created.
+   * @return a new entry.
+   * @throws DirectoryException if the entry cannot be created.
    */
-  private Entry bldStatEntry(String dn) throws DirectoryException {
+  private Entry buildEntry(String dn) throws DirectoryException {
     DN entryDN = DN.valueOf(dn);
     HashMap<ObjectClass, String> ocs = new HashMap<ObjectClass, String>(2);
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);

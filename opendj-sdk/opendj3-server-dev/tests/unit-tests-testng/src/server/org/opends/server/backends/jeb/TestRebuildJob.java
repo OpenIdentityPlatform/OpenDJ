@@ -22,40 +22,35 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import static org.testng.Assert.*;
 
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
+import org.opends.server.backends.pluggable.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
-import org.opends.server.types.*;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
-
 @SuppressWarnings("javadoc")
 public class TestRebuildJob extends JebTestCase
 {
-  private  String beID="rebuildRoot";
+  private String backendID = "rebuildRoot";
   private static String suffix="dc=rebuild,dc=jeb";
   private static  String vBranch="ou=rebuild tests," + suffix;
   private  String numUsersLine="define numusers= #numEntries#";
-  //Attribute type in stat entry containing error count
-  private  String errorCount="verify-error-count";
 
   private  DN[] baseDNs;
-  private BackendImpl be;
+  private BackendImpl backend;
 
   @DataProvider(name = "systemIndexes")
   public Object[][] systemIndexes() {
@@ -129,7 +124,7 @@ public class TestRebuildJob extends JebTestCase
   @BeforeClass
   public void setup() throws Exception {
     TestCaseUtils.startServer();
-    TestCaseUtils.enableBackend(beID);
+    TestCaseUtils.enableBackend(backendID);
     baseDNs = new DN[] {
         DN.valueOf(suffix)
     };
@@ -137,8 +132,8 @@ public class TestRebuildJob extends JebTestCase
 
   @AfterClass
   public void cleanUp() throws Exception {
-    TestCaseUtils.clearJEBackend(beID);
-    TestCaseUtils.disableBackend(beID);
+    TestCaseUtils.clearJEBackend(backendID);
+    TestCaseUtils.disableBackend(backendID);
   }
 
   /**
@@ -147,7 +142,7 @@ public class TestRebuildJob extends JebTestCase
    * @throws Exception if the entries are not loaded or created.
    */
   private void cleanAndLoad(int numEntries) throws Exception {
-    TestCaseUtils.clearJEBackend(beID);
+    TestCaseUtils.clearJEBackend(backendID);
     template[2]=numUsersLine;
     template[2]=
         template[2].replaceAll("#numEntries#", String.valueOf(numEntries));
@@ -166,8 +161,8 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.rebuildBackend(rebuildConfig);
+    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend.rebuildBackend(rebuildConfig);
 
     if(index.contains(".") && !index.startsWith("vlv."))
     {
@@ -193,9 +188,8 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("id2entry");
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-
-    be.rebuildBackend(rebuildConfig);
+    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend.rebuildBackend(rebuildConfig);
 
   }
 
@@ -213,14 +207,13 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("id2entry");
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-
-    TaskUtils.disableBackend(beID);
+    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    TaskUtils.disableBackend(backendID);
 
     try {
-      be.rebuildBackend(rebuildConfig);
+      backend.rebuildBackend(rebuildConfig);
     } finally {
-      TaskUtils.enableBackend(beID);
+      TaskUtils.enableBackend(backendID);
     }
   }
 
@@ -231,9 +224,8 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-
-    be.rebuildBackend(rebuildConfig);
+    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend.rebuildBackend(rebuildConfig);
   }
 
   @Test(dataProvider = "systemIndexes",
@@ -244,8 +236,8 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-    be.rebuildBackend(rebuildConfig);
+    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend.rebuildBackend(rebuildConfig);
   }
 
   @Test(dataProvider = "systemIndexes")
@@ -255,19 +247,19 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
 
-    TaskUtils.disableBackend(beID);
+    TaskUtils.disableBackend(backendID);
 
-    be.rebuildBackend(rebuildConfig);
+    backend.rebuildBackend(rebuildConfig);
 
     //TODO: Verify dn2uri database as well.
-    if(!index.equalsIgnoreCase("dn2uri"))
+    if (!"dn2uri".equalsIgnoreCase(index))
     {
       assertEquals(verifyBackend(index), 0);
     }
 
-    TaskUtils.enableBackend(beID);
+    TaskUtils.enableBackend(backendID);
   }
 
   @Test
@@ -278,15 +270,7 @@ public class TestRebuildJob extends JebTestCase
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.setRebuildMode(RebuildMode.ALL);
 
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-
-    TaskUtils.disableBackend(beID);
-
-    be.rebuildBackend(rebuildConfig);
-
-    assertEquals(verifyBackend(null), 0);
-
-    TaskUtils.enableBackend(beID);
+    rebuildIndexes(rebuildConfig);
   }
 
   @Test
@@ -297,17 +281,8 @@ public class TestRebuildJob extends JebTestCase
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.setRebuildMode(RebuildMode.DEGRADED);
 
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
-
-    TaskUtils.disableBackend(beID);
-
-    be.rebuildBackend(rebuildConfig);
-
-    assertEquals(verifyBackend(null), 0);
-
-    TaskUtils.enableBackend(beID);
+    rebuildIndexes(rebuildConfig);
   }
-
 
   @Test
   public void testRebuildDN2ID() throws Exception
@@ -317,15 +292,22 @@ public class TestRebuildJob extends JebTestCase
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("dn2id");
 
-    be=(BackendImpl) DirectoryServer.getBackend(beID);
+    rebuildIndexes(rebuildConfig);
+  }
 
-    TaskUtils.disableBackend(beID);
-
-    be.rebuildBackend(rebuildConfig);
-
-    assertEquals(verifyBackend(null), 0);
-
-    TaskUtils.enableBackend(beID);
+  private void rebuildIndexes(RebuildConfig rebuildConfig) throws Exception
+  {
+    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    TaskUtils.disableBackend(backendID);
+    try
+    {
+      backend.rebuildBackend(rebuildConfig);
+      assertEquals(verifyBackend(null), 0);
+    }
+    finally
+    {
+      TaskUtils.enableBackend(backendID);
+    }
   }
 
   @Test
@@ -349,22 +331,24 @@ public class TestRebuildJob extends JebTestCase
   public void testRebuildMultipleJobs() throws Exception
   {
     RebuildConfig rebuildConfig = new RebuildConfig();
-    RebuildConfig rebuildConfig2 = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
-    rebuildConfig2.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("dn2id");
     rebuildConfig.addRebuildIndex("id2children");
-    rebuildConfig2.addRebuildIndex("dn2id");
     rebuildConfig.addRebuildIndex("cn");
+
+    RebuildConfig rebuildConfig2 = new RebuildConfig();
+    rebuildConfig2.setBaseDN(baseDNs[0]);
+    rebuildConfig2.addRebuildIndex("dn2id");
 
     assertNotNull(rebuildConfig.checkConflicts(rebuildConfig2));
     assertNotNull(rebuildConfig2.checkConflicts(rebuildConfig));
 
     rebuildConfig = new RebuildConfig();
-    rebuildConfig2 = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
-    rebuildConfig2.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("cn");
+
+    rebuildConfig2 = new RebuildConfig();
+    rebuildConfig2.setBaseDN(baseDNs[0]);
     rebuildConfig2.addRebuildIndex("cn.presence");
     rebuildConfig2.addRebuildIndex("dn2id");
 
@@ -380,53 +364,6 @@ public class TestRebuildJob extends JebTestCase
     {
       verifyConfig.addCleanIndex(index);
     }
-    Entry statEntry=bldStatEntry("");
-    be.verifyBackend(verifyConfig, statEntry);
-
-    return getStatEntryCount(statEntry, errorCount);
-  }
-
-  /**
-   * Builds an entry suitable for using in the verify job to gather statistics about
-   * the verify.
-   * @param dn to put into the entry.
-   * @return a suitable entry.
-   * @throws DirectoryException if the cannot be created.
-   */
-  private Entry bldStatEntry(String dn) throws DirectoryException {
-    DN entryDN = DN.valueOf(dn);
-    HashMap<ObjectClass, String> ocs = new HashMap<ObjectClass, String>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
-    if (topOC == null) {
-      topOC = DirectoryServer.getDefaultObjectClass(OC_TOP);
-    }
-    ocs.put(topOC, OC_TOP);
-    ObjectClass extensibleObjectOC = DirectoryServer
-        .getObjectClass(OC_EXTENSIBLE_OBJECT);
-    if (extensibleObjectOC == null) {
-      extensibleObjectOC = DirectoryServer
-          .getDefaultObjectClass(OC_EXTENSIBLE_OBJECT);
-    }
-    ocs.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
-    return new Entry(entryDN, ocs,
-                     new LinkedHashMap<AttributeType, List<Attribute>>(0),
-                     new HashMap<AttributeType, List<Attribute>>(0));
-  }
-  /**
-   * Gets information from the stat entry and returns that value as a Long.
-   * @param e entry to search.
-   * @param type attribute type
-   * @return Long
-   * @throws NumberFormatException if the attribute value cannot be parsed.
-   */
-  private long getStatEntryCount(Entry e, String type)
-      throws NumberFormatException {
-    AttributeType attrType =
-        DirectoryServer.getAttributeType(type);
-    if (attrType == null)
-      attrType = DirectoryServer.getDefaultAttributeType(type);
-    List<Attribute> attrList = e.getAttribute(attrType, null);
-    ByteString v = attrList.get(0).iterator().next();
-    return Long.parseLong(v.toString());
+    return backend.verifyBackend(verifyConfig);
   }
 }

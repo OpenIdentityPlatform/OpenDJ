@@ -39,6 +39,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.backends.pluggable.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
@@ -113,14 +114,12 @@ public class VerifyJob
    * Verify the backend.
    *
    * @param rootContainer The root container that holds the entries to verify.
-   * @param statEntry Optional statistics entry.
    * @return The error count.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws JebException If an error occurs in the JE backend.
    * @throws DirectoryException If an error occurs while verifying the backend.
    */
-  public long verifyBackend(RootContainer rootContainer, Entry statEntry) throws
-      DatabaseException, JebException, DirectoryException
+  public long verifyBackend(RootContainer rootContainer) throws DatabaseException, JebException, DirectoryException
   {
     this.rootContainer = rootContainer;
     EntryContainer entryContainer =
@@ -277,11 +276,9 @@ public class VerifyJob
         rate = 1000f*keyCount / totalTime;
       }
 
-      addStatEntry(statEntry, "verify-error-count", String.valueOf(errorCount));
-      addStatEntry(statEntry, "verify-key-count", String.valueOf(keyCount));
       if (cleanMode)
       {
-        logger.info(NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
+        logger.info(NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime / 1000, rate);
 
         if (multiReferenceCount > 0)
         {
@@ -291,27 +288,18 @@ public class VerifyJob
             averageEntryReferences = entryReferencesCount/keyCount;
           }
 
-          logger.debug(INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
-          addStatEntry(statEntry, "verify-multiple-reference-count",
-                       String.valueOf(multiReferenceCount));
-
-          logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT, entryLimitExceededCount);
-          addStatEntry(statEntry, "verify-entry-limit-exceeded-count",
-                       String.valueOf(entryLimitExceededCount));
-
-          logger.debug(INFO_JEB_VERIFY_AVERAGE_REFERENCE_COUNT, averageEntryReferences);
-          addStatEntry(statEntry, "verify-average-reference-count",
-                       String.valueOf(averageEntryReferences));
-
-          logger.debug(INFO_JEB_VERIFY_MAX_REFERENCE_COUNT, maxEntryPerValue);
-          addStatEntry(statEntry, "verify-max-reference-count",
-                       String.valueOf(maxEntryPerValue));
+          if (logger.isDebugEnabled())
+          {
+            logger.debug(INFO_JEB_VERIFY_MULTIPLE_REFERENCE_COUNT, multiReferenceCount);
+            logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_EXCEEDED_COUNT, entryLimitExceededCount);
+            logger.debug(INFO_JEB_VERIFY_AVERAGE_REFERENCE_COUNT, averageEntryReferences);
+            logger.debug(INFO_JEB_VERIFY_MAX_REFERENCE_COUNT, maxEntryPerValue);
+          }
         }
       }
       else
       {
         logger.info(NOTE_JEB_VERIFY_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
-        //TODO add entry-limit-stats to the statEntry
         if (entryLimitMap.size() > 0)
         {
           logger.debug(INFO_JEB_VERIFY_ENTRY_LIMIT_STATS_HEADER);
@@ -359,13 +347,11 @@ public class VerifyJob
   {
     DiskOrderedCursor cursor =
         id2entry.openCursor(new DiskOrderedCursorConfig());
+    long storedEntryCount = id2entry.getRecordCount();
     try
     {
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
-
-      Long storedEntryCount = id2entry.getRecordCount();
-
       while (cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
       {
         EntryID entryID;
@@ -1732,20 +1718,4 @@ public class VerifyJob
       previousTime = latestTime;
     }
   }
-
-    /**
-     * Adds an attribute of type t and value v to the statEntry, only if the
-     * statEntry is not null.
-     * @param statEntry passed in from backentryImpl.verifyBackend.
-     * @param t String to be used as the attribute type.
-     * @param v String to be used as the attribute value.
-     */
-    private void addStatEntry(Entry statEntry, String t, String v)
-    {
-        if (statEntry != null)
-        {
-            Attribute a = Attributes.create(t, v);
-            statEntry.addAttribute(a, null);
-        }
-    }
 }

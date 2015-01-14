@@ -22,18 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
-
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -42,11 +39,10 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.backends.jeb.VerifyConfig;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.backends.pluggable.VerifyConfig;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -63,7 +59,6 @@ import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
-
 
 /**
  * This program provides a utility to verify the contents of the indexes
@@ -82,7 +77,6 @@ public class VerifyIndex
   public static void main(String[] args)
   {
     int retCode = mainVerifyIndex(args, true, System.out, System.err);
-
     if(retCode != 0)
     {
       System.exit(filterExitCode(retCode));
@@ -384,7 +378,7 @@ public class VerifyIndex
 
     // Get information about the backends defined in the server.  Iterate
     // through them, finding the one backend to be verified.
-    Backend       backend         = null;
+    Backend<?> backend = null;
 
     ArrayList<Backend>     backendList = new ArrayList<Backend>();
     ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
@@ -394,7 +388,7 @@ public class VerifyIndex
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
-      Backend     b       = backendList.get(i);
+      Backend<?> b = backendList.get(i);
       List<DN>    baseDNs = dnList.get(i);
 
       for (DN baseDN : baseDNs)
@@ -403,7 +397,7 @@ public class VerifyIndex
         {
           if (backend == null)
           {
-            backend         = b;
+            backend = b;
           }
           else
           {
@@ -421,7 +415,7 @@ public class VerifyIndex
       return 1;
     }
 
-    if (!(backend instanceof BackendImpl))
+    if (!backend.supportsIndexing())
     {
       err.println(wrapText(ERR_BACKEND_NO_INDEXING_SUPPORT.get(), MAX_LINE_WIDTH));
       return 1;
@@ -470,8 +464,7 @@ public class VerifyIndex
     int returnCode = 0 ;
     try
     {
-      BackendImpl jebBackend = (BackendImpl)backend;
-      long errorCount = jebBackend.verifyBackend(verifyConfig, null);
+      final long errorCount = backend.verifyBackend(verifyConfig);
       if (countErrors.isPresent())
       {
         if (errorCount > Integer.MAX_VALUE)
@@ -512,4 +505,3 @@ public class VerifyIndex
     return returnCode;
   }
 }
-

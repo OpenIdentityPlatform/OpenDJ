@@ -26,17 +26,18 @@
  */
 package org.opends.server.backends.jeb;
 
+import static org.testng.Assert.*;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.Backend;
+import org.opends.server.backends.pluggable.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
@@ -44,20 +45,15 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
-
 @SuppressWarnings("javadoc")
 public class TestImportJob extends JebTestCase
 {
-  private String beID = "importRoot";
+  private String backendID = "importRoot";
   private File tempDir;
   private String homeDirName;
 
   private DN[] baseDNs;
-  private BackendImpl be;
-
-  private String errorCount = "verify-error-count";
+  private Backend<?> backend;
 
   // @formatter:off
   private String top =
@@ -240,8 +236,7 @@ public class TestImportJob extends JebTestCase
     // This test suite depends on having the schema available, so we'll make
     // sure the server is started.
     TestCaseUtils.startServer();
-    // Enable the backend
-    TestCaseUtils.enableBackend(beID);
+    TestCaseUtils.enableBackend(backendID);
 
     tempDir = TestCaseUtils.createTemporaryDirectory("jebimporttest");
     homeDirName = tempDir.getAbsolutePath();
@@ -291,8 +286,7 @@ public class TestImportJob extends JebTestCase
   @AfterClass
   public void cleanUp() throws Exception
   {
-    TestCaseUtils.disableBackend(beID);
-    //TestCaseUtils.deleteDirectory(tempDir);
+    TestCaseUtils.disableBackend(backendID);
   }
 
 
@@ -300,7 +294,7 @@ public class TestImportJob extends JebTestCase
   @Test(enabled = true)
   public void testImportAll() throws Exception
   {
-    TestCaseUtils.clearJEBackend(beID);
+    TestCaseUtils.clearJEBackend(backendID);
     ArrayList<String> fileList = new ArrayList<String>();
     fileList.add(homeDirName + File.separator + "top.ldif");
     fileList.add(homeDirName + File.separator + "entries1.ldif");
@@ -316,8 +310,8 @@ public class TestImportJob extends JebTestCase
 
     importLDIF(importConfig);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    RootContainer rootContainer = be.getRootContainer();
+    backend = DirectoryServer.getBackend(backendID);
+    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
     EntryContainer entryContainer;
 
     assertTrue(rejectedEntries.size() <= 0);
@@ -346,10 +340,8 @@ public class TestImportJob extends JebTestCase
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
 
-          Entry statEntry = bldStatEntry("");
-          be = (BackendImpl) DirectoryServer.getBackend(beID);
-          be.verifyBackend(verifyConfig, statEntry);
-          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+          backend = DirectoryServer.getBackend(backendID);
+          assertEquals(backend.verifyBackend(verifyConfig), 0);
         }
         else if (baseDN.toString().equals("dc=importtest1,dc=com"))
         {
@@ -363,16 +355,13 @@ public class TestImportJob extends JebTestCase
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
 
-          Entry statEntry = bldStatEntry("");
-          be = (BackendImpl) DirectoryServer.getBackend(beID);
-          be.verifyBackend(verifyConfig, statEntry);
-          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+          backend = DirectoryServer.getBackend(backendID);
+          assertEquals(backend.verifyBackend(verifyConfig), 0);
         }
       }
       finally
       {
         entryContainer.sharedLock.unlock();
-
       }
     }
   }
@@ -404,8 +393,8 @@ public class TestImportJob extends JebTestCase
 
     importLDIF(importConfig);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    RootContainer rootContainer = be.getRootContainer();
+    backend = DirectoryServer.getBackend(backendID);
+    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
     EntryContainer entryContainer;
 
     assertTrue(rejectedEntries.size() <= 0);
@@ -433,10 +422,8 @@ public class TestImportJob extends JebTestCase
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
 
-          Entry statEntry = bldStatEntry("");
-          be = (BackendImpl) DirectoryServer.getBackend(beID);
-          be.verifyBackend(verifyConfig, statEntry);
-          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+          backend = DirectoryServer.getBackend(backendID);
+          assertEquals(backend.verifyBackend(verifyConfig), 0);
         }
         else if (baseDN.toString().equals("dc=importtest1,dc=com"))
         {
@@ -450,16 +437,13 @@ public class TestImportJob extends JebTestCase
           VerifyConfig verifyConfig = new VerifyConfig();
           verifyConfig.setBaseDN(baseDN);
 
-          Entry statEntry = bldStatEntry("");
-          be = (BackendImpl) DirectoryServer.getBackend(beID);
-          be.verifyBackend(verifyConfig, statEntry);
-          assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+          backend = DirectoryServer.getBackend(backendID);
+          assertEquals(backend.verifyBackend(verifyConfig), 0);
         }
       }
       finally
       {
         entryContainer.sharedLock.unlock();
-
       }
     }
   }
@@ -479,8 +463,8 @@ public class TestImportJob extends JebTestCase
 
     importLDIF(importConfig);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    RootContainer rootContainer = be.getRootContainer();
+    backend = DirectoryServer.getBackend(backendID);
+    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
     EntryContainer entryContainer;
 
     entryContainer = rootContainer.getEntryContainer(DN
@@ -503,10 +487,8 @@ public class TestImportJob extends JebTestCase
       VerifyConfig verifyConfig = new VerifyConfig();
       verifyConfig.setBaseDN(DN.valueOf("dc=importtest1,dc=com"));
 
-      Entry statEntry = bldStatEntry("");
-      be = (BackendImpl) DirectoryServer.getBackend(beID);
-      be.verifyBackend(verifyConfig, statEntry);
-      assertEquals(getStatEntryCount(statEntry, errorCount), 0);
+      backend = DirectoryServer.getBackend(backendID);
+      assertEquals(backend.verifyBackend(verifyConfig), 0);
     }
     finally
     {
@@ -537,7 +519,7 @@ public class TestImportJob extends JebTestCase
   @Test(dependsOnMethods = "testImportReplaceExisting")
   public void testImportAppend() throws Exception
   {
-    TestCaseUtils.clearJEBackend(beID);
+    TestCaseUtils.clearJEBackend(backendID);
 
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
         + File.separator + "top.ldif");
@@ -555,8 +537,8 @@ public class TestImportJob extends JebTestCase
 
     importLDIF(importConfig);
 
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    RootContainer rootContainer = be.getRootContainer();
+    backend = DirectoryServer.getBackend(backendID);
+    RootContainer rootContainer = ((BackendImpl) backend).getRootContainer();
     EntryContainer entryContainer;
 
     for (DN baseDN : baseDNs)
@@ -590,7 +572,7 @@ public class TestImportJob extends JebTestCase
       finally
       {
         entryContainer.sharedLock.unlock();
-        TaskUtils.enableBackend(beID);
+        TaskUtils.enableBackend(backendID);
       }
     }
   }
@@ -640,72 +622,15 @@ public class TestImportJob extends JebTestCase
 
   private void importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
-    be = (BackendImpl) DirectoryServer.getBackend(beID);
-    TaskUtils.disableBackend(beID);
+    backend = DirectoryServer.getBackend(backendID);
+    TaskUtils.disableBackend(backendID);
     try
     {
-      be.importLDIF(importConfig);
+      backend.importLDIF(importConfig);
     }
     finally
     {
-      TaskUtils.enableBackend(beID);
+      TaskUtils.enableBackend(backendID);
     }
-  }
-
-  /**
-   * Builds an entry suitable for using in the verify job to gather statistics
-   * about the verify.
-   *
-   * @param dn
-   *          to put into the entry.
-   * @return a suitable entry.
-   * @throws DirectoryException
-   *           if the cannot be created.
-   */
-  private Entry bldStatEntry(String dn) throws DirectoryException
-  {
-    DN entryDN = DN.valueOf(dn);
-    HashMap<ObjectClass, String> ocs = new HashMap<ObjectClass, String>(2);
-    ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP);
-    if (topOC == null)
-    {
-      topOC = DirectoryServer.getDefaultObjectClass(OC_TOP);
-    }
-    ocs.put(topOC, OC_TOP);
-    ObjectClass extensibleObjectOC = DirectoryServer
-        .getObjectClass(OC_EXTENSIBLE_OBJECT);
-    if (extensibleObjectOC == null)
-    {
-      extensibleObjectOC = DirectoryServer
-          .getDefaultObjectClass(OC_EXTENSIBLE_OBJECT);
-    }
-    ocs.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
-    return new Entry(entryDN, ocs,
-        new LinkedHashMap<AttributeType, List<Attribute>>(0),
-        new HashMap<AttributeType, List<Attribute>>(0));
-  }
-
-
-
-  /**
-   * Gets information from the stat entry and returns that value as a Long.
-   *
-   * @param e
-   *          entry to search.
-   * @param type
-   *          attribute type
-   * @return Long
-   * @throws NumberFormatException
-   *           if the attribute value cannot be parsed.
-   */
-  private long getStatEntryCount(Entry e, String type)
-      throws NumberFormatException
-  {
-    AttributeType attrType = DirectoryServer.getAttributeType(type);
-    if (attrType == null)
-      attrType = DirectoryServer.getDefaultAttributeType(type);
-    List<Attribute> attrList = e.getAttribute(attrType, null);
-    ByteString v = attrList.get(0).iterator().next();
-    return Long.parseLong(v.toString());
   }
 }

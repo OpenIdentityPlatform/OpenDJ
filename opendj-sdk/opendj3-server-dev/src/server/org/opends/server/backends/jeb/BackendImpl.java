@@ -57,6 +57,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.jeb.importLDIF.Importer;
+import org.opends.server.backends.pluggable.VerifyConfig;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
@@ -818,19 +819,16 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     return envConfig;
   }
 
-  /**
-   * Verify the integrity of the backend instance.
-   * @param verifyConfig The verify configuration.
-   * @param statEntry Optional entry to save stats into.
-   * @return The error count.
-   * @throws  ConfigException  If an unrecoverable problem arises during
-   *                           initialization.
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
-  public long verifyBackend(VerifyConfig verifyConfig, Entry statEntry)
+  /** {@inheritDoc} */
+  @Override
+  public boolean supportsIndexing()
+  {
+    return true;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long verifyBackend(VerifyConfig verifyConfig)
       throws InitializationException, ConfigException, DirectoryException
   {
     // If the backend already has the root container open, we must use the same
@@ -844,7 +842,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       }
 
       VerifyJob verifyJob = new VerifyJob(verifyConfig);
-      return verifyJob.verifyBackend(rootContainer, statEntry);
+      return verifyJob.verifyBackend(rootContainer);
     }
     catch (DatabaseException e)
     {
@@ -1030,7 +1028,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg newCfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
-
     try
     {
       if(rootContainer != null)
@@ -1064,7 +1061,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
-
     return ccr;
   }
 

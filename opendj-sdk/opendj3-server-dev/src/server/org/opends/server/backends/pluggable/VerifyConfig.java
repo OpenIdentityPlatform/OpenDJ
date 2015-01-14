@@ -22,43 +22,27 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
-import org.opends.server.types.DN;
-
 import java.util.ArrayList;
+import java.util.List;
+
+import org.forgerock.util.Reject;
+import org.opends.server.types.DN;
 
 /**
  * This class represents the configuration of a JE backend verification process.
  */
 public class VerifyConfig
 {
-  /**
-   * The base DN to be verified.
-   */
+  /** The base DN to be verified. */
   private DN baseDN;
-
-  /**
-   * The names of indexes to be verified for completeness.
-   */
-  private ArrayList<String> completeList;
-
-  /**
-   * The names of indexes to be verified for cleanliness.
-   */
-  private ArrayList<String> cleanList;
-
-  /**
-   * Create a new verify configuration.
-   */
-  public VerifyConfig()
-  {
-    baseDN = null;
-    completeList = new ArrayList<String>();
-    cleanList = new ArrayList<String>();
-  }
+  /** The names of indexes to be verified for completeness. */
+  private ArrayList<String> completeList = new ArrayList<String>();
+  /** The names of indexes to be verified for cleanliness. */
+  private ArrayList<String> cleanList = new ArrayList<String>();
 
   /**
    * Get the base DN to be verified.
@@ -82,7 +66,7 @@ public class VerifyConfig
    * Get the names of indexes to be verified for completeness.
    * @return The names of indexes to be verified for completeness.
    */
-  public ArrayList<String> getCompleteList()
+  public List<String> getCompleteList()
   {
     return completeList;
   }
@@ -93,6 +77,7 @@ public class VerifyConfig
    */
   public void addCompleteIndex(String index)
   {
+    Reject.ifNull(index);
     completeList.add(index);
   }
 
@@ -100,7 +85,7 @@ public class VerifyConfig
    * Get the names of indexes to be verified for cleanliness.
    * @return The names of indexes to be verified for cleanliness.
    */
-  public ArrayList<String> getCleanList()
+  public List<String> getCleanList()
   {
     return cleanList;
   }
@@ -111,6 +96,7 @@ public class VerifyConfig
    */
   public void addCleanIndex(String index)
   {
+    Reject.ifNull(index);
     cleanList.add(index);
   }
 }
