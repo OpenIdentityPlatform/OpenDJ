@@ -22,59 +22,37 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-package org.opends.server.backends.pluggable;
-
-import org.opends.server.types.DN;
+package org.opends.server.backends;
 
 import java.util.ArrayList;
 
-/**
- * Configuration for the indexType rebuild process.
- */
+import org.opends.server.types.DN;
+
+/** Configuration for the indexType rebuild process. */
 public class RebuildConfig
 {
-  /**
-   * Identifies how indexes will be selected for rebuild.
-   */
+  /** Identifies how indexes will be selected for rebuild. */
   public static enum RebuildMode
   {
-    /**
-     * Rebuild all indexes, including system indexes.
-     */
+    /** Rebuild all indexes, including system indexes. */
     ALL,
-
-    /**
-     * Rebuild all degraded indexes, including system indexes.
-     */
+    /** Rebuild all degraded indexes, including system indexes. */
     DEGRADED,
-
-    /**
-     * Rebuild used defined list of indexes.
-     */
+    /** Rebuild used defined list of indexes. */
     USER_DEFINED;
   }
 
-  /**
-   * The base DN to rebuild.
-   */
+  /** The base DN to rebuild. */
   private DN baseDN;
-
-  /**
-   * The names of indexes to rebuild.
-   */
-  private ArrayList<String> rebuildList;
-
   private RebuildMode rebuildMode = RebuildMode.USER_DEFINED;
-
+  /** The names of indexes to rebuild. */
+  private ArrayList<String> rebuildList;
   private String tmpDirectory;
-
   private boolean isClearDegradedState;
 
-  /**
-   * Create a new rebuild configuration.
-   */
+  /** Create a new rebuild configuration. */
   public RebuildConfig()
   {
     rebuildList = new ArrayList<String>();
@@ -123,26 +101,19 @@ public class RebuildConfig
    */
   public void addRebuildIndex(String index)
   {
-    String[] newIndexParts = index.split("\\.");
-
+    final String[] newIndexParts = index.split("\\.");
     for (String s : new ArrayList<String>(rebuildList))
     {
-      String[] existingIndexParts = s.split("\\.");
-      if (existingIndexParts[0].equalsIgnoreCase(newIndexParts[0]))
+      final String[] existingIndexParts = s.split("\\.");
+      if (newIndexParts[0].equalsIgnoreCase(existingIndexParts[0]))
       {
-        if (newIndexParts.length == 1 && existingIndexParts.length == 1)
-        {
-          return;
-        }
-        else if (newIndexParts.length > 1 && existingIndexParts.length == 1)
-        {
-          return;
-        }
-        else if (newIndexParts.length == 1 && existingIndexParts.length > 1)
+        if (newIndexParts.length == 1 && existingIndexParts.length > 1)
         {
           rebuildList.remove(s);
         }
-        else if (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
+        else if ((newIndexParts.length == 1 && existingIndexParts.length == 1)
+            || (newIndexParts.length > 1 && existingIndexParts.length == 1)
+            || (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1])))
         {
           return;
         }
@@ -172,21 +143,11 @@ public class RebuildConfig
         {
           String[] existingIndexParts = thisIndex.split("\\.");
           String[] newIndexParts = thatIndex.split("\\.");
-          if (existingIndexParts[0].equalsIgnoreCase(newIndexParts[0]))
+          if (newIndexParts[0].equalsIgnoreCase(existingIndexParts[0]))
           {
-            if (newIndexParts.length == 1 && existingIndexParts.length == 1)
-            {
-              return thatIndex;
-            }
-            else if (newIndexParts.length > 1 && existingIndexParts.length == 1)
-            {
-              return thatIndex;
-            }
-            else if (newIndexParts.length == 1 && existingIndexParts.length > 1)
-            {
-              return thatIndex;
-            }
-            else if (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1]))
+            if ((newIndexParts.length == 1 && existingIndexParts.length >= 1)
+                || (newIndexParts.length > 1 && existingIndexParts.length == 1)
+                || (newIndexParts[1].equalsIgnoreCase(existingIndexParts[1])))
             {
               return thatIndex;
             }
@@ -202,28 +163,18 @@ public class RebuildConfig
    * Test if this rebuild config includes any system indexes to rebuild.
    *
    * @return True if rebuilding of system indexes are included. False otherwise.
-   * @throws InitializationException
    */
   public boolean includesSystemIndex()
   {
     for (String index : rebuildList)
     {
-      // Removed because the id2entry is not A system indexes is THE
-      // primary system index. It cannot be rebuilt.
-      /*if (index.equalsIgnoreCase("id2entry"))
-      {
-        return true;
-      }*/
-      if (index.equalsIgnoreCase("dn2id"))
-      {
-        return true;
-      }
-      if (index.equalsIgnoreCase("dn2uri"))
+      // id2entry is not A system index, it is THE primary system index.
+      // It cannot be rebuilt.
+      if ("dn2id".equalsIgnoreCase(index) || "dn2uri".equalsIgnoreCase(index))
       {
         return true;
       }
     }
-
     return false;
   }
 

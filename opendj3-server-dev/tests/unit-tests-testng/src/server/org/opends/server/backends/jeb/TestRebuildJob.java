@@ -29,8 +29,9 @@ package org.opends.server.backends.jeb;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
-import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
+import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.DN;

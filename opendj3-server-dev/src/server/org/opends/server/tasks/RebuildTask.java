@@ -29,11 +29,11 @@ package org.opends.server.tasks;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.TaskMessages;
 
+import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.backends.jeb.RebuildConfig;
+import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
