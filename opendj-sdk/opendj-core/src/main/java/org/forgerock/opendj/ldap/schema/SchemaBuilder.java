@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
@@ -66,11 +66,16 @@ import org.forgerock.util.promise.Promise;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
+import static java.util.Collections.*;
+
 import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.schema.ObjectClass.*;
+import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
@@ -1143,7 +1148,7 @@ public final class SchemaBuilder {
      *
      * @param oid
      *            The OID of the matching rule definition.
-     * @return A builder to continue building the NameForm.
+     * @return A builder to continue building the MatchingRule.
      */
     public MatchingRule.Builder buildMatchingRule(final String oid) {
         lazyInitBuilder();
@@ -1394,6 +1399,39 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Returns an object class builder whose fields are initialized to the
+     * values of the provided object class. This method should be used when
+     * duplicating object classes from external schemas or when modifying
+     * existing object classes.
+     *
+     * @param objectClass
+     *            The object class source.
+     * @return A builder to continue building the ObjectClass.
+     */
+    public ObjectClass.Builder buildObjectClass(final ObjectClass objectClass) {
+        lazyInitBuilder();
+        return new ObjectClass.Builder(objectClass, this);
+    }
+
+    /**
+     * Returns a builder which can be used for incrementally constructing a new
+     * object class before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildObjectClass("objectclass-oid").name("object class name").addToSchema();
+     * </pre>
+     *
+     * @param oid
+     *            The OID of the object class definition.
+     * @return A builder to continue building the ObjectClass.
+     */
+    public ObjectClass.Builder buildObjectClass(final String oid) {
+        lazyInitBuilder();
+        return new ObjectClass.Builder(oid, this);
+    }
+
+    /**
      * Duplicates the syntax.
      *
      * @param syntax
@@ -1470,17 +1508,11 @@ public final class SchemaBuilder {
             // parenthesis.
             reader.skipWhitespaces();
 
-            // The next set of characters must be the OID.
+            // The next set of characters is the OID.
             final String oid = readOID(reader, allowsMalformedNamesAndOptions());
-
-            List<String> names = Collections.emptyList();
-            String description = "".intern();
-            boolean isObsolete = false;
-            Set<String> superiorClasses = Collections.emptySet();
-            Set<String> requiredAttributes = Collections.emptySet();
-            Set<String> optionalAttributes = Collections.emptySet();
-            ObjectClassType objectClassType = ObjectClassType.STRUCTURAL;
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
+            Set<String> superiorClasses = emptySet();
+            ObjectClassType ocType = null;
+            ObjectClass.Builder ocBuilder = new ObjectClass.Builder(oid, this).definition(definition);
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -1497,47 +1529,39 @@ public final class SchemaBuilder {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
+                    ocBuilder.names(readNameDescriptors(reader, allowsMalformedNamesAndOptions()));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = readQuotedString(reader);
+                    ocBuilder.description(readQuotedString(reader));
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
-                    // considered obsolete. We do not need to do any more
-                    // parsing for this token.
-                    isObsolete = true;
+                    // considered obsolete.
+                    ocBuilder.obsolete(true);
                 } else if ("sup".equalsIgnoreCase(tokenName)) {
                     superiorClasses = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if ("abstract".equalsIgnoreCase(tokenName)) {
                     // This indicates that entries must not include this
                     // objectclass unless they also include a non-abstract
-                    // objectclass that inherits from this class. We do not need
-                    // any more parsing for this token.
-                    objectClassType = ObjectClassType.ABSTRACT;
+                    // objectclass that inherits from this class.
+                    ocType = ABSTRACT;
                 } else if ("structural".equalsIgnoreCase(tokenName)) {
-                    // This indicates that this is a structural objectclass. We
-                    // do not need any more parsing for this token.
-                    objectClassType = ObjectClassType.STRUCTURAL;
+                    ocType = STRUCTURAL;
                 } else if ("auxiliary".equalsIgnoreCase(tokenName)) {
-                    // This indicates that this is an auxiliary objectclass. We
-                    // do not need any more parsing for this token.
-                    objectClassType = ObjectClassType.AUXILIARY;
+                    ocType = AUXILIARY;
                 } else if ("must".equalsIgnoreCase(tokenName)) {
-                    requiredAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
+                    ocBuilder.requiredAttributes(readOIDs(reader, allowsMalformedNamesAndOptions()));
                 } else if ("may".equalsIgnoreCase(tokenName)) {
-                    optionalAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
+                    ocBuilder.optionalAttributes(readOIDs(reader, allowsMalformedNamesAndOptions()));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, readExtensions(reader));
+                    final List<String> extensions = readExtensions(reader);
+                    ocBuilder.extraProperties(tokenName, extensions.toArray(new String[extensions.size()]));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_TOKEN1.get(definition, tokenName));
@@ -1545,81 +1569,21 @@ public final class SchemaBuilder {
             }
 
             if (EXTENSIBLE_OBJECT_OBJECTCLASS_OID.equals(oid)) {
-                addObjectClass(new ObjectClass(description, extraProperties), overwrite);
+                addObjectClass(newExtensibleObjectObjectClass(
+                    ocBuilder.getDescription(), ocBuilder.getExtraProperties(), this), overwrite);
+                return this;
             } else {
-                if (objectClassType == ObjectClassType.STRUCTURAL && superiorClasses.isEmpty()) {
-                    superiorClasses = Collections.singleton(TOP_OBJECTCLASS_NAME);
+                if (ocType == STRUCTURAL && superiorClasses.isEmpty()) {
+                    superiorClasses = singleton(TOP_OBJECTCLASS_NAME);
                 }
-
-                if (!extraProperties.isEmpty()) {
-                    extraProperties = Collections.unmodifiableMap(extraProperties);
-                }
-
-                addObjectClass(new ObjectClass(oid, names, description, isObsolete,
-                        superiorClasses, requiredAttributes, optionalAttributes, objectClassType,
-                        extraProperties, definition), overwrite);
+                ocBuilder.superiorObjectClasses(superiorClasses)
+                         .type(ocType);
+                return overwrite ? ocBuilder.addToSchemaOverwrite() : ocBuilder.addToSchema();
             }
         } catch (final DecodeException e) {
-            final LocalizableMessage msg =
-                    ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1.get(definition, e.getMessageObject());
-            throw new LocalizedIllegalArgumentException(msg, e.getCause());
+            throw new LocalizedIllegalArgumentException(
+                ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1.get(definition, e.getMessageObject()), e.getCause());
         }
-        return this;
-    }
-
-    /**
-     * Adds the provided object class definition to this schema builder.
-     *
-     * @param oid
-     *            The OID of the object class definition.
-     * @param names
-     *            The user-friendly names of the object class definition.
-     * @param description
-     *            The description of the object class definition.
-     * @param obsolete
-     *            {@code true} if the object class definition is obsolete,
-     *            otherwise {@code false}.
-     * @param superiorClassOIDs
-     *            A list of direct superclasses of the object class.
-     * @param requiredAttributeOIDs
-     *            A list of attribute types that entries must contain.
-     * @param optionalAttributeOIDs
-     *            A list of attribute types that entries may contain.
-     * @param objectClassType
-     *            The type of the object class.
-     * @param extraProperties
-     *            A map containing additional properties associated with the
-     *            object class definition.
-     * @param overwrite
-     *            {@code true} if any existing object class with the same OID
-     *            should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
-     */
-    SchemaBuilder addObjectClass(final String oid, final List<String> names,
-            final String description, final boolean obsolete, Set<String> superiorClassOIDs,
-            final Set<String> requiredAttributeOIDs, final Set<String> optionalAttributeOIDs,
-            final ObjectClassType objectClassType, final Map<String, List<String>> extraProperties,
-            final boolean overwrite) {
-        lazyInitBuilder();
-
-        if (EXTENSIBLE_OBJECT_OBJECTCLASS_OID.equals(oid)) {
-            addObjectClass(new ObjectClass(description,
-                    unmodifiableCopyOfExtraProperties(extraProperties)), overwrite);
-        } else {
-            if (objectClassType == ObjectClassType.STRUCTURAL && superiorClassOIDs.isEmpty()) {
-                superiorClassOIDs = Collections.singleton(TOP_OBJECTCLASS_NAME);
-            }
-
-            addObjectClass(new ObjectClass(oid, unmodifiableCopyOfList(names), description,
-                    obsolete, unmodifiableCopyOfSet(superiorClassOIDs),
-                    unmodifiableCopyOfSet(requiredAttributeOIDs),
-                    unmodifiableCopyOfSet(optionalAttributeOIDs), objectClassType,
-                    unmodifiableCopyOfExtraProperties(extraProperties), null), overwrite);
-        }
-        return this;
     }
 
     /**
@@ -2535,7 +2499,7 @@ public final class SchemaBuilder {
         return this;
     }
 
-    private void addObjectClass(final ObjectClass oc, final boolean overwrite) {
+    SchemaBuilder addObjectClass(final ObjectClass oc, final boolean overwrite) {
         ObjectClass conflictingOC;
         if (numericOID2ObjectClasses.containsKey(oc.getOID())) {
             conflictingOC = numericOID2ObjectClasses.get(oc.getOID());
@@ -2562,6 +2526,8 @@ public final class SchemaBuilder {
                 classes.add(oc);
             }
         }
+
+        return this;
     }
 
     private void addSchema0(final Schema schema, final boolean overwrite) {
@@ -2594,7 +2560,7 @@ public final class SchemaBuilder {
         }
 
         for (final ObjectClass objectClass : schema.getObjectClasses()) {
-            addObjectClass(objectClass.duplicate(), overwrite);
+            addObjectClass(objectClass, overwrite);
         }
 
         for (final NameForm nameForm : schema.getNameForms()) {

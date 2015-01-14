@@ -21,13 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -46,6 +44,7 @@ import org.testng.annotations.Test;
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
 import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
@@ -1151,18 +1150,15 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      */
     @Test
     public final void testSchemaBuilderAddObjectClass() throws Exception {
-        final SchemaBuilder scBuild = new SchemaBuilder(Schema.getDefaultSchema());
-        Set<String> attrs = new HashSet<String>();
-        attrs.add("seeAlso");
-        attrs.add("ou");
-        attrs.add("l");
-        attrs.add("description");
-
-        scBuild.addObjectClass("2.5.6.14", Collections.singletonList("device"),
-                "New description for the new existing Object Class", false, Collections
-                        .singleton(TOP_OBJECTCLASS_NAME), Collections.singleton("cn"), attrs,
-                ObjectClassType.STRUCTURAL, Collections.singletonMap(SCHEMA_PROPERTY_ORIGIN,
-                        Collections.singletonList("RFC 4519")), true);
+        final SchemaBuilder scBuild = new SchemaBuilder(getDefaultSchema());
+        scBuild.buildObjectClass("2.5.6.14")
+                .names("device")
+                .description("New description for the new existing Object Class")
+                .superiorObjectClasses(TOP_OBJECTCLASS_NAME)
+                .requiredAttributes("cn")
+                .optionalAttributes("seeAlso", "ou", "l", "description")
+                .extraProperties(SCHEMA_PROPERTY_ORIGIN, "RFC 4519")
+                .addToSchemaOverwrite();
         Schema sc = scBuild.toSchema();
 
         assertThat(sc.getWarnings()).isEmpty();
