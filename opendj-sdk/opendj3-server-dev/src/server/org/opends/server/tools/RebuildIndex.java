@@ -62,9 +62,9 @@ import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.Backend;
+import org.opends.server.backends.RebuildConfig;
+import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.backends.jeb.RebuildConfig;
-import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
 import org.opends.server.admin.std.server.BackendCfg;
 
 import java.io.OutputStream;
