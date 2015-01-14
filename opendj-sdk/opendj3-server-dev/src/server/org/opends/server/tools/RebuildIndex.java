@@ -26,52 +26,53 @@
  */
 package org.opends.server.tools;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
-import org.opends.server.util.BuildVersion;
-import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
-import com.forgerock.opendj.cli.StringArgument;
-
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.extensions.ConfigFileHandler;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.loggers.DebugLogger;
-import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.CoreConfigManager;
-import org.opends.server.core.LockFileManager;
-import org.opends.server.tasks.RebuildTask;
-import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.api.Backend;
-import org.opends.server.backends.RebuildConfig;
-import org.opends.server.backends.RebuildConfig.RebuildMode;
-import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.admin.std.server.BackendCfg;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.api.Backend;
+import org.opends.server.backends.RebuildConfig;
+import org.opends.server.backends.RebuildConfig.RebuildMode;
+import org.opends.server.backends.jeb.BackendImpl;
+import org.opends.server.core.CoreConfigManager;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.LockFileManager;
+import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.JDKLogging;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.tasks.RebuildTask;
+import org.opends.server.tools.tasks.TaskTool;
+import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.util.BuildVersion;
+import org.opends.server.util.StaticUtils;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
+
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * This program provides a utility to rebuild the contents of the indexes of a
@@ -84,23 +85,21 @@ public class RebuildIndex extends TaskTool
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private StringArgument configClass = null;
-  private StringArgument configFile = null;
-  private StringArgument baseDNString = null;
-  private StringArgument indexList = null;
-  private StringArgument tmpDirectory = null;
-  private BooleanArgument rebuildAll = null;
-  private BooleanArgument rebuildDegraded = null;
-  private BooleanArgument clearDegradedState = null;
+  private StringArgument configClass;
+  private StringArgument configFile;
+  private StringArgument baseDNString;
+  private StringArgument indexList;
+  private StringArgument tmpDirectory;
+  private BooleanArgument rebuildAll;
+  private BooleanArgument rebuildDegraded;
+  private BooleanArgument clearDegradedState;
 
   private final LDAPConnectionArgumentParser argParser = createArgParser(
       "org.opends.server.tools.RebuildIndex",
       INFO_REBUILDINDEX_TOOL_DESCRIPTION.get());
 
   private RebuildConfig rebuildConfig = new RebuildConfig();
-  private Backend currentBackend = null;
-
-
+  private Backend<?> currentBackend;
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -112,7 +111,6 @@ public class RebuildIndex extends TaskTool
   {
     final int retCode =
         mainRebuildIndex(args, true, System.out, System.err);
-
     if (retCode != 0)
     {
       System.exit(filterExitCode(retCode));
@@ -324,9 +322,7 @@ public class RebuildIndex extends TaskTool
     argParser.setUsageArgument(displayUsage);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected int processLocal(final boolean initializeServer,
       final PrintStream out, final PrintStream err)
@@ -461,16 +457,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception ex)
     {
-      LocalizableMessage message = null;
-      if (ex instanceof InitializationException)
-      {
-        message = ERR_CANNOT_LOAD_CONFIG.get(ex.getMessage());
-      }
-      else
-      {
-        message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(ex));
-      }
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(toErrorMsg(ERR_CANNOT_LOAD_CONFIG, ex));
       return 1;
     }
 
@@ -481,16 +468,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception e)
     {
-      LocalizableMessage message = null;
-      if (e instanceof ConfigException || e instanceof InitializationException)
-      {
-        message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
-      }
-      else
-      {
-        message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
-      }
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(toErrorMsg(ERR_CANNOT_LOAD_SCHEMA, e));
       return 1;
     }
 
@@ -502,18 +480,7 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception ex)
     {
-      LocalizableMessage message = null;
-      if (ex instanceof ConfigException
-          || ex instanceof InitializationException)
-      {
-        message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ex.getMessage());
-      }
-      else
-      {
-        message =
-            ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(ex));
-      }
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(toErrorMsg(ERR_CANNOT_INITIALIZE_CORE_CONFIG, ex));
       return 1;
     }
 
@@ -524,22 +491,26 @@ public class RebuildIndex extends TaskTool
     }
     catch (Exception ex)
     {
-      LocalizableMessage message = null;
-      if (ex instanceof ConfigException
-          || ex instanceof InitializationException)
-      {
-        message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ex.getMessage());
-      }
-      else
-      {
-        message =
-            ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(ex));
-      }
-      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(toErrorMsg(ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER, ex));
       return 1;
     }
 
     return 0;
+  }
+
+  private String toErrorMsg(Arg1<Object> errorMsg, Exception ex)
+  {
+    final LocalizableMessage message = getErrorMsg(ex, errorMsg);
+    return wrapText(message, MAX_LINE_WIDTH);
+  }
+
+  private LocalizableMessage getErrorMsg(Exception ex, Arg1<Object> errorMsg)
+  {
+    if (ex instanceof ConfigException || ex instanceof InitializationException)
+    {
+      return errorMsg.get(ex.getMessage());
+    }
+    return errorMsg.get(getExceptionMessage(ex));
   }
 
   /**
@@ -590,11 +561,8 @@ public class RebuildIndex extends TaskTool
    *          process.
    * @return An integer representing the result of the process.
    */
-  private int rebuildIndex(final Backend backend,
-      final RebuildConfig rebuildConfig)
+  private int rebuildIndex(final Backend<?> backend, final RebuildConfig rebuildConfig)
   {
-    int returnCode = 0;
-
     // Acquire an exclusive lock for the backend.
     //TODO: Find a way to do this with the server online.
     try
@@ -614,6 +582,7 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
+    int returnCode = 0;
     try
     {
       final BackendImpl jebBackend = (BackendImpl) backend;
@@ -662,11 +631,9 @@ public class RebuildIndex extends TaskTool
    * @throws Exception
    *           If an exception occurred during the backend search.
    */
-  private Backend retrieveBackend(final DN selectedDN) throws ConfigException,
-      Exception
+  private Backend<?> retrieveBackend(final DN selectedDN) throws ConfigException, Exception
   {
-    Backend backend = null;
-    DN[] baseDNArray;
+    Backend<?> backend = null;
 
     final ArrayList<Backend> backendList = new ArrayList<Backend>();
     final ArrayList<BackendCfg> entryList = new ArrayList<BackendCfg>();
@@ -676,25 +643,18 @@ public class RebuildIndex extends TaskTool
     final int numBackends = backendList.size();
     for (int i = 0; i < numBackends; i++)
     {
-      final Backend b = backendList.get(i);
+      final Backend<?> b = backendList.get(i);
       final List<DN> baseDNs = dnList.get(i);
 
       for (final DN baseDN : baseDNs)
       {
         if (baseDN.equals(selectedDN))
         {
-          if (backend == null)
+          if (backend != null)
           {
-            backend = b;
-            baseDNArray = new DN[baseDNs.size()];
-            baseDNs.toArray(baseDNArray);
+            throw new ConfigException(ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
           }
-          else
-          {
-            final LocalizableMessage message =
-                ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue());
-            throw new ConfigException(message);
-          }
+          backend = b;
           break;
         }
       }
@@ -702,15 +662,12 @@ public class RebuildIndex extends TaskTool
 
     if (backend == null)
     {
-      final LocalizableMessage message =
-          ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue());
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
     }
 
     if (!(backend instanceof BackendImpl))
     {
-      final LocalizableMessage message = ERR_BACKEND_NO_INDEXING_SUPPORT.get();
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_BACKEND_NO_INDEXING_SUPPORT.get());
     }
     return backend;
   }
@@ -795,85 +752,83 @@ public class RebuildIndex extends TaskTool
     return 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getTaskId()
   {
     // NYI.
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    //
     // Required attributes
-    //
-    ArrayList<ByteString> values;
-
-    final String baseDN = baseDNString.getValue();
-    values = new ArrayList<ByteString>(1);
-    values.add(ByteString.valueOf(baseDN));
-    attributes.add(new LDAPAttribute(ATTR_REBUILD_BASE_DN, values));
+    addLdapAttribute(attributes, ATTR_REBUILD_BASE_DN, baseDNString.getValue());
 
     final List<String> indexes = indexList.getValues();
-    values = new ArrayList<ByteString>(indexes.size());
+    final ArrayList<ByteString> values = new ArrayList<ByteString>(indexes.size());
     for (final String s : indexes)
     {
       values.add(ByteString.valueOf(s));
     }
     attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX, values));
 
-    if (tmpDirectory.getValue() != null
-        && !tmpDirectory.getValue().equals(tmpDirectory.getDefaultValue()))
+    if (hasNonDefaultValue(tmpDirectory))
     {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(tmpDirectory.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_REBUILD_TMP_DIRECTORY, values));
+      addLdapAttribute(attributes, ATTR_REBUILD_TMP_DIRECTORY, tmpDirectory.getValue());
     }
 
-    if (rebuildAll.getValue() != null
-        && !rebuildAll.getValue().equals(rebuildAll.getDefaultValue()))
+    if (hasNonDefaultValue(rebuildAll))
     {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(REBUILD_ALL));
-      attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+      addLdapAttribute(attributes, ATTR_REBUILD_INDEX, REBUILD_ALL);
     }
 
-    if (rebuildDegraded.getValue() != null
-        && !rebuildDegraded.getValue()
-            .equals(rebuildDegraded.getDefaultValue()))
+    if (hasNonDefaultValue(rebuildDegraded))
     {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(REBUILD_DEGRADED));
-      attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX, values));
+      addLdapAttribute(attributes, ATTR_REBUILD_INDEX, REBUILD_DEGRADED);
     }
 
-    if (clearDegradedState.getValue() != null
-        && !clearDegradedState.getValue().equals(
-            clearDegradedState.getDefaultValue()))
+    if (hasNonDefaultValue(clearDegradedState))
     {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf("true"));
-      attributes.add(new LDAPAttribute(ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE,
-          values));
+      addLdapAttribute(attributes, ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE, "true");
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private void addLdapAttribute(List<RawAttribute> attributes, String attrType, String attrValue)
+  {
+    attributes.add(new LDAPAttribute(attrType, toByteStrings(attrValue)));
+  }
+
+  private boolean hasNonDefaultValue(BooleanArgument arg)
+  {
+    return arg.getValue() != null
+        && !arg.getValue().equals(arg.getDefaultValue());
+  }
+
+  private boolean hasNonDefaultValue(StringArgument arg)
+  {
+    return arg.getValue() != null
+        && !arg.getValue().equals(arg.getDefaultValue());
+  }
+
+  private ArrayList<ByteString> toByteStrings(String value)
+  {
+    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(value));
+    return values;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public String getTaskObjectclass()
   {
     return "ds-task-rebuild";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Class<?> getTaskClass()
   {
     return RebuildTask.class;
@@ -905,7 +860,7 @@ public class RebuildIndex extends TaskTool
    *
    * @return The current backend.
    */
-  public Backend getCurrentBackend()
+  public Backend<?> getCurrentBackend()
   {
     return currentBackend;
   }
@@ -916,7 +871,7 @@ public class RebuildIndex extends TaskTool
    * @param currentBackend
    *          The current backend to set.
    */
-  public void setCurrentBackend(Backend currentBackend)
+  public void setCurrentBackend(Backend<?> currentBackend)
   {
     this.currentBackend = currentBackend;
   }
