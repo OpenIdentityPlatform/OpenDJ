@@ -22,42 +22,40 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.TaskMessages;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.StaticUtils.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.messages.TaskMessages;
+import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.RebuildConfig;
-import org.opends.server.backends.task.Task;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.backends.jeb.BackendImpl;
+import org.opends.server.backends.task.Task;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.LockFileManager;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.Backend;
-
-import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.util.StaticUtils.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.TaskMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-
-import java.util.List;
-import java.util.ArrayList;
 
 /**
  * This class provides an implementation of a Directory Server task that can be
@@ -67,23 +65,20 @@ public class RebuildTask extends Task
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  String baseDN = null;
-  ArrayList<String> indexes = null;
-  private String tmpDirectory = null;
+  private String baseDN;
+  private ArrayList<String> indexes;
+  private String tmpDirectory;
   private RebuildMode rebuildMode = RebuildMode.USER_DEFINED;
-  boolean isClearDegradedState = false;
+  private boolean isClearDegradedState;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getDisplayName()
   {
     return TaskMessages.INFO_TASK_REBUILD_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeTask() throws DirectoryException
   {
@@ -104,23 +99,13 @@ public class RebuildTask extends Task
 
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeBaseDN;
-    AttributeType typeIndex;
-    AttributeType typeTmpDirectory;
-    AttributeType clearDegradedState;
+    baseDN = asString(taskEntry, ATTR_REBUILD_BASE_DN);
+    tmpDirectory = asString(taskEntry, ATTR_REBUILD_TMP_DIRECTORY);
+    final String val = asString(taskEntry, ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE);
+    isClearDegradedState = Boolean.parseBoolean(val);
 
-    typeBaseDN = getAttributeType(ATTR_REBUILD_BASE_DN, true);
-    typeIndex = getAttributeType(ATTR_REBUILD_INDEX, true);
-    typeTmpDirectory = getAttributeType(ATTR_REBUILD_TMP_DIRECTORY, true);
-    clearDegradedState =
-        getAttributeType(ATTR_REBUILD_INDEX_CLEARDEGRADEDSTATE, true);
-
-    List<Attribute> attrList;
-
-    attrList = taskEntry.getAttribute(typeBaseDN);
-    baseDN = TaskUtils.getSingleValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeIndex);
+    AttributeType typeIndex = getAttributeType(ATTR_REBUILD_INDEX, true);
+    List<Attribute> attrList = taskEntry.getAttribute(typeIndex);
     indexes = TaskUtils.getMultiValueString(attrList);
 
     rebuildMode = getRebuildMode(indexes);
@@ -133,26 +118,24 @@ public class RebuildTask extends Task
       }
       indexes.clear();
     }
+  }
 
-    attrList = taskEntry.getAttribute(clearDegradedState);
-    isClearDegradedState =
-        Boolean.parseBoolean(TaskUtils.getSingleValueString(attrList));
-
-    attrList = taskEntry.getAttribute(typeTmpDirectory);
-    tmpDirectory = TaskUtils.getSingleValueString(attrList);
-
+  private String asString(Entry taskEntry, String attrName)
+  {
+    final AttributeType attrType = getAttributeType(attrName, true);
+    final List<Attribute> attrList = taskEntry.getAttribute(attrType);
+    return TaskUtils.getSingleValueString(attrList);
   }
 
   private RebuildMode getRebuildMode(List<String> indexList)
   {
     for (String s : indexList)
     {
-      if (s.equalsIgnoreCase(REBUILD_ALL))
+      if (REBUILD_ALL.equalsIgnoreCase(s))
       {
         return RebuildMode.ALL;
       }
-
-      if (s.equalsIgnoreCase(REBUILD_DEGRADED))
+      else if (REBUILD_DEGRADED.equalsIgnoreCase(s))
       {
         return RebuildMode.DEGRADED;
       }
@@ -160,9 +143,8 @@ public class RebuildTask extends Task
     return RebuildMode.USER_DEFINED;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected TaskState runTask()
   {
     RebuildConfig rebuildConfig = new RebuildConfig();
@@ -194,9 +176,7 @@ public class RebuildTask extends Task
     rebuildConfig.setTmpDirectory(tmpDirectory);
     rebuildConfig.setRebuildMode(rebuildMode);
 
-    final Backend backend =
-        DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
-
+    final Backend<?> backend = DirectoryServer.getBackendWithBaseDN(rebuildConfig.getBaseDN());
     if (backend == null)
     {
       logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDN);
@@ -313,8 +293,8 @@ public class RebuildTask extends Task
 
     // The backend must be enabled only if the task is successful
     // for prevent potential risks of database corruption.
-    if ((returnCode == TaskState.COMPLETED_SUCCESSFULLY
-        || (isBackendNeedToBeEnabled)) && !isClearDegradedState)
+    if ((returnCode == TaskState.COMPLETED_SUCCESSFULLY || isBackendNeedToBeEnabled)
+        && !isClearDegradedState)
     {
       // Enable the backend.
       try
