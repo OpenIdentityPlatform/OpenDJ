@@ -22,10 +22,23 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
+
+import static java.util.Collections.*;
+
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.schema.ObjectClass.*;
+import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
+import static org.forgerock.opendj.ldap.schema.Schema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,19 +78,6 @@ import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
-
-import static java.util.Collections.*;
-
-import static org.forgerock.opendj.ldap.LdapException.*;
-import static org.forgerock.opendj.ldap.schema.ObjectClass.*;
-import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
-import static org.forgerock.opendj.ldap.schema.Schema.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
-import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
-
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * Schema builders should be used for incremental construction of new schemas.
@@ -268,22 +268,10 @@ public final class SchemaBuilder {
 
             // The next set of characters must be the OID.
             final String oid = readOID(reader, allowsMalformedNamesAndOptions());
-
-            List<String> names = Collections.emptyList();
-            String description = "".intern();
-            boolean isObsolete = false;
+            AttributeType.Builder atBuilder = new AttributeType.Builder(oid, this);
+            atBuilder.definition(definition);
             String superiorType = null;
-            String equalityMatchingRule = null;
-            String orderingMatchingRule = null;
-            String substringMatchingRule = null;
-            String approximateMatchingRule = null;
             String syntax = null;
-            boolean isSingleValue = false;
-            boolean isCollective = false;
-            boolean isNoUserModification = false;
-            AttributeUsage attributeUsage = AttributeUsage.USER_APPLICATIONS;
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
-
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
             // optional and it would be pretty easy to put something in the
@@ -299,17 +287,16 @@ public final class SchemaBuilder {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
+                    atBuilder.names(readNameDescriptors(reader, allowsMalformedNamesAndOptions()));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = readQuotedString(reader);
+                    atBuilder.description(readQuotedString(reader));
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
-                    // considered obsolete. We do not need to do any more
-                    // parsing for this token.
-                    isObsolete = true;
+                    // considered obsolete.
+                    atBuilder.obsolete(true);
                 } else if ("sup".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the superior attribute
                     // type from which this attribute type should inherit its
@@ -318,15 +305,15 @@ public final class SchemaBuilder {
                 } else if ("equality".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the equality matching
                     // rule to use for this attribute type.
-                    equalityMatchingRule = readOID(reader, allowsMalformedNamesAndOptions());
+                    atBuilder.equalityMatchingRule(readOID(reader, allowsMalformedNamesAndOptions()));
                 } else if ("ordering".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the ordering matching
                     // rule to use for this attribute type.
-                    orderingMatchingRule = readOID(reader, allowsMalformedNamesAndOptions());
+                    atBuilder.orderingMatchingRule(readOID(reader, allowsMalformedNamesAndOptions()));
                 } else if ("substr".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the substring matching
                     // rule to use for this attribute type.
-                    substringMatchingRule = readOID(reader, allowsMalformedNamesAndOptions());
+                    atBuilder.substringMatchingRule(readOID(reader, allowsMalformedNamesAndOptions()));
                 } else if ("syntax".equalsIgnoreCase(tokenName)) {
                     // This specifies the numeric OID of the syntax for this
                     // matching rule. It may optionally be immediately followed
@@ -337,27 +324,18 @@ public final class SchemaBuilder {
                     // does not impose any practical limit on the length of attribute
                     // values.
                     syntax = readOIDLen(reader, allowsMalformedNamesAndOptions());
-                } else if ("single-definition".equalsIgnoreCase(tokenName)) {
-                    // This indicates that attributes of this type are allowed
-                    // to have at most one definition. We do not need any more
-                    // parsing for this token.
-                    isSingleValue = true;
                 } else if ("single-value".equalsIgnoreCase(tokenName)) {
                     // This indicates that attributes of this type are allowed
-                    // to have at most one value. We do not need any more parsing
-                    // for this token.
-                    isSingleValue = true;
+                    // to have at most one value.
+                    atBuilder.singleValue(true);
                 } else if ("collective".equalsIgnoreCase(tokenName)) {
-                    // This indicates that attributes of this type are
-                    // collective
-                    // (i.e., have their values generated dynamically in some
-                    // way). We do not need any more parsing for this token.
-                    isCollective = true;
+                    // This indicates that attributes of this type are collective
+                    // (i.e., have their values generated dynamically in some way).
+                    atBuilder.collective(true);
                 } else if ("no-user-modification".equalsIgnoreCase(tokenName)) {
                     // This indicates that the values of attributes of this type
-                    // are not to be modified by end users. We do not need any
-                    // more parsing for this token.
-                    isNoUserModification = true;
+                    // are not to be modified by end users.
+                    atBuilder.noUserModification(true);
                 } else if ("usage".equalsIgnoreCase(tokenName)) {
                     // This specifies the usage string for this attribute type.
                     // It should be followed by one of the strings
@@ -371,17 +349,16 @@ public final class SchemaBuilder {
                     while (reader.read() != ' ') {
                         length++;
                     }
-
                     reader.reset();
                     final String usageStr = reader.read(length);
                     if ("userapplications".equalsIgnoreCase(usageStr)) {
-                        attributeUsage = AttributeUsage.USER_APPLICATIONS;
+                        atBuilder.usage(AttributeUsage.USER_APPLICATIONS);
                     } else if ("directoryoperation".equalsIgnoreCase(usageStr)) {
-                        attributeUsage = AttributeUsage.DIRECTORY_OPERATION;
+                        atBuilder.usage(AttributeUsage.DIRECTORY_OPERATION);
                     } else if ("distributedoperation".equalsIgnoreCase(usageStr)) {
-                        attributeUsage = AttributeUsage.DISTRIBUTED_OPERATION;
+                        atBuilder.usage(AttributeUsage.DISTRIBUTED_OPERATION);
                     } else if ("dsaoperation".equalsIgnoreCase(usageStr)) {
-                        attributeUsage = AttributeUsage.DSA_OPERATION;
+                        atBuilder.usage(AttributeUsage.DSA_OPERATION);
                     } else {
                         throw new LocalizedIllegalArgumentException(
                             WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition, usageStr));
@@ -392,23 +369,17 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    List<String> extensions = readExtensions(reader);
+                    atBuilder.extraProperties(tokenName, extensions);
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
-            final List<String> approxRules = extraProperties.get(SCHEMA_PROPERTY_APPROX_RULE);
+            final List<String> approxRules = atBuilder.getExtraProperties().get(SCHEMA_PROPERTY_APPROX_RULE);
             if (approxRules != null && !approxRules.isEmpty()) {
-                approximateMatchingRule = approxRules.get(0);
-            }
-
-            if (!extraProperties.isEmpty()) {
-                extraProperties = Collections.unmodifiableMap(extraProperties);
+                atBuilder.approximateMatchingRule(approxRules.get(0));
             }
 
             if (superiorType == null && syntax == null) {
@@ -416,96 +387,14 @@ public final class SchemaBuilder {
                     WARN_ATTR_SYNTAX_ATTRTYPE_MISSING_SYNTAX_AND_SUPERIOR.get(definition));
             }
 
-            final AttributeType attrType =
-                    new AttributeType(oid, names, description, isObsolete, superiorType,
-                            equalityMatchingRule, orderingMatchingRule, substringMatchingRule,
-                            approximateMatchingRule, syntax, isSingleValue, isCollective,
-                            isNoUserModification, attributeUsage, extraProperties, definition);
+            atBuilder.superiorType(superiorType)
+                     .syntax(syntax);
 
-            addAttributeType(attrType, overwrite);
+            return overwrite ? atBuilder.addToSchemaOverwrite() : atBuilder.addToSchema();
         } catch (final DecodeException e) {
-            final LocalizableMessage msg =
-                    ERR_ATTR_SYNTAX_ATTRTYPE_INVALID1.get(definition, e.getMessageObject());
+            final LocalizableMessage msg = ERR_ATTR_SYNTAX_ATTRTYPE_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
-        return this;
-    }
-
-    /**
-     * Adds the provided attribute type definition to this schema builder.
-     *
-     * @param oid
-     *            The OID of the attribute type definition.
-     * @param names
-     *            The user-friendly names of the attribute type definition.
-     * @param description
-     *            The description of the attribute type definition.
-     * @param obsolete
-     *            {@code true} if the attribute type definition is obsolete,
-     *            otherwise {@code false}.
-     * @param superiorType
-     *            The OID of the superior attribute type definition.
-     * @param equalityMatchingRule
-     *            The OID of the equality matching rule, which may be
-     *            {@code null} indicating that the superior attribute type's
-     *            matching rule should be used or, if none is defined, the
-     *            default matching rule associated with the syntax.
-     * @param orderingMatchingRule
-     *            The OID of the ordering matching rule, which may be
-     *            {@code null} indicating that the superior attribute type's
-     *            matching rule should be used or, if none is defined, the
-     *            default matching rule associated with the syntax.
-     * @param substringMatchingRule
-     *            The OID of the substring matching rule, which may be
-     *            {@code null} indicating that the superior attribute type's
-     *            matching rule should be used or, if none is defined, the
-     *            default matching rule associated with the syntax.
-     * @param approximateMatchingRule
-     *            The OID of the approximate matching rule, which may be
-     *            {@code null} indicating that the superior attribute type's
-     *            matching rule should be used or, if none is defined, the
-     *            default matching rule associated with the syntax.
-     * @param syntax
-     *            The OID of the syntax definition.
-     * @param singleValue
-     *            {@code true} if the attribute type definition is
-     *            single-valued, otherwise {@code false}.
-     * @param collective
-     *            {@code true} if the attribute type definition is a collective
-     *            attribute, otherwise {@code false}.
-     * @param noUserModification
-     *            {@code true} if the attribute type definition is read-only,
-     *            otherwise {@code false}.
-     * @param attributeUsage
-     *            The intended use of the attribute type definition.
-     * @param extraProperties
-     *            A map containing additional properties associated with the
-     *            attribute type definition.
-     * @param overwrite
-     *            {@code true} if any existing attribute type with the same OID
-     *            should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
-     */
-    SchemaBuilder addAttributeType(final String oid, final List<String> names,
-            final String description, final boolean obsolete, final String superiorType,
-            final String equalityMatchingRule, final String orderingMatchingRule,
-            final String substringMatchingRule, final String approximateMatchingRule,
-            final String syntax, final boolean singleValue, final boolean collective,
-            final boolean noUserModification, final AttributeUsage attributeUsage,
-            final Map<String, List<String>> extraProperties, final boolean overwrite) {
-        lazyInitBuilder();
-
-        final AttributeType attrType =
-                new AttributeType(oid, unmodifiableCopyOfList(names), description, obsolete,
-                        superiorType, equalityMatchingRule, orderingMatchingRule,
-                        substringMatchingRule, approximateMatchingRule, syntax, singleValue,
-                        collective, noUserModification, attributeUsage,
-                        unmodifiableCopyOfExtraProperties(extraProperties), null);
-        addAttributeType(attrType, overwrite);
-        return this;
     }
 
     /**
@@ -1135,6 +1024,39 @@ public final class SchemaBuilder {
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
         return this;
+    }
+
+    /**
+     * Returns an attribute type builder whose fields are initialized to the
+     * values of the provided attribute type. This method should be used when
+     * duplicating attribute types from external schemas or when modifying
+     * existing attribute types.
+     *
+     * @param attributeType
+     *            The attribute type source.
+     * @return A builder to continue building the AttributeType.
+     */
+    public AttributeType.Builder buildAttributeType(final AttributeType attributeType) {
+        lazyInitBuilder();
+        return new AttributeType.Builder(attributeType, this);
+    }
+
+    /**
+     * Returns a builder which can be used for incrementally constructing a new
+     * attribute type before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildAttributeType("attributetype-oid").name("attribute type name").addToSchema();
+     * </pre>
+     *
+     * @param oid
+     *            The OID of the attribute type definition.
+     * @return A builder to continue building the AttributeType.
+     */
+    public AttributeType.Builder buildAttributeType(final String oid) {
+        lazyInitBuilder();
+        return new AttributeType.Builder(oid, this);
     }
 
     /**
@@ -2321,7 +2243,7 @@ public final class SchemaBuilder {
         return schema;
     }
 
-    private void addAttributeType(final AttributeType attribute, final boolean overwrite) {
+    SchemaBuilder addAttributeType(final AttributeType attribute, final boolean overwrite) {
         AttributeType conflictingAttribute;
         if (numericOID2AttributeTypes.containsKey(attribute.getOID())) {
             conflictingAttribute = numericOID2AttributeTypes.get(attribute.getOID());
@@ -2348,6 +2270,8 @@ public final class SchemaBuilder {
                 attrs.add(attribute);
             }
         }
+
+        return this;
     }
 
     private void addDITContentRule(final DITContentRule rule, final boolean overwrite) {
@@ -2556,7 +2480,7 @@ public final class SchemaBuilder {
         }
 
         for (final AttributeType attributeType : schema.getAttributeTypes()) {
-            addAttributeType(attributeType.duplicate(), overwrite);
+            addAttributeType(attributeType, overwrite);
         }
 
         for (final ObjectClass objectClass : schema.getObjectClasses()) {

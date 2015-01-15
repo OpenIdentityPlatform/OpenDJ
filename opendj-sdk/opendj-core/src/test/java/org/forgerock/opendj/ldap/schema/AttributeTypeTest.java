@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -48,28 +47,43 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
 
     public AttributeTypeTest() throws Exception {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-        builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null, null, null, null, null,
-                "1.3.6.1.4.1.1466.115.121.1.27", true, false, false,
-                AttributeUsage.USER_APPLICATIONS, EMPTY_PROPS, false);
+        builder.buildAttributeType("1.2.1")
+               .names(EMPTY_NAMES)
+               .obsolete(true)
+               .syntax("1.3.6.1.4.1.1466.115.121.1.27")
+               .singleValue(true)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .addToSchema();
+
         builder.addAttributeType(
                 "( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE "
                         + " COLLECTIVE X-ORIGIN ( 'Sun Java System Identity Management' "
                         + "'user defined' ) X-SCHEMA-FILE '98sunEmp.ldif')", false);
-        builder.addAttributeType("1.2.3", Collections.singletonList("testType"), "", false,
-                "1.2.2", null, null, null, null, "1.3.6.1.4.1.1466.115.121.1.27", false, true,
-                false, AttributeUsage.USER_APPLICATIONS, EMPTY_PROPS, false);
-        builder.addAttributeType("( 1.2.4 NAME 'testType' SUP 1.2.3 SINGLE-VALUE COLLECTIVE )",
-                false);
-        final List<String> names = new LinkedList<String>();
-        names.add("testType");
-        names.add("testnamealias");
-        names.add("anothernamealias");
-        builder.addAttributeType("1.2.5", names, "", false, null, EMR_CASE_IGNORE_LIST_OID, null,
-                SMR_CASE_IGNORE_LIST_OID, AMR_DOUBLE_METAPHONE_OID, SYNTAX_INTEGER_OID, false,
-                false, true, AttributeUsage.DSA_OPERATION, EMPTY_PROPS, false);
+
+        builder.buildAttributeType("1.2.3")
+               .names("testType")
+               .superiorType("1.2.2")
+               .syntax("1.3.6.1.4.1.1466.115.121.1.27")
+               .collective(true)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .addToSchema();
+
+        builder.addAttributeType("( 1.2.4 NAME 'testType' SUP 1.2.3 SINGLE-VALUE COLLECTIVE )", false);
+
+        builder.buildAttributeType("1.2.5")
+               .names("testType", "testnamealias", "anothernamealias")
+               .equalityMatchingRule(EMR_CASE_IGNORE_LIST_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_LIST_OID)
+               .approximateMatchingRule(AMR_DOUBLE_METAPHONE_OID)
+               .syntax(SYNTAX_INTEGER_OID)
+               .noUserModification(true)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .addToSchema();
+
         builder.addAttributeType("( 1.2.6 NAME ( 'testType' 'testnamealias' 'anothernamealias1' ) "
                 + " SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SUP anothernamealias"
                 + " USAGE dSAOperation NO-USER-MODIFICATION )", false);
+
         schema = builder.toSchema();
         if (!schema.getWarnings().isEmpty()) {
             throw new Exception("Base schema not valid!");
@@ -486,10 +500,14 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNoSupNorSyntax1() throws Exception {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-        builder.addAttributeType("1.2.1", EMPTY_NAMES, "", true, null, null, null, null, null,
-                null, false, false, false, AttributeUsage.DSA_OPERATION, EMPTY_PROPS, false);
-        builder.addAttributeType(
-                "( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )", false);
+        builder.buildAttributeType("1.2.1")
+               .names(EMPTY_NAMES)
+               .obsolete(true)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .addToSchema();
+
+        builder.addAttributeType("( 1.2.2 OBSOLETE SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )", false);
+
     }
 
     /**
@@ -520,9 +538,14 @@ public class AttributeTypeTest extends AbstractSchemaElementTestCase {
     protected SchemaElement getElement(final String description,
             final Map<String, List<String>> extraProperties) throws SchemaException {
         final SchemaBuilder builder = new SchemaBuilder(Schema.getCoreSchema());
-        builder.addAttributeType("1.2.3", Collections.singletonList("testType"), description,
-                false, null, null, null, null, null, "1.3.6.1.4.1.1466.115.121.1.27", false, false,
-                false, AttributeUsage.DSA_OPERATION, extraProperties, false);
+        builder.buildAttributeType("1.2.3")
+               .names("testType")
+               .description(description)
+               .syntax("1.3.6.1.4.1.1466.115.121.1.27")
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(extraProperties)
+               .addToSchema();
+
         return builder.toSchema().getAttributeType("1.2.3");
     }
 

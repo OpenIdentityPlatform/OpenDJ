@@ -25,7 +25,15 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import java.util.Collections;
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
+import static org.forgerock.opendj.ldap.schema.Schema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
+import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -40,16 +48,6 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.testng.annotations.Test;
-
-import static org.fest.assertions.Assertions.*;
-import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
-import static org.forgerock.opendj.ldap.schema.Schema.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
-import static org.forgerock.opendj.ldap.schema.SchemaOptions.*;
-import static org.forgerock.opendj.ldap.spi.LdapPromises.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
 
 /**
  * Test SchemaBuilder.
@@ -995,12 +993,11 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
      */
     @Test(expectedExceptions = NullPointerException.class)
     public final void testSchemaBuilderAddAttributeTypeDoesntAllowNull() throws Exception {
-
         final SchemaBuilder scBuild = new SchemaBuilder();
         // Adding the new schema containing the customclass
         scBuild.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
                 + "' SUP top AUXILIARY MAY myCustomAttribute )", false);
-        scBuild.addAttributeType(null, false);
+        scBuild.addAttributeType((String) null, false);
     }
 
     /**
@@ -1087,11 +1084,16 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         final SchemaBuilder scBuild2 = new SchemaBuilder(Schema.getDefaultSchema());
         scBuild2.addObjectClass("( temporary-fake-oc-id NAME 'myCustomObjClass"
                 + "' SUP top AUXILIARY MAY myCustomAttribute )", false);
-        scBuild2.addAttributeType("temporary-fake-attr-id", Collections
-                .singletonList("myCustomAttribute"), "The new attribute type", false, null,
-                "caseIgnoreOrderingMatch", "caseIgnoreOrderingMatch", "caseIgnoreSubstringsMatch",
-                null, "1.3.6.1.4.1.1466.115.121.1.15", false, false, true,
-                AttributeUsage.USER_APPLICATIONS, null, false);
+
+        scBuild2.buildAttributeType("temporary-fake-attr-id")
+                .names("myCustomAttribute")
+                .description("The new attribute type")
+                .equalityMatchingRule("caseIgnoreOrderingMatch")
+                .orderingMatchingRule("caseIgnoreOrderingMatch")
+                .substringMatchingRule("caseIgnoreSubstringsMatch")
+                .syntax("1.3.6.1.4.1.1466.115.121.1.15")
+                .usage(AttributeUsage.USER_APPLICATIONS)
+                .addToSchemaOverwrite();
         Schema sc2 = scBuild2.toSchema();
 
         assertThat(sc2.getAttributeType("myCustomAttribute").getDescription()).isEqualTo(

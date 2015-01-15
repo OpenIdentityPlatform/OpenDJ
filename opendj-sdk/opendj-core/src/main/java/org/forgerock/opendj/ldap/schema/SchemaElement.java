@@ -102,8 +102,20 @@ abstract class SchemaElement {
          *            The optional list of values for the extended property.
          * @return This builder.
          */
-        public abstract T extraProperties(final String extensionName,
-                final String... extensionValues);
+        public abstract T extraProperties(final String extensionName, final String... extensionValues);
+
+        /**
+         * Adds the provided extended property.
+         *
+         * @param extensionName
+         *            The name of the extended property.
+         * @param extensionValues
+         *            The optional list of values for the extended property.
+         * @return This builder.
+         */
+        public T extraProperties(final String extensionName, final List<String> extensionValues) {
+            return extraProperties(extensionName, extensionValues.toArray(new String[extensionValues.size()]));
+        }
 
         /**
          * Removes all extra properties.
