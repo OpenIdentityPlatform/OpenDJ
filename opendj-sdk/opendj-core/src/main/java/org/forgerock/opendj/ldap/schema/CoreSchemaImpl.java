@@ -27,6 +27,8 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import static java.util.Collections.*;
+
 import static org.forgerock.opendj.ldap.schema.CollationMatchingRulesImpl.*;
 import static org.forgerock.opendj.ldap.schema.ObjectClassType.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
@@ -325,12 +327,18 @@ final class CoreSchemaImpl {
     }
 
     private static void addRFC3112(final SchemaBuilder builder) {
-        builder.buildSyntax(SYNTAX_AUTH_PASSWORD_OID).description(SYNTAX_AUTH_PASSWORD_DESCRIPTION)
-                .extraProperties(RFC3112_ORIGIN).implementation(new AuthPasswordSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_AUTH_PASSWORD_OID)
+               .description(SYNTAX_AUTH_PASSWORD_DESCRIPTION)
+               .extraProperties(RFC3112_ORIGIN)
+               .implementation(new AuthPasswordSyntaxImpl())
+               .addToSchema();
+
         builder.buildMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID)
                 .names(EMR_AUTH_PASSWORD_EXACT_NAME)
-                .description(EMR_AUTH_PASSWORD_EXACT_DESCRIPTION).syntaxOID(SYNTAX_AUTH_PASSWORD_OID)
-                .extraProperties(RFC3112_ORIGIN).implementation(new AuthPasswordExactEqualityMatchingRuleImpl())
+                .description(EMR_AUTH_PASSWORD_EXACT_DESCRIPTION)
+                .syntaxOID(SYNTAX_AUTH_PASSWORD_OID)
+                .extraProperties(RFC3112_ORIGIN)
+                .implementation(new AuthPasswordExactEqualityMatchingRuleImpl())
                 .addToSchema();
 
         builder.buildAttributeType("1.3.6.1.4.1.4203.1.3.3")
@@ -844,21 +852,42 @@ final class CoreSchemaImpl {
     }
 
     private static void addRFC4523(final SchemaBuilder builder) {
-        builder.buildSyntax(SYNTAX_CERTLIST_OID).description(SYNTAX_CERTLIST_DESCRIPTION)
-                .extraProperties(RFC4523_ORIGIN).implementation(new CertificateListSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_CERTPAIR_OID).description(SYNTAX_CERTPAIR_DESCRIPTION)
-                .extraProperties(RFC4523_ORIGIN).implementation(new CertificatePairSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_CERTIFICATE_OID).description(SYNTAX_CERTIFICATE_DESCRIPTION)
-                .extraProperties(RFC4523_ORIGIN).implementation(new CertificateSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID)
-                .description(SYNTAX_CERTIFICATE_EXACT_ASSERTION_DESCRIPTION).extraProperties(RFC4523_ORIGIN)
-                .implementation(new CertificateExactAssertionSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_SUPPORTED_ALGORITHM_OID).description(SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION)
-                .extraProperties(RFC4523_ORIGIN).implementation(new SupportedAlgorithmSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_CERTLIST_OID)
+               .description(SYNTAX_CERTLIST_DESCRIPTION)
+               .extraProperties(RFC4523_ORIGIN)
+               .implementation(new CertificateListSyntaxImpl())
+               .addToSchema();
 
-        builder.buildMatchingRule(EMR_CERTIFICATE_EXACT_OID).names(EMR_CERTIFICATE_EXACT_NAME)
-                .syntaxOID(SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID).extraProperties(RFC4523_ORIGIN)
-                .implementation(new CertificateExactMatchingRuleImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_CERTPAIR_OID)
+               .description(SYNTAX_CERTPAIR_DESCRIPTION)
+               .extraProperties(RFC4523_ORIGIN)
+               .implementation(new CertificatePairSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_CERTIFICATE_OID)
+               .description(SYNTAX_CERTIFICATE_DESCRIPTION)
+               .extraProperties(RFC4523_ORIGIN)
+               .implementation(new CertificateSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID)
+               .description(SYNTAX_CERTIFICATE_EXACT_ASSERTION_DESCRIPTION)
+               .extraProperties(RFC4523_ORIGIN)
+               .implementation(new CertificateExactAssertionSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_SUPPORTED_ALGORITHM_OID)
+               .description(SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION)
+               .extraProperties(RFC4523_ORIGIN)
+               .implementation(new SupportedAlgorithmSyntaxImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_CERTIFICATE_EXACT_OID)
+               .names(EMR_CERTIFICATE_EXACT_NAME)
+               .syntaxOID(SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID)
+               .extraProperties(RFC4523_ORIGIN)
+               .implementation(new CertificateExactMatchingRuleImpl())
+               .addToSchema();
 
         builder.buildAttributeType("2.5.4.36")
                .names("userCertificate")
@@ -999,14 +1028,26 @@ final class CoreSchemaImpl {
     }
 
     private static void addRFC4530(final SchemaBuilder builder) {
-        builder.buildSyntax(SYNTAX_UUID_OID).description(SYNTAX_UUID_DESCRIPTION).extraProperties(RFC4530_ORIGIN)
-                .implementation(new UUIDSyntaxImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_UUID_OID).names(EMR_UUID_NAME).syntaxOID(SYNTAX_UUID_OID)
-                .extraProperties(RFC4530_ORIGIN).implementation(new UUIDEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(OMR_UUID_OID).names(OMR_UUID_NAME).syntaxOID(SYNTAX_UUID_OID)
-                .extraProperties(RFC4530_ORIGIN).implementation(new UUIDOrderingMatchingRuleImpl())
-                .addToSchema();
+        builder.buildSyntax(SYNTAX_UUID_OID)
+               .description(SYNTAX_UUID_DESCRIPTION)
+               .extraProperties(RFC4530_ORIGIN)
+               .implementation(new UUIDSyntaxImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_UUID_OID)
+               .names(EMR_UUID_NAME)
+               .syntaxOID(SYNTAX_UUID_OID)
+               .extraProperties(RFC4530_ORIGIN)
+               .implementation(new UUIDEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(OMR_UUID_OID)
+               .names(OMR_UUID_NAME)
+               .syntaxOID(SYNTAX_UUID_OID)
+               .extraProperties(RFC4530_ORIGIN)
+               .implementation(new UUIDOrderingMatchingRuleImpl())
+               .addToSchema();
+
         builder.buildAttributeType("1.3.6.1.1.16.4")
                .names("entryUUID")
                .description("UUID of the entry")
@@ -1034,32 +1075,52 @@ final class CoreSchemaImpl {
     }
 
     private static void addSunProprietary(final SchemaBuilder builder) {
-        builder.buildSyntax(SYNTAX_USER_PASSWORD_OID).description(SYNTAX_USER_PASSWORD_DESCRIPTION)
-                .extraProperties(OPENDS_ORIGIN).implementation(new UserPasswordSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_USER_PASSWORD_OID)
+               .description(SYNTAX_USER_PASSWORD_DESCRIPTION)
+               .extraProperties(OPENDS_ORIGIN)
+               .implementation(new UserPasswordSyntaxImpl())
+               .addToSchema();
+
         builder.buildMatchingRule(EMR_USER_PASSWORD_EXACT_OID)
-                .names(Collections.singletonList(EMR_USER_PASSWORD_EXACT_NAME))
-                .description(EMR_USER_PASSWORD_EXACT_DESCRIPTION).syntaxOID(SYNTAX_USER_PASSWORD_OID)
-                .extraProperties(OPENDS_ORIGIN).implementation(new UserPasswordExactEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(AMR_DOUBLE_METAPHONE_OID).names(Collections.singletonList(AMR_DOUBLE_METAPHONE_NAME))
-                .description(AMR_DOUBLE_METAPHONE_DESCRIPTION).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-                .extraProperties(OPENDS_ORIGIN).implementation(new DoubleMetaphoneApproximateMatchingRuleImpl())
-                .addToSchema();
+               .names(singletonList(EMR_USER_PASSWORD_EXACT_NAME))
+               .description(EMR_USER_PASSWORD_EXACT_DESCRIPTION)
+               .syntaxOID(SYNTAX_USER_PASSWORD_OID)
+               .extraProperties(OPENDS_ORIGIN)
+               .implementation(new UserPasswordExactEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(AMR_DOUBLE_METAPHONE_OID)
+               .names(singletonList(AMR_DOUBLE_METAPHONE_NAME))
+               .description(AMR_DOUBLE_METAPHONE_DESCRIPTION)
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(OPENDS_ORIGIN)
+               .implementation(new DoubleMetaphoneApproximateMatchingRuleImpl())
+               .addToSchema();
+
         builder.buildMatchingRule(OMR_RELATIVE_TIME_GREATER_THAN_OID)
-                .names(OMR_RELATIVE_TIME_GREATER_THAN_NAME, OMR_RELATIVE_TIME_GREATER_THAN_ALT_NAME)
-                .description(OMR_RELATIVE_TIME_GREATER_THAN_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
-                .extraProperties(OPENDS_ORIGIN).implementation(relativeTimeGTOMatchingRule())
-                .addToSchema();
+               .names(OMR_RELATIVE_TIME_GREATER_THAN_NAME, OMR_RELATIVE_TIME_GREATER_THAN_ALT_NAME)
+               .description(OMR_RELATIVE_TIME_GREATER_THAN_DESCRIPTION)
+               .syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+               .extraProperties(OPENDS_ORIGIN)
+               .implementation(relativeTimeGTOMatchingRule())
+               .addToSchema();
+
         builder.buildMatchingRule(OMR_RELATIVE_TIME_LESS_THAN_OID)
-                .names(OMR_RELATIVE_TIME_LESS_THAN_NAME, OMR_RELATIVE_TIME_LESS_THAN_ALT_NAME)
-                .description(OMR_RELATIVE_TIME_LESS_THAN_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
-                .extraProperties(OPENDS_ORIGIN).implementation(relativeTimeLTOMatchingRule())
-                .addToSchema();
+               .names(OMR_RELATIVE_TIME_LESS_THAN_NAME, OMR_RELATIVE_TIME_LESS_THAN_ALT_NAME)
+               .description(OMR_RELATIVE_TIME_LESS_THAN_DESCRIPTION)
+               .syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+               .extraProperties(OPENDS_ORIGIN)
+               .implementation(relativeTimeLTOMatchingRule())
+               .addToSchema();
+
         builder.buildMatchingRule(MR_PARTIAL_DATE_AND_TIME_OID)
-                .names(Collections.singletonList(MR_PARTIAL_DATE_AND_TIME_NAME))
-                .description(MR_PARTIAL_DATE_AND_TIME_DESCRIPTION).syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
-                .extraProperties(OPENDS_ORIGIN).implementation(partialDateAndTimeMatchingRule())
-                .addToSchema();
+               .names(singletonList(MR_PARTIAL_DATE_AND_TIME_NAME))
+               .description(MR_PARTIAL_DATE_AND_TIME_DESCRIPTION)
+               .syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+               .extraProperties(OPENDS_ORIGIN)
+               .implementation(partialDateAndTimeMatchingRule())
+               .addToSchema();
+
         addCollationMatchingRules(builder);
     }
 
@@ -1131,11 +1192,11 @@ final class CoreSchemaImpl {
             final MatchingRuleImpl matchingRuleImplementation) {
         final String oid = symbolicSuffix.isEmpty() ? baseOid : baseOid + "." + numericSuffix;
         builder.buildMatchingRule(oid)
-            .names(collationMatchingRuleNames(names, numericSuffix, symbolicSuffix))
-            .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-            .extraProperties(OPENDS_ORIGIN)
-            .implementation(matchingRuleImplementation)
-            .addToSchema();
+               .names(collationMatchingRuleNames(names, numericSuffix, symbolicSuffix))
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(OPENDS_ORIGIN)
+               .implementation(matchingRuleImplementation)
+               .addToSchema();
     }
 
     /**
@@ -1399,118 +1460,260 @@ final class CoreSchemaImpl {
     }
 
     private static void defaultMatchingRules(final SchemaBuilder builder) {
-        builder.buildMatchingRule(EMR_BIT_STRING_OID).names(EMR_BIT_STRING_NAME).syntaxOID(SYNTAX_BIT_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new BitStringEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(EMR_BOOLEAN_OID).names(EMR_BOOLEAN_NAME).syntaxOID(SYNTAX_BOOLEAN_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new BooleanEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(EMR_CASE_EXACT_IA5_OID).names(EMR_CASE_EXACT_IA5_NAME)
-                .syntaxOID(SYNTAX_IA5_STRING_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseExactIA5EqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(SMR_CASE_EXACT_IA5_OID).names(SMR_CASE_EXACT_IA5_NAME)
-                .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseExactIA5SubstringMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_CASE_EXACT_OID).names(EMR_CASE_EXACT_NAME).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new CaseExactEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(OMR_CASE_EXACT_OID).names(OMR_CASE_EXACT_NAME).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new CaseExactOrderingMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(SMR_CASE_EXACT_OID).names(SMR_CASE_EXACT_NAME)
-                .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseExactSubstringMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_CASE_IGNORE_IA5_OID).names(EMR_CASE_IGNORE_IA5_NAME)
-                .syntaxOID(SYNTAX_IA5_STRING_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseIgnoreIA5EqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(SMR_CASE_IGNORE_IA5_OID).names(SMR_CASE_IGNORE_IA5_NAME)
-                .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseIgnoreIA5SubstringMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_CASE_IGNORE_LIST_OID).names(EMR_CASE_IGNORE_LIST_NAME)
-                .syntaxOID(SYNTAX_POSTAL_ADDRESS_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseIgnoreListEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(SMR_CASE_IGNORE_LIST_OID).names(SMR_CASE_IGNORE_LIST_NAME)
-                .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseIgnoreListSubstringMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_CASE_IGNORE_OID).names(EMR_CASE_IGNORE_NAME)
-                .syntaxOID(SYNTAX_DIRECTORY_STRING_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseIgnoreEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(OMR_CASE_IGNORE_OID).names(OMR_CASE_IGNORE_NAME)
-                .syntaxOID(SYNTAX_DIRECTORY_STRING_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseIgnoreOrderingMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(SMR_CASE_IGNORE_OID).names(SMR_CASE_IGNORE_NAME)
-                .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new CaseIgnoreSubstringMatchingRuleImpl()).addToSchema();
+        builder.buildMatchingRule(EMR_BIT_STRING_OID)
+               .names(EMR_BIT_STRING_NAME)
+               .syntaxOID(SYNTAX_BIT_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new BitStringEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_BOOLEAN_OID)
+               .names(EMR_BOOLEAN_NAME)
+               .syntaxOID(SYNTAX_BOOLEAN_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new BooleanEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_CASE_EXACT_IA5_OID)
+               .names(EMR_CASE_EXACT_IA5_NAME)
+               .syntaxOID(SYNTAX_IA5_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseExactIA5EqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(SMR_CASE_EXACT_IA5_OID)
+               .names(SMR_CASE_EXACT_IA5_NAME)
+               .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseExactIA5SubstringMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_CASE_EXACT_OID)
+               .names(EMR_CASE_EXACT_NAME)
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseExactEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(OMR_CASE_EXACT_OID)
+               .names(OMR_CASE_EXACT_NAME)
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseExactOrderingMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(SMR_CASE_EXACT_OID)
+               .names(SMR_CASE_EXACT_NAME)
+               .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseExactSubstringMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_CASE_IGNORE_IA5_OID)
+               .names(EMR_CASE_IGNORE_IA5_NAME)
+               .syntaxOID(SYNTAX_IA5_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseIgnoreIA5EqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(SMR_CASE_IGNORE_IA5_OID)
+               .names(SMR_CASE_IGNORE_IA5_NAME)
+               .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseIgnoreIA5SubstringMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_CASE_IGNORE_LIST_OID)
+               .names(EMR_CASE_IGNORE_LIST_NAME)
+               .syntaxOID(SYNTAX_POSTAL_ADDRESS_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseIgnoreListEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(SMR_CASE_IGNORE_LIST_OID)
+               .names(SMR_CASE_IGNORE_LIST_NAME)
+               .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseIgnoreListSubstringMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_CASE_IGNORE_OID)
+               .names(EMR_CASE_IGNORE_NAME)
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseIgnoreEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(OMR_CASE_IGNORE_OID)
+               .names(OMR_CASE_IGNORE_NAME)
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseIgnoreOrderingMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(SMR_CASE_IGNORE_OID)
+               .names(SMR_CASE_IGNORE_NAME)
+               .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CaseIgnoreSubstringMatchingRuleImpl())
+               .addToSchema();
+
         builder.buildMatchingRule(EMR_DIRECTORY_STRING_FIRST_COMPONENT_OID)
-                .names(Collections.singletonList(EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME))
-                .syntaxOID(SYNTAX_DIRECTORY_STRING_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new DirectoryStringFirstComponentEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_DN_OID).names(EMR_DN_NAME).syntaxOID(SYNTAX_DN_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new DistinguishedNameEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(EMR_GENERALIZED_TIME_OID).names(EMR_GENERALIZED_TIME_NAME)
-                .syntaxOID(SYNTAX_GENERALIZED_TIME_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new GeneralizedTimeEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(OMR_GENERALIZED_TIME_OID).names(OMR_GENERALIZED_TIME_NAME)
-                .syntaxOID(SYNTAX_GENERALIZED_TIME_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new GeneralizedTimeOrderingMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_INTEGER_FIRST_COMPONENT_OID).names(EMR_INTEGER_FIRST_COMPONENT_NAME)
-                .syntaxOID(SYNTAX_INTEGER_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new IntegerFirstComponentEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_INTEGER_OID).names(EMR_INTEGER_NAME).syntaxOID(SYNTAX_INTEGER_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new IntegerEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(OMR_INTEGER_OID).names(OMR_INTEGER_NAME).syntaxOID(SYNTAX_INTEGER_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new IntegerOrderingMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(EMR_KEYWORD_OID).names(EMR_KEYWORD_NAME).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new KeywordEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(EMR_NUMERIC_STRING_OID).names(EMR_NUMERIC_STRING_NAME)
-                .syntaxOID(SYNTAX_NUMERIC_STRING_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new NumericStringEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(OMR_NUMERIC_STRING_OID).names(OMR_NUMERIC_STRING_NAME)
-                .syntaxOID(SYNTAX_NUMERIC_STRING_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new NumericStringOrderingMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(SMR_NUMERIC_STRING_OID).names(SMR_NUMERIC_STRING_NAME)
-                .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new NumericStringSubstringMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_OID_FIRST_COMPONENT_OID).names(EMR_OID_FIRST_COMPONENT_NAME)
-                .syntaxOID(SYNTAX_OID_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new ObjectIdentifierFirstComponentEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_OID_OID).names(EMR_OID_NAME).syntaxOID(SYNTAX_OID_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new ObjectIdentifierEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(EMR_OCTET_STRING_OID).names(EMR_OCTET_STRING_NAME).syntaxOID(SYNTAX_OCTET_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new OctetStringEqualityMatchingRuleImpl())
-                .addToSchema();
-        builder.buildMatchingRule(OMR_OCTET_STRING_OID).names(OMR_OCTET_STRING_NAME).syntaxOID(SYNTAX_OCTET_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new OctetStringOrderingMatchingRuleImpl())
-                .addToSchema();
+               .names(singletonList(EMR_DIRECTORY_STRING_FIRST_COMPONENT_NAME))
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new DirectoryStringFirstComponentEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_DN_OID)
+               .names(EMR_DN_NAME)
+               .syntaxOID(SYNTAX_DN_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new DistinguishedNameEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_GENERALIZED_TIME_OID)
+               .names(EMR_GENERALIZED_TIME_NAME)
+               .syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new GeneralizedTimeEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(OMR_GENERALIZED_TIME_OID)
+               .names(OMR_GENERALIZED_TIME_NAME)
+               .syntaxOID(SYNTAX_GENERALIZED_TIME_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new GeneralizedTimeOrderingMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_INTEGER_FIRST_COMPONENT_OID)
+               .names(EMR_INTEGER_FIRST_COMPONENT_NAME)
+               .syntaxOID(SYNTAX_INTEGER_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new IntegerFirstComponentEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_INTEGER_OID)
+               .names(EMR_INTEGER_NAME)
+               .syntaxOID(SYNTAX_INTEGER_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new IntegerEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(OMR_INTEGER_OID)
+               .names(OMR_INTEGER_NAME)
+               .syntaxOID(SYNTAX_INTEGER_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new IntegerOrderingMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_KEYWORD_OID)
+               .names(EMR_KEYWORD_NAME)
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new KeywordEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_NUMERIC_STRING_OID)
+               .names(EMR_NUMERIC_STRING_NAME)
+               .syntaxOID(SYNTAX_NUMERIC_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new NumericStringEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(OMR_NUMERIC_STRING_OID)
+               .names(OMR_NUMERIC_STRING_NAME)
+               .syntaxOID(SYNTAX_NUMERIC_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new NumericStringOrderingMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(SMR_NUMERIC_STRING_OID)
+               .names(SMR_NUMERIC_STRING_NAME)
+               .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new NumericStringSubstringMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_OID_FIRST_COMPONENT_OID)
+               .names(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntaxOID(SYNTAX_OID_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new ObjectIdentifierFirstComponentEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_OID_OID)
+               .names(EMR_OID_NAME)
+               .syntaxOID(SYNTAX_OID_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new ObjectIdentifierEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_OCTET_STRING_OID)
+               .names(EMR_OCTET_STRING_NAME)
+               .syntaxOID(SYNTAX_OCTET_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new OctetStringEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(OMR_OCTET_STRING_OID)
+               .names(OMR_OCTET_STRING_NAME)
+               .syntaxOID(SYNTAX_OCTET_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new OctetStringOrderingMatchingRuleImpl())
+               .addToSchema();
+
         // SMR octet string is not in any LDAP RFC and its from X.500
-        builder.buildMatchingRule(SMR_OCTET_STRING_OID).names(SMR_OCTET_STRING_NAME).syntaxOID(SYNTAX_OCTET_STRING_OID)
-                .extraProperties(X500_ORIGIN).implementation(new OctetStringSubstringMatchingRuleImpl())
-                .addToSchema();
+        builder.buildMatchingRule(SMR_OCTET_STRING_OID)
+               .names(SMR_OCTET_STRING_NAME)
+               .syntaxOID(SYNTAX_OCTET_STRING_OID)
+               .extraProperties(X500_ORIGIN)
+               .implementation(new OctetStringSubstringMatchingRuleImpl())
+               .addToSchema();
+
         // Depreciated in RFC 4512
-        builder.buildMatchingRule(EMR_PROTOCOL_INFORMATION_OID).names(EMR_PROTOCOL_INFORMATION_NAME)
-                .syntaxOID(SYNTAX_PROTOCOL_INFORMATION_OID).extraProperties(RFC2252_ORIGIN)
-                .implementation(new ProtocolInformationEqualityMatchingRuleImpl()).addToSchema();
+        builder.buildMatchingRule(EMR_PROTOCOL_INFORMATION_OID)
+               .names(EMR_PROTOCOL_INFORMATION_NAME)
+               .syntaxOID(SYNTAX_PROTOCOL_INFORMATION_OID)
+               .extraProperties(RFC2252_ORIGIN)
+               .implementation(new ProtocolInformationEqualityMatchingRuleImpl())
+               .addToSchema();
+
         // Depreciated in RFC 4512
-        builder.buildMatchingRule(EMR_PRESENTATION_ADDRESS_OID).names(EMR_PRESENTATION_ADDRESS_NAME)
-                .syntaxOID(SYNTAX_PRESENTATION_ADDRESS_OID).extraProperties(RFC2252_ORIGIN)
-                .implementation(new PresentationAddressEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_TELEPHONE_OID).names(EMR_TELEPHONE_NAME).syntaxOID(SYNTAX_TELEPHONE_OID)
-                .extraProperties(RFC2252_ORIGIN).implementation(new TelephoneNumberEqualityMatchingRuleImpl())
+        builder.buildMatchingRule(EMR_PRESENTATION_ADDRESS_OID)
+               .names(EMR_PRESENTATION_ADDRESS_NAME)
+               .syntaxOID(SYNTAX_PRESENTATION_ADDRESS_OID)
+               .extraProperties(RFC2252_ORIGIN)
+               .implementation(new PresentationAddressEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_TELEPHONE_OID)
+               .names(EMR_TELEPHONE_NAME)
+               .syntaxOID(SYNTAX_TELEPHONE_OID)
+               .extraProperties(RFC2252_ORIGIN)
+               .implementation(new TelephoneNumberEqualityMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(SMR_TELEPHONE_OID)
+               .names(SMR_TELEPHONE_NAME)
+               .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new TelephoneNumberSubstringMatchingRuleImpl())
+               .addToSchema();
+
+        builder.buildMatchingRule(EMR_UNIQUE_MEMBER_OID)
+                .names(EMR_UNIQUE_MEMBER_NAME)
+                .syntaxOID(SYNTAX_NAME_AND_OPTIONAL_UID_OID)
+                .extraProperties(RFC4512_ORIGIN)
+                .implementation(new UniqueMemberEqualityMatchingRuleImpl())
                 .addToSchema();
-        builder.buildMatchingRule(SMR_TELEPHONE_OID).names(SMR_TELEPHONE_NAME)
-                .syntaxOID(SYNTAX_SUBSTRING_ASSERTION_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new TelephoneNumberSubstringMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_UNIQUE_MEMBER_OID).names(EMR_UNIQUE_MEMBER_NAME)
-                .syntaxOID(SYNTAX_NAME_AND_OPTIONAL_UID_OID).extraProperties(RFC4512_ORIGIN)
-                .implementation(new UniqueMemberEqualityMatchingRuleImpl()).addToSchema();
-        builder.buildMatchingRule(EMR_WORD_OID).names(EMR_WORD_NAME).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new KeywordEqualityMatchingRuleImpl())
-                .addToSchema();
+
+        builder.buildMatchingRule(EMR_WORD_OID)
+               .names(EMR_WORD_NAME)
+               .syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new KeywordEqualityMatchingRuleImpl())
+               .addToSchema();
     }
 
     private static void defaultObjectClasses(final SchemaBuilder builder) {
@@ -1548,83 +1751,230 @@ final class CoreSchemaImpl {
 
     private static void defaultSyntaxes(final SchemaBuilder builder) {
         // All RFC 4512 / 4517
-        builder.buildSyntax(SYNTAX_ATTRIBUTE_TYPE_OID).description(SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new AttributeTypeSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_BINARY_OID).description(SYNTAX_BINARY_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new BinarySyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_BIT_STRING_OID).description(SYNTAX_BIT_STRING_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new BitStringSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_BOOLEAN_OID).description(SYNTAX_BOOLEAN_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new BooleanSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_COUNTRY_STRING_OID).description(SYNTAX_COUNTRY_STRING_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new CountryStringSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_DELIVERY_METHOD_OID).description(SYNTAX_DELIVERY_METHOD_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new DeliveryMethodSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_DIRECTORY_STRING_OID).description(SYNTAX_DIRECTORY_STRING_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new DirectoryStringSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_DIT_CONTENT_RULE_OID).description(SYNTAX_DIT_CONTENT_RULE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new DITContentRuleSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID).description(SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new DITStructureRuleSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_DN_OID).description(SYNTAX_DN_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new DistinguishedNameSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_ENHANCED_GUIDE_OID).description(SYNTAX_ENHANCED_GUIDE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new EnhancedGuideSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_FAXNUMBER_OID).description(SYNTAX_FAXNUMBER_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new FacsimileNumberSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_FAX_OID).description(SYNTAX_FAX_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new FaxSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_GENERALIZED_TIME_OID).description(SYNTAX_GENERALIZED_TIME_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new GeneralizedTimeSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_GUIDE_OID).description(SYNTAX_GUIDE_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new GuideSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_IA5_STRING_OID).description(SYNTAX_IA5_STRING_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new IA5StringSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_INTEGER_OID).description(SYNTAX_INTEGER_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new IntegerSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_JPEG_OID).description(SYNTAX_JPEG_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new JPEGSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_MATCHING_RULE_OID).description(SYNTAX_MATCHING_RULE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new MatchingRuleSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_MATCHING_RULE_USE_OID).description(SYNTAX_MATCHING_RULE_USE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new MatchingRuleUseSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_LDAP_SYNTAX_OID).description(SYNTAX_LDAP_SYNTAX_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new LDAPSyntaxDescriptionSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_NAME_AND_OPTIONAL_UID_OID).description(SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION)
-                .extraProperties(RFC4517_ORIGIN).implementation(new NameAndOptionalUIDSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_NAME_FORM_OID).description(SYNTAX_NAME_FORM_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new NameFormSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_NUMERIC_STRING_OID).description(SYNTAX_NUMERIC_STRING_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new NumericStringSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_OBJECTCLASS_OID).description(SYNTAX_OBJECTCLASS_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new ObjectClassSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_OCTET_STRING_OID).description(SYNTAX_OCTET_STRING_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new OctetStringSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_OID_OID).description(SYNTAX_OID_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new OIDSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_OTHER_MAILBOX_OID).description(SYNTAX_OTHER_MAILBOX_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new OtherMailboxSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_POSTAL_ADDRESS_OID).description(SYNTAX_POSTAL_ADDRESS_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new PostalAddressSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_ATTRIBUTE_TYPE_OID)
+               .description(SYNTAX_ATTRIBUTE_TYPE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new AttributeTypeSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_BINARY_OID)
+               .description(SYNTAX_BINARY_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new BinarySyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_BIT_STRING_OID)
+               .description(SYNTAX_BIT_STRING_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new BitStringSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_BOOLEAN_OID)
+               .description(SYNTAX_BOOLEAN_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new BooleanSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_COUNTRY_STRING_OID)
+               .description(SYNTAX_COUNTRY_STRING_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new CountryStringSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_DELIVERY_METHOD_OID)
+               .description(SYNTAX_DELIVERY_METHOD_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new DeliveryMethodSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_DIRECTORY_STRING_OID)
+               .description(SYNTAX_DIRECTORY_STRING_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new DirectoryStringSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_DIT_CONTENT_RULE_OID)
+               .description(SYNTAX_DIT_CONTENT_RULE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new DITContentRuleSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_DIT_STRUCTURE_RULE_OID)
+               .description(SYNTAX_DIT_STRUCTURE_RULE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new DITStructureRuleSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_DN_OID)
+               .description(SYNTAX_DN_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new DistinguishedNameSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_ENHANCED_GUIDE_OID)
+               .description(SYNTAX_ENHANCED_GUIDE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new EnhancedGuideSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_FAXNUMBER_OID)
+               .description(SYNTAX_FAXNUMBER_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new FacsimileNumberSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_FAX_OID)
+               .description(SYNTAX_FAX_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new FaxSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_GENERALIZED_TIME_OID)
+               .description(SYNTAX_GENERALIZED_TIME_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new GeneralizedTimeSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_GUIDE_OID)
+               .description(SYNTAX_GUIDE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new GuideSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_IA5_STRING_OID)
+               .description(SYNTAX_IA5_STRING_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new IA5StringSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_INTEGER_OID)
+               .description(SYNTAX_INTEGER_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new IntegerSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_JPEG_OID)
+               .description(SYNTAX_JPEG_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new JPEGSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_MATCHING_RULE_OID)
+               .description(SYNTAX_MATCHING_RULE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new MatchingRuleSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_MATCHING_RULE_USE_OID)
+               .description(SYNTAX_MATCHING_RULE_USE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new MatchingRuleUseSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_LDAP_SYNTAX_OID)
+               .description(SYNTAX_LDAP_SYNTAX_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new LDAPSyntaxDescriptionSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_NAME_AND_OPTIONAL_UID_OID)
+               .description(SYNTAX_NAME_AND_OPTIONAL_UID_DESCRIPTION)
+               .extraProperties(RFC4517_ORIGIN)
+               .implementation(new NameAndOptionalUIDSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_NAME_FORM_OID)
+               .description(SYNTAX_NAME_FORM_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new NameFormSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_NUMERIC_STRING_OID)
+               .description(SYNTAX_NUMERIC_STRING_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new NumericStringSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_OBJECTCLASS_OID)
+               .description(SYNTAX_OBJECTCLASS_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new ObjectClassSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_OCTET_STRING_OID)
+               .description(SYNTAX_OCTET_STRING_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new OctetStringSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_OID_OID)
+               .description(SYNTAX_OID_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new OIDSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_OTHER_MAILBOX_OID)
+               .description(SYNTAX_OTHER_MAILBOX_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new OtherMailboxSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_POSTAL_ADDRESS_OID)
+               .description(SYNTAX_POSTAL_ADDRESS_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new PostalAddressSyntaxImpl())
+               .addToSchema();
+
         // Depreciated in RFC 4512
-        builder.buildSyntax(SYNTAX_PRESENTATION_ADDRESS_OID).description(SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION)
-                .extraProperties(RFC2252_ORIGIN).implementation(new PresentationAddressSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_PRINTABLE_STRING_OID).description(SYNTAX_PRINTABLE_STRING_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new PrintableStringSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_PRESENTATION_ADDRESS_OID)
+               .description(SYNTAX_PRESENTATION_ADDRESS_DESCRIPTION)
+               .extraProperties(RFC2252_ORIGIN)
+               .implementation(new PresentationAddressSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_PRINTABLE_STRING_OID)
+               .description(SYNTAX_PRINTABLE_STRING_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new PrintableStringSyntaxImpl())
+               .addToSchema();
+
         // Depreciated in RFC 4512
-        builder.buildSyntax(SYNTAX_PROTOCOL_INFORMATION_OID).description(SYNTAX_PROTOCOL_INFORMATION_DESCRIPTION)
-                .extraProperties(RFC2252_ORIGIN).implementation(new ProtocolInformationSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_SUBSTRING_ASSERTION_OID).description(SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new SubstringAssertionSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_TELEPHONE_OID).description(SYNTAX_TELEPHONE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new TelephoneNumberSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_TELETEX_TERM_ID_OID).description(SYNTAX_TELETEX_TERM_ID_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new TeletexTerminalIdentifierSyntaxImpl())
-                .addToSchema();
-        builder.buildSyntax(SYNTAX_TELEX_OID).description(SYNTAX_TELEX_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
-                .implementation(new TelexNumberSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_UTC_TIME_OID).description(SYNTAX_UTC_TIME_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new UTCTimeSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_PROTOCOL_INFORMATION_OID)
+               .description(SYNTAX_PROTOCOL_INFORMATION_DESCRIPTION)
+               .extraProperties(RFC2252_ORIGIN)
+               .implementation(new ProtocolInformationSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_SUBSTRING_ASSERTION_OID)
+               .description(SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new SubstringAssertionSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_TELEPHONE_OID)
+               .description(SYNTAX_TELEPHONE_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new TelephoneNumberSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_TELETEX_TERM_ID_OID)
+               .description(SYNTAX_TELETEX_TERM_ID_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new TeletexTerminalIdentifierSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_TELEX_OID)
+               .description(SYNTAX_TELEX_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new TelexNumberSyntaxImpl())
+               .addToSchema();
+
+        builder.buildSyntax(SYNTAX_UTC_TIME_OID)
+               .description(SYNTAX_UTC_TIME_DESCRIPTION)
+               .extraProperties(RFC4512_ORIGIN)
+               .implementation(new UTCTimeSyntaxImpl())
+               .addToSchema();
+
     }
 
     private CoreSchemaImpl() {
