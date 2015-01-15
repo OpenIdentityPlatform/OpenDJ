@@ -21,55 +21,54 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ADDRATE_DELMODE_OFF_THRESHOLD_ON;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ADDRATE_DELMODE_RAND_THRESHOLD_AGE;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ADDRATE_THRESHOLD_SIZE_AND_AGE;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_ADDRATE_TOOL_DESCRIPTION;
-import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.util.Utils.closeSilently;
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.util.Utils.*;
+
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.io.PrintStream;
 
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.TestCaseUtils;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class AddRateITCase extends ToolsITCase {
+
     private static final String TEMPLATE_NAME = "addrate.template";
     private static final String ADD_PERCENT_TEXT = "Add%";
     private static final int THROUGHPUT_COLUMN = 1;
     private static final int ERR_PER_SEC_COLUMN_NUMBER = 8;
 
-    @DataProvider
-    public Object[][] addRateArgs() throws Exception {
-        String[] commonArgs =
-            args("-h", TestCaseUtils.getServerSocketAddress().getHostName(),
-                "-p", Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()),
-                "-c", "1", "-t", "1", "-i", "1", "-m", "1000", "-S");
+    private ByteStringBuilder out;
+    private ByteStringBuilder err;
+    private PrintStream outStream;
+    private PrintStream errStream;
 
-        return new Object[][] {
-            // Check if the help message is correctly prompted
-            { args("-H"), INFO_ADDRATE_TOOL_DESCRIPTION.get(), "" },
+    @BeforeMethod
+    private void refreshStreams() {
+        out = new ByteStringBuilder();
+        err = new ByteStringBuilder();
+        outStream = new PrintStream(out.asOutputStream());
+        errStream = new PrintStream(err.asOutputStream());
+    }
 
-            // Should report inconsistent use of options
-            { args(commonArgs, "-C", "off", "-a", "3", TEMPLATE_NAME), "",
-                ERR_ADDRATE_DELMODE_OFF_THRESHOLD_ON.get() },
-            { args(commonArgs, "-C", "off", "-s", "30000", TEMPLATE_NAME), "",
-                ERR_ADDRATE_DELMODE_OFF_THRESHOLD_ON.get() },
-            { args(commonArgs, "-C", "fifo", "-a", "3", "-s", "20000", TEMPLATE_NAME), "",
-                ERR_ADDRATE_THRESHOLD_SIZE_AND_AGE.get() },
-            { args(commonArgs, "-C", "random", "-a", "3", TEMPLATE_NAME), "",
-                ERR_ADDRATE_DELMODE_RAND_THRESHOLD_AGE.get() },
+    @AfterMethod
+    private void closeStreams() {
+        closeSilently(outStream, errStream);
+    }
 
-            // Correct test case
-            { args(commonArgs, "-s", "10", TEMPLATE_NAME), ADD_PERCENT_TEXT, "" },
-
-        };
+    private String[] commonsArgs() {
+        return new String[] {
+            "-h", TestCaseUtils.getServerSocketAddress().getHostName(),
+            "-p", Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()),
+            "-c", "1", "-t", "1", "-i", "1", "-m", "100", "-S"};
     }
 
     public String[] args(String[] startLine, String... args) {
@@ -81,34 +80,51 @@ public class AddRateITCase extends ToolsITCase {
         return res;
     }
 
-    @Test(dataProvider = "addRateArgs")
-    public void testITAddRate(String[] arguments, Object expectedOut, Object expectedErr) throws Exception {
-        ByteStringBuilder out = new ByteStringBuilder();
-        ByteStringBuilder err = new ByteStringBuilder();
+    @DataProvider
+    public Object[][] invalidAddRateArgs() throws Exception {
+        return new Object[][] {
+            // Should report inconsistent use of options
+            { args("-C", "off", "-a", "3", TEMPLATE_NAME), ERR_ADDRATE_DELMODE_OFF_THRESHOLD_ON.get() },
+            { args("-C", "off", "-s", "30000", TEMPLATE_NAME), ERR_ADDRATE_DELMODE_OFF_THRESHOLD_ON.get() },
+            { args("-C", "fifo", "-a", "3", "-s", "20000", TEMPLATE_NAME), ERR_ADDRATE_THRESHOLD_SIZE_AND_AGE.get() },
+            { args("-C", "random", "-a", "3", TEMPLATE_NAME), ERR_ADDRATE_DELMODE_RAND_THRESHOLD_AGE.get() },
+            { args("-s", "999", TEMPLATE_NAME), ERR_ADDRATE_SIZE_THRESHOLD_LOWER_THAN_ITERATIONS.get() }
+        };
+    }
 
-        PrintStream outStream = new PrintStream(out.asOutputStream());
-        PrintStream errStream = new PrintStream(err.asOutputStream());
+    @Test(dataProvider = "invalidAddRateArgs")
+    public void addRateExceptions(String[] arguments, Object expectedErr) throws Exception {
+        AddRate addRate = new AddRate(outStream, errStream);
+        int retCode = addRate.run(args(commonsArgs(), arguments));
+        checkOuputStreams(out, err, "", expectedErr);
+        assertThat(retCode).isNotEqualTo(0);
+    }
 
-        try {
-            AddRate addRate = new AddRate(outStream, errStream);
-            addRate.run(arguments);
+    @Test
+    public void addRateDisplaysHelp() throws Exception {
+        AddRate addRate = new AddRate(outStream, errStream);
+        int retCode = addRate.run(args("-H"));
+        checkOuputStreams(out, err, INFO_ADDRATE_TOOL_DESCRIPTION.get(), "");
+        assertThat(retCode).isEqualTo(0);
+    }
 
-            checkOuputStreams(out, err, expectedOut, expectedErr);
-            String outContent = out.toString();
+    @Test(timeOut = 10000)
+    public void addRateSimpleRun() throws Exception {
+        AddRate addRate = new AddRate(outStream, errStream);
+        int retCode = addRate.run(args(commonsArgs(), "-s", "10", TEMPLATE_NAME));
+        checkOuputStreams(out, err, ADD_PERCENT_TEXT, "");
+        assertThat(retCode).isEqualTo(0);
+        String outContent = out.toString();
 
-            if (outContent.contains(ADD_PERCENT_TEXT)) {
-                // Check that there was no error in search
-                String[] addRateResLines = outContent.split(System.getProperty("line.separator"));
-                // Skip header line
-                for (int i = 1; i < addRateResLines.length; i++) {
-                    String[] addhRateLineData = addRateResLines[i].split(",");
-                    assertThat(addhRateLineData[ERR_PER_SEC_COLUMN_NUMBER].trim()).isEqualTo("0.0");
-                    assertThat(addhRateLineData[THROUGHPUT_COLUMN].trim()).isNotEqualTo("0.0");
-                }
-
+        if (outContent.contains(ADD_PERCENT_TEXT)) {
+            // Check that there was no error
+            String[] addRateResLines = outContent.split(System.getProperty("line.separator"));
+            // Skip header line
+            for (int i = 1; i < addRateResLines.length; i++) {
+                String[] lineData = addRateResLines[i].split(",");
+                assertThat(lineData[ERR_PER_SEC_COLUMN_NUMBER].trim()).isEqualTo("0.0");
+                assertThat(lineData[THROUGHPUT_COLUMN].trim()).isNotEqualTo("0.0");
             }
-        } finally {
-            closeSilently(outStream, errStream);
         }
     }
 

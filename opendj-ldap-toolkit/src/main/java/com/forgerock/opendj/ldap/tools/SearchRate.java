@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -137,7 +137,7 @@ public final class SearchRate extends ConsoleApplication {
                 }
 
                 final SearchStatsHandler handler = new SearchStatsHandler(startTime);
-
+                incrementIterationCount();
                 return connection.searchAsync(sr, handler).onSuccess(handler).onFailure(handler);
             }
         }

@@ -21,16 +21,29 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
 
+import static java.util.concurrent.TimeUnit.*;
+
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.util.promise.Promises.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,9 +53,7 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
-import org.forgerock.opendj.ldap.requests.AddRequest;
-import org.forgerock.opendj.ldap.requests.DeleteRequest;
-import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.EntryGenerator;
 import org.forgerock.util.promise.Promise;
@@ -57,23 +68,25 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-import static org.forgerock.opendj.ldap.LdapException.*;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-
 /**
  * A load generation tool that can be used to load a Directory Server with Add
  * and Delete requests using one or more LDAP connections.
  */
 public class AddRate extends ConsoleApplication {
 
-    private static final class AddPerformanceRunner extends PerformanceRunner {
+    @SuppressWarnings("serial")
+    private static final class AddRateExecutionEndedException extends LdapException {
+        private AddRateExecutionEndedException() {
+            super(Responses.newResult(OTHER));
+        }
+    }
+
+    private final class AddPerformanceRunner extends PerformanceRunner {
+
         private final class AddStatsHandler extends UpdateStatsResultHandler<Result> {
             private final String entryDN;
 
-            private AddStatsHandler(final long currentTime, String entryDN) {
+            private AddStatsHandler(final long currentTime, final String entryDN) {
                 super(currentTime);
                 this.entryDN = entryDN;
             }
@@ -87,11 +100,11 @@ public class AddRate extends ConsoleApplication {
                     long newKey;
                     do {
                         newKey = randomSeq.get().nextInt();
-                    } while (dnEntriesAdded.putIfAbsent(newKey, this.entryDN) != null);
+                    } while (dnEntriesAdded.putIfAbsent(newKey, entryDN) != null);
                     break;
                 case FIFO:
                     long uniqueTime = currentTime;
-                    while (dnEntriesAdded.putIfAbsent(uniqueTime, this.entryDN) != null) {
+                    while (dnEntriesAdded.putIfAbsent(uniqueTime, entryDN) != null) {
                         uniqueTime++;
                     }
                     break;
@@ -99,12 +112,13 @@ public class AddRate extends ConsoleApplication {
                     break;
                 }
 
-                nbAdd.getAndIncrement();
+                recentAdds.getAndIncrement();
+                totalAdds.getAndIncrement();
+                entryCount.getAndIncrement();
             }
         }
 
         private final class DeleteStatsHandler extends UpdateStatsResultHandler<Result> {
-
             private DeleteStatsHandler(final long startTime) {
                 super(startTime);
             }
@@ -112,7 +126,8 @@ public class AddRate extends ConsoleApplication {
             @Override
             public void handleResult(final Result result) {
                 super.handleResult(result);
-                nbDelete.getAndIncrement();
+                recentDeletes.getAndIncrement();
+                entryCount.getAndDecrement();
             }
         }
 
@@ -126,96 +141,139 @@ public class AddRate extends ConsoleApplication {
             @Override
             void resetStats() {
                 super.resetStats();
-                nbAdd.set(0);
-                nbDelete.set(0);
+                recentAdds.set(0);
+                recentDeletes.set(0);
             }
 
             @Override
             String[] getAdditionalColumns() {
-                final int nbAddStat = nbAdd.getAndSet(0);
-                final int nbDelStat = nbDelete.getAndSet(0);
-                final int total = nbAddStat + nbDelStat;
+                final int adds = recentAdds.getAndSet(0);
+                final int deleteStat = recentDeletes.getAndSet(0);
+                final int total = adds + deleteStat;
 
-                extraColumn[0] = String.format("%.2f", total > 0 ? ((double) nbAddStat / total) * 100 : 0.0);
+                extraColumn[0] = String.format("%.2f", total > 0 ? ((double) adds / total) * 100 : 0.0);
 
                 return extraColumn;
             }
         }
 
-        private final class AddWorkerThread extends WorkerThread {
-
-            AddWorkerThread(Connection connection, ConnectionFactory connectionFactory) {
+        private final class AddDeleteWorkerThread extends WorkerThread {
+            private AddDeleteWorkerThread(final Connection connection, final ConnectionFactory connectionFactory) {
                 super(connection, connectionFactory);
             }
 
             @Override
-            public Promise<?, LdapException> performOperation(Connection connection, DataSource[] dataSources,
-                    long currentTime) {
-                if (needsDelete(currentTime)) {
-                    DeleteRequest dr = Requests.newDeleteRequest(getDNEntryToRemove());
-                    ResultHandler<Result> deleteHandler = new DeleteStatsHandler(currentTime);
-
-                    return connection.deleteAsync(dr).onSuccess(deleteHandler).onFailure(deleteHandler);
-                } else {
-                    return performAddOperation(connection, currentTime);
-                }
-            }
-
-            private Promise<Result, LdapException> performAddOperation(Connection connection, long currentTime) {
+            public Promise<?, LdapException> performOperation(
+                    final Connection connection, final DataSource[] dataSources, final long currentTime) {
+                startPurgeIfMaxNumberAddReached();
+                startToggleDeleteIfAgeThresholdReached(currentTime);
                 try {
-                    Entry entry;
-                    synchronized (generator) {
-                        entry = generator.readEntry();
+                    String entryToRemove = getEntryToRemove(currentTime);
+                    if (entryToRemove != null) {
+                        return doDelete(connection, currentTime, entryToRemove);
                     }
 
-                    AddRequest ar = Requests.newAddRequest(entry);
-                    ResultHandler<Result> addHandler = new AddStatsHandler(currentTime, entry.getName().toString());
-                    return connection.addAsync(ar).onSuccess(addHandler).onFailure(addHandler);
-                } catch (IOException e) {
-                    // faking an error result by notifying the Handler
-                    UpdateStatsResultHandler<Result> resHandler = new UpdateStatsResultHandler<Result>(currentTime);
-                    resHandler.handleError(newLdapException(ResultCode.OTHER, e));
-                    return null;
+                    return doAdd(connection, currentTime);
+                } catch (final AddRateExecutionEndedException a) {
+                    return newSuccessfulPromise(OTHER);
+                } catch (final IOException e) {
+                    return newFailedPromise(newLdapException(OTHER, e));
                 }
             }
 
-            private boolean needsDelete(final long currentTime) {
-                if (dnEntriesAdded.isEmpty() || delStrategy == DeleteStrategy.OFF) {
-                    return false;
-                }
-
-                switch (delThreshold) {
-                case SIZE_THRESHOLD:
-                    return dnEntriesAdded.size() > sizeThreshold;
-                case AGE_THRESHOLD:
-                    long olderEntryTimestamp = dnEntriesAdded.firstKey();
-                    return (olderEntryTimestamp + timeToWait) < currentTime;
-                default:
-                    return false;
+            private void startToggleDeleteIfAgeThresholdReached(long currentTime) {
+                if (!toggleDelete
+                        && delThreshold == DeleteThreshold.AGE_THRESHOLD
+                        && !dnEntriesAdded.isEmpty()
+                        && dnEntriesAdded.firstKey() + timeToWait < currentTime) {
+                    setSizeThreshold(entryCount.get());
                 }
             }
 
-            private String getDNEntryToRemove() {
-                String removedEntry = null;
-
-                while (removedEntry == null) {
-                    long minKey = dnEntriesAdded.firstKey();
-                    long maxKey = dnEntriesAdded.lastKey();
-                    long randomIndex = Math.round(Math.random() * (maxKey - minKey) + minKey);
-                    Long key = dnEntriesAdded.ceilingKey(randomIndex);
-
-                    if (key != null) {
-                        removedEntry = dnEntriesAdded.remove(key);
+            private void startPurgeIfMaxNumberAddReached() {
+                AtomicBoolean purgeLatch = new AtomicBoolean();
+                if (!isPurgeBranchRunning.get()
+                            && 0 < maxNbAddIterations && maxNbAddIterations < totalAdds.get()) {
+                    if (purgeLatch.compareAndSet(false, true)) {
+                        newPurgerThread().start();
                     }
                 }
-
-                return removedEntry;
             }
 
+            // FIXME Followings @Checkstyle:ignore tags are related to the maven-checkstyle-plugin
+            // issue related here: https://github.com/checkstyle/checkstyle/issues/5
+            // @Checkstyle:ignore
+            private String getEntryToRemove(final long currentTime) throws AddRateExecutionEndedException {
+                if (isPurgeBranchRunning.get()) {
+                    return purgeEntry();
+                }
+
+                if (toggleDelete && entryCount.get() > sizeThreshold) {
+                    return removeFirstAddedEntry();
+                }
+
+                return null;
+            }
+
+            // @Checkstyle:ignore
+            private String purgeEntry() throws AddRateExecutionEndedException {
+                if (!dnEntriesAdded.isEmpty()) {
+                    return removeFirstAddedEntry();
+                }
+                localStopRequested = true;
+                throw new AddRateExecutionEndedException();
+            }
+
+            private String removeFirstAddedEntry() {
+                final Map.Entry<Long, String> entry = dnEntriesAdded.pollFirstEntry();
+                return entry != null ? entry.getValue() : null;
+            }
+
+            private Promise<Result, LdapException> doAdd(
+                    final Connection connection, final long currentTime) throws IOException {
+                Entry entry;
+                synchronized (generator) {
+                    entry = generator.readEntry();
+                }
+
+                final ResultHandler<Result> addHandler = new AddStatsHandler(currentTime, entry.getName().toString());
+                return connection.addAsync(newAddRequest(entry))
+                                 .onSuccess(addHandler)
+                                 .onFailure(addHandler);
+            }
+
+            private Promise<?, LdapException> doDelete(
+                    final Connection connection, final long currentTime, final String entryToRemove) {
+                final ResultHandler<Result> deleteHandler = new DeleteStatsHandler(currentTime);
+                return connection.deleteAsync(newDeleteRequest(entryToRemove))
+                                 .onSuccess(deleteHandler)
+                                 .onFailure(deleteHandler);
+            }
         }
 
-        private final ConcurrentSkipListMap<Long, String> dnEntriesAdded =
-            new ConcurrentSkipListMap<Long, String>();
+        private final class AddRateTimerThread extends TimerThread {
+            private AddRateTimerThread(final long timeToWait) {
+                super(timeToWait);
+            }
+
+            @Override
+            void performStopOperations() {
+                if (purgeEnabled && isPurgeBranchRunning.compareAndSet(false, true)) {
+                    if (!isScriptFriendly()) {
+                        println(LocalizableMessage.raw("Purge phase..."));
+                    }
+                    try {
+                        joinAllWorkerThreads();
+                    } catch (final InterruptedException e) {
+                        throw new IllegalStateException();
+                    }
+                } else if (!purgeEnabled) {
+                    stopRequested = true;
+                }
+            }
+        }
+
+        private final ConcurrentSkipListMap<Long, String> dnEntriesAdded = new ConcurrentSkipListMap<Long, String>();
         private final ThreadLocal<Random> randomSeq = new ThreadLocal<Random>() {
             @Override
             protected Random initialValue() {
@@ -226,18 +284,25 @@ public class AddRate extends ConsoleApplication {
         private EntryGenerator generator;
         private DeleteStrategy delStrategy;
         private DeleteThreshold delThreshold;
-        private Integer sizeThreshold;
+        private int sizeThreshold;
+        private volatile boolean toggleDelete;
         private long timeToWait;
-        private final AtomicInteger nbAdd = new AtomicInteger();
-        private final AtomicInteger nbDelete = new AtomicInteger();
+        private int maxNbAddIterations;
+        private boolean purgeEnabled;
+        private final AtomicInteger recentAdds = new AtomicInteger();
+        private final AtomicInteger recentDeletes = new AtomicInteger();
+        private final AtomicInteger totalAdds = new AtomicInteger();
+        private final AtomicInteger entryCount = new AtomicInteger();
+        private final AtomicBoolean isPurgeBranchRunning = new AtomicBoolean();
 
         private AddPerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
             super(options);
+            maxIterationsArgument.setPropertyName("maxNumberOfAdd");
         }
 
         @Override
-        WorkerThread newWorkerThread(Connection connection, ConnectionFactory connectionFactory) {
-            return new AddWorkerThread(connection, connectionFactory);
+        WorkerThread newWorkerThread(final Connection connection, final ConnectionFactory connectionFactory) {
+            return new AddDeleteWorkerThread(connection, connectionFactory);
         }
 
         @Override
@@ -245,10 +310,23 @@ public class AddRate extends ConsoleApplication {
             return new AddRateStatsThread();
         }
 
-        public void validate(MultiChoiceArgument<DeleteStrategy> delModeArg, IntegerArgument delSizeThresholdArg,
-                                IntegerArgument delAgeThresholdArg) throws ArgumentException {
+        @Override
+        TimerThread newEndTimerThread(final long timeTowait) {
+            return new AddRateTimerThread(timeTowait);
+        }
+
+        TimerThread newPurgerThread() {
+            return newEndTimerThread(0);
+        }
+
+        public void validate(final MultiChoiceArgument<DeleteStrategy> delModeArg,
+                final IntegerArgument delSizeThresholdArg, final IntegerArgument delAgeThresholdArg,
+                final BooleanArgument noPurgeArgument) throws ArgumentException {
             super.validate();
             delStrategy = delModeArg.getTypedValue();
+            maxNbAddIterations = maxIterationsArgument.getIntValue();
+            purgeEnabled = !noPurgeArgument.isPresent();
+
             // Check for inconsistent use cases
             if (delSizeThresholdArg.isPresent() && delAgeThresholdArg.isPresent()) {
                 throw new ArgumentException(ERR_ADDRATE_THRESHOLD_SIZE_AND_AGE.get());
@@ -263,11 +341,19 @@ public class AddRate extends ConsoleApplication {
                 delThreshold =
                     delAgeThresholdArg.isPresent() ? DeleteThreshold.AGE_THRESHOLD : DeleteThreshold.SIZE_THRESHOLD;
                 if (delThreshold == DeleteThreshold.SIZE_THRESHOLD) {
-                    sizeThreshold = delSizeThresholdArg.getIntValue();
+                    setSizeThreshold(delSizeThresholdArg.getIntValue());
+                    if (0 < maxNbAddIterations && maxNbAddIterations < sizeThreshold) {
+                        throw new ArgumentException(ERR_ADDRATE_SIZE_THRESHOLD_LOWER_THAN_ITERATIONS.get());
+                    }
                 } else {
-                    timeToWait = delAgeThresholdArg.getIntValue() * 1000000000L;
+                    timeToWait = NANOSECONDS.convert(delAgeThresholdArg.getIntValue(), SECONDS);
                 }
             }
+        }
+
+        private void setSizeThreshold(int entriesSizeThreshold) {
+            sizeThreshold = entriesSizeThreshold;
+            toggleDelete = true;
         }
     }
 
@@ -280,6 +366,11 @@ public class AddRate extends ConsoleApplication {
     }
 
     private static final int EXIT_CODE_SUCCESS = 0;
+    private static final int DEFAULT_SIZE_THRESHOLD = 10000;
+    /** The minimum time to wait before starting add/delete phase (in seconds). */
+    private static final int AGE_THRESHOLD_LOWERBOUND = 1;
+    /** The minimum number of entries to add before starting add/delete phase. */
+    private static final int SIZE_THRESHOLD_LOWERBOUND = 1;
 
     /**
      * The main method for AddRate tool.
@@ -293,14 +384,13 @@ public class AddRate extends ConsoleApplication {
     }
 
     private BooleanArgument verbose;
-
     private BooleanArgument scriptFriendly;
 
     private AddRate() {
         // Nothing to do
     }
 
-    AddRate(PrintStream out, PrintStream err) {
+    AddRate(final PrintStream out, final PrintStream err) {
         super(out, err);
     }
 
@@ -328,23 +418,24 @@ public class AddRate extends ConsoleApplication {
         final ArgumentParser argParser =
             new ArgumentParser(AddRate.class.getName(), toolDescription, false, true, 1, 1, "template-file-path");
 
-        ConnectionFactoryProvider connectionFactoryProvider;
-        ConnectionFactory connectionFactory;
-        AddPerformanceRunner runner;
+        final ConnectionFactoryProvider connectionFactoryProvider;
+        final ConnectionFactory connectionFactory;
+        final AddPerformanceRunner runner;
 
         /* Entries generation parameters */
-        IntegerArgument randomSeedArg;
-        StringArgument resourcePathArg;
-        StringArgument constantsArg;
+        final IntegerArgument randomSeedArg;
+        final StringArgument resourcePathArg;
+        final StringArgument constantsArg;
 
         /* addrate specifics arguments */
-        MultiChoiceArgument<DeleteStrategy> deleteMode;
-        IntegerArgument deleteSizeThreshold;
-        IntegerArgument deleteAgeThreshold;
+        final MultiChoiceArgument<DeleteStrategy> deleteMode;
+        final IntegerArgument deleteSizeThreshold;
+        final IntegerArgument deleteAgeThreshold;
+        final BooleanArgument noPurgeArgument;
 
         try {
             Utils.setDefaultPerfToolProperties();
-            PerformanceRunnerOptions options = new PerformanceRunnerOptions(argParser, this);
+            final PerformanceRunnerOptions options = new PerformanceRunnerOptions(argParser, this);
             options.setSupportsGeneratorArgument(false);
 
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
@@ -377,15 +468,21 @@ public class AddRate extends ConsoleApplication {
             argParser.addArgument(deleteMode);
 
             deleteSizeThreshold =
-                new IntegerArgument("deletesizethreshold", 's', "deleteSizeThreshold", false, true,
-                    INFO_DELETESIZETHRESHOLD_PLACEHOLDER.get(), INFO_ADDRATE_DESCRIPTION_DELETESIZETHRESHOLD.get());
-            deleteSizeThreshold.setDefaultValue(String.valueOf(10000));
+                new IntegerArgument("deletesizethreshold", 's', "deleteSizeThreshold", false, false, true,
+                    INFO_DELETESIZETHRESHOLD_PLACEHOLDER.get(), DEFAULT_SIZE_THRESHOLD, "deleteSizeThreshold", true,
+                    SIZE_THRESHOLD_LOWERBOUND, false, Integer.MAX_VALUE,
+                    INFO_ADDRATE_DESCRIPTION_DELETESIZETHRESHOLD.get());
             argParser.addArgument(deleteSizeThreshold);
 
             deleteAgeThreshold =
                 new IntegerArgument("deleteagethreshold", 'a', "deleteAgeThreshold", false, true,
-                    INFO_DELETEAGETHRESHOLD_PLACEHOLDER.get(), INFO_ADDRATE_DESCRIPTION_DELETEAGETHRESHOLD.get());
+                    INFO_DELETEAGETHRESHOLD_PLACEHOLDER.get(), true, AGE_THRESHOLD_LOWERBOUND, false,
+                    Integer.MAX_VALUE, INFO_ADDRATE_DESCRIPTION_DELETEAGETHRESHOLD.get());
+            deleteAgeThreshold.setPropertyName(deleteAgeThreshold.getLongIdentifier());
             argParser.addArgument(deleteAgeThreshold);
+
+            noPurgeArgument = new BooleanArgument("nopurge", 'n', "noPurge", INFO_ADDRATE_DESCRIPTION_NOPURGE.get());
+            argParser.addArgument(noPurgeArgument);
         } catch (final ArgumentException ae) {
             errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
@@ -400,32 +497,31 @@ public class AddRate extends ConsoleApplication {
             }
 
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
-            runner.validate(deleteMode, deleteSizeThreshold, deleteAgeThreshold);
+            runner.validate(deleteMode, deleteSizeThreshold, deleteAgeThreshold, noPurgeArgument);
         } catch (final ArgumentException ae) {
-            final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            errPrintln(message);
+            errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
             errPrintln(argParser.getUsageMessage());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
         final String templatePath = argParser.getTrailingArguments().get(0);
-
         runner.generator =
             MakeLDIF.createGenerator(templatePath, resourcePathArg, randomSeedArg, constantsArg, false, this);
+        Runtime.getRuntime().addShutdownHook(runner.newPurgerThread());
 
         return runner.run(connectionFactory);
     }
 
-    private void addCommonArguments(ArgumentParser argParser) throws ArgumentException {
-        StringArgument propertiesFileArgument = CommonArguments.getPropertiesFile();
+    private void addCommonArguments(final ArgumentParser argParser) throws ArgumentException {
+        final StringArgument propertiesFileArgument = CommonArguments.getPropertiesFile();
         argParser.addArgument(propertiesFileArgument);
         argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-        BooleanArgument noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
+        final BooleanArgument noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
         argParser.addArgument(noPropertiesFileArgument);
         argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-        BooleanArgument showUsage = CommonArguments.getShowUsage();
+        final BooleanArgument showUsage = CommonArguments.getShowUsage();
         argParser.addArgument(showUsage);
         argParser.setUsageArgument(showUsage, getOutputStream());
 
