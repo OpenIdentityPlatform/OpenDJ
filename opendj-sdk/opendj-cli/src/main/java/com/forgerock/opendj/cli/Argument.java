@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -154,13 +154,11 @@ public abstract class Argument {
         this.isValueSetByProperty = false;
 
         if (shortIdentifier == null && longIdentifier == null) {
-            final LocalizableMessage message = ERR_ARG_NO_IDENTIFIER.get(name);
-            throw new ArgumentException(message);
+            throw new ArgumentException(ERR_ARG_NO_IDENTIFIER.get(name));
         }
 
         if (needsValue && valuePlaceholder == null) {
-            final LocalizableMessage message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
-            throw new ArgumentException(message);
+            throw new ArgumentException(ERR_ARG_NO_VALUE_PLACEHOLDER.get(name));
         }
 
         values = new LinkedList<String>();
@@ -213,8 +211,7 @@ public abstract class Argument {
                 || "off".equals(valueString) || "0".equals(valueString)) {
             return false;
         } else {
-            throw new ArgumentException(
-                    ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name));
+            throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_BOOLEAN.get(valueString, name));
         }
     }
 
@@ -251,26 +248,19 @@ public abstract class Argument {
      */
     public double getDoubleValue() throws ArgumentException {
         if (values.isEmpty()) {
-            final LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
-            throw new ArgumentException(message);
+            throw new ArgumentException(ERR_ARG_NO_INT_VALUE.get(name));
         }
 
         final Iterator<String> iterator = values.iterator();
         final String valueString = iterator.next();
-
-        double intValue;
-        try {
-            intValue = Double.parseDouble(valueString);
-        } catch (final Exception e) {
-            final LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-            throw new ArgumentException(message, e);
+        if (iterator.hasNext()) {
+            throw new ArgumentException(ERR_ARG_INT_MULTIPLE_VALUES.get(name));
         }
 
-        if (iterator.hasNext()) {
-            final LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
-            throw new ArgumentException(message);
-        } else {
-            return intValue;
+        try {
+            return Double.parseDouble(valueString);
+        } catch (final Exception e) {
+            throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
         }
     }
 
@@ -292,9 +282,7 @@ public abstract class Argument {
             try {
                 intList.add(Double.valueOf(valueString));
             } catch (final Exception e) {
-                final LocalizableMessage message =
-                        ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-                throw new ArgumentException(message, e);
+                throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
             }
         }
 
@@ -311,26 +299,19 @@ public abstract class Argument {
      */
     public int getIntValue() throws ArgumentException {
         if (values.isEmpty()) {
-            final LocalizableMessage message = ERR_ARG_NO_INT_VALUE.get(name);
-            throw new ArgumentException(message);
+            throw new ArgumentException(ERR_ARG_NO_INT_VALUE.get(name));
         }
 
         final Iterator<String> iterator = values.iterator();
         final String valueString = iterator.next();
-
-        int intValue;
-        try {
-            intValue = Integer.parseInt(valueString);
-        } catch (final Exception e) {
-            final LocalizableMessage message = ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-            throw new ArgumentException(message, e);
+        if (iterator.hasNext()) {
+            throw new ArgumentException(ERR_ARG_INT_MULTIPLE_VALUES.get(name));
         }
 
-        if (iterator.hasNext()) {
-            final LocalizableMessage message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
-            throw new ArgumentException(message);
-        } else {
-            return intValue;
+        try {
+            return Integer.parseInt(valueString);
+        } catch (final Exception e) {
+            throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
         }
     }
 
@@ -352,9 +333,7 @@ public abstract class Argument {
             try {
                 intList.add(Integer.valueOf(valueString));
             } catch (final Exception e) {
-                final LocalizableMessage message =
-                        ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name);
-                throw new ArgumentException(message, e);
+                throw new ArgumentException(ERR_ARG_CANNOT_DECODE_AS_INT.get(valueString, name), e);
             }
         }
 
@@ -648,4 +627,25 @@ public abstract class Argument {
      */
     public abstract boolean valueIsAcceptable(String valueString,
             LocalizableMessageBuilder invalidReason);
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName());
+        sb.append("(");
+        if (longIdentifier != null) {
+            sb.append("longID=");
+            sb.append(longIdentifier);
+        }
+        if (shortIdentifier != null) {
+            if (longIdentifier != null) {
+                sb.append(", ");
+            }
+            sb.append("shortID=");
+            sb.append(shortIdentifier);
+        }
+        sb.append(")");
+        return sb.toString();
+    }
 }

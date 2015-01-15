@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -41,10 +41,8 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
 
     /** Description for this group of arguments. */
     private LocalizableMessage description;
-
     /** List of arguments belonging to this group. */
     private List<Argument> args;
-
     /** Governs groups position within usage statement. */
     private final Integer priority;
 
@@ -64,6 +62,7 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public int compareTo(final ArgumentGroup o) {
         // Groups with higher priority numbers appear before
         // those with lower priority in the usage output
@@ -78,7 +77,6 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
      * @return boolean where true indicates the add was successful
      */
     public boolean addArgument(final Argument arg) {
-        boolean success = false;
         if (arg != null) {
             final Character newShort = arg.getShortIdentifier();
             final String newLong = arg.getLongIdentifier();
@@ -94,9 +92,9 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
                 }
             }
 
-            success = this.args.add(arg);
+            return this.args.add(arg);
         }
-        return success;
+        return false;
     }
 
     /**
@@ -161,4 +159,9 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
         this.description = description;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(description=" + description + ")";
+    }
 }

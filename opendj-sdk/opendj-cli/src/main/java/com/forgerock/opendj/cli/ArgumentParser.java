@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
-import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
@@ -66,25 +66,14 @@ public class ArgumentParser {
      * directory.
      */
     public static final String DEFAULT_OPENDJ_CONFIG_DIR = ".opendj";
-
-    /**
-     * The default properties file name.
-     */
+    /** The default properties file name. */
     public static final String DEFAULT_OPENDJ_PROPERTIES_FILE_NAME = "tools";
-
-    /**
-     * The default properties file extension.
-     */
+    /** The default properties file extension. */
     public static final String DEFAULT_OPENDJ_PROPERTIES_FILE_EXTENSION = ".properties";
-
-    /**
-     * The name of a command-line script used to launch a tool.
-     */
+    /** The name of a command-line script used to launch a tool. */
     public static final String PROPERTY_SCRIPT_NAME = "com.forgerock.opendj.ldap.tools.scriptName";
 
-    /**
-     * The argument that will be used to indicate the file properties.
-     */
+    /** The argument that will be used to indicate the file properties. */
     private StringArgument filePropertiesPathArgument;
 
     /**
@@ -105,10 +94,8 @@ public class ArgumentParser {
      */
     private Argument versionArgument;
 
-    /**
-     * The set of unnamed trailing arguments that were provided for this parser.
-     */
-    private final ArrayList<String> trailingArguments;
+    /** The set of unnamed trailing arguments that were provided for this parser. */
+    private final ArrayList<String> trailingArguments = new ArrayList<String>();
 
     /**
      * Indicates whether this parser will allow additional unnamed arguments at
@@ -122,48 +109,29 @@ public class ArgumentParser {
      */
     private final boolean longArgumentsCaseSensitive;
 
-    /**
-     * Indicates whether the usage or version information has been displayed.
-     */
+    /** Indicates whether the usage or version information has been displayed. */
     private boolean usageOrVersionDisplayed;
-
     /** Indicates whether the version argument was provided. */
     private boolean versionPresent;
-
     /** The handler to call to print the product version. */
     private VersionHandler versionHandler;
 
-    /**
-     * The set of arguments defined for this parser, referenced by short ID.
-     */
-    private final HashMap<Character, Argument> shortIDMap;
+    /** The set of arguments defined for this parser, referenced by short ID. */
+    private final HashMap<Character, Argument> shortIDMap = new HashMap<Character, Argument>();
+    /** The set of arguments defined for this parser, referenced by long ID. */
+    private final HashMap<String, Argument> longIDMap = new HashMap<String, Argument>();
+    /** The set of arguments defined for this parser, referenced by argument name. */
+    private final HashMap<String, Argument> argumentMap = new HashMap<String, Argument>();
+    /** The total set of arguments defined for this parser. */
+    private final LinkedList<Argument> argumentList = new LinkedList<Argument>();
 
-    /**
-     * The set of arguments defined for this parser, referenced by argument
-     * name.
-     */
-    private final HashMap<String, Argument> argumentMap;
-
-    /**
-     * The set of arguments defined for this parser, referenced by long ID.
-     */
-    private final HashMap<String, Argument> longIDMap;
-
-    /**
-     * The maximum number of unnamed trailing arguments that may be provided.
-     */
+    /** The maximum number of unnamed trailing arguments that may be provided. */
     private final int maxTrailingArguments;
-
-    /**
-     * The minimum number of unnamed trailing arguments that may be provided.
-     */
+    /** The minimum number of unnamed trailing arguments that may be provided. */
     private final int minTrailingArguments;
 
-    /** The total set of arguments defined for this parser. */
-    private final LinkedList<Argument> argumentList;
-
     /** The output stream to which usage information should be printed. */
-    private OutputStream usageOutputStream;
+    private OutputStream usageOutputStream = System.out;
 
     /**
      * The fully-qualified name of the Java class that should be invoked to
@@ -241,22 +209,10 @@ public class ArgumentParser {
         this.toolDescription = toolDescription;
         this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
 
-        argumentList = new LinkedList<Argument>();
-        argumentMap = new HashMap<String, Argument>();
-        shortIDMap = new HashMap<Character, Argument>();
-        longIDMap = new HashMap<String, Argument>();
         allowsTrailingArguments = false;
-        usageOrVersionDisplayed = false;
-        versionPresent = false;
         trailingArgsDisplayName = null;
         maxTrailingArguments = 0;
         minTrailingArguments = 0;
-        trailingArguments = new ArrayList<String>();
-        rawArguments = null;
-        usageArgument = null;
-        filePropertiesPathArgument = null;
-        noPropertiesFileArgument = null;
-        usageOutputStream = System.out;
         initGroups();
     }
 
@@ -301,16 +257,6 @@ public class ArgumentParser {
         this.maxTrailingArguments = maxTrailingArguments;
         this.trailingArgsDisplayName = trailingArgsDisplayName;
 
-        argumentList = new LinkedList<Argument>();
-        argumentMap = new HashMap<String, Argument>();
-        shortIDMap = new HashMap<Character, Argument>();
-        longIDMap = new HashMap<String, Argument>();
-        trailingArguments = new ArrayList<String>();
-        usageOrVersionDisplayed = false;
-        versionPresent = false;
-        rawArguments = null;
-        usageArgument = null;
-        usageOutputStream = System.out;
         initGroups();
     }
 
@@ -341,7 +287,6 @@ public class ArgumentParser {
      *             has already been defined.
      */
     public void addArgument(final Argument argument, ArgumentGroup group) throws ArgumentException {
-
         final Character shortID = argument.getShortIdentifier();
         if (shortID != null && shortIDMap.containsKey(shortID)) {
             final String conflictingName = shortIDMap.get(shortID).getName();
@@ -349,12 +294,14 @@ public class ArgumentParser {
                     ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(argument.getName(), shortID, conflictingName));
         }
 
+        // JNR: what is the requirement for the following code?
         if (versionArgument != null
                 && shortID != null
                 && shortID.equals(versionArgument.getShortIdentifier())) {
             // Update the version argument to not display its short identifier.
             try {
                 versionArgument = getVersionArgument(false);
+                // JNR: why not call addGeneralArgument(versionArgument) here?
                 this.generalArgGroup.addArgument(versionArgument);
             } catch (final ArgumentException e) {
                 // ignore
@@ -368,11 +315,8 @@ public class ArgumentParser {
             }
             if (longIDMap.containsKey(longID)) {
                 final String conflictingName = longIDMap.get(longID).getName();
-
-                final LocalizableMessage message =
-                        ERR_ARGPARSER_DUPLICATE_LONG_ID.get(argument.getName(), argument
-                                .getLongIdentifier(), conflictingName);
-                throw new ArgumentException(message);
+                throw new ArgumentException(ERR_ARGPARSER_DUPLICATE_LONG_ID.get(
+                    argument.getName(), argument.getLongIdentifier(), conflictingName));
             }
         }
 
@@ -665,17 +609,15 @@ public class ArgumentParser {
      * @return argument group appropriate for <code>argument</code>
      */
     ArgumentGroup getStandardGroup(final Argument argument) {
-        ArgumentGroup group;
         if (isInputOutputArgument(argument)) {
-            group = ioArgGroup;
+            return ioArgGroup;
         } else if (isGeneralArgument(argument)) {
-            group = generalArgGroup;
+            return generalArgGroup;
         } else if (isLdapConnectionArgument(argument)) {
-            group = ldapArgGroup;
+            return ldapArgGroup;
         } else {
-            group = defaultArgGroup;
+            return defaultArgGroup;
         }
-        return group;
     }
 
     /**
@@ -1366,6 +1308,7 @@ public class ArgumentParser {
 
         try {
             versionArgument = getVersionArgument(true);
+            // JNR: why not call addGeneralArgument(versionArgument) here?
             this.generalArgGroup.addArgument(versionArgument);
         } catch (final ArgumentException e) {
             // ignore
@@ -1373,12 +1316,11 @@ public class ArgumentParser {
     }
 
     private boolean isGeneralArgument(final Argument arg) {
-        boolean general = false;
         if (arg != null) {
             final String longId = arg.getLongIdentifier();
-            general = OPTION_LONG_HELP.equals(longId) || OPTION_LONG_PRODUCT_VERSION.equals(longId);
+            return OPTION_LONG_HELP.equals(longId) || OPTION_LONG_PRODUCT_VERSION.equals(longId);
         }
-        return general;
+        return false;
     }
 
     private boolean isInputOutputArgument(final Argument arg) {
