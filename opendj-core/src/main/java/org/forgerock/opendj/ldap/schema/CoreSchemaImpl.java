@@ -33,7 +33,6 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 import static org.forgerock.opendj.ldap.schema.TimeBasedMatchingRulesImpl.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -69,8 +68,6 @@ final class CoreSchemaImpl {
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("OpenDS Directory Server"));
     private static final Map<String, List<String>> OPENDJ_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("OpenDJ Directory Server"));
-
-    private static final String EMPTY_STRING = "".intern();
 
     private static final Schema SINGLETON;
 
@@ -306,15 +303,25 @@ final class CoreSchemaImpl {
     }
 
     private static void addRFC3045(final SchemaBuilder builder) {
-        builder.addAttributeType("1.3.6.1.1.4", Collections.singletonList("vendorName"),
-                EMPTY_STRING, false, null, EMR_CASE_EXACT_IA5_OID, null, null, null,
-                SYNTAX_DIRECTORY_STRING_OID, true, false, true, AttributeUsage.DSA_OPERATION,
-                RFC3045_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.1.4")
+               .names("vendorName")
+               .equalityMatchingRule(EMR_CASE_EXACT_IA5_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC3045_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.1.5", Collections.singletonList("vendorVersion"),
-                EMPTY_STRING, false, null, EMR_CASE_EXACT_IA5_OID, null, null, null,
-                SYNTAX_DIRECTORY_STRING_OID, true, false, true, AttributeUsage.DSA_OPERATION,
-                RFC3045_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.1.5")
+               .names("vendorVersion")
+               .equalityMatchingRule(EMR_CASE_EXACT_IA5_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC3045_ORIGIN)
+               .addToSchema();
     }
 
     private static void addRFC3112(final SchemaBuilder builder) {
@@ -325,15 +332,25 @@ final class CoreSchemaImpl {
                 .description(EMR_AUTH_PASSWORD_EXACT_DESCRIPTION).syntaxOID(SYNTAX_AUTH_PASSWORD_OID)
                 .extraProperties(RFC3112_ORIGIN).implementation(new AuthPasswordExactEqualityMatchingRuleImpl())
                 .addToSchema();
-        builder.addAttributeType("1.3.6.1.4.1.4203.1.3.3", Collections
-                .singletonList("supportedAuthPasswordSchemes"),
-                "supported password storage schemes", false, null, EMR_CASE_EXACT_IA5_OID, null,
-                null, null, SYNTAX_IA5_STRING_OID, false, false, false,
-                AttributeUsage.DSA_OPERATION, RFC3112_ORIGIN, false);
-        builder.addAttributeType("1.3.6.1.4.1.4203.1.3.4", Collections
-                .singletonList("authPassword"), "password authentication information", false, null,
-                EMR_AUTH_PASSWORD_EXACT_OID, null, null, null, SYNTAX_AUTH_PASSWORD_OID, false,
-                false, false, AttributeUsage.USER_APPLICATIONS, RFC3112_ORIGIN, false);
+
+        builder.buildAttributeType("1.3.6.1.4.1.4203.1.3.3")
+               .names("supportedAuthPasswordSchemes")
+               .description("supported password storage schemes")
+               .equalityMatchingRule(EMR_CASE_EXACT_IA5_OID)
+               .syntax(SYNTAX_IA5_STRING_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC3112_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("1.3.6.1.4.1.4203.1.3.4")
+               .names("authPassword")
+               .description("password authentication information")
+               .equalityMatchingRule(EMR_AUTH_PASSWORD_EXACT_OID)
+               .syntax(SYNTAX_AUTH_PASSWORD_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC3112_ORIGIN)
+               .addToSchema();
+
         builder.buildObjectClass("1.3.6.1.4.1.4203.1.4.7")
                 .names("authPasswordObject")
                 .type(AUXILIARY)
@@ -344,201 +361,354 @@ final class CoreSchemaImpl {
     }
 
     private static void addRFC4519(final SchemaBuilder builder) {
-        builder.addAttributeType("2.5.4.15", Collections.singletonList("businessCategory"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.15")
+               .names("businessCategory")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.41", Collections.singletonList("name"), EMPTY_STRING,
-                false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.41")
+               .names("name")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.6", Arrays.asList("c", "countryName"), EMPTY_STRING, false,
-                "name", null, null, null, null, SYNTAX_COUNTRY_STRING_OID, true, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.6")
+               .names("c", "countryName")
+               .superiorType("name")
+               .syntax(SYNTAX_COUNTRY_STRING_OID)
+               .singleValue(true)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.3", Arrays.asList("cn", "commonName"), EMPTY_STRING, false,
-                "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.3")
+               .names("cn", "commonName")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("0.9.2342.19200300.100.1.25", Arrays.asList("dc",
-                "domainComponent"), EMPTY_STRING, false, null, EMR_CASE_IGNORE_IA5_OID, null,
-                SMR_CASE_IGNORE_IA5_OID, null, SYNTAX_IA5_STRING_OID, true, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("0.9.2342.19200300.100.1.25")
+               .names("dc", "domainComponent")
+               .equalityMatchingRule(EMR_CASE_IGNORE_IA5_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_IA5_OID)
+               .syntax(SYNTAX_IA5_STRING_OID)
+               .singleValue(true)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.13", Collections.singletonList("description"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.13")
+               .names("description")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.27", Collections.singletonList("destinationIndicator"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_PRINTABLE_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.27")
+               .names("destinationIndicator")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_PRINTABLE_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.49", Collections.singletonList("distinguishedName"),
-                EMPTY_STRING, false, null, EMR_DN_OID, null, null, null, SYNTAX_DN_OID, false,
-                false, false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.49")
+               .names("distinguishedName")
+               .equalityMatchingRule(EMR_DN_OID)
+               .syntax(SYNTAX_DN_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.46", Collections.singletonList("dnQualifier"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, OMR_CASE_IGNORE_OID,
-                SMR_CASE_IGNORE_OID, null, SYNTAX_PRINTABLE_STRING_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.46")
+               .names("dnQualifier")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .orderingMatchingRule(OMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_PRINTABLE_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.47", Collections.singletonList("enhancedSearchGuide"),
-                EMPTY_STRING, false, null, null, null, null, null, SYNTAX_ENHANCED_GUIDE_OID,
-                false, false, false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.47")
+               .names("enhancedSearchGuide")
+               .syntax(SYNTAX_ENHANCED_GUIDE_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.23", Collections.singletonList("facsimileTelephoneNumber"),
-                EMPTY_STRING, false, null, null, null, null, null, SYNTAX_FAXNUMBER_OID, false,
-                false, false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.23")
+               .names("facsimileTelephoneNumber")
+               .syntax(SYNTAX_FAXNUMBER_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.44", Collections.singletonList("generationQualifier"),
-                EMPTY_STRING, false, "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.44")
+               .names("generationQualifier")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.42", Collections.singletonList("givenName"), EMPTY_STRING,
-                false, "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.42")
+               .names("givenName")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.51", Collections.singletonList("houseIdentifier"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.51")
+               .names("houseIdentifier")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.43", Collections.singletonList("initials"), EMPTY_STRING,
-                false, "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.43")
+               .names("initials")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.25", Collections.singletonList("internationalISDNNumber"),
-                EMPTY_STRING, false, null, EMR_NUMERIC_STRING_OID, null, SMR_NUMERIC_STRING_OID,
-                null, SYNTAX_NUMERIC_STRING_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.25")
+               .names("internationalISDNNumber")
+               .equalityMatchingRule(EMR_NUMERIC_STRING_OID)
+               .substringMatchingRule(SMR_NUMERIC_STRING_OID)
+               .syntax(SYNTAX_NUMERIC_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.7", Arrays.asList("l", "localityName"), EMPTY_STRING,
-                false, "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.7")
+               .names("l", "localityName")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.31", Collections.singletonList("member"), EMPTY_STRING,
-                false, "distinguishedName", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.31")
+               .names("member")
+               .superiorType("distinguishedName")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.10", Arrays.asList("o", "organizationName"), EMPTY_STRING,
-                false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.10")
+               .names("o", "organizationName")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.11", Arrays.asList("ou", "organizationalUnitName"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.11")
+               .names("ou", "organizationalUnitName")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.32", Collections.singletonList("owner"), EMPTY_STRING,
-                false, "distinguishedName", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.32")
+               .names("owner")
+               .superiorType("distinguishedName")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.19", Collections
-                .singletonList("physicalDeliveryOfficeName"), EMPTY_STRING, false, null,
-                EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null, SYNTAX_DIRECTORY_STRING_OID,
-                false, false, false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.19")
+               .names("physicalDeliveryOfficeName")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.16", Collections.singletonList("postalAddress"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.16")
+               .names("postalAddress")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.17", Collections.singletonList("postalCode"), EMPTY_STRING,
-                false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.17")
+               .names("postalCode")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.18", Collections.singletonList("postOfficeBox"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.18")
+               .names("postOfficeBox")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.28", Collections.singletonList("preferredDeliveryMethod"),
-                EMPTY_STRING, false, null, null, null, null, null, SYNTAX_DELIVERY_METHOD_OID,
-                true, false, false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.28")
+               .names("preferredDeliveryMethod")
+               .syntax(SYNTAX_DELIVERY_METHOD_OID)
+               .singleValue(true)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.26", Collections.singletonList("registeredAddress"),
-                EMPTY_STRING, false, "postalAddress", null, null, null, null,
-                SYNTAX_POSTAL_ADDRESS_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.26")
+               .names("registeredAddress")
+               .superiorType("postalAddress")
+               .syntax(SYNTAX_POSTAL_ADDRESS_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.33", Collections.singletonList("roleOccupant"),
-                EMPTY_STRING, false, "distinguishedName", null, null, null, null, null, false,
-                false, false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.33")
+               .names("roleOccupant")
+               .superiorType("distinguishedName")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.14", Collections.singletonList("searchGuide"),
-                EMPTY_STRING, false, null, null, null, null, null, SYNTAX_GUIDE_OID, false, false,
-                false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.14")
+               .names("searchGuide")
+               .syntax(SYNTAX_GUIDE_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.34", Collections.singletonList("seeAlso"), EMPTY_STRING,
-                false, "distinguishedName", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.34")
+               .names("seeAlso")
+               .superiorType("distinguishedName")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.5", Collections.singletonList("serialNumber"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_PRINTABLE_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.5")
+               .names("serialNumber")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_PRINTABLE_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.4", Arrays.asList("sn", "surname"), EMPTY_STRING, false,
-                "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.4")
+               .names("sn", "surname")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.8", Arrays.asList("st", "stateOrProvinceName"),
-                EMPTY_STRING, false, "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.8")
+               .names("st", "stateOrProvinceName")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.9", Arrays.asList("street", "streetAddress"), EMPTY_STRING,
-                false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.9")
+               .names("street", "streetAddress")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.20", Collections.singletonList("telephoneNumber"),
-                EMPTY_STRING, false, null, EMR_TELEPHONE_OID, null, SMR_TELEPHONE_OID, null,
-                SYNTAX_TELEPHONE_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.20")
+               .names("telephoneNumber")
+               .equalityMatchingRule(EMR_TELEPHONE_OID)
+               .substringMatchingRule(SMR_TELEPHONE_OID)
+               .syntax(SYNTAX_TELEPHONE_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.22",
-                Collections.singletonList("teletexTerminalIdentifier"), EMPTY_STRING, false, null,
-                null, null, null, null, SYNTAX_TELETEX_TERM_ID_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.22")
+               .names("teletexTerminalIdentifier")
+               .syntax(SYNTAX_TELETEX_TERM_ID_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.21", Collections.singletonList("telexNumber"),
-                EMPTY_STRING, false, null, null, null, null, null, SYNTAX_TELEX_OID, false, false,
-                false, AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.21")
+               .names("telexNumber")
+               .syntax(SYNTAX_TELEX_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.12", Collections.singletonList("title"), EMPTY_STRING,
-                false, "name", null, null, null, null, null, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.12")
+               .names("title")
+               .superiorType("name")
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("0.9.2342.19200300.100.1.1", Arrays.asList("uid", "userid"),
-                EMPTY_STRING, false, null, EMR_CASE_IGNORE_OID, null, SMR_CASE_IGNORE_OID, null,
-                SYNTAX_DIRECTORY_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("0.9.2342.19200300.100.1.1")
+               .names("uid", "userid")
+               .equalityMatchingRule(EMR_CASE_IGNORE_OID)
+               .substringMatchingRule(SMR_CASE_IGNORE_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.50", Collections.singletonList("uniqueMember"),
-                EMPTY_STRING, false, null, EMR_UNIQUE_MEMBER_OID, null, null, null,
-                SYNTAX_NAME_AND_OPTIONAL_UID_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.50")
+               .names("uniqueMember")
+               .equalityMatchingRule(EMR_UNIQUE_MEMBER_OID)
+               .syntax(SYNTAX_NAME_AND_OPTIONAL_UID_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.35", Collections.singletonList("userPassword"),
-                EMPTY_STRING, false, null, EMR_OCTET_STRING_OID, null, null, null,
-                SYNTAX_OCTET_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.35")
+               .names("userPassword")
+               .equalityMatchingRule(EMR_OCTET_STRING_OID)
+               .syntax(SYNTAX_OCTET_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.24", Collections.singletonList("x121Address"),
-                EMPTY_STRING, false, null, EMR_NUMERIC_STRING_OID, null, SMR_NUMERIC_STRING_OID,
-                null, SYNTAX_NUMERIC_STRING_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.24")
+               .names("x121Address")
+               .equalityMatchingRule(EMR_NUMERIC_STRING_OID)
+               .substringMatchingRule(SMR_NUMERIC_STRING_OID)
+               .syntax(SYNTAX_NUMERIC_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.45", Collections.singletonList("x500UniqueIdentifier"),
-                EMPTY_STRING, false, null, EMR_BIT_STRING_OID, null, null, null,
-                SYNTAX_BIT_STRING_OID, false, false, false, AttributeUsage.USER_APPLICATIONS,
-                RFC4519_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.45")
+               .names("x500UniqueIdentifier")
+               .equalityMatchingRule(EMR_BIT_STRING_OID)
+               .syntax(SYNTAX_BIT_STRING_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4519_ORIGIN)
+               .addToSchema();
 
         builder.buildObjectClass("2.5.6.11")
                 .names("applicationProcess")
@@ -690,34 +860,68 @@ final class CoreSchemaImpl {
                 .syntaxOID(SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID).extraProperties(RFC4523_ORIGIN)
                 .implementation(new CertificateExactMatchingRuleImpl()).addToSchema();
 
-        builder.addAttributeType("2.5.4.36", Collections.singletonList("userCertificate"),
-                "X.509 user certificate", false, null, EMR_CERTIFICATE_EXACT_OID, null,
-                null, null, SYNTAX_CERTIFICATE_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
-        builder.addAttributeType("2.5.4.37", Collections.singletonList("cACertificate"),
-                "X.509 CA certificate", false, null, EMR_CERTIFICATE_EXACT_OID, null,
-                null, null, SYNTAX_CERTIFICATE_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
-        builder.addAttributeType("2.5.4.38", Collections.singletonList("authorityRevocationList"),
-                "X.509 authority revocation list", false, null, EMR_OCTET_STRING_OID, null,
-                null, null, SYNTAX_CERTLIST_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
-        builder.addAttributeType("2.5.4.39", Collections.singletonList("certificateRevocationList"),
-                "X.509 certificate revocation list", false, null, EMR_OCTET_STRING_OID, null,
-                null, null, SYNTAX_CERTLIST_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
-        builder.addAttributeType("2.5.4.40", Collections.singletonList("crossCertificatePair"),
-                "X.509 cross certificate pair", false, null, EMR_OCTET_STRING_OID, null,
-                null, null, SYNTAX_CERTPAIR_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
-        builder.addAttributeType("2.5.4.52", Collections.singletonList("supportedAlgorithms"),
-                "X.509 supported algorithms", false, null, EMR_OCTET_STRING_OID, null,
-                null, null, SYNTAX_SUPPORTED_ALGORITHM_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
-        builder.addAttributeType("2.5.4.53", Collections.singletonList("deltaRevocationList"),
-                "X.509 delta revocation list", false, null, EMR_OCTET_STRING_OID, null,
-                null, null, SYNTAX_CERTLIST_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.36")
+               .names("userCertificate")
+               .description("X.509 user certificate")
+               .equalityMatchingRule(EMR_CERTIFICATE_EXACT_OID)
+               .syntax(SYNTAX_CERTIFICATE_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4523_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("2.5.4.37")
+               .names("cACertificate")
+               .description("X.509 CA certificate")
+               .equalityMatchingRule(EMR_CERTIFICATE_EXACT_OID)
+               .syntax(SYNTAX_CERTIFICATE_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4523_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("2.5.4.38")
+               .names("authorityRevocationList")
+               .description("X.509 authority revocation list")
+               .equalityMatchingRule(EMR_OCTET_STRING_OID)
+               .syntax(SYNTAX_CERTLIST_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4523_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("2.5.4.39")
+               .names("certificateRevocationList")
+               .description("X.509 certificate revocation list")
+               .equalityMatchingRule(EMR_OCTET_STRING_OID)
+               .syntax(SYNTAX_CERTLIST_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4523_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("2.5.4.40")
+               .names("crossCertificatePair")
+               .description("X.509 cross certificate pair")
+               .equalityMatchingRule(EMR_OCTET_STRING_OID)
+               .syntax(SYNTAX_CERTPAIR_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4523_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("2.5.4.52")
+               .names("supportedAlgorithms")
+               .description("X.509 supported algorithms")
+               .equalityMatchingRule(EMR_OCTET_STRING_OID)
+               .syntax(SYNTAX_SUPPORTED_ALGORITHM_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4523_ORIGIN)
+               .addToSchema();
+
+        builder.buildAttributeType("2.5.4.53")
+               .names("deltaRevocationList")
+               .description("X.509 delta revocation list")
+               .equalityMatchingRule(EMR_OCTET_STRING_OID)
+               .syntax(SYNTAX_CERTLIST_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4523_ORIGIN)
+               .addToSchema();
 
         builder.buildObjectClass("2.5.6.21")
                 .names("pkiUser")
@@ -803,17 +1007,30 @@ final class CoreSchemaImpl {
         builder.buildMatchingRule(OMR_UUID_OID).names(OMR_UUID_NAME).syntaxOID(SYNTAX_UUID_OID)
                 .extraProperties(RFC4530_ORIGIN).implementation(new UUIDOrderingMatchingRuleImpl())
                 .addToSchema();
-        builder.addAttributeType("1.3.6.1.1.16.4", Collections.singletonList("entryUUID"),
-                "UUID of the entry", false, null, EMR_UUID_OID, OMR_UUID_OID, null, null,
-                SYNTAX_UUID_OID, true, false, true, AttributeUsage.DIRECTORY_OPERATION,
-                RFC4530_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.1.16.4")
+               .names("entryUUID")
+               .description("UUID of the entry")
+               .equalityMatchingRule(EMR_UUID_OID)
+               .orderingMatchingRule(OMR_UUID_OID)
+               .syntax(SYNTAX_UUID_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4530_ORIGIN)
+               .addToSchema();
     }
 
     private static void addRFC5020(final SchemaBuilder builder) {
-        builder.addAttributeType("1.3.6.1.1.20", Collections.singletonList("entryDN"),
-                "DN of the entry", false, null, EMR_DN_OID, null, null, null,
-                SYNTAX_DN_OID, true, false, true, AttributeUsage.DIRECTORY_OPERATION,
-                RFC5020_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.1.20")
+               .names("entryDN")
+               .description("DN of the entry")
+               .equalityMatchingRule(EMR_DN_OID)
+               .syntax(SYNTAX_DN_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC5020_ORIGIN)
+               .addToSchema();
     }
 
     private static void addSunProprietary(final SchemaBuilder builder) {
@@ -847,10 +1064,15 @@ final class CoreSchemaImpl {
     }
 
     private static void addForgeRockProprietary(SchemaBuilder builder) {
-        builder.addAttributeType("1.3.6.1.4.1.36733.2.1.1.141", Collections.singletonList("fullVendorVersion"),
-                EMPTY_STRING, false, null, EMR_CASE_EXACT_IA5_OID, null, null, null,
-                SYNTAX_DIRECTORY_STRING_OID, true, false, true, AttributeUsage.DSA_OPERATION,
-                OPENDJ_ORIGIN , false);
+        builder.buildAttributeType("1.3.6.1.4.1.36733.2.1.1.141")
+               .names("fullVendorVersion")
+               .equalityMatchingRule(EMR_CASE_EXACT_IA5_OID)
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(OPENDJ_ORIGIN)
+               .addToSchema();
     }
 
     /**
@@ -972,117 +1194,208 @@ final class CoreSchemaImpl {
     }
 
     private static void defaultAttributeTypes(final SchemaBuilder builder) {
-        builder.addAttributeType("2.5.4.0", Collections.singletonList("objectClass"), EMPTY_STRING,
-                false, null, EMR_OID_NAME, null, null, null, SYNTAX_OID_OID, false, false, false,
-                AttributeUsage.USER_APPLICATIONS, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.0")
+               .names("objectClass")
+               .equalityMatchingRule(EMR_OID_NAME)
+               .syntax(SYNTAX_OID_OID)
+               .usage(AttributeUsage.USER_APPLICATIONS)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.4.1", Collections.singletonList("aliasedObjectName"),
-                EMPTY_STRING, false, null, EMR_DN_NAME, null, null, null, SYNTAX_DN_OID, true,
-                false, false, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.4.1")
+               .names("aliasedObjectName")
+               .equalityMatchingRule(EMR_DN_NAME)
+               .syntax(SYNTAX_DN_OID)
+               .singleValue(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.18.1", Collections.singletonList("createTimestamp"),
-                EMPTY_STRING, false, null, EMR_GENERALIZED_TIME_NAME, OMR_GENERALIZED_TIME_NAME,
-                null, null, SYNTAX_GENERALIZED_TIME_OID, true, false, true,
-                AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.18.1")
+               .names("createTimestamp")
+               .equalityMatchingRule(EMR_GENERALIZED_TIME_NAME)
+               .orderingMatchingRule(OMR_GENERALIZED_TIME_NAME)
+               .syntax(SYNTAX_GENERALIZED_TIME_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.18.2", Collections.singletonList("modifyTimestamp"),
-                EMPTY_STRING, false, null, EMR_GENERALIZED_TIME_NAME, OMR_GENERALIZED_TIME_NAME,
-                null, null, SYNTAX_GENERALIZED_TIME_OID, true, false, true,
-                AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.18.2")
+               .names("modifyTimestamp")
+               .equalityMatchingRule(EMR_GENERALIZED_TIME_NAME)
+               .orderingMatchingRule(OMR_GENERALIZED_TIME_NAME)
+               .syntax(SYNTAX_GENERALIZED_TIME_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.18.3", Collections.singletonList("creatorsName"),
-                EMPTY_STRING, false, null, EMR_DN_NAME, null, null, null, SYNTAX_DN_OID, true,
-                false, true, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.18.3")
+               .names("creatorsName")
+               .equalityMatchingRule(EMR_DN_NAME)
+               .syntax(SYNTAX_DN_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.18.4", Collections.singletonList("modifiersName"),
-                EMPTY_STRING, false, null, EMR_DN_NAME, null, null, null, SYNTAX_DN_OID, true,
-                false, true, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.18.4")
+               .names("modifiersName")
+               .equalityMatchingRule(EMR_DN_NAME)
+               .syntax(SYNTAX_DN_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.18.10", Collections.singletonList("subschemaSubentry"),
-                EMPTY_STRING, false, null, EMR_DN_NAME, null, null, null, SYNTAX_DN_OID, true,
-                false, true, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.18.10")
+               .names("subschemaSubentry")
+               .equalityMatchingRule(EMR_DN_NAME)
+               .syntax(SYNTAX_DN_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.5", Collections.singletonList("attributeTypes"),
-                EMPTY_STRING, false, null, EMR_OID_FIRST_COMPONENT_NAME, null, null, null,
-                SYNTAX_ATTRIBUTE_TYPE_OID, false, false, false, AttributeUsage.DIRECTORY_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.5")
+               .names("attributeTypes")
+               .equalityMatchingRule(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_ATTRIBUTE_TYPE_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.6", Collections.singletonList("objectClasses"),
-                EMPTY_STRING, false, null, EMR_OID_FIRST_COMPONENT_NAME, null, null, null,
-                SYNTAX_OBJECTCLASS_OID, false, false, false, AttributeUsage.DIRECTORY_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.6")
+               .names("objectClasses")
+               .equalityMatchingRule(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_OBJECTCLASS_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.4", Collections.singletonList("matchingRules"),
-                EMPTY_STRING, false, null, EMR_OID_FIRST_COMPONENT_NAME, null, null, null,
-                SYNTAX_MATCHING_RULE_OID, false, false, false, AttributeUsage.DIRECTORY_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.4")
+               .names("matchingRules")
+               .equalityMatchingRule(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_MATCHING_RULE_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.8", Collections.singletonList("matchingRuleUse"),
-                EMPTY_STRING, false, null, EMR_OID_FIRST_COMPONENT_NAME, null, null, null,
-                SYNTAX_MATCHING_RULE_USE_OID, false, false, false,
-                AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.8")
+               .names("matchingRuleUse")
+               .equalityMatchingRule(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_MATCHING_RULE_USE_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.9", Collections.singletonList("structuralObjectClass"),
-                EMPTY_STRING, false, null, EMR_OID_NAME, null, null, null, SYNTAX_OID_OID, true,
-                false, true, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.9")
+               .names("structuralObjectClass")
+               .equalityMatchingRule(EMR_OID_NAME)
+               .syntax(SYNTAX_OID_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.10", Collections.singletonList("governingStructureRule"),
-                EMPTY_STRING, false, null, EMR_INTEGER_NAME, null, null, null, SYNTAX_INTEGER_OID,
-                true, false, true, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.10")
+               .names("governingStructureRule")
+               .equalityMatchingRule(EMR_INTEGER_NAME)
+               .syntax(SYNTAX_INTEGER_OID)
+               .singleValue(true)
+               .noUserModification(true)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.1466.101.120.5", Collections
-                .singletonList("namingContexts"), EMPTY_STRING, false, null, null, null, null,
-                null, SYNTAX_DN_OID, false, false, false, AttributeUsage.DSA_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.1466.101.120.5")
+               .names("namingContexts")
+               .syntax(SYNTAX_DN_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.1466.101.120.6", Collections
-                .singletonList("altServer"), EMPTY_STRING, false, null, null, null, null, null,
-                SYNTAX_IA5_STRING_OID, false, false, false, AttributeUsage.DSA_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.1466.101.120.6")
+               .names("altServer")
+               .syntax(SYNTAX_IA5_STRING_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.1466.101.120.7", Collections
-                .singletonList("supportedExtension"), EMPTY_STRING, false, null, null, null, null,
-                null, SYNTAX_OID_OID, false, false, false, AttributeUsage.DSA_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.1466.101.120.7")
+               .names("supportedExtension")
+               .syntax(SYNTAX_OID_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.1466.101.120.13", Collections
-                .singletonList("supportedControl"), EMPTY_STRING, false, null, null, null, null,
-                null, SYNTAX_OID_OID, false, false, false, AttributeUsage.DSA_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.1466.101.120.13")
+               .names("supportedControl")
+               .syntax(SYNTAX_OID_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.1466.101.120.14", Collections
-                .singletonList("supportedSASLMechanisms"), EMPTY_STRING, false, null, null, null,
-                null, null, SYNTAX_DIRECTORY_STRING_OID, false, false, false,
-                AttributeUsage.DSA_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.1466.101.120.14")
+               .names("supportedSASLMechanisms")
+               .syntax(SYNTAX_DIRECTORY_STRING_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.4203.1.3.5", Collections
-                .singletonList("supportedFeatures"), EMPTY_STRING, false, null, EMR_OID_NAME, null,
-                null, null, SYNTAX_OID_OID, false, false, false, AttributeUsage.DSA_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.4203.1.3.5")
+               .names("supportedFeatures")
+               .equalityMatchingRule(EMR_OID_NAME)
+               .syntax(SYNTAX_OID_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.1466.101.120.15", Collections
-                .singletonList("supportedLDAPVersion"), EMPTY_STRING, false, null, null, null,
-                null, null, SYNTAX_INTEGER_OID, false, false, false, AttributeUsage.DSA_OPERATION,
-                RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.1466.101.120.15")
+               .names("supportedLDAPVersion")
+               .syntax(SYNTAX_INTEGER_OID)
+               .usage(AttributeUsage.DSA_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("1.3.6.1.4.1.1466.101.120.16", Collections
-                .singletonList("ldapSyntaxes"), EMPTY_STRING, false, null,
-                EMR_OID_FIRST_COMPONENT_NAME, null, null, null, SYNTAX_LDAP_SYNTAX_OID, false,
-                false, false, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("1.3.6.1.4.1.1466.101.120.16")
+               .names("ldapSyntaxes")
+               .equalityMatchingRule(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_LDAP_SYNTAX_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.1", Collections.singletonList("ditStructureRules"),
-                EMPTY_STRING, false, null, EMR_INTEGER_FIRST_COMPONENT_NAME, null, null, null,
-                SYNTAX_DIT_STRUCTURE_RULE_OID, false, false, false,
-                AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.1")
+               .names("ditStructureRules")
+               .equalityMatchingRule(EMR_INTEGER_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_DIT_STRUCTURE_RULE_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.7", Collections.singletonList("nameForms"), EMPTY_STRING,
-                false, null, EMR_OID_FIRST_COMPONENT_NAME, null, null, null, SYNTAX_NAME_FORM_OID,
-                false, false, false, AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.7")
+               .names("nameForms")
+               .equalityMatchingRule(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_NAME_FORM_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
 
-        builder.addAttributeType("2.5.21.2", Collections.singletonList("ditContentRules"),
-                EMPTY_STRING, false, null, EMR_OID_FIRST_COMPONENT_NAME, null, null, null,
-                SYNTAX_DIT_CONTENT_RULE_OID, false, false, false,
-                AttributeUsage.DIRECTORY_OPERATION, RFC4512_ORIGIN, false);
+        builder.buildAttributeType("2.5.21.2")
+               .names("ditContentRules")
+               .equalityMatchingRule(EMR_OID_FIRST_COMPONENT_NAME)
+               .syntax(SYNTAX_DIT_CONTENT_RULE_OID)
+               .usage(AttributeUsage.DIRECTORY_OPERATION)
+               .extraProperties(RFC4512_ORIGIN)
+               .addToSchema();
     }
 
     private static void defaultMatchingRules(final SchemaBuilder builder) {

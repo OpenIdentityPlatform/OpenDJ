@@ -22,16 +22,23 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
+import static java.util.Arrays.*;
 
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +59,295 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 public final class AttributeType extends SchemaElement implements Comparable<AttributeType> {
 
+    /** A fluent API for incrementally constructing attribute type. */
+    public static final class Builder extends SchemaElementBuilder<Builder> {
+        private String oid;
+        private final List<String> names = new LinkedList<String>();
+        private AttributeUsage attributeUsage;
+        private boolean isCollective;
+        private boolean isNoUserModification;
+        private boolean isObsolete;
+        private boolean isSingleValue;
+        private String approximateMatchingRuleOID;
+        private String equalityMatchingRuleOID;
+        private String orderingMatchingRuleOID;
+        private String substringMatchingRuleOID;
+        private String superiorTypeOID;
+        private String syntaxOID;
+
+        Builder(final AttributeType at, final SchemaBuilder builder) {
+            super(builder, at);
+            this.oid = at.oid;
+            this.attributeUsage = at.attributeUsage;
+            this.isCollective = at.isCollective;
+            this.isNoUserModification = at.isNoUserModification;
+            this.isObsolete = at.isObsolete;
+            this.isSingleValue = at.isSingleValue;
+            this.names.addAll(at.names);
+            this.approximateMatchingRuleOID = at.approximateMatchingRuleOID;
+            this.equalityMatchingRuleOID = at.equalityMatchingRuleOID;
+            this.orderingMatchingRuleOID = at.orderingMatchingRuleOID;
+            this.substringMatchingRuleOID = at.substringMatchingRuleOID;
+            this.superiorTypeOID = at.superiorTypeOID;
+            this.syntaxOID = at.syntaxOID;
+        }
+
+        Builder(final String oid, final SchemaBuilder builder) {
+            super(builder);
+            this.oid = oid;
+        }
+
+        /**
+         * Adds this attribute type to the schema, throwing an
+         * {@code ConflictingSchemaElementException} if there is an existing
+         * attribute type with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing attribute type with the same
+         *             numeric OID.
+         */
+        public SchemaBuilder addToSchema() {
+            return getSchemaBuilder().addAttributeType(new AttributeType(this), false);
+        }
+
+        /**
+         * Adds this attribute type to the schema overwriting any existing
+         * attribute type with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addAttributeType(new AttributeType(this), true);
+        }
+
+        /**
+         * Sets the matching rule that should be used for approximate matching
+         * with this attribute type.
+         *
+         * @param approximateMatchingRuleOID
+         *            The matching rule OID.
+         * @return This builder.
+         */
+        public Builder approximateMatchingRule(String approximateMatchingRuleOID) {
+            this.approximateMatchingRuleOID = approximateMatchingRuleOID;
+            return this;
+        }
+
+        /**
+         * Specifies whether this attribute type is "collective".
+         *
+         * @param isCollective
+         *            {@code true} if this attribute type is "collective".
+         * @return This builder.
+         */
+        public Builder collective(boolean isCollective) {
+            this.isCollective = isCollective;
+            return this;
+        }
+
+        @Override
+        public Builder description(String description) {
+            return description0(description);
+        }
+
+        /**
+         * Sets the matching rule that should be used for equality matching with
+         * this attribute type.
+         *
+         * @param equalityMatchingRuleOID
+         *            The matching rule OID.
+         * @return This builder.
+         */
+        public Builder equalityMatchingRule(String equalityMatchingRuleOID) {
+            this.equalityMatchingRuleOID = equalityMatchingRuleOID;
+            return this;
+        }
+
+        @Override
+        public Builder extraProperties(Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(String extensionName, String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final Collection<String> names) {
+            this.names.addAll(names);
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final String... names) {
+            return names(asList(names));
+        }
+
+        /**
+         * Specifies whether this attribute type is "no-user-modification".
+         *
+         * @param isNoUserModification
+         *            {@code true} if this attribute type is
+         *            "no-user-modification"
+         * @return This builder.
+         */
+        public Builder noUserModification(boolean isNoUserModification) {
+            this.isNoUserModification = isNoUserModification;
+            return this;
+        }
+
+        /**
+         * Specifies whether this schema element is obsolete.
+         *
+         * @param isObsolete
+         *            {@code true} if this schema element is obsolete (default
+         *            is {@code false}).
+         * @return This builder.
+         */
+        public Builder obsolete(final boolean isObsolete) {
+            this.isObsolete = isObsolete;
+            return this;
+        }
+
+        /**
+         * Sets the numeric OID which uniquely identifies this attribute type.
+         *
+         * @param oid
+         *            The numeric OID.
+         * @return This builder.
+         */
+        public Builder oid(final String oid) {
+            this.oid = oid;
+            return this;
+        }
+
+        /**
+         * Sets the matching rule that should be used for ordering with this
+         * attribute type.
+         *
+         * @param orderingMatchingRuleOID
+         *            The matching rule OID.
+         * @return This Builder.
+         */
+        public Builder orderingMatchingRule(String orderingMatchingRuleOID) {
+            this.orderingMatchingRuleOID = orderingMatchingRuleOID;
+            return this;
+        }
+
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
+        /**
+         * Removes all user defined names.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllNames() {
+            this.names.clear();
+            return this;
+        }
+
+        @Override
+        public Builder removeExtraProperty(String extensionName, String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
+        }
+
+        /**
+         * Removes the provided user defined name.
+         *
+         * @param name
+         *            The user defined name to be removed.
+         * @return This builder.
+         */
+        public Builder removeName(String name) {
+            this.names.remove(name);
+            return this;
+        }
+
+        /**
+         * Specifies whether this attribute type is declared "single-value".
+         *
+         * @param isSingleValue
+         *            {@code true} if this attribute type is declared
+         *            "single-value".
+         * @return This builder.
+         */
+        public Builder singleValue(boolean isSingleValue) {
+            this.isSingleValue = isSingleValue;
+            return this;
+        }
+
+        /**
+         * Sets the matching rule that should be used for substring matching
+         * with this attribute type.
+         *
+         * @param substringMatchingRuleOID
+         *            The matching rule OID.
+         * @return This builder.
+         */
+        public Builder substringMatchingRule(String substringMatchingRuleOID) {
+            this.substringMatchingRuleOID = substringMatchingRuleOID;
+            return this;
+        }
+
+        /**
+         * Sets the superior type for this attribute type.
+         *
+         * @param superiorTypeOID
+         *            The superior type OID.
+         * @return This builder.
+         */
+        public Builder superiorType(String superiorTypeOID) {
+            this.superiorTypeOID = superiorTypeOID;
+            return this;
+        }
+
+        /**
+         * Sets the syntax for this attribute type.
+         *
+         * @param syntaxOID
+         *            The syntax OID.
+         * @return This builder.
+         */
+        public Builder syntax(String syntaxOID) {
+            this.syntaxOID = syntaxOID;
+            return this;
+        }
+
+        /**
+         * Sets the usage indicator for this attribute type.
+         *
+         * @param attributeUsage
+         *            The attribute usage.
+         * @return This builder.
+         */
+        public Builder usage(AttributeUsage attributeUsage) {
+            this.attributeUsage = attributeUsage;
+            return this;
+        }
+    }
+
     /** The approximate matching rule for this attribute type. */
     private final String approximateMatchingRuleOID;
 
@@ -64,9 +360,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     /** Indicates whether this attribute type is declared "collective". */
     private final boolean isCollective;
 
-    /**
-     * Indicates whether this attribute type is declared "no-user-modification".
-     */
+    /** Indicates whether this attribute type is declared "no-user-modification". */
     private final boolean isNoUserModification;
 
     /** Indicates whether this definition is declared "obsolete". */
@@ -126,34 +420,28 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     /** The indicates whether or not validation failed. */
     private boolean isValid;
 
-    AttributeType(final String oid, final List<String> names, final String description,
-            final boolean obsolete, final String superiorType, final String equalityMatchingRule,
-            final String orderingMatchingRule, final String substringMatchingRule,
-            final String approximateMatchingRule, final String syntax, final boolean singleValue,
-            final boolean collective, final boolean noUserModification,
-            final AttributeUsage attributeUsage, final Map<String, List<String>> extraProperties,
-            final String definition) {
-        super(description, extraProperties, definition);
+    private AttributeType(Builder builder) {
+        super(builder);
+        Reject.ifTrue(builder.oid == null || builder.oid.isEmpty(), "An OID must be specified.");
+        Reject.ifTrue(builder.superiorTypeOID == null && builder.syntaxOID == null,
+                "Superior type and/or Syntax must not be null");
 
-        Reject.ifNull(oid, names, attributeUsage);
-        Reject.ifFalse(superiorType != null || syntax != null, "superiorType and/or syntax must not be null");
-
-        this.oid = oid;
-        this.names = names;
-        this.isObsolete = obsolete;
-        this.superiorTypeOID = superiorType;
-        this.equalityMatchingRuleOID = equalityMatchingRule;
-        this.orderingMatchingRuleOID = orderingMatchingRule;
-        this.substringMatchingRuleOID = substringMatchingRule;
-        this.approximateMatchingRuleOID = approximateMatchingRule;
-        this.syntaxOID = syntax;
-        this.isSingleValue = singleValue;
-        this.isCollective = collective;
-        this.isNoUserModification = noUserModification;
-        this.attributeUsage = attributeUsage;
-        this.isObjectClassType = "2.5.4.0".equals(oid);
-        this.isPlaceHolder = false;
-        this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
+        oid = builder.oid;
+        names = unmodifiableCopyOfList(builder.names);
+        attributeUsage = builder.attributeUsage;
+        isCollective = builder.isCollective;
+        isNoUserModification = builder.isNoUserModification;
+        isObjectClassType = "2.5.4.0".equals(oid);
+        isObsolete = builder.isObsolete;
+        isSingleValue = builder.isSingleValue;
+        approximateMatchingRuleOID = builder.approximateMatchingRuleOID;
+        equalityMatchingRuleOID = builder.equalityMatchingRuleOID;
+        orderingMatchingRuleOID = builder.orderingMatchingRuleOID;
+        substringMatchingRuleOID = builder.substringMatchingRuleOID;
+        superiorTypeOID = builder.superiorTypeOID;
+        syntaxOID = builder.syntaxOID;
+        isPlaceHolder = false;
+        normalizedName = toLowerCase(getNameOrOID());
     }
 
     /**
@@ -187,7 +475,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         this.isSingleValue = false;
         this.isCollective = false;
         this.isNoUserModification = false;
-        this.attributeUsage = AttributeUsage.USER_APPLICATIONS;
+        this.attributeUsage = null;
         this.isObjectClassType = false;
         this.isPlaceHolder = true;
         this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
@@ -307,7 +595,6 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      * @return The OID for this schema definition.
      */
     public String getOID() {
-
         return oid;
     }
 
@@ -358,7 +645,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      * @return The usage indicator for this attribute type.
      */
     public AttributeUsage getUsage() {
-        return attributeUsage;
+        return attributeUsage != null ? attributeUsage : AttributeUsage.USER_APPLICATIONS;
     }
 
     /**
@@ -453,7 +740,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      *         {@code false} if not.
      */
     public boolean isOperational() {
-        return attributeUsage.isOperational();
+        return getUsage().isOperational();
     }
 
     /**
@@ -548,13 +835,6 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         } else {
             return false;
         }
-    }
-
-    AttributeType duplicate() {
-        return new AttributeType(oid, names, getDescription(), isObsolete, superiorTypeOID,
-                equalityMatchingRuleOID, orderingMatchingRuleOID, substringMatchingRuleOID,
-                approximateMatchingRuleOID, syntaxOID, isSingleValue, isCollective,
-                isNoUserModification, attributeUsage, getExtraProperties(), toString());
     }
 
     @Override
