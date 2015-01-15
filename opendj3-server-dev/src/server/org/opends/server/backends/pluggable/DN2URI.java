@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -58,16 +58,22 @@ import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.util.Pair;
+
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class represents the referral database which contains URIs from referral
- * entries.  The key is the DN of the referral entry and the value is that of a
- * labeled URI in the ref attribute for that entry. Duplicate keys are permitted
- * since a referral entry can contain multiple values of the ref attribute.  Key
- * order is the same as in the DN database so that all referrals in a subtree
- * can be retrieved by cursoring through a range of the records.
+ * entries.
+ * <p>
+ * The key is the DN of the referral entry and the value is that of a pair
+ * (DN, list of labeled URI in the ref attribute for that entry). The DN must be
+ * duplicated in the value because the key is suitable for comparisons but is
+ * not reversible to a valid DN. Duplicate keys are permitted since a referral
+ * entry can contain multiple values of the ref attribute. Key order is the same
+ * as in the DN database so that all referrals in a subtree can be retrieved by
+ * cursoring through a range of the records.
  */
 public class DN2URI extends DatabaseContainer
 {
@@ -112,11 +118,15 @@ public class DN2URI extends DatabaseContainer
     prefixRDNComponents = entryContainer.getBaseDN().size();
   }
 
-  private ByteSequence encode(Collection<String> col)
+  private ByteSequence encode(DN dn, Collection<String> col)
   {
     if (col != null)
     {
       ByteStringBuilder b = new ByteStringBuilder();
+      byte[] dnBytes = StaticUtils.getBytes(dn.toString());
+      b.append(dnBytes.length);
+      b.append(dnBytes);
+
       b.append(col.size());
       for (String s : col)
       {
@@ -129,21 +139,31 @@ public class DN2URI extends DatabaseContainer
     return ByteString.empty();
   }
 
-  private Collection<String> decode(ByteSequence bs)
+  private Pair<DN, List<String>> decode(ByteSequence bs) throws StorageRuntimeException
   {
     if (!bs.isEmpty())
     {
       ByteSequenceReader r = bs.asReader();
+      final int dnLength = r.getInt();
+      DN dn = null;
+      try
+      {
+        dn = DN.valueOf(r.getString(dnLength));
+      }
+      catch (DirectoryException e)
+      {
+        throw new StorageRuntimeException("Unable to decode DN from binary value", e);
+      }
       final int nbElems = r.getInt();
-      ArrayList<String> results = new ArrayList<String>(nbElems);
+      List<String> results = new ArrayList<String>(nbElems);
       for (int i = 0; i < nbElems; i++)
       {
         final int stringLength = r.getInt();
         results.add(r.getString(stringLength));
       }
-      return results;
+      return Pair.of(dn, results);
     }
-    return new ArrayList<String>();
+    return Pair.empty();
   }
 
   /**
@@ -162,15 +182,16 @@ public class DN2URI extends DatabaseContainer
     ByteString oldValue = read(txn, key, true);
     if (oldValue != null)
     {
-      final Collection<String> newUris = decode(oldValue);
+      final Pair<DN, List<String>> dnAndUris = decode(oldValue);
+      final Collection<String> newUris = dnAndUris.getSecond();
       if (newUris.addAll(labeledURIs))
       {
-        put(txn, key, encode(newUris));
+        put(txn, key, encode(dn, newUris));
       }
     }
     else
     {
-      txn.putIfAbsent(treeName, key, encode(labeledURIs));
+      txn.putIfAbsent(treeName, key, encode(dn, labeledURIs));
     }
     containsReferrals = ConditionResult.TRUE;
   }
@@ -214,10 +235,11 @@ public class DN2URI extends DatabaseContainer
     ByteString oldValue = read(txn, key, true);
     if (oldValue != null)
     {
-      final Collection<String> oldUris = decode(oldValue);
+      final Pair<DN, List<String>> dnAndUris = decode(oldValue);
+      final Collection<String> oldUris = dnAndUris.getSecond();
       if (oldUris.removeAll(labeledURIs))
       {
-        put(txn, key, encode(oldUris));
+        put(txn, key, encode(dn, oldUris));
         containsReferrals = containsReferrals(txn);
         return true;
       }
@@ -522,7 +544,8 @@ public class DN2URI extends DatabaseContainer
           if (cursor.positionToKey(toKey(dn)))
           {
             // Construct a set of all the labeled URIs in the referral.
-            Collection<String> labeledURIs = decode(cursor.getValue());
+            final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
+            Collection<String> labeledURIs = dnAndUris.getSecond();
             throwReferralException(targetDN, dn, labeledURIs, searchScope);
           }
         }
@@ -591,8 +614,6 @@ public class DN2URI extends DatabaseContainer
         while (success && cursor.getKey().compareTo(end) < 0)
         {
           // We have found a subordinate referral.
-          DN dn = JebFormat.dnFromDNKey(cursor.getKey(), entryContainer.getBaseDN());
-
           // Make sure the referral is within scope.
           if (searchOp.getScope() == SearchScope.SINGLE_LEVEL
               && JebFormat.findDNKeyParent(cursor.getKey()) != baseDN.length())
@@ -601,7 +622,9 @@ public class DN2URI extends DatabaseContainer
           }
 
           // Construct a list of all the URIs in the referral.
-          Collection<String> labeledURIs = decode(cursor.getValue());
+          final Pair<DN, List<String>> dnAndUris = decode(cursor.getValue());
+          final DN dn = dnAndUris.getFirst();
+          final Collection<String> labeledURIs = dnAndUris.getSecond();
           SearchResultReference reference = toSearchResultReference(dn, labeledURIs, searchOp.getScope());
           if (!searchOp.returnReference(dn, reference))
           {
