@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -440,6 +440,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             return EMPTY_STRINGS;
         }
 
+        /** Resets both general and recent statistic indicators. */
         void resetStats() {
             failedCount = 0;
             operationCount = 0;
@@ -451,11 +452,15 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
     }
 
-    private class TimerThread extends Thread {
+    class TimerThread extends Thread {
         private final long timeToWait;
 
-        public TimerThread(long timeToWait) {
+        TimerThread(long timeToWait) {
             this.timeToWait = timeToWait;
+        }
+
+        void performStopOperations() {
+            stopRequested = true;
         }
 
         @Override
@@ -465,7 +470,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             } catch (InterruptedException e) {
                 throw new IllegalStateException(e);
             } finally {
-                stopRequested = true;
+                performStopOperations();
             }
         }
     }
@@ -512,6 +517,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         private int count;
         private final Connection connection;
         private final ConnectionFactory connectionFactory;
+        boolean localStopRequested;
 
         WorkerThread(final Connection connection, final ConnectionFactory connectionFactory) {
             super("Worker Thread");
@@ -526,11 +532,11 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         public void run() {
             Promise<?, LdapException> promise;
             Connection connection;
-
             final double targetTimeInMS = 1000.0 / (targetThroughput / (double) (numThreads * numConnections));
             double sleepTimeInMS = 0;
-            long start;
-            while (!stopRequested && !(maxIterations > 0 && count >= maxIterations)) {
+
+            while (!stopRequested && !localStopRequested
+                    && (maxIterations <= 0 || count < maxIterations)) {
                 if (this.connection == null) {
                     try {
                         connection = connectionFactory.getConnectionAsync().getOrThrow();
@@ -565,15 +571,12 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     }
                 }
 
-                start = System.nanoTime();
+                long start = System.nanoTime();
                 promise = performOperation(connection, dataSources.get(), start);
                 operationRecentCount.getAndIncrement();
-                count++;
                 if (!isAsync) {
                     try {
-                        if (promise != null) {
-                            promise.getOrThrow();
-                        }
+                        promise.getOrThrow();
                     } catch (final InterruptedException e) {
                         // Ignore and check stop requested
                         continue;
@@ -607,6 +610,10 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 }
             }
         }
+
+        void incrementIterationCount() {
+            count++;
+        }
     }
 
     private static final String[] EMPTY_STRINGS = new String[0];
@@ -636,10 +643,10 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
     };
 
-    private volatile boolean stopRequested;
+    int numThreads;
+    int numConnections;
+    volatile boolean stopRequested;
     private volatile boolean isWarmingUp;
-    private int numThreads;
-    private int numConnections;
     private int targetThroughput;
     private int maxIterations;
     /** Warm-up duration time in ms. **/
@@ -650,7 +657,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private boolean noRebind;
     private int statsInterval;
     private final IntegerArgument numThreadsArgument;
-    private final IntegerArgument maxIterationsArgument;
     private final IntegerArgument maxDurationArgument;
     private final IntegerArgument statsIntervalArgument;
     private final IntegerArgument targetThroughputArgument;
@@ -660,7 +666,10 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private final BooleanArgument noRebindArgument;
     private final BooleanArgument asyncArgument;
     private final StringArgument arguments;
+    protected final IntegerArgument maxIterationsArgument;
     protected final IntegerArgument warmUpArgument;
+
+    private final List<Thread> workerThreads = new ArrayList<Thread>();
 
     PerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
         ArgumentParser argParser = options.getArgumentParser();
@@ -686,8 +695,8 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
         maxIterationsArgument =
                 new IntegerArgument("maxIterations", 'm', "maxIterations", false, false, true,
-                        LocalizableMessage.raw("{maxIterations}"), 0, null, LocalizableMessage
-                                .raw("Max iterations, 0 for unlimited"));
+                        LocalizableMessage.raw("{maxIterations}"), 0, null,
+                        LocalizableMessage.raw("Max iterations, 0 for unlimited"));
         maxIterationsArgument.setPropertyName("maxIterations");
         argParser.addArgument(maxIterationsArgument);
 
@@ -828,19 +837,19 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
     final DataSource[] getDataSources() {
         if (dataSourcePrototypes == null) {
-            throw new IllegalStateException(
-                    "dataSources are null - validate() must be called first");
+            throw new IllegalStateException("dataSources are null - validate() must be called first");
         }
         return dataSourcePrototypes;
     }
 
-    abstract WorkerThread newWorkerThread(final Connection connection,
-            final ConnectionFactory connectionFactory);
-
+    abstract WorkerThread newWorkerThread(final Connection connection, final ConnectionFactory connectionFactory);
     abstract StatsThread newStatsThread();
 
+    TimerThread newEndTimerThread(final long timeTowait) {
+        return new TimerThread(timeTowait);
+    }
+
     final int run(final ConnectionFactory connectionFactory) {
-        final List<Thread> threads = new ArrayList<Thread>();
         final List<Connection> connections = new ArrayList<Connection>();
 
         Connection connection = null;
@@ -854,13 +863,13 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 }
                 for (int j = 0; j < numThreads; j++) {
                     final Thread thread = newWorkerThread(connection, connectionFactory);
-                    threads.add(thread);
+                    workerThreads.add(thread);
                     thread.start();
                 }
             }
 
             if (maxDurationTime > 0) {
-                new TimerThread(maxDurationTime).start();
+                newEndTimerThread(maxDurationTime).start();
             }
 
             final StatsThread statsThread = newStatsThread();
@@ -873,11 +882,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 statsThread.resetStats();
                 isWarmingUp = false;
             }
-            statsThread.start();
 
-            for (final Thread t : threads) {
-                t.join();
-            }
+            statsThread.start();
+            joinAllWorkerThreads();
             stopRequested = true;
             statsThread.join();
         } catch (final InterruptedException e) {
@@ -890,5 +897,11 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         return 0;
+    }
+
+    protected void joinAllWorkerThreads() throws InterruptedException {
+        for (final Thread t : workerThreads) {
+            t.join();
+        }
     }
 }

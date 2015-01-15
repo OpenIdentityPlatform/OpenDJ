@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -178,6 +178,7 @@ public final class AuthRate extends ConsoleApplication {
                     returnedPromise = performBind(connection, data);
                 }
 
+                incrementIterationCount();
                 return returnedPromise.onSuccess(new UpdateStatsResultHandler<BindResult>(startTime)).onFailure(
                         new BindUpdateStatsResultHandler(startTime));
             }

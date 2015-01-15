@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -72,7 +72,7 @@ public abstract class ToolsITCase extends ForgeRockTestCase {
         checkOutputStream(err, expectedError);
     }
 
-    private void checkOutputStream(ByteStringBuilder out, Object expectedOutput) {
+    protected void checkOutputStream(ByteStringBuilder out, Object expectedOutput) {
         String lineSeparator = System.getProperty("line.separator");
         String toCompare = expectedOutput.toString();
 
