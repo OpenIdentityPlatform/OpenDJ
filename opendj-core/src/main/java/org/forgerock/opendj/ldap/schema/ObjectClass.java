@@ -82,7 +82,7 @@ public final class ObjectClass extends SchemaElement {
 
         Builder(final String oid, final SchemaBuilder builder) {
             super(builder);
-            oid(oid);
+            this.oid = oid;
         }
 
         /**
