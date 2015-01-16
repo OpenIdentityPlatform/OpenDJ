@@ -22,9 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
+
+import static com.sleepycat.je.OperationStatus.*;
+
+import static org.opends.messages.JebMessages.*;
 
 import java.util.*;
 
@@ -41,10 +45,6 @@ import org.opends.server.types.Modification;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
-
-import static com.sleepycat.je.OperationStatus.*;
-
-import static org.opends.messages.JebMessages.*;
 
 /**
  * Represents an index implemented by a JE database in which each key maps to
@@ -109,8 +109,6 @@ public class Index extends DatabaseContainer
    */
   private boolean rebuildRunning;
 
-  /** Thread local area to store per thread cursors. */
-  private final ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
   private final ImportIDSet newImportIDSet;
 
   /**
@@ -172,7 +170,15 @@ public class Index extends DatabaseContainer
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
   }
 
-  private void deleteKey(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
+  /**
+   * Delete the specified import ID set from the import ID set associated with the key.
+   *
+   * @param key The key to delete the set from.
+   * @param importIdSet The import ID set to delete.
+   * @param data A database entry to use for data.
+   * @throws DatabaseException If a database error occurs.
+   */
+  public void delete(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
     final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
     if(status == SUCCESS) {
       newImportIDSet.clear(false);
@@ -192,7 +198,15 @@ public class Index extends DatabaseContainer
     }
   }
 
-  private void insertKey(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
+  /**
+   * Insert the specified import ID set into this index. Creates a DB cursor if needed.
+   *
+   * @param key The key to add the set to.
+   * @param importIdSet The set of import IDs.
+   * @param data Database entry to reuse for read.
+   * @throws DatabaseException If a database error occurs.
+   */
+  public void insert(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
     final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
     if(status == OperationStatus.SUCCESS) {
       newImportIDSet.clear(false);
@@ -212,43 +226,6 @@ public class Index extends DatabaseContainer
       // Should never happen during import.
       throw new RuntimeException();
     }
-  }
-
-  /**
-   * Insert the specified import ID set into this index. Creates a DB
-   * cursor if needed.
-   *
-   * @param key The key to add the set to.
-   * @param importIdSet The set of import IDs.
-   * @param data Database entry to reuse for read.
-   * @throws DatabaseException If a database error occurs.
-   */
-  public void insert(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
-    Cursor cursor = curLocal.get();
-    if(cursor == null) {
-      cursor = openCursor(null, null);
-      curLocal.set(cursor);
-    }
-    insertKey(key, importIdSet, data);
-  }
-
-  /**
-   * Delete the specified import ID set from the import ID set associated with
-   * the key.
-   *
-   * @param key The key to delete the set from.
-   * @param importIdSet The import ID set to delete.
-   * @param data A database entry to use for data.
-   *
-   * @throws DatabaseException If a database error occurs.
-   */
-  public void delete(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
-    Cursor cursor = curLocal.get();
-    if(cursor == null) {
-      cursor = openCursor(null, null);
-      curLocal.set(cursor);
-    }
-    deleteKey(key, importIdSet, data);
   }
 
   /**
@@ -724,19 +701,6 @@ public class Index extends DatabaseContainer
   public int getEntryLimitExceededCount()
   {
     return entryLimitExceededCount;
-  }
-
-  /**
-   * Close any cursors open against this index.
-   *
-   * @throws DatabaseException  If a database error occurs.
-   */
-  public void closeCursor() throws DatabaseException {
-    Cursor cursor = curLocal.get();
-    if(cursor != null) {
-      cursor.close();
-      curLocal.remove();
-    }
   }
 
   /**

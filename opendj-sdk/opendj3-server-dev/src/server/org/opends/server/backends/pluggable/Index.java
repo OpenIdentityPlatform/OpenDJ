@@ -106,9 +106,6 @@ public class Index extends DatabaseContainer
    */
   private boolean rebuildRunning;
 
-  /** Thread local area to store per thread cursors. */
-  private final ThreadLocal<Cursor> curLocal = new ThreadLocal<Cursor>();
-
   /**
    * Create a new index object.
    * @param name The name of the index database within the entryContainer.
@@ -588,19 +585,6 @@ public class Index extends DatabaseContainer
   public int getEntryLimitExceededCount()
   {
     return entryLimitExceededCount;
-  }
-
-  /**
-   * Close any cursors open against this index.
-   *
-   * @throws StorageRuntimeException  If a database error occurs.
-   */
-  public void closeCursor() throws StorageRuntimeException {
-    Cursor cursor = curLocal.get();
-    if(cursor != null) {
-      cursor.close();
-      curLocal.remove();
-    }
   }
 
   /**
