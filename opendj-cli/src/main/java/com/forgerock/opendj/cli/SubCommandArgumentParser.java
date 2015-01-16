@@ -64,7 +64,8 @@ public class SubCommandArgumentParser extends ArgumentParser {
     /** The argument that will be used to trigger the display of usage information. */
     private Argument usageArgument;
     /** The arguments that will be used to trigger the display of usage information for groups of sub-commands. */
-    private final Map<Argument, Collection<SubCommand>> usageGroupArguments = new HashMap<Argument, Collection<SubCommand>>();
+    private final Map<Argument, Collection<SubCommand>> usageGroupArguments =
+        new HashMap<Argument, Collection<SubCommand>>();
     /** The set of unnamed trailing arguments that were provided for this parser. */
     private final ArrayList<String> trailingArguments = new ArrayList<String>();
     /** Indicates whether subcommand and long argument names should be treated in a case-sensitive manner. */
@@ -683,7 +684,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                                 printVersion();
                                 return;
                             } else {
-                                // -V is defined in another subcommand, so we can
+                                // -V is defined in another subcommand, so we cannot
                                 // accept it as the version information argument
                                 throw new ArgumentException(
                                         ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get(argCharacter));
