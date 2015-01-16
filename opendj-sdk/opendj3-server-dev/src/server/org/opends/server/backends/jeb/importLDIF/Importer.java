@@ -264,17 +264,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         new ArrayList<ScratchFileWriterTask>(indexCount);
     this.scratchFileWriterFutures = new CopyOnWriteArrayList<Future<Void>>();
 
-    File parentDir;
-    if (rebuildConfig.getTmpDirectory() != null)
-    {
-      parentDir = getFileForPath(rebuildConfig.getTmpDirectory());
-    }
-    else
-    {
-      parentDir = getFileForPath(DEFAULT_TMP_DIR);
-    }
-
-    this.tempDir = new File(parentDir, cfg.getBackendId());
+    this.tempDir = getTempDir(cfg, rebuildConfig.getTmpDirectory());
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
@@ -326,16 +316,8 @@ public final class Importer implements DiskSpaceMonitorHandler
     this.scratchFileWriterList =
         new ArrayList<ScratchFileWriterTask>(indexCount);
     this.scratchFileWriterFutures = new CopyOnWriteArrayList<Future<Void>>();
-    File parentDir;
-    if (importConfiguration.getTmpDirectory() != null)
-    {
-      parentDir = getFileForPath(importConfiguration.getTmpDirectory());
-    }
-    else
-    {
-      parentDir = getFileForPath(DEFAULT_TMP_DIR);
-    }
-    this.tempDir = new File(parentDir, localDBBackendCfg.getBackendId());
+
+    this.tempDir = getTempDir(localDBBackendCfg, importConfiguration.getTmpDirectory());
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
@@ -355,6 +337,20 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       this.tmpEnv = null;
     }
+  }
+
+  private File getTempDir(LocalDBBackendCfg localDBBackendCfg, String tmpDirectory)
+  {
+    File parentDir;
+    if (tmpDirectory != null)
+    {
+      parentDir = getFileForPath(tmpDirectory);
+    }
+    else
+    {
+      parentDir = getFileForPath(DEFAULT_TMP_DIR);
+    }
+    return new File(parentDir, localDBBackendCfg.getBackendId());
   }
 
   private int getTotalIndexCount(LocalDBBackendCfg localDBBackendCfg)
@@ -603,8 +599,7 @@ public final class Importer implements DiskSpaceMonitorHandler
   {
     for (int i = 0; i < phaseOneBufferCount; i++)
     {
-      IndexOutputBuffer b = new IndexOutputBuffer(bufferSize);
-      freeBufferQueue.add(b);
+      freeBufferQueue.add(new IndexOutputBuffer(bufferSize));
     }
   }
 
@@ -781,10 +776,10 @@ public final class Importer implements DiskSpaceMonitorHandler
   }
 
   /**
-   * Rebuild the indexes using the specified rootcontainer.
+   * Rebuild the indexes using the specified root container.
    *
    * @param rootContainer
-   *          The rootcontainer to rebuild indexes in.
+   *          The root container to rebuild indexes in.
    * @throws ConfigException
    *           If a configuration error occurred.
    * @throws InitializationException
@@ -1261,15 +1256,6 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       for (Suffix suffix : dnSuffixMap.values())
       {
-        List<byte[]> includeBranches = new ArrayList<byte[]>(suffix.getIncludeBranches().size());
-        for (DN includeBranch : suffix.getIncludeBranches())
-        {
-          if (includeBranch.isDescendantOf(suffix.getBaseDN()))
-          {
-            includeBranches.add(JebFormat.dnToDNKey(includeBranch, suffix.getBaseDN().size()));
-          }
-        }
-
         EntryContainer entryContainer = suffix.getSrcEntryContainer();
         if (entryContainer != null && !suffix.getIncludeBranches().isEmpty())
         {
@@ -1280,6 +1266,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           Cursor cursor = entryContainer.getDN2ID().openCursor(null, null);
           try
           {
+            final List<byte[]> includeBranches = includeBranchesAsBytes(suffix);
             OperationStatus status = cursor.getFirst(key, data, lockMode);
             while (status == OperationStatus.SUCCESS
                 && !importConfiguration.isCancelled() && !isCanceled)
@@ -1327,6 +1314,19 @@ public final class Importer implements DiskSpaceMonitorHandler
         }
       }
       return null;
+    }
+
+    private List<byte[]> includeBranchesAsBytes(Suffix suffix)
+    {
+      List<byte[]> includeBranches = new ArrayList<byte[]>(suffix.getIncludeBranches().size());
+      for (DN includeBranch : suffix.getIncludeBranches())
+      {
+        if (includeBranch.isDescendantOf(suffix.getBaseDN()))
+        {
+          includeBranches.add(JebFormat.dnToDNKey(includeBranch, suffix.getBaseDN().size()));
+        }
+      }
+      return includeBranches;
     }
 
     private boolean find(List<byte[]> arrays, byte[] arrayToFind)
@@ -2182,8 +2182,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           {
             DatabaseEntry key = new DatabaseEntry(parentDN.array(), 0, parentDN.limit());
             DatabaseEntry value = new DatabaseEntry();
-            OperationStatus status;
-            status = entryContainer.getDN2ID().read(null, key, value, LockMode.DEFAULT);
+            OperationStatus status = entryContainer.getDN2ID().read(null, key, value, LockMode.DEFAULT);
             if (status == OperationStatus.SUCCESS)
             {
               parentID = new EntryID(value);
@@ -2277,8 +2276,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         }
         DatabaseEntry key = new DatabaseEntry(dn.array(), 0, dn.limit());
         DatabaseEntry value = new DatabaseEntry();
-        OperationStatus status;
-        status = entryContainer.getDN2ID().read(null, key, value, LockMode.DEFAULT);
+        OperationStatus status = entryContainer.getDN2ID().read(null, key, value, LockMode.DEFAULT);
         if (status == OperationStatus.SUCCESS)
         {
           return new EntryID(value);
@@ -3570,18 +3568,9 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
           IndexingOptions options = attributeIndex.getIndexingOptions();
-          ImportIndexType indexType = key.getIndexType();
           Index index = mapEntry.getValue();
-          if (indexType == ImportIndexType.SUBSTRING)
-          {
-            processAttribute(index, entry, entryID, options,
-                new IndexKey(attrType, ImportIndexType.SUBSTRING, index.getIndexEntryLimit()));
-          }
-          else
-          {
-            processAttribute(index, entry, entryID, options,
-                new IndexKey(attrType, indexType, index.getIndexEntryLimit()));
-          }
+          processAttribute(index, entry, entryID, options,
+              new IndexKey(attrType, key.getIndexType(), index.getIndexEntryLimit()));
         }
       }
     }
