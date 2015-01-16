@@ -369,8 +369,7 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    List<String> extensions = readExtensions(reader);
-                    atBuilder.extraProperties(tokenName, extensions);
+                    atBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1.get(definition, tokenName));
@@ -1027,21 +1026,6 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Returns an attribute type builder whose fields are initialized to the
-     * values of the provided attribute type. This method should be used when
-     * duplicating attribute types from external schemas or when modifying
-     * existing attribute types.
-     *
-     * @param attributeType
-     *            The attribute type source.
-     * @return A builder to continue building the AttributeType.
-     */
-    public AttributeType.Builder buildAttributeType(final AttributeType attributeType) {
-        lazyInitBuilder();
-        return new AttributeType.Builder(attributeType, this);
-    }
-
-    /**
      * Returns a builder which can be used for incrementally constructing a new
      * attribute type before adding it to the schema. Example usage:
      *
@@ -1278,6 +1262,21 @@ public final class SchemaBuilder {
     public Syntax.Builder buildSyntax(final String oid) {
         lazyInitBuilder();
         return new Syntax.Builder(oid, this);
+    }
+
+    /**
+     * Returns an attribute type builder whose fields are initialized to the
+     * values of the provided attribute type. This method should be used when
+     * duplicating attribute types from external schemas or when modifying
+     * existing attribute types.
+     *
+     * @param attributeType
+     *            The attribute type source.
+     * @return A builder to continue building the AttributeType.
+     */
+    public AttributeType.Builder buildAttributeType(final AttributeType attributeType) {
+        lazyInitBuilder();
+        return new AttributeType.Builder(attributeType, this);
     }
 
     /**
