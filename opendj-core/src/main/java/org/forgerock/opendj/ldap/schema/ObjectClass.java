@@ -283,7 +283,7 @@ public final class ObjectClass extends SchemaElement {
          * @return This builder.
          */
         public Builder removeRequiredAttribute(String attributeNameOrOID) {
-            this.optionalAttributes.remove(attributeNameOrOID);
+            this.requiredAttributes.remove(attributeNameOrOID);
             return this;
         }
 
