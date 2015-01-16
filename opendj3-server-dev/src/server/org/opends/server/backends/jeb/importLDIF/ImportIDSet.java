@@ -22,51 +22,37 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb.importLDIF;
 
-import org.opends.server.backends.jeb.EntryID;
-import org.opends.server.backends.jeb.JebFormat;
-
 import java.nio.ByteBuffer;
 
+import org.opends.server.backends.jeb.EntryID;
+import org.opends.server.backends.jeb.JebFormat;
 
 /**
  * This class manages the set of ID that are to be eventually added to an index
  * database. It is responsible for determining if the number of IDs is above
  * the configured ID limit. If the limit it reached, the class stops tracking
- * individual IDs and marks the set as undefined. This class is not thread
- * safe.
+ * individual IDs and marks the set as undefined. This class is not thread safe.
  */
 public class ImportIDSet {
 
-  /**
-   * The internal array where elements are stored.
-   */
-  private long[] array = null;
-
-
-  /**
-   * The number of valid elements in the array.
-   */
-  private int count = 0;
-
-  //Boolean to keep track if the instance is defined or not.
-  private boolean isDefined=true;
-
-  //Size of the undefined if count is kept.
-  private long undefinedSize = 0;
-
-  //Key related to an ID set.
+  /** The internal array where elements are stored. */
+  private long[] array;
+  /** The number of valid elements in the array. */
+  private int count;
+  /** Boolean to keep track if the instance is defined or not. */
+  private boolean isDefined = true;
+  /** Size of the undefined if count is kept. */
+  private long undefinedSize;
+  /** Key related to an ID set. */
   private ByteBuffer key;
-
-  //The entry limit size.
+  /** The entry limit size. */
   private int limit = -1;
-
-  //Set to true if a count of ids above the entry limit should be kept.
-  private boolean doCount = false;
-
+  /** Set to true if a count of ids above the entry limit should be kept. */
+  private boolean doCount;
 
   /**
    * Create an import ID set of the specified size, index limit and index
@@ -91,15 +77,10 @@ public class ImportIDSet {
     this.doCount = doCount;
   }
 
-
-  /**
-   * Create an empty import instance.
-   */
+  /** Create an empty import instance. */
   public ImportIDSet()
   {
-
   }
-
 
   /**
    * Clear the set so it can be reused again. The boolean indexParam specifies
@@ -193,7 +174,7 @@ public class ImportIDSet {
       array = null;
       count = 0;
     }
-    else if ((count + importIDSet.size()) > limit) //add together => undefined
+    else if (count + importIDSet.size() > limit) //add together => undefined
     {
       isDefined = false;
       if(doCount)  {
@@ -231,7 +212,7 @@ public class ImportIDSet {
       }
       return;
     }
-    if((l < 0) || (isDefined() && ((count + 1) > limit)))
+    if (l < 0 || (isDefined() && count + 1 > limit))
     {
       isDefined = false;
       array = null;
@@ -247,16 +228,15 @@ public class ImportIDSet {
   }
 
 
-  private boolean
-  mergeCount(byte[] dBbytes, ImportIDSet importIdSet)  {
+  private boolean mergeCount(byte[] dBbytes, ImportIDSet importIdSet)  {
     boolean incrementLimitCount=false;
-    boolean dbUndefined = ((dBbytes[0] & 0x80) == 0x80);
+    boolean dbUndefined = isDBUndefined(dBbytes);
 
-    if(dbUndefined && (!importIdSet.isDefined()))  {
+    if (dbUndefined && !importIdSet.isDefined())  {
       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
               importIdSet.getUndefinedSize();
       isDefined=false;
-    } else if(dbUndefined && (importIdSet.isDefined()))  {
+    } else if (dbUndefined && importIdSet.isDefined())  {
       undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(dBbytes) +
               importIdSet.size();
       isDefined=false;
@@ -288,8 +268,7 @@ public class ImportIDSet {
    */
   public void remove(byte[] bytes, ImportIDSet importIdSet)
   {
-    boolean dbUndefined = ((bytes[0] & 0x80) == 0x80);
-    if(dbUndefined) {
+    if (isDBUndefined(bytes)) {
       isDefined=false;
       importIdSet.setUndefined();
       undefinedSize = Long.MAX_VALUE;
@@ -328,38 +307,38 @@ public class ImportIDSet {
     boolean incrementLimitCount=false;
     if(doCount) {
       incrementLimitCount = mergeCount(bytes,  importIdSet);
+    } else if (isDBUndefined(bytes)) {
+      isDefined = false;
+      importIdSet.setUndefined();
+      undefinedSize = Long.MAX_VALUE;
+      count = 0;
+    } else if(!importIdSet.isDefined()) {
+      isDefined = false;
+      incrementLimitCount = true;
+      undefinedSize = Long.MAX_VALUE;
+      count = 0;
     } else {
-      boolean dbUndefined = ((bytes[0] & 0x80) == 0x80);
-      if(dbUndefined) {
-        isDefined=false;
+      array = JebFormat.entryIDListFromDatabase(bytes);
+      if (array.length + importIdSet.size() > limit) {
+        isDefined = false;
+        incrementLimitCount = true;
+        count = 0;
         importIdSet.setUndefined();
         undefinedSize = Long.MAX_VALUE;
-        count = 0;
-      } else if(!importIdSet.isDefined()) {
-        isDefined=false;
-        incrementLimitCount=true;
-        undefinedSize = Long.MAX_VALUE;
-        count = 0;
       } else {
-        array = JebFormat.entryIDListFromDatabase(bytes);
-        if(array.length + importIdSet.size() > limit) {
-          isDefined=false;
-          incrementLimitCount=true;
-          count = 0;
-          importIdSet.setUndefined();
-          undefinedSize = Long.MAX_VALUE;
-        } else {
-          count = array.length;
-          addAll(importIdSet);
-        }
+        count = array.length;
+        addAll(importIdSet);
       }
     }
     return incrementLimitCount;
   }
 
+  private boolean isDBUndefined(byte[] bytes)
+  {
+    return (bytes[0] & 0x80) == 0x80;
+  }
 
   private void removeAll(ImportIDSet that) {
-
     long[] newArray = new long[array.length];
     int c = 0;
     for(int i=0; i < count; i++)
@@ -502,15 +481,21 @@ public class ImportIDSet {
 
     while (low <= high)
     {
-      int mid = (low + high) >> 1;
+      int mid = low + high >> 1;
       long midVal = a[mid];
 
       if (midVal < key)
+      {
         low = mid + 1;
+      }
       else if (midVal > key)
+      {
         high = mid - 1;
+      }
       else
+      {
         return mid; // key found
+      }
     }
     return -(low + 1);  // key not found.
   }
