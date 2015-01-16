@@ -467,10 +467,8 @@ public final class DITContentRule extends SchemaElement {
                 try {
                     attributeType = schema.getAttributeType(oid);
                 } catch (final UnknownSchemaElementException e) {
-                    // This isn't good because it means that the DIT content
-                    // rule
-                    // requires an attribute type that we don't know anything
-                    // about.
+                    // This isn't good because it means that the DIT content rule
+                    // requires an attribute type that we don't know anything about.
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_DCR_UNKNOWN_REQUIRED_ATTR1.get(getNameOrOID(), oid);
                     throw new SchemaException(message, e);
@@ -486,10 +484,8 @@ public final class DITContentRule extends SchemaElement {
                 try {
                     attributeType = schema.getAttributeType(oid);
                 } catch (final UnknownSchemaElementException e) {
-                    // This isn't good because it means that the DIT content
-                    // rule
-                    // requires an attribute type that we don't know anything
-                    // about.
+                    // This isn't good because it means that the DIT content rule
+                    // requires an attribute type that we don't know anything about.
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_DCR_UNKNOWN_OPTIONAL_ATTR1.get(getNameOrOID(), oid);
                     throw new SchemaException(message, e);
@@ -505,10 +501,8 @@ public final class DITContentRule extends SchemaElement {
                 try {
                     attributeType = schema.getAttributeType(oid);
                 } catch (final UnknownSchemaElementException e) {
-                    // This isn't good because it means that the DIT content
-                    // rule
-                    // requires an attribute type that we don't know anything
-                    // about.
+                    // This isn't good because it means that the DIT content rule
+                    // requires an attribute type that we don't know anything about.
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_DCR_UNKNOWN_PROHIBITED_ATTR1.get(getNameOrOID(), oid);
                     throw new SchemaException(message, e);
