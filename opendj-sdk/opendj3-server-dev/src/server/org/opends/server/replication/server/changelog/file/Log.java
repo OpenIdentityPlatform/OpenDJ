@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -624,7 +624,15 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    */
   public Record<K, V> getOldestRecord() throws ChangelogException
   {
-    return getOldestLogFile().getOldestRecord();
+    sharedLock.lock();
+    try
+    {
+      return getOldestLogFile().getOldestRecord();
+    }
+    finally
+    {
+      sharedLock.unlock();
+    }
   }
 
 
@@ -637,7 +645,15 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    */
   public Record<K, V> getNewestRecord() throws ChangelogException
   {
-    return getHeadLogFile().getNewestRecord();
+    sharedLock.lock();
+    try
+    {
+      return getHeadLogFile().getNewestRecord();
+    }
+    finally
+    {
+      sharedLock.unlock();
+    }
   }
 
   /**
@@ -650,11 +666,19 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   public long getNumberOfRecords() throws ChangelogException
   {
     long count = 0;
-    for (final LogFile<K, V> logFile : logFiles.values())
+    sharedLock.lock();
+    try
     {
-      count += logFile.getNumberOfRecords();
+      for (final LogFile<K, V> logFile : logFiles.values())
+      {
+        count += logFile.getNumberOfRecords();
+      }
+      return count;
     }
-    return count;
+    finally
+    {
+      sharedLock.unlock();
+    }
   }
 
   /**
