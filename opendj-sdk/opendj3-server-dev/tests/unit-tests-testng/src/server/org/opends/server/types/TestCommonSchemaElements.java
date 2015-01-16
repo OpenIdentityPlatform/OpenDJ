@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -351,8 +351,8 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
   public final Object[][] createEqualsTestData() {
     return new Object[][] {
         { "testType", "1.2.3", "testType", "1.2.3", true },
-        { "testType", "1.2.3", "xxx", "1.2.3", true },
-        { "testType", "1.2.3", "testType", "1.2.4", false },
+        { "testType", "1.2.3", "xxx", "1.2.3", false },
+        { "testType", "1.2.3", "testType", "1.2.4", true },
         { "testType", "1.2.3", "xxx", "1.2.4", false } };
   }
 

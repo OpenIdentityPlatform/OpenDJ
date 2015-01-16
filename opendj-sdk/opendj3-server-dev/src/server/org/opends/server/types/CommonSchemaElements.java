@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -145,8 +145,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     this.description = description;
     this.isObsolete = isObsolete;
 
-    hashCode = oid.hashCode();
-
     // Make sure we have a primary name if possible.
     if (primaryName == null) {
       if (names != null && !names.isEmpty()) {
@@ -158,6 +156,9 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
       this.primaryName = primaryName;
     }
     this.lowerName = toLowerCase(primaryName);
+
+    // OPENDJ-1645: oid changes during server bootstrap, so prefer using name if available
+    hashCode = getNameOrOID().hashCode();
 
     // Construct the normalized attribute name mapping.
     if (names != null) {
@@ -525,7 +526,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
 
     if (o instanceof CommonSchemaElements) {
       CommonSchemaElements other = (CommonSchemaElements) o;
-      return oid.equals(other.oid);
+      return getNameOrOID().equals(other.getNameOrOID());
     }
 
     return false;
