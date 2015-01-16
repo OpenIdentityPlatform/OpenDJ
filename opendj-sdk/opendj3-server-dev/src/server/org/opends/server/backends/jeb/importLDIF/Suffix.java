@@ -22,23 +22,27 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.backends.jeb.importLDIF;
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.util.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import org.opends.server.backends.jeb.*;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.types.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.backends.jeb.importLDIF.Importer.*;
+import org.opends.server.backends.jeb.*;
+import org.opends.server.backends.jeb.importLDIF.Importer.DNCache;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.InitializationException;
+
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
-import static org.opends.messages.JebMessages.*;
 
 /**
  * The class represents a suffix that is to be loaded during an import, or
@@ -54,15 +58,14 @@ public class Suffix
   private final List<DN> includeBranches, excludeBranches;
   private final DN baseDN;
   private final EntryContainer srcEntryContainer;
-  private EntryContainer entryContainer;
+  private final EntryContainer entryContainer;
   private final Object synchObject = new Object();
   private static final int PARENT_ID_SET_SIZE = 16 * 1024;
-  private ConcurrentHashMap<DN, CountDownLatch> pendingMap =
+  private final ConcurrentHashMap<DN, CountDownLatch> pendingMap =
           new ConcurrentHashMap<DN, CountDownLatch>();
-  private Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);
+  private final Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);
   private DN parentDN;
   private ArrayList<EntryID> IDs;
-
 
   private
   Suffix(EntryContainer entryContainer, EntryContainer srcEntryContainer,
@@ -72,21 +75,21 @@ public class Suffix
     this.entryContainer = entryContainer;
     this.srcEntryContainer = srcEntryContainer;
     this.baseDN = entryContainer.getBaseDN();
-    if (includeBranches == null)
-    {
-      this.includeBranches = new ArrayList<DN>(0);
-    }
-    else
+    if (includeBranches != null)
     {
       this.includeBranches = includeBranches;
     }
-    if (excludeBranches == null)
+    else
     {
-      this.excludeBranches = new ArrayList<DN>(0);
+      this.includeBranches = new ArrayList<DN>(0);
+    }
+    if (excludeBranches != null)
+    {
+      this.excludeBranches = excludeBranches;
     }
     else
     {
-      this.excludeBranches = excludeBranches;
+      this.excludeBranches = new ArrayList<DN>(0);
     }
   }
 
@@ -101,7 +104,7 @@ public class Suffix
    *
    * @return A suffix instance.
    * @throws InitializationException If the suffix cannot be initialized.
-   * @throws ConfigException If an error occured reading the configuration.
+   * @throws ConfigException If an error occurred reading the configuration.
    */
   public static Suffix
   createSuffixContext(EntryContainer entryContainer,
@@ -179,8 +182,8 @@ public class Suffix
    */
   private void assureNotPending(DN parentDN)  throws InterruptedException
   {
-    CountDownLatch l;
-    if((l=pendingMap.get(parentDN)) != null)
+    final CountDownLatch l = pendingMap.get(parentDN);
+    if (l != null)
     {
       l.await();
     }
@@ -216,10 +219,10 @@ public class Suffix
 
   /**
    * Return {@code true} if the specified dn is contained in the parent set, or
-   * in the specifed DN cache. This would indicate that the parent has already
-   * been processesd. It returns {@code false} otherwise.
+   * in the specified DN cache. This would indicate that the parent has already
+   * been processed. It returns {@code false} otherwise.
    *
-   * It will optionally check the dn2id database for the dn if the specifed
+   * It will optionally check the dn2id database for the dn if the specified
    * cleared backend boolean is {@code true}.
    *
    * @param dn The DN to check for.
@@ -254,12 +257,11 @@ public class Suffix
     boolean parentThere = dnCache.contains(dn);
     //If the parent isn't found in the DN cache, then check the dn2id database
     //for the DN only if the backend wasn't cleared.
-    if(!parentThere && !clearedBackend)
+    if(!parentThere
+        && !clearedBackend
+        && getDN2ID().get(null, dn, LockMode.DEFAULT) != null)
     {
-      if(getDN2ID().get(null, dn, LockMode.DEFAULT) != null)
-      {
-        parentThere = true;
-      }
+      parentThere = true;
     }
     //Add the DN to the parent set if needed.
     if (parentThere) {
@@ -290,42 +292,18 @@ public class Suffix
   {
     entryContainer.getID2Children().setTrusted(null,trusted);
     entryContainer.getID2Subtree().setTrusted(null, trusted);
-    for(AttributeIndex attributeIndex :
-            entryContainer.getAttributeIndexes()) {
-      Index index;
-      if((index = attributeIndex.getEqualityIndex()) != null) {
-        index.setTrusted(null, trusted);
-      }
-      if((index=attributeIndex.getPresenceIndex()) != null) {
-        index.setTrusted(null, trusted);
-      }
-      if((index=attributeIndex.getSubstringIndex()) != null) {
-        index.setTrusted(null, trusted);
-      }
-      if((index=attributeIndex.getOrderingIndex()) != null) {
-        index.setTrusted(null, trusted);
-      }
-      if((index=attributeIndex.getApproximateIndex()) != null) {
-        index.setTrusted(null, trusted);
-      }
-      Map<String,Collection<Index>> exIndexes =
-              attributeIndex.getExtensibleIndexes();
+    for (AttributeIndex attributeIndex : entryContainer.getAttributeIndexes())
+    {
+      setTrusted(attributeIndex.getEqualityIndex(), trusted);
+      setTrusted(attributeIndex.getPresenceIndex(), trusted);
+      setTrusted(attributeIndex.getSubstringIndex(), trusted);
+      setTrusted(attributeIndex.getOrderingIndex(), trusted);
+      setTrusted(attributeIndex.getApproximateIndex(), trusted);
+      Map<String, Collection<Index>> exIndexes = attributeIndex.getExtensibleIndexes();
       if(!exIndexes.isEmpty())
       {
-        Collection<Index> subIndexes = attributeIndex.getExtensibleIndexes().
-                get(EXTENSIBLE_INDEXER_ID_SUBSTRING);
-        if(subIndexes != null) {
-          for(Index subIndex : subIndexes) {
-            subIndex.setTrusted(null, trusted);
-          }
-        }
-        Collection<Index> sharedIndexes = attributeIndex.
-                getExtensibleIndexes().get(EXTENSIBLE_INDEXER_ID_SHARED);
-        if(sharedIndexes !=null) {
-          for(Index sharedIndex : sharedIndexes) {
-            sharedIndex.setTrusted(null, trusted);
-          }
-        }
+        setTrusted(exIndexes.get(EXTENSIBLE_INDEXER_ID_SUBSTRING), trusted);
+        setTrusted(exIndexes.get(EXTENSIBLE_INDEXER_ID_SHARED), trusted);
       }
     }
     for(VLVIndex vlvIdx : entryContainer.getVLVIndexes()) {
@@ -333,6 +311,24 @@ public class Suffix
     }
   }
 
+  private void setTrusted(Index index, boolean trusted)
+  {
+    if (index != null)
+    {
+      index.setTrusted(null, trusted);
+    }
+  }
+
+  private void setTrusted(Collection<Index> subIndexes, boolean trusted)
+  {
+    if (subIndexes != null)
+    {
+      for (Index subIndex : subIndexes)
+      {
+        subIndex.setTrusted(null, trusted);
+      }
+    }
+  }
 
   /**
    * Get the parent DN of the last entry added to a suffix.
