@@ -124,13 +124,6 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void closeCursor() throws StorageRuntimeException
-  {
-    // Do nothing.
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
       throws StorageRuntimeException, DirectoryException
   {
