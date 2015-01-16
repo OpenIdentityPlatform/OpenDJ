@@ -278,7 +278,7 @@ public class JebFormat
       return -1;
     }
 
-    // We will walk backwords through the buffer and
+    // We will walk backwards through the buffer and
     // find the first unescaped NORMALIZED_RDN_SEPARATOR
     for (int i = offset+length - 1; i >= offset; i--)
     {
