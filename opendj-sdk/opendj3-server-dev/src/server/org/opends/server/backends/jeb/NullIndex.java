@@ -138,13 +138,6 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void closeCursor() throws DatabaseException
-  {
-    // Do nothing.
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
       throws DatabaseException, DirectoryException
   {
