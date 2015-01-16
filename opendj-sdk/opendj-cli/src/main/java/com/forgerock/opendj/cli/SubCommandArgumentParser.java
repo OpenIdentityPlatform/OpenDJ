@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
-import static com.forgerock.opendj.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
+import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,9 +48,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
 /**
  * This class defines a variant of the argument parser that can be used with applications that use subcommands to
  * customize their behavior and that have a different set of options per subcommand (e.g, "cvs checkout" takes different
@@ -61,52 +59,29 @@ import static com.forgerock.opendj.cli.Utils.*;
 public class SubCommandArgumentParser extends ArgumentParser {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+    private static final String INDENT = "    ";
 
-    /**
-     * The argument that will be used to trigger the display of usage information.
-     */
+    /** The argument that will be used to trigger the display of usage information. */
     private Argument usageArgument;
-
-    /**
-     * The arguments that will be used to trigger the display of usage information for groups of sub-commands.
-     */
-    private final Map<Argument, Collection<SubCommand>> usageGroupArguments;
-
-    /**
-     * The set of unnamed trailing arguments that were provided for this parser.
-     */
-    private ArrayList<String> trailingArguments;
-
-    /**
-     * Indicates whether subcommand and long argument names should be treated in a case-sensitive manner.
-     */
+    /** The arguments that will be used to trigger the display of usage information for groups of sub-commands. */
+    private final Map<Argument, Collection<SubCommand>> usageGroupArguments = new HashMap<Argument, Collection<SubCommand>>();
+    /** The set of unnamed trailing arguments that were provided for this parser. */
+    private final ArrayList<String> trailingArguments = new ArrayList<String>();
+    /** Indicates whether subcommand and long argument names should be treated in a case-sensitive manner. */
     private final boolean longArgumentsCaseSensitive;
-
     /** Indicates whether the usage information has been displayed. */
     private boolean usageOrVersionDisplayed;
 
-    /**
-     * The set of global arguments defined for this parser, referenced by short ID.
-     */
-    private final Map<Character, Argument> globalShortIDMap;
-
-    /**
-     * The set of global arguments defined for this parser, referenced by argument name.
-     */
-    private final Map<String, Argument> globalArgumentMap;
-
-    /**
-     * The set of global arguments defined for this parser, referenced by long ID.
-     */
-    private final Map<String, Argument> globalLongIDMap;
-
-    /**
-     * The set of subcommands defined for this parser, referenced by subcommand name.
-     */
-    private final SortedMap<String, SubCommand> subCommands;
-
+    /** The set of global arguments defined for this parser, referenced by short ID. */
+    private final Map<Character, Argument> globalShortIDMap = new HashMap<Character, Argument>();
+    /** The set of global arguments defined for this parser, referenced by long ID. */
+    private final Map<String, Argument> globalLongIDMap = new HashMap<String, Argument>();
+    /** The set of global arguments defined for this parser, referenced by argument name. */
+    private final Map<String, Argument> globalArgumentMap = new HashMap<String, Argument>();
     /** The total set of global arguments defined for this parser. */
-    private final List<Argument> globalArgumentList;
+    private final List<Argument> globalArgumentList = new LinkedList<Argument>();
+    /** The set of subcommands defined for this parser, referenced by subcommand name. */
+    private final SortedMap<String, SubCommand> subCommands = new TreeMap<String, SubCommand>();
 
     /** The output stream to which usage information should be printed. */
     private OutputStream usageOutputStream;
@@ -117,23 +92,16 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     private final String mainClassName;
 
-    /**
-     * A human-readable description for the tool, which will be included when displaying usage information.
-     */
+    /**A human-readable description for the tool, which will be included when displaying usage information.     */
     private final LocalizableMessage toolDescription;
 
     /** The raw set of command-line arguments that were provided. */
     private String[] rawArguments;
-
-    /**
-     * The subcommand requested by the user as part of the command-line arguments.
-     */
+    /**The subcommand requested by the user as part of the command-line arguments.     */
     private SubCommand subCommand;
 
     /** Indicates whether the version argument was provided. */
     private boolean versionPresent;
-
-    private static final String INDENT = "    ";
 
     /**
      * Creates a new instance of this subcommand argument parser with no arguments.
@@ -152,19 +120,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
         this.mainClassName = mainClassName;
         this.toolDescription = toolDescription;
         this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
-
-        trailingArguments = new ArrayList<String>();
-        globalArgumentList = new LinkedList<Argument>();
-        globalArgumentMap = new HashMap<String, Argument>();
-        globalShortIDMap = new HashMap<Character, Argument>();
-        globalLongIDMap = new HashMap<String, Argument>();
-        usageGroupArguments = new HashMap<Argument, Collection<SubCommand>>();
-        subCommands = new TreeMap<String, SubCommand>();
-        usageOrVersionDisplayed = false;
-        rawArguments = null;
-        subCommand = null;
-        usageArgument = null;
-        usageOutputStream = null;
     }
 
     /**
@@ -566,7 +521,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
     public void parseArguments(String[] rawArguments, Properties argumentProperties) throws ArgumentException {
         this.rawArguments = rawArguments;
         this.subCommand = null;
-        this.trailingArguments = new ArrayList<String>();
+        this.trailingArguments.clear();
         this.usageOrVersionDisplayed = false;
 
         boolean inTrailingArgs = false;
