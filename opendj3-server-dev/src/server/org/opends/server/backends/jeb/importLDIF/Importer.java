@@ -1873,10 +1873,6 @@ public final class Importer implements DiskSpaceMonitorHandler
         }
         else
         {
-          for (Index index : indexMap.values())
-          {
-            index.closeCursor();
-          }
           if (!isCanceled)
           {
             logger.info(NOTE_JEB_IMPORT_LDIF_INDEX_CLOSE, indexMgr.getBufferFileName());
@@ -2361,7 +2357,6 @@ public final class Importer implements DiskSpaceMonitorHandler
           dnKey.setData(key);
           index.insert(dnKey, idSet, dnValue);
         }
-        index.closeCursor();
         if (clearMap)
         {
           map.clear();
@@ -3459,23 +3454,11 @@ public final class Importer implements DiskSpaceMonitorHandler
                 found = true;
                 LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
                 SortedSet<IndexType> indexType = indexCfg.getIndexType();
-                if (indexType.contains(EQUALITY))
-                {
-                  indexCount++;
-                }
-                if (indexType.contains(ORDERING))
-                {
-                  indexCount++;
-                }
-                if (indexType.contains(PRESENCE))
-                {
-                  indexCount++;
-                }
-                if (indexType.contains(SUBSTRING))
-                {
-                  indexCount++;
-                }
-                if (indexType.contains(APPROXIMATE))
+                if (indexType.contains(EQUALITY)
+                    || indexType.contains(ORDERING)
+                    || indexType.contains(PRESENCE)
+                    || indexType.contains(SUBSTRING)
+                    || indexType.contains(APPROXIMATE))
                 {
                   indexCount++;
                 }
@@ -3618,7 +3601,7 @@ public final class Importer implements DiskSpaceMonitorHandler
      *
      * @return The total number for entries to process.
      */
-    public long getTotEntries()
+    public long getTotalEntries()
     {
       return this.totalEntries;
     }
@@ -3654,15 +3637,9 @@ public final class Importer implements DiskSpaceMonitorHandler
      * progress report.
      */
     private long previousProcessed;
-
-    /**
-     * The time in milliseconds of the previous progress report.
-     */
+    /** The time in milliseconds of the previous progress report. */
     private long previousTime;
-
-    /**
-     * The environment statistics at the time of the previous report.
-     */
+    /** The environment statistics at the time of the previous report. */
     private EnvironmentStats prevEnvStats;
 
     /**
@@ -3694,12 +3671,12 @@ public final class Importer implements DiskSpaceMonitorHandler
       long deltaCount = entriesProcessed - previousProcessed;
       float rate = 1000f * deltaCount / deltaTime;
       float completed = 0;
-      if (rebuildManager.getTotEntries() > 0)
+      if (rebuildManager.getTotalEntries() > 0)
       {
-        completed = 100f * entriesProcessed / rebuildManager.getTotEntries();
+        completed = 100f * entriesProcessed / rebuildManager.getTotalEntries();
       }
       logger.info(NOTE_JEB_REBUILD_PROGRESS_REPORT, completed, entriesProcessed,
-              rebuildManager.getTotEntries(), rate);
+          rebuildManager.getTotalEntries(), rate);
       try
       {
         Runtime runtime = Runtime.getRuntime();
@@ -3736,26 +3713,16 @@ public final class Importer implements DiskSpaceMonitorHandler
      * progress report.
      */
     private long previousCount;
-
-    /**
-     * The time in milliseconds of the previous progress report.
-     */
+    /** The time in milliseconds of the previous progress report. */
     private long previousTime;
-
-    /**
-     * The environment statistics at the time of the previous report.
-     */
+    /** The environment statistics at the time of the previous report. */
     private EnvironmentStats previousStats;
-
     /** Determines if eviction has been detected. */
     private boolean evicting;
-
     /** Entry count when eviction was detected. */
     private long evictionEntryCount;
 
-    /**
-     * Create a new import progress task.
-     */
+    /** Create a new import progress task. */
     public FirstPhaseProgressTask()
     {
       previousTime = System.currentTimeMillis();
@@ -3769,9 +3736,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    /**
-     * The action to be performed by this timer task.
-     */
+    /** The action to be performed by this timer task. */
     @Override
     public void run()
     {
@@ -3864,20 +3829,12 @@ public final class Importer implements DiskSpaceMonitorHandler
      * progress report.
      */
     private long previousCount;
-
-    /**
-     * The time in milliseconds of the previous progress report.
-     */
+    /** The time in milliseconds of the previous progress report. */
     private long previousTime;
-
-    /**
-     * The environment statistics at the time of the previous report.
-     */
+    /** The environment statistics at the time of the previous report. */
     private EnvironmentStats previousStats;
-
     /** Determines if eviction has been detected. */
     private boolean evicting;
-
     private long latestCount;
 
     /**
@@ -3900,9 +3857,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    /**
-     * The action to be performed by this timer task.
-     */
+    /** The action to be performed by this timer task. */
     @Override
     public void run()
     {
