@@ -174,7 +174,7 @@ public final class Importer implements DiskSpaceMonitorHandler
    * Map of index keys to index buffers. Used to allocate sorted index buffers
    * to a index writer thread.
    */
-  private final Map<IndexKey, BlockingQueue<IndexOutputBuffer>> indexKeyQueMap =
+  private final Map<IndexKey, BlockingQueue<IndexOutputBuffer>> indexKeyQueueMap =
       new ConcurrentHashMap<IndexKey, BlockingQueue<IndexOutputBuffer>>();
 
   /** Map of DB containers to index managers. Used to start phase 2. */
@@ -1009,16 +1009,18 @@ public final class Importer implements DiskSpaceMonitorHandler
   private void phaseOne() throws InterruptedException, ExecutionException
   {
     initializeIndexBuffers();
-    FirstPhaseProgressTask progressTask = new FirstPhaseProgressTask();
-    ScheduledThreadPoolExecutor timerService = new ScheduledThreadPoolExecutor(1);
-    timerService.scheduleAtFixedRate(progressTask, TIMER_INTERVAL, TIMER_INTERVAL, TimeUnit.MILLISECONDS);
+
+    final ScheduledThreadPoolExecutor timerService = new ScheduledThreadPoolExecutor(1);
+    scheduleAtFixedRate(timerService, new FirstPhaseProgressTask());
     scratchFileWriterService = Executors.newFixedThreadPool(2 * indexCount);
     bufferSortService = Executors.newFixedThreadPool(threadCount);
-    ExecutorService execService = Executors.newFixedThreadPool(threadCount);
-    List<Callable<Void>> tasks = new ArrayList<Callable<Void>>(threadCount);
+    final ExecutorService execService = Executors.newFixedThreadPool(threadCount);
+
+    final List<Callable<Void>> tasks = new ArrayList<Callable<Void>>(threadCount);
     tasks.add(new MigrateExistingTask());
     getAll(execService.invokeAll(tasks));
     tasks.clear();
+
     if (importConfiguration.appendToExistingData()
         && importConfiguration.replaceExistingEntries())
     {
@@ -1036,49 +1038,60 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
     getAll(execService.invokeAll(tasks));
     tasks.clear();
+
     tasks.add(new MigrateExcludedTask());
     getAll(execService.invokeAll(tasks));
+
     stopScratchFileWriters();
     getAll(scratchFileWriterFutures);
 
-    // Shutdown the executor services
-    timerService.shutdown();
-    timerService.awaitTermination(30, TimeUnit.SECONDS);
-    execService.shutdown();
-    execService.awaitTermination(30, TimeUnit.SECONDS);
-    bufferSortService.shutdown();
-    bufferSortService.awaitTermination(30, TimeUnit.SECONDS);
-    scratchFileWriterService.shutdown();
-    scratchFileWriterService.awaitTermination(30, TimeUnit.SECONDS);
+    shutdownAll(timerService, execService, bufferSortService, scratchFileWriterService);
 
     // Try to clear as much memory as possible.
-    scratchFileWriterList.clear();
-    scratchFileWriterFutures.clear();
-    indexKeyQueMap.clear();
-    freeBufferQueue.clear();
+    clearAll(scratchFileWriterList, scratchFileWriterFutures, freeBufferQueue);
+    indexKeyQueueMap.clear();
+  }
+
+  private void scheduleAtFixedRate(ScheduledThreadPoolExecutor timerService, Runnable task)
+  {
+    timerService.scheduleAtFixedRate(task, TIMER_INTERVAL, TIMER_INTERVAL, TimeUnit.MILLISECONDS);
+  }
+
+  private void shutdownAll(ExecutorService... executorServices) throws InterruptedException
+  {
+    for (ExecutorService executorService : executorServices)
+    {
+      executorService.shutdown();
+    }
+    for (ExecutorService executorService : executorServices)
+    {
+      executorService.awaitTermination(30, TimeUnit.SECONDS);
+    }
+  }
+
+  private void clearAll(Collection<?>... cols)
+  {
+    for (Collection<?> col : cols)
+    {
+      col.clear();
+    }
   }
 
   private void phaseTwo() throws InterruptedException, ExecutionException
   {
-    SecondPhaseProgressTask progress2Task =
-        new SecondPhaseProgressTask(reader.getEntriesRead());
-    ScheduledThreadPoolExecutor timerService =
-        new ScheduledThreadPoolExecutor(1);
-    timerService.scheduleAtFixedRate(progress2Task, TIMER_INTERVAL,
-        TIMER_INTERVAL, TimeUnit.MILLISECONDS);
+    ScheduledThreadPoolExecutor timerService = new ScheduledThreadPoolExecutor(1);
+    scheduleAtFixedRate(timerService, new SecondPhaseProgressTask(reader.getEntriesRead()));
     try
     {
       processIndexFiles();
     }
     finally
     {
-      timerService.shutdown();
-      timerService.awaitTermination(30, TimeUnit.SECONDS);
+      shutdownAll(timerService);
     }
   }
 
-  private void processIndexFiles() throws InterruptedException,
-      ExecutionException
+  private void processIndexFiles() throws InterruptedException, ExecutionException
   {
     if (bufferCount.get() == 0)
     {
@@ -1096,15 +1109,15 @@ public final class Importer implements DiskSpaceMonitorHandler
     int buffers;
     while (true)
     {
-      final List<IndexManager> totList = new ArrayList<IndexManager>(DNIndexMgrList);
-      totList.addAll(indexMgrList);
-      Collections.sort(totList, Collections.reverseOrder());
+      final List<IndexManager> allIndexMgrs = new ArrayList<IndexManager>(DNIndexMgrList);
+      allIndexMgrs.addAll(indexMgrList);
+      Collections.sort(allIndexMgrs, Collections.reverseOrder());
 
       buffers = 0;
-      final int limit = Math.min(dbThreads, totList.size());
+      final int limit = Math.min(dbThreads, allIndexMgrs.size());
       for (int i = 0; i < limit; i++)
       {
-        buffers += totList.get(i).numberOfBuffers;
+        buffers += allIndexMgrs.get(i).numberOfBuffers;
       }
 
       readAheadSize = (int) (usableMemory / buffers);
@@ -1135,7 +1148,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    // Ensure that there are always two threads available for parallel
+    // Ensure that there are minimum two threads available for parallel
     // processing of smaller indexes.
     dbThreads = Math.max(2, dbThreads);
 
@@ -1147,17 +1160,19 @@ public final class Importer implements DiskSpaceMonitorHandler
     Semaphore permits = new Semaphore(buffers);
 
     // Start DN processing first.
-    for (IndexManager dnMgr : DNIndexMgrList)
-    {
-      futures.add(dbService.submit(new IndexDBWriteTask(dnMgr, permits, buffers, readAheadSize)));
-    }
-    for (IndexManager mgr : indexMgrList)
-    {
-      futures.add(dbService.submit(new IndexDBWriteTask(mgr, permits, buffers, readAheadSize)));
-    }
+    submitIndexDBWriteTasks(DNIndexMgrList, dbService, permits, buffers, readAheadSize, futures);
+    submitIndexDBWriteTasks(indexMgrList, dbService, permits, buffers, readAheadSize, futures);
     getAll(futures);
+    shutdownAll(dbService);
+  }
 
-    dbService.shutdown();
+  private void submitIndexDBWriteTasks(List<IndexManager> indexMgrs, ExecutorService dbService, Semaphore permits,
+      int buffers, int readAheadSize, List<Future<Void>> futures)
+  {
+    for (IndexManager indexMgr : indexMgrs)
+    {
+      futures.add(dbService.submit(new IndexDBWriteTask(indexMgr, permits, buffers, readAheadSize)));
+    }
   }
 
   private <T> void getAll(List<Future<T>> futures) throws InterruptedException, ExecutionException
@@ -1170,16 +1185,14 @@ public final class Importer implements DiskSpaceMonitorHandler
 
   private void stopScratchFileWriters()
   {
-    IndexOutputBuffer indexBuffer = new IndexOutputBuffer(0);
+    final IndexOutputBuffer stopProcessing = IndexOutputBuffer.poison();
     for (ScratchFileWriterTask task : scratchFileWriterList)
     {
-      task.queue.add(indexBuffer);
+      task.queue.add(stopProcessing);
     }
   }
 
-  /**
-   * Task used to migrate excluded branch.
-   */
+  /** Task used to migrate excluded branch. */
   private final class MigrateExcludedTask extends ImportTask
   {
 
@@ -1244,9 +1257,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
   }
 
-  /**
-   * Task to migrate existing entries.
-   */
+  /** Task to migrate existing entries. */
   private final class MigrateExistingTask extends ImportTask
   {
 
@@ -1363,8 +1374,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           if (importConfiguration.isCancelled() || isCanceled)
           {
-            IndexOutputBuffer indexBuffer = new IndexOutputBuffer(0);
-            freeBufferQueue.add(indexBuffer);
+            freeBufferQueue.add(IndexOutputBuffer.poison());
             return null;
           }
           oldEntry = null;
@@ -1480,8 +1490,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           if (importConfiguration.isCancelled() || isCanceled)
           {
-            IndexOutputBuffer indexBuffer = new IndexOutputBuffer(0);
-            freeBufferQueue.add(indexBuffer);
+            freeBufferQueue.add(IndexOutputBuffer.poison());
             return null;
           }
           Entry entry = reader.readEntry(dnSuffixMap, entryInfo);
@@ -1639,7 +1648,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         setIterator.remove();
         indexBuffer.setComparator(indexComparator);
         indexBuffer.setIndexKey(indexKey);
-        indexBuffer.setDiscard();
+        indexBuffer.discard();
         Future<Void> future = bufferSortService.submit(new SortTask(indexBuffer));
         future.get();
       }
@@ -1677,7 +1686,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       if (size > bufferSize)
       {
         indexBuffer = new IndexOutputBuffer(size);
-        indexBuffer.setDiscard();
+        indexBuffer.discard();
       }
       else
       {
@@ -2378,16 +2387,14 @@ public final class Importer implements DiskSpaceMonitorHandler
     private final int DRAIN_TO = 3;
     private final IndexManager indexMgr;
     private final BlockingQueue<IndexOutputBuffer> queue;
-    private final ByteArrayOutputStream insertByteStream =
-        new ByteArrayOutputStream(2 * bufferSize);
-    private final ByteArrayOutputStream deleteByteStream =
-        new ByteArrayOutputStream(2 * bufferSize);
+    private final ByteArrayOutputStream insertByteStream = new ByteArrayOutputStream(2 * bufferSize);
+    private final ByteArrayOutputStream deleteByteStream = new ByteArrayOutputStream(2 * bufferSize);
     private final DataOutputStream bufferStream;
     private final DataOutputStream bufferIndexStream;
     private final byte[] tmpArray = new byte[8];
+    private final TreeSet<IndexOutputBuffer> indexSortedSet = new TreeSet<IndexOutputBuffer>();
     private int insertKeyCount, deleteKeyCount;
     private int bufferCount;
-    private final SortedSet<IndexOutputBuffer> indexSortedSet;
     private boolean poisonSeen;
 
     public ScratchFileWriterTask(BlockingQueue<IndexOutputBuffer> queue,
@@ -2395,13 +2402,13 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       this.queue = queue;
       this.indexMgr = indexMgr;
-      this.bufferStream =
-          new DataOutputStream(new BufferedOutputStream(new FileOutputStream(
-              indexMgr.getBufferFile()), READER_WRITER_BUFFER_SIZE));
-      this.bufferIndexStream =
-          new DataOutputStream(new BufferedOutputStream(new FileOutputStream(
-              indexMgr.getBufferIndexFile()), READER_WRITER_BUFFER_SIZE));
-      this.indexSortedSet = new TreeSet<IndexOutputBuffer>();
+      this.bufferStream = newDataOutputStream(indexMgr.getBufferFile());
+      this.bufferIndexStream = newDataOutputStream(indexMgr.getBufferIndexFile());
+    }
+
+    private DataOutputStream newDataOutputStream(File file) throws FileNotFoundException
+    {
+      return new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file), READER_WRITER_BUFFER_SIZE));
     }
 
     /** {@inheritDoc} */
@@ -2424,7 +2431,7 @@ public final class Importer implements DiskSpaceMonitorHandler
             bufferLen = writeIndexBuffers(l);
             for (IndexOutputBuffer id : l)
             {
-              if (!id.isDiscard())
+              if (!id.isDiscarded())
               {
                 id.reset();
                 freeBufferQueue.add(id);
@@ -2439,7 +2446,7 @@ public final class Importer implements DiskSpaceMonitorHandler
               break;
             }
             bufferLen = writeIndexBuffer(indexBuffer);
-            if (!indexBuffer.isDiscard())
+            if (!indexBuffer.isDiscarded())
             {
               indexBuffer.reset();
               freeBufferQueue.add(indexBuffer);
@@ -2475,54 +2482,28 @@ public final class Importer implements DiskSpaceMonitorHandler
       return null;
     }
 
-    private long writeIndexBuffer(IndexOutputBuffer indexBuffer)
-        throws IOException
+    private long writeIndexBuffer(IndexOutputBuffer indexBuffer) throws IOException
     {
-      int numberKeys = indexBuffer.getNumberKeys();
       indexBuffer.setPosition(-1);
+      resetStreams();
+
       long bufferLen = 0;
-      insertByteStream.reset();
-      insertKeyCount = 0;
-      deleteByteStream.reset();
-      deleteKeyCount = 0;
+      final int numberKeys = indexBuffer.getNumberKeys();
       for (int i = 0; i < numberKeys; i++)
       {
         if (indexBuffer.getPosition() == -1)
         {
           indexBuffer.setPosition(i);
-          if (indexBuffer.isInsert(i))
-          {
-            indexBuffer.writeID(insertByteStream, i);
-            insertKeyCount++;
-          }
-          else
-          {
-            indexBuffer.writeID(deleteByteStream, i);
-            deleteKeyCount++;
-          }
+          insertOrDeleteKey(indexBuffer, i);
           continue;
         }
         if (!indexBuffer.compare(i))
         {
           bufferLen += writeRecord(indexBuffer);
           indexBuffer.setPosition(i);
-          insertByteStream.reset();
-          insertKeyCount = 0;
-          deleteByteStream.reset();
-          deleteKeyCount = 0;
+          resetStreams();
         }
-        if (indexBuffer.isInsert(i))
-        {
-          if (insertKeyCount++ <= indexMgr.getLimit())
-          {
-            indexBuffer.writeID(insertByteStream, i);
-          }
-        }
-        else
-        {
-          indexBuffer.writeID(deleteByteStream, i);
-          deleteKeyCount++;
-        }
+        insertOrDeleteKeyCheckEntryLimit(indexBuffer, i);
       }
       if (indexBuffer.getPosition() != -1)
       {
@@ -2531,15 +2512,12 @@ public final class Importer implements DiskSpaceMonitorHandler
       return bufferLen;
     }
 
-    private long writeIndexBuffers(List<IndexOutputBuffer> buffers)
-        throws IOException
+    private long writeIndexBuffers(List<IndexOutputBuffer> buffers) throws IOException
     {
+      resetStreams();
+
       long id = 0;
       long bufferLen = 0;
-      insertByteStream.reset();
-      insertKeyCount = 0;
-      deleteByteStream.reset();
-      deleteKeyCount = 0;
       for (IndexOutputBuffer b : buffers)
       {
         if (b.isPoison())
@@ -2557,58 +2535,28 @@ public final class Importer implements DiskSpaceMonitorHandler
       int saveIndexID = 0;
       while (!indexSortedSet.isEmpty())
       {
-        IndexOutputBuffer b = indexSortedSet.first();
-        indexSortedSet.remove(b);
+        final IndexOutputBuffer b = indexSortedSet.pollFirst();
         if (saveKey == null)
         {
           saveKey = b.getKey();
           saveIndexID = b.getIndexID();
-          if (b.isInsert(b.getPosition()))
-          {
-            b.writeID(insertByteStream, b.getPosition());
-            insertKeyCount++;
-          }
-          else
-          {
-            b.writeID(deleteByteStream, b.getPosition());
-            deleteKeyCount++;
-          }
+          insertOrDeleteKey(b, b.getPosition());
         }
         else if (!b.compare(saveKey, saveIndexID))
         {
           bufferLen += writeRecord(saveKey, saveIndexID);
-          insertByteStream.reset();
-          deleteByteStream.reset();
-          insertKeyCount = 0;
-          deleteKeyCount = 0;
+          resetStreams();
           saveKey = b.getKey();
           saveIndexID = b.getIndexID();
-          if (b.isInsert(b.getPosition()))
-          {
-            b.writeID(insertByteStream, b.getPosition());
-            insertKeyCount++;
-          }
-          else
-          {
-            b.writeID(deleteByteStream, b.getPosition());
-            deleteKeyCount++;
-          }
-        }
-        else if (b.isInsert(b.getPosition()))
-        {
-          if (insertKeyCount++ <= indexMgr.getLimit())
-          {
-            b.writeID(insertByteStream, b.getPosition());
-          }
+          insertOrDeleteKey(b, b.getPosition());
         }
         else
         {
-          b.writeID(deleteByteStream, b.getPosition());
-          deleteKeyCount++;
+          insertOrDeleteKeyCheckEntryLimit(b, b.getPosition());
         }
         if (b.hasMoreData())
         {
-          b.getNextRecord();
+          b.nextRecord();
           indexSortedSet.add(b);
         }
       }
@@ -2617,6 +2565,44 @@ public final class Importer implements DiskSpaceMonitorHandler
         bufferLen += writeRecord(saveKey, saveIndexID);
       }
       return bufferLen;
+    }
+
+    private void resetStreams()
+    {
+      insertByteStream.reset();
+      insertKeyCount = 0;
+      deleteByteStream.reset();
+      deleteKeyCount = 0;
+    }
+
+    private void insertOrDeleteKey(IndexOutputBuffer indexBuffer, int i)
+    {
+      if (indexBuffer.isInsertRecord(i))
+      {
+        indexBuffer.writeID(insertByteStream, i);
+        insertKeyCount++;
+      }
+      else
+      {
+        indexBuffer.writeID(deleteByteStream, i);
+        deleteKeyCount++;
+      }
+    }
+
+    private void insertOrDeleteKeyCheckEntryLimit(IndexOutputBuffer indexBuffer, int i)
+    {
+      if (indexBuffer.isInsertRecord(i))
+      {
+        if (insertKeyCount++ <= indexMgr.getLimit())
+        {
+          indexBuffer.writeID(insertByteStream, i);
+        }
+      }
+      else
+      {
+        indexBuffer.writeID(deleteByteStream, i);
+        deleteKeyCount++;
+      }
     }
 
     private int writeByteStreams() throws IOException
@@ -2699,12 +2685,11 @@ public final class Importer implements DiskSpaceMonitorHandler
         return null;
       }
       indexBuffer.sort();
-      if (!indexKeyQueMap.containsKey(indexBuffer.getIndexKey()))
+      if (!indexKeyQueueMap.containsKey(indexBuffer.getIndexKey()))
       {
         createIndexWriterTask(indexBuffer.getIndexKey());
       }
-      BlockingQueue<IndexOutputBuffer> q = indexKeyQueMap.get(indexBuffer.getIndexKey());
-      q.add(indexBuffer);
+      indexKeyQueueMap.get(indexBuffer.getIndexKey()).add(indexBuffer);
       return null;
     }
 
@@ -2712,14 +2697,13 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       synchronized (synObj)
       {
-        if (indexKeyQueMap.containsKey(indexKey))
+        if (indexKeyQueueMap.containsKey(indexKey))
         {
           return;
         }
-        boolean isDN = ImportIndexType.DN.equals(indexKey.getIndexType());
-        IndexManager indexMgr = new IndexManager(
-            indexKey.getName(), isDN, indexKey.getEntryLimit());
-        if (isDN)
+        boolean isDN2ID = ImportIndexType.DN.equals(indexKey.getIndexType());
+        IndexManager indexMgr = new IndexManager(indexKey.getName(), isDN2ID, indexKey.getEntryLimit());
+        if (isDN2ID)
         {
           DNIndexMgrList.add(indexMgr);
         }
@@ -2727,44 +2711,44 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           indexMgrList.add(indexMgr);
         }
-        BlockingQueue<IndexOutputBuffer> newQue =
+        BlockingQueue<IndexOutputBuffer> newQueue =
             new ArrayBlockingQueue<IndexOutputBuffer>(phaseOneBufferCount);
-        ScratchFileWriterTask indexWriter = new ScratchFileWriterTask(newQue, indexMgr);
+        ScratchFileWriterTask indexWriter = new ScratchFileWriterTask(newQueue, indexMgr);
         scratchFileWriterList.add(indexWriter);
         scratchFileWriterFutures.add(scratchFileWriterService.submit(indexWriter));
-        indexKeyQueMap.put(indexKey, newQue);
+        indexKeyQueueMap.put(indexKey, newQueue);
       }
     }
   }
 
   /**
-   * The index manager class has several functions: 1. It used to carry
-   * information about index processing created in phase one to phase two. 2. It
-   * collects statistics about phase two processing for each index. 3. It
-   * manages opening and closing the scratch index files.
+   * The index manager class has several functions:
+   * <ol>
+   * <li>It is used to carry information about index processing created in phase one to phase two</li>
+   * <li>It collects statistics about phase two processing for each index</li>
+   * <li>It manages opening and closing the scratch index files</li>
+   * </ol>
    */
   final class IndexManager implements Comparable<IndexManager>
   {
     private final File bufferFile;
     private final String bufferFileName;
     private final File bufferIndexFile;
-    private final String bufferIndexFileName;
-    private long bufferFileSize;
-    private long totalDNS;
-    private final boolean isDN;
+    private final boolean isDN2ID;
     private final int limit;
+
     private int numberOfBuffers;
+    private long bufferFileSize;
+    private long totalDNs;
     private volatile IndexDBWriteTask writer;
 
-    private IndexManager(String fileName, boolean isDN, int limit)
+    private IndexManager(String fileName, boolean isDN2ID, int limit)
     {
       this.bufferFileName = fileName;
-      this.bufferIndexFileName = fileName + ".index";
-
       this.bufferFile = new File(tempDir, bufferFileName);
-      this.bufferIndexFile = new File(tempDir, bufferIndexFileName);
+      this.bufferIndexFile = new File(tempDir, bufferFileName + ".index");
 
-      this.isDN = isDN;
+      this.isDN2ID = isDN2ID;
       this.limit = limit > 0 ? limit : Integer.MAX_VALUE;
     }
 
@@ -2810,17 +2794,17 @@ public final class Importer implements DiskSpaceMonitorHandler
 
     private void addTotDNCount(int delta)
     {
-      totalDNS += delta;
+      totalDNs += delta;
     }
 
     private long getDNCount()
     {
-      return totalDNS;
+      return totalDNs;
     }
 
     private boolean isDN2ID()
     {
-      return isDN;
+      return isDN2ID;
     }
 
     private void printStats(long deltaTime)
@@ -3302,13 +3286,10 @@ public final class Importer implements DiskSpaceMonitorHandler
         ExecutionException
     {
       initializeIndexBuffers();
-      RebuildFirstPhaseProgressTask progressTask = new RebuildFirstPhaseProgressTask();
-      Timer timer = new Timer();
-      timer.scheduleAtFixedRate(progressTask, TIMER_INTERVAL, TIMER_INTERVAL);
+      Timer timer = scheduleAtFixedRate(new RebuildFirstPhaseProgressTask());
       scratchFileWriterService = Executors.newFixedThreadPool(2 * indexCount);
       bufferSortService = Executors.newFixedThreadPool(threadCount);
-      ExecutorService rebuildIndexService =
-          Executors.newFixedThreadPool(threadCount);
+      ExecutorService rebuildIndexService = Executors.newFixedThreadPool(threadCount);
       List<Callable<Void>> tasks = new ArrayList<Callable<Void>>(threadCount);
       for (int i = 0; i < threadCount; i++)
       {
@@ -3320,29 +3301,31 @@ public final class Importer implements DiskSpaceMonitorHandler
       getAll(scratchFileWriterFutures);
 
       // Try to clear as much memory as possible.
-      rebuildIndexService.shutdown();
-      rebuildIndexService.awaitTermination(30, TimeUnit.SECONDS);
-      bufferSortService.shutdown();
-      bufferSortService.awaitTermination(30, TimeUnit.SECONDS);
-      scratchFileWriterService.shutdown();
-      scratchFileWriterService.awaitTermination(30, TimeUnit.SECONDS);
+      shutdownAll(rebuildIndexService, bufferSortService, scratchFileWriterService);
       timer.cancel();
 
-      tasks.clear();
-      results.clear();
-      scratchFileWriterList.clear();
-      scratchFileWriterFutures.clear();
-      indexKeyQueMap.clear();
-      freeBufferQueue.clear();
+      clearAll(tasks, results, scratchFileWriterList, scratchFileWriterFutures, freeBufferQueue);
+      indexKeyQueueMap.clear();
     }
 
     private void phaseTwo() throws InterruptedException, ExecutionException
     {
-      SecondPhaseProgressTask progressTask = new SecondPhaseProgressTask(entriesProcessed.get());
-      Timer timer2 = new Timer();
-      timer2.scheduleAtFixedRate(progressTask, TIMER_INTERVAL, TIMER_INTERVAL);
-      processIndexFiles();
-      timer2.cancel();
+      final Timer timer = scheduleAtFixedRate(new SecondPhaseProgressTask(entriesProcessed.get()));
+      try
+      {
+        processIndexFiles();
+      }
+      finally
+      {
+        timer.cancel();
+      }
+    }
+
+    private Timer scheduleAtFixedRate(TimerTask task)
+    {
+      final Timer timer = new Timer();
+      timer.scheduleAtFixedRate(task, TIMER_INTERVAL, TIMER_INTERVAL);
+      return timer;
     }
 
     private int getIndexCount() throws ConfigException, JebException,
@@ -3365,125 +3348,126 @@ public final class Importer implements DiskSpaceMonitorHandler
     private int getRebuildListIndexCount(LocalDBBackendCfg cfg)
         throws JebException, ConfigException, InitializationException
     {
-      int indexCount = 0;
-      List<String> rebuildList = rebuildConfig.getRebuildList();
-      if (!rebuildList.isEmpty())
+      final List<String> rebuildList = rebuildConfig.getRebuildList();
+      if (rebuildList.isEmpty())
       {
-        for (String index : rebuildList)
+        return 0;
+      }
+
+      int indexCount = 0;
+      for (String index : rebuildList)
+      {
+        final String lowerName = index.toLowerCase();
+        if ("dn2id".equals(lowerName))
         {
-          String lowerName = index.toLowerCase();
-          if ("dn2id".equals(lowerName))
+          indexCount += 3;
+        }
+        else if ("dn2uri".equals(lowerName))
+        {
+          indexCount++;
+        }
+        else if (lowerName.startsWith("vlv."))
+        {
+          if (lowerName.length() < 5)
           {
-            indexCount += 3;
+            throw new JebException(ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName));
           }
-          else if ("dn2uri".equals(lowerName))
-          {
-            indexCount++;
-          }
-          else if (lowerName.startsWith("vlv."))
-          {
-            if (lowerName.length() < 5)
-            {
-              LocalizableMessage msg = ERR_JEB_VLV_INDEX_NOT_CONFIGURED.get(lowerName);
-              throw new JebException(msg);
-            }
-            indexCount++;
-          }
-          else if ("id2subtree".equals(lowerName)
-              || "id2children".equals(lowerName))
+          indexCount++;
+        }
+        else if ("id2subtree".equals(lowerName)
+            || "id2children".equals(lowerName))
+        {
+          LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+          throw new InitializationException(msg);
+        }
+        else
+        {
+          String[] attrIndexParts = lowerName.split("\\.");
+          if (attrIndexParts.length <= 0 || attrIndexParts.length > 3)
           {
             LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
             throw new InitializationException(msg);
           }
-          else
+          AttributeType attrType = DirectoryServer.getAttributeType(attrIndexParts[0]);
+          if (attrType == null)
           {
-            String[] attrIndexParts = lowerName.split("\\.");
-            if (attrIndexParts.length <= 0 || attrIndexParts.length > 3)
+            LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+            throw new InitializationException(msg);
+          }
+          if (attrIndexParts.length != 1)
+          {
+            String indexType = attrIndexParts[1];
+            if (attrIndexParts.length == 2)
             {
-              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new InitializationException(msg);
-            }
-            AttributeType attrType = DirectoryServer.getAttributeType(attrIndexParts[0]);
-            if (attrType == null)
-            {
-              LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new InitializationException(msg);
-            }
-            if (attrIndexParts.length != 1)
-            {
-              String indexType = attrIndexParts[1];
-              if (attrIndexParts.length == 2)
+              if ("presence".equals(indexType)
+                  || "equality".equals(indexType)
+                  || "substring".equals(indexType)
+                  || "ordering".equals(indexType)
+                  || "approximate".equals(indexType))
               {
-                if ("presence".equals(indexType)
-                    || "equality".equals(indexType)
-                    || "substring".equals(indexType)
-                    || "ordering".equals(indexType)
-                    || "approximate".equals(indexType))
-                {
-                  indexCount++;
-                }
-                else
-                {
-                  LocalizableMessage msg =
-                      ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-                  throw new InitializationException(msg);
-                }
-              }
-              else
-              {
-                if (!findExtensibleMatchingRule(cfg, indexType + "." + attrIndexParts[2]))
-                {
-                  LocalizableMessage msg =
-                      ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-                  throw new InitializationException(msg);
-                }
                 indexCount++;
               }
-            }
-            else
-            {
-              boolean found = false;
-              for (final String idx : cfg.listLocalDBIndexes())
-              {
-                if (!idx.equalsIgnoreCase(index))
-                {
-                  continue;
-                }
-                found = true;
-                LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
-                SortedSet<IndexType> indexType = indexCfg.getIndexType();
-                if (indexType.contains(EQUALITY)
-                    || indexType.contains(ORDERING)
-                    || indexType.contains(PRESENCE)
-                    || indexType.contains(SUBSTRING)
-                    || indexType.contains(APPROXIMATE))
-                {
-                  indexCount++;
-                }
-                if (indexType.contains(EXTENSIBLE))
-                {
-                  Set<String> extensibleRules = indexCfg.getIndexExtensibleMatchingRule();
-                  boolean shared = false;
-                  for (final String exRule : extensibleRules)
-                  {
-                    if (exRule.endsWith(".sub"))
-                    {
-                      indexCount++;
-                    }
-                    else if (!shared)
-                    {
-                      shared = true;
-                      indexCount++;
-                    }
-                  }
-                }
-              }
-              if (!found)
+              else
               {
                 LocalizableMessage msg =
                     ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
                 throw new InitializationException(msg);
               }
+            }
+            else
+            {
+              if (!findExtensibleMatchingRule(cfg, indexType + "." + attrIndexParts[2]))
+              {
+                LocalizableMessage msg =
+                    ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+                throw new InitializationException(msg);
+              }
+              indexCount++;
+            }
+          }
+          else
+          {
+            boolean found = false;
+            for (final String idx : cfg.listLocalDBIndexes())
+            {
+              if (!idx.equalsIgnoreCase(index))
+              {
+                continue;
+              }
+              found = true;
+              LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+              SortedSet<IndexType> indexType = indexCfg.getIndexType();
+              if (indexType.contains(EQUALITY)
+                  || indexType.contains(ORDERING)
+                  || indexType.contains(PRESENCE)
+                  || indexType.contains(SUBSTRING)
+                  || indexType.contains(APPROXIMATE))
+              {
+                indexCount++;
+              }
+              if (indexType.contains(EXTENSIBLE))
+              {
+                Set<String> extensibleRules = indexCfg.getIndexExtensibleMatchingRule();
+                boolean shared = false;
+                for (final String exRule : extensibleRules)
+                {
+                  if (exRule.endsWith(".sub"))
+                  {
+                    indexCount++;
+                  }
+                  else if (!shared)
+                  {
+                    shared = true;
+                    indexCount++;
+                  }
+                }
+              }
+            }
+            if (!found)
+            {
+              LocalizableMessage msg =
+                  ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
+              throw new InitializationException(msg);
             }
           }
         }
