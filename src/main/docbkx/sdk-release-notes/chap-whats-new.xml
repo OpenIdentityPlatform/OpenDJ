@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2014 ForgeRock AS
+  !      Copyright 2014-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-whats-new'
@@ -39,6 +39,18 @@
    <listitem>
     <para>
      TODO
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     The <command>addrate</command> now includes a purge phase by default,
+     so that when you interrupt the command
+     it first deletes the remaining entries added before returning
+     (<link
+      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1721"
+      xlink:show="new"
+     >OPENDJ-1721</link>).
     </para>
    </listitem>
 
