@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: dbtest
 .\"    Author: 
-.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 01/31/2014
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 01/19/2015
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.7.0-SNAPSHOT
+.\"    Source: OpenDJ 3.0.0
 .\"  Language: English
 .\"
-.TH "DBTEST" "1" "01/31/2014" "OpenDJ 2\&.7\&.0\-SNAPSHOT" "Tools Reference"
+.TH "DBTEST" "1" "01/19/2015" "OpenDJ 3\&.0\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -30,8 +30,8 @@
 .SH "NAME"
 dbtest \- gather OpenDJ JE database debugging information
 .SH "SYNOPSIS"
-.HP \w'\fBdbtest\fR \fBsubcommand\fR\ 'u
-\fBdbtest\fR \fBsubcommand\fR [options]
+.HP \w'\fBdbtest\ \fR\fB\fIsubcommand\fR\fR\ 'u
+\fBdbtest \fR\fB\fIsubcommand\fR\fR [options]
 .SH "DESCRIPTION"
 .PP
 This utility can be used to debug the JE database\&.
@@ -59,6 +59,8 @@ List the entry containers for a root container
 \fBdbtest list\-index\-status\fR
 .RS 4
 List the status of indexes in an entry container
+.sp
+This command can take a long time to complete, as it reads all indexes for all backends\&.
 .sp
 When you list index status, the result is a table, followed by a "Total", which is the total number of indexes, followed by a list of indexes with "Undefined keys" to show the values for which the number of entries exceeded the index entry limit\&. The table has the following columns\&.
 .PP
@@ -95,8 +97,7 @@ Index Valid
 This is
 true
 for valid indexes\&. If this is
-false, the index might be degraded.
-Verify the index, and rebuild the index if necessary\&.
+false, the index might be degraded\&. Verify the index, and rebuild the index if necessary\&.
 .RE
 .PP
 Record Count
@@ -168,8 +169,8 @@ sudoUser\&.
 .RS 4
 .\}
 .nf
-$ dbtest dump\-database\-container \-n userRoot \-b dc=example,dc=com
- \-d sudoUser\&.equality
+$ \fBdbtest dump\-database\-container \-n userRoot \-b dc=example,dc=com \e
+ \-d sudoUser\&.equality\fR
 Indexed Value (6 bytes): %admin
 Entry ID List (8 bytes): 165 
 
@@ -183,11 +184,12 @@ Entry ID List (8 bytes): 163
 Total Records: 3
 Total / Average Key Size: 13 bytes / 4 bytes
 Total / Average Data Size: 24 bytes / 8 bytes
+  
 .fi
 .if n \{\
 .RE
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2014 ForgeRock AS
+Copyright \(co 2011-2015 ForgeRock AS.
 .br
