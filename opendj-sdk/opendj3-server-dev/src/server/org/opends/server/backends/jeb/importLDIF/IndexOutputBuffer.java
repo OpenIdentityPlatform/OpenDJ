@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.backends.jeb.importLDIF;
 
@@ -63,9 +63,7 @@ import com.sleepycat.util.PackedInteger;
  */
 public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
 
-  /**
-   * Enumeration used when sorting a buffer.
-   */
+  /** Enumeration used when sorting a buffer. */
   private enum CompareOp {
     LT, GT, LE, GE, EQ
   }
@@ -84,12 +82,11 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
 
   /** The size of a buffer. */
   private final int size;
-
   /** Byte array holding the actual buffer data. */
   private final byte buffer[];
 
   /**
-   * id is used to break a tie (keys equal) when the buffers are being merged
+   * Used to break a tie (keys equal) when the buffers are being merged
    * for writing to the index scratch file.
    */
   private long id;
@@ -97,25 +94,22 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   /** Temporary buffer used to store integer values. */
   private final byte[] intBytes = new byte[INT_SIZE];
 
-  /** keyOffset - offSet where next key is written. */
-  private int keyOffset = 0;
-  /** recordOffset- offSet where next value record is written. */
-  private int recordOffset = 0;
-  /** bytesLeft - amount of bytes left in the buffer. */
-  private int bytesLeft = 0;
-
-  /** keys - number of keys in the buffer. */
-  private int keys = 0;
-  /**
-   * position - used to iterate over the buffer when writing to a scratch file.
-   */
-  private int position = 0;
+  /** OffSet where next key is written. */
+  private int keyOffset;
+  /** OffSet where next value record is written. */
+  private int recordOffset;
+  /** Amount of bytes left in the buffer. */
+  private int bytesLeft;
+  /** Number of keys in the buffer. */
+  private int keys;
+  /** Used to iterate over the buffer when writing to a scratch file. */
+  private int position;
 
   /** The comparator to use sort the keys. */
   private ComparatorBuffer<byte[]> comparator;
 
   /**
-   * This is used to make sure that an instance of this class is put on the
+   * Used to make sure that an instance of this class is put on the
    * correct scratch file writer work queue for processing.
    */
   private Importer.IndexKey indexKey;
@@ -134,7 +128,7 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * importer/rebuild index process is doing phase one cleanup and flushing
    * buffers not completed.
    */
-  private boolean discard = false;
+  private boolean discarded;
 
 
   /**
@@ -163,6 +157,15 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     indexKey = null;
   }
 
+  /**
+   * Creates a new poison buffer. Poison buffers are used to stop the processing of import tasks.
+   *
+   * @return a new poison buffer
+   */
+  public static IndexOutputBuffer poison()
+  {
+    return new IndexOutputBuffer(0);
+  }
 
   /**
    * Set the ID of a buffer to the specified value.
@@ -199,27 +202,24 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     return size == 0;
   }
 
-
   /**
-   * Determines of a buffer should be re-cycled.
+   * Determines if buffer should be re-cycled by calling {@link #reset()}.
    *
    * @return {@code true} if buffer should be recycled, or {@code false} if it
    *          should not.
    */
-  public boolean isDiscard()
+  public boolean isDiscarded()
   {
-    return discard;
+    return discarded;
   }
-
 
   /**
-   * Set the discard flag to {@code true}.
+   * Sets the discarded flag to {@code true}.
    */
-  public void setDiscard()
+  public void discard()
   {
-    discard = true;
+    discarded = true;
   }
-
 
   /**
    * Returns {@code true} if there is enough space available to write the
@@ -367,7 +367,7 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * @return {@code true} if the record is an insert record, or {@code false}
    *          if it is a delete record.
    */
-  public boolean isInsert(int index)
+  public boolean isInsertRecord(int index)
   {
     int recOffset = getIntegerValue(index * INT_SIZE);
     return buffer[recOffset] != DEL;
@@ -503,14 +503,8 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     offset += PackedInteger.getReadIntLength(buffer, offset);
     int keyLen = PackedInteger.readInt(buffer, offset);
     int key = PackedInteger.getReadIntLength(buffer, offset) + offset;
-    if( comparator.compare(buffer, key, keyLen, b, b.length) == 0)
-    {
-      if(indexID == bIndexID)
-      {
-        return true;
-      }
-    }
-    return false;
+    return comparator.compare(buffer, key, keyLen, b, b.length) == 0
+        && indexID == bIndexID;
   }
 
 
@@ -527,46 +521,50 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   @Override
   public int compareTo(IndexOutputBuffer b)
   {
-    ByteBuffer keyBuf = b.getKeyBuf(b.position);
+    final ByteBuffer keyBuf = b.getKeyBuf(b.position);
     int offset = getIntegerValue(position * INT_SIZE);
     int indexID = getIntegerValue(offset + 1);
     offset += REC_OVERHEAD;
     offset += PackedInteger.getReadIntLength(buffer, offset);
     int keyLen = PackedInteger.readInt(buffer, offset);
     int key = PackedInteger.getReadIntLength(buffer, offset) + offset;
-    int returnCode = comparator.compare(buffer, key, keyLen, keyBuf.array(),
-                                        keyBuf.limit());
-    if(returnCode == 0)
+
+    final int cmp = comparator.compare(buffer, key, keyLen, keyBuf.array(), keyBuf.limit());
+    if (cmp != 0)
     {
-      int bIndexID = b.getIndexID();
-      if(indexID == bIndexID)
-      {
-        long otherBufferID = b.getBufferID();
-        //This is tested in a tree set remove when a buffer is removed from
-        //the tree set.
-        if(this.id == otherBufferID)
-        {
-          returnCode = 0;
-        }
-        else if(this.id < otherBufferID)
-        {
-          returnCode = -1;
-        }
-        else
-        {
-          returnCode = 1;
-        }
-      }
-      else if(indexID < bIndexID)
-      {
-        returnCode = -1;
-      }
-      else
-      {
-        returnCode = 1;
-      }
+      return cmp;
     }
-    return returnCode;
+
+    final int bIndexID = b.getIndexID();
+    if (indexID == bIndexID)
+    {
+      // This is tested in a tree set remove when a buffer is removed from the tree set.
+      return compare(this.id, b.getBufferID());
+    }
+    else if (indexID < bIndexID)
+    {
+      return -1;
+    }
+    else
+    {
+      return 1;
+    }
+  }
+
+  private int compare(long l1, long l2)
+  {
+    if (l1 == l2)
+    {
+      return 0;
+    }
+    else if (l1 < l2)
+    {
+      return -1;
+    }
+    else
+    {
+      return 1;
+    }
   }
 
 
@@ -587,20 +585,17 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     dataStream.write(buffer, offSet, keyLen);
   }
 
-
-   /**
+  /**
    * Compare the byte array at the current position with the byte array at the
    * specified index.
    *
    * @param i The index pointing to the byte array to compare.
-   * @return {@code true} if the byte arrays are equal, or {@code false}
-    *                     otherwise.
+   * @return {@code true} if the byte arrays are equal, or {@code false} otherwise
    */
   public boolean compare(int i)
   {
-      return is(i, position, CompareOp.EQ);
+    return is(i, position, CompareOp.EQ);
   }
-
 
   /**
    * Return the current number of keys.
@@ -612,7 +607,6 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     return keys;
   }
 
-
   /**
    * Return {@code true} if the buffer has more data to process, or
    * {@code false} otherwise. Used when iterating over the buffer writing the
@@ -622,20 +616,18 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    *         {@code false} otherwise.
    */
   public boolean hasMoreData()
-   {
-     return (position + 1) < keys;
-   }
-
+  {
+    return position + 1 < keys;
+  }
 
   /**
    * Advance the position pointer to the next record in the buffer. Used when
    * iterating over the buffer examining keys.
    */
-   public void getNextRecord()
-   {
-     position++;
-   }
-
+  public void nextRecord()
+  {
+    position++;
+  }
 
   private byte[] getIntBytes(int val)
   {
@@ -661,9 +653,9 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
 
   private int med3(int a, int b, int c)
   {
-    return (is(a,b, CompareOp.LT) ?
+    return is(a, b, CompareOp.LT) ?
            (is(b,c,CompareOp.LT) ? b : is(a,c,CompareOp.LT) ? c : a) :
-           (is(b,c,CompareOp.GT) ? b :is(a,c,CompareOp.GT) ? c : a));
+           (is(b,c,CompareOp.GT) ? b : is(a,c,CompareOp.GT) ? c : a);
   }
 
 
@@ -671,8 +663,12 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   {
     if (len < 7) {
       for (int i=off; i<len+off; i++)
+      {
         for (int j=i; j>off && is(j-1, j, CompareOp.GT); j--)
+        {
           swap(j, j-1);
+        }
+      }
       return;
     }
 
@@ -695,20 +691,26 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     int a = off, b = a, c = off + len - 1, d = c;
     while(true)
     {
-      while ((b <= c) && is(b, mKey, CompareOp.LE, mIndexID))
+      while (b <= c && is(b, mKey, CompareOp.LE, mIndexID))
       {
         if (is(b, mKey, CompareOp.EQ, mIndexID))
+        {
           swap(a++, b);
+        }
         b++;
       }
       while (c >= b && is(c, mKey, CompareOp.GE, mIndexID))
       {
         if (is(c, mKey, CompareOp.EQ, mIndexID))
+        {
           swap(c, d--);
+        }
         c--;
       }
       if (b > c)
+      {
         break;
+      }
       swap(b++, c--);
     }
 
@@ -719,11 +721,17 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
     s = Math.min(d-c,   n-d-1);
     vectorSwap(b, n-s, s);
 
+    s = b - a;
     // Recursively sort non-partition-elements
-    if ((s = b-a) > 1)
+    if (s > 1)
+    {
       sort(off, s);
-    if ((s = d-c) > 1)
+    }
+    s = d - c;
+    if (s > 1)
+    {
       sort(n-s, s);
+    }
   }
 
 
@@ -740,31 +748,28 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
   private void vectorSwap(int a, int b, int n)
   {
     for (int i=0; i<n; i++, a++, b++)
+    {
       swap(a, b);
+    }
   }
 
 
   private boolean evaluateReturnCode(int rc, CompareOp op)
   {
-    boolean returnCode = false;
     switch(op) {
     case LT:
-      returnCode = rc < 0;
-      break;
+      return rc < 0;
     case GT:
-      returnCode = rc > 0;
-      break;
+      return rc > 0;
     case LE:
-      returnCode = rc <= 0;
-      break;
+      return rc <= 0;
     case GE:
-      returnCode = rc >= 0;
-      break;
+      return rc >= 0;
     case EQ:
-      returnCode = rc == 0;
-      break;
+      return rc == 0;
+    default:
+      return false;
     }
-    return returnCode;
   }
 
 
@@ -835,8 +840,7 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
    * Implementation of ComparatorBuffer interface. Used to compare keys when
    * they are non-DN indexes.
    */
-  public static
-  class IndexComparator implements IndexOutputBuffer.ComparatorBuffer<byte[]>
+  public static class IndexComparator implements IndexOutputBuffer.ComparatorBuffer<byte[]>
   {
 
     /**
@@ -869,33 +873,8 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
           return -1;
         }
       }
-      //The arrays are equal, make sure they are in the same index since
-      //multiple suffixes might have the same key.
-      if(length == otherLength)
-      {
-        if(indexID == otherIndexID)
-        {
-          return 0;
-        }
-        else if(indexID > otherIndexID)
-        {
-          return 1;
-        }
-        else
-        {
-          return -1;
-        }
-      }
-      if (length > otherLength)
-      {
-        return 1;
-      }
-      else
-      {
-        return -1;
-      }
+      return compareLengthThenIndexID(length, indexID, otherLength, otherIndexID);
     }
-
 
     /**
      * Compare an offset in an byte array with the specified byte array,
@@ -928,24 +907,20 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
           return -1;
         }
       }
-      //The arrays are equal, make sure they are in the same index since
-      //multiple suffixes might have the same key.
-      if(length == otherLength)
+      return compareLengthThenIndexID(length, indexID, otherLength, otherIndexID);
+    }
+
+    /**
+     * The arrays are equal, make sure they are in the same index
+     * since multiple suffixes might have the same key.
+     */
+    private int compareLengthThenIndexID(int length, int indexID, int otherLength, int otherIndexID)
+    {
+      if (length == otherLength)
       {
-        if(indexID == otherIndexID)
-        {
-          return 0;
-        }
-        else if(indexID > otherIndexID)
-        {
-          return 1;
-        }
-        else
-        {
-          return -1;
-        }
+        return compare(indexID, otherIndexID);
       }
-      if (length > otherLength)
+      else if (length > otherLength)
       {
         return 1;
       }
@@ -954,7 +929,6 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
         return -1;
       }
     }
-
 
     /**
      * Compare an offset in an byte array with the specified byte array,
@@ -984,11 +958,16 @@ public final class IndexOutputBuffer implements Comparable<IndexOutputBuffer> {
           return -1;
         }
       }
-      if(length == otherLength)
+      return compare(length, otherLength);
+    }
+
+    private int compare(int i1, int i2)
+    {
+      if (i1 == i2)
       {
         return 0;
       }
-      if (length > otherLength)
+      else if (i1 > i2)
       {
         return 1;
       }
