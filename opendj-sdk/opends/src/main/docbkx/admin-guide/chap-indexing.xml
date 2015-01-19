@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-indexing'
@@ -646,6 +646,13 @@ Rebuild Index task 20120131164324838 has been successfully completed</computerou
      The final column show in the output is the Index Valid column,
      <literal>false</literal> before the rebuild, <literal>true</literal> after.
     </para>
+
+    <note>
+     <para>
+      The <command>dbtest list-index-status</command> command
+      can take a long time to complete, as it reads all indexes for all backends.
+     </para>
+    </note>
 
     <screen>
 $ <userinput>dbtest \
