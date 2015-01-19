@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <refentry xml:id='dbtest-1'
@@ -29,7 +29,7 @@
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
  xsi:schemaLocation='http://docbook.org/ns/docbook
                      http://docbook.org/xml/5.0/xsd/docbook.xsd'>
- <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2015</year><holder>ForgeRock AS.</holder></copyright></info>
  <refmeta>
   <refentrytitle>dbtest</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -41,7 +41,7 @@
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
-   <command>dbtest</command> <command>subcommand</command> <arg>options</arg>
+   <command>dbtest <replaceable>subcommand</replaceable></command> <arg>options</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
@@ -78,6 +78,11 @@
      <term><command>dbtest list-index-status</command></term>
      <listitem>
       <para>List the status of indexes in an entry container</para>
+
+      <para>
+       This command can take a long time to complete,
+       as it reads all indexes for all backends.
+      </para>
 
       <para>
        When you list index status, the result is a table,
