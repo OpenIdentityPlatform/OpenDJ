@@ -3377,50 +3377,43 @@ public final class Importer implements DiskSpaceMonitorHandler
         else if ("id2subtree".equals(lowerName)
             || "id2children".equals(lowerName))
         {
-          LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-          throw new InitializationException(msg);
+          throw attributeIndexNotConfigured(index);
         }
         else
         {
-          String[] attrIndexParts = lowerName.split("\\.");
+          final String[] attrIndexParts = lowerName.split("\\.");
           if (attrIndexParts.length <= 0 || attrIndexParts.length > 3)
           {
-            LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-            throw new InitializationException(msg);
+            throw attributeIndexNotConfigured(index);
           }
           AttributeType attrType = DirectoryServer.getAttributeType(attrIndexParts[0]);
           if (attrType == null)
           {
-            LocalizableMessage msg = ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-            throw new InitializationException(msg);
+            throw attributeIndexNotConfigured(index);
           }
           if (attrIndexParts.length != 1)
           {
-            String indexType = attrIndexParts[1];
+            final String indexType = attrIndexParts[1];
             if (attrIndexParts.length == 2)
             {
               if ("presence".equals(indexType)
                   || "equality".equals(indexType)
-                  || "substring".equals(indexType)
                   || "ordering".equals(indexType)
+                  || "substring".equals(indexType)
                   || "approximate".equals(indexType))
               {
                 indexCount++;
               }
               else
               {
-                LocalizableMessage msg =
-                    ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-                throw new InitializationException(msg);
+                throw attributeIndexNotConfigured(index);
               }
             }
-            else
+            else // attrIndexParts.length == 3
             {
               if (!findExtensibleMatchingRule(cfg, indexType + "." + attrIndexParts[2]))
               {
-                LocalizableMessage msg =
-                    ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-                throw new InitializationException(msg);
+                throw attributeIndexNotConfigured(index);
               }
               indexCount++;
             }
@@ -3430,49 +3423,28 @@ public final class Importer implements DiskSpaceMonitorHandler
             boolean found = false;
             for (final String idx : cfg.listLocalDBIndexes())
             {
-              if (!idx.equalsIgnoreCase(index))
+              if (idx.equalsIgnoreCase(index))
               {
-                continue;
-              }
-              found = true;
-              LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
-              SortedSet<IndexType> indexType = indexCfg.getIndexType();
-              if (indexType.contains(EQUALITY)
-                  || indexType.contains(ORDERING)
-                  || indexType.contains(PRESENCE)
-                  || indexType.contains(SUBSTRING)
-                  || indexType.contains(APPROXIMATE))
-              {
-                indexCount++;
-              }
-              if (indexType.contains(EXTENSIBLE))
-              {
-                Set<String> extensibleRules = indexCfg.getIndexExtensibleMatchingRule();
-                boolean shared = false;
-                for (final String exRule : extensibleRules)
-                {
-                  if (exRule.endsWith(".sub"))
-                  {
-                    indexCount++;
-                  }
-                  else if (!shared)
-                  {
-                    shared = true;
-                    indexCount++;
-                  }
-                }
+                found = true;
+                final LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+                indexCount += getAttributeIndexCount(indexCfg.getIndexType(),
+                    PRESENCE, EQUALITY, ORDERING, SUBSTRING, APPROXIMATE);
+                indexCount += getExtensibleIndexCount(indexCfg);
               }
             }
             if (!found)
             {
-              LocalizableMessage msg =
-                  ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index);
-              throw new InitializationException(msg);
+              throw attributeIndexNotConfigured(index);
             }
           }
         }
       }
       return indexCount;
+    }
+
+    private InitializationException attributeIndexNotConfigured(String index)
+    {
+      return new InitializationException(ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
     }
 
     private boolean findExtensibleMatchingRule(LocalDBBackendCfg cfg, String indexExRuleName) throws ConfigException
@@ -3492,6 +3464,41 @@ public final class Importer implements DiskSpaceMonitorHandler
         }
       }
       return false;
+    }
+
+    private int getAttributeIndexCount(SortedSet<IndexType> indexTypes, IndexType... toFinds)
+    {
+      int result = 0;
+      for (IndexType toFind : toFinds)
+      {
+        if (indexTypes.contains(toFind))
+        {
+          result++;
+        }
+      }
+      return result;
+    }
+
+    private int getExtensibleIndexCount(LocalDBIndexCfg indexCfg)
+    {
+      int result = 0;
+      if (indexCfg.getIndexType().contains(EXTENSIBLE))
+      {
+        boolean shared = false;
+        for (final String exRule : indexCfg.getIndexExtensibleMatchingRule())
+        {
+          if (exRule.endsWith(".sub"))
+          {
+            result++;
+          }
+          else if (!shared)
+          {
+            shared = true;
+            result++;
+          }
+        }
+      }
+      return result;
     }
 
     private void processEntry(Entry entry, EntryID entryID)
