@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2014 ForgeRock AS
+  !      Copyright 2014-2015 ForgeRock AS.
   !    
 -->
 <refentry xml:id='addrate-1'
@@ -33,8 +33,8 @@
           xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info>
   <copyright>
-   <year>2014</year>
-   <holder>ForgeRock AS</holder>
+   <year>2014-2015</year>
+   <holder>ForgeRock AS.</holder>
   </copyright>
  </info>
 
@@ -228,6 +228,20 @@
 
      <para>
       Default value: 0
+     </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><option>-n, --noPurge</option></term>
+    <listitem>
+     <para>
+      Disable the purge phase when the tool stops.
+     </para>
+
+     <para>
+      By default, when you interrupt the tool
+      it deletes the remaining entries that it added before returning.
      </para>
     </listitem>
    </varlistentry>
@@ -626,12 +640,13 @@ $ <userinput>addrate -p 1389 -D "cn=Directory Manager" -w password \
    (ops/second)                           (milliseconds)
 recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Add%
 -----------------------------------------------------------------------
- 400.0    401.3  24.304   24.304  205.497  208.726  208.726      0.0  100.00
- 254.9    327.9  38.836   29.970  216.574  291.131  291.131      0.0  100.00
- 576.8    411.0  17.176   23.977  208.726  291.131  291.131      0.0  100.00
- 876.0    527.3  11.119   18.633  195.236  255.678  291.131      0.0  93.93
- 758.0    573.5  12.959   17.133  189.765  255.678  291.131      0.0  49.97
-^C</computeroutput>
+ 466.7    467.2  20.738   20.738  187.00  201.00   201.00      0.0  100.00
+ 588.9    528.1  17.015   18.661  166.00  201.00   201.00      0.0  100.00
+1584.9    880.3   6.076   11.109  150.00  196.00   201.00      0.0  79.87
+1577.8   1054.5   6.138    9.252  132.00  192.00   201.00      0.0  50.00
+1853.0   1214.4   5.188    8.010  124.00  187.00   201.00      0.0  49.99
+^CPurge phase...
+2482.7   1426.2   3.790    6.783  114.00  187.00   201.00      0.0  9.77</computeroutput>
   </screen>
 
   <para>
@@ -642,17 +657,20 @@ recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Add%
   <screen>
 $ <userinput>addrate -p 1389 -D "cn=Directory Manager" -w password \
  -f -c 10 -C fifo -a 10 addrate.template</userinput>
-<computeroutput>-----------------------------------------------------------------------
+<computeroutput>
+-----------------------------------------------------------------------
      Throughput                            Response Time
    (ops/second)                           (milliseconds)
 recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Add%
 -----------------------------------------------------------------------
-2656.8   2665.4   3.478    3.478  66.896  170.495  185.655   2006.4  100.00
- 643.2   1650.1  15.342    5.799  74.356  170.495  185.655      0.0  99.41
- 830.2   1376.3  11.778    7.004  88.155  271.071  284.580      0.0  0.02
- 901.1   1257.3  10.843    7.692  81.984  271.071  284.580      0.0  49.41
- 597.4   1125.3  16.542    8.633  89.126  271.071  284.580      0.0  100.00
-^C</computeroutput>
+2065.6   2068.1   4.646    4.646  30.00   51.00    58.00      0.0  100.00
+1479.7   1773.3   6.567    5.449  46.00   59.00    67.00      0.0  99.23
+1443.4   1663.3   6.730    5.820  56.00  112.00   120.00      0.0  50.01
+1462.6   1613.0   6.635    6.005  56.00  102.00   120.00      0.0  50.08
+1452.2   1580.8   6.678    6.129  62.00  110.00   120.00      0.0  49.97
+^CPurge phase...
+1344.5   1541.4   7.170    6.280  69.00  176.00  1900.00      0.0  17.30
+1703.3   1564.6   5.449    6.151  68.00  176.00  3000.00      0.0  0.00</computeroutput>
   </screen>
  </refsect1>
 </refentry>
