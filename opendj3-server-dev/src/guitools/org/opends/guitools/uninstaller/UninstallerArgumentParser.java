@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.uninstaller;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_REFERENCED_HOST_NAME;
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HOST;
-import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -41,6 +39,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.UserData;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -49,10 +48,7 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 
-/**
- * Class used to parse and populate the arguments of the Uninstaller.
- *
- */
+/** Class used to parse and populate the arguments of the Uninstaller. */
 public class UninstallerArgumentParser extends SecureConnectionCliParser
 {
   private BooleanArgument cliArg;
@@ -90,6 +86,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
       LocalizableMessage toolDescription, boolean longArgumentsCaseSensitive)
   {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
+    setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
@@ -343,12 +340,11 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    */
   public String getReferencedHostName()
   {
-    String hostName = null;
     if (referencedHostNameArg.isPresent())
     {
-      hostName = referencedHostNameArg.getValue();
+      return referencedHostNameArg.getValue();
     }
-    return hostName;
+    return null;
   }
 
   /**

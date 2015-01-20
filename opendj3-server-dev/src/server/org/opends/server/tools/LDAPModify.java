@@ -23,7 +23,7 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2012 profiq, s.r.o.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -42,6 +42,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.controls.*;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.plugins.ChangeNumberControlPlugin;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -608,6 +609,7 @@ public class LDAPModify
     LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
     try
     {
       propertiesFileArgument = new StringArgument("propertiesFilePath",

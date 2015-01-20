@@ -31,7 +31,6 @@ import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,17 +60,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private static final String INDENT = "    ";
 
-    /** The argument that will be used to trigger the display of usage information. */
-    private Argument usageArgument;
     /** The arguments that will be used to trigger the display of usage information for groups of sub-commands. */
     private final Map<Argument, Collection<SubCommand>> usageGroupArguments =
         new HashMap<Argument, Collection<SubCommand>>();
     /** The set of unnamed trailing arguments that were provided for this parser. */
     private final ArrayList<String> trailingArguments = new ArrayList<String>();
-    /** Indicates whether subcommand and long argument names should be treated in a case-sensitive manner. */
-    private final boolean longArgumentsCaseSensitive;
-    /** Indicates whether the usage information has been displayed. */
-    private boolean usageOrVersionDisplayed;
 
     /** The set of global arguments defined for this parser, referenced by short ID. */
     private final Map<Character, Argument> globalShortIDMap = new HashMap<Character, Argument>();
@@ -84,25 +77,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
     /** The set of subcommands defined for this parser, referenced by subcommand name. */
     private final SortedMap<String, SubCommand> subCommands = new TreeMap<String, SubCommand>();
 
-    /** The output stream to which usage information should be printed. */
-    private OutputStream usageOutputStream;
-
-    /**
-     * The fully-qualified name of the Java class that should be invoked to launch the program with which this argument
-     * parser is associated.
-     */
-    private final String mainClassName;
-
-    /**A human-readable description for the tool, which will be included when displaying usage information.     */
-    private final LocalizableMessage toolDescription;
-
     /** The raw set of command-line arguments that were provided. */
     private String[] rawArguments;
     /**The subcommand requested by the user as part of the command-line arguments.     */
     private SubCommand subCommand;
-
-    /** Indicates whether the version argument was provided. */
-    private boolean versionPresent;
 
     /**
      * Creates a new instance of this subcommand argument parser with no arguments.
@@ -118,42 +96,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     public SubCommandArgumentParser(String mainClassName, LocalizableMessage toolDescription,
             boolean longArgumentsCaseSensitive) {
         super(mainClassName, toolDescription, longArgumentsCaseSensitive);
-        this.mainClassName = mainClassName;
-        this.toolDescription = toolDescription;
-        this.longArgumentsCaseSensitive = longArgumentsCaseSensitive;
-    }
-
-    /**
-     * Retrieves the fully-qualified name of the Java class that should be invoked to launch the program with which this
-     * argument parser is associated.
-     *
-     * @return The fully-qualified name of the Java class that should be invoked to launch the program with which this
-     *         argument parser is associated.
-     */
-    @Override
-    public String getMainClassName() {
-        return mainClassName;
-    }
-
-    /**
-     * Retrieves a human-readable description for this tool, which should be included at the top of the command-line
-     * usage information.
-     *
-     * @return A human-readable description for this tool, or {@code null} if none is available.
-     */
-    @Override
-    public LocalizableMessage getToolDescription() {
-        return toolDescription;
-    }
-
-    /**
-     * Indicates whether subcommand names and long argument strings should be treated in a case-sensitive manner.
-     *
-     * @return <CODE>true</CODE> if subcommand names and long argument strings should be treated in a case-sensitive
-     *         manner, or <CODE>false</CODE> if they should not.
-     */
-    public boolean longArgumentsCaseSensitive() {
-        return longArgumentsCaseSensitive;
     }
 
     /**
@@ -380,7 +322,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         String longID = argument.getLongIdentifier();
         if (longID != null) {
-            if (!longArgumentsCaseSensitive) {
+            if (!longArgumentsCaseSensitive()) {
                 longID = toLowerCase(longID);
             }
 
@@ -436,7 +378,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         String longID = argument.getLongIdentifier();
         if (longID != null) {
-            if (!longArgumentsCaseSensitive) {
+            if (!longArgumentsCaseSensitive()) {
                 longID = toLowerCase(longID);
             }
 
@@ -466,9 +408,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     @Override
     public void setUsageArgument(Argument argument, OutputStream outputStream) {
-        usageArgument = argument;
-        usageOutputStream = outputStream;
-
+        super.setUsageArgument(argument, outputStream);
         usageGroupArguments.put(argument, Collections.<SubCommand> emptySet());
     }
 
@@ -523,7 +463,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
         this.rawArguments = rawArguments;
         this.subCommand = null;
         this.trailingArguments.clear();
-        this.usageOrVersionDisplayed = false;
+        setUsageOrVersionDisplayed(false);
 
         boolean inTrailingArgs = false;
 
@@ -572,7 +512,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
                 // If we're not case-sensitive, then convert the name to lowercase.
                 String origArgName = argName;
-                if (!longArgumentsCaseSensitive) {
+                if (!longArgumentsCaseSensitive()) {
                     argName = toLowerCase(argName);
                 }
 
@@ -587,13 +527,11 @@ public class SubCommandArgumentParser extends ArgumentParser {
                         if (OPTION_LONG_HELP.equals(argName)) {
                             // "--help" will always be interpreted as requesting usage
                             // information.
-                            getUsage(usageOutputStream);
+                            writeToUsageOutputStream(getUsage());
                             return;
-                        } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
+                        } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName) && getVersionHandler() != null) {
                             // "--version" will always be interpreted as requesting usage
                             // information.
-                            versionPresent = true;
-                            usageOrVersionDisplayed = true;
                             printVersion();
                             return;
                         } else if (subCommand != null) {
@@ -612,7 +550,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 // If this is a usage argument, then immediately stop and print
                 // usage information.
                 if (usageGroupArguments.containsKey(a)) {
-                    getUsage(a, usageOutputStream);
+                    getUsage(a);
                     return;
                 }
 
@@ -670,17 +608,15 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     if (subCommand == null) {
                         if (argCharacter == '?') {
                             // "-?" will always be interpreted as requesting usage.
-                            getUsage(usageOutputStream);
-                            if (usageArgument != null) {
-                                usageArgument.setPresent(true);
+                            writeToUsageOutputStream(getUsage());
+                            if (getUsageArgument() != null) {
+                                getUsageArgument().setPresent(true);
                             }
                             return;
-                        } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION) {
+                        } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION && getVersionHandler() != null) {
                             // "-V" will always be interpreted as requesting
                             // version information except if it's already defined.
                             if (dashVAccepted()) {
-                                usageOrVersionDisplayed = true;
-                                versionPresent = true;
                                 printVersion();
                                 return;
                             } else {
@@ -699,12 +635,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
                         if (a == null) {
                             if (argCharacter == '?') {
                                 // "-?" will always be interpreted as requesting usage.
-                                getUsage(usageOutputStream);
+                                writeToUsageOutputStream(getUsage());
                                 return;
-                            } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION) {
+                            } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION && getVersionHandler() != null) {
                                 if (dashVAccepted()) {
-                                    usageOrVersionDisplayed = true;
-                                    versionPresent = true;
                                     printVersion();
                                     return;
                                 }
@@ -722,7 +656,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 // If this is the usage argument, then immediately stop and print
                 // usage information.
                 if (usageGroupArguments.containsKey(a)) {
-                    getUsage(a, usageOutputStream);
+                    getUsage(a);
                     return;
                 }
 
@@ -784,7 +718,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                         // If this is the usage argument, then immediately stop and
                         // print usage information.
                         if (usageGroupArguments.containsKey(b)) {
-                            getUsage(b, usageOutputStream);
+                            getUsage(b);
                             return;
                         }
                     }
@@ -802,7 +736,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             } else {
                 // It must be the sub-command.
                 String nameToCheck = arg;
-                if (!longArgumentsCaseSensitive) {
+                if (!longArgumentsCaseSensitive()) {
                     nameToCheck = toLowerCase(arg);
                 }
 
@@ -861,10 +795,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
      *            The subcommand for which to display the usage information.
      */
     public void getSubCommandUsage(LocalizableMessageBuilder buffer, SubCommand subCommand) {
-        usageOrVersionDisplayed = true;
+        setUsageOrVersionDisplayed(true);
         String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
         if (scriptName == null || scriptName.length() == 0) {
-            scriptName = "java " + mainClassName;
+            scriptName = "java " + getMainClassName();
         }
         buffer.append(INFO_ARGPARSER_USAGE_JAVA_SCRIPTNAME.get(scriptName));
         buffer.append("  ");
@@ -895,6 +829,8 @@ public class SubCommandArgumentParser extends ArgumentParser {
             buffer.append(INFO_SUBCMD_OPTIONS.get());
             buffer.append(EOL);
         }
+
+        final Argument usageArgument = getUsageArgument();
         for (Argument a : subCommand.getArguments()) {
             // If this argument is hidden, then skip it.
             if (a.isHidden()) {
@@ -1007,10 +943,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * @return A string describing how the user can get more help.
      */
     public LocalizableMessage getHelpUsageReference() {
-        usageOrVersionDisplayed = true;
+        setUsageOrVersionDisplayed(true);
         String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
         if (scriptName == null || scriptName.length() == 0) {
-            scriptName = "java " + mainClassName;
+            scriptName = "java " + getMainClassName();
         }
 
         LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
@@ -1030,17 +966,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Indicates whether the usage information has been displayed to the end user either by an explicit argument like
-     * "-H" or "--help", or by a built-in argument like "-?".
-     *
-     * @return {@code true} if the usage information has been displayed, or {@code false} if not.
-     */
-    @Override
-    public boolean usageOrVersionDisplayed() {
-        return usageOrVersionDisplayed;
-    }
-
-    /**
      * Adds the provided subcommand to this argument parser. This is only intended for use by the
      * <CODE>SubCommand</CODE> constructor and does not do any validation of its own to ensure that there are no
      * conflicts with the subcommand or any of its arguments.
@@ -1053,9 +978,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /** Get usage for a specific usage argument. */
-    private void getUsage(Argument a, OutputStream outputStream) {
+    private void getUsage(Argument a) {
         LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
 
+        final Argument usageArgument = getUsageArgument();
         if (a.equals(usageArgument) && subCommand != null) {
             getSubCommandUsage(buffer, subCommand);
         } else if (a.equals(usageArgument) && usageGroupArguments.size() <= 1) {
@@ -1065,33 +991,20 @@ public class SubCommandArgumentParser extends ArgumentParser {
             // Using groups - so display all sub-commands group help.
             getFullUsage(Collections.<SubCommand> emptySet(), true, buffer);
         } else {
-            // Requested help on specific group - don't display global
-            // options.
+            // Requested help on specific group - don't display global options.
             getFullUsage(usageGroupArguments.get(a), false, buffer);
         }
 
-        try {
-            outputStream.write(buffer.toString().getBytes());
-        } catch (Exception e) {
-            logger.traceException(e);
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void getUsage(OutputStream outputStream) {
-        try {
-            outputStream.write(getUsage().getBytes());
-        } catch (IOException e) {
-            logger.traceException(e);
-        }
+        writeToUsageOutputStream(buffer);
     }
 
     /**
      * Appends complete usage information for the specified set of sub-commands.
      */
     private void getFullUsage(Collection<SubCommand> c, boolean showGlobalOptions, LocalizableMessageBuilder buffer) {
-        usageOrVersionDisplayed = true;
+        setUsageOrVersionDisplayed(true);
+
+        final LocalizableMessage toolDescription = getToolDescription();
         if (toolDescription != null && toolDescription.length() > 0) {
             buffer.append(wrapText(toolDescription, MAX_LINE_WIDTH - 1));
             buffer.append(EOL).append(EOL);
@@ -1099,7 +1012,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
         if (scriptName == null || scriptName.length() == 0) {
-            scriptName = "java " + mainClassName;
+            scriptName = "java " + getMainClassName();
         }
         buffer.append(INFO_ARGPARSER_USAGE.get());
         buffer.append("  ");
@@ -1122,6 +1035,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             buffer.append(EOL);
         }
 
+        final Argument usageArgument = getUsageArgument();
         if (c.isEmpty()) {
             // Display usage arguments (except the default one).
             for (Argument a : globalArgumentList) {
@@ -1216,6 +1130,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             value = "";
         }
 
+        final Argument usageArgument = getUsageArgument();
         Character shortIDChar = a.getShortIdentifier();
         if (shortIDChar != null) {
             if (a.equals(usageArgument)) {
@@ -1289,28 +1204,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 buffer.append(indent).append(s).append(EOL);
             }
         }
-    }
-
-    /**
-     * Returns whether the usage argument was provided or not. This method should be called after a call to
-     * parseArguments.
-     *
-     * @return <CODE>true</CODE> if the usage argument was provided and <CODE>false</CODE> otherwise.
-     */
-    @Override
-    public boolean isUsageArgumentPresent() {
-        return usageArgument != null && usageArgument.isPresent();
-    }
-
-    /**
-     * Returns whether the version argument was provided or not. This method should be called after a call to
-     * parseArguments.
-     *
-     * @return <CODE>true</CODE> if the version argument was provided and <CODE>false</CODE> otherwise.
-     */
-    @Override
-    public boolean isVersionArgumentPresent() {
-        return super.isVersionArgumentPresent() && !versionPresent;
     }
 
     /**
@@ -1400,10 +1293,5 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         return "<refsect2 xml:id=\"dsconfig-" + sc.getName() + "\">" + EOL + " <title>dsconfig " + sc.getName()
                 + "</title>" + EOL + " <para>" + sc.getDescription() + "</para>" + EOL + options + "</refsect2>" + EOL;
-    }
-
-    void printVersion() {
-        // TODO
-        // DirectoryServer.printVersion(usageOutputStream);
     }
 }

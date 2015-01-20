@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel;
 
 import static org.opends.messages.ToolMessages.*;
@@ -36,6 +35,7 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -50,46 +50,24 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public class ControlPanelArgumentParser extends ArgumentParser
 {
-  /**
-   * The 'hostName' global argument.
-   */
-  private StringArgument hostNameArg = null;
+  /** The 'hostName' global argument. */
+  private StringArgument hostNameArg;
+  /** The 'port' global argument. */
+  private IntegerArgument portArg;
 
-  /**
-   * The 'port' global argument.
-   */
-  private IntegerArgument portArg = null;
+  /** The 'bindDN' global argument. */
+  private StringArgument bindDnArg;
+  /** The 'bindPasswordFile' global argument. */
+  private FileBasedArgument bindPasswordFileArg;
+  /** The 'bindPassword' global argument. */
+  private StringArgument bindPasswordArg;
 
-  /**
-   * The 'bindDN' global argument.
-   */
-  private StringArgument bindDnArg = null;
-
-  /**
-   * The 'bindPasswordFile' global argument.
-   */
-  private FileBasedArgument bindPasswordFileArg = null;
-
-  /**
-   * The 'bindPassword' global argument.
-   */
-  private StringArgument bindPasswordArg = null;
-
-  /**
-   * The 'trustAllArg' global argument.
-   */
-  private BooleanArgument trustAllArg = null;
-
-  /**
-   * The 'remoteArg' global argument.
-   */
-  private BooleanArgument remoteArg = null;
-
-  /**
-   * Argument to specify the connect timeout.
-   */
-  private IntegerArgument connectTimeoutArg = null;
-
+  /** The 'trustAllArg' global argument. */
+  private BooleanArgument trustAllArg;
+  /** The 'remoteArg' global argument. */
+  private BooleanArgument remoteArg;
+  /** Argument to specify the connect timeout. */
+  private IntegerArgument connectTimeoutArg;
   private BooleanArgument showUsageArg;
 
   /**
@@ -102,6 +80,7 @@ public class ControlPanelArgumentParser extends ArgumentParser
       LocalizableMessage msg)
   {
     super(mainClassName, msg, false);
+    setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
@@ -161,10 +140,8 @@ public class ControlPanelArgumentParser extends ArgumentParser
     setUsageArgument(showUsageArg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void parseArguments(String[] args) throws ArgumentException
   {
     LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
@@ -295,5 +272,4 @@ public class ControlPanelArgumentParser extends ArgumentParser
   {
     return remoteArg.isPresent();
   }
-
 }

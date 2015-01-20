@@ -28,17 +28,12 @@ package org.forgerock.opendj.config.dsconfig;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
-import static com.forgerock.opendj.cli.Utils.SHELL_COMMENT_SEPARATOR;
-import static com.forgerock.opendj.cli.Utils.canWrite;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-import static com.forgerock.opendj.cli.Utils.formatDateTimeStringForEquivalentCommand;
-import static com.forgerock.opendj.cli.Utils.getCurrentOperationDateMessage;
-import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
-import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.displayManagedObjectDecodingException;
-import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.displayMissingMandatoryPropertyException;
-import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.displayOperationRejectedException;
-import static org.forgerock.util.Utils.closeSilently;
+import static com.forgerock.opendj.util.StaticUtils.*;
+
+import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
+import static org.forgerock.util.Utils.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -49,13 +44,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -71,6 +69,7 @@ import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.server.ConfigException;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -88,6 +87,7 @@ import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.VersionHandler;
 
 /**
  * This class provides a command-line tool which enables administrators to configure the Directory Server.
@@ -97,14 +97,10 @@ public final class DSConfig extends ConsoleApplication {
     /** The name of this tool. */
     static final String DSCONFIGTOOLNAME = "dsconfig";
 
-    /**
-     * The name of a command-line script used to launch an administrative tool.
-     */
+    /** The name of a command-line script used to launch an administrative tool. */
     static final String PROPERTY_SCRIPT_NAME = "org.opends.server.scriptName";
 
-    /**
-     * A menu call-back which runs a sub-command interactively.
-     */
+    /** A menu call-back which runs a sub-command interactively. */
     private class SubCommandHandlerMenuCallback implements MenuCallback<Integer> {
 
         /** The sub-command handler. */
@@ -406,6 +402,27 @@ public final class DSConfig extends ConsoleApplication {
         super(new PrintStream(out), new PrintStream(err));
 
         this.parser = new SubCommandArgumentParser(getClass().getName(), INFO_DSCFG_TOOL_DESCRIPTION.get(), false);
+        this.parser.setVersionHandler(new VersionHandler() {
+            @Override
+            public void printVersion() {
+                System.out.println(getVersionString());
+            }
+
+            private String getVersionString() {
+                try {
+                    final Enumeration<URL> resources = getClass().getClassLoader().getResources(
+                            "META-INF/maven/org.forgerock.opendj/opendj-config/pom.properties");
+                    while (resources.hasMoreElements()) {
+                        final Properties props = new Properties();
+                        props.load(resources.nextElement().openStream());
+                        return (String) props.get("version");
+                    }
+                } catch (IOException e) {
+                    errPrintln(LocalizableMessage.raw(e.getMessage()));
+                }
+                return "";
+            }
+        });
     }
 
     /** {@inheritDoc} */

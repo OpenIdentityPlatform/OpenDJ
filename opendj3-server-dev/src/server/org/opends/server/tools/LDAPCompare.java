@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -42,6 +42,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -411,6 +412,7 @@ public class LDAPCompare
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                         false, true, 1, 0,
                                         " \'attribute:value\' \"DN\" ...");
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     try
     {

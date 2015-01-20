@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.Utils.canWrite;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -37,6 +38,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -49,13 +51,13 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public class JavaPropertiesToolArgumentParser extends ArgumentParser
 {
-  // Usage argument
+  /** Usage argument. */
   BooleanArgument   showUsageArg;
-  // Quiet argument
+  /** Quiet argument. */
   BooleanArgument   quietArg;
-  // The file containing the properties
+  /** The file containing the properties. */
   StringArgument propertiesFileArg;
-  // The file that is generated
+  /** The file that is generated. */
   StringArgument destinationFileArg;
 
   /**
@@ -68,6 +70,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     super(mainClassName,
         INFO_JAVAPROPERTIES_TOOL_DESCRIPTION.get(getDefaultPropertiesValue()),
         false);
+    setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
@@ -103,10 +106,8 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     setUsageArgument(showUsageArg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void parseArguments(String[] args) throws ArgumentException
   {
     LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
@@ -157,41 +158,28 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
    */
   private String getDefaultDestinationValue()
   {
-    String value;
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
     String installPath = Utils.getInstallPathFromClasspath();
     String root = Utils.getInstancePathFromInstallPath(installPath);
     if (root != null)
     {
-      String libDir = Utils.getPath(root, Installation.LIBRARIES_PATH_RELATIVE);
-      if (isWindows())
-      {
-        value = Utils.getPath(libDir,
-            Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
-      }
-      else
-      {
-        value = Utils.getPath(libDir,
-            Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
-      }
+      return getPath(Utils.getPath(root, Installation.LIBRARIES_PATH_RELATIVE));
     }
     else
     {
       // This can happen when we are not launched using the command-line (for
       // instance from the WebInstaller).
-      if (isWindows())
-      {
-        value = Utils.getPath(Installation.LIBRARIES_PATH_RELATIVE,
-            Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
-      }
-      else
-      {
-        value = Utils.getPath(Installation.LIBRARIES_PATH_RELATIVE,
-            Installation.SET_JAVA_PROPERTIES_FILE_UNIX);
-      }
+      return getPath(Installation.LIBRARIES_PATH_RELATIVE);
     }
-    return value;
+  }
+
+  private String getPath(String libDir)
+  {
+    final String relativePath = isWindows()
+        ? Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS
+        : Installation.SET_JAVA_PROPERTIES_FILE_UNIX;
+    return Utils.getPath(libDir, relativePath);
   }
 
   /**
@@ -201,7 +189,6 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
    */
   private static String getDefaultPropertiesValue()
   {
-    String defaultPropertiesValue;
     // Use this instead of Installation.getLocal() because making that call
     // starts a new JVM and the command-line becomes less responsive.
     String installPath = Utils.getInstallPathFromClasspath();
@@ -209,15 +196,13 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     if (root != null)
     {
       String configDir = Utils.getPath(root, Installation.CONFIG_PATH_RELATIVE);
-      defaultPropertiesValue = Utils.getPath(configDir,
-          Installation.DEFAULT_JAVA_PROPERTIES_FILE);
+      return Utils.getPath(configDir, Installation.DEFAULT_JAVA_PROPERTIES_FILE);
     }
     else
     {
       // This can happen when we are not launched using the command-line (for
       // instance from the WebInstaller).
-      defaultPropertiesValue = Installation.DEFAULT_JAVA_PROPERTIES_FILE;
+      return Installation.DEFAULT_JAVA_PROPERTIES_FILE;
     }
-    return defaultPropertiesValue;
   }
 }

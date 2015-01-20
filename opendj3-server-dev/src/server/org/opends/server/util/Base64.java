@@ -22,11 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
-
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -45,9 +48,9 @@ import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.NullOutputStream;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
+import org.opends.server.types.NullOutputStream;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -55,13 +58,6 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.forgerock.util.Reject.*;
-
-
 
 /**
  * This class provides methods for performing base64 encoding and decoding.
@@ -76,16 +72,11 @@ import static org.forgerock.util.Reject.*;
      mayInvoke=true)
 public final class Base64
 {
-  /**
-   * The set of characters that may be used in base64-encoded values.
-   */
+  /** The set of characters that may be used in base64-encoded values. */
   private static final char[] BASE64_ALPHABET =
-       ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
-        "0123456789+/").toCharArray();
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toCharArray();
 
-  /**
-   * Prevent instance creation.
-   */
+  /** Prevent instance creation. */
   private Base64() {
     // No implementation required.
   }
@@ -476,6 +467,7 @@ public final class Base64
     SubCommandArgumentParser argParser =
          new SubCommandArgumentParser(Base64.class.getName(), description,
                                       false);
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     BooleanArgument showUsage        = null;
     StringArgument  encodedData      = null;
@@ -583,19 +575,8 @@ public final class Base64
 
     if (argParser.isVersionArgumentPresent())
     {
-      // We have to print the version since we have set a NullOutputStream on
-      // the parser
-      try
-      {
-        DirectoryServer.printVersion(System.out);
-        System.exit(0);
-      }
-      catch (Throwable t)
-      {
-        // Bug
-        System.err.println(ERR_UNEXPECTED.get(t));
-        System.exit(1);
-      }
+      // version has already been printed
+      System.exit(0);
     }
 
     if (subCommand == null)
@@ -785,4 +766,3 @@ public final class Base64
     }
   }
 }
-

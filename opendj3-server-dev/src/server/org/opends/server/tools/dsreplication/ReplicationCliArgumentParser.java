@@ -22,17 +22,15 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
-
 package org.opends.server.tools.dsreplication;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.canWrite;
-import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
-import static com.forgerock.opendj.cli.Utils.isDN;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -47,6 +45,7 @@ import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 
@@ -78,256 +77,124 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private SubCommand statusReplicationSubCmd;
   private SubCommand purgeHistoricalSubCmd;
 
-  int defaultAdminPort =
+  private int defaultAdminPort =
     AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
 
-  /**
-   * No-prompt argument.
-   */
+  /** No-prompt argument. */
   BooleanArgument noPromptArg;
-
   private String defaultLocalHostValue;
-
-  /**
-   * The 'hostName' argument for the first server.
-   */
-  private StringArgument hostName1Arg = null;
-
-  /**
-   * The 'port' argument for the first server.
-   */
-  private IntegerArgument port1Arg = null;
-
-  /**
-   * The 'bindDN' argument for the first server.
-   */
-  private StringArgument bindDn1Arg = null;
-
-  /**
-   * The 'bindPasswordFile' argument for the first server.
-   */
-  FileBasedArgument bindPasswordFile1Arg = null;
-
-  /**
-   * The 'bindPassword' argument for the first server.
-   */
-  StringArgument bindPassword1Arg = null;
-
-  /**
-   * The 'replicationPort' argument for the first server.
-   */
-  IntegerArgument replicationPort1Arg = null;
-
-  /**
-   * The 'noReplicationServer' argument for the first server.
-   */
-  BooleanArgument noReplicationServer1Arg = null;
-
-  /**
-   * The 'onlyReplicationServer' argument for the first server.
-   */
-  BooleanArgument onlyReplicationServer1Arg = null;
-
-  /**
-   * The 'secureReplication' argument for the first server.
-   */
-  BooleanArgument secureReplication1Arg = null;
-
-  /**
-   * The 'hostName' argument for the second server.
-   */
-  private StringArgument hostName2Arg = null;
-
-  /**
-   * The 'port' argument for the second server.
-   */
-  private IntegerArgument port2Arg = null;
-
-  /**
-   * The 'binDN' argument for the second server.
-   */
-  private StringArgument bindDn2Arg = null;
-
-  /**
-   * The 'bindPasswordFile' argument for the second server.
-   */
-  FileBasedArgument bindPasswordFile2Arg = null;
-
-  /**
-   * The 'bindPassword' argument for the second server.
-   */
-  StringArgument bindPassword2Arg = null;
-
-  /**
-   * The 'replicationPort' argument for the second server.
-   */
-  IntegerArgument replicationPort2Arg = null;
-
-  /**
-   * The 'noReplicationServer' argument for the second server.
-   */
-  BooleanArgument noReplicationServer2Arg = null;
-
-  /**
-   * The 'onlyReplicationServer' argument for the second server.
-   */
-  BooleanArgument onlyReplicationServer2Arg = null;
-
-  /**
-   * The 'secureReplication' argument for the second server.
-   */
-  private BooleanArgument secureReplication2Arg = null;
-
-  /**
-   * The 'skipPortCheckArg' argument to not check replication ports.
-   */
+  /** The 'hostName' argument for the first server. */
+  private StringArgument hostName1Arg;
+  /** The 'port' argument for the first server. */
+  private IntegerArgument port1Arg;
+  /** The 'bindDN' argument for the first server. */
+  private StringArgument bindDn1Arg;
+  /** The 'bindPasswordFile' argument for the first server. */
+  FileBasedArgument bindPasswordFile1Arg;
+  /** The 'bindPassword' argument for the first server. */
+  StringArgument bindPassword1Arg;
+  /** The 'replicationPort' argument for the first server. */
+  IntegerArgument replicationPort1Arg;
+  /** The 'noReplicationServer' argument for the first server. */
+  BooleanArgument noReplicationServer1Arg;
+  /** The 'onlyReplicationServer' argument for the first server. */
+  BooleanArgument onlyReplicationServer1Arg;
+  /** The 'secureReplication' argument for the first server. */
+  private BooleanArgument secureReplication1Arg;
+  /** The 'hostName' argument for the second server. */
+  private StringArgument hostName2Arg;
+  /** The 'port' argument for the second server. */
+  private IntegerArgument port2Arg;
+  /** The 'binDN' argument for the second server. */
+  private StringArgument bindDn2Arg;
+  /** The 'bindPasswordFile' argument for the second server. */
+  FileBasedArgument bindPasswordFile2Arg;
+  /** The 'bindPassword' argument for the second server. */
+  StringArgument bindPassword2Arg;
+  /** The 'replicationPort' argument for the second server. */
+  IntegerArgument replicationPort2Arg;
+  /** The 'noReplicationServer' argument for the second server. */
+  BooleanArgument noReplicationServer2Arg;
+  /** The 'onlyReplicationServer' argument for the second server. */
+  BooleanArgument onlyReplicationServer2Arg;
+  /** The 'secureReplication' argument for the second server. */
+  private BooleanArgument secureReplication2Arg;
+  /** The 'skipPortCheckArg' argument to not check replication ports. */
   private BooleanArgument skipPortCheckArg;
-
-  /**
-   * The 'noSchemaReplication' argument to not replicate schema.
-   */
+  /** The 'noSchemaReplication' argument to not replicate schema. */
   BooleanArgument noSchemaReplicationArg;
-
-  /**
-   * The 'useSecondServerAsSchemaSource' argument to not replicate schema.
-   */
+  /** The 'useSecondServerAsSchemaSource' argument to not replicate schema. */
   private BooleanArgument useSecondServerAsSchemaSourceArg;
-
-  /**
-   * The 'disableAll' argument to disable all the replication configuration of
-   * server.
-   */
+  /** The 'disableAll' argument to disable all the replication configuration of server. */
   BooleanArgument disableAllArg;
-
-  /**
-   * The 'disableReplicationServer' argument to disable the replication
-   * server.
-   */
+  /** The 'disableReplicationServer' argument to disable the replication server. */
   BooleanArgument disableReplicationServerArg;
-
-  /**
-   * The 'hostName' argument for the source server.
-   */
-  private StringArgument hostNameSourceArg = null;
-
-  /**
-   * The 'port' argument for the source server.
-   */
-  private IntegerArgument portSourceArg = null;
-
-  /**
-   * The 'hostName' argument for the destination server.
-   */
-  private StringArgument hostNameDestinationArg = null;
-
-  /**
-   * The 'port' argument for the destination server.
-   */
-  private IntegerArgument portDestinationArg = null;
-
-  /**
-   * The 'suffixes' global argument.
-   */
-  StringArgument baseDNsArg = null;
-
-  /**
-   * The 'quiet' argument.
-   */
-  BooleanArgument quietArg;
-
-  /**
-   * The 'scriptFriendly' argument.
-   */
+  /** The 'hostName' argument for the source server. */
+  private StringArgument hostNameSourceArg;
+  /** The 'port' argument for the source server. */
+  private IntegerArgument portSourceArg;
+  /** The 'hostName' argument for the destination server. */
+  private StringArgument hostNameDestinationArg;
+  /** The 'port' argument for the destination server. */
+  private IntegerArgument portDestinationArg;
+  /** The 'suffixes' global argument. */
+  StringArgument baseDNsArg;
+  /**The 'quiet' argument.   */
+  private BooleanArgument quietArg;
+  /**The 'scriptFriendly' argument.   */
   BooleanArgument scriptFriendlyArg;
-
-  /**
-   * Properties file argument.
-   */
+  /**Properties file argument.   */
   StringArgument propertiesFileArgument;
-
-  /**
-   * No-properties file argument.
-   */
+  /**No-properties file argument.   */
   BooleanArgument noPropertiesFileArgument;
-
   /**
    * The argument that the user must set to display the equivalent
    * non-interactive mode argument.
    */
   BooleanArgument displayEquivalentArgument;
-
   /**
    * The argument that allows the user to dump the equivalent non-interactive
    * command to a file.
    */
   StringArgument equivalentCommandFileArgument;
-
-  /**
-   * The argument that the user must set to have advanced options in interactive
-   * mode.
-   */
+  /** The argument that the user must set to have advanced options in interactive mode. */
   BooleanArgument advancedArg;
 
-  // The argument set by the user to specify the configuration class
-  // (useful when dsreplication purge-historical runs locally)
+  /**
+   * The argument set by the user to specify the configuration class
+   * (useful when dsreplication purge-historical runs locally).
+   */
   private StringArgument  configClassArg;
 
-  // The argument set by the user to specify the configuration file
-  // (useful when dsreplication purge-historical runs locally)
+  /**
+   * The argument set by the user to specify the configuration file
+   * (useful when dsreplication purge-historical runs locally).
+   */
   private StringArgument  configFileArg;
 
   TaskScheduleArgs taskArgs;
 
-
-  /**
-   * The 'maximumDuration' argument for the purge of historical.
-   */
+  /** The 'maximumDuration' argument for the purge of historical. */
   IntegerArgument maximumDurationArg;
 
-  /**
-   * The text of the enable replication subcommand.
-   */
-  public static final String ENABLE_REPLICATION_SUBCMD_NAME = "enable";
+  /** The text of the enable replication subcommand. */
+  static final String ENABLE_REPLICATION_SUBCMD_NAME = "enable";
+  /** The text of the disable replication subcommand. */
+  static final String DISABLE_REPLICATION_SUBCMD_NAME = "disable";
+  /** The text of the initialize replication subcommand. */
+  static final String INITIALIZE_REPLICATION_SUBCMD_NAME = "initialize";
+  /** The text of the initialize all replication subcommand. */
+  public static final String INITIALIZE_ALL_REPLICATION_SUBCMD_NAME = "initialize-all";
+  /** The text of the pre external initialization subcommand. */
+  static final String PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME = "pre-external-initialization";
+  /** The text of the initialize all replication subcommand. */
+  static final String POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME = "post-external-initialization";
 
-  /**
-   * The text of the disable replication subcommand.
-   */
-  public static final String DISABLE_REPLICATION_SUBCMD_NAME = "disable";
-
-  /**
-   * The text of the initialize replication subcommand.
-   */
-  public static final String INITIALIZE_REPLICATION_SUBCMD_NAME = "initialize";
-
-  /**
-   * The text of the initialize all replication subcommand.
-   */
-  public static final String INITIALIZE_ALL_REPLICATION_SUBCMD_NAME =
-    "initialize-all";
-
-  /**
-   * The text of the pre external initialization subcommand.
-   */
-  public static final String PRE_EXTERNAL_INITIALIZATION_SUBCMD_NAME =
-    "pre-external-initialization";
-
-  /**
-   * The text of the initialize all replication subcommand.
-   */
-  public static final String POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME =
-    "post-external-initialization";
-
-  /**
-   * The text of the status replication subcommand.
-   */
-  public static final String STATUS_REPLICATION_SUBCMD_NAME = "status";
-
-  /**
-   * The text of the purge historical subcommand.
-   */
-  public static final String PURGE_HISTORICAL_SUBCMD_NAME = "purge-historical";
-
-  // This CLI is always using the administration connector with SSL
+  /** The text of the status replication subcommand. */
+  static final String STATUS_REPLICATION_SUBCMD_NAME = "status";
+  /** The text of the purge historical subcommand. */
+  static final String PURGE_HISTORICAL_SUBCMD_NAME = "purge-historical";
+  /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
 
   /**
@@ -344,6 +211,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         INFO_REPLICATION_TOOL_DESCRIPTION.get(ENABLE_REPLICATION_SUBCMD_NAME,
             INITIALIZE_REPLICATION_SUBCMD_NAME),
             false);
+    setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
@@ -394,9 +262,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     validateSubcommandOptions(buf);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
@@ -513,9 +379,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       secureArgsList.bindPasswordArg
     };
 
-    for (int i=0; i<argsToRemove.length; i++)
+    for (Argument arg : argsToRemove)
     {
-      defaultArgs.remove(argsToRemove[i]);
+      defaultArgs.remove(arg);
     }
     defaultArgs.remove(super.noPropertiesFileArg);
     defaultArgs.remove(super.propertiesFileArg);
@@ -758,10 +624,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         skipPortCheckArg, noSchemaReplicationArg,
         useSecondServerAsSchemaSourceArg
     };
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      argsToAdd[i].setPropertyName(argsToAdd[i].getLongIdentifier());
-      enableReplicationSubCmd.addArgument(argsToAdd[i]);
+      arg.setPropertyName(arg.getLongIdentifier());
+      enableReplicationSubCmd.addArgument(arg);
     }
   }
 
@@ -793,9 +659,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, secureArgsList.bindDnArg,
         disableReplicationServerArg, disableAllArg};
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      disableReplicationSubCmd.addArgument(argsToAdd[i]);
+      disableReplicationSubCmd.addArgument(arg);
     }
   }
 
@@ -840,10 +706,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         hostNameSourceArg, portSourceArg, hostNameDestinationArg,
         portDestinationArg
     };
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      argsToAdd[i].setPropertyName(argsToAdd[i].getLongIdentifier());
-      initializeReplicationSubCmd.addArgument(argsToAdd[i]);
+      arg.setPropertyName(arg.getLongIdentifier());
+      initializeReplicationSubCmd.addArgument(arg);
     }
   }
 
@@ -863,9 +729,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg };
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      initializeAllReplicationSubCmd.addArgument(argsToAdd[i]);
+      initializeAllReplicationSubCmd.addArgument(arg);
     }
   }
 
@@ -895,9 +761,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         secureArgsList.portArg,
         externalInitializationLocalOnlyArg};
 
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      preExternalInitializationSubCmd.addArgument(argsToAdd[i]);
+      preExternalInitializationSubCmd.addArgument(arg);
     }
   }
 
@@ -918,9 +784,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg };
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      postExternalInitializationSubCmd.addArgument(argsToAdd[i]);
+      postExternalInitializationSubCmd.addArgument(arg);
     }
   }
 
@@ -944,9 +810,9 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     secureArgsList.hostNameArg.setDefaultValue(getDefaultHostValue());
     Argument[] argsToAdd = { secureArgsList.hostNameArg,
         secureArgsList.portArg, scriptFriendlyArg };
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      statusReplicationSubCmd.addArgument(argsToAdd[i]);
+      statusReplicationSubCmd.addArgument(arg);
     }
   }
 
@@ -983,10 +849,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         secureArgsList.portArg,
         maximumDurationArg};
 
-    for (int i=0; i<argsToAdd.length; i++)
+    for (Argument arg : argsToAdd)
     {
-      argsToAdd[i].setPropertyName(argsToAdd[i].getLongIdentifier());
-      purgeHistoricalSubCmd.addArgument(argsToAdd[i]);
+      arg.setPropertyName(arg.getLongIdentifier());
+      purgeHistoricalSubCmd.addArgument(arg);
     }
     for (Argument arg : taskArgs.getArguments())
     {
@@ -1067,72 +933,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   public String getBindPasswordAdmin()
   {
     return getBindPassword(secureArgsList.bindPasswordArg,
-        secureArgsList.bindPasswordFileArg);
-  }
-
-  /**
-   * Get the password of the first server which has to be used in the
-   * enable replication subcommand.
-   *
-   * @param dn
-   *          The user DN for which to password could be asked.
-   * @param out
-   *          The input stream to used if we have to prompt to the
-   *          user.
-   * @param err
-   *          The error stream to used if we have to prompt to the
-   *          user.
-   * @return the password of the first server which has to be used n the
-   *          enable replication subcommand.
-   */
-  public String getBindPassword1(
-      String dn, OutputStream out, OutputStream err)
-  {
-    return getBindPassword(dn, out, err, bindPassword1Arg,
-        bindPasswordFile1Arg);
-  }
-
-  /**
-   * Get the password of the second server which has to be used in the
-   * enable replication subcommand.
-   *
-   * @param dn
-   *          The user DN for which to password could be asked.
-   * @param out
-   *          The input stream to used if we have to prompt to the
-   *          user.
-   * @param err
-   *          The error stream to used if we have to prompt to the
-   *          user.
-   * @return the password of the second server which has to be used in the
-   *          enable replication subcommand.
-   */
-  public String getBindPassword2(
-      String dn, OutputStream out, OutputStream err)
-  {
-    return getBindPassword(dn, out, err, bindPassword2Arg,
-        bindPasswordFile2Arg);
-  }
-
-  /**
-   * Get the password of the global administrator which has to be used for the
-   * command.
-   *
-   * @param dn
-   *          The user DN for which to password could be asked.
-   * @param out
-   *          The input stream to used if we have to prompt to the
-   *          user.
-   * @param err
-   *          The error stream to used if we have to prompt to the
-   *          user.
-   * @return the password of the global administrator which has to be used for
-   *          the command.
-   */
-  public String getBindPasswordAdmin(
-      String dn, OutputStream out, OutputStream err)
-  {
-    return getBindPassword(dn, out, err, secureArgsList.bindPasswordArg,
         secureArgsList.bindPasswordFileArg);
   }
 
@@ -1752,12 +1552,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private String getValue(StringArgument arg)
   {
-    String v = null;
     if (arg.isPresent())
     {
-      v = arg.getValue();
+      return arg.getValue();
     }
-    return v;
+    return null;
   }
 
   /**
@@ -1779,12 +1578,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private int getValue(IntegerArgument arg)
   {
-    int v = -1;
     if (arg.isPresent())
     {
       try
       {
-        v = arg.getIntValue();
+        return arg.getIntValue();
       }
       catch (ArgumentException ae)
       {
@@ -1796,7 +1594,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
             "parseArguments which should result in an error.", ae);
       }
     }
-    return v;
+    return -1;
   }
 
   /**
@@ -1806,13 +1604,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private int getDefaultValue(IntegerArgument arg)
   {
-    int returnValue = -1;
     String defaultValue = arg.getDefaultValue();
     if (defaultValue != null)
     {
-      returnValue = Integer.parseInt(arg.getDefaultValue());
+      return Integer.parseInt(arg.getDefaultValue());
     }
-    return returnValue;
+    return -1;
   }
 
   /**
@@ -1824,7 +1621,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    * @param buf the LocalizableMessageBuilder object where we add the error messages
    * describing the errors encountered.
    */
-  public void validateSubcommandOptions(LocalizableMessageBuilder buf)
+  private void validateSubcommandOptions(LocalizableMessageBuilder buf)
   {
     if (isEnableReplicationSubcommand())
     {
@@ -1858,7 +1655,6 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     {
       validatePurgeHistoricalOptions(buf);
     }
-
     else
     {
       // This can occur if the user did not provide any subcommand.  We assume
@@ -1997,13 +1793,12 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private boolean isSubcommand(String name)
   {
-    boolean isSubcommand = false;
     SubCommand subCommand = getSubCommand();
     if (subCommand != null)
     {
-      isSubcommand = subCommand.getName().equalsIgnoreCase(name);
+      return subCommand.getName().equalsIgnoreCase(name);
     }
-    return isSubcommand;
+    return false;
   }
 
   /**
@@ -2029,10 +1824,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         {noSchemaReplicationArg, useSecondServerAsSchemaSourceArg}
     };
 
-    for (int i=0; i< conflictingPairs.length; i++)
+    for (Argument[] conflictingPair : conflictingPairs)
     {
-      Argument arg1 = conflictingPairs[i][0];
-      Argument arg2 = conflictingPairs[i][1];
+      Argument arg1 = conflictingPair[0];
+      Argument arg2 = conflictingPair[1];
       if (arg1.isPresent() && arg2.isPresent())
       {
         LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
@@ -2041,15 +1836,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       }
     }
 
-    if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue()) &&
-        !isInteractive())
+    if (hostName1Arg.getValue().equalsIgnoreCase(hostName2Arg.getValue())
+        && !isInteractive()
+        && port1Arg.getValue().equals(port2Arg.getValue()))
     {
-      if (port1Arg.getValue().equals(port2Arg.getValue()))
-      {
-        LocalizableMessage message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
-            hostName1Arg.getValue(), port1Arg.getValue());
-        addMessage(buf, message);
-      }
+      LocalizableMessage message = ERR_REPLICATION_ENABLE_SAME_SERVER_PORT.get(
+          hostName1Arg.getValue(), port1Arg.getValue());
+      addMessage(buf, message);
     }
   }
 
@@ -2072,10 +1865,10 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         {disableAllArg, baseDNsArg}
     };
 
-    for (int i=0; i< conflictingPairs.length; i++)
+    for (Argument[] conflictingPair : conflictingPairs)
     {
-      Argument arg1 = conflictingPairs[i][0];
-      Argument arg2 = conflictingPairs[i][1];
+      Argument arg1 = conflictingPair[0];
+      Argument arg2 = conflictingPair[1];
       if (arg1.isPresent() && arg2.isPresent())
       {
         LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
@@ -2161,15 +1954,13 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
    */
   private void validateInitializeReplicationOptions(LocalizableMessageBuilder buf)
   {
-    if (hostNameSourceArg.getValue().equalsIgnoreCase(
-        hostNameDestinationArg.getValue()) && !isInteractive())
+    if (hostNameSourceArg.getValue().equalsIgnoreCase(hostNameDestinationArg.getValue())
+        && !isInteractive()
+        && portSourceArg.getValue().equals(portDestinationArg.getValue()))
     {
-      if (portSourceArg.getValue().equals(portDestinationArg.getValue()))
-      {
-        LocalizableMessage message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
-            hostNameSourceArg.getValue(), portSourceArg.getValue());
-        addMessage(buf, message);
-      }
+      LocalizableMessage message = ERR_REPLICATION_INITIALIZE_SAME_SERVER_PORT.get(
+          hostNameSourceArg.getValue(), portSourceArg.getValue());
+      addMessage(buf, message);
     }
   }
 
@@ -2250,10 +2041,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       secureArgsList.bindPasswordFileArg.isPresent();
       return secureArgsPresent || adminArgsPresent;
     }
-    else
-    {
-      return true;
-    }
+    return true;
   }
 
   /**

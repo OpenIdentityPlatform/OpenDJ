@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 import java.io.BufferedReader;
@@ -41,6 +41,7 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
@@ -168,6 +169,7 @@ public class LDIFDiff
     LocalizableMessage toolDescription = INFO_LDIFDIFF_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
     try
     {
       sourceLDIF = new StringArgument(

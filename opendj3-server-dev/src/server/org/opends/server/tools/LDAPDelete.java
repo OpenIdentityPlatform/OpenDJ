@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -42,6 +42,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.controls.SubtreeDeleteControl;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -329,6 +330,7 @@ public class LDAPDelete
     LocalizableMessage toolDescription = INFO_LDAPDELETE_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 1, "\"DN\"");
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
     try
     {
       propertiesFileArgument = new StringArgument("propertiesFilePath",

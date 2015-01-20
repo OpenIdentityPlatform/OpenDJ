@@ -23,30 +23,44 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.extensions.PasswordPolicyStateExtendedOperation.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.admin.AdministrationConnector;
-import org.forgerock.opendj.io.*;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.NullOutputStream;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.util.EmbeddedUtils;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -59,31 +73,13 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
-
-import static org.opends.server.extensions.
-                   PasswordPolicyStateExtendedOperation.*;
-import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-
-import org.opends.server.util.EmbeddedUtils;
-
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
-
-
 /**
  * This class provides a tool that can be used to perform various kinds of
  * account management using the password policy state extended operation.
  */
 public class ManageAccount
 {
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.tools.ManageAccount";
 
@@ -832,6 +828,7 @@ public class ManageAccount
     argParser = new SubCommandArgumentParser(
             CLASS_NAME, INFO_PWPSTATE_TOOL_DESCRIPTION.get(),
             false);
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     BooleanArgument   showUsage;
     BooleanArgument   trustAll;

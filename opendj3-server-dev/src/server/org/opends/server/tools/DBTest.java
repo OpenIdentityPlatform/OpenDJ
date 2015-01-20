@@ -26,6 +26,12 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.ParseException;
@@ -42,6 +48,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
@@ -69,12 +76,6 @@ import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This program provides a utility that may be used to debug a JE backend. This
@@ -175,6 +176,7 @@ public class DBTest
 
     LocalizableMessage toolDescription = INFO_DESCRIPTION_DBTEST_TOOL.get();
     this.parser = new SubCommandArgumentParser(getClass().getName(), toolDescription, false);
+    this.parser.setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /** Displays the provided message followed by a help usage reference. */

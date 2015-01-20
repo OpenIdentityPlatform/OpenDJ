@@ -22,14 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
-
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -39,10 +34,12 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.opends.server.config.ConfigEntry;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.DirectoryException;
@@ -67,9 +64,6 @@ import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.wrapText;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
-
-
 
 /**
  * This program provides a utility that may be used to list the backends in the
@@ -146,7 +140,7 @@ public class ListBackends
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.ListBackends",
                             toolDescription, false);
-
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     // Initialize all the command-line argument types and register them with the
     // parser.

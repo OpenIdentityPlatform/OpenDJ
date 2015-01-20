@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -48,6 +48,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
@@ -156,7 +157,7 @@ public class EncodePassword
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.EncodePassword",
                             toolDescription, false);
-
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     // Initialize all the command-line argument types and register them with the
     // parser.

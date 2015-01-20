@@ -22,11 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS
+ *      Portions Copyright 2010-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
-
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -35,26 +39,19 @@ import java.io.PrintWriter;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.SetupUtils;
 
-import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.util.OperatingSystem;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This program provides a tool that may be used to generate an RC script that
@@ -122,6 +119,7 @@ public class CreateRCScript
     LocalizableMessage description = INFO_CREATERC_TOOL_DESCRIPTION.get();
     ArgumentParser argParser =
          new ArgumentParser(CreateRCScript.class.getName(), description, false);
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     BooleanArgument showUsage;
     StringArgument  javaArgs;

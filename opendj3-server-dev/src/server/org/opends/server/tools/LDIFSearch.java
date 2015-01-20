@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -66,40 +67,17 @@ import static com.forgerock.opendj.cli.Utils.filterExitCode;
  */
 public class LDIFSearch
 {
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = "org.opends.server.tools.LDIFSearch";
 
-
-
-  /**
-   * The search scope string that will be used for baseObject searches.
-   */
+  /** The search scope string that will be used for baseObject searches. */
   private static final String SCOPE_STRING_BASE = "base";
-
-
-
-  /**
-   * The search scope string that will be used for singleLevel searches.
-   */
+  /** The search scope string that will be used for singleLevel searches. */
   private static final String SCOPE_STRING_ONE = "one";
-
-
-
-  /**
-   * The search scope string that will be used for wholeSubtree searches.
-   */
+  /** The search scope string that will be used for wholeSubtree searches. */
   private static final String SCOPE_STRING_SUB = "sub";
-
-
-
-  /**
-   * The search scope string that will be used for subordinateSubtree searches.
-   */
+  /** The search scope string that will be used for subordinateSubtree searches. */
   private static final String SCOPE_STRING_SUBORDINATE = "subordinate";
-
-
 
   /**
    * Provides the command line arguments to the <CODE>mainSearch</CODE> method
@@ -166,6 +144,7 @@ public class LDIFSearch
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false, true, 0, 0,
                                                   "[filter] [attributes ...]");
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     try
     {
