@@ -42,7 +42,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -87,14 +86,10 @@ public class LDAPCompare
 
   /** The print stream to use for standard error. */
   private final PrintStream err;
-
   /** The print stream to use for standard output. */
   private final PrintStream out;
 
-  /**
-   * Tells whether the command-line is being executed in script friendly mode
-   * or not.
-   */
+  /** Tells whether the command-line is being executed in script friendly mode or not. */
   private boolean isScriptFriendly;
 
 
@@ -317,11 +312,9 @@ public class LDAPCompare
    *
    * @param  args  The command-line arguments provided to this program.
    */
-
   public static void main(String[] args)
   {
     int retCode = mainCompare(args, true, System.out, System.err);
-
     if(retCode != 0)
     {
       System.exit(filterExitCode(retCode));
@@ -336,7 +329,6 @@ public class LDAPCompare
    *
    * @return The error code.
    */
-
   public static int mainCompare(String[] args)
   {
     return mainCompare(args, true, System.out, System.err);
@@ -358,7 +350,6 @@ public class LDAPCompare
    *
    * @return The error code.
    */
-
   public static int mainCompare(String[] args, boolean initializeServer,
                                 OutputStream outStream, OutputStream errStream)
   {
@@ -422,7 +413,7 @@ public class LDAPCompare
           INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
       scriptFriendlyArgument.setPropertyName(
           scriptFriendlyArgument.getLongIdentifier());
-      argParser.addInputOutputArgument(scriptFriendlyArgument);
+      argParser.addArgument(scriptFriendlyArgument);
 
       propertiesFileArgument = new StringArgument("propertiesFilePath",
           null, OPTION_LONG_PROP_FILE_PATH,
@@ -702,15 +693,11 @@ public class LDAPCompare
 
     // First element should be an attribute string.
     String attributeString = attrAndDNStrings.remove(0);
-
     // Rest are DN strings
-    for(String s : attrAndDNStrings)
-    {
-      dnStrings.add(s);
-    }
+    dnStrings.addAll(attrAndDNStrings);
 
     // If no DNs were provided, then exit with an error.
-    if (dnStrings.isEmpty() && (! filename.isPresent()) )
+    if (dnStrings.isEmpty() && !filename.isPresent())
     {
       err.println(wrapText(ERR_LDAPCOMPARE_NO_DNS.get(), MAX_LINE_WIDTH));
       return CLIENT_SIDE_PARAM_ERROR;
@@ -890,23 +877,20 @@ public class LDAPCompare
     connectionOptions.setSASLExternal(saslExternal.isPresent());
     if(saslOptions.isPresent())
     {
-      LinkedList<String> values = saslOptions.getValues();
-      for(String saslOption : values)
+      for (String saslOption : saslOptions.getValues())
       {
+        boolean val;
         if(saslOption.startsWith("mech="))
         {
-          boolean val = connectionOptions.setSASLMechanism(saslOption);
-          if(val == false)
-          {
-            return CLIENT_SIDE_PARAM_ERROR;
-          }
-        } else
+          val = connectionOptions.setSASLMechanism(saslOption);
+        }
+        else
         {
-          boolean val = connectionOptions.addSASLProperty(saslOption);
-          if(val == false)
-          {
-            return CLIENT_SIDE_PARAM_ERROR;
-          }
+          val = connectionOptions.addSASLProperty(saslOption);
+        }
+        if(!val)
+        {
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
     }
@@ -1016,8 +1000,7 @@ public class LDAPCompare
               le.getResultCode(),
               le.getMessageObject(),
               le.getMatchedDN());
-      int code = le.getResultCode();
-      return code;
+      return le.getResultCode();
     } catch(LDAPConnectionException lce)
     {
       LDAPToolUtils.printErrorMessage(err,
@@ -1025,8 +1008,7 @@ public class LDAPCompare
                                       lce.getResultCode(),
                                       lce.getMessageObject(),
                                       lce.getMatchedDN());
-      int code = lce.getResultCode();
-      return code;
+      return lce.getResultCode();
     } catch(Exception e)
     {
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
@@ -1035,13 +1017,13 @@ public class LDAPCompare
     {
       if(connection != null)
       {
-        if (ldapCompare == null)
+        if (ldapCompare != null)
         {
-          connection.close(null);
+          connection.close(ldapCompare.nextMessageID);
         }
         else
         {
-          connection.close(ldapCompare.nextMessageID);
+          connection.close(null);
         }
       }
     }
@@ -1051,6 +1033,4 @@ public class LDAPCompare
   {
     return isScriptFriendly;
   }
-
 }
-
