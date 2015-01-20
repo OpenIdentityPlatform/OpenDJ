@@ -178,7 +178,7 @@ public class ArgumentParser {
      * properties file, no-prompt etc. These will appear toward the bottom of
      * the usage statement.
      */
-    private final ArgumentGroup ioArgGroup = new ArgumentGroup(
+    protected final ArgumentGroup ioArgGroup = new ArgumentGroup(
             INFO_DESCRIPTION_IO_ARGS.get(), Integer.MIN_VALUE + 1);
 
     /**
@@ -273,6 +273,22 @@ public class ArgumentParser {
      *             has already been defined.
      */
     public void addArgument(final Argument argument) throws ArgumentException {
+        addArgument(argument, null);
+    }
+
+    /**
+     * Adds the provided argument to the set of arguments handled by this
+     * parser.
+     *
+     * @param argument
+     *            The argument to be added.
+     * @param group
+     *            The argument group to which the argument belongs.
+     * @throws ArgumentException
+     *             If the provided argument conflicts with another argument that
+     *             has already been defined.
+     */
+    public void addArgument(final Argument argument, ArgumentGroup group) throws ArgumentException {
         final Character shortID = argument.getShortIdentifier();
         if (shortID != null && shortIDMap.containsKey(shortID)) {
             final String conflictingName = shortIDMap.get(shortID).getName();
@@ -316,7 +332,9 @@ public class ArgumentParser {
 
         argumentList.add(argument);
 
-        final ArgumentGroup group = getStandardGroup(argument);
+        if (group == null) {
+            group = getStandardGroup(argument);
+        }
         group.addArgument(argument);
         argumentGroups.add(group);
     }
@@ -324,6 +342,20 @@ public class ArgumentParser {
     private BooleanArgument getVersionArgument(final boolean displayShortIdentifier) throws ArgumentException {
         return new BooleanArgument(OPTION_LONG_PRODUCT_VERSION, displayShortIdentifier ? OPTION_SHORT_PRODUCT_VERSION
                 : null, OPTION_LONG_PRODUCT_VERSION, INFO_DESCRIPTION_PRODUCT_VERSION.get());
+    }
+
+    /**
+     * Adds the provided argument to the set of arguments handled by this parser
+     * and puts the argument in the default group.
+     *
+     * @param argument
+     *            The argument to be added.
+     * @throws ArgumentException
+     *             If the provided argument conflicts with another argument that
+     *             has already been defined.
+     */
+    protected void addDefaultArgument(final Argument argument) throws ArgumentException {
+        addArgument(argument, defaultArgGroup);
     }
 
     /**
@@ -1375,8 +1407,6 @@ public class ArgumentParser {
         final Character shortID = a.getShortIdentifier();
         final String longID = a.getLongIdentifier();
         if (shortID != null) {
-            final int currentLength = buffer.length();
-
             if (isUsageArgument(a)) {
                 buffer.append("-?, ");
             }
@@ -1399,6 +1429,7 @@ public class ArgumentParser {
                     newBuffer.append(a.getValuePlaceholder());
                 }
 
+                final int currentLength = buffer.length();
                 final int lineLength = (buffer.length() - currentLength) + newBuffer.length();
                 if (lineLength > MAX_LINE_WIDTH) {
                     buffer.append(EOL);
