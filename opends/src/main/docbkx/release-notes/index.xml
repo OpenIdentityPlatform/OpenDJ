@@ -10,7 +10,7 @@
   ! Suite 900, Mountain View, California, 94041, USA.
   !
   ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,8 +20,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
-  !    
+  !      Copyright 2011-2015 ForgeRock AS.
+  !
 -->
 <book xml:id='release-notes'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -39,8 +39,8 @@
    in Java.</para>
   </abstract>
   <copyright>
-   <year>2011-2014</year>
-   <holder>ForgeRock AS</holder>
+   <year>2011-2015</year>
+   <holder>ForgeRock AS.</holder>
   </copyright>
   <authorgroup>
    <author>
@@ -55,7 +55,7 @@
  </info>
 
  <toc />
- 
+
  <preface>
   <title>About OpenDJ</title>
 
@@ -67,13 +67,13 @@
   manage. OpenDJ directory server comes with plenty of tools and a
   full-featured LDAP SDK for Java. OpenDJ directory server also offers
   REST access to directory data over HTTP.</para>
-   
+
   <para>OpenDJ is free to download, evaluate, and use in developing your
   applications and solutions. You can also check out and modify the source
   code to build your own version if you prefer. ForgeRock offers training
   and support subscriptions to help you get the most out of your
   deployment.</para>
-   
+
   <para>These release notes are written for everyone working with the
   OpenDJ <?eval ${docTargetVersion}?> release. Read these notes before you
   install or upgrade OpenDJ software. These notes cover hardware and software
@@ -83,7 +83,7 @@
   changes coming up that could affect your scripts and applications.
   Finally, these notes list both issues fixed since the previous
   release and known issues open at the time of release.</para>
-   
+
   <para>See the <link xlink:role="http://docbook.org/xlink/role/olink"
   xlink:href="install-guide#install-guide"><citetitle>Installation
   Guide</citetitle></link> for more after you read these release notes. The
