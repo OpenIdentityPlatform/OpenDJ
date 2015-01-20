@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
@@ -74,19 +74,16 @@ public final class ConnectionFactoryProvider {
 
     /** The 'hostName' global argument. */
     private StringArgument hostNameArg;
-
     /** The 'port' global argument. */
     private IntegerArgument portArg;
 
     /** The 'bindDN' global argument. */
     private StringArgument bindNameArg;
-
     /** The 'bindPasswordFile' global argument. */
     private FileBasedArgument bindPasswordFileArg;
 
     /** The 'password' value. */
     private char[] password;
-
     /** The 'bindPassword' global argument. */
     private StringArgument bindPasswordArg;
 
@@ -95,22 +92,17 @@ public final class ConnectionFactoryProvider {
 
     /** The 'trustAllArg' global argument. */
     private BooleanArgument trustAllArg;
-
     /** The 'trustStore' global argument. */
     private StringArgument trustStorePathArg;
-
     /** The 'trustStorePassword' global argument. */
     private StringArgument trustStorePasswordArg;
-
     /** The 'trustStorePasswordFile' global argument. */
     private FileBasedArgument trustStorePasswordFileArg;
 
     /** The 'keyStore' global argument. */
     private StringArgument keyStorePathArg;
-
     /** The 'keyStorePassword' global argument. */
     private StringArgument keyStorePasswordArg;
-
     /** The 'keyStorePasswordFile' global argument. */
     private FileBasedArgument keyStorePasswordFileArg;
 
@@ -119,10 +111,8 @@ public final class ConnectionFactoryProvider {
 
     /** The 'useSSLArg' global argument. */
     private BooleanArgument useSSLArg;
-
     /** The 'useStartTLSArg' global argument. */
     private BooleanArgument useStartTLSArg;
-
     /** Argument indicating a SASL option. */
     private StringArgument saslOptionArg;
 
@@ -132,9 +122,7 @@ public final class ConnectionFactoryProvider {
      */
     private final BooleanArgument reportAuthzIDArg;
 
-    /**
-     * Whether to use the password policy control in the bind request.
-     */
+    /** Whether to use the password policy control in the bind request. */
     private final BooleanArgument usePasswordPolicyControlArg;
 
     /** The port number to used to connect. */
@@ -145,7 +133,6 @@ public final class ConnectionFactoryProvider {
 
     /**  The basic connection factory. */
     private ConnectionFactory connFactory;
-
     /** The authenticated connection factory. */
     protected ConnectionFactory authenticatedConnFactory;
 
@@ -195,10 +182,10 @@ public final class ConnectionFactoryProvider {
             final ConsoleApplication app, final String defaultBindDN, final int defaultPort,
             final boolean alwaysSSL) throws ArgumentException {
         this.app = app;
-        useSSLArg = CommonArguments.getUseSSL();
 
+        useSSLArg = CommonArguments.getUseSSL();
         if (!alwaysSSL) {
-            argumentParser.addLdapConnectionArgument(useSSLArg);
+            argumentParser.addArgument(useSSLArg);
         } else {
             // simulate that the useSSL arg has been given in the CLI
             useSSLArg.setPresent(true);
@@ -206,7 +193,7 @@ public final class ConnectionFactoryProvider {
 
         useStartTLSArg = CommonArguments.getStartTLS();
         if (!alwaysSSL) {
-            argumentParser.addLdapConnectionArgument(useStartTLSArg);
+            argumentParser.addArgument(useStartTLSArg);
         }
 
         String defaultHostName;
@@ -216,7 +203,7 @@ public final class ConnectionFactoryProvider {
             defaultHostName = "Unknown (" + e + ")";
         }
         hostNameArg = CommonArguments.getHostName(defaultHostName);
-        argumentParser.addLdapConnectionArgument(hostNameArg);
+        argumentParser.addArgument(hostNameArg);
 
         LocalizableMessage portDescription = INFO_DESCRIPTION_PORT.get();
         if (alwaysSSL) {
@@ -224,43 +211,43 @@ public final class ConnectionFactoryProvider {
         }
 
         portArg = CommonArguments.getPort(defaultPort, portDescription);
-        argumentParser.addLdapConnectionArgument(portArg);
+        argumentParser.addArgument(portArg);
 
         bindNameArg = CommonArguments.getBindDN(defaultBindDN);
-        argumentParser.addLdapConnectionArgument(bindNameArg);
+        argumentParser.addArgument(bindNameArg);
 
         bindPasswordArg = CommonArguments.getBindPassword();
-        argumentParser.addLdapConnectionArgument(bindPasswordArg);
+        argumentParser.addArgument(bindPasswordArg);
 
         bindPasswordFileArg = CommonArguments.getBindPasswordFile();
-        argumentParser.addLdapConnectionArgument(bindPasswordFileArg);
+        argumentParser.addArgument(bindPasswordFileArg);
 
         saslOptionArg = CommonArguments.getSASL();
-        argumentParser.addLdapConnectionArgument(saslOptionArg);
+        argumentParser.addArgument(saslOptionArg);
 
         trustAllArg = CommonArguments.getTrustAll();
-        argumentParser.addLdapConnectionArgument(trustAllArg);
+        argumentParser.addArgument(trustAllArg);
 
         trustStorePathArg = CommonArguments.getTrustStorePath();
-        argumentParser.addLdapConnectionArgument(trustStorePathArg);
+        argumentParser.addArgument(trustStorePathArg);
 
         trustStorePasswordArg = CommonArguments.getTrustStorePassword();
-        argumentParser.addLdapConnectionArgument(trustStorePasswordArg);
+        argumentParser.addArgument(trustStorePasswordArg);
 
         trustStorePasswordFileArg = CommonArguments.getTrustStorePasswordFile();
-        argumentParser.addLdapConnectionArgument(trustStorePasswordFileArg);
+        argumentParser.addArgument(trustStorePasswordFileArg);
 
         keyStorePathArg = CommonArguments.getKeyStorePath();
-        argumentParser.addLdapConnectionArgument(keyStorePathArg);
+        argumentParser.addArgument(keyStorePathArg);
 
         keyStorePasswordArg = CommonArguments.getKeyStorePassword();
-        argumentParser.addLdapConnectionArgument(keyStorePasswordArg);
+        argumentParser.addArgument(keyStorePasswordArg);
 
         keyStorePasswordFileArg = CommonArguments.getKeyStorePasswordFile();
-        argumentParser.addLdapConnectionArgument(keyStorePasswordFileArg);
+        argumentParser.addArgument(keyStorePasswordFileArg);
 
         certNicknameArg = CommonArguments.getCertNickName();
-        argumentParser.addLdapConnectionArgument(certNicknameArg);
+        argumentParser.addArgument(certNicknameArg);
 
         reportAuthzIDArg = CommonArguments.getReportAuthzId();
         argumentParser.addArgument(reportAuthzIDArg);

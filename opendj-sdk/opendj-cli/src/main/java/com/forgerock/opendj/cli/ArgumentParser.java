@@ -157,20 +157,20 @@ public class ArgumentParser {
     private String[] rawArguments;
 
     /** Set of argument groups. */
-    protected Set<ArgumentGroup> argumentGroups;
+    protected final Set<ArgumentGroup> argumentGroups = new TreeSet<ArgumentGroup>();
 
     /**
      * Group for arguments that have not been explicitly grouped. These will
      * appear at the top of the usage statement without a header.
      */
-    private final ArgumentGroup defaultArgGroup = new ArgumentGroup(LocalizableMessage.EMPTY,
-            Integer.MAX_VALUE);
+    private final ArgumentGroup defaultArgGroup = new ArgumentGroup(
+            LocalizableMessage.EMPTY, Integer.MAX_VALUE);
 
     /**
      * Group for arguments that are related to connection through LDAP. This
      * includes options like the bind DN, the port, etc.
      */
-    private final ArgumentGroup ldapArgGroup = new ArgumentGroup(
+    final ArgumentGroup ldapArgGroup = new ArgumentGroup(
             INFO_DESCRIPTION_LDAP_CONNECTION_ARGS.get(), Integer.MIN_VALUE + 2);
 
     /**
@@ -178,15 +178,15 @@ public class ArgumentParser {
      * properties file, no-prompt etc. These will appear toward the bottom of
      * the usage statement.
      */
-    protected final ArgumentGroup ioArgGroup = new ArgumentGroup(INFO_DESCRIPTION_IO_ARGS.get(),
-            Integer.MIN_VALUE + 1);
+    private final ArgumentGroup ioArgGroup = new ArgumentGroup(
+            INFO_DESCRIPTION_IO_ARGS.get(), Integer.MIN_VALUE + 1);
 
     /**
      * Group for arguments that are general like help, version etc. These will
      * appear at the end of the usage statement.
      */
-    private final ArgumentGroup generalArgGroup = new ArgumentGroup(INFO_DESCRIPTION_GENERAL_ARGS
-            .get(), Integer.MIN_VALUE);
+    private final ArgumentGroup generalArgGroup = new ArgumentGroup(
+            INFO_DESCRIPTION_GENERAL_ARGS.get(), Integer.MIN_VALUE);
 
     private static final String INDENT = "    ";
 
@@ -273,22 +273,6 @@ public class ArgumentParser {
      *             has already been defined.
      */
     public void addArgument(final Argument argument) throws ArgumentException {
-        addArgument(argument, null);
-    }
-
-    /**
-     * Adds the provided argument to the set of arguments handled by this
-     * parser.
-     *
-     * @param argument
-     *            The argument to be added.
-     * @param group
-     *            The argument group to which the argument belongs.
-     * @throws ArgumentException
-     *             If the provided argument conflicts with another argument that
-     *             has already been defined.
-     */
-    public void addArgument(final Argument argument, ArgumentGroup group) throws ArgumentException {
         final Character shortID = argument.getShortIdentifier();
         if (shortID != null && shortIDMap.containsKey(shortID)) {
             final String conflictingName = shortIDMap.get(shortID).getName();
@@ -332,9 +316,7 @@ public class ArgumentParser {
 
         argumentList.add(argument);
 
-        if (group == null) {
-            group = getStandardGroup(argument);
-        }
+        final ArgumentGroup group = getStandardGroup(argument);
         group.addArgument(argument);
         argumentGroups.add(group);
     }
@@ -342,62 +324,6 @@ public class ArgumentParser {
     private BooleanArgument getVersionArgument(final boolean displayShortIdentifier) throws ArgumentException {
         return new BooleanArgument(OPTION_LONG_PRODUCT_VERSION, displayShortIdentifier ? OPTION_SHORT_PRODUCT_VERSION
                 : null, OPTION_LONG_PRODUCT_VERSION, INFO_DESCRIPTION_PRODUCT_VERSION.get());
-    }
-
-    /**
-     * Adds the provided argument to the set of arguments handled by this parser
-     * and puts the argument in the default group.
-     *
-     * @param argument
-     *            The argument to be added.
-     * @throws ArgumentException
-     *             If the provided argument conflicts with another argument that
-     *             has already been defined.
-     */
-    protected void addDefaultArgument(final Argument argument) throws ArgumentException {
-        addArgument(argument, defaultArgGroup);
-    }
-
-    /**
-     * Adds the provided argument to the set of arguments handled by this parser
-     * and puts the argument in the general group.
-     *
-     * @param argument
-     *            The argument to be added.
-     * @throws ArgumentException
-     *             If the provided argument conflicts with another argument that
-     *             has already been defined.
-     */
-    void addGeneralArgument(final Argument argument) throws ArgumentException {
-        addArgument(argument, generalArgGroup);
-    }
-
-    /**
-     * Adds the provided argument to the set of arguments handled by this parser
-     * and puts the argument in the input/output group.
-     *
-     * @param argument
-     *            The argument to be added.
-     * @throws ArgumentException
-     *             If the provided argument conflicts with another argument that
-     *             has already been defined.
-     */
-    public void addInputOutputArgument(final Argument argument) throws ArgumentException {
-        addArgument(argument, ioArgGroup);
-    }
-
-    /**
-     * Adds the provided argument to the set of arguments handled by this parser
-     * and puts the argument in the LDAP connection group.
-     *
-     * @param argument
-     *            The argument to be added.
-     * @throws ArgumentException
-     *             If the provided argument conflicts with another argument that
-     *             has already been defined.
-     */
-    public void addLdapConnectionArgument(final Argument argument) throws ArgumentException {
-        addArgument(argument, ldapArgGroup);
     }
 
     /**
@@ -752,7 +678,7 @@ public class ArgumentParser {
                 }
 
                 // Help argument should be printed at the end
-                if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
+                if (isUsageArgument(a)) {
                     helpArgument = a;
                     continue;
                 }
@@ -775,6 +701,16 @@ public class ArgumentParser {
      */
     Argument getUsageArgument() {
         return usageArgument;
+    }
+
+    /**
+     * Returns whether the provided argument is the usage argument.
+     *
+     * @param a the argument to test
+     * @return true if the provided argument is the usage argument, false otherwise
+     */
+    boolean isUsageArgument(final Argument a) {
+        return usageArgument != null && usageArgument.getName().equals(a.getName());
     }
 
     /**
@@ -906,8 +842,7 @@ public class ArgumentParser {
                     // token.
                 } else if (equalPos == 0) {
                     // The argument starts with "--=", which is not acceptable.
-                    final LocalizableMessage message = ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg);
-                    throw new ArgumentException(message);
+                    throw new ArgumentException(ERR_ARGPARSER_LONG_ARG_WITHOUT_NAME.get(arg));
                 } else {
                     // The argument is in the form --name=value, so parse them
                     // both out.
@@ -931,8 +866,7 @@ public class ArgumentParser {
                         writeToUsageOutputStream(getUsage());
                         return;
                     } else if (versionHandler != null && OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
-                        // "--version" will always be interpreted as requesting
-                        // version information.
+                        // "--version" will always be interpreted as requesting version information.
                         printVersion();
                         return;
                     } else {
@@ -945,7 +879,7 @@ public class ArgumentParser {
 
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
-                    if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
+                    if (isUsageArgument(a)) {
                         writeToUsageOutputStream(getUsage());
                         return;
                     }
@@ -1019,7 +953,7 @@ public class ArgumentParser {
 
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
-                    if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
+                    if (isUsageArgument(a)) {
                         writeToUsageOutputStream(getUsage());
                         return;
                     }
@@ -1074,7 +1008,7 @@ public class ArgumentParser {
 
                             // If this is the usage argument,
                             // then immediately stop and print usage information.
-                            if (usageArgument != null && usageArgument.getName().equals(b.getName())) {
+                            if (isUsageArgument(b)) {
                                 writeToUsageOutputStream(getUsage());
                                 return;
                             }
@@ -1338,7 +1272,6 @@ public class ArgumentParser {
     }
 
     private void initGroups() {
-        this.argumentGroups = new TreeSet<ArgumentGroup>();
         this.argumentGroups.add(defaultArgGroup);
         this.argumentGroups.add(ldapArgGroup);
         this.argumentGroups.add(generalArgGroup);
@@ -1415,15 +1348,36 @@ public class ArgumentParser {
      *            The buffer to which the usage information should be appended.
      */
     private void printArgumentUsage(final Argument a, final StringBuilder buffer) {
-        // Write a line with the short and/or long identifiers that may be
-        // used for the argument.
+        printLineForShortLongArgument(a, buffer);
+
+        // Write one or more lines with the description of the argument.
+        // We will indent the description five characters and try our best to wrap
+        // at or before column 79 so it will be friendly to 80-column displays.
         final int indentLength = INDENT.length();
+        buffer.append(wrapText(a.getDescription(), MAX_LINE_WIDTH, indentLength));
+        buffer.append(EOL);
+
+        if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
+            buffer.append(INDENT);
+            buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()));
+            buffer.append(EOL);
+        }
+    }
+
+    /**
+     * Appends a line with the short and/or long identifiers that may be used for the argument to the provided string
+     * builder.
+     *
+     * @param a the argument for which to print a line
+     * @param buffer the string builder where to append the line
+     */
+    void printLineForShortLongArgument(final Argument a, final StringBuilder buffer) {
         final Character shortID = a.getShortIdentifier();
         final String longID = a.getLongIdentifier();
         if (shortID != null) {
             final int currentLength = buffer.length();
 
-            if (usageArgument.getName().equals(a.getName())) {
+            if (isUsageArgument(a)) {
                 buffer.append("-?, ");
             }
 
@@ -1454,7 +1408,7 @@ public class ArgumentParser {
 
             buffer.append(EOL);
         } else if (longID != null) {
-            if (usageArgument.getName().equals(a.getName())) {
+            if (isUsageArgument(a)) {
                 buffer.append("-?, ");
             }
             buffer.append("--");
@@ -1467,33 +1421,19 @@ public class ArgumentParser {
 
             buffer.append(EOL);
         }
-
-        // Write one or more lines with the description of the argument.
-        // We will indent the description five characters and try our best to wrap
-        // at or before column 79 so it will be friendly to 80-column displays.
-        buffer.append(wrapText(a.getDescription(), MAX_LINE_WIDTH, indentLength));
-        buffer.append(EOL);
-
-        if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
-            buffer.append(INDENT);
-            buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()));
-            buffer.append(EOL);
-        }
     }
 
     void normalizeArguments(final Properties argumentProperties, final List<Argument> arguments)
             throws ArgumentException {
         for (final Argument a : arguments) {
             if (!a.isPresent()
-            // See if there is a value in the properties that can be used
+                    // See if there is a value in the properties that can be used
                     && argumentProperties != null && a.getPropertyName() != null) {
                 final String value = argumentProperties.getProperty(a.getPropertyName().toLowerCase());
                 final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
                 if (value != null) {
-                    Boolean addValue = true;
-                    if (!(a instanceof BooleanArgument)) {
-                        addValue = a.valueIsAcceptable(value, invalidReason);
-                    }
+                    boolean addValue = !(a instanceof BooleanArgument)
+                            && a.valueIsAcceptable(value, invalidReason);
                     if (addValue) {
                         a.addValue(value);
                         if (a.needsValue()) {
