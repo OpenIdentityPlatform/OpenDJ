@@ -10,7 +10,7 @@
   ! Suite 900, Mountain View, California, 94041, USA.
   !
   ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-support'
@@ -36,5 +36,5 @@
  area. To contact ForgeRock, send mail to <link
  xlink:href='mailto:info@forgerock.com'>info@forgerock.com</link>. To find a
  partner in your area, see <link xlink:show="new"
- xlink:href="http://forgerock.com/partners/find-a-partner/" />.</para>
+ xlink:href="http://forgerock.com/partners/" />.</para>
 </chapter>
