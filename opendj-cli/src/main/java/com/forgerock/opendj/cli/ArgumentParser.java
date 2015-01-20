@@ -1237,6 +1237,15 @@ public class ArgumentParser {
     }
 
     /**
+     * Sets the raw set of arguments.
+     *
+     * @param rawArguments the raw set of arguments to set
+     */
+    void setRawArguments(String[] rawArguments) {
+        this.rawArguments = rawArguments;
+    }
+
+    /**
      * Sets the provided argument as one which will automatically trigger the
      * output of usage information if it is provided on the command line and no
      * further argument validation will be performed. Note that the caller will
