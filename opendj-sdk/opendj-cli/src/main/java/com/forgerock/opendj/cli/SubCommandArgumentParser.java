@@ -45,7 +45,6 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class defines a variant of the argument parser that can be used with applications that use subcommands to
@@ -57,14 +56,11 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  */
 public class SubCommandArgumentParser extends ArgumentParser {
 
-    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private static final String INDENT = "    ";
 
     /** The arguments that will be used to trigger the display of usage information for groups of sub-commands. */
     private final Map<Argument, Collection<SubCommand>> usageGroupArguments =
         new HashMap<Argument, Collection<SubCommand>>();
-    /** The set of unnamed trailing arguments that were provided for this parser. */
-    private final ArrayList<String> trailingArguments = new ArrayList<String>();
 
     /** The set of global arguments defined for this parser, referenced by short ID. */
     private final Map<Character, Argument> globalShortIDMap = new HashMap<Character, Argument>();
@@ -77,8 +73,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     /** The set of subcommands defined for this parser, referenced by subcommand name. */
     private final SortedMap<String, SubCommand> subCommands = new TreeMap<String, SubCommand>();
 
-    /** The raw set of command-line arguments that were provided. */
-    private String[] rawArguments;
     /**The subcommand requested by the user as part of the command-line arguments.     */
     private SubCommand subCommand;
 
@@ -235,17 +229,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     public SubCommand getSubCommand() {
         return subCommand;
-    }
-
-    /**
-     * Retrieves the raw set of arguments that were provided.
-     *
-     * @return The raw set of arguments that were provided, or <CODE>null</CODE> if the argument list has not yet been
-     *         parsed.
-     */
-    @Override
-    public String[] getRawArguments() {
-        return rawArguments;
     }
 
     /**
@@ -460,9 +443,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     @Override
     public void parseArguments(String[] rawArguments, Properties argumentProperties) throws ArgumentException {
-        this.rawArguments = rawArguments;
+        setRawArguments(rawArguments);
         this.subCommand = null;
-        this.trailingArguments.clear();
+        final ArrayList<String> trailingArguments = getTrailingArguments();
+        trailingArguments.clear();
         setUsageOrVersionDisplayed(false);
 
         boolean inTrailingArgs = false;
@@ -953,16 +937,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
         buffer.append(INFO_GLOBAL_HELP_REFERENCE.get(scriptName));
         buffer.append(EOL);
         return buffer.toMessage();
-    }
-
-    /**
-     * Retrieves the set of unnamed trailing arguments that were provided on the command line.
-     *
-     * @return The set of unnamed trailing arguments that were provided on the command line.
-     */
-    @Override
-    public ArrayList<String> getTrailingArguments() {
-        return trailingArguments;
     }
 
     /**
