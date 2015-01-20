@@ -27,10 +27,18 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.*;
@@ -54,10 +62,10 @@ import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
-import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
+import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
+import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.*;
 import org.opends.server.util.AddChangeRecordEntry;
@@ -76,14 +84,6 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This class provides a tool that can be used to issue modify requests to the

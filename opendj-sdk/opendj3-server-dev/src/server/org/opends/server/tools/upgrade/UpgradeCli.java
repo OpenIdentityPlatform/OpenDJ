@@ -50,7 +50,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -421,16 +420,15 @@ public final class UpgradeCli extends ConsoleApplication implements
 
         final String defaultOption = getDefaultOption(cc.getDefaultOption());
         StringBuilder prompt =
-            new StringBuilder(wrapText(cc.getPrompt(),
-                ServerConstants.MAX_LINE_WIDTH, 2));
+            new StringBuilder(wrapText(cc.getPrompt(), MAX_LINE_WIDTH, 2));
 
         // Default answers.
         final List<String> yesNoDefaultResponses =
-            StaticUtils.arrayToList(new String[] {
+            StaticUtils.arrayToList(
               INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString(),
               INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString(),
               INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString(),
-              INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString() });
+              INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString());
 
         // Generating prompt and possible answers list.
         prompt.append(" ").append("(");
@@ -446,8 +444,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         {
           choices.addAll(yesNoDefaultResponses);
           choices.addAll(StaticUtils.arrayToList(
-              new String[] { INFO_TASKINFO_CMD_CANCEL_CHAR.get().toString() }
-          ));
+              INFO_TASKINFO_CMD_CANCEL_CHAR.get().toString()));
 
           prompt.append(" ")
                 .append("(").append(INFO_PROMPT_YES_COMPLETE_ANSWER.get())

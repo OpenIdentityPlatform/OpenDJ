@@ -26,6 +26,14 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.Console;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,6 +43,8 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LDIFBackendCfg;
@@ -44,18 +54,16 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
+import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.BuildVersion;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -64,15 +72,6 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This program provides a utility that may be used to interact with the

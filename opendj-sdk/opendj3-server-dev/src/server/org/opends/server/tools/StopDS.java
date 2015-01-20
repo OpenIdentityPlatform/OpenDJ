@@ -26,6 +26,14 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -45,8 +53,8 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
+import org.opends.server.core.LockFileManager;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -57,7 +65,10 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tasks.ShutdownTask;
 import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.types.*;
+import org.opends.server.types.Control;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
@@ -69,14 +80,6 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This class provides a tool that can send a request to the Directory Server

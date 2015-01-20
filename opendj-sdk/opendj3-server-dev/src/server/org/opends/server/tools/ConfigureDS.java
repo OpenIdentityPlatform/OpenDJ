@@ -22,20 +22,31 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import java.io.File;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.StringReader;
 
 import javax.crypto.Cipher;
 
@@ -56,9 +67,9 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
@@ -73,17 +84,6 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This class provides a very basic tool that can be used to configure some of
@@ -102,9 +102,7 @@ import static com.forgerock.opendj.cli.Utils.filterExitCode;
  */
 public class ConfigureDS
 {
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
        "org.opends.server.tools.ConfigureDS";
 

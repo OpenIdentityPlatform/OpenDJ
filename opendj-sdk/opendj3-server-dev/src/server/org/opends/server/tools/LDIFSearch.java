@@ -26,6 +26,12 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.OutputStream;
@@ -49,13 +55,6 @@ import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 
 import com.forgerock.opendj.cli.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This class provides a program that may be used to search LDIF files.  It is
