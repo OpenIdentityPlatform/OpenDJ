@@ -46,6 +46,7 @@ import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.DN;
@@ -119,7 +120,7 @@ public class VerifyIndex
     ArgumentParser argParser =
          new ArgumentParser("org.opends.server.tools.VerifyIndex",
                             toolDescription, false);
-
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     // Initialize all the command-line argument types and register them with the
     // parser.

@@ -21,17 +21,17 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
-import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
-import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_ERROR;
-import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_SUCCESS;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.*;
+import static javax.security.auth.callback.TextOutputCallback.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
+import static org.opends.server.tools.upgrade.Upgrade.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,26 +40,26 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ConsoleApplication;
 
 /**
  * This class provides the CLI used for upgrading the OpenDJ product.
@@ -67,21 +67,18 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 public final class UpgradeCli extends ConsoleApplication implements
     CallbackHandler
 {
-  /**
-   * Upgrade's logger.
-   */
+  /** Upgrade's logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The command-line argument parser.
+  /** The command-line argument parser. */
   private final SubCommandArgumentParser parser;
 
-  // The argument which should be used to specify the config class.
+  /** The argument which should be used to specify the config class. */
   private StringArgument configClass;
-
-  // The argument which should be used to specify the config file.
+  /** The argument which should be used to specify the config file. */
   private StringArgument configFile;
 
-  //The argument which should be used to specify non interactive mode.
+  /** The argument which should be used to specify non interactive mode. */
   private BooleanArgument noPrompt;
   private BooleanArgument ignoreErrors;
   private BooleanArgument force;
@@ -90,20 +87,22 @@ public final class UpgradeCli extends ConsoleApplication implements
   private BooleanArgument acceptLicense;
 
 
-  // The argument which should be used to request usage information.
+  /** The argument which should be used to request usage information. */
   private BooleanArgument showUsageArgument;
 
-  // Flag indicating whether or not the global arguments have
-  // already been initialized.
-  private boolean globalArgumentsInitialized = false;
+  /**
+   * Flag indicating whether or not the global arguments have
+   * already been initialized.
+   */
+  private boolean globalArgumentsInitialized;
 
   private UpgradeCli(InputStream in, OutputStream out, OutputStream err)
   {
     super(new PrintStream(out), new PrintStream(err));
     this.parser =
-        new SubCommandArgumentParser(this.getClass().getName(),
+        new SubCommandArgumentParser(getClass().getName(),
             INFO_UPGRADE_DESCRIPTION_CLI.get(), false);
-
+    this.parser.setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
@@ -219,7 +218,7 @@ public final class UpgradeCli extends ConsoleApplication implements
     return acceptLicense.isPresent();
   }
 
-  // Displays the provided message followed by a help usage reference.
+  /** Displays the provided message followed by a help usage reference. */
   private void displayMessageAndUsageReference(final LocalizableMessage message)
   {
     println(message);
@@ -227,20 +226,15 @@ public final class UpgradeCli extends ConsoleApplication implements
     println(parser.getHelpUsageReference());
   }
 
-  // Initialize arguments provided by the command line.
+  /** Initialize arguments provided by the command line. */
   private void initializeGlobalArguments() throws ArgumentException
   {
     if (!globalArgumentsInitialized)
     {
-      configClass =
-          CommonArguments.getConfigClass(ConfigFileHandler.class.getName());
-
+      configClass = CommonArguments.getConfigClass(ConfigFileHandler.class.getName());
       configFile = CommonArguments.getConfigFile();
-
       noPrompt = CommonArguments.getNoPrompt();
-
       verbose = CommonArguments.getVerbose();
-
       quietMode = CommonArguments.getQuiet();
 
       ignoreErrors =
@@ -253,13 +247,12 @@ public final class UpgradeCli extends ConsoleApplication implements
           INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_NO_PROMPT));
 
       acceptLicense = CommonArguments.getAcceptLicense();
-
       showUsageArgument = CommonArguments.getShowUsage();
 
 
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);
-      parser.setUsageArgument(showUsageArgument, this.getOutputStream());
+      parser.setUsageArgument(showUsageArgument, getOutputStream());
       parser.addGlobalArgument(configClass);
       parser.addGlobalArgument(configFile);
       parser.addGlobalArgument(noPrompt);
@@ -283,7 +276,7 @@ public final class UpgradeCli extends ConsoleApplication implements
     catch (ArgumentException e)
     {
       final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
-      this.getOutputStream().print(message);
+      getOutputStream().print(message);
       return EXIT_CODE_ERROR;
     }
 
@@ -296,7 +289,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         final LocalizableMessage message =
             ERR_UPGRADE_INCOMPATIBLE_ARGS.get(OPTION_LONG_QUIET,
                 "interactive mode");
-        this.getOutputStream().println(message);
+        getOutputStream().println(message);
         return EXIT_CODE_ERROR;
       }
       if (isInteractive() && isForceUpgrade())
@@ -304,7 +297,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         final LocalizableMessage message =
             ERR_UPGRADE_INCOMPATIBLE_ARGS.get(OPTION_LONG_FORCE_UPGRADE,
                 "interactive mode");
-        this.getOutputStream().println(message);
+        getOutputStream().println(message);
         return EXIT_CODE_ERROR;
       }
       if (isQuiet() && isVerbose())
@@ -312,7 +305,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         final LocalizableMessage message =
             ERR_UPGRADE_INCOMPATIBLE_ARGS.get(OPTION_LONG_QUIET,
                 OPTION_LONG_VERBOSE);
-        this.getOutputStream().println(message);
+        getOutputStream().println(message);
         return EXIT_CODE_ERROR;
       }
     }

@@ -22,9 +22,18 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS.
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  */
 package org.opends.server.core;
+
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -219,15 +228,6 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.VersionHandler;
 import com.forgerock.opendj.util.OperatingSystem;
-
-import static org.forgerock.util.Reject.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -807,6 +807,23 @@ public final class DirectoryServer
 
   /** Entry point for server configuration. */
   private org.forgerock.opendj.config.server.ServerManagementContext serverManagementContext;
+
+  /**
+   * Class that prints the version of OpenDJ server to System.out.
+   */
+  public static final class DirectoryServerVersionHandler implements VersionHandler
+  {
+    /** {@inheritDoc} */
+    @Override
+    public void printVersion()
+    {
+      try
+      {
+        DirectoryServer.printVersion(System.out);
+      }
+      catch (Exception e){}
+    }
+  }
 
   /**
    * Temporary class to provide instance methods instead of static methods for
@@ -7781,19 +7798,6 @@ public final class DirectoryServer
          new ArgumentParser("org.opends.server.core.DirectoryServer",
                             theToolDescription, false);
 
-    final VersionHandler versionHandler = new VersionHandler()
-    {
-      @Override
-      public void printVersion()
-      {
-        try
-        {
-          DirectoryServer.printVersion(System.out);
-        }
-        catch (Exception e){}
-      }
-    };
-
     // Initialize all the command-line argument types and register them with the
     // parser.
     try
@@ -7871,7 +7875,7 @@ public final class DirectoryServer
       displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
-      argParser.setVersionHandler(versionHandler);
+      argParser.setVersionHandler(new DirectoryServerVersionHandler());
     }
     catch (ArgumentException ae)
     {

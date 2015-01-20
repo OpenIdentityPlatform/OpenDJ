@@ -22,10 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.server.util.args;
+
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
 
 import java.io.PrintStream;
 import java.util.LinkedHashSet;
@@ -36,27 +39,23 @@ import javax.net.ssl.SSLException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.tools.LDAPConnection;
-import org.opends.server.tools.LDAPConnectionOptions;
-import org.opends.server.tools.SSLConnectionFactory;
-import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.LDAPConnectionException;
+import org.opends.server.tools.LDAPConnectionOptions;
+import org.opends.server.tools.SSLConnectionException;
+import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * Creates an argument parser pre-populated with arguments for specifying
@@ -92,6 +91,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
                                       boolean alwaysSSL) {
     super(mainClassName, toolDescription, longArgumentsCaseSensitive);
     addLdapConnectionArguments(argumentGroup, alwaysSSL);
+    setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**

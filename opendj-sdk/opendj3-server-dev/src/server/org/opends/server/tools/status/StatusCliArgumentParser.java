@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
-
 package org.opends.server.tools.status;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -35,6 +34,7 @@ import java.util.ArrayList;
 
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -46,23 +46,16 @@ import com.forgerock.opendj.cli.StringArgument;
 /**
  * The class that is used to parse the arguments provided in the status command
  * line.
- *
  */
 public class StatusCliArgumentParser extends SecureConnectionCliParser
 {
   private BooleanArgument noPromptArg;
-
-  // This CLI is always using the administration connector with SSL
+  /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
 
-
-  /**
-   * The 'refresh' argument.
-   */
+  /** The 'refresh' argument. */
   private IntegerArgument refreshArg;
-  /**
-   * The 'scriptFriendly' argument.
-   */
+  /** The 'scriptFriendly' argument. */
   private BooleanArgument scriptFriendlyArg;
 
   /**
@@ -76,6 +69,7 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   public StatusCliArgumentParser(String mainClassName)
   {
     super(mainClassName, INFO_STATUS_CLI_USAGE_DESCRIPTION.get(), false);
+    setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
@@ -133,6 +127,7 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
   {
     return secureArgsList;
   }
+
   /**
    * Tells whether the user specified to have an interactive status CLI or not.
    * This method must be called after calling parseArguments.
@@ -176,10 +171,7 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
             "should be called after parsing the attributes: "+ae, ae);
       }
     }
-    else
-    {
-      return -1;
-    }
+    return -1;
   }
 
   /**
@@ -189,12 +181,11 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
    */
   public String getExplicitBindDn()
   {
-    String dn = null;
     if (secureArgsList.bindDnArg.isPresent())
     {
-      dn = secureArgsList.bindDnArg.getValue();
+      return secureArgsList.bindDnArg.getValue();
     }
-    return dn;
+    return null;
   }
 
   /**

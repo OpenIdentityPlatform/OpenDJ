@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -46,6 +46,7 @@ import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
@@ -83,9 +84,7 @@ import static com.forgerock.opendj.cli.Utils.filterExitCode;
  */
 public class StopDS
 {
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = "org.opends.server.tools.StopDS";
 
   /**
@@ -94,42 +93,23 @@ public class StopDS
    * a lot of memory for the JVM (Using -Xms and -Xmx options) as there might
    * be calls to Runtime.exec.
    */
-  /**
-   * The server is already stopped.
-   */
+  /** The server is already stopped. */
   private static int SERVER_ALREADY_STOPPED = 98;
-  /**
-   * The server must be started.
-   */
+  /** The server must be started. */
   private static int START_SERVER = 99;
-  /**
-   * The server must be stopped using a system call.
-   */
+  /** The server must be stopped using a system call. */
   private static int STOP_USING_SYSTEM_CALL = 100;
-  /**
-   * The server must be restarted using system calls.
-   */
+  /** The server must be restarted using system calls. */
   private static int RESTART_USING_SYSTEM_CALL = 101;
-  /**
-   * The server must be stopped using protocol.
-   */
+  /** The server must be stopped using protocol. */
   private static int STOP_USING_PROTOCOL = 102;
-  /**
-   * The server must be stopped as a window service.
-   */
+  /** The server must be stopped as a window service. */
   private static int STOP_AS_WINDOW_SERVICE = 103;
-  /**
-   * The server must be restarted as a window service.
-   */
+  /** The server must be restarted as a window service. */
   private static int RESTART_AS_WINDOW_SERVICE = 104;
-  /**
-   * The server must be started and it should use quiet mode.
-   */
+  /** The server must be started and it should use quiet mode. */
   private static int START_SERVER_QUIET = 105;
-  /**
-   * The server must be restarted using system calls and it should use quiet
-   * mode.
-   */
+  /** The server must be restarted using system calls and it should use quiet mode. */
   private static int RESTART_USING_SYSTEM_CALL_QUIET = 106;
 
   /**
@@ -193,6 +173,7 @@ public class StopDS
     LocalizableMessage toolDescription = INFO_STOPDS_TOOL_DESCRIPTION.get();
     ArgumentParser    argParser = new ArgumentParser(CLASS_NAME,
                                                      toolDescription, false);
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
     BooleanArgument   checkStoppability;
     BooleanArgument   quietMode;
     BooleanArgument   windowsNetStop;

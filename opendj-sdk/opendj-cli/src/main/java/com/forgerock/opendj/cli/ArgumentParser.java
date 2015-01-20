@@ -33,7 +33,6 @@ import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -48,6 +47,7 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
 
 /**
@@ -61,6 +61,8 @@ import org.forgerock.util.Utils;
  * on the command-line.
  */
 public class ArgumentParser {
+
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     /**
      * The name of the OpenDJ configuration direction in the user home
      * directory.
@@ -655,27 +657,17 @@ public class ArgumentParser {
         return buffer.toString();
     }
 
-    private void writeUsageToOutputStream() {
-        try {
-            getUsage(usageOutputStream);
-        } catch (final Exception e) {
-            // Ignored.
-        }
-    }
-
     /**
-     * Writes usage information based on the defined arguments to the provided
-     * output stream.
+     * Writes message to the usage output stream.
      *
-     * @param outputStream
-     *            The output stream to which the usage information should be
-     *            written.
-     * @throws IOException
-     *             If a problem occurs while attempting to write the usage
-     *             information to the provided output stream.
+     * @param message the message to write
      */
-    void getUsage(final OutputStream outputStream) throws IOException {
-        outputStream.write(getBytes(getUsage()));
+    void writeToUsageOutputStream(CharSequence message) {
+        try {
+            usageOutputStream.write(getBytes(message.toString()));
+        } catch (final Exception e) {
+            logger.traceException(e);
+        }
     }
 
     /**
@@ -777,6 +769,15 @@ public class ArgumentParser {
     }
 
     /**
+     * Returns the usage argument.
+     *
+     * @return the usageArgument
+     */
+    Argument getUsageArgument() {
+        return usageArgument;
+    }
+
+    /**
      * Retrieves a message containing usage information based on the defined
      * arguments.
      *
@@ -786,6 +787,22 @@ public class ArgumentParser {
     public LocalizableMessage getUsageMessage() {
         // TODO: rework getUsage(OutputStream) to work with messages framework
         return LocalizableMessage.raw(getUsage());
+    }
+
+    /**
+     * Returns the version handler.
+     *
+     * @return the version handler
+     */
+    VersionHandler getVersionHandler() {
+        return versionHandler;
+    }
+
+    /** Prints the version. */
+    void printVersion() {
+        versionPresent = true;
+        usageOrVersionDisplayed = true;
+        versionHandler.printVersion();
     }
 
     /**
@@ -808,6 +825,16 @@ public class ArgumentParser {
      */
     public boolean isVersionArgumentPresent() {
         return versionPresent;
+    }
+
+    /**
+     * Indicates whether subcommand names and long argument strings should be treated in a case-sensitive manner.
+     *
+     * @return <CODE>true</CODE> if subcommand names and long argument strings should be treated in a case-sensitive
+     *         manner, or <CODE>false</CODE> if they should not.
+     */
+    boolean longArgumentsCaseSensitive() {
+        return longArgumentsCaseSensitive;
     }
 
     /**
@@ -901,14 +928,12 @@ public class ArgumentParser {
                     if (OPTION_LONG_HELP.equals(argName)) {
                         // "--help" will always be interpreted as requesting
                         // usage information.
-                        writeUsageToOutputStream();
+                        writeToUsageOutputStream(getUsage());
                         return;
                     } else if (versionHandler != null && OPTION_LONG_PRODUCT_VERSION.equals(argName)) {
                         // "--version" will always be interpreted as requesting
                         // version information.
-                        usageOrVersionDisplayed = true;
-                        versionPresent = true;
-                        versionHandler.printVersion();
+                        printVersion();
                         return;
                     } else {
                         // There is no such argument registered.
@@ -921,7 +946,7 @@ public class ArgumentParser {
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
                     if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
-                        writeUsageToOutputStream();
+                        writeToUsageOutputStream(getUsage());
                         return;
                     }
                 }
@@ -979,16 +1004,11 @@ public class ArgumentParser {
                 final Argument a = shortIDMap.get(argCharacter);
                 if (a == null) {
                     if (argCharacter == '?') {
-                        writeUsageToOutputStream();
+                        writeToUsageOutputStream(getUsage());
                         return;
                     } else if (versionHandler != null && argCharacter == OPTION_SHORT_PRODUCT_VERSION
                             && !shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION)) {
-                        // "-V" will always be interpreted as requesting
-                        // version information except if it's already defined
-                        // (e.g in ldap tools).
-                        usageOrVersionDisplayed = true;
-                        versionPresent = true;
-                        versionHandler.printVersion();
+                        printVersion();
                         return;
                     } else {
                         // There is no such argument registered.
@@ -1000,7 +1020,7 @@ public class ArgumentParser {
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
                     if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
-                        writeUsageToOutputStream();
+                        writeToUsageOutputStream(getUsage());
                         return;
                     }
                 }
@@ -1055,7 +1075,7 @@ public class ArgumentParser {
                             // If this is the usage argument,
                             // then immediately stop and print usage information.
                             if (usageArgument != null && usageArgument.getName().equals(b.getName())) {
-                                writeUsageToOutputStream();
+                                writeToUsageOutputStream(getUsage());
                                 return;
                             }
                         }
@@ -1257,6 +1277,15 @@ public class ArgumentParser {
     public void setUsageArgument(final Argument argument, final OutputStream outputStream) {
         usageArgument = argument;
         usageOutputStream = outputStream;
+    }
+
+    /**
+     * Sets whether the usage or version displayed.
+     *
+     * @param usageOrVersionDisplayed the usageOrVersionDisplayed to set
+     */
+    public void setUsageOrVersionDisplayed(boolean usageOrVersionDisplayed) {
+        this.usageOrVersionDisplayed = usageOrVersionDisplayed;
     }
 
     /**

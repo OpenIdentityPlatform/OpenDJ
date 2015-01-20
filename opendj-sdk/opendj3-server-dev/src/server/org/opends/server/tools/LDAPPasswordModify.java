@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -36,6 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -182,6 +183,7 @@ public class LDAPPasswordModify
     LocalizableMessage toolDescription = INFO_LDAPPWMOD_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);
+    argParser.setVersionHandler(new DirectoryServerVersionHandler());
 
     try
     {
