@@ -26,18 +26,12 @@
  */
 package org.opends.server.tools;
 
-
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.ToolMessages.*;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import static org.opends.server.config.ConfigConstants.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -48,10 +42,13 @@ import java.util.List;
 import java.util.Random;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -67,7 +64,6 @@ import org.opends.server.tasks.ImportTask;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ExistingFileBehavior;
@@ -76,19 +72,17 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.RawAttribute;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
+import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.ClientException;
-
-
 
 /**
  * This program provides a utility that may be used to import the contents of an
@@ -154,34 +148,34 @@ public class ImportLDIF extends TaskTool {
     return tool.process(args, initializeServer, outStream, errStream);
   }
 
-  // Define the command-line arguments that may be used with this program.
-  private BooleanArgument append                  = null;
-  private BooleanArgument countRejects            = null;
-  private BooleanArgument displayUsage            = null;
-  private BooleanArgument isCompressed            = null;
-  private BooleanArgument isEncrypted             = null;
-  private BooleanArgument overwrite               = null;
-  private BooleanArgument quietMode               = null;
-  private BooleanArgument replaceExisting         = null;
-  private BooleanArgument skipSchemaValidation    = null;
-  private BooleanArgument clearBackend            = null;
-  private IntegerArgument randomSeed              = null;
-  private StringArgument  backendID               = null;
-  private StringArgument  configClass             = null;
-  private StringArgument  configFile              = null;
-  private StringArgument  excludeAttributeStrings = null;
-  private StringArgument  excludeBranchStrings    = null;
-  private StringArgument  excludeFilterStrings    = null;
-  private StringArgument  includeAttributeStrings = null;
-  private StringArgument  includeBranchStrings    = null;
-  private StringArgument  includeFilterStrings    = null;
-  private StringArgument  ldifFiles               = null;
-  private StringArgument  rejectFile              = null;
-  private StringArgument  skipFile                = null;
-  private StringArgument  templateFile            = null;
-  private BooleanArgument skipDNValidation        = null;
-  private IntegerArgument threadCount             = null;
-  private StringArgument  tmpDirectory            = null;
+  /** Define the command-line arguments that may be used with this program. */
+  private BooleanArgument append;
+  private BooleanArgument countRejects;
+  private BooleanArgument displayUsage;
+  private BooleanArgument isCompressed;
+  private BooleanArgument isEncrypted;
+  private BooleanArgument overwrite;
+  private BooleanArgument quietMode;
+  private BooleanArgument replaceExisting;
+  private BooleanArgument skipSchemaValidation;
+  private BooleanArgument clearBackend;
+  private IntegerArgument randomSeed;
+  private StringArgument  backendID;
+  private StringArgument  configClass;
+  private StringArgument  configFile;
+  private StringArgument  excludeAttributeStrings;
+  private StringArgument  excludeBranchStrings;
+  private StringArgument  excludeFilterStrings;
+  private StringArgument  includeAttributeStrings;
+  private StringArgument  includeBranchStrings;
+  private StringArgument  includeFilterStrings;
+  private StringArgument  ldifFiles;
+  private StringArgument  rejectFile;
+  private StringArgument  skipFile;
+  private StringArgument  templateFile;
+  private BooleanArgument skipDNValidation;
+  private IntegerArgument threadCount;
+  private StringArgument  tmpDirectory;
 
   private int process(String[] args, boolean initializeServer,
                       OutputStream outStream, OutputStream errStream) {
@@ -514,230 +508,91 @@ public class ImportLDIF extends TaskTool {
     return process(argParser, initializeServer, out, err);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    //
     // Required attributes
-    //
-    ArrayList<ByteString> values;
+    addAttribute(attributes, ATTR_IMPORT_LDIF_FILE, ldifFiles.getValues());
+    addAttribute(attributes, ATTR_IMPORT_TEMPLATE_FILE, templateFile.getValue());
+    addAttribute(attributes, ATTR_IMPORT_RANDOM_SEED, randomSeed.getValue());
+    addAttribute(attributes, ATTR_IMPORT_THREAD_COUNT, threadCount.getValue());
 
-    List<String> fileList = ldifFiles.getValues();
-    if ((fileList != null) && (fileList.size() > 0))
-    {
-      if (fileList != null && fileList.size() > 0) {
-        values = new ArrayList<ByteString>(fileList.size());
-        for (String file : fileList) {
-          values.add(ByteString.valueOf(file));
-        }
-        attributes.add(new LDAPAttribute(ATTR_IMPORT_LDIF_FILE, values));
-      }
-    }
-
-    String templateFileValue = templateFile.getValue();
-    if (templateFileValue != null)
-    {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(templateFileValue));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_TEMPLATE_FILE, values));
-    }
-
-    String randomSeedValue = randomSeed.getValue();
-    if (randomSeedValue != null)
-    {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(randomSeedValue));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_RANDOM_SEED, values));
-    }
-
-
-    if (threadCount.getValue() != null) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(threadCount.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_THREAD_COUNT, values));
-    }
-
-    //
     // Optional attributes
-    //
-
-    if (append.getValue() != null &&
-            !append.getValue().equals(append.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(append.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_APPEND, values));
-    }
-
-    if (replaceExisting.getValue() != null &&
-            !replaceExisting.getValue().equals(
-                    replaceExisting.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(replaceExisting.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_REPLACE_EXISTING, values));
-    }
-
-    if (backendID.getValue() != null &&
-            !backendID.getValue().equals(
-                    backendID.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(backendID.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_BACKEND_ID, values));
-    }
-
-    List<String> includeAttributes = includeAttributeStrings.getValues();
-    if (includeAttributes != null && includeAttributes.size() > 0) {
-      values = new ArrayList<ByteString>(includeAttributes.size());
-      for (String includeAttribute : includeAttributes) {
-        values.add(ByteString.valueOf(includeAttribute));
-      }
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_ATTRIBUTE, values));
-    }
-
-    List<String> excludeAttributes = excludeAttributeStrings.getValues();
-    if (excludeAttributes != null && excludeAttributes.size() > 0) {
-      values = new ArrayList<ByteString>(excludeAttributes.size());
-      for (String excludeAttribute : excludeAttributes) {
-        values.add(ByteString.valueOf(excludeAttribute));
-      }
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_ATTRIBUTE, values));
-    }
-
-    List<String> includeFilters = includeFilterStrings.getValues();
-    if (includeFilters != null && includeFilters.size() > 0) {
-      values = new ArrayList<ByteString>(includeFilters.size());
-      for (String includeFilter : includeFilters) {
-        values.add(ByteString.valueOf(includeFilter));
-      }
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_FILTER, values));
-    }
-
-    List<String> excludeFilters = excludeFilterStrings.getValues();
-    if (excludeFilters != null && excludeFilters.size() > 0) {
-      values = new ArrayList<ByteString>(excludeFilters.size());
-      for (String excludeFilter : excludeFilters) {
-        values.add(ByteString.valueOf(excludeFilter));
-      }
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_FILTER, values));
-    }
-
-    List<String> includeBranches = includeBranchStrings.getValues();
-    if (includeBranches != null && includeBranches.size() > 0) {
-      values = new ArrayList<ByteString>(includeBranches.size());
-      for (String includeBranche : includeBranches) {
-        values.add(ByteString.valueOf(includeBranche));
-      }
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_INCLUDE_BRANCH, values));
-    }
-
-    List<String> excludeBranches = excludeBranchStrings.getValues();
-    if (excludeBranches != null && excludeBranches.size() > 0) {
-      values = new ArrayList<ByteString>(excludeBranches.size());
-      for (String excludeBranch : excludeBranches) {
-        values.add(ByteString.valueOf(excludeBranch));
-      }
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_EXCLUDE_BRANCH, values));
-    }
-
-    if (rejectFile.getValue() != null &&
-            !rejectFile.getValue().equals(
-                    rejectFile.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(rejectFile.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_REJECT_FILE, values));
-    }
-
-    if (skipFile.getValue() != null &&
-            !skipFile.getValue().equals(
-                    skipFile.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(skipFile.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_SKIP_FILE, values));
-    }
-
-    if (overwrite.getValue() != null &&
-            !overwrite.getValue().equals(
-                    overwrite.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(overwrite.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_OVERWRITE, values));
-    }
-
-    if (skipSchemaValidation.getValue() != null &&
-            !skipSchemaValidation.getValue().equals(
-                    skipSchemaValidation.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(skipSchemaValidation.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_IMPORT_SKIP_SCHEMA_VALIDATION, values));
-    }
-
-    if (tmpDirectory.getValue() != null &&
-            !tmpDirectory.getValue().equals(
-                    tmpDirectory.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(tmpDirectory.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_IMPORT_TMP_DIRECTORY, values));
-    }
-
-
-    if (skipDNValidation.getValue() != null &&
-            !skipDNValidation.getValue().equals(
-                    skipDNValidation.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(skipDNValidation.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_IMPORT_SKIP_DN_VALIDATION, values));
-    }
-
-
-    if (isCompressed.getValue() != null &&
-            !isCompressed.getValue().equals(
-                    isCompressed.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(isCompressed.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_IMPORT_IS_COMPRESSED, values));
-    }
-
-    if (isEncrypted.getValue() != null &&
-            !isEncrypted.getValue().equals(
-                    isEncrypted.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(isEncrypted.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_IMPORT_IS_ENCRYPTED, values));
-    }
-
-    if (clearBackend.getValue() != null &&
-            !clearBackend.getValue().equals(
-                    clearBackend.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(clearBackend.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_IMPORT_CLEAR_BACKEND, values));
-    }
-
+    addAttribute2(attributes, ATTR_IMPORT_APPEND, append);
+    addAttribute2(attributes, ATTR_IMPORT_REPLACE_EXISTING, replaceExisting);
+    addAttribute2(attributes, ATTR_IMPORT_BACKEND_ID, backendID);
+    addAttribute(attributes, ATTR_IMPORT_INCLUDE_ATTRIBUTE, includeAttributeStrings.getValues());
+    addAttribute(attributes, ATTR_IMPORT_EXCLUDE_ATTRIBUTE, excludeAttributeStrings.getValues());
+    addAttribute(attributes, ATTR_IMPORT_INCLUDE_FILTER, includeFilterStrings.getValues());
+    addAttribute(attributes, ATTR_IMPORT_EXCLUDE_FILTER, excludeFilterStrings.getValues());
+    addAttribute(attributes, ATTR_IMPORT_INCLUDE_BRANCH, includeBranchStrings.getValues());
+    addAttribute(attributes, ATTR_IMPORT_EXCLUDE_BRANCH, excludeBranchStrings.getValues());
+    addAttribute2(attributes, ATTR_IMPORT_REJECT_FILE, rejectFile);
+    addAttribute2(attributes, ATTR_IMPORT_SKIP_FILE, skipFile);
+    addAttribute2(attributes, ATTR_IMPORT_OVERWRITE, overwrite);
+    addAttribute2(attributes, ATTR_IMPORT_SKIP_SCHEMA_VALIDATION, skipSchemaValidation);
+    addAttribute2(attributes, ATTR_IMPORT_TMP_DIRECTORY, tmpDirectory);
+    addAttribute2(attributes, ATTR_IMPORT_SKIP_DN_VALIDATION, skipDNValidation);
+    addAttribute2(attributes, ATTR_IMPORT_IS_COMPRESSED, isCompressed);
+    addAttribute2(attributes, ATTR_IMPORT_IS_ENCRYPTED, isEncrypted);
+    addAttribute2(attributes, ATTR_IMPORT_CLEAR_BACKEND, clearBackend);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private void addAttribute(List<RawAttribute> attributes, String attrName, String value)
+  {
+    if (value != null)
+    {
+      attributes.add(new LDAPAttribute(attrName, toByteStrings(value)));
+    }
+  }
+
+  private void addAttribute2(List<RawAttribute> attributes, String attrName, Argument arg)
+  {
+    if (arg.getValue() != null && !arg.getValue().equals(arg.getDefaultValue()))
+    {
+      attributes.add(new LDAPAttribute(attrName, toByteStrings(arg.getValue())));
+    }
+  }
+
+  private void addAttribute(List<RawAttribute> attributes, String attrName, List<String> attrValues)
+  {
+    if (attrValues != null && !attrValues.isEmpty())
+    {
+      attributes.add(new LDAPAttribute(attrName, toByteStrings(attrValues)));
+    }
+  }
+
+  private ArrayList<ByteString> toByteStrings(String value)
+  {
+    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(value));
+    return values;
+  }
+
+  private ArrayList<ByteString> toByteStrings(List<String> attrValues)
+  {
+    final ArrayList<ByteString> values = new ArrayList<ByteString>(attrValues.size());
+    for (String includeBranche : attrValues)
+    {
+      values.add(ByteString.valueOf(includeBranche));
+    }
+    return values;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public String getTaskObjectclass() {
     return "ds-task-import";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Class<?> getTaskClass() {
     return ImportTask.class;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
@@ -1129,7 +984,7 @@ public class ImportLDIF extends TaskTool {
     // through them, finding the one backend into which the LDIF should be
     // imported and finding backends with subordinate base DNs that should be
     // excluded from the import.
-    Backend       backend           = null;
+    Backend<?> backend = null;
     List<DN> defaultIncludeBranches = null;
     List<DN> excludeBranches        = new ArrayList<DN>();
     List<DN> includeBranches        = new ArrayList<DN>();
@@ -1171,7 +1026,7 @@ public class ImportLDIF extends TaskTool {
     int numBackends = backendList.size();
     for (int i=0; i < numBackends; i++)
     {
-      Backend b = backendList.get(i);
+      Backend<?> b = backendList.get(i);
 
       if(backendID.isPresent())
       {
@@ -1542,12 +1397,10 @@ public class ImportLDIF extends TaskTool {
     return retCode;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getTaskId() {
     // NYI.
     return null;
   }
 }
-

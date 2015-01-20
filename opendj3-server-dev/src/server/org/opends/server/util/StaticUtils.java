@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.util;
+
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -58,9 +61,6 @@ import org.opends.server.types.*;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
-
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines a number of static utility methods that may be used
@@ -3343,7 +3343,7 @@ public final class StaticUtils
    *
    * @return  An array list containing the contents of the provided array.
    */
-  public static ArrayList<String> arrayToList(String[] stringArray)
+  public static ArrayList<String> arrayToList(String... stringArray)
   {
     if (stringArray == null)
     {
@@ -3355,7 +3355,6 @@ public final class StaticUtils
     {
       stringList.add(s);
     }
-
     return stringList;
   }
 

@@ -26,6 +26,15 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.extensions.ExtensionsConstants.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -33,20 +42,22 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.*;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
-import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.EmbeddedUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
@@ -58,15 +69,6 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This program provides a utility that uses the LDAP password modify extended

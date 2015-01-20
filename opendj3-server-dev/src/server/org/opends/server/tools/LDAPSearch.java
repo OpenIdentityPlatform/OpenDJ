@@ -26,6 +26,16 @@
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -55,16 +65,6 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
 /**
  * This class provides a tool that can be used to issue search requests to the
  * Directory Server.
@@ -73,23 +73,20 @@ public class LDAPSearch
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * The fully-qualified name of this class.
-   */
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME = "org.opends.server.tools.LDAPSearch";
 
 
 
-  // The set of response controls for the search.
+  /** The set of response controls for the search. */
   private List<Control> responseControls;
 
-  // The message ID counter to use for requests.
+  /** The message ID counter to use for requests. */
   private final AtomicInteger nextMessageID;
 
-  // The print stream to use for standard error.
+  /** The print stream to use for standard error. */
   private final PrintStream err;
-
-  // The print stream to use for standard output.
+  /** The print stream to use for standard output. */
   private final PrintStream out;
 
 

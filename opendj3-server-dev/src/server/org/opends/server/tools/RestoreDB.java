@@ -22,12 +22,16 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -38,44 +42,35 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.server.api.Backend;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.tasks.RestoreTask;
+import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.BuildVersion;
+import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
+import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
-
-import org.opends.server.util.args.LDAPConnectionArgumentParser;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
-import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.tasks.RestoreTask;
-
 
 /**
  * This program provides a utility that may be used to restore a binary backup
@@ -137,14 +132,14 @@ public class RestoreDB extends TaskTool {
   }
 
 
-  // Define the command-line arguments that may be used with this program.
-  private BooleanArgument displayUsage      = null;
-  private BooleanArgument listBackups       = null;
-  private BooleanArgument verifyOnly        = null;
-  private StringArgument  backupIDString    = null;
-  private StringArgument  configClass       = null;
-  private StringArgument  configFile        = null;
-  private StringArgument  backupDirectory   = null;
+  /** Define the command-line arguments that may be used with this program. */
+  private BooleanArgument displayUsage;
+  private BooleanArgument listBackups;
+  private BooleanArgument verifyOnly;
+  private StringArgument  backupIDString;
+  private StringArgument  configClass;
+  private StringArgument  configFile;
+  private StringArgument  backupDirectory;
 
 
   private int process(String[] args, boolean initializeServer,
@@ -285,59 +280,44 @@ public class RestoreDB extends TaskTool {
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    ArrayList<ByteString> values;
-
-    if (backupDirectory.getValue() != null &&
-            !backupDirectory.getValue().equals(
-                    backupDirectory.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(backupDirectory.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_BACKUP_DIRECTORY_PATH, values));
-    }
-
-    if (backupIDString.getValue() != null &&
-            !backupIDString.getValue().equals(
-                    backupIDString.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(backupIDString.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_BACKUP_ID, values));
-    }
-
-    if (verifyOnly.getValue() != null &&
-            !verifyOnly.getValue().equals(
-                    verifyOnly.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(verifyOnly.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_RESTORE_VERIFY_ONLY, values));
-    }
-
+    addAttribute(attributes, ATTR_BACKUP_DIRECTORY_PATH, backupDirectory);
+    addAttribute(attributes, ATTR_BACKUP_ID, backupIDString);
+    addAttribute(attributes, ATTR_TASK_RESTORE_VERIFY_ONLY, verifyOnly);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private void addAttribute(List<RawAttribute> attributes, String attrName, Argument arg)
+  {
+    if (arg.getValue() != null && !arg.getValue().equals(arg.getDefaultValue()))
+    {
+      attributes.add(new LDAPAttribute(attrName, toByteStrings(arg.getValue())));
+    }
+  }
+
+  private ArrayList<ByteString> toByteStrings(String value)
+  {
+    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(value));
+    return values;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public String getTaskObjectclass() {
     return "ds-task-restore";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Class<?> getTaskClass() {
     return RestoreTask.class;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
                            PrintStream err) {
@@ -676,15 +656,9 @@ public class RestoreDB extends TaskTool {
     return 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getTaskId() {
-    if (backupIDString != null) {
-      return backupIDString.getValue();
-    } else {
-      return null;
-    }
+    return backupIDString != null? backupIDString.getValue() : null;
   }
 }
-

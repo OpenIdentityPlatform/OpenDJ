@@ -22,46 +22,44 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
-import com.forgerock.opendj.cli.Argument;
-import com.forgerock.opendj.cli.ArgumentGroup;
-import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
-import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.ClientException;
+import static com.forgerock.opendj.cli.Utils.*;
 
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static com.forgerock.opendj.cli.Utils.wrapText;
+import static org.opends.messages.TaskMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.server.admin.client.cli.TaskScheduleArgs;
+import org.opends.server.backends.task.FailedDependencyAction;
+import org.opends.server.backends.task.TaskState;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
-
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.admin.client.cli.TaskScheduleArgs;
-import org.opends.server.backends.task.TaskState;
-import org.opends.server.backends.task.FailedDependencyAction;
-import org.forgerock.i18n.LocalizableMessage;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.TaskMessages.*;
-
-import java.io.PrintStream;
-import java.util.Date;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
-import java.util.logging.Level;
-import java.io.IOException;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.StringArgument;
 
 /**
  * Base class for tools that are capable of operating either by running

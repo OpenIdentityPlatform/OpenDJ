@@ -22,11 +22,21 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.server.tools;
-import java.io.*;
+
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.messages.ToolMessages.*;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.util.Utilities;
@@ -38,12 +48,6 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static com.forgerock.opendj.util.OperatingSystem.hasUAC;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
   * This class is used to configure the Windows service for this instance on

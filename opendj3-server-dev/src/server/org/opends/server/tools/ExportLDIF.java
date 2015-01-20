@@ -22,61 +22,62 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.OutputStream;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.loggers.JDKLogging;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.tasks.ExportTask;
+import org.opends.server.tools.tasks.TaskTool;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ExistingFileBehavior;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
+import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.ClientException;
-
-import org.forgerock.i18n.LocalizableMessage;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.wrapText;
-
-import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.tasks.ExportTask;
-
 
 /**
  * This program provides a utility that may be used to export the contents of a
@@ -137,24 +138,24 @@ public class ExportLDIF extends TaskTool {
     return tool.process(args, initializeServer, outStream, errStream);
   }
 
-  // Define the command-line arguments that may be used with this program.
-  private BooleanArgument appendToLDIF            = null;
-  private BooleanArgument compressLDIF            = null;
-  private BooleanArgument displayUsage            = null;
-  private BooleanArgument encryptLDIF             = null;
-  private BooleanArgument excludeOperationalAttrs = null;
-  private BooleanArgument signHash                = null;
-  private IntegerArgument wrapColumn              = null;
-  private StringArgument  backendID               = null;
-  private StringArgument  configClass             = null;
-  private StringArgument  configFile              = null;
-  private StringArgument  excludeAttributeStrings = null;
-  private StringArgument  excludeBranchStrings    = null;
-  private StringArgument  excludeFilterStrings    = null;
-  private StringArgument  includeAttributeStrings = null;
-  private StringArgument  includeBranchStrings    = null;
-  private StringArgument  includeFilterStrings    = null;
-  private StringArgument  ldifFile                = null;
+  /** Define the command-line arguments that may be used with this program. */
+  private BooleanArgument appendToLDIF;
+  private BooleanArgument compressLDIF;
+  private BooleanArgument displayUsage;
+  private BooleanArgument encryptLDIF;
+  private BooleanArgument excludeOperationalAttrs;
+  private BooleanArgument signHash;
+  private IntegerArgument wrapColumn;
+  private StringArgument  backendID;
+  private StringArgument  configClass;
+  private StringArgument  configFile;
+  private StringArgument  excludeAttributeStrings;
+  private StringArgument  excludeBranchStrings;
+  private StringArgument  excludeFilterStrings;
+  private StringArgument  includeAttributeStrings;
+  private StringArgument  includeBranchStrings;
+  private StringArgument  includeFilterStrings;
+  private StringArgument  ldifFile;
 
   private int process(String[] args, boolean initializeServer,
                       OutputStream outStream, OutputStream errStream) {
@@ -363,150 +364,82 @@ public class ExportLDIF extends TaskTool {
     return process(argParser, initializeServer, out, err);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
-    //
     // Required attributes
-    //
-    ArrayList<ByteString> values = new ArrayList<ByteString>(1);
-    values.add(ByteString.valueOf(ldifFile.getValue()));
-    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_LDIF_FILE, values));
+    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_LDIF_FILE, toByteStrings(ldifFile.getValue())));
+    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_BACKEND_ID, toByteStrings(backendID.getValue())));
 
-    values = new ArrayList<ByteString>(1);
-    values.add(ByteString.valueOf(backendID.getValue()));
-    attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_BACKEND_ID, values));
-
-    //
     // Optional attributes
-    //
-    if (appendToLDIF.getValue() != null &&
-            !appendToLDIF.getValue().equals(appendToLDIF.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(appendToLDIF.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_APPEND_TO_LDIF, values));
-    }
-
-    if (compressLDIF.getValue() != null &&
-            !compressLDIF.getValue().equals(compressLDIF.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(compressLDIF.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_COMPRESS_LDIF, values));
-    }
-
-    if (encryptLDIF.getValue() != null &&
-            !encryptLDIF.getValue().equals(encryptLDIF.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(encryptLDIF.getValue()));
-      attributes.add(new LDAPAttribute(ATTR_TASK_EXPORT_ENCRYPT_LDIF, values));
-    }
-
-    if (signHash.getValue() != null &&
-            !signHash.getValue().equals(signHash.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(signHash.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_SIGN_HASH, values));
-    }
-
-    List<String> includeAttributes = includeAttributeStrings.getValues();
-    if (includeAttributes != null && includeAttributes.size() > 0) {
-      values = new ArrayList<ByteString>(includeAttributes.size());
-      for (String includeAttribute : includeAttributes) {
-        values.add(ByteString.valueOf(includeAttribute));
-      }
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE, values));
-    }
-
-    List<String> excludeAttributes = excludeAttributeStrings.getValues();
-    if (excludeAttributes != null && excludeAttributes.size() > 0) {
-      values = new ArrayList<ByteString>(excludeAttributes.size());
-      for (String excludeAttribute : excludeAttributes) {
-        values.add(ByteString.valueOf(excludeAttribute));
-      }
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE, values));
-    }
-
-    List<String> includeFilters = includeFilterStrings.getValues();
-    if (includeFilters != null && includeFilters.size() > 0) {
-      values = new ArrayList<ByteString>(includeFilters.size());
-      for (String includeFilter : includeFilters) {
-        values.add(ByteString.valueOf(includeFilter));
-      }
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_FILTER, values));
-    }
-
-    List<String> excludeFilters = excludeFilterStrings.getValues();
-    if (excludeFilters != null && excludeFilters.size() > 0) {
-      values = new ArrayList<ByteString>(excludeFilters.size());
-      for (String excludeFilter : excludeFilters) {
-        values.add(ByteString.valueOf(excludeFilter));
-      }
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_FILTER, values));
-    }
-
-    List<String> includeBranches = includeBranchStrings.getValues();
-    if (includeBranches != null && includeBranches.size() > 0) {
-      values = new ArrayList<ByteString>(includeBranches.size());
-      for (String includeBranche : includeBranches) {
-        values.add(ByteString.valueOf(includeBranche));
-      }
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_BRANCH, values));
-    }
-
-    List<String> excludeBranches = excludeBranchStrings.getValues();
-    if (excludeBranches != null && excludeBranches.size() > 0) {
-      values = new ArrayList<ByteString>(excludeBranches.size());
-      for (String excludeBranche : excludeBranches) {
-        values.add(ByteString.valueOf(excludeBranche));
-      }
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_EXCLUDE_BRANCH, values));
-    }
-
-    if (wrapColumn.getValue() != null &&
-            !wrapColumn.getValue().equals(wrapColumn.getDefaultValue())) {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf(wrapColumn.getValue()));
-      attributes.add(
-              new LDAPAttribute(ATTR_TASK_EXPORT_WRAP_COLUMN, values));
-    }
+    addAttribute(attributes, ATTR_TASK_EXPORT_APPEND_TO_LDIF, appendToLDIF);
+    addAttribute(attributes, ATTR_TASK_EXPORT_COMPRESS_LDIF, compressLDIF);
+    addAttribute(attributes, ATTR_TASK_EXPORT_ENCRYPT_LDIF, encryptLDIF);
+    addAttribute(attributes, ATTR_TASK_EXPORT_SIGN_HASH, signHash);
+    addAttribute(attributes, ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE, includeAttributeStrings.getValues());
+    addAttribute(attributes, ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE, excludeAttributeStrings.getValues());
+    addAttribute(attributes, ATTR_TASK_EXPORT_INCLUDE_FILTER, includeFilterStrings.getValues());
+    addAttribute(attributes, ATTR_TASK_EXPORT_EXCLUDE_FILTER, excludeFilterStrings.getValues());
+    addAttribute(attributes, ATTR_TASK_EXPORT_INCLUDE_BRANCH, includeBranchStrings.getValues());
+    addAttribute(attributes, ATTR_TASK_EXPORT_EXCLUDE_BRANCH, excludeBranchStrings.getValues());
+    addAttribute(attributes, ATTR_TASK_EXPORT_WRAP_COLUMN, wrapColumn);
 
     if (excludeOperationalAttrs.isPresent())
     {
-      values = new ArrayList<ByteString>(1);
-      values.add(ByteString.valueOf("false"));
       attributes.add(
           new LDAPAttribute(ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES,
-              values));
+              toByteStrings("false")));
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private void addAttribute(List<RawAttribute> attributes, String attrName, Argument arg)
+  {
+    if (arg.getValue() != null && !arg.getValue().equals(arg.getDefaultValue()))
+    {
+      attributes.add(new LDAPAttribute(attrName, toByteStrings(arg.getValue())));
+    }
+  }
+
+  private void addAttribute(List<RawAttribute> attributes, String attrName, List<String> attrValues)
+  {
+    if (attrValues != null && !attrValues.isEmpty())
+    {
+      attributes.add(new LDAPAttribute(attrName, toByteStrings(attrValues)));
+    }
+  }
+
+  private ArrayList<ByteString> toByteStrings(String value)
+  {
+    final ArrayList<ByteString> values = new ArrayList<ByteString>(1);
+    values.add(ByteString.valueOf(value));
+    return values;
+  }
+
+  private ArrayList<ByteString> toByteStrings(List<String> includeAttributes)
+  {
+    final ArrayList<ByteString> values = new ArrayList<ByteString>(includeAttributes.size());
+    for (String includeAttribute : includeAttributes)
+    {
+      values.add(ByteString.valueOf(includeAttribute));
+    }
+    return values;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public String getTaskObjectclass() {
     return "ds-task-export";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Class<?> getTaskClass() {
     return ExportTask.class;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
                            PrintStream err) {
@@ -1002,12 +935,10 @@ public class ExportLDIF extends TaskTool {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getTaskId() {
     // NYI.
     return null;
   }
 }
-

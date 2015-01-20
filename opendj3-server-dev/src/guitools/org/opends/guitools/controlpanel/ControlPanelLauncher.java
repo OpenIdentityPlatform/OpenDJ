@@ -22,24 +22,22 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel;
+
+import static com.forgerock.opendj.cli.Utils.*;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import java.io.File;
 import java.io.PrintStream;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.messages.AdminToolMessages;
 import org.opends.quicksetup.ui.UIFactory;
@@ -47,6 +45,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
+
 import com.forgerock.opendj.cli.ArgumentException;
 
 /**
@@ -170,6 +169,7 @@ public class ControlPanelLauncher
     final int[] returnValue = { -1 };
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
@@ -322,6 +322,7 @@ class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
    * This method assumes that is being called outside the event thread.
    * @param args arguments to be passed to the method ControlPanel.initialize.
    */
+  @Override
   protected void constructApplication(String[] args)
   {
     try
@@ -346,10 +347,12 @@ class ControlPanelSplashScreen extends org.opends.quicksetup.SplashScreen
    * @see org.opends.guitools.controlpanel.ControlPanel#createAndDisplayGUI()
    * This method assumes that is being called outside the event thread.
    */
+  @Override
   protected void displayApplication()
   {
     Runnable runnable = new Runnable()
     {
+      @Override
       public void run()
       {
         try

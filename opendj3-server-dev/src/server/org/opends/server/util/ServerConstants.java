@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS
+ *      Portions Copyright 2010-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -39,9 +39,7 @@ import org.forgerock.opendj.ldap.ByteString;
      mayInvoke=true)
 public final class ServerConstants
 {
-  /**
-   * The end-of-line character for this platform.
-   */
+  /** The end-of-line character for this platform. */
   public static final String EOL = System.getProperty("line.separator");
 
 
@@ -3001,25 +2999,6 @@ public final class ServerConstants
    */
   public static final String PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG =
        "org.opends.server.UseLastKnownGoodConfiguration";
-
-
-
-  /**
-   * The column at which to wrap long lines of output in the command-line tools.
-   */
-  public static final int MAX_LINE_WIDTH;
-  static {
-    int columns = 80;
-    try {
-      String s = System.getenv("COLUMNS");
-      if (s != null) {
-        columns = Integer.parseInt(s);
-      }
-    } catch (Exception e) {
-      // Do nothing.
-    }
-    MAX_LINE_WIDTH = columns - 1;
-  }
 
 
 
