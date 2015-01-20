@@ -417,19 +417,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /**
-     * Parses the provided set of arguments and updates the information associated with this parser accordingly.
-     *
-     * @param rawArguments
-     *            The raw set of arguments to parse.
-     * @throws ArgumentException
-     *             If a problem was encountered while parsing the provided arguments.
-     */
-    @Override
-    public void parseArguments(String[] rawArguments) throws ArgumentException {
-        parseArguments(rawArguments, null);
-    }
-
-    /**
      * Parses the provided set of arguments and updates the information associated with this parser accordingly. Default
      * values for unspecified arguments may be read from the specified properties if any are provided.
      *
