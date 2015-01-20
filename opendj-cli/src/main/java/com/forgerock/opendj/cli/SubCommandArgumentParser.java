@@ -244,20 +244,15 @@ public class SubCommandArgumentParser extends ArgumentParser {
         addGlobalArgument(argument, null);
     }
 
-
-    /**
-     * Adds the provided argument to the set of arguments handled by this parser and puts the argument in the LDAP
-     * connection group.
-     *
-     * @param argument
-     *            The argument to add to this sub command.
-     * @throws ArgumentException
-     *             If the provided argument conflicts with another global or subcommand argument that has already been
-     *             defined.
-     */
+    /** {@inheritDoc} */
     @Override
-    public void addLdapConnectionArgument(final Argument argument) throws ArgumentException {
-        addGlobalArgument(argument, null);
+    public void addArgument(Argument argument) throws ArgumentException {
+        final ArgumentGroup group = getStandardGroup(argument);
+        if (group == ldapArgGroup) {
+            addGlobalArgument(argument);
+        } else {
+            super.addArgument(argument);
+        }
     }
 
     /**
@@ -501,8 +496,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                             writeToUsageOutputStream(getUsage());
                             return;
                         } else if (OPTION_LONG_PRODUCT_VERSION.equals(argName) && getVersionHandler() != null) {
-                            // "--version" will always be interpreted as requesting usage
-                            // information.
+                            // "--version" will always be interpreted as requesting usage information.
                             printVersion();
                             return;
                         } else if (subCommand != null) {
@@ -765,7 +759,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * @param subCommand
      *            The subcommand for which to display the usage information.
      */
-    public void getSubCommandUsage(LocalizableMessageBuilder buffer, SubCommand subCommand) {
+    public void getSubCommandUsage(StringBuilder buffer, SubCommand subCommand) {
         setUsageOrVersionDisplayed(true);
         String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
         if (scriptName == null || scriptName.length() == 0) {
@@ -801,64 +795,13 @@ public class SubCommandArgumentParser extends ArgumentParser {
             buffer.append(EOL);
         }
 
-        final Argument usageArgument = getUsageArgument();
         for (Argument a : subCommand.getArguments()) {
             // If this argument is hidden, then skip it.
             if (a.isHidden()) {
                 continue;
             }
 
-            // Write a line with the short and/or long identifiers that may be used
-            // for the argument.
-            Character shortID = a.getShortIdentifier();
-            String longID = a.getLongIdentifier();
-            if (shortID != null) {
-                int currentLength = buffer.length();
-
-                if (a.equals(usageArgument)) {
-                    buffer.append("-?, ");
-                }
-
-                buffer.append("-");
-                buffer.append(shortID.charValue());
-
-                if (a.needsValue() && longID == null) {
-                    buffer.append(" ");
-                    buffer.append(a.getValuePlaceholder());
-                }
-
-                if (longID != null) {
-                    StringBuilder newBuffer = new StringBuilder();
-                    newBuffer.append(", --");
-                    newBuffer.append(longID);
-
-                    if (a.needsValue()) {
-                        newBuffer.append(" ");
-                        newBuffer.append(a.getValuePlaceholder());
-                    }
-
-                    int lineLength = (buffer.length() - currentLength) + newBuffer.length();
-                    if (lineLength > MAX_LINE_WIDTH) {
-                        buffer.append(EOL);
-                    }
-                    buffer.append(newBuffer);
-                }
-
-                buffer.append(EOL);
-            } else if (longID != null) {
-                if (a.equals(usageArgument)) {
-                    buffer.append("-?, ");
-                }
-                buffer.append("--");
-                buffer.append(longID);
-
-                if (a.needsValue()) {
-                    buffer.append(" ");
-                    buffer.append(a.getValuePlaceholder());
-                }
-
-                buffer.append(EOL);
-            }
+            printLineForShortLongArgument(a, buffer);
 
             indentAndWrap2(INDENT, a.getDescription(), buffer);
             if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
@@ -873,7 +816,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * <p>
      * FIXME Try to merge with #indentAndWrap(LocalizableMessage, LocalizableMessage, LocalizableMessageBuilder).
      */
-    private void indentAndWrap2(String indent, LocalizableMessage text, LocalizableMessageBuilder buffer) {
+    private void indentAndWrap2(String indent, LocalizableMessage text, StringBuilder buffer) {
         int actualSize = MAX_LINE_WIDTH - indent.length() - 1;
         indentAndWrap(indent, actualSize, text, buffer);
     }
@@ -885,7 +828,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     @Override
     public String getUsage() {
-        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
+        final StringBuilder buffer = new StringBuilder();
 
         if (subCommand == null) {
             if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
@@ -905,7 +848,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             getSubCommandUsage(buffer, subCommand);
         }
 
-        return buffer.toMessage().toString();
+        return buffer.toString();
     }
 
     /**
@@ -940,15 +883,15 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
     /** Get usage for a specific usage argument. */
     private void getUsage(Argument a) {
-        LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
+        final StringBuilder buffer = new StringBuilder();
 
-        final Argument usageArgument = getUsageArgument();
-        if (a.equals(usageArgument) && subCommand != null) {
+        final boolean isUsageArgument = isUsageArgument(a);
+        if (isUsageArgument && subCommand != null) {
             getSubCommandUsage(buffer, subCommand);
-        } else if (a.equals(usageArgument) && usageGroupArguments.size() <= 1) {
+        } else if (isUsageArgument && usageGroupArguments.size() <= 1) {
             // No groups - so display all sub-commands.
             getFullUsage(subCommands.values(), true, buffer);
-        } else if (a.equals(usageArgument)) {
+        } else if (isUsageArgument) {
             // Using groups - so display all sub-commands group help.
             getFullUsage(Collections.<SubCommand> emptySet(), true, buffer);
         } else {
@@ -962,7 +905,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
     /**
      * Appends complete usage information for the specified set of sub-commands.
      */
-    private void getFullUsage(Collection<SubCommand> c, boolean showGlobalOptions, LocalizableMessageBuilder buffer) {
+    private void getFullUsage(Collection<SubCommand> c, boolean showGlobalOptions, StringBuilder buffer) {
         setUsageOrVersionDisplayed(true);
 
         final LocalizableMessage toolDescription = getToolDescription();
@@ -996,7 +939,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
             buffer.append(EOL);
         }
 
-        final Argument usageArgument = getUsageArgument();
         if (c.isEmpty()) {
             // Display usage arguments (except the default one).
             for (Argument a : globalArgumentList) {
@@ -1004,7 +946,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     continue;
                 }
 
-                if (usageGroupArguments.containsKey(a) && !a.equals(usageArgument)) {
+                if (usageGroupArguments.containsKey(a) && !isUsageArgument(a)) {
                     printArgumentUsage(a, buffer);
                 }
             }
@@ -1061,6 +1003,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             }
 
             // Finally print default usage argument.
+            final Argument usageArgument = getUsageArgument();
             if (usageArgument != null) {
                 printArgumentUsage(usageArgument, buffer);
             } else {
@@ -1078,7 +1021,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * @param buffer
      *            The buffer to which the usage information should be appended.
      */
-    private void printArgumentUsage(Argument a, LocalizableMessageBuilder buffer) {
+    private void printArgumentUsage(Argument a, StringBuilder buffer) {
         String value;
         if (a.needsValue()) {
             LocalizableMessage pHolder = a.getValuePlaceholder();
@@ -1130,13 +1073,12 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * Write one or more lines with the description of the argument. We will indent the description five characters and
      * try our best to wrap at or before column 79 so it will be friendly to 80-column displays.
      */
-    private void indentAndWrap(String indent, LocalizableMessage text, LocalizableMessageBuilder buffer) {
+    private void indentAndWrap(String indent, LocalizableMessage text, StringBuilder buffer) {
         int actualSize = MAX_LINE_WIDTH - indent.length();
         indentAndWrap(indent, actualSize, text, buffer);
     }
 
-    static void indentAndWrap(String indent, int actualSize, LocalizableMessage text,
-            LocalizableMessageBuilder buffer) {
+    static void indentAndWrap(String indent, int actualSize, LocalizableMessage text, StringBuilder buffer) {
         if (text.length() <= actualSize) {
             buffer.append(indent);
             buffer.append(text);

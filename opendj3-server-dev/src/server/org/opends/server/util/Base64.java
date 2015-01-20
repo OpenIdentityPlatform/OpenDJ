@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 import org.opends.server.types.NullOutputStream;
@@ -565,7 +564,7 @@ public final class Base64
       }
       else
       {
-        LocalizableMessageBuilder messageBuilder = new LocalizableMessageBuilder();
+        final StringBuilder messageBuilder = new StringBuilder();
         argParser.getSubCommandUsage(messageBuilder, subCommand);
         System.out.println(messageBuilder.toString());
       }

@@ -22,22 +22,21 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
+
+import static com.forgerock.opendj.cli.CliMessages.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.fest.assertions.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static com.forgerock.opendj.cli.CliMessages.*;
 
 /**
  * Unit tests for the SubCommand class.
@@ -49,7 +48,6 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
 
     /** First sub-command. */
     private SubCommand sc1;
-
     /** Second sub-command. */
     private SubCommand sc2;
 
@@ -88,7 +86,9 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
      */
     @DataProvider(name = "validCommandLineArgs")
     public Object[][] createValidCommandLineArgs() {
-        return new Object[][] { { new String[] {}, null }, { new String[] { "sub-command1" }, sc1 },
+        return new Object[][] {
+            { new String[] {}, null },
+            { new String[] { "sub-command1" }, sc1 },
             { new String[] { "sub-command2", "one", "two" }, sc2 },
             { new String[] { "sub-command2", "one", "two", "three" }, sc2 },
             { new String[] { "sub-command2", "one", "two", "three", "four" }, sc2 }, };
@@ -131,8 +131,10 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
      */
     @DataProvider(name = "invalidCommandLineArgs")
     public Object[][] createInvalidCommandLineArgs() {
-        return new Object[][] { { new String[] { "sub-command1", "one" } },
-            { new String[] { "sub-command1", "one", "two" } }, { new String[] { "sub-command2" } },
+        return new Object[][] {
+            { new String[] { "sub-command1", "one" } },
+            { new String[] { "sub-command1", "one", "two" } },
+            { new String[] { "sub-command2" } },
             { new String[] { "sub-command2", "one" } },
             { new String[] { "sub-command2", "one", "two", "three", "four", "five" } }, };
     }
@@ -162,7 +164,7 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
 
     @Test(dataProvider = "indentAndWrapProvider")
     public void testIndentAndWrap(String text, int wrapColumn, String indent, String expected) {
-        final LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
+        final StringBuilder buffer = new StringBuilder();
         SubCommandArgumentParser.indentAndWrap(indent, wrapColumn, LocalizableMessage.raw(text), buffer);
         Assertions.assertThat(buffer.toString()).isEqualTo(expected);
     }
