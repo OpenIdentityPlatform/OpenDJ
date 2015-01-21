@@ -179,9 +179,8 @@ public class Index extends DatabaseContainer
    * @throws DatabaseException If a database error occurs.
    */
   public void delete(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
-    final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
-    if(status == SUCCESS) {
-      newImportIDSet.clear(false);
+    if (read(null, key, data, LockMode.DEFAULT) == SUCCESS) {
+      newImportIDSet.clear();
       newImportIDSet.remove(data.getData(), importIdSet);
       if (newImportIDSet.isDefined() && newImportIDSet.size() == 0)
       {
@@ -209,7 +208,7 @@ public class Index extends DatabaseContainer
   public void insert(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException {
     final OperationStatus status = read(null, key, data, LockMode.DEFAULT);
     if(status == OperationStatus.SUCCESS) {
-      newImportIDSet.clear(false);
+      newImportIDSet.clear();
       if (newImportIDSet.merge(data.getData(), importIdSet))
       {
         entryLimitExceededCount++;
