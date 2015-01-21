@@ -71,6 +71,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.schema.DITContentRule.Builder;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.AsyncFunction;
 import org.forgerock.util.promise.Function;
@@ -446,16 +447,9 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String structuralClass = readOID(reader, allowsMalformedNamesAndOptions());
-
-            List<String> names = Collections.emptyList();
-            String description = "".intern();
-            boolean isObsolete = false;
-            Set<String> auxiliaryClasses = Collections.emptySet();
-            Set<String> optionalAttributes = Collections.emptySet();
-            Set<String> prohibitedAttributes = Collections.emptySet();
-            Set<String> requiredAttributes = Collections.emptySet();
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
+            final DITContentRule.Builder contentRuleBuilder =
+                    buildDITContentRule(readOID(reader, allowsMalformedNamesAndOptions()));
+            contentRuleBuilder.definition(definition);
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -472,110 +466,42 @@ public final class SchemaBuilder {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
+                    contentRuleBuilder.names(readNameDescriptors(reader, allowsMalformedNamesAndOptions()));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = readQuotedString(reader);
+                    contentRuleBuilder.description(readQuotedString(reader));
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
-                    // considered obsolete. We do not need to do any more
-                    // parsing for this token.
-                    isObsolete = true;
+                    // considered obsolete.
+                    contentRuleBuilder.obsolete(true);
                 } else if ("aux".equalsIgnoreCase(tokenName)) {
-                    auxiliaryClasses = readOIDs(reader, allowsMalformedNamesAndOptions());
+                    contentRuleBuilder.auxiliaryObjectClasses(readOIDs(reader, allowsMalformedNamesAndOptions()));
                 } else if ("must".equalsIgnoreCase(tokenName)) {
-                    requiredAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
+                    contentRuleBuilder.requiredAttributes(readOIDs(reader, allowsMalformedNamesAndOptions()));
                 } else if ("may".equalsIgnoreCase(tokenName)) {
-                    optionalAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
+                    contentRuleBuilder.optionalAttributes(readOIDs(reader, allowsMalformedNamesAndOptions()));
                 } else if ("not".equalsIgnoreCase(tokenName)) {
-                    prohibitedAttributes = readOIDs(reader, allowsMalformedNamesAndOptions());
+                    contentRuleBuilder.prohibitedAttributes(readOIDs(reader, allowsMalformedNamesAndOptions()));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, readExtensions(reader));
+                    contentRuleBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_DCR_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
-            if (!extraProperties.isEmpty()) {
-                extraProperties = Collections.unmodifiableMap(extraProperties);
-            }
-
-            final DITContentRule rule =
-                    new DITContentRule(structuralClass, names, description, isObsolete,
-                            auxiliaryClasses, optionalAttributes, prohibitedAttributes,
-                            requiredAttributes, extraProperties, definition);
-            addDITContentRule(rule, overwrite);
+            return overwrite ? contentRuleBuilder.addToSchemaOverwrite() : contentRuleBuilder.addToSchema();
         } catch (final DecodeException e) {
-            final LocalizableMessage msg =
-                    ERR_ATTR_SYNTAX_DCR_INVALID1.get(definition, e.getMessageObject());
+            final LocalizableMessage msg = ERR_ATTR_SYNTAX_DCR_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
-        return this;
-    }
-
-    /**
-     * Adds the provided DIT content rule definition to this schema builder.
-     *
-     * @param structuralClass
-     *            The name of the structural object class to which the DIT
-     *            content rule applies.
-     * @param names
-     *            The user-friendly names of the DIT content rule definition.
-     * @param description
-     *            The description of the DIT content rule definition.
-     * @param obsolete
-     *            {@code true} if the DIT content rule definition is obsolete,
-     *            otherwise {@code false}.
-     * @param auxiliaryClasses
-     *            A list of auxiliary object classes that entries subject to the
-     *            DIT content rule may belong to.
-     * @param optionalAttributes
-     *            A list of attribute types that entries subject to the DIT
-     *            content rule may contain.
-     * @param prohibitedAttributes
-     *            A list of attribute types that entries subject to the DIT
-     *            content rule must not contain.
-     * @param requiredAttributes
-     *            A list of attribute types that entries subject to the DIT
-     *            content rule must contain.
-     * @param extraProperties
-     *            A map containing additional properties associated with the DIT
-     *            content rule definition.
-     * @param overwrite
-     *            {@code true} if any existing DIT content rule with the same
-     *            OID should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
-     */
-    SchemaBuilder addDITContentRule(final String structuralClass, final List<String> names,
-            final String description, final boolean obsolete, final Set<String> auxiliaryClasses,
-            final Set<String> optionalAttributes, final Set<String> prohibitedAttributes,
-            final Set<String> requiredAttributes, final Map<String, List<String>> extraProperties,
-            final boolean overwrite) {
-        lazyInitBuilder();
-
-        final DITContentRule rule =
-                new DITContentRule(structuralClass, unmodifiableCopyOfList(names), description,
-                        obsolete, unmodifiableCopyOfSet(auxiliaryClasses),
-                        unmodifiableCopyOfSet(optionalAttributes),
-                        unmodifiableCopyOfSet(prohibitedAttributes),
-                        unmodifiableCopyOfSet(requiredAttributes),
-                        unmodifiableCopyOfExtraProperties(extraProperties), null);
-        addDITContentRule(rule, overwrite);
-        return this;
     }
 
     /**
@@ -1230,6 +1156,24 @@ public final class SchemaBuilder {
 
     /**
      * Returns a builder which can be used for incrementally constructing a new
+     * DIT content rule before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildDITContentRule("structuralobjectclass-oid").name("DIT content rule name").addToSchema();
+     * </pre>
+     *
+     * @param structuralClassOID
+     *            The OID of the structural objectclass for the DIT content rule to build.
+     * @return A builder to continue building the DITContentRule.
+     */
+    public Builder buildDITContentRule(String structuralClassOID) {
+        lazyInitBuilder();
+        return new DITContentRule.Builder(structuralClassOID, this);
+    }
+
+    /**
+     * Returns a builder which can be used for incrementally constructing a new
      * name form before adding it to the schema. Example usage:
      *
      * <pre>
@@ -1277,6 +1221,21 @@ public final class SchemaBuilder {
     public AttributeType.Builder buildAttributeType(final AttributeType attributeType) {
         lazyInitBuilder();
         return new AttributeType.Builder(attributeType, this);
+    }
+
+    /**
+     * Returns a DIT content rule builder whose fields are initialized to the
+     * values of the provided DIT content rule. This method should be used when
+     * duplicating DIT content rules from external schemas or when modifying
+     * existing DIT content rules.
+     *
+     * @param contentRule
+     *            The DIT content rule source.
+     * @return A builder to continue building the DITContentRule.
+     */
+    public DITContentRule.Builder buildDITContentRule(DITContentRule contentRule) {
+        lazyInitBuilder();
+        return new DITContentRule.Builder(contentRule, this);
     }
 
     /**
@@ -2273,7 +2232,7 @@ public final class SchemaBuilder {
         return this;
     }
 
-    private void addDITContentRule(final DITContentRule rule, final boolean overwrite) {
+    SchemaBuilder addDITContentRule(final DITContentRule rule, final boolean overwrite) {
         DITContentRule conflictingRule;
         if (numericOID2ContentRules.containsKey(rule.getStructuralClassOID())) {
             conflictingRule = numericOID2ContentRules.get(rule.getStructuralClassOID());
@@ -2300,6 +2259,8 @@ public final class SchemaBuilder {
                 rules.add(rule);
             }
         }
+
+        return this;
     }
 
     private void addDITStructureRule(final DITStructureRule rule, final boolean overwrite) {
@@ -2491,7 +2452,7 @@ public final class SchemaBuilder {
         }
 
         for (final DITContentRule contentRule : schema.getDITContentRules()) {
-            addDITContentRule(contentRule.duplicate(), overwrite);
+            addDITContentRule(contentRule, overwrite);
         }
 
         for (final DITStructureRule structureRule : schema.getDITStuctureRules()) {
