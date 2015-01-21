@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
-import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.util.OperatingSystem.*;
+
+import static org.opends.messages.ToolMessages.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -36,12 +37,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
+import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -63,6 +66,8 @@ import com.forgerock.opendj.cli.StringArgument;
  */
 public class InstallDSArgumentParser extends ArgumentParser
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   BooleanArgument   testOnlyArg;
   BooleanArgument   cliArg;
   BooleanArgument   addBaseEntryArg;
@@ -98,10 +103,8 @@ public class InstallDSArgumentParser extends ArgumentParser
   StringArgument    keyStorePasswordArg;
   StringArgument    certNicknameArg;
   StringArgument    progNameArg;
-  IntegerArgument   connectTimeoutArg = null;
+  IntegerArgument   connectTimeoutArg;
   BooleanArgument   acceptLicense;
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The default constructor for this class.
@@ -111,6 +114,7 @@ public class InstallDSArgumentParser extends ArgumentParser
   public InstallDSArgumentParser(String mainClassName)
   {
     super(mainClassName, INFO_INSTALLDS_TOOL_DESCRIPTION.get(), false);
+    setVersionHandler(new DirectoryServerVersionHandler());
   }
 
   /**
@@ -394,10 +398,8 @@ public class InstallDSArgumentParser extends ArgumentParser
     return cliArg.isPresent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void parseArguments(String[] args) throws ArgumentException
   {
     LinkedHashSet<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
@@ -420,10 +422,8 @@ public class InstallDSArgumentParser extends ArgumentParser
 
       if (errorMessages.size() > 0)
       {
-        LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(
-            Utils.getMessageFromCollection(errorMessages,
-                Constants.LINE_SEPARATOR));
-        throw new ArgumentException(message);
+        throw new ArgumentException(ERR_CANNOT_INITIALIZE_ARGS.get(
+            Utils.getMessageFromCollection(errorMessages, Constants.LINE_SEPARATOR)));
       }
     }
   }
@@ -435,16 +435,15 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   public String getDirectoryManagerPassword()
   {
-    String pwd = null;
     if (directoryManagerPwdStringArg.isPresent())
     {
-      pwd = directoryManagerPwdStringArg.getValue();
+      return directoryManagerPwdStringArg.getValue();
     }
     else if (directoryManagerPwdFileArg.isPresent())
     {
-      pwd = directoryManagerPwdFileArg.getValue();
+      return directoryManagerPwdFileArg.getValue();
     }
-    return pwd;
+    return null;
   }
 
   /**
@@ -454,16 +453,15 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   public String getKeyStorePassword()
   {
-    String pwd = null;
     if (keyStorePasswordArg.isPresent())
     {
-      pwd = keyStorePasswordArg.getValue();
+      return keyStorePasswordArg.getValue();
     }
     else if (keyStorePasswordFileArg.isPresent())
     {
-      pwd = keyStorePasswordFileArg.getValue();
+      return keyStorePasswordFileArg.getValue();
     }
-    return pwd;
+    return null;
   }
 
   /**
@@ -478,19 +476,17 @@ public class InstallDSArgumentParser extends ArgumentParser
     if (directoryManagerPwdStringArg.isPresent() &&
         directoryManagerPwdFileArg.isPresent())
     {
-      LocalizableMessage message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
+      errorMessages.add(ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
           directoryManagerPwdStringArg.getLongIdentifier(),
-          directoryManagerPwdFileArg.getLongIdentifier());
-      errorMessages.add(message);
+          directoryManagerPwdFileArg.getLongIdentifier()));
     }
 
     if (noPromptArg.isPresent() && !directoryManagerPwdStringArg.isPresent() &&
         !directoryManagerPwdFileArg.isPresent())
     {
-      LocalizableMessage message = ERR_INSTALLDS_NO_ROOT_PASSWORD.get(
+      errorMessages.add(ERR_INSTALLDS_NO_ROOT_PASSWORD.get(
           directoryManagerPwdStringArg.getLongIdentifier(),
-          directoryManagerPwdFileArg.getLongIdentifier());
-      errorMessages.add(message);
+          directoryManagerPwdFileArg.getLongIdentifier()));
     }
   }
 
@@ -503,50 +499,39 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   private void checkProvidedPorts(Collection<LocalizableMessage> errorMessages)
   {
-    /**
-     * Check that the provided ports do not match.
-     */
     try
     {
       Set<Integer> ports = new HashSet<Integer>();
       ports.add(ldapPortArg.getIntValue());
 
-      if (ports.contains(adminConnectorPortArg.getIntValue()))
-      {
-        errorMessages.add(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(adminConnectorPortArg.getIntValue()));
-      }
-      else
-      {
-        ports.add(adminConnectorPortArg.getIntValue());
-      }
-
+      checkPortAlreadyUsed(ports, adminConnectorPortArg.getIntValue(), errorMessages,
+          ERR_CONFIGDS_PORT_ALREADY_SPECIFIED);
       if (jmxPortArg.isPresent())
       {
-        if (ports.contains(jmxPortArg.getIntValue()))
-        {
-          errorMessages.add(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(jmxPortArg.getIntValue()));
-        }
-        else
-        {
-          ports.add(jmxPortArg.getIntValue());
-        }
+        checkPortAlreadyUsed(ports, jmxPortArg.getIntValue(), errorMessages, ERR_CONFIGDS_PORT_ALREADY_SPECIFIED);
       }
       if (ldapsPortArg.isPresent())
       {
-        if (ports.contains(ldapsPortArg.getIntValue()))
-        {
-          errorMessages.add(ERR_CONFIGDS_PORT_ALREADY_SPECIFIED.get(ldapsPortArg.getIntValue()));
-        }
-        else
-        {
-          ports.add(ldapsPortArg.getIntValue());
-        }
+        checkPortAlreadyUsed(ports, ldapsPortArg.getIntValue(), errorMessages, ERR_CONFIGDS_PORT_ALREADY_SPECIFIED);
       }
     }
     catch (ArgumentException ae)
     {
       logger.error(LocalizableMessage.raw("Unexpected error.  "+
           "Assuming that it is caused by a previous parsing issue: "+ae, ae));
+    }
+  }
+
+  private void checkPortAlreadyUsed(Set<Integer> ports, int port, Collection<LocalizableMessage> errorMessages,
+      Arg1<Object> errorMsg)
+  {
+    if (ports.contains(port))
+    {
+      errorMessages.add(errorMsg.get(port));
+    }
+    else
+    {
+      ports.add(port);
     }
   }
 
@@ -563,55 +548,34 @@ public class InstallDSArgumentParser extends ArgumentParser
     {
       if (importLDIFArg.isPresent())
       {
-        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-                addBaseEntryArg.getLongIdentifier(),
-                importLDIFArg.getLongIdentifier());
-        errorMessages.add(message);
+        errorMessages.add(conflictingArgs(addBaseEntryArg, importLDIFArg));
       }
       else if (sampleDataArg.isPresent())
       {
-        LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-                addBaseEntryArg.getLongIdentifier(),
-                sampleDataArg.getLongIdentifier());
-        errorMessages.add(message);
+        errorMessages.add(conflictingArgs(addBaseEntryArg, sampleDataArg));
       }
     }
     else if (importLDIFArg.isPresent() && sampleDataArg.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-              importLDIFArg.getLongIdentifier(),
-              sampleDataArg.getLongIdentifier());
-      errorMessages.add(message);
+      errorMessages.add(conflictingArgs(importLDIFArg, sampleDataArg));
     }
 
     if (rejectedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          addBaseEntryArg.getLongIdentifier(),
-          rejectedImportFileArg.getLongIdentifier());
-      errorMessages.add(message);
+      errorMessages.add(conflictingArgs(addBaseEntryArg, rejectedImportFileArg));
     }
     else if (rejectedImportFileArg.isPresent() && sampleDataArg.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          rejectedImportFileArg.getLongIdentifier(),
-          sampleDataArg.getLongIdentifier());
-      errorMessages.add(message);
+      errorMessages.add(conflictingArgs(rejectedImportFileArg, sampleDataArg));
     }
 
     if (skippedImportFileArg.isPresent() && addBaseEntryArg.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          addBaseEntryArg.getLongIdentifier(),
-          skippedImportFileArg.getLongIdentifier());
-      errorMessages.add(message);
+      errorMessages.add(conflictingArgs(addBaseEntryArg, skippedImportFileArg));
     }
     else if (skippedImportFileArg.isPresent() && sampleDataArg.isPresent())
     {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          skippedImportFileArg.getLongIdentifier(),
-          sampleDataArg.getLongIdentifier());
-      errorMessages.add(message);
+      errorMessages.add(conflictingArgs(skippedImportFileArg, sampleDataArg));
     }
 
     if (noPromptArg.isPresent() && !baseDNArg.isPresent() &&
@@ -629,6 +593,11 @@ public class InstallDSArgumentParser extends ArgumentParser
     }
   }
 
+  private LocalizableMessage conflictingArgs(Argument arg1, Argument arg2)
+  {
+    return ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier());
+  }
+
   /**
    * Checks that there are no conflicts with the security arguments.
    * If we are in no prompt mode, check that all the information required has
@@ -640,8 +609,7 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   private void checkSecurityArguments(Collection<LocalizableMessage> errorMessages)
   {
-    boolean certificateRequired = ldapsPortArg.isPresent() ||
-    enableStartTLSArg.isPresent();
+    boolean certificateRequired = ldapsPortArg.isPresent() || enableStartTLSArg.isPresent();
 
     int certificateType = 0;
     if (generateSelfSignedCertificateArg.isPresent())
@@ -670,8 +638,7 @@ public class InstallDSArgumentParser extends ArgumentParser
       errorMessages.add(ERR_INSTALLDS_SEVERAL_CERTIFICATE_TYPE_SPECIFIED.get());
     }
 
-    if (certificateRequired && noPromptArg.isPresent() &&
-        (certificateType == 0))
+    if (certificateRequired && noPromptArg.isPresent() && certificateType == 0)
     {
       errorMessages.add(
           ERR_INSTALLDS_CERTIFICATE_REQUIRED_FOR_SSL_OR_STARTTLS.get());
@@ -685,29 +652,26 @@ public class InstallDSArgumentParser extends ArgumentParser
         if (keyStorePasswordArg.isPresent() &&
             keyStorePasswordFileArg.isPresent())
         {
-          LocalizableMessage message = ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
+          errorMessages.add(ERR_INSTALLDS_TWO_CONFLICTING_ARGUMENTS.get(
               keyStorePasswordArg.getLongIdentifier(),
-              keyStorePasswordFileArg.getLongIdentifier());
-          errorMessages.add(message);
+              keyStorePasswordFileArg.getLongIdentifier()));
         }
 
         // Check that we have one password in no prompt mode.
         if (noPromptArg.isPresent() && !keyStorePasswordArg.isPresent() &&
             !keyStorePasswordFileArg.isPresent())
         {
-          LocalizableMessage message = ERR_INSTALLDS_NO_KEYSTORE_PASSWORD.get(
+          errorMessages.add(ERR_INSTALLDS_NO_KEYSTORE_PASSWORD.get(
               keyStorePasswordArg.getLongIdentifier(),
-              keyStorePasswordFileArg.getLongIdentifier());
-          errorMessages.add(message);
+              keyStorePasswordFileArg.getLongIdentifier()));
         }
       }
       if (noPromptArg.isPresent() && !ldapsPortArg.isPresent() &&
           !enableStartTLSArg.isPresent())
       {
-        LocalizableMessage message = ERR_INSTALLDS_SSL_OR_STARTTLS_REQUIRED.get(
+        errorMessages.add(ERR_INSTALLDS_SSL_OR_STARTTLS_REQUIRED.get(
             ldapsPortArg.getLongIdentifier(),
-            enableStartTLSArg.getLongIdentifier());
-        errorMessages.add(message);
+            enableStartTLSArg.getLongIdentifier()));
       }
     }
   }
