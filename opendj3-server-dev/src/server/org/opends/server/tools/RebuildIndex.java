@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -47,7 +47,6 @@ import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
-import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -585,8 +584,7 @@ public class RebuildIndex extends TaskTool
     int returnCode = 0;
     try
     {
-      final BackendImpl jebBackend = (BackendImpl) backend;
-      jebBackend.rebuildBackend(rebuildConfig);
+      backend.rebuildBackend(rebuildConfig);
     }
     catch (InitializationException e)
     {
@@ -664,8 +662,7 @@ public class RebuildIndex extends TaskTool
     {
       throw new ConfigException(ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
     }
-
-    if (!(backend instanceof BackendImpl))
+    if (!backend.supportsIndexing())
     {
       throw new ConfigException(ERR_BACKEND_NO_INDEXING_SUPPORT.get());
     }

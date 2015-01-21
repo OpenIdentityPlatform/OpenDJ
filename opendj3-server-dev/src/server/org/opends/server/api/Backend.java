@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.admin.Configuration;
+import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -677,6 +678,27 @@ public abstract class Backend<C extends Configuration>
    */
   public long verifyBackend(VerifyConfig verifyConfig)
       throws InitializationException, ConfigException, DirectoryException
+  {
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_INDEXES_NOT_SUPPORTED.get(getBackendID()));
+  }
+
+  /**
+   * Rebuild indexes in the backend instance. Note that the server will not explicitly initialize
+   * this backend before calling this method.
+   *
+   * @param rebuildConfig
+   *          The rebuild configuration.
+   * @throws ConfigException
+   *           If an unrecoverable problem arises during initialization.
+   * @throws InitializationException
+   *           If a problem occurs during initialization that is not related to the server
+   *           configuration.
+   * @throws DirectoryException
+   *           If a Directory Server error occurs.
+   */
+  public void rebuildBackend(RebuildConfig rebuildConfig) throws InitializationException, ConfigException,
+      DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_INDEXES_NOT_SUPPORTED.get(getBackendID()));

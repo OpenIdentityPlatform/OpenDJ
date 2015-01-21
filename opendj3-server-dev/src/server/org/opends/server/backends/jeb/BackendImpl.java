@@ -863,17 +863,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   }
 
 
-  /**
-   * Rebuild index(es) in the backend instance. Note that the server will not
-   * explicitly initialize this backend before calling this method.
-   * @param rebuildConfig The rebuild configuration.
-   * @throws  ConfigException  If an unrecoverable problem arises during
-   *                           initialization.
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   * @throws DirectoryException If a Directory Server error occurs.
-   */
+  /** {@inheritDoc} */
+  @Override
   public void rebuildBackend(RebuildConfig rebuildConfig)
           throws InitializationException, ConfigException, DirectoryException
   {
