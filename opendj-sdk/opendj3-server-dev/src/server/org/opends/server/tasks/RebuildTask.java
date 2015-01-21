@@ -43,7 +43,6 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
-import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
@@ -182,8 +181,7 @@ public class RebuildTask extends Task
       logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDN);
       return TaskState.STOPPED_BY_ERROR;
     }
-
-    if (!(backend instanceof BackendImpl))
+    if (!backend.supportsIndexing())
     {
       logger.error(ERR_REBUILDINDEX_WRONG_BACKEND_TYPE);
       return TaskState.STOPPED_BY_ERROR;
@@ -249,8 +247,7 @@ public class RebuildTask extends Task
     // Launch the rebuild process.
     try
     {
-      BackendImpl jebBackend = (BackendImpl) backend;
-      jebBackend.rebuildBackend(rebuildConfig);
+      backend.rebuildBackend(rebuildConfig);
     }
     catch (InitializationException e)
     {

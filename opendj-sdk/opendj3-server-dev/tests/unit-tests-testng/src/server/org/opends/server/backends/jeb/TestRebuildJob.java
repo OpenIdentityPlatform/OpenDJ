@@ -29,9 +29,10 @@ package org.opends.server.backends.jeb;
 import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.Backend;
 import org.opends.server.backends.RebuildConfig;
-import org.opends.server.backends.VerifyConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
+import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.DN;
@@ -51,7 +52,7 @@ public class TestRebuildJob extends JebTestCase
   private  String numUsersLine="define numusers= #numEntries#";
 
   private  DN[] baseDNs;
-  private BackendImpl backend;
+  private Backend<?> backend;
 
   @DataProvider(name = "systemIndexes")
   public Object[][] systemIndexes() {
@@ -144,9 +145,7 @@ public class TestRebuildJob extends JebTestCase
    */
   private void cleanAndLoad(int numEntries) throws Exception {
     TestCaseUtils.clearJEBackend(backendID);
-    template[2]=numUsersLine;
-    template[2]=
-        template[2].replaceAll("#numEntries#", String.valueOf(numEntries));
+    template[2] = numUsersLine.replaceAll("#numEntries#", String.valueOf(numEntries));
     createLoadEntries(template, numEntries);
   }
 
@@ -162,7 +161,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend = DirectoryServer.getBackend(backendID);
     backend.rebuildBackend(rebuildConfig);
 
     if(index.contains(".") && !index.startsWith("vlv."))
@@ -189,7 +188,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("id2entry");
-    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend = DirectoryServer.getBackend(backendID);
     backend.rebuildBackend(rebuildConfig);
 
   }
@@ -208,7 +207,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex("id2entry");
-    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend = DirectoryServer.getBackend(backendID);
     TaskUtils.disableBackend(backendID);
 
     try {
@@ -225,7 +224,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend = DirectoryServer.getBackend(backendID);
     backend.rebuildBackend(rebuildConfig);
   }
 
@@ -237,7 +236,7 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend = DirectoryServer.getBackend(backendID);
     backend.rebuildBackend(rebuildConfig);
   }
 
@@ -248,10 +247,9 @@ public class TestRebuildJob extends JebTestCase
     RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(baseDNs[0]);
     rebuildConfig.addRebuildIndex(index);
-    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
 
+    backend = DirectoryServer.getBackend(backendID);
     TaskUtils.disableBackend(backendID);
-
     backend.rebuildBackend(rebuildConfig);
 
     //TODO: Verify dn2uri database as well.
@@ -298,7 +296,7 @@ public class TestRebuildJob extends JebTestCase
 
   private void rebuildIndexes(RebuildConfig rebuildConfig) throws Exception
   {
-    backend = (BackendImpl) DirectoryServer.getBackend(backendID);
+    backend = DirectoryServer.getBackend(backendID);
     TaskUtils.disableBackend(backendID);
     try
     {
