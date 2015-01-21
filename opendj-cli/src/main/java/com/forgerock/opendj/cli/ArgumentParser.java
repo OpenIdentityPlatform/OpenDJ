@@ -359,6 +359,20 @@ public class ArgumentParser {
     }
 
     /**
+     * Adds the provided argument to the set of arguments handled by this parser
+     * and puts the argument in the LDAP connection group.
+     *
+     * @param argument
+     *            The argument to be added.
+     * @throws ArgumentException
+     *             If the provided argument conflicts with another argument that
+     *             has already been defined.
+     */
+    public void addLdapConnectionArgument(final Argument argument) throws ArgumentException {
+        addArgument(argument, ldapArgGroup);
+    }
+
+    /**
      * Indicates whether this parser will allow unnamed trailing arguments.
      * These will be arguments at the end of the list that are not preceded by
      * either a long or short identifier and will need to be manually parsed by

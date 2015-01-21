@@ -185,7 +185,7 @@ public final class ConnectionFactoryProvider {
 
         useSSLArg = CommonArguments.getUseSSL();
         if (!alwaysSSL) {
-            argumentParser.addArgument(useSSLArg);
+            argumentParser.addLdapConnectionArgument(useSSLArg);
         } else {
             // simulate that the useSSL arg has been given in the CLI
             useSSLArg.setPresent(true);
@@ -193,7 +193,7 @@ public final class ConnectionFactoryProvider {
 
         useStartTLSArg = CommonArguments.getStartTLS();
         if (!alwaysSSL) {
-            argumentParser.addArgument(useStartTLSArg);
+            argumentParser.addLdapConnectionArgument(useStartTLSArg);
         }
 
         String defaultHostName;
@@ -203,7 +203,7 @@ public final class ConnectionFactoryProvider {
             defaultHostName = "Unknown (" + e + ")";
         }
         hostNameArg = CommonArguments.getHostName(defaultHostName);
-        argumentParser.addArgument(hostNameArg);
+        argumentParser.addLdapConnectionArgument(hostNameArg);
 
         LocalizableMessage portDescription = INFO_DESCRIPTION_PORT.get();
         if (alwaysSSL) {
@@ -211,43 +211,43 @@ public final class ConnectionFactoryProvider {
         }
 
         portArg = CommonArguments.getPort(defaultPort, portDescription);
-        argumentParser.addArgument(portArg);
+        argumentParser.addLdapConnectionArgument(portArg);
 
         bindNameArg = CommonArguments.getBindDN(defaultBindDN);
-        argumentParser.addArgument(bindNameArg);
+        argumentParser.addLdapConnectionArgument(bindNameArg);
 
         bindPasswordArg = CommonArguments.getBindPassword();
-        argumentParser.addArgument(bindPasswordArg);
+        argumentParser.addLdapConnectionArgument(bindPasswordArg);
 
         bindPasswordFileArg = CommonArguments.getBindPasswordFile();
-        argumentParser.addArgument(bindPasswordFileArg);
+        argumentParser.addLdapConnectionArgument(bindPasswordFileArg);
 
         saslOptionArg = CommonArguments.getSASL();
-        argumentParser.addArgument(saslOptionArg);
+        argumentParser.addLdapConnectionArgument(saslOptionArg);
 
         trustAllArg = CommonArguments.getTrustAll();
-        argumentParser.addArgument(trustAllArg);
+        argumentParser.addLdapConnectionArgument(trustAllArg);
 
         trustStorePathArg = CommonArguments.getTrustStorePath();
-        argumentParser.addArgument(trustStorePathArg);
+        argumentParser.addLdapConnectionArgument(trustStorePathArg);
 
         trustStorePasswordArg = CommonArguments.getTrustStorePassword();
-        argumentParser.addArgument(trustStorePasswordArg);
+        argumentParser.addLdapConnectionArgument(trustStorePasswordArg);
 
         trustStorePasswordFileArg = CommonArguments.getTrustStorePasswordFile();
-        argumentParser.addArgument(trustStorePasswordFileArg);
+        argumentParser.addLdapConnectionArgument(trustStorePasswordFileArg);
 
         keyStorePathArg = CommonArguments.getKeyStorePath();
-        argumentParser.addArgument(keyStorePathArg);
+        argumentParser.addLdapConnectionArgument(keyStorePathArg);
 
         keyStorePasswordArg = CommonArguments.getKeyStorePassword();
-        argumentParser.addArgument(keyStorePasswordArg);
+        argumentParser.addLdapConnectionArgument(keyStorePasswordArg);
 
         keyStorePasswordFileArg = CommonArguments.getKeyStorePasswordFile();
-        argumentParser.addArgument(keyStorePasswordFileArg);
+        argumentParser.addLdapConnectionArgument(keyStorePasswordFileArg);
 
         certNicknameArg = CommonArguments.getCertNickName();
-        argumentParser.addArgument(certNicknameArg);
+        argumentParser.addLdapConnectionArgument(certNicknameArg);
 
         reportAuthzIDArg = CommonArguments.getReportAuthzId();
         argumentParser.addArgument(reportAuthzIDArg);
