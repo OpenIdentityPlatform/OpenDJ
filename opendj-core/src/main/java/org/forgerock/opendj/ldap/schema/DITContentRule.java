@@ -22,16 +22,23 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
 
+import static java.util.Arrays.*;
+
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +53,359 @@ import org.forgerock.util.Reject;
  * the entry.
  */
 public final class DITContentRule extends SchemaElement {
+
+    /** A fluent API for incrementally constructing DIT content rule. */
+    public static final class Builder extends SchemaElementBuilder<Builder> {
+        private String structuralClassOID;
+        private final List<String> names = new LinkedList<String>();
+        private boolean isObsolete;
+        private final Set<String> auxiliaryClassOIDs = new LinkedHashSet<String>();
+        private final Set<String> optionalAttributeOIDs = new LinkedHashSet<String>();
+        private final Set<String> prohibitedAttributeOIDs = new LinkedHashSet<String>();
+        private final Set<String> requiredAttributeOIDs = new LinkedHashSet<String>();
+
+        Builder(final DITContentRule contentRule, final SchemaBuilder schemaBuilder) {
+            super(schemaBuilder, contentRule);
+            structuralClassOID = contentRule.structuralClassOID;
+            names.addAll(contentRule.getNames());
+            isObsolete = contentRule.isObsolete;
+            auxiliaryClassOIDs.addAll(contentRule.auxiliaryClassOIDs);
+            optionalAttributeOIDs.addAll(contentRule.optionalAttributeOIDs);
+            prohibitedAttributeOIDs.addAll(contentRule.prohibitedAttributeOIDs);
+            requiredAttributeOIDs.addAll(contentRule.requiredAttributeOIDs);
+        }
+
+        Builder(final String structuralClassOID, final SchemaBuilder builder) {
+            super(builder);
+            this.structuralClassOID = structuralClassOID;
+        }
+
+        /**
+         * Adds this DIT content rule to the schema, throwing an
+         * {@code  ConflictingSchemaElementException} if there is an existing DIT
+         * content rule with the same structural object class OID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing DIT content rule with the same
+         *             structural object class OID.
+         */
+        public SchemaBuilder addToSchema() {
+            return getSchemaBuilder().addDITContentRule(new DITContentRule(this), false);
+        }
+
+        /**
+         * Adds this DIT content rule to the schema overwriting any existing
+         * content rule with the same structural class OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addDITContentRule(new DITContentRule(this), true);
+        }
+
+        /**
+         * Adds the provided auxiliary classes to the list of auxiliary object
+         * classes that entries subject to this DIT content rule may belong to.
+         *
+         * @param objectClassNamesOrOIDs
+         *            The list of auxiliary class names or OIDs.
+         * @return This builder.
+         */
+        public Builder auxiliaryObjectClasses(final Collection<String> objectClassNamesOrOIDs) {
+            this.auxiliaryClassOIDs.addAll(objectClassNamesOrOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided auxiliary classes to the list of auxiliary object
+         * classes that entries subject to this DIT content rule may belong to.
+         *
+         * @param objectClassNamesOrOIDs
+         *            The list of auxiliary class names or OIDs.
+         * @return This builder.
+         */
+        public Builder auxiliaryObjectClasses(String... objectClassNamesOrOIDs) {
+            this.auxiliaryClassOIDs.addAll(asList(objectClassNamesOrOIDs));
+            return this;
+        }
+
+        @Override
+        public Builder description(final String description) {
+            return description0(description);
+        }
+
+        @Override
+        public Builder extraProperties(final Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(final String extensionName, final String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final Collection<String> names) {
+            this.names.addAll(names);
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final String... names) {
+            return names(asList(names));
+        }
+
+        /**
+         * Specifies whether this schema element is obsolete.
+         *
+         * @param isObsolete
+         *            {@code true} if this schema element is obsolete (default
+         *            is {@code false}).
+         * @return This builder.
+         */
+        public Builder obsolete(final boolean isObsolete) {
+            this.isObsolete = isObsolete;
+            return this;
+        }
+
+        /**
+         * Adds the provided optional attributes to the list of attribute types
+         * that entries subject to this DIT content rule may contain.
+         *
+         * @param attributeNamesOrOIDs
+         *            The list of optional attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder optionalAttributes(final Collection<String> attributeNamesOrOIDs) {
+            this.optionalAttributeOIDs.addAll(attributeNamesOrOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided optional attributes to the list of attribute types
+         * that entries subject to this DIT content rule may contain.
+         *
+         * @param attributeNamesOrOIDs
+         *            The list of optional attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder optionalAttributes(final String... attributeNamesOrOIDs) {
+            this.optionalAttributeOIDs.addAll(asList(attributeNamesOrOIDs));
+            return this;
+        }
+
+        /**
+         * Adds the provided prohibited attributes to the list of attribute types
+         * that entries subject to this DIT content rule must not contain.
+         *
+         * @param attributeNamesOrOIDs
+         *            The list of prohibited attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder prohibitedAttributes(final Collection<String> attributeNamesOrOIDs) {
+            this.prohibitedAttributeOIDs.addAll(attributeNamesOrOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided prohibited attributes to the list of attribute types
+         * that entries subject to this DIT content rule must not contain.
+         *
+         * @param attributeNamesOrOIDs
+         *            The list of prohibited attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder prohibitedAttributes(final String... attributeNamesOrOIDs) {
+            this.prohibitedAttributeOIDs.addAll(asList(attributeNamesOrOIDs));
+            return this;
+        }
+
+        /**
+         * Clears the list of auxiliary object classes that entries subject to
+         * this DIT content rule may belong to.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllAuxiliaryObjectClasses() {
+            this.auxiliaryClassOIDs.clear();
+            return this;
+        }
+
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
+        /**
+         * Removes all user defined names.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllNames() {
+            this.names.clear();
+            return this;
+        }
+
+        /**
+         * Clears the list of attribute types that entries subject to this DIT
+         * content rule may contain.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllOptionalAttributes() {
+            this.optionalAttributeOIDs.clear();
+            return this;
+        }
+
+        /**
+         * Clears the list of attribute types that entries subject to this DIT
+         * content rule must not contain.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllProhibitedAttributes() {
+            this.prohibitedAttributeOIDs.clear();
+            return this;
+        }
+
+        /**
+         * Clears the list of attribute types that entries subject to this DIT
+         * content rule must contain.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllRequiredAttributes() {
+            this.requiredAttributeOIDs.clear();
+            return this;
+        }
+
+        /**
+         * Removes the provided object class in the list of auxiliary object classes that entries subject to
+         * this DIT content rule may belong to.
+         *
+         * @param objectClassNameOrOID
+         *            The auxiliary object class name or OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeAuxiliaryObjectClass(String objectClassNameOrOID) {
+            this.auxiliaryClassOIDs.remove(objectClassNameOrOID);
+            return this;
+        }
+
+        @Override
+        public Builder removeExtraProperty(String extensionName, String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
+        }
+
+        /**
+         * Removes the provided user defined name.
+         *
+         * @param name
+         *            The user defined name to be removed.
+         * @return This builder.
+         */
+        public Builder removeName(String name) {
+            this.names.remove(name);
+            return this;
+        }
+
+        /**
+         * Removes the provided optional attribute in the list of attribute
+         * types that entries subject to this DIT content rule may contain.
+         *
+         * @param attributeNameOrOID
+         *            The optional attribute name or OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeOptionalAttribute(String attributeNameOrOID) {
+            this.optionalAttributeOIDs.remove(attributeNameOrOID);
+            return this;
+        }
+
+        /**
+         * Removes the provided prohibited attribute in the list of attribute
+         * types that entries subject to this DIT content rule must not contain.
+         *
+         * @param attributeNameOrOID
+         *            The prohibited attribute name or OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeProhibitedAttribute(String attributeNameOrOID) {
+            this.prohibitedAttributeOIDs.remove(attributeNameOrOID);
+            return this;
+        }
+
+        /**
+         * Removes the provided required attribute in the list of attribute
+         * types that entries subject to this DIT content rule must contain.
+         *
+         * @param attributeNameOrOID
+         *            The provided required attribute name or OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeRequiredAttribute(String attributeNameOrOID) {
+            this.requiredAttributeOIDs.remove(attributeNameOrOID);
+            return this;
+        }
+
+        /**
+         * Adds the provided attribute to the list of attribute types that
+         * entries subject to this DIT content rule must contain.
+         *
+         * @param attributeNamesOrOIDs
+         *            The list of required attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder requiredAttributes(final Collection<String> attributeNamesOrOIDs) {
+            this.requiredAttributeOIDs.addAll(attributeNamesOrOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided attribute to the list of attribute types that
+         * entries subject to this DIT content rule must contain.
+         *
+         * @param attributeNamesOrOIDs
+         *            The list of required attribute names or OIDs.
+         * @return This builder.
+         */
+        public Builder requiredAttributes(final String... attributeNamesOrOIDs) {
+            this.requiredAttributeOIDs.addAll(asList(attributeNamesOrOIDs));
+            return this;
+        }
+
+        /**
+         * Sets the structural class OID which uniquely identifies this DIT
+         * content rule.
+         *
+         * @param strucuralClassOID
+         *            The numeric OID.
+         * @return This builder.
+         */
+        public Builder structuralClassOID(String strucuralClassOID) {
+            this.structuralClassOID = strucuralClassOID;
+            return this;
+        }
+
+    }
 
     /** The structural objectclass for this DIT content rule. */
     private final String structuralClassOID;
@@ -78,22 +438,17 @@ public final class DITContentRule extends SchemaElement {
     private Set<AttributeType> prohibitedAttributes = Collections.emptySet();
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
-    DITContentRule(final String structuralClassOID, final List<String> names,
-            final String description, final boolean obsolete, final Set<String> auxiliaryClassOIDs,
-            final Set<String> optionalAttributeOIDs, final Set<String> prohibitedAttributeOIDs,
-            final Set<String> requiredAttributeOIDs,
-            final Map<String, List<String>> extraProperties, final String definition) {
-        super(description, extraProperties, definition);
+    private DITContentRule(final Builder builder) {
+        super(builder);
+        Reject.ifNull(builder.structuralClassOID);
 
-        Reject.ifNull(structuralClassOID, names, auxiliaryClassOIDs, optionalAttributeOIDs, prohibitedAttributeOIDs,
-                requiredAttributeOIDs);
-        this.names = names;
-        this.isObsolete = obsolete;
-        this.structuralClassOID = structuralClassOID;
-        this.auxiliaryClassOIDs = auxiliaryClassOIDs;
-        this.optionalAttributeOIDs = optionalAttributeOIDs;
-        this.prohibitedAttributeOIDs = prohibitedAttributeOIDs;
-        this.requiredAttributeOIDs = requiredAttributeOIDs;
+        structuralClassOID = builder.structuralClassOID;
+        names = unmodifiableCopyOfList(builder.names);
+        isObsolete = builder.isObsolete;
+        auxiliaryClassOIDs = unmodifiableCopyOfSet(builder.auxiliaryClassOIDs);
+        optionalAttributeOIDs = unmodifiableCopyOfSet(builder.optionalAttributeOIDs);
+        prohibitedAttributeOIDs = unmodifiableCopyOfSet(builder.prohibitedAttributeOIDs);
+        requiredAttributeOIDs = unmodifiableCopyOfSet(builder.requiredAttributeOIDs);
     }
 
     /**
@@ -294,12 +649,6 @@ public final class DITContentRule extends SchemaElement {
      */
     public boolean isRequiredOrOptional(final AttributeType attributeType) {
         return isRequired(attributeType) || isOptional(attributeType);
-    }
-
-    DITContentRule duplicate() {
-        return new DITContentRule(structuralClassOID, names, getDescription(), isObsolete,
-                auxiliaryClassOIDs, optionalAttributeOIDs, prohibitedAttributeOIDs,
-                requiredAttributeOIDs, getExtraProperties(), toString());
     }
 
     @Override
