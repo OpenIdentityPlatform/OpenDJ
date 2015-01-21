@@ -100,13 +100,9 @@ public final class Importer implements DiskSpaceMonitorHandler
   private static final int MAX_BUFFER_SIZE = 2 * MB;
   /** Min size of phase one buffer. */
   private static final int MIN_BUFFER_SIZE = 4 * KB;
-
   /** Min size of phase two read-ahead cache. */
   private static final int MIN_READ_AHEAD_CACHE_SIZE = 2 * KB;
-
-  /**
-   * Small heap threshold used to give more memory to JVM to attempt OOM errors.
-   */
+  /** Small heap threshold used to give more memory to JVM to attempt OOM errors. */
   private static final int SMALL_HEAP_SIZE = 256 * MB;
 
   /** The DN attribute type. */
@@ -141,7 +137,6 @@ public final class Importer implements DiskSpaceMonitorHandler
 
   /** Import configuration. */
   private final LDIFImportConfig importConfiguration;
-
   /** Backend configuration. */
   private final LocalDBBackendCfg backendConfiguration;
 
@@ -153,16 +148,13 @@ public final class Importer implements DiskSpaceMonitorHandler
 
   /** Size in bytes of temporary env. */
   private long tmpEnvCacheSize;
-
   /** Available memory at the start of the import. */
   private long availableMemory;
-
   /** Size in bytes of DB cache. */
   private long dbCacheSize;
 
   /** The executor service used for the buffer sort tasks. */
   private ExecutorService bufferSortService;
-
   /** The executor service used for the scratch file processing tasks. */
   private ExecutorService scratchFileWriterService;
 
@@ -180,7 +172,6 @@ public final class Importer implements DiskSpaceMonitorHandler
   /** Map of DB containers to index managers. Used to start phase 2. */
   private final List<IndexManager> indexMgrList =
       new LinkedList<IndexManager>();
-
   /** Map of DB containers to DN-based index managers. Used to start phase 2. */
   private final List<IndexManager> DNIndexMgrList =
       new LinkedList<IndexManager>();
@@ -190,7 +181,6 @@ public final class Importer implements DiskSpaceMonitorHandler
    * their work queues and have exited. End of phase one.
    */
   private final List<Future<Void>> scratchFileWriterFutures;
-
   /**
    * List of index file writer tasks. Used to signal stopScratchFileWriters to
    * the index file writer tasks when the LDIF file has been done.
@@ -199,11 +189,8 @@ public final class Importer implements DiskSpaceMonitorHandler
 
   /** Map of DNs to Suffix objects. */
   private final Map<DN, Suffix> dnSuffixMap = new LinkedHashMap<DN, Suffix>();
-
   /** Map of container ids to database containers. */
-  private final ConcurrentHashMap<Integer, DatabaseContainer> idContainerMap =
-      new ConcurrentHashMap<Integer, DatabaseContainer>();
-
+  private final ConcurrentHashMap<Integer, Index> idContainerMap = new ConcurrentHashMap<Integer, Index>();
   /** Map of container ids to entry containers. */
   private final ConcurrentHashMap<Integer, EntryContainer> idECMap =
       new ConcurrentHashMap<Integer, EntryContainer>();
@@ -644,19 +631,19 @@ public final class Importer implements DiskSpaceMonitorHandler
   {
     if (indexes != null)
     {
-      for (DatabaseContainer index : indexes)
+      for (Index index : indexes)
       {
         putInIdContainerMap(index);
       }
     }
   }
 
-  private void putInIdContainerMap(DatabaseContainer container)
+  private void putInIdContainerMap(Index index)
   {
-    if (container != null)
+    if (index != null)
     {
-      int id = System.identityHashCode(container);
-      idContainerMap.putIfAbsent(id, container);
+      int id = System.identityHashCode(index);
+      idContainerMap.putIfAbsent(id, index);
     }
   }
 
@@ -1966,7 +1953,7 @@ public final class Importer implements DiskSpaceMonitorHandler
               }
               else
               {
-                Index index = (Index) idContainerMap.get(indexID);
+                Index index = idContainerMap.get(indexID);
                 int limit = index.getIndexEntryLimit();
                 boolean doCount = index.getMaintainCount();
                 insertIDSet = new ImportIDSet(1, limit, doCount);
@@ -1996,7 +1983,7 @@ public final class Importer implements DiskSpaceMonitorHandler
               }
               else
               {
-                Index index = (Index) idContainerMap.get(indexID);
+                Index index = idContainerMap.get(indexID);
                 int limit = index.getIndexEntryLimit();
                 boolean doCount = index.getMaintainCount();
                 insertIDSet = new ImportIDSet(1, limit, doCount);
@@ -2052,11 +2039,10 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       if (!indexMgr.isDN2ID())
       {
-        Index index;
         if (deleteSet.size() > 0 || !deleteSet.isDefined())
         {
           dbKey.setData(deleteSet.getKey().array(), 0, deleteSet.getKey().limit());
-          index = (Index) idContainerMap.get(indexID);
+          final Index index = idContainerMap.get(indexID);
           index.delete(dbKey, deleteSet, dbValue);
           if (!indexMap.containsKey(indexID))
           {
@@ -2066,7 +2052,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         if (insertSet.size() > 0 || !insertSet.isDefined())
         {
           dbKey.setData(insertSet.getKey().array(), 0, insertSet.getKey().limit());
-          index = (Index) idContainerMap.get(indexID);
+          final Index index = idContainerMap.get(indexID);
           index.insert(dbKey, insertSet, dbValue);
           if (!indexMap.containsKey(indexID))
           {
@@ -3153,8 +3139,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           {
             if (!rebuildConfig.isClearDegradedState() || sharedIndex.getRecordCount() == 0)
             {
-              int id = System.identityHashCode(sharedIndex);
-              idContainerMap.putIfAbsent(id, sharedIndex);
+              putInIdContainerMap(sharedIndex);
             }
           }
           else
@@ -3177,8 +3162,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           && (!onlyDegraded || !partialAttrIndex.isTrusted())
           && (!rebuildConfig.isClearDegradedState() || partialAttrIndex.getRecordCount() == 0))
       {
-        final int id = System.identityHashCode(partialAttrIndex);
-        idContainerMap.putIfAbsent(id, partialAttrIndex);
+        putInIdContainerMap(partialAttrIndex);
         final IndexKey indexKey = new IndexKey(attrType, importIndexType, partialAttrIndex.getIndexEntryLimit());
         indexMap.put(indexKey, partialAttrIndex);
       }
