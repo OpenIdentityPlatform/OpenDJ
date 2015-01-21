@@ -22,26 +22,24 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.types.CryptoManagerException;
 
-import javax.crypto.Mac;
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -52,11 +50,15 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import org.opends.server.types.*;
+import javax.crypto.Mac;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
+import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * A backup manager for JE backends.
@@ -322,6 +324,7 @@ public class BackupManager
     // Get a list of all the log files comprising the database.
     FilenameFilter filenameFilter = new FilenameFilter()
     {
+      @Override
       public boolean accept(File d, String name)
       {
         return name.endsWith(".jdb");
@@ -1224,10 +1227,8 @@ public class BackupManager
     BackupInfo backupInfo = backupDir.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      LocalizableMessage message =
-          ERR_JEB_BACKUP_MISSING_BACKUPID.get(backupDir.getPath(), backupID);
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+      LocalizableMessage message = ERR_BACKUP_MISSING_BACKUPID.get(backupID, backupDir.getPath());
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
     return backupInfo;
   }
@@ -1245,6 +1246,7 @@ public class BackupManager
       this.latestSize = latestSize;
     }
 
+    @Override
     public boolean accept(File d, String name)
     {
       if (!name.endsWith(".jdb")) return false;
