@@ -22,48 +22,36 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package com.forgerock.opendj.cli;
 
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static com.forgerock.opendj.cli.CliMessages.*;
-
-import org.forgerock.i18n.LocalizableMessage;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * This class defines a data structure for holding information about a subcommand that may be used with the subcommand
  * argument parser. The subcommand has a name, a description, and a set of arguments.
  */
 public class SubCommand {
-    /**
-     * Indicates whether this subCommand should be hidden in the usage
-     * information.
-     */
+    /** Indicates whether this subCommand should be hidden in the usage information. */
     private boolean isHidden;
 
-    /**
-     * The mapping between the short argument IDs and the arguments for this
-     * subcommand.
-     */
+    /** The mapping between the short argument IDs and the arguments for this subcommand. */
     private HashMap<Character, Argument> shortIDMap;
-
-    /**
-     * The mapping between the long argument IDs and the arguments for this
-     * subcommand.
-     */
+    /** The mapping between the long argument IDs and the arguments for this subcommand. */
     private HashMap<String, Argument> longIDMap;
-
     /** The list of arguments associated with this subcommand. */
     private LinkedList<Argument> arguments;
 
     /** The description for this subcommand. */
     private LocalizableMessage description;
-
     /** The name of this subcommand. */
     private String name;
 
@@ -76,16 +64,9 @@ public class SubCommand {
      */
     private boolean allowsTrailingArguments;
 
-    /**
-     * The maximum number of unnamed trailing arguments that may be
-     * provided.
-     */
+    /** The maximum number of unnamed trailing arguments that may be provided. */
     private int maxTrailingArguments;
-
-    /**
-     * The minimum number of unnamed trailing arguments that may be
-     * provided.
-     */
+    /** The minimum number of unnamed trailing arguments that may be provided. */
     private int minTrailingArguments;
 
     /**
@@ -369,5 +350,20 @@ public class SubCommand {
      */
     public void setHidden(boolean isHidden) {
         this.isHidden = isHidden;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName()).append("(").append("name=").append(this.name);
+        if (!longIDMap.isEmpty()) {
+            sb.append(", longIDs=").append(longIDMap.keySet());
+        }
+        if (!shortIDMap.isEmpty()) {
+            sb.append(", shortIDs=").append(shortIDMap.keySet());
+        }
+        sb.append(")");
+        return sb.toString();
     }
 }
