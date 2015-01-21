@@ -95,58 +95,6 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
   }
 
   /**
-   * Creates a new instance of this argument parser with no arguments that may
-   * or may not be allowed to have unnamed trailing arguments.
-   *
-   * @param  mainClassName               The fully-qualified name of the Java
-   *                                     class that should be invoked to launch
-   *                                     the program with which this argument
-   *                                     parser is associated.
-   * @param  toolDescription             A human-readable description for the
-   *                                     tool, which will be included when
-   *                                     displaying usage information.
-   * @param  longArgumentsCaseSensitive  Indicates whether long arguments should
-   *                                     be treated in a case-sensitive manner.
-   * @param  allowsTrailingArguments     Indicates whether this parser allows
-   *                                     unnamed trailing arguments to be
-   *                                     provided.
-   * @param  minTrailingArguments        The minimum number of unnamed trailing
-   *                                     arguments that must be provided.  A
-   *                                     value less than or equal to zero
-   *                                     indicates that no minimum will be
-   *                                     enforced.
-   * @param  maxTrailingArguments        The maximum number of unnamed trailing
-   *                                     arguments that may be provided.  A
-   *                                     value less than or equal to zero
-   *                                     indicates that no maximum will be
-   *                                     enforced.
-   * @param  trailingArgsDisplayName     The display name that should be used
-   *                                     as a placeholder for unnamed trailing
-   *                                     arguments in the generated usage
-   *                                     information.
-   * @param  argumentGroup               Group to which LDAP arguments will be
-   *                                     added to the parser.  May be null to
-   *                                     indicate that arguments should be
-   *                                     added to the default group
-   * @param alwaysSSL If true, always use the SSL connection type. In this case,
-   * the arguments useSSL and startTLS are not present.
-    */
-  public LDAPConnectionArgumentParser(String mainClassName,
-                                      LocalizableMessage toolDescription,
-                                      boolean longArgumentsCaseSensitive,
-                                      boolean allowsTrailingArguments,
-                                      int minTrailingArguments,
-                                      int maxTrailingArguments,
-                                      String trailingArgsDisplayName,
-                                      ArgumentGroup argumentGroup,
-                                      boolean alwaysSSL) {
-    super(mainClassName, toolDescription, longArgumentsCaseSensitive,
-            allowsTrailingArguments, minTrailingArguments, maxTrailingArguments,
-            trailingArgsDisplayName);
-    addLdapConnectionArguments(argumentGroup, alwaysSSL);
-  }
-
-  /**
    * Indicates whether or not the user has indicated that they would like
    * to perform a remote operation based on the arguments.
    *
@@ -251,10 +199,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
         err.println(wrapText(message, MAX_LINE_WIDTH));
         throw new ArgumentException(message);
       }
-      else
-      {
-        connectionOptions.setUseSSL(true);
-      }
+      connectionOptions.setUseSSL(true);
     }
     else if (args.useStartTLSArg.isPresent())
     {
@@ -357,7 +302,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
 
   /**
    * Creates a connection using a console interaction that will be used
-   * to potientially interact with the user to prompt for necessary
+   * to potentially interact with the user to prompt for necessary
    * information for establishing the connection.
    *
    * @param ui user interaction for prompting the user
@@ -494,8 +439,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
   {
     try
     {
-      return getPasswordValue(bindPwdArg, bindPwdFileArg, bindDnArg.getValue(), out,
-          err);
+      return getPasswordValue(bindPwdArg, bindPwdFileArg, bindDnArg.getValue(), out, err);
     }
     catch (Exception ex)
     {
@@ -551,8 +495,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     return bindPasswordValue;
   }
 
-  private void addLdapConnectionArguments(ArgumentGroup argGroup,
-    boolean alwaysSSL) {
+  private void addLdapConnectionArguments(ArgumentGroup argGroup, boolean alwaysSSL) {
     args = new SecureConnectionCliArgs(alwaysSSL);
     try {
       LinkedHashSet<Argument> argSet = args.createGlobalArguments();
@@ -563,7 +506,5 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
     catch (ArgumentException ae) {
       ae.printStackTrace(); // Should never happen
     }
-
   }
-
 }
