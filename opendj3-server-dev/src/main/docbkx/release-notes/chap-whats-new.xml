@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-whats-new'
-  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
-  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-  xsi:schemaLocation='http://docbook.org/ns/docbook
-                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
-  xmlns:xlink='http://www.w3.org/1999/xlink'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
   <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
 
   <para>Compared to the OpenDJ <?eval ${docPreviousVersion}?> release, OpenDJ
@@ -59,6 +59,34 @@
       (<link xlink:show="new"
              xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1295"
       >OPENDJ-1295</link>).
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
+      OpenDJ directory server has
+      an improved replication changelog implementation
+      (<link
+      xlink:show="new"
+      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1215"
+      >OPENDJ-1215</link>).
+      The configuration refers to the previous implementation
+      as <literal>je</literal> because it uses Berkeley DB Java Edition,
+      and to the new implementation
+      as <literal>log</literal> because it uses log files.
+     </para>
+
+     <para>
+      When you install a replicated directory server,
+      the new implementation is selected by default.
+     </para>
+
+     <para>
+      After upgrading a replicated directory server,
+      you can use the new implementation
+      by changing the advanced replication server configuration property
+      <literal>replication-db-implementation</literal>
+      to <literal>log</literal> using the <command>dsconfig</command> command.
      </para>
     </listitem>
 
