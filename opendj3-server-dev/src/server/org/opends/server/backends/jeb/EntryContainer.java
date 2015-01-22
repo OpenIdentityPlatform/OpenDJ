@@ -2489,7 +2489,7 @@ public class EntryContainer
     // FIXME -- This will need to be updated appropriately if we decided that
     //          these plugins should be invoked for synchronization
     //          operations.
-    if (! modifyDNOperation.isSynchronizationOperation())
+    if (modifyDNOperation != null && !modifyDNOperation.isSynchronizationOperation())
     {
       SubordinateModifyDN pluginResult =
         getPluginConfigManager().invokeSubordinateModifyDNPlugins(
