@@ -520,7 +520,7 @@ public abstract class Backend<C extends Configuration>
    * the entry.
    *
    * @param currentDN
-   *          The current DN of the entry to be replaced.
+   *          The current DN of the entry to be moved/renamed.
    * @param entry
    *          The new content to use for the entry.
    * @param modifyDNOperation
