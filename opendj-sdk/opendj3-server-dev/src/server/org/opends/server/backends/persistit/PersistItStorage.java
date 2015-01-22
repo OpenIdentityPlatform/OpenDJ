@@ -21,15 +21,15 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.persistit;
 
-import static com.persistit.Transaction.CommitPolicy.GROUP;
-import static com.persistit.Transaction.CommitPolicy.SOFT;
-import static java.util.Arrays.asList;
-import static org.opends.messages.JebMessages.NOTE_PERSISTIT_MEMORY_CFG;
-import static org.opends.server.util.StaticUtils.getFileForPath;
+import static com.persistit.Transaction.CommitPolicy.*;
+import static java.util.Arrays.*;
+
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.HashMap;
@@ -255,7 +255,7 @@ public final class PersistItStorage implements Storage
     {
       try
       {
-        final Exchange ex = getExchange(treeName);
+        final Exchange ex = getExchangeFromCache(treeName);
         bytesToKey(ex.getKey(), key);
         bytesToValue(ex.getValue(), value);
         ex.store();
@@ -271,7 +271,7 @@ public final class PersistItStorage implements Storage
     {
       try
       {
-        final Exchange ex = getExchange(treeName);
+        final Exchange ex = getExchangeFromCache(treeName);
         bytesToKey(ex.getKey(), key);
         ex.remove();
       }
@@ -287,7 +287,7 @@ public final class PersistItStorage implements Storage
       Exchange ex = null;
       try
       {
-        ex = getExchange(treeName);
+        ex = getExchangeFromCache(treeName);
         ex.removeTree();
       }
       catch (final PersistitException e)
@@ -296,6 +296,7 @@ public final class PersistItStorage implements Storage
       }
       finally
       {
+        exchanges.values().remove(ex);
         db.releaseExchange(ex);
       }
     }
@@ -316,7 +317,7 @@ public final class PersistItStorage implements Storage
          * exchange in order to avoid reentrant accesses to the same tree
          * interfering with the cursor position.
          */
-        return new CursorImpl(getExchange0(treeName, false));
+        return new CursorImpl(getNewExchange(treeName, false));
       }
       catch (final PersistitException e)
       {
@@ -330,7 +331,7 @@ public final class PersistItStorage implements Storage
       Exchange ex = null;
       try
       {
-        ex = getExchange0(treeName, true);
+        ex = getNewExchange(treeName, true);
       }
       catch (final PersistitException e)
       {
@@ -352,7 +353,7 @@ public final class PersistItStorage implements Storage
         // Following code is fine because Persistit provides snapshot isolation.
         // If another thread tries to update the same key, we'll get a RollbackException
         // And the write operation will be retried (see write() method in this class)
-        final Exchange ex = getExchange(treeName);
+        final Exchange ex = getExchangeFromCache(treeName);
         bytesToKey(ex.getKey(), key);
         ex.fetch();
         final Value exValue = ex.getValue();
@@ -375,7 +376,7 @@ public final class PersistItStorage implements Storage
     {
       try
       {
-        final Exchange ex = getExchange(treeName);
+        final Exchange ex = getExchangeFromCache(treeName);
         bytesToKey(ex.getKey(), key);
         ex.fetch();
         return valueToBytes(ex.getValue());
@@ -391,7 +392,7 @@ public final class PersistItStorage implements Storage
     {
       try
       {
-        final Exchange ex = getExchange(treeName);
+        final Exchange ex = getExchangeFromCache(treeName);
         bytesToKey(ex.getKey(), key);
         return ex.remove();
       }
@@ -413,7 +414,7 @@ public final class PersistItStorage implements Storage
     {
       try
       {
-        getExchange(treeName).removeAll();
+        getExchangeFromCache(treeName).removeAll();
       }
       catch (final PersistitException e)
       {
@@ -427,7 +428,7 @@ public final class PersistItStorage implements Storage
     {
       try
       {
-        final Exchange ex = getExchange(treeName);
+        final Exchange ex = getExchangeFromCache(treeName);
         bytesToKey(ex.getKey(), key);
         ex.fetch();
         final ByteSequence oldValue = valueToBytes(ex.getValue());
@@ -441,13 +442,13 @@ public final class PersistItStorage implements Storage
       }
     }
 
-    private Exchange getExchange(final TreeName treeName)
+    private Exchange getExchangeFromCache(final TreeName treeName)
         throws PersistitException
     {
       Exchange exchange = exchanges.get(treeName);
       if (exchange == null)
       {
-        exchange = getExchange0(treeName, false);
+        exchange = getNewExchange(treeName, false);
         exchanges.put(treeName, exchange);
       }
       return exchange;
@@ -459,6 +460,7 @@ public final class PersistItStorage implements Storage
       {
         db.releaseExchange(ex);
       }
+      exchanges.clear();
     }
   }
 
@@ -677,7 +679,7 @@ public final class PersistItStorage implements Storage
     return value;
   }
 
-  private Exchange getExchange0(final TreeName treeName, final boolean create)
+  private Exchange getNewExchange(final TreeName treeName, final boolean create)
       throws PersistitException
   {
     return db.getExchange(volume, treeName.toString(), create);
