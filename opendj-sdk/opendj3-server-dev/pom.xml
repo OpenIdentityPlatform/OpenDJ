@@ -22,7 +22,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -170,30 +170,15 @@
         <configuration>
          <projectName>OpenDJ</projectName>
          <projectVersion>${docTargetVersion}</projectVersion>
+         <releaseVersion>${docTargetVersion}</releaseVersion>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
-         <latestJson>http://docs.forgerock.org/latest.json</latestJson>
-         <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
         </configuration>
         <executions>
           <execution>
-            <id>copy-common</id>
+            <id>pre-process-doc</id>
             <phase>pre-site</phase>
             <goals>
-              <goal>boilerplate</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>filter-sources</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>filter</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>prepare-sources</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>prepare</goal>
+              <goal>process</goal>
             </goals>
           </execution>
           <execution>
@@ -207,7 +192,14 @@
             <id>layout-doc</id>
             <phase>site</phase>
             <goals>
-              <goal>layout</goal>
+              <goal>site</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>layout-release</id>
+            <phase>site</phase>
+            <goals>
+              <goal>release</goal>
             </goals>
           </execution>
         </executions>
