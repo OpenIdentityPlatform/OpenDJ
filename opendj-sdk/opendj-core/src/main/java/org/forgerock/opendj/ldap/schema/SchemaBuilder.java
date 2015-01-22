@@ -1192,6 +1192,24 @@ public final class SchemaBuilder {
 
     /**
      * Returns a builder which can be used for incrementally constructing a new
+     * object class before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildObjectClass("objectclass-oid").name("object class name").addToSchema();
+     * </pre>
+     *
+     * @param oid
+     *            The OID of the object class definition.
+     * @return A builder to continue building the ObjectClass.
+     */
+    public ObjectClass.Builder buildObjectClass(final String oid) {
+        lazyInitBuilder();
+        return new ObjectClass.Builder(oid, this);
+    }
+
+    /**
+     * Returns a builder which can be used for incrementally constructing a new
      * syntax before adding it to the schema. Example usage:
      *
      * <pre>
@@ -1239,26 +1257,19 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Duplicates the matching rule.
+     * Returns a matching rule builder whose fields are initialized to the
+     * values of the provided matching rule. This method should be used when
+     * duplicating matching rules from external schemas or when modifying
+     * existing matching rules.
      *
      * @param matchingRule
-     *            The matching rule to duplicate.
-     * @return A matching rule builder.
+     *            The matching rule source.
+     * @return A builder to continue building the MatchingRule.
      */
     public MatchingRule.Builder buildMatchingRule(final MatchingRule matchingRule) {
         return buildMatchingRule(matchingRule, true);
     }
 
-    /**
-     * Duplicates the matching rule.
-     *
-     * @param matchingRule
-     *            The matching rule to duplicate.
-     * @param initialize
-     *            Indicates if initialization should be attempted. Use
-     *            {@code false} to prevent it.
-     * @return A matching rule builder.
-     */
     private MatchingRule.Builder buildMatchingRule(final MatchingRule matchingRule, final boolean initialize) {
         if (initialize) {
             lazyInitBuilder();
@@ -1267,11 +1278,14 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Duplicates the name form.
+     * Returns a name form builder whose fields are initialized to the
+     * values of the provided name form. This method should be used when
+     * duplicating name forms from external schemas or when modifying
+     * existing names forms.
      *
      * @param nameForm
-     *            The name form to duplicate.
-     * @return A name form builder.
+     *            The name form source.
+     * @return A builder to continue building the NameForm.
      */
     public NameForm.Builder buildNameForm(final NameForm nameForm) {
         lazyInitBuilder();
@@ -1294,45 +1308,19 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Returns a builder which can be used for incrementally constructing a new
-     * object class before adding it to the schema. Example usage:
-     *
-     * <pre>
-     * SchemaBuilder builder = ...;
-     * builder.buildObjectClass("objectclass-oid").name("object class name").addToSchema();
-     * </pre>
-     *
-     * @param oid
-     *            The OID of the object class definition.
-     * @return A builder to continue building the ObjectClass.
-     */
-    public ObjectClass.Builder buildObjectClass(final String oid) {
-        lazyInitBuilder();
-        return new ObjectClass.Builder(oid, this);
-    }
-
-    /**
-     * Duplicates the syntax.
+     * Returns a syntax builder whose fields are initialized to the
+     * values of the provided syntax. This method should be used when
+     * duplicating syntaxes from external schemas or when modifying
+     * existing syntaxes.
      *
      * @param syntax
-     *            The syntax to duplicate.
-     * @return A syntax builder.
+     *            The syntax source.
+     * @return A builder to continue building the Syntax.
      */
     public Syntax.Builder buildSyntax(final Syntax syntax) {
         return buildSyntax(syntax, true);
     }
 
-    /**
-     * Duplicates the syntax, with or without lazy initialization
-     * of the schema.
-     *
-     * @param syntax
-     *            The syntax to duplicate.
-     * @param initialize
-     *            Indicates if initialization should be attempted.
-     *            Use {@code false} to prevent it.
-     * @return A syntax builder.
-     */
     private Syntax.Builder buildSyntax(final Syntax syntax, final boolean initialize) {
         if (initialize) {
             lazyInitBuilder();
