@@ -10,7 +10,7 @@
   ! Suite 900, Mountain View, California, 94041, USA.
   !
   ! You can also obtain a copy of the license at
-  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! trunk/opendj/legal-notices/CC-BY-NC-ND.txt.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
@@ -20,26 +20,43 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <appendix xml:id='appendix-file-layout'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <title>File Layout</title>
 
- <para>OpenDJ software installs and creates the following files and
- directories. The following list is not necessarily exhaustive.</para>
+ <para>
+  OpenDJ software installs and creates the following files and directories.
+  The following list is not meant to be exhaustive.
+ </para>
  <indexterm><primary>File layout</primary></indexterm>
  <indexterm><primary>Installed files</primary></indexterm>
  <variablelist>
   <varlistentry>
+   <term><filename>Legal</filename></term>
+   <listitem>
+    <para>
+     License information
+    </para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
    <term><filename>QuickSetup.app</filename></term>
    <listitem>
     <para>Mac OS X GUI for installing OpenDJ</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>README</filename></term>
+   <listitem>
+    <para>
+     Brief instructions on installing OpenDJ directory server
+    </para>
    </listitem>
   </varlistentry>
   <varlistentry>
@@ -69,8 +86,9 @@
   <varlistentry>
    <term><filename>changelogDb</filename></term>
    <listitem>
-    <para>JE backend data for the external change log when using
-    replication</para>
+    <para>
+     Backend data for the external change log when using replication
+    </para>
    </listitem>
   </varlistentry>
   <varlistentry>
@@ -145,7 +163,9 @@
   <varlistentry>
    <term><filename>db</filename></term>
    <listitem>
-    <para>JE backend data for backends that you create</para>
+    <para>
+     Backend database files for backends that hold user data
+    </para>
    </listitem>
   </varlistentry>
   <varlistentry>
@@ -164,20 +184,16 @@
   <varlistentry>
    <term><filename>instance.loc</filename></term>
    <listitem>
-    <para>Pointer to OpenDJ on the file system, useful in installations where
-    the program files are separate from the server instance files</para>
+    <para>
+     Pointer to OpenDJ on the file system, provided for package installations
+     where the program files are separate from the server instance files
+    </para>
    </listitem>
   </varlistentry>
   <varlistentry>
    <term><filename>ldif</filename></term>
    <listitem>
     <para>Directory for saving LDIF export files</para>
-   </listitem>
-  </varlistentry>
-  <varlistentry>
-   <term><filename>legal-notices</filename></term>
-   <listitem>
-    <para>License information</para>
    </listitem>
   </varlistentry>
   <varlistentry>
@@ -222,6 +238,14 @@
    <term><filename>setup.bat</filename></term>
    <listitem>
     <para>Windows setup utility</para>
+   </listitem>
+  </varlistentry>
+  <varlistentry>
+   <term><filename>template</filename></term>
+   <listitem>
+    <para>
+     Template files for a directory server instance
+    </para>
    </listitem>
   </varlistentry>
   <varlistentry>
