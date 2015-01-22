@@ -22,48 +22,48 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.build.tools;
 
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.forgerock.i18n.LocalizableMessageDescriptor;
-
 import static org.opends.build.tools.Utilities.*;
-import org.opends.messages.Category;
-import org.opends.messages.Severity;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Properties;
+import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.TreeSet;
-import java.util.UnknownFormatConversionException;
-import java.util.Calendar;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.UnknownFormatConversionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+import org.forgerock.i18n.LocalizableMessageDescriptor;
+import org.opends.messages.Category;
+import org.opends.messages.Severity;
 
 /**
  * Generates a Java class containing representations of messages
@@ -76,31 +76,31 @@ public class GenerateMessageFile extends Task {
   private boolean overwrite;
   private boolean writeLogRef;
 
-  static private final String MESSAGES_FILE_STUB =
+  private static final String MESSAGES_FILE_STUB =
           "resource/Messages.java.stub";
 
-  /*
+  /**
    * The registry filename is the result of the concatenation of the
    * location of where the source are generated, the package name and the
    * DESCRIPTORS_REG value.
    */
-  static private String REGISTRY_FILE_NAME;
+  private static String REGISTRY_FILE_NAME;
 
-  static private final String DESCRIPTORS_REG = "descriptors.reg";
+  private static final String DESCRIPTORS_REG = "descriptors.reg";
 
   /**
    * Used to set a category for all messages in the property file.
    * If set, the category for each message need not be encoded in
    * the message's property file key.
    */
-  static private final String GLOBAL_CATEGORY = "global.category";
+  private static final String GLOBAL_CATEGORY = "global.category";
 
   /**
    * Used to set a severity for all messages in the property file.
    * If set, the severity for each message need not be encoded in
    * the message's property file key.
    */
-  static private final String GLOBAL_SEVERITY = "global.severity";
+  private static final String GLOBAL_SEVERITY = "global.severity";
 
   /**
    * Used to set a category mask for all messages in the property
@@ -108,79 +108,58 @@ public class GenerateMessageFile extends Task {
    * USER_DEFINED and the value of <code>GLOBAL_CATEGORY</code>
    * will be ignored.
    */
-  static private final String GLOBAL_CATEGORY_MASK = "global.mask";
+  private static final String GLOBAL_CATEGORY_MASK = "global.mask";
 
   /**
    * When true generates messages that have no ordinals.
    */
-  static private final String GLOBAL_ORDINAL = "global.ordinal";
+  private static final String GLOBAL_ORDINAL = "global.ordinal";
 
   /**
    * When true and if the Java Web Start property is set use the class loader of
    * the jar where the MessageDescriptor is contained to retrieve the
    * ResourceBundle.
    */
-  static private final String GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART =
+  private static final String GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART =
     "global.use.message.jar.if.webstart";
 
-  static private final Set<String> DIRECTIVE_PROPERTIES = new HashSet<String>();
-  static {
-    DIRECTIVE_PROPERTIES.add(GLOBAL_CATEGORY);
-    DIRECTIVE_PROPERTIES.add(GLOBAL_CATEGORY_MASK);
-    DIRECTIVE_PROPERTIES.add(GLOBAL_SEVERITY);
-    DIRECTIVE_PROPERTIES.add(GLOBAL_ORDINAL);
-    DIRECTIVE_PROPERTIES.add(GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART);
-  }
+  private static final Set<String> DIRECTIVE_PROPERTIES = new HashSet<String>(Arrays.asList(
+      GLOBAL_CATEGORY, GLOBAL_CATEGORY_MASK, GLOBAL_SEVERITY, GLOBAL_ORDINAL, GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART));
 
-  static private final String SPECIFIER_REGEX =
+  private static final String SPECIFIER_REGEX =
           "%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?([a-zA-Z%])";
 
-  private final Pattern SPECIFIER_PATTERN = Pattern.compile(SPECIFIER_REGEX);
+  private static final Pattern SPECIFIER_PATTERN = Pattern.compile(SPECIFIER_REGEX);
 
   /**
    * Message giving formatting rules for string keys.
    */
-  static public String KEY_FORM_MSG;
+  public static String KEY_FORM_MSG = ".\n\nOpenDJ message property keys must be of the form\n\n"
+      + "\t\'[CATEGORY]_[SEVERITY]_[DESCRIPTION]_[ORDINAL]\'\n\n"
+      // + "where\n\n"
+      // + "CATEGORY is one of ..."
+      // + EnumSet.allOf(Category.class)
+      // + "\n\nSEVERITY is one of "
+      // + Severity.getPropertyKeyFormSet()
+      + "\n\nDESCRIPTION is a descriptive string composed "
+      + "of uppercase character, digits and underscores "
+      + "describing the purpose of the message "
+      + "\n\nORDINAL is an integer between 0 and 65535 that is "
+      + "unique to other messages defined in this file.\n\n"
+      + "You can relax the mandate for including the CATEGORY, "
+      + "SEVERITY, and/or ORDINAL by including one or more "
+      + "of the following respective property directives in your properties file:  "
+      + GLOBAL_CATEGORY + ", " + GLOBAL_SEVERITY + ", " + GLOBAL_ORDINAL
+      + "and setting their value appropriately.";
 
-  static {
-    KEY_FORM_MSG = new StringBuilder()
-            .append(".\n\nOpenDJ message property keys must be of the form\n\n")
-            .append("\t\'[CATEGORY]_[SEVERITY]_[DESCRIPTION]_[ORDINAL]\'\n\n")
-            //.append("where\n\n")
-            //.append("CATEGORY is one of ...")
-            //.append(EnumSet.allOf(Category.class))
-            //.append("\n\nSEVERITY is one of ")
-            //.append(Severity.getPropertyKeyFormSet().toString())
-            .append("\n\nDESCRIPTION is a descriptive string composed ")
-            .append("of uppercase character, digits and underscores ")
-            .append("describing the purpose of the message ")
-            .append("\n\nORDINAL is an integer between 0 and 65535 that is ")
-            .append("unique to other messages defined in this file.\n\n")
-            .append("You can relax the mandate for including the CATEGORY, ")
-            .append("SEVERITY, and/or ORDINAL by including one or more ")
-            .append("of the following respective property directives in your ")
-            .append("properties file:  ")
-            .append(GLOBAL_CATEGORY)
-            .append(", ")
-            .append(GLOBAL_SEVERITY)
-            .append(", ")
-            .append(GLOBAL_ORDINAL)
-            .append("and setting their value appropriately.")
-            .toString();
-  }
-
-  /*
-   * ISO_LANGUAGES contains all official supported languages for i18n
-   */
+  /** ISO_LANGUAGES contains all official supported languages for i18n. */
   private static final List<String> ISO_LANGUAGES =
                                         Arrays.asList(Locale.getISOLanguages());
-  /*
-   * ISO_COUNTRIES contains all official supported countries for i18n
-   */
+  /** ISO_COUNTRIES contains all official supported countries for i18n. */
   private static final List<String> ISO_COUNTRIES =
                                         Arrays.asList(Locale.getISOCountries());
 
-  /*
+  /**
    * A Pattern instance that matches "<label>_<language>_<country>.properties"
    * where <label> can be anything including '_'
    *       <language> a two characters code contained in the ISO_LANGUAGES list
@@ -188,7 +167,7 @@ public class GenerateMessageFile extends Task {
    */
   private static final Pattern LANGUAGE_COUNTRY_MATCHER =
                        Pattern.compile("(.*)_([a-z]{2})_([A-Z]{2}).properties");
-  /*
+  /**
    * A Pattern instance that matches "<label>_<language>.properties"
    * where <label> and <language> have same definition as above.
    */
@@ -198,7 +177,7 @@ public class GenerateMessageFile extends Task {
   /**
    * Representation of a format specifier (for example %s).
    */
-  private class FormatSpecifier {
+  private static class FormatSpecifier {
 
     private String[] sa;
 
@@ -231,17 +210,13 @@ public class GenerateMessageFile extends Task {
       String sa5 = sa[5] != null ? sa[5].toLowerCase() : null;
       if ("t".equals(sa4)) {
         c = Calendar.class;
-      } else if (
-              "b".equals(sa5)) {
+      } else if ("b".equals(sa5)) {
         c = Boolean.class;
-      } else if (
-              "h".equals(sa5)) {
+      } else if ("h".equals(sa5)) {
         c = Integer.class;
-      } else if (
-              "s".equals(sa5)) {
+      } else if ("s".equals(sa5)) {
         c = Object.class;
-      } else if (
-              "c".equals(sa5)) {
+      } else if ("c".equals(sa5)) {
         c = Character.class;
       } else if (
               "d".equals(sa5) ||
@@ -265,7 +240,7 @@ public class GenerateMessageFile extends Task {
   /**
    * Represents a message to be written into the messages files.
    */
-  private class MessageDescriptorDeclaration {
+  private static class MessageDescriptorDeclaration {
 
     private MessagePropertyKey key;
     private String formatString;
@@ -298,12 +273,11 @@ public class GenerateMessageFile extends Task {
      * @return String representing the Java class name
      */
     public String getDescriptorClassDeclaration() {
-      StringBuilder sb = new StringBuilder();
+      final StringBuilder sb = new StringBuilder();
+      sb.append(LocalizableMessageDescriptor.class.getSimpleName());
       if (useGenericMessageTypeClass()) {
-        sb.append(getShortClassName(LocalizableMessageDescriptor.class));
         sb.append(".ArgN");
       } else {
-        sb.append(getShortClassName(LocalizableMessageDescriptor.class));
         sb.append(".Arg");
         sb.append(classTypes.size());
         sb.append(getClassTypeVariables());
@@ -324,7 +298,7 @@ public class GenerateMessageFile extends Task {
         for (int i = 0; i < classTypes.size(); i++) {
           Class<?> c = classTypes.get(i);
           if (c != null) {
-            sb.append(getShortClassName(c));
+            sb.append(c.getSimpleName());
             if (i < classTypes.size() - 1) {
               sb.append(",");
             }
@@ -366,9 +340,8 @@ public class GenerateMessageFile extends Task {
       this.constructorArgs = s;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String toString() {
       StringBuilder sb = new StringBuilder();
       sb.append(getComment());
@@ -401,7 +374,7 @@ public class GenerateMessageFile extends Task {
      * Indicates whether the generic message type class should
      * be used.  In general this is when a format specifier is
      * more complicated than we support or when the number of
-     * arguments exceeeds the number of specific message type
+     * arguments exceeds the number of specific message type
      * classes (MessageType0, MessageType1 ...) that are defined.
      * @return boolean indicating
      */
@@ -459,15 +432,13 @@ public class GenerateMessageFile extends Task {
     }
 
     private void checkText(String s) {
-      int idx;
-      // If there are any '%' in the given string, we got a bad format
-      // specifier.
-      if ((idx = s.indexOf('%')) != -1) {
-        char c = (idx > s.length() - 2 ? '%' : s.charAt(idx + 1));
+      // If there are any '%' in the given string, we got a bad format specifier
+      final int idx = s.indexOf('%');
+      if (idx != -1) {
+        char c = idx > s.length() - 2 ? '%' : s.charAt(idx + 1);
         throw new UnknownFormatConversionException(String.valueOf(c));
       }
     }
-
   }
 
   /**
@@ -505,7 +476,7 @@ public class GenerateMessageFile extends Task {
         REGISTRY_FILE_NAME = descriptorsRegFile.getCanonicalPath();
       }
     } catch (Exception e) {
-      throw (new BuildException(e));
+      throw new BuildException(e);
     }
   }
 
@@ -532,7 +503,7 @@ public class GenerateMessageFile extends Task {
   /**
    * Represents a log reference entry for an individual message.
    */
-  private class MessageRefEntry implements Comparable<MessageRefEntry>
+  private static class MessageRefEntry implements Comparable<MessageRefEntry>
   {
 
     private Severity severity;
@@ -563,7 +534,7 @@ public class GenerateMessageFile extends Task {
         final Severity severity, final Integer ordinal)
     {
       // Id is equivalent to ordinal with OpenDJ3
-      return new Integer(ordinal);
+      return Integer.valueOf(ordinal);
     }
 
     private String getXmlId(final String messagePropertyKey)
@@ -573,8 +544,7 @@ public class GenerateMessageFile extends Task {
         // hyphens ("-"), underscores ("_"), colons (":"), and periods (".").
 
         final String invalidChars = "[^A-Za-z0-9\\-_:\\.]";
-        String xmlId = messagePropertyKey.replaceAll(invalidChars, "-");
-        return xmlId;
+        return messagePropertyKey.replaceAll(invalidChars, "-");
     }
 
     /**
@@ -584,6 +554,7 @@ public class GenerateMessageFile extends Task {
      *
      * @return DocBook XML &lt;varlistentry&gt;.
      */
+    @Override
     public String toString()
     {
       return
@@ -619,6 +590,7 @@ public class GenerateMessageFile extends Task {
      *
      * @return See {@link java.lang.Comparable#compareTo(Object)}.
      */
+    @Override
     public int compareTo(MessageRefEntry mre)
     {
       return this.id.compareTo(mre.getId());
@@ -626,9 +598,9 @@ public class GenerateMessageFile extends Task {
   }
 
   /**
-   * One-line descriptions for log reference categories
+   * One-line descriptions for log reference categories.
    */
-  static private HashMap<String,String> CATEGORY_DESCRIPTIONS;
+  private static HashMap<String,String> CATEGORY_DESCRIPTIONS;
   static {
     CATEGORY_DESCRIPTIONS = new HashMap<String,String>();
     CATEGORY_DESCRIPTIONS.put("ACCESS_CONTROL", "Access Control.");
@@ -664,7 +636,7 @@ public class GenerateMessageFile extends Task {
   /**
    * Represents a log reference list of messages for a category.
    */
-  private class MessageRefCategory
+  private static class MessageRefCategory
   {
     private Category category;
     private TreeSet<MessageRefEntry> messages;
@@ -689,6 +661,7 @@ public class GenerateMessageFile extends Task {
      *
      * @return DocBook XML &lt;variablelist&gt;
      */
+    @Override
     public String toString()
     {
       StringBuilder entries = new StringBuilder();
@@ -696,8 +669,7 @@ public class GenerateMessageFile extends Task {
       {
         entries.append(entry.toXML());
       }
-
-      return getVariablelistHead() + entries.toString() + getVariablelistTail();
+      return getVariablelistHead() + entries + getVariablelistTail();
     }
 
     /**
@@ -714,31 +686,28 @@ public class GenerateMessageFile extends Task {
       Date now = new Date();
       String year = df.format(now);
 
-      return new StringBuilder()
-        .append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>").append(EOL)
-        .append("<!--").append(EOL)
-        .append("  ! CCPL HEADER START").append(EOL)
-        .append("  !").append(EOL)
-        .append("  ! This work is licensed under the Creative Commons").append(EOL)
-        .append("  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.").append(EOL)
-        .append("  ! To view a copy of this license, visit").append(EOL)
-        .append("  ! http://creativecommons.org/licenses/by-nc-nd/3.0/").append(EOL)
-        .append("  ! or send a letter to Creative Commons, 444 Castro Street,").append(EOL)
-        .append("  ! Suite 900, Mountain View, California, 94041, USA.").append(EOL)
-        .append("  !").append(EOL)
-        .append("  ! See the License for the specific language governing permissions").append(EOL)
-        .append("  ! and limitations under the License.").append(EOL)
-        .append("  !").append(EOL)
-        .append("  ! If applicable, add the following below this CCPL HEADER, with the fields").append(EOL)
-        .append("  ! enclosed by brackets \"[]\" replaced with your own identifying information:").append(EOL)
-        .append("  !      Portions Copyright [yyyy] [name of copyright owner]").append(EOL)
-        .append("  !").append(EOL)
-        .append("  ! CCPL HEADER END").append(EOL)
-        .append("  !").append(EOL)
-        .append("  !      Copyright " + year + " ForgeRock AS").append(EOL)
-        .append("  !").append(EOL)
-        .append("-->").append(EOL)
-        .toString();
+      return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + EOL
+          + "<!--" + EOL
+          + "  ! CCPL HEADER START" + EOL
+          + "  !" + EOL
+          + "  ! This work is licensed under the Creative Commons" + EOL
+          + "  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License." + EOL
+          + "  ! To view a copy of this license, visit" + EOL
+          + "  ! http://creativecommons.org/licenses/by-nc-nd/3.0/" + EOL
+          + "  ! or send a letter to Creative Commons, 444 Castro Street," + EOL
+          + "  ! Suite 900, Mountain View, California, 94041, USA." + EOL
+          + "  !" + EOL + "  ! See the License for the specific language governing permissions" + EOL
+          + "  ! and limitations under the License." + EOL
+          + "  !" + EOL
+          + "  ! If applicable, add the following below this CCPL HEADER, with the fields" + EOL
+          + "  ! enclosed by brackets \"[]\" replaced with your own identifying information:" + EOL
+          + "  !      Portions Copyright [yyyy] [name of copyright owner]" + EOL
+          + "  !" + EOL
+          + "  ! CCPL HEADER END" + EOL
+          + "  !" + EOL
+          + "  !      Copyright " + year + " ForgeRock AS" + EOL
+          + "  !" + EOL
+          + "-->" + EOL;
     }
 
     private String getBaseElementAttrs()
@@ -767,9 +736,7 @@ public class GenerateMessageFile extends Task {
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void execute() throws BuildException {
 
@@ -787,20 +754,19 @@ public class GenerateMessageFile extends Task {
        * generate messages for localized properties files.
        */
       Matcher matcher = LANGUAGE_COUNTRY_MATCHER.matcher(filename);
-      if ( matcher.find() ) {
-        if ( ISO_LANGUAGES.contains(matcher.group(2))
-          && ISO_COUNTRIES.contains(matcher.group(3)) ) {
-          // do not generate message for <label>_<language>_<country>.properties
-          return;
-        }
+      if (matcher.find()
+          && ISO_LANGUAGES.contains(matcher.group(2))
+          && ISO_COUNTRIES.contains(matcher.group(3)))
+      {
+        // do not generate message for <label>_<language>_<country>.properties
+        return;
       }
 
       matcher = LANGUAGE_MATCHER.matcher(filename);
-      if ( matcher.find() ) {
-        if ( ISO_LANGUAGES.contains(matcher.group(2)) ) {
-          // do not generate message for <label>_<language>.properties
-          return;
-        }
+      if (matcher.find()
+          && ISO_LANGUAGES.contains(matcher.group(2)) ) {
+        // do not generate message for <label>_<language>.properties
+        return;
       }
 
       // filename without ".properties"
@@ -879,7 +845,7 @@ public class GenerateMessageFile extends Task {
           Integer globalOrdinal = null;
           String go = properties.getProperty(GLOBAL_ORDINAL);
           if (go != null) {
-            globalOrdinal = new Integer(go);
+            globalOrdinal = Integer.valueOf(go);
           }
 
           Category globalCategory = null;
@@ -934,8 +900,8 @@ public class GenerateMessageFile extends Task {
             MessageDescriptorDeclaration message =
                     new MessageDescriptorDeclaration(key, formatString);
 
-            Category c = (globalCategory != null ?
-                    globalCategory : key.getCategory());
+            Category c = globalCategory != null ?
+                    globalCategory : key.getCategory();
 
             // Check that this category is the same as all the
             // others in this file.  Maybe this should be an error?
@@ -947,8 +913,8 @@ public class GenerateMessageFile extends Task {
               firstCategory = c;
             }
 
-            Severity s = (globalSeverity != null ?
-                    globalSeverity : key.getSeverity());
+            Severity s = globalSeverity != null ?
+                    globalSeverity : key.getSeverity();
 
             if (c == null) {
               throw new BuildException(
@@ -984,7 +950,7 @@ public class GenerateMessageFile extends Task {
 
             if (writeLogRef) {
               // Document only ERROR messages.
-              if (s.name().equalsIgnoreCase("ERROR")) {
+              if ("ERROR".equalsIgnoreCase(s.name())) {
                 MessageRefEntry entry =
                         new MessageRefEntry(
                                 key.toString(),
@@ -1040,10 +1006,9 @@ public class GenerateMessageFile extends Task {
 
           String useMessageJarIfWebstart =
             properties.getProperty(GLOBAL_USE_MESSAGE_JAR_IF_WEBSTART);
-          if ((useMessageJarIfWebstart != null) &&
-              ("true".equalsIgnoreCase(useMessageJarIfWebstart) ||
-              "on".equalsIgnoreCase(useMessageJarIfWebstart) ||
-              "true".equalsIgnoreCase(useMessageJarIfWebstart)))
+          if (useMessageJarIfWebstart != null
+              && ("true".equalsIgnoreCase(useMessageJarIfWebstart)
+                  || "on".equalsIgnoreCase(useMessageJarIfWebstart)))
           {
             useMessageJarIfWebstart = "true";
           }
@@ -1100,9 +1065,8 @@ public class GenerateMessageFile extends Task {
 
   private String getBase() {
     String srcPath = unixifyPath(source.getAbsolutePath());
-    String base = srcPath.substring(srcPath.lastIndexOf("/") + 1,
+    return srcPath.substring(srcPath.lastIndexOf("/") + 1,
                                     srcPath.length() - ".properties".length());
-    return base;
   }
 
   private String getPackage() {
@@ -1114,48 +1078,30 @@ public class GenerateMessageFile extends Task {
     String c = destPath.substring(msgJavaGenDir.length()+1);
     c = c.replace('/', '.');
     c = c.substring(0, c.lastIndexOf(".")); // strip .java
-    c = c.substring(0, c.lastIndexOf(".")); // strip class name
-    return c;
+    return c.substring(0, c.lastIndexOf(".")); // strip class name
   }
 
-  static private String indent(int indent) {
+  private static String indent(int indent) {
     char[] blankArray = new char[2 * indent];
     Arrays.fill(blankArray, ' ');
     return new String(blankArray);
   }
 
-  static private String quote(String s) {
-    return new StringBuilder()
-            .append("\"")
-            .append(s)
-            .append("\"")
-            .toString();
-  }
-
-  static private String getShortClassName(Class<?> c) {
-    String name;
-    String fqName = c.getName();
-    int i = fqName.lastIndexOf('.');
-    if (i > 0) {
-      name = fqName.substring(i + 1);
-    } else {
-      name = fqName;
-    }
-    return name;
+  private static String quote(String s) {
+    return "\"" + s + "\"";
   }
 
   /**
-   * Writes a record in the messages registry for the specifed
-   * class name.
+   * Writes a record in the messages registry for the specified class name.
+   *
    * @param descClassName name of the message descriptor class
-   * @return true if the class was acutally added to the registry;
+   * @return true if the class was actually added to the registry;
    *         false indicates that the class was already present.
    * @throws IOException if there is a problem with the file I/O
    */
   private boolean registerMessageDescriptor(String descClassName)
           throws IOException
   {
-    boolean classAdded = false;
     File registry = getRegistryFile();
     if (!isDescriptorRegistered(descClassName)) {
       FileOutputStream file = new FileOutputStream(registry,true);
@@ -1165,23 +1111,21 @@ public class GenerateMessageFile extends Task {
       out.flush();
       out.close();
     }
-    return classAdded;
+    return false;
   }
 
   private boolean isDescriptorRegistered(String descClassName)
           throws IOException
   {
-    boolean isRegistered = false;
     BufferedReader reader = new BufferedReader(
             new FileReader(getRegistryFile()));
     String line;
     while(null != (line = reader.readLine())) {
       if (line.trim().equals(descClassName.trim())) {
-        isRegistered = true;
-        break;
+        return true;
       }
     }
-    return isRegistered;
+    return false;
   }
 
   private File getRegistryFile() throws IOException {
@@ -1204,7 +1148,7 @@ public class GenerateMessageFile extends Task {
     return path.replace("\\", "/");
   }
 
-  /*
+  /**
    * Returns the stub file ("resource/Messages.java.stub") from the appropriate
    * location: ant or jar file.
    */
@@ -1218,7 +1162,7 @@ public class GenerateMessageFile extends Task {
       try {
         result = new FileInputStream(stub);
       } catch (FileNotFoundException e) {
-        // should neven happen
+        // should never happen
         throw new BuildException("Unable to load template " +
               MESSAGES_FILE_STUB + ":  " + e.getMessage());
       }
@@ -1240,7 +1184,7 @@ public class GenerateMessageFile extends Task {
     File dest = new File("/tmp/org/opends/XXX.java");
     GenerateMessageFile gmf = new GenerateMessageFile();
 
-    if (args.length > 0 && args[0].equalsIgnoreCase("generateMessageReference"))
+    if (args.length > 0 && "generateMessageReference".equalsIgnoreCase(args[0]))
     {
       dest = new File("/tmp/tools-ref.xml");
       gmf.setWriteLogRef(true);
