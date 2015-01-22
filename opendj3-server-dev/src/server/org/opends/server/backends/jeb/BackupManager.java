@@ -696,6 +696,9 @@ public class BackupManager
                            String backupID)
          throws DirectoryException
   {
+    // Keep information about backup to be deleted for file removal
+    BackupInfo backupInfo = getBackupInfo(backupDir, backupID);
+
     try
     {
       backupDir.removeBackup(backupID);
@@ -722,7 +725,6 @@ public class BackupManager
     }
 
     // Remove the archive file.
-    BackupInfo backupInfo = getBackupInfo(backupDir, backupID);
     File archiveFile = getArchiveFile(backupDir, backupInfo);
     archiveFile.delete();
 
