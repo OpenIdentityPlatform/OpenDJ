@@ -109,7 +109,7 @@ public class ImportIDSet {
    *
    * @param entryID  The entry ID to add to an import ID set.
    */
-  public void addEntryID(EntryID entryID) {
+  void addEntryID(EntryID entryID) {
     addEntryID(entryID.longValue());
   }
 
@@ -118,7 +118,7 @@ public class ImportIDSet {
    *
    * @param l The long value to add to an import ID set.
    */
-  public void addEntryID(long l) {
+  void addEntryID(long l) {
     if(!isDefined()) {
       if(doCount)  {
         undefinedSize++;
@@ -431,28 +431,29 @@ public class ImportIDSet {
   public byte[] toDatabase()
   {
     if(isDefined) {
-      return encode(null);
+      return encode();
     } else {
       return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
     }
   }
 
-  private byte[] encode(byte[] bytes)
+  private byte[] encode()
   {
-    int encodedSize = count * 8;
-    if (bytes == null || bytes.length < encodedSize) {
-      bytes = new byte[encodedSize];
-    }
-    for (int pos = 0, i = 0; i < count; i++) {
-      long v = array[i] & 0x00ffffffffL;
-      bytes[pos++] = (byte) ((v >>> 56) & 0xFF);
-      bytes[pos++] = (byte) ((v >>> 48) & 0xFF);
-      bytes[pos++] = (byte) ((v >>> 40) & 0xFF);
-      bytes[pos++] = (byte) ((v >>> 32) & 0xFF);
-      bytes[pos++] = (byte) ((v >>> 24) & 0xFF);
-      bytes[pos++] = (byte) ((v >>> 16) & 0xFF);
-      bytes[pos++] = (byte) ((v >>> 8) & 0xFF);
-      bytes[pos++] = (byte) (v & 0xFF);
+    final int encodedSize = count * 8;
+    final byte[] bytes = new byte[encodedSize];
+    int pos = 0;
+    for (int i = 0; i < count; i++) {
+      final long id = array[i] & 0x00ffffffffL; // JNR: why is this necessary?
+
+      // encode the entryID
+      bytes[pos++] = (byte) ((id >>> 56) & 0xFF);
+      bytes[pos++] = (byte) ((id >>> 48) & 0xFF);
+      bytes[pos++] = (byte) ((id >>> 40) & 0xFF);
+      bytes[pos++] = (byte) ((id >>> 32) & 0xFF);
+      bytes[pos++] = (byte) ((id >>> 24) & 0xFF);
+      bytes[pos++] = (byte) ((id >>> 16) & 0xFF);
+      bytes[pos++] = (byte) ((id >>> 8) & 0xFF);
+      bytes[pos++] = (byte) (id & 0xFF);
     }
     return bytes;
   }
