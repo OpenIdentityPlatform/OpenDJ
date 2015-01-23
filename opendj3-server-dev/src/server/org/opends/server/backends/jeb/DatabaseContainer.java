@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -147,9 +147,7 @@ public abstract class DatabaseContainer implements Closeable
    * @return The operation status.
    * @throws DatabaseException If an error occurs in the JE operation.
    */
-  protected OperationStatus put(Transaction txn, DatabaseEntry key,
-                                DatabaseEntry data)
-      throws DatabaseException
+  OperationStatus put(Transaction txn, DatabaseEntry key, DatabaseEntry data) throws DatabaseException
   {
     OperationStatus status = database.put(txn, key, data);
     if (logger.isTraceEnabled())
@@ -170,9 +168,7 @@ public abstract class DatabaseContainer implements Closeable
    * @return The operation status.
    * @throws DatabaseException If an error occurs in the JE operation.
    */
-  protected OperationStatus read(Transaction txn,
-                                 DatabaseEntry key, DatabaseEntry data,
-                                 LockMode lockMode)
+  OperationStatus read(Transaction txn, DatabaseEntry key, DatabaseEntry data, LockMode lockMode)
       throws DatabaseException
   {
     OperationStatus status = database.get(txn, key, data, lockMode);
@@ -192,9 +188,7 @@ public abstract class DatabaseContainer implements Closeable
    * @return The operation status.
    * @throws DatabaseException If an error occurs in the JE operation.
    */
-  protected OperationStatus insert(Transaction txn,
-                                   DatabaseEntry key, DatabaseEntry data)
-      throws DatabaseException
+  OperationStatus insert(Transaction txn, DatabaseEntry key, DatabaseEntry data) throws DatabaseException
   {
     OperationStatus status = database.putNoOverwrite(txn, key, data);
     if (logger.isTraceEnabled())
@@ -212,9 +206,7 @@ public abstract class DatabaseContainer implements Closeable
    * @return The operation status.
    * @throws DatabaseException If an error occurs in the JE operation.
    */
-  protected OperationStatus delete(Transaction txn,
-                                   DatabaseEntry key)
-      throws DatabaseException
+  OperationStatus delete(Transaction txn, DatabaseEntry key) throws DatabaseException
   {
     OperationStatus status = database.delete(txn, key);
     if (logger.isTraceEnabled())

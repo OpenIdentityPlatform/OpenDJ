@@ -22,20 +22,20 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
+
+import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.OperationStatus.*;
+
+import static org.opends.server.backends.jeb.JebFormat.*;
 
 import java.util.Comparator;
 
 import org.opends.server.types.DN;
 
 import com.sleepycat.je.*;
-
-import static com.sleepycat.je.LockMode.*;
-import static com.sleepycat.je.OperationStatus.*;
-
-import static org.opends.server.backends.jeb.JebFormat.*;
 
 /**
  * This class represents the DN database, or dn2id, which has one record
@@ -120,13 +120,6 @@ public class DN2ID extends DatabaseContainer
     DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
 
     return delete(txn, key) == SUCCESS;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  protected OperationStatus delete(Transaction txn, DatabaseEntry key) throws DatabaseException
-  {
-    return super.delete(txn, key);
   }
 
   /**
