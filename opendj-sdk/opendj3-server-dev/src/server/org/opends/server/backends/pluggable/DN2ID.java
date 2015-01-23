@@ -73,7 +73,7 @@ public class DN2ID extends DatabaseContainer
    * @throws StorageRuntimeException If an error occurred while attempting to insert
    * the new record.
    */
-  public boolean insert(WriteableStorage txn, DN dn, EntryID id) throws StorageRuntimeException
+  boolean insert(WriteableStorage txn, DN dn, EntryID id) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
     ByteString value = id.toByteString();
@@ -129,7 +129,7 @@ public class DN2ID extends DatabaseContainer
    * @throws StorageRuntimeException If an error occurred while attempting to remove
    * the record.
    */
-  public boolean remove(WriteableStorage txn, DN dn) throws StorageRuntimeException
+  boolean remove(WriteableStorage txn, DN dn) throws StorageRuntimeException
   {
     ByteString key = dnToDNKey(dn, prefixRDNComponents);
 

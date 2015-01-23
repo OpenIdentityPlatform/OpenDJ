@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -118,10 +118,11 @@ public class Index extends DatabaseContainer
    * @param maintainCount Whether to maintain a count of IDs for a key once
    * the entry limit has exceeded.
    * @param storage The JE Storage
+   * @param txn The transaction to use when creating this object
    * @param entryContainer The database entryContainer holding this index.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public Index(TreeName name, Indexer indexer, State state,
+  Index(TreeName name, Indexer indexer, State state,
         int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
         Storage storage, WriteableStorage txn, EntryContainer entryContainer)
       throws StorageRuntimeException
@@ -149,7 +150,7 @@ public class Index extends DatabaseContainer
    * @param keyBytes         The index key bytes.
    * @param entryID     The entry ID.
    */
-  public void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
   }
@@ -331,7 +332,7 @@ public class Index extends DatabaseContainer
    * @param keyBytes    The index key bytes.
    * @param entryID     The entry ID.
    */
-  public void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).deleteEntryID(keyBytes, entryID);
   }
@@ -471,6 +472,7 @@ public class Index extends DatabaseContainer
    * Reads a range of keys and collects all their entry IDs into a
    * single set.
    *
+   * @param txn The transaction to use for the operation
    * @param lower The lower bound of the range. A 0 length byte array indicates
    *                      no lower bound and the range will start from the
    *                      smallest key.

@@ -22,18 +22,18 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
+
+import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.OperationStatus.*;
 
 import java.util.Arrays;
 
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
-
-import static com.sleepycat.je.LockMode.*;
-import static com.sleepycat.je.OperationStatus.*;
 
 /**
  * This class is responsible for storing the configuration state of
@@ -84,7 +84,7 @@ public class State extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean removeIndexTrustState(Transaction txn, DatabaseContainer index)
+  boolean removeIndexTrustState(Transaction txn, DatabaseContainer index)
        throws DatabaseException
   {
     DatabaseEntry key = keyForIndex(index);
@@ -120,7 +120,7 @@ public class State extends DatabaseContainer
    * @param trusted The state value to put into the database.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void putIndexTrustState(Transaction txn, DatabaseContainer index, boolean trusted)
+  void putIndexTrustState(Transaction txn, DatabaseContainer index, boolean trusted)
        throws DatabaseException
   {
     DatabaseEntry key = keyForIndex(index);

@@ -26,6 +26,9 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -35,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -62,7 +66,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -71,9 +74,6 @@ import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class represents a VLV index. Each database record is a sorted list
@@ -122,7 +122,8 @@ public class VLVIndex extends DatabaseContainer
    *                         index.
    * @param state            The state database to persist vlvIndex state info.
    * @param env              The JE Storage
-   * @param entryContainer   The database entryContainer holding this vlvIndex.
+   * @param entryContainer   The database entryContainer holding this vlvIndex. the sort order
+   * @param txn              The transaction to use when creating this object
    * @throws StorageRuntimeException
    *          If an error occurs in the JE database.
    * @throws ConfigException if a error occurs while reading the VLV index
@@ -269,8 +270,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server
    * error occurs.
    */
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-      throws DirectoryException
+  boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws DirectoryException
   {
     if (shouldInclude(entry))
     {
@@ -291,8 +291,7 @@ public class VLVIndex extends DatabaseContainer
    * or False otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-      throws DirectoryException
+  boolean removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws DirectoryException
   {
     if (shouldInclude(entry))
     {
@@ -318,7 +317,7 @@ public class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean modifyEntry(IndexBuffer buffer,
+  boolean modifyEntry(IndexBuffer buffer,
                           EntryID entryID,
                           Entry oldEntry,
                           Entry newEntry,
@@ -455,9 +454,8 @@ public class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean containsValues(ReadableStorage txn, long entryID,
-      ByteString[] values, AttributeType[] types)
-          throws StorageRuntimeException, DirectoryException
+  boolean containsValues(ReadableStorage txn, long entryID, ByteString[] values, AttributeType[] types)
+      throws StorageRuntimeException, DirectoryException
   {
     SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
     int pos = valuesSet.binarySearch(entryID, values);
@@ -495,9 +493,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server
    * error occurs.
    */
-  public void updateIndex(WriteableStorage txn,
-                          TreeSet<SortValues> addedValues,
-                          TreeSet<SortValues> deletedValues)
+  void updateIndex(WriteableStorage txn, TreeSet<SortValues> addedValues, TreeSet<SortValues> deletedValues)
       throws DirectoryException, StorageRuntimeException
   {
     // Handle cases where nothing is changed early to avoid
@@ -646,7 +642,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public EntryIDSet evaluate(ReadableStorage txn,
+  EntryIDSet evaluate(ReadableStorage txn,
                              SearchOperation searchOperation,
                              ServerSideSortRequestControl sortControl,
                              VLVRequestControl vlvRequest,
@@ -1114,7 +1110,7 @@ public class VLVIndex extends DatabaseContainer
    *         otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean shouldInclude(Entry entry) throws DirectoryException
+  boolean shouldInclude(Entry entry) throws DirectoryException
   {
     DN entryDN = entry.getName();
     return entryDN.matchesBaseAndScope(baseDN, scope)
@@ -1392,6 +1388,11 @@ public class VLVIndex extends DatabaseContainer
     }
   }
 
+  /**
+   * Returns the sort order of this VLV index.
+   *
+   * @return the sort order
+   */
   SortOrder getSortOrder()
   {
     return sortOrder;
