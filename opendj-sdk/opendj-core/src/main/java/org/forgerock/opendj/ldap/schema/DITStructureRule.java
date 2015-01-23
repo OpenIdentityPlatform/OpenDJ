@@ -22,17 +22,23 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_DSR_VALIDATION_FAIL;
+import static java.util.Arrays.*;
 
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +51,208 @@ import org.forgerock.util.Reject;
  * of children that entries may have.
  */
 public final class DITStructureRule extends SchemaElement {
+
+    /** A fluent API for incrementally constructing DIT structure rules. */
+    public static final class Builder extends SchemaElementBuilder<Builder> {
+        private int ruleID;
+        private final List<String> names = new LinkedList<String>();
+        private boolean isObsolete;
+        private String nameFormOID;
+        private final Set<Integer> superiorRuleIDs = new LinkedHashSet<Integer>();
+
+        Builder(final DITStructureRule structureRule, final SchemaBuilder builder) {
+            super(builder);
+            this.ruleID = structureRule.ruleID;
+            this.names.addAll(structureRule.names);
+            this.isObsolete = structureRule.isObsolete;
+            this.nameFormOID = structureRule.nameFormOID;
+            this.superiorRuleIDs.addAll(structureRule.superiorRuleIDs);
+        }
+
+        Builder(final Integer ruleID, final SchemaBuilder schemaBuilder) {
+            super(schemaBuilder);
+            this.ruleID = ruleID;
+        }
+
+        /**
+         * Adds this DIT structure rule to the schema overwriting any existing
+         * DIT structure rule with the same numeric ID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addDITStructureRule(new DITStructureRule(this), true);
+        }
+
+        /**
+         * Adds this DIT structure rule to the schema, throwing an
+         * {@code  ConflictingSchemaElementException} if there is an existing DIT
+         * structure rule with the same numeric ID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing structure rule with the same
+         *             numeric ID.
+         */
+        public SchemaBuilder addToSchema() {
+            return getSchemaBuilder().addDITStructureRule(new DITStructureRule(this), false);
+        }
+
+        @Override
+        public Builder description(final String description) {
+            return description0(description);
+        }
+
+        @Override
+        public Builder extraProperties(final Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(final String extensionName, final String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Sets the name form associated with the DIT structure rule.
+         *
+         * @param nameFormOID
+         *            The name form numeric OID.
+         * @return This builder.
+         */
+        public Builder nameForm(final String nameFormOID) {
+            this.nameFormOID = nameFormOID;
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final Collection<String> names) {
+            this.names.addAll(names);
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final String... names) {
+            return names(asList(names));
+        }
+
+        /**
+         * Specifies whether this schema element is obsolete.
+         *
+         * @param isObsolete
+         *            {@code true} if this schema element is obsolete
+         *            (default is {@code false}).
+         * @return This builder.
+         */
+        public Builder obsolete(final boolean isObsolete) {
+            this.isObsolete = isObsolete;
+            return this;
+        }
+
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
+        /**
+         * Removes all user defined names.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllNames() {
+            this.names.clear();
+            return this;
+        }
+
+        /**
+         * Removes all superior rules.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllSuperiorRules() {
+            this.superiorRuleIDs.clear();
+            return this;
+        }
+
+        @Override
+        public Builder removeExtraProperty(final String extensionName, final String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
+        }
+
+        /**
+         * Removes the provided user defined name.
+         *
+         * @param name
+         *            The user defined name to be removed.
+         * @return This builder.
+         */
+        public Builder removeName(final String name) {
+            this.names.remove(name);
+            return this;
+        }
+
+        /**
+         * Removes the provided superior rule.
+         *
+         * @param superiorRuleID
+         *            The superior rule ID to be removed.
+         * @return This builder.
+         */
+        public Builder removeSuperiorRule(final int superiorRuleID) {
+            this.superiorRuleIDs.remove(superiorRuleID);
+            return this;
+        }
+
+        /**
+         * Sets the the numeric ID which uniquely identifies this structure rule.
+         *
+         * @param ruleID
+         *            The numeric ID.
+         * @return This builder.
+         */
+        public Builder ruleID(final int ruleID) {
+            this.ruleID = ruleID;
+            return this;
+        }
+
+        /**
+         * Adds the provided superior rule identifiers.
+         *
+         * @param superiorRuleIDs
+         *            Structure rule identifiers.
+         * @return This builder.
+         */
+        public Builder superiorRules(final int... superiorRuleIDs) {
+            for (int ruleID : superiorRuleIDs) {
+                this.superiorRuleIDs.add(ruleID);
+            }
+            return this;
+        }
+
+        Builder superiorRules(final Collection<Integer> superiorRuleIDs) {
+            this.superiorRuleIDs.addAll(superiorRuleIDs);
+            return this;
+        }
+
+    }
+
     /** The rule ID for this DIT structure rule. */
     private final Integer ruleID;
 
@@ -69,17 +277,15 @@ public final class DITStructureRule extends SchemaElement {
     /** The indicates whether or not validation failed. */
     private boolean isValid;
 
-    DITStructureRule(final Integer ruleID, final List<String> names, final String description,
-            final boolean obsolete, final String nameFormOID, final Set<Integer> superiorRuleIDs,
-            final Map<String, List<String>> extraProperties, final String definition) {
-        super(description, extraProperties, definition);
+    DITStructureRule(final Builder builder) {
+        super(builder);
+        Reject.ifNull(builder.nameFormOID);
 
-        Reject.ifNull(ruleID, nameFormOID, superiorRuleIDs);
-        this.ruleID = ruleID;
-        this.names = names;
-        this.isObsolete = obsolete;
-        this.nameFormOID = nameFormOID;
-        this.superiorRuleIDs = superiorRuleIDs;
+        this.ruleID = builder.ruleID;
+        this.names = unmodifiableCopyOfList(builder.names);
+        this.isObsolete = builder.isObsolete;
+        this.nameFormOID = builder.nameFormOID;
+        this.superiorRuleIDs = unmodifiableCopyOfSet(builder.superiorRuleIDs);
     }
 
     /**
@@ -193,11 +399,6 @@ public final class DITStructureRule extends SchemaElement {
      */
     public boolean isObsolete() {
         return isObsolete;
-    }
-
-    DITStructureRule duplicate() {
-        return new DITStructureRule(ruleID, names, getDescription(), isObsolete, nameFormOID,
-                superiorRuleIDs, getExtraProperties(), toString());
     }
 
     @Override
