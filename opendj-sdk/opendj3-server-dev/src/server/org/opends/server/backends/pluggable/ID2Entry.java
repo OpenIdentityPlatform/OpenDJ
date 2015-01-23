@@ -22,9 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,7 +40,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -50,10 +53,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
 
 /**
  * Represents the database containing the LDAP entries. The database key is
@@ -370,20 +369,6 @@ public class ID2Entry extends DatabaseContainer
   }
 
   /**
-   * Write a pre-formatted record into the entry database.
-   *
-   * @param txn The database transaction or null if none.
-   * @param key The key containing a pre-formatted entry ID.
-   * @param value The data value containing a pre-formatted LDAP entry.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
-   */
-  @Override
-  public void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
-  {
-    super.put(txn, key, value);
-  }
-
-  /**
    * Remove a record from the entry database.
    *
    * @param txn The database transaction or null if none.
@@ -401,6 +386,7 @@ public class ID2Entry extends DatabaseContainer
    *
    * @param txn The database transaction or null if none.
    * @param id The desired entry ID which forms the key.
+   * @param isRMW whether the read operation is part of a larger read-modify-write operation
    * @return The requested entry, or null if there is no such record.
    * @throws DirectoryException If a problem occurs while getting the entry.
    * @throws StorageRuntimeException If an error occurs in the JE database.

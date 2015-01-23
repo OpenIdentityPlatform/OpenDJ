@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -75,6 +75,7 @@ public abstract class DatabaseContainer implements Closeable
    * database configuration is transactional, a transaction will be
    * created and used to perform the open.
    *
+   * @param txn The JE transaction handle, or null if none.
    * @throws StorageRuntimeException if a JE database error occurs while
    * opening the index.
    */
@@ -121,8 +122,7 @@ public abstract class DatabaseContainer implements Closeable
    * @param value The record value.
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
-  protected void put(WriteableStorage txn, ByteSequence key, ByteSequence value)
-      throws StorageRuntimeException
+  void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
   {
     txn.create(treeName, key, value);
     if (logger.isTraceEnabled())
@@ -136,13 +136,13 @@ public abstract class DatabaseContainer implements Closeable
    * simple wrapper around the JE Database.get method.
    * @param txn The JE transaction handle, or null if none.
    * @param key The key of the record to be read.
+   * @param isRMW whether the read operation is part of a larger read-modify-write operation
    * @return The operation status.
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
-  protected ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
+  ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
   {
-    ByteString value = isRMW ? txn.getRMW(treeName, key) : txn.read(treeName,
-        key);
+    ByteString value = isRMW ? txn.getRMW(treeName, key) : txn.read(treeName, key);
     if (logger.isTraceEnabled())
     {
       logger.trace(messageToLog(value != null, treeName, txn, key, value));
@@ -159,7 +159,7 @@ public abstract class DatabaseContainer implements Closeable
    * @return <code>true</code> if the key-value mapping could be inserted, <code>false</code> if the key was already mapped to another value
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
-  protected boolean insert(WriteableStorage txn, ByteString key, ByteString value) throws StorageRuntimeException
+  boolean insert(WriteableStorage txn, ByteString key, ByteString value) throws StorageRuntimeException
   {
     boolean result = txn.putIfAbsent(treeName, key, value);
     if (logger.isTraceEnabled())
@@ -177,7 +177,7 @@ public abstract class DatabaseContainer implements Closeable
    * @return <code>true</code> if the key mapping was removed, <code>false</code> otherwise
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
-  protected boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
+  boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
   {
     boolean result = txn.remove(treeName, key);
     if (logger.isTraceEnabled())
@@ -204,6 +204,7 @@ public abstract class DatabaseContainer implements Closeable
   /**
    * Get the count of key/data pairs in the database in a JE database.
    * This is a simple wrapper around the JE Database.count method.
+   * @param txn The JE transaction handle, or null if none.
    * @return The count of key/data pairs in the database.
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */

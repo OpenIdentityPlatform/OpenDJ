@@ -22,9 +22,15 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
+
+import static com.sleepycat.je.OperationStatus.*;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,12 +52,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 
 import com.sleepycat.je.*;
-
-import static com.sleepycat.je.OperationStatus.*;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
 
 /**
  * Represents the database containing the LDAP entries. The database key is
@@ -367,22 +367,6 @@ public class ID2Entry extends DatabaseContainer
     {
       codec.release();
     }
-  }
-
-  /**
-   * Write a pre-formatted record into the entry database.
-   *
-   * @param txn The database transaction or null if none.
-   * @param key The key containing a pre-formatted entry ID.
-   * @param data The data value containing a pre-formatted LDAP entry.
-   * @return true if the entry was written, false if it was not.
-   * @throws DatabaseException If an error occurs in the JE database.
-   */
-  @Override
-  public OperationStatus put(Transaction txn, DatabaseEntry key, DatabaseEntry data)
-       throws DatabaseException
-  {
-    return super.put(txn, key, data);
   }
 
   /**

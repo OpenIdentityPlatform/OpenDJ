@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
+
+import static org.opends.server.backends.pluggable.JebFormat.*;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -34,8 +36,6 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.types.DN;
-
-import static org.opends.server.backends.pluggable.JebFormat.*;
 
 /**
  * This class represents the DN database, or dn2id, which has one record
@@ -136,19 +136,12 @@ public class DN2ID extends DatabaseContainer
     return delete(txn, key);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  protected boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
-  {
-    return super.delete(txn, key);
-  }
-
   /**
    * Fetch the entry ID for a given DN.
    * @param txn A JE database transaction to be used for the database read, or
    * null if none is required.
    * @param dn The DN for which the entry ID is desired.
-   * @param isRMW
+   * @param isRMW whether the read operation is part of a larger read-modify-write operation
    * @return The entry ID, or null if the given DN is not in the DN database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
