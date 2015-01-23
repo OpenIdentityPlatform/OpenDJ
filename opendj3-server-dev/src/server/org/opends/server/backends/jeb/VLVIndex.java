@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -57,7 +58,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -124,8 +124,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws ConfigException if a error occurs while reading the VLV index
    * configuration
    */
-  public VLVIndex(LocalDBVLVIndexCfg config, State state, Environment env,
-                  EntryContainer entryContainer)
+  VLVIndex(LocalDBVLVIndexCfg config, State state, Environment env, EntryContainer entryContainer)
       throws DatabaseException, ConfigException
   {
     super(entryContainer.getDatabasePrefix()+"_vlv."+config.getName(),
@@ -290,8 +289,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server
    * error occurs.
    */
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-      throws DirectoryException
+  boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws DirectoryException
   {
     if (shouldInclude(entry))
     {
@@ -312,8 +310,7 @@ public class VLVIndex extends DatabaseContainer
    * or False otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-      throws DirectoryException
+  boolean removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry) throws DirectoryException
   {
     if (shouldInclude(entry))
     {
@@ -339,7 +336,7 @@ public class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean modifyEntry(IndexBuffer buffer,
+  boolean modifyEntry(IndexBuffer buffer,
                           EntryID entryID,
                           Entry oldEntry,
                           Entry newEntry,
@@ -419,7 +416,7 @@ public class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public SortValuesSet getSortValuesSet(Transaction txn, long entryID,
+  SortValuesSet getSortValuesSet(Transaction txn, long entryID,
       ByteString[] values, AttributeType[] types) throws DatabaseException,
       DirectoryException
   {
@@ -479,7 +476,7 @@ public class VLVIndex extends DatabaseContainer
    * JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean containsValues(Transaction txn, long entryID,
+  boolean containsValues(Transaction txn, long entryID,
       ByteString[] values, AttributeType[] types) throws JebException,
       DatabaseException, DirectoryException
   {
@@ -579,9 +576,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server
    * error occurs.
    */
-  public void updateIndex(Transaction txn,
-                          TreeSet<SortValues> addedValues,
-                          TreeSet<SortValues> deletedValues)
+  void updateIndex(Transaction txn, TreeSet<SortValues> addedValues, TreeSet<SortValues> deletedValues)
       throws DirectoryException, DatabaseException
   {
     // Handle cases where nothing is changed early to avoid
@@ -737,7 +732,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public EntryIDSet evaluate(Transaction txn,
+  EntryIDSet evaluate(Transaction txn,
                              SearchOperation searchOperation,
                              ServerSideSortRequestControl sortControl,
                              VLVRequestControl vlvRequest,
@@ -1230,7 +1225,7 @@ public class VLVIndex extends DatabaseContainer
    *         otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean shouldInclude(Entry entry) throws DirectoryException
+  boolean shouldInclude(Entry entry) throws DirectoryException
   {
     DN entryDN = entry.getName();
     return entryDN.matchesBaseAndScope(baseDN, scope)

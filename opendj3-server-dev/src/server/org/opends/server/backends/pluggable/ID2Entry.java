@@ -298,8 +298,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  public static ByteString entryToDatabase(Entry entry, DataConfig dataConfig)
-      throws DirectoryException
+  static ByteString entryToDatabase(Entry entry, DataConfig dataConfig) throws DirectoryException
   {
     EntryCodec codec = acquireEntryCodec();
     try
@@ -326,8 +325,7 @@ public class ID2Entry extends DatabaseContainer
    * @throws  DirectoryException  If a problem occurs while attempting to encode
    *                              the entry.
    */
-  public boolean insert(WriteableStorage txn, EntryID id, Entry entry)
-       throws StorageRuntimeException, DirectoryException
+  boolean insert(WriteableStorage txn, EntryID id, Entry entry) throws StorageRuntimeException, DirectoryException
   {
     ByteString key = id.toByteString();
     EntryCodec codec = acquireEntryCodec();
@@ -376,7 +374,7 @@ public class ID2Entry extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean remove(WriteableStorage txn, EntryID id) throws StorageRuntimeException
+  boolean remove(WriteableStorage txn, EntryID id) throws StorageRuntimeException
   {
     return delete(txn, id.toByteString());
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -77,8 +77,7 @@ public class State extends DatabaseContainer
    * @return true if the entry was removed, false if it was not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean removeIndexTrustState(WriteableStorage txn, DatabaseContainer index)
-       throws StorageRuntimeException
+  boolean removeIndexTrustState(WriteableStorage txn, DatabaseContainer index) throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);
     return delete(txn, key);
@@ -111,8 +110,8 @@ public class State extends DatabaseContainer
    * @param trusted The state value to put into the database.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public void putIndexTrustState(WriteableStorage txn, DatabaseContainer index, boolean trusted)
-       throws StorageRuntimeException
+  void putIndexTrustState(WriteableStorage txn, DatabaseContainer index, boolean trusted)
+      throws StorageRuntimeException
   {
     ByteString key = keyForIndex(index);
 

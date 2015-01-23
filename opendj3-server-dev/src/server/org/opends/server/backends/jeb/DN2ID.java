@@ -81,7 +81,7 @@ public class DN2ID extends DatabaseContainer
    * @throws DatabaseException If an error occurred while attempting to insert
    * the new record.
    */
-  public boolean insert(Transaction txn, DN dn, EntryID id) throws DatabaseException
+  boolean insert(Transaction txn, DN dn, EntryID id) throws DatabaseException
   {
     DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
     DatabaseEntry data = id.getDatabaseEntry();
@@ -115,7 +115,7 @@ public class DN2ID extends DatabaseContainer
    * @throws DatabaseException If an error occurred while attempting to remove
    * the record.
    */
-  public boolean remove(Transaction txn, DN dn) throws DatabaseException
+  boolean remove(Transaction txn, DN dn) throws DatabaseException
   {
     DatabaseEntry key = new DatabaseEntry(dnToDNKey(dn, prefixRDNComponents));
 

@@ -127,7 +127,7 @@ public class Index extends DatabaseContainer
    * @throws DatabaseException If an error occurs in the JE database.
    */
   @SuppressWarnings("unchecked")
-  public Index(String name, Indexer indexer, State state,
+  Index(String name, Indexer indexer, State state,
         int indexEntryLimit, int cursorEntryLimit, boolean maintainCount,
         Environment env, EntryContainer entryContainer)
       throws DatabaseException
@@ -165,7 +165,7 @@ public class Index extends DatabaseContainer
    * @param keyBytes         The index key bytes.
    * @param entryID     The entry ID.
    */
-  public void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
   }
@@ -431,7 +431,7 @@ public class Index extends DatabaseContainer
    * @param keyBytes    The index key bytes.
    * @param entryID     The entry ID.
    */
-  public void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
+  void removeID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).deleteEntryID(keyBytes, entryID);
   }

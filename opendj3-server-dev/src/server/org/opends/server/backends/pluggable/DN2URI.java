@@ -26,6 +26,9 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -59,9 +62,6 @@ import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.util.Pair;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class represents the referral database which contains URIs from referral
@@ -206,7 +206,7 @@ public class DN2URI extends DatabaseContainer
    * @return true if the values were deleted, false if not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean delete(WriteableStorage txn, DN dn) throws StorageRuntimeException
+  boolean delete(WriteableStorage txn, DN dn) throws StorageRuntimeException
   {
     ByteString key = toKey(dn);
 
@@ -227,8 +227,7 @@ public class DN2URI extends DatabaseContainer
    * @return true if the value was deleted, false if not.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public boolean delete(WriteableStorage txn, DN dn, Collection<String> labeledURIs)
-       throws StorageRuntimeException
+  boolean delete(WriteableStorage txn, DN dn, Collection<String> labeledURIs) throws StorageRuntimeException
   {
     ByteString key = toKey(dn);
 
@@ -251,7 +250,6 @@ public class DN2URI extends DatabaseContainer
    * Indicates whether the underlying database contains any referrals.
    *
    * @param  txn  The transaction to use when making the determination.
-   *
    * @return  {@code true} if it is believed that the underlying database may
    *          contain at least one referral, or {@code false} if it is certain
    *          that it doesn't.
@@ -287,9 +285,8 @@ public class DN2URI extends DatabaseContainer
    * @param mods The sequence of modifications made to the entry.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public void modifyEntry(WriteableStorage txn, Entry before, Entry after,
-                          List<Modification> mods)
-       throws StorageRuntimeException
+  void modifyEntry(WriteableStorage txn, Entry before, Entry after, List<Modification> mods)
+      throws StorageRuntimeException
   {
     DN entryDN = before.getName();
     for (Modification mod : mods)
@@ -395,8 +392,7 @@ public class DN2URI extends DatabaseContainer
    * @param entry The entry to be deleted.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public void deleteEntry(WriteableStorage txn, Entry entry)
-       throws StorageRuntimeException
+  void deleteEntry(WriteableStorage txn, Entry entry) throws StorageRuntimeException
   {
     Set<String> labeledURIs = entry.getReferralURLs();
     if (labeledURIs != null)
@@ -416,8 +412,7 @@ public class DN2URI extends DatabaseContainer
    * DN.  The referral URLs will be set appropriately for the references found
    * in the referral entry.
    */
-  public void checkTargetForReferral(Entry entry, SearchScope searchScope)
-       throws DirectoryException
+  void checkTargetForReferral(Entry entry, SearchScope searchScope) throws DirectoryException
   {
     Set<String> referralURLs = entry.getReferralURLs();
     if (referralURLs != null)
@@ -440,8 +435,8 @@ public class DN2URI extends DatabaseContainer
    * DN.  The referral URLs will be set appropriately for the references found
    * in the referral entry.
    */
-  public void throwReferralException(DN targetDN, DN referralDN, Collection<String> labeledURIs, SearchScope searchScope)
-       throws DirectoryException
+  void throwReferralException(DN targetDN, DN referralDN, Collection<String> labeledURIs, SearchScope searchScope)
+      throws DirectoryException
   {
     ArrayList<String> URIList = new ArrayList<String>(labeledURIs.size());
     for (String labeledURI : labeledURIs)
@@ -510,6 +505,7 @@ public class DN2URI extends DatabaseContainer
 
   /**
    * Process referral entries that are above the target DN of an operation.
+   * @param txn The transaction to use when making the determination.
    * @param targetDN The target DN of the operation, or the base object of a
    * search operation.
    * @param searchScope The scope of the search operation, or null if the
@@ -518,8 +514,7 @@ public class DN2URI extends DatabaseContainer
    * DN.  The referral URLs will be set appropriately for the references found
    * in the referral entry.
    */
-  public void targetEntryReferrals(ReadableStorage txn, DN targetDN, SearchScope searchScope)
-       throws DirectoryException
+  void targetEntryReferrals(ReadableStorage txn, DN targetDN, SearchScope searchScope) throws DirectoryException
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
     {
@@ -564,6 +559,7 @@ public class DN2URI extends DatabaseContainer
   /**
    * Return search result references for a search operation using the referral
    * database to find all referral entries within scope of the search.
+   * @param txn The transaction to use when making the determination.
    * @param searchOp The search operation for which search result references
    * should be returned.
    * @return  <CODE>true</CODE> if the caller should continue processing the
@@ -572,8 +568,7 @@ public class DN2URI extends DatabaseContainer
    *          has been reached or the search has been abandoned).
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean returnSearchReferences(ReadableStorage txn, SearchOperation searchOp)
-       throws DirectoryException
+  boolean returnSearchReferences(ReadableStorage txn, SearchOperation searchOp) throws DirectoryException
   {
     if (containsReferrals == ConditionResult.UNDEFINED)
     {

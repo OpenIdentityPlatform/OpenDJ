@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -52,12 +52,13 @@ final class NullIndex extends Index
    * @param name
    *          The name of the index database within the entryContainer.
    * @param indexer
-   *          The indexer object to construct index keys from LDAP attribute
-   *          values.
+   *          The indexer object to construct index keys from LDAP attribute values.
    * @param state
    *          The state database to persist index state info.
    * @param storage
    *          The JE Storage
+   * @param txn
+   *          The transaction to use when creating this object
    * @param entryContainer
    *          The database entryContainer holding this index.
    * @throws StorageRuntimeException
@@ -71,8 +72,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs,
-      EntryIDSet addedIDs) throws StorageRuntimeException
+  void updateKey(WriteableStorage txn, ByteString key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
+      throws StorageRuntimeException
   {
     // Do nothing.
   }
@@ -86,8 +87,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public ConditionResult containsID(ReadableStorage txn, ByteString key,
-      EntryID entryID) throws StorageRuntimeException
+  public ConditionResult containsID(ReadableStorage txn, ByteString key, EntryID entryID)
+      throws StorageRuntimeException
   {
     return ConditionResult.UNDEFINED;
   }
@@ -101,8 +102,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void writeKey(WriteableStorage txn, ByteString key,
-      EntryIDSet entryIDList) throws StorageRuntimeException
+  public void writeKey(WriteableStorage txn, ByteString key, EntryIDSet entryIDList) throws StorageRuntimeException
   {
     // Do nothing.
   }
@@ -140,8 +140,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry,
-      Entry newEntry, List<Modification> mods, IndexingOptions options) throws StorageRuntimeException
+  public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods,
+      IndexingOptions options) throws StorageRuntimeException
   {
     // Do nothing.
   }
@@ -162,8 +162,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void setTrusted(WriteableStorage txn, boolean trusted)
-      throws StorageRuntimeException
+  public void setTrusted(WriteableStorage txn, boolean trusted) throws StorageRuntimeException
   {
     // Do nothing.
   }
@@ -212,29 +211,27 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  protected void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
+  void put(WriteableStorage txn, ByteSequence key, ByteSequence value) throws StorageRuntimeException
   {
   }
 
   /** {@inheritDoc} */
   @Override
-  protected ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
+  ByteString read(ReadableStorage txn, ByteSequence key, boolean isRMW) throws StorageRuntimeException
   {
     return null;
   }
 
   /** {@inheritDoc} */
   @Override
-  protected boolean insert(WriteableStorage txn, ByteString key,
-      ByteString value) throws StorageRuntimeException
+  boolean insert(WriteableStorage txn, ByteString key, ByteString value) throws StorageRuntimeException
   {
     return true;
   }
 
   /** {@inheritDoc} */
   @Override
-  protected boolean delete(WriteableStorage txn, ByteSequence key)
-      throws StorageRuntimeException
+  boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException
   {
     return true;
   }

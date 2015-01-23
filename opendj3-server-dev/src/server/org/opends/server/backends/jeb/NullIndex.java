@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -60,32 +60,30 @@ final class NullIndex extends Index
    * @throws DatabaseException
    *           If an error occurs in the JE database.
    */
-  public NullIndex(String name, Indexer indexer, State state, Environment env,
-      EntryContainer entryContainer) throws DatabaseException
+  public NullIndex(String name, Indexer indexer, State state, Environment env, EntryContainer entryContainer)
+      throws DatabaseException
   {
     super(name, indexer, state, 0, 0, false, env, entryContainer);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void insert(DatabaseEntry key, ImportIDSet importIdSet,
-      DatabaseEntry data) throws DatabaseException
+  public void insert(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException
   {
     // Do nothing.
   }
 
   /** {@inheritDoc} */
   @Override
-  public void delete(DatabaseEntry key, ImportIDSet importIdSet,
-      DatabaseEntry data) throws DatabaseException
+  public void delete(DatabaseEntry key, ImportIDSet importIdSet, DatabaseEntry data) throws DatabaseException
   {
     // Do nothing.
   }
 
   /** {@inheritDoc} */
   @Override
-  void updateKey(Transaction txn, DatabaseEntry key, EntryIDSet deletedIDs,
-      EntryIDSet addedIDs) throws DatabaseException
+  void updateKey(Transaction txn, DatabaseEntry key, EntryIDSet deletedIDs, EntryIDSet addedIDs)
+      throws DatabaseException
   {
     // Do nothing.
   }
@@ -99,32 +97,28 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public ConditionResult containsID(Transaction txn, DatabaseEntry key,
-      EntryID entryID) throws DatabaseException
+  public ConditionResult containsID(Transaction txn, DatabaseEntry key, EntryID entryID) throws DatabaseException
   {
     return ConditionResult.UNDEFINED;
   }
 
   /** {@inheritDoc} */
   @Override
-  public EntryIDSet readKey(DatabaseEntry key, Transaction txn,
-      LockMode lockMode)
+  public EntryIDSet readKey(DatabaseEntry key, Transaction txn, LockMode lockMode)
   {
     return new EntryIDSet();
   }
 
   /** {@inheritDoc} */
   @Override
-  public void writeKey(Transaction txn, DatabaseEntry key,
-      EntryIDSet entryIDList) throws DatabaseException
+  public void writeKey(Transaction txn, DatabaseEntry key, EntryIDSet entryIDList) throws DatabaseException
   {
     // Do nothing.
   }
 
   /** {@inheritDoc} */
   @Override
-  public EntryIDSet readRange(byte[] lower, byte[] upper,
-      boolean lowerIncluded, boolean upperIncluded)
+  public EntryIDSet readRange(byte[] lower, byte[] upper, boolean lowerIncluded, boolean upperIncluded)
   {
     return new EntryIDSet();
   }
@@ -154,8 +148,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry,
-      Entry newEntry, List<Modification> mods, IndexingOptions options) throws DatabaseException
+  public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry, Entry newEntry, List<Modification> mods,
+      IndexingOptions options) throws DatabaseException
   {
     // Do nothing.
   }
@@ -176,8 +170,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void setTrusted(Transaction txn, boolean trusted)
-      throws DatabaseException
+  public void setTrusted(Transaction txn, boolean trusted) throws DatabaseException
   {
     // Do nothing.
   }
@@ -226,31 +219,14 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  protected OperationStatus put(Transaction txn, DatabaseEntry key,
-      DatabaseEntry data) throws DatabaseException
+  OperationStatus put(Transaction txn, DatabaseEntry key, DatabaseEntry data) throws DatabaseException
   {
     return OperationStatus.SUCCESS;
   }
 
   /** {@inheritDoc} */
   @Override
-  protected OperationStatus read(Transaction txn, DatabaseEntry key,
-      DatabaseEntry data, LockMode lockMode) throws DatabaseException
-  {
-    return OperationStatus.SUCCESS;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  protected OperationStatus insert(Transaction txn, DatabaseEntry key,
-      DatabaseEntry data) throws DatabaseException
-  {
-    return OperationStatus.SUCCESS;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  protected OperationStatus delete(Transaction txn, DatabaseEntry key)
+  OperationStatus read(Transaction txn, DatabaseEntry key, DatabaseEntry data, LockMode lockMode)
       throws DatabaseException
   {
     return OperationStatus.SUCCESS;
@@ -258,8 +234,21 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
-      throws DatabaseException
+  OperationStatus insert(Transaction txn, DatabaseEntry key, DatabaseEntry data) throws DatabaseException
+  {
+    return OperationStatus.SUCCESS;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  OperationStatus delete(Transaction txn, DatabaseEntry key) throws DatabaseException
+  {
+    return OperationStatus.SUCCESS;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Cursor openCursor(Transaction txn, CursorConfig cursorConfig) throws DatabaseException
   {
     throw new IllegalStateException();
   }
@@ -277,5 +266,4 @@ final class NullIndex extends Index
   {
     return new PreloadStats();
   }
-
 }
