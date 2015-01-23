@@ -507,47 +507,6 @@ public final class SchemaBuilder {
     /**
      * Adds the provided DIT structure rule definition to this schema builder.
      *
-     * @param ruleID
-     *            The rule identifier of the DIT structure rule.
-     * @param names
-     *            The user-friendly names of the DIT structure rule definition.
-     * @param description
-     *            The description of the DIT structure rule definition.
-     * @param obsolete
-     *            {@code true} if the DIT structure rule definition is obsolete,
-     *            otherwise {@code false}.
-     * @param nameForm
-     *            The name form associated with the DIT structure rule.
-     * @param superiorRules
-     *            A list of superior rules (by rule id).
-     * @param extraProperties
-     *            A map containing additional properties associated with the DIT
-     *            structure rule definition.
-     * @param overwrite
-     *            {@code true} if any existing DIT structure rule with the same
-     *            OID should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
-     */
-    SchemaBuilder addDITStructureRule(final Integer ruleID, final List<String> names,
-            final String description, final boolean obsolete, final String nameForm,
-            final Set<Integer> superiorRules, final Map<String, List<String>> extraProperties,
-            final boolean overwrite) {
-        lazyInitBuilder();
-
-        final DITStructureRule rule =
-                new DITStructureRule(ruleID, unmodifiableCopyOfList(names), description, obsolete,
-                        nameForm, unmodifiableCopyOfSet(superiorRules),
-                        unmodifiableCopyOfExtraProperties(extraProperties), null);
-        addDITStructureRule(rule, overwrite);
-        return this;
-    }
-
-    /**
-     * Adds the provided DIT structure rule definition to this schema builder.
-     *
      * @param definition
      *            The DIT structure rule definition.
      * @param overwrite
@@ -595,14 +554,8 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final Integer ruleID = readRuleID(reader);
-
-            List<String> names = Collections.emptyList();
-            String description = "".intern();
-            boolean isObsolete = false;
+            final DITStructureRule.Builder ruleBuilder = new DITStructureRule.Builder(readRuleID(reader), this);
             String nameForm = null;
-            Set<Integer> superiorRules = Collections.emptySet();
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -619,54 +572,43 @@ public final class SchemaBuilder {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
+                    ruleBuilder.names(readNameDescriptors(reader, allowsMalformedNamesAndOptions()));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = readQuotedString(reader);
+                    ruleBuilder.description(readQuotedString(reader));
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
-                    // considered obsolete. We do not need to do any more
-                    // parsing for this token.
-                    isObsolete = true;
+                    // considered obsolete.
+                    ruleBuilder.obsolete(true);
                 } else if ("form".equalsIgnoreCase(tokenName)) {
                     nameForm = readOID(reader, allowsMalformedNamesAndOptions());
                 } else if ("sup".equalsIgnoreCase(tokenName)) {
-                    superiorRules = readRuleIDs(reader);
+                    ruleBuilder.superiorRules(readRuleIDs(reader));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, readExtensions(reader));
+                    ruleBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
-                        ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1.get(definition, tokenName));
+                            ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1.get(definition, tokenName));
                 }
             }
 
             if (nameForm == null) {
                 throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition));
             }
+            ruleBuilder.nameForm(nameForm);
 
-            if (!extraProperties.isEmpty()) {
-                extraProperties = Collections.unmodifiableMap(extraProperties);
-            }
-
-            final DITStructureRule rule =
-                    new DITStructureRule(ruleID, names, description, isObsolete, nameForm,
-                            superiorRules, extraProperties, definition);
-            addDITStructureRule(rule, overwrite);
+            return overwrite ? ruleBuilder.addToSchemaOverwrite() : ruleBuilder.addToSchema();
         } catch (final DecodeException e) {
             final LocalizableMessage msg = ERR_ATTR_SYNTAX_DSR_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
-        return this;
     }
 
     /**
@@ -970,6 +912,25 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Returns a builder which can be used for incrementally constructing a new
+     * DIT structure rule before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * final int myRuleID = ...;
+     * builder.buildDITStructureRule(myRuleID).name("DIT structure rule name").addToSchema();
+     * </pre>
+     *
+     * @param ruleID
+     *            The ID of the DIT structure rule.
+     * @return A builder to continue building the DITStructureRule.
+     */
+    public DITStructureRule.Builder buildDITStructureRule(final int ruleID) {
+        lazyInitBuilder();
+        return new DITStructureRule.Builder(ruleID, this);
+    }
+
+    /**
      * Returns a builder which can be used for incrementally constructing a new matching rule before adding it to the
      * schema. Example usage:
      *
@@ -1254,6 +1215,21 @@ public final class SchemaBuilder {
     public DITContentRule.Builder buildDITContentRule(DITContentRule contentRule) {
         lazyInitBuilder();
         return new DITContentRule.Builder(contentRule, this);
+    }
+
+    /**
+     * Returns an DIT structure rule builder whose fields are initialized to the
+     * values of the provided rule. This method should be used when duplicating
+     * structure rules from external schemas or when modifying existing
+     * structure rules.
+     *
+     * @param structureRule
+     *            The DIT structure rule source.
+     * @return A builder to continue building the DITStructureRule.
+     */
+    public DITStructureRule.Builder buildDITStructureRule(final DITStructureRule structureRule) {
+        lazyInitBuilder();
+        return new DITStructureRule.Builder(structureRule, this);
     }
 
     /**
@@ -2251,7 +2227,7 @@ public final class SchemaBuilder {
         return this;
     }
 
-    private void addDITStructureRule(final DITStructureRule rule, final boolean overwrite) {
+    SchemaBuilder addDITStructureRule(final DITStructureRule rule, final boolean overwrite) {
         DITStructureRule conflictingRule;
         if (id2StructureRules.containsKey(rule.getRuleID())) {
             conflictingRule = id2StructureRules.get(rule.getRuleID());
@@ -2278,6 +2254,8 @@ public final class SchemaBuilder {
                 rules.add(rule);
             }
         }
+
+        return this;
     }
 
     private void addMatchingRuleUse(final MatchingRuleUse use, final boolean overwrite) {
@@ -2444,7 +2422,7 @@ public final class SchemaBuilder {
         }
 
         for (final DITStructureRule structureRule : schema.getDITStuctureRules()) {
-            addDITStructureRule(structureRule.duplicate(), overwrite);
+            addDITStructureRule(structureRule, overwrite);
         }
     }
 
