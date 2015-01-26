@@ -55,9 +55,7 @@ import org.forgerock.util.Reject;
  */
 public final class Syntax extends SchemaElement {
 
-    /**
-     * A fluent API for incrementally constructing syntaxes.
-     */
+    /** A fluent API for incrementally constructing syntaxes. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
 
         private String oid;
@@ -75,17 +73,9 @@ public final class Syntax extends SchemaElement {
         }
 
         /**
-         * Adds this syntax to the schema overwriting any existing syntax with the same numeric OID.
-         *
-         * @return The parent schema builder.
-         */
-        public SchemaBuilder addToSchemaOverwrite() {
-            return getSchemaBuilder().addSyntax(new Syntax(this), true);
-        }
-
-        /**
-         * Adds this syntax to the schema, throwing an {@code  ConflictingSchemaElementException}
-         * if there is an existing syntax with the same numeric OID.
+         * Adds this syntax to the schema, throwing a
+         * {@code ConflictingSchemaElementException} if there is an existing
+         * syntax with the same numeric OID.
          *
          * @return The parent schema builder.
          * @throws ConflictingSchemaElementException
@@ -93,6 +83,15 @@ public final class Syntax extends SchemaElement {
          */
         public SchemaBuilder addToSchema() {
             return getSchemaBuilder().addSyntax(new Syntax(this), false);
+        }
+
+        /**
+         * Adds this syntax to the schema overwriting any existing syntax with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addSyntax(new Syntax(this), true);
         }
 
         /**

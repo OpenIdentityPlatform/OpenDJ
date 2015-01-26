@@ -59,9 +59,8 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  * or via the {@link #toString()} methods.
  */
 public final class MatchingRule extends SchemaElement {
-    /**
-     * A fluent API for incrementally constructing matching rules.
-     */
+
+    /** A fluent API for incrementally constructing matching rules. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private String oid;
         private final List<String> names = new LinkedList<String>();
@@ -84,24 +83,26 @@ public final class MatchingRule extends SchemaElement {
         }
 
         /**
+         * Adds this matching rule to the schema, throwing a
+         * {@code ConflictingSchemaElementException} if there is an existing
+         * matching rule with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing matching rule with the same
+         *             numeric OID.
+         */
+        public SchemaBuilder addToSchema() {
+            return getSchemaBuilder().addMatchingRule(new MatchingRule(this), false);
+        }
+
+        /**
          * Adds this matching rule to the schema overwriting any existing matching rule with the same numeric OID.
          *
          * @return The parent schema builder.
          */
         public SchemaBuilder addToSchemaOverwrite() {
             return getSchemaBuilder().addMatchingRule(new MatchingRule(this), true);
-        }
-
-        /**
-         * Adds this matching rule to the schema, throwing an {@code  ConflictingSchemaElementException} if there is an
-         * existing matching rule with the same numeric OID.
-         *
-         * @return The parent schema builder.
-         * @throws ConflictingSchemaElementException
-         *             If there is an existing matching rule with the same numeric OID.
-         */
-        public SchemaBuilder addToSchema() {
-            return getSchemaBuilder().addMatchingRule(new MatchingRule(this), false);
         }
 
         @Override
