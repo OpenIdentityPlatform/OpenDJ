@@ -86,18 +86,8 @@ public final class ObjectClass extends SchemaElement {
         }
 
         /**
-         * Adds this object class to the schema overwriting any existing object class
-         * with the same numeric OID.
-         *
-         * @return The parent schema builder.
-         */
-        public SchemaBuilder addToSchemaOverwrite() {
-            return getSchemaBuilder().addObjectClass(new ObjectClass(this), true);
-        }
-
-        /**
-         * Adds this object class to the schema, throwing an
-         * {@code  ConflictingSchemaElementException} if there is an existing
+         * Adds this object class to the schema, throwing a
+         * {@code ConflictingSchemaElementException} if there is an existing
          * object class with the same numeric OID.
          *
          * @return The parent schema builder.
@@ -107,6 +97,16 @@ public final class ObjectClass extends SchemaElement {
          */
         public SchemaBuilder addToSchema() {
             return getSchemaBuilder().addObjectClass(new ObjectClass(this), false);
+        }
+
+        /**
+         * Adds this object class to the schema overwriting any existing object class
+         * with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addObjectClass(new ObjectClass(this), true);
         }
 
         @Override

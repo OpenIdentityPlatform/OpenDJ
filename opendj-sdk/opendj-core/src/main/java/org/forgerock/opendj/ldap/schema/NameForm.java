@@ -51,9 +51,8 @@ import org.forgerock.i18n.LocalizableMessage;
  * RDN of an entry with a given structural objectclass.
  */
 public final class NameForm extends SchemaElement {
-    /**
-     * A fluent API for incrementally constructing name forms.
-     */
+
+    /** A fluent API for incrementally constructing name forms. */
     public static final class Builder extends SchemaElementBuilder<Builder> {
         private boolean isObsolete;
         private final List<String> names = new LinkedList<String>();
@@ -78,18 +77,8 @@ public final class NameForm extends SchemaElement {
         }
 
         /**
-         * Adds this name form to the schema overwriting any existing name form
-         * with the same numeric OID.
-         *
-         * @return The parent schema builder.
-         */
-        public SchemaBuilder addToSchemaOverwrite() {
-            return getSchemaBuilder().addNameForm(new NameForm(this), true);
-        }
-
-        /**
-         * Adds this name form to the schema, throwing an
-         * {@code  ConflictingSchemaElementException} if there is an existing
+         * Adds this name form to the schema, throwing a
+         * {@code ConflictingSchemaElementException} if there is an existing
          * name form with the same numeric OID.
          *
          * @return The parent schema builder.
@@ -99,6 +88,16 @@ public final class NameForm extends SchemaElement {
          */
         public SchemaBuilder addToSchema() {
             return getSchemaBuilder().addNameForm(new NameForm(this), false);
+        }
+
+        /**
+         * Adds this name form to the schema overwriting any existing name form
+         * with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addNameForm(new NameForm(this), true);
         }
 
         @Override

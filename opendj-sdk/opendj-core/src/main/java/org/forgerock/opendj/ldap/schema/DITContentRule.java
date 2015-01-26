@@ -81,7 +81,7 @@ public final class DITContentRule extends SchemaElement {
         }
 
         /**
-         * Adds this DIT content rule to the schema, throwing an
+         * Adds this DIT content rule to the schema, throwing a
          * {@code  ConflictingSchemaElementException} if there is an existing DIT
          * content rule with the same structural object class OID.
          *

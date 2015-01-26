@@ -98,7 +98,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         }
 
         /**
-         * Adds this attribute type to the schema, throwing an
+         * Adds this attribute type to the schema, throwing a
          * {@code ConflictingSchemaElementException} if there is an existing
          * attribute type with the same numeric OID.
          *

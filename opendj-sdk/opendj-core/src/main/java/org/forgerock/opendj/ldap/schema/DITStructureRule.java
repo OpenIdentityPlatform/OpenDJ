@@ -75,17 +75,7 @@ public final class DITStructureRule extends SchemaElement {
         }
 
         /**
-         * Adds this DIT structure rule to the schema overwriting any existing
-         * DIT structure rule with the same numeric ID.
-         *
-         * @return The parent schema builder.
-         */
-        public SchemaBuilder addToSchemaOverwrite() {
-            return getSchemaBuilder().addDITStructureRule(new DITStructureRule(this), true);
-        }
-
-        /**
-         * Adds this DIT structure rule to the schema, throwing an
+         * Adds this DIT structure rule to the schema, throwing a
          * {@code  ConflictingSchemaElementException} if there is an existing DIT
          * structure rule with the same numeric ID.
          *
@@ -96,6 +86,16 @@ public final class DITStructureRule extends SchemaElement {
          */
         public SchemaBuilder addToSchema() {
             return getSchemaBuilder().addDITStructureRule(new DITStructureRule(this), false);
+        }
+
+        /**
+         * Adds this DIT structure rule to the schema overwriting any existing
+         * DIT structure rule with the same numeric ID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addDITStructureRule(new DITStructureRule(this), true);
         }
 
         @Override
