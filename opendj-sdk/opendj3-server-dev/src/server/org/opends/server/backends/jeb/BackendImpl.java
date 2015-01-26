@@ -729,10 +729,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
     try
     {
-      final EnvironmentConfig envConfig = getEnvConfigForImport();
-
-      if (!importConfig.appendToExistingData()
-          && (importConfig.clearBackend() || cfg.getBaseDN().size() <= 1))
+      if (Importer.mustClearBackend(importConfig, cfg))
       {
         // We have the writer lock on the environment, now delete the
         // environment and re-open it. Only do this when we are
@@ -747,7 +744,8 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         }
       }
 
-      Importer importer = new Importer(importConfig, cfg, envConfig);
+      final EnvironmentConfig envConfig = getEnvConfigForImport();
+      final Importer importer = new Importer(importConfig, cfg, envConfig);
       rootContainer = initializeRootContainer(envConfig);
       return importer.processImport(rootContainer);
     }

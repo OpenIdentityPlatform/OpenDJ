@@ -297,9 +297,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     // Determine the number of indexes.
     this.indexCount = getTotalIndexCount(localDBBackendCfg);
 
-    this.clearedBackend =
-        !importConfiguration.appendToExistingData()
-            && (importConfiguration.clearBackend() || localDBBackendCfg.getBaseDN().size() <= 1);
+    this.clearedBackend = mustClearBackend(importConfiguration, localDBBackendCfg);
     this.scratchFileWriterList =
         new ArrayList<ScratchFileWriterTask>(indexCount);
     this.scratchFileWriterFutures = new CopyOnWriteArrayList<Future<Void>>();
@@ -324,6 +322,19 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       this.tmpEnv = null;
     }
+  }
+
+  /**
+   * Returns whether the backend must be cleared.
+   *
+   * @param importCfg the import configuration object
+   * @param backendCfg the backend configuration object
+   * @return true if the backend must be cleared, false otherwise
+   */
+  public static boolean mustClearBackend(LDIFImportConfig importCfg, LocalDBBackendCfg backendCfg)
+  {
+    return !importCfg.appendToExistingData()
+        && (importCfg.clearBackend() || backendCfg.getBaseDN().size() <= 1);
   }
 
   private File getTempDir(LocalDBBackendCfg localDBBackendCfg, String tmpDirectory)

@@ -253,16 +253,11 @@ public class Suffix
       logger.error(ERR_JEB_IMPORT_LDIF_PENDING_ERR, e.getMessage());
       throw e;
     }
-    //Check the DN cache.
-    boolean parentThere = dnCache.contains(dn);
     //If the parent isn't found in the DN cache, then check the dn2id database
     //for the DN only if the backend wasn't cleared.
-    if(!parentThere
+    boolean parentThere = !dnCache.contains(dn)
         && !clearedBackend
-        && getDN2ID().get(null, dn, LockMode.DEFAULT) != null)
-    {
-      parentThere = true;
-    }
+        && getDN2ID().get(null, dn, LockMode.DEFAULT) != null;
     //Add the DN to the parent set if needed.
     if (parentThere) {
       synchronized(synchObject) {
