@@ -2,12 +2,12 @@
 .\"     Title: ldapsearch
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 10/22/2014
+.\"      Date: 01/27/2015
 .\"    Manual: Tools Reference
 .\"    Source: OpenDJ 3.0.0
 .\"  Language: English
 .\"
-.TH "LDAPSEARCH" "1" "10/22/2014" "OpenDJ 3\&.0\&.0" "Tools Reference"
+.TH "LDAPSEARCH" "1" "01/27/2015" "OpenDJ 3\&.0\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -69,6 +69,70 @@ Continue processing even if there are errors
 \fB\-C, \-\-persistentSearch ps[:changetype[:changesonly[:entrychgcontrols]]]\fR
 .RS 4
 Use the persistent search control
+.sp
+A persistent search allows the client to continue receiving new results whenever changes are made to data that is in the scope of the search, thus using the search as a form of change notification\&.
+The optional
+changetype
+setting defines the kinds of updates that result in notification\&. By default the
+changetype
+is not set\&.
+.PP
+add
+.RS 4
+Send notifications for LDAP add operations\&.
+.RE
+.PP
+del, delete
+.RS 4
+Send notifications for LDAP delete operations\&.
+.RE
+.PP
+mod, modify
+.RS 4
+Send notifications for LDAP modify operations\&.
+.RE
+.PP
+moddn, modrdn, modifydn
+.RS 4
+Send notifications for LDAP modify DN (rename and move) operations\&.
+.RE
+.PP
+all, any
+.RS 4
+Send notifications for all LDAP update operations\&.
+.RE
+.sp
+The optional
+changesonly
+setting defines whether the server returns existing entries as well as changes\&.
+.PP
+true
+.RS 4
+Do not return existing entries, but instead only notifications about changes\&.
+.sp
+This is the default setting\&.
+.RE
+.PP
+false
+.RS 4
+Also return existing entries\&.
+.RE
+.sp
+The optional
+entrychgcontrols
+setting defines whether the server returns an Entry Change Notification control with each entry notification\&. The Entry Change Notification control provides additional information about the change that caused the entry to be returned as by the search\&. In particular, it indicates the change type, the change number if available, and the previous DN if the change type was a modify DN operation\&.
+.PP
+true
+.RS 4
+Do request the Entry Change Notification control\&.
+.sp
+This is the default setting\&.
+.RE
+.PP
+false
+.RS 4
+Do not request the Entry Change Notification control\&.
+.RE
 .RE
 .PP
 \fB\-\-countEntries\fR
@@ -539,5 +603,5 @@ entryUUID: fc252fd9\-b982\-3ed6\-b42a\-c76d2546312c
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2014 ForgeRock AS
+Copyright \(co 2011-2015 ForgeRock AS.
 .br
