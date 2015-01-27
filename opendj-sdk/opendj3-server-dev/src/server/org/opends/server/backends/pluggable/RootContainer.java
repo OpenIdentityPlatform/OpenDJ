@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
@@ -54,7 +55,6 @@ import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -75,6 +75,7 @@ import org.opends.server.util.RuntimeInformation;
 public class RootContainer
      implements ConfigurationChangeListener<PersistitBackendCfg>
 {
+  /** Logs the progress of the import. */
   private static final class ImportProgress implements Runnable
   {
     private final LDIFReader reader;
@@ -155,11 +156,25 @@ public class RootContainer
     config.addPersistitChangeListener(this);
   }
 
+  /**
+   * Returns the underlying storage engine.
+   *
+   * @return the underlying storage engine
+   */
   PersistItStorage getStorage()
   {
     return storage;
   }
 
+  /**
+   * Imports information from an LDIF file into this backend.
+   * This method should only be called if {@code supportsLDIFImport} returns {@code true}.
+   * Note that the server will not explicitly initialize this backend before calling this method.
+   *
+   * @param importConfig The configuration to use when performing the import.
+   * @return information about the result of the import processing.
+   * @throws DirectoryException If a problem occurs while performing the LDIF import.
+   */
   LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
     RuntimeInformation.logInfo();
@@ -187,7 +202,8 @@ public class RootContainer
 
         long importCount = 0;
         final long startTime = System.currentTimeMillis();
-        timerService.scheduleAtFixedRate(new ImportProgress(reader), IMPORT_PROGRESS_INTERVAL, IMPORT_PROGRESS_INTERVAL, TimeUnit.MILLISECONDS);
+        timerService.scheduleAtFixedRate(new ImportProgress(reader),
+            IMPORT_PROGRESS_INTERVAL, IMPORT_PROGRESS_INTERVAL, TimeUnit.MILLISECONDS);
         while (true)
         {
           final Entry entry;
@@ -318,6 +334,14 @@ public class RootContainer
     }
   }
 
+  /**
+   * Opens the root container.
+   *
+   * @throws StorageRuntimeException
+   *           If a database error occurs when creating the environment.
+   * @throws ConfigException
+   *           If an configuration error occurs while creating the environment.
+   */
   void open() throws StorageRuntimeException, ConfigException
   {
     // Create the directory if it doesn't exist.
@@ -407,6 +431,7 @@ public class RootContainer
    * @param baseDN The base DN of the entry container to open.
    * @param name The name of the entry container or <CODE>NULL</CODE> to open
    * the default entry container for the given base DN.
+   * @param txn The database transaction
    * @return The opened entry container.
    * @throws StorageRuntimeException If an error occurs while opening the entry
    *                           container.

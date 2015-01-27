@@ -21,17 +21,30 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable.spi;
 
-/** Assumes name components don't contain a '/'. */
+/**
+ * Represents the name of a tree (key-value store) in a database.
+ * A tree name is made of the baseDN it is part of, and the identifier of the index it represents.
+ * <p>
+ * Note: This class assumes name components don't contain a '/'.
+ */
 public final class TreeName
 {
   private final String baseDN;
   private final String indexId;
   private final String s;
 
+  /**
+   * Builds a tree name.
+   *
+   * @param baseDN
+   *          the base DN
+   * @param indexId
+   *          the index identifier
+   */
   public TreeName(String baseDN, String indexId)
   {
     this.baseDN = baseDN;
@@ -39,21 +52,39 @@ public final class TreeName
     this.s = '/' + baseDN + '/' + indexId;
   }
 
+  /**
+   * Returns the base DN.
+   *
+   * @return a {@code String} representing the base DN
+   */
   public String getBaseDN()
   {
     return baseDN;
   }
 
-  public TreeName replaceBaseDN(String newBaseDN)
-  {
-    return new TreeName(newBaseDN, indexId);
-  }
-
+  /**
+   * Returns the index identifier.
+   *
+   * @return a {@code String} representing the base DN
+   */
   public String getIndexId()
   {
     return indexId;
   }
 
+  /**
+   * Returns a new tree name object created by replacing the baseDN of the current object.
+   *
+   * @param newBaseDN
+   *          the new base DN that replaces the existing base DN
+   * @return a new tree name object with the provided the base DN
+   */
+  public TreeName replaceBaseDN(String newBaseDN)
+  {
+    return new TreeName(newBaseDN, indexId);
+  }
+
+  /** {@inheritDoc} */
   @Override
   public boolean equals(final Object obj)
   {
@@ -71,12 +102,14 @@ public final class TreeName
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return s.hashCode();
   }
 
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

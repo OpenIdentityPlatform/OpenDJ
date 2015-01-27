@@ -47,6 +47,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -88,7 +89,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.CanceledOperationException;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -260,7 +260,7 @@ public class EntryContainer
           public void run(WriteableStorage txn) throws Exception
           {
             AttributeIndex index = attrIndexMap.get(cfg.getAttribute());
-            deleteAttributeIndex(txn, index, ccr);
+            deleteAttributeIndex(txn, index);
             attrIndexMap.remove(cfg.getAttribute());
           }
         });
@@ -471,6 +471,7 @@ public class EntryContainer
   /**
    * Opens the entryContainer for reading and writing.
    *
+   * @param txn The database transaction
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws ConfigException if a configuration related error occurs.
    */
@@ -595,11 +596,6 @@ public class EntryContainer
     return rootContainer;
   }
 
-  public Storage getStorage()
-  {
-    return storage;
-  }
-
   /**
    * Get the DN database used by this entry container.
    * The entryContainer must have been opened.
@@ -721,6 +717,7 @@ public class EntryContainer
    * Determine the highest entryID in the entryContainer.
    * The entryContainer must already be open.
    *
+   * @param txn The database transaction
    * @return The highest entry ID.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
@@ -1312,6 +1309,7 @@ public class EntryContainer
   /**
    * Returns the entry corresponding to the provided entryID.
    *
+   * @param txn The database transaction
    * @param entryID
    *          the id of the entry to retrieve
    * @return the entry corresponding to the provided entryID
@@ -2743,6 +2741,7 @@ public class EntryContainer
   /**
    * Get a count of the number of entries stored in this entry container.
    *
+   * @param txn The database transaction
    * @return The number of entries stored in this entry container.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
@@ -2844,6 +2843,7 @@ public class EntryContainer
    * Delete this entry container from disk. The entry container should be
    * closed before calling this method.
    *
+   * @param txn The database transaction
    * @throws StorageRuntimeException If an error occurs while removing the entry
    *                           container.
    */
@@ -2861,6 +2861,7 @@ public class EntryContainer
   /**
    * Remove a database from disk.
    *
+   * @param txn The database transaction
    * @param database The database container to remove.
    * @throws StorageRuntimeException If an error occurs while attempting to delete the
    * database.
@@ -2888,8 +2889,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an JE database error occurs while attempting
    * to delete the index.
    */
-  private void deleteAttributeIndex(WriteableStorage txn, AttributeIndex attributeIndex, ConfigChangeResult ccr)
-      throws StorageRuntimeException
+  private void deleteAttributeIndex(WriteableStorage txn, AttributeIndex attributeIndex) throws StorageRuntimeException
   {
     attributeIndex.close();
     for (Index index : attributeIndex.getAllIndexes())
@@ -3247,6 +3247,7 @@ public class EntryContainer
   /**
    * Creates a new index for an attribute.
    *
+   * @param txn The database transaction
    * @param indexName the name to give to the new index
    * @param indexer the indexer to use when inserting data into the index
    * @param indexEntryLimit the index entry limit

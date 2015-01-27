@@ -21,25 +21,47 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
+/**
+ * Runtime exception for problems happening in the storage engine.
+ */
 @SuppressWarnings("serial")
 public final class StorageRuntimeException extends RuntimeException
 {
 
+  /**
+   * Constructor with a message.
+   *
+   * @param message
+   *          the exception message
+   */
   public StorageRuntimeException(final String message)
   {
     super(message);
   }
 
+  /**
+   * Constructor with a message and a cause.
+   *
+   * @param message
+   *          the exception message
+   * @param cause
+   *          the cause of the exception
+   */
   public StorageRuntimeException(final String message, final Throwable cause)
   {
     super(message, cause);
   }
 
+  /**
+   * Constructor with a cause.
+   *
+   * @param cause
+   *          the cause of the exception
+   */
   public StorageRuntimeException(final Throwable cause)
   {
     super(cause);

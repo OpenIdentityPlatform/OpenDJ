@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -57,15 +57,14 @@ public class EntryIDSetSorter
    * set using the given sort order.
    *
    * @param  entryContainer   The entry container with which the ID list is associated.
+   * @param txn The database transaction
    * @param  entryIDSet       The entry ID set to be sorted.
    * @param  searchOperation  The search operation being processed.
    * @param  sortOrder        The sort order to use for the entry ID set.
    * @param  vlvRequest       The VLV request control included in the search
    *                          request, or {@code null} if there was none.
-   *
    * @return  A new entry ID set which is a sorted representation of the
    *          provided set using the given sort order.
-   *
    * @throws  DirectoryException  If an error occurs while performing the sort.
    */
   public static EntryIDSet sort(EntryContainer entryContainer,
