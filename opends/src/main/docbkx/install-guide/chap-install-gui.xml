@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
 <chapter xml:id='chap-install-gui'
@@ -30,7 +30,7 @@
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <title>Installing OpenDJ With the QuickSetup Wizard</title>
+ <title>Installing OpenDJ With a Graphical Installer</title>
  <indexterm><primary>Downloading OpenDJ</primary></indexterm>
  <indexterm><primary>Quick install</primary></indexterm>
  
@@ -39,6 +39,9 @@
  chapter, or just try out installation without reading any further.</para>
 
  <xinclude:include href="../shared/itemizedlist-download.xml" />
+
+ <section xml:id="install-gui-quick-setup">
+  <title>Installing OpenDJ With the QuickSetup Wizard</title>
 
  <para>QuickSetup uses Java WebStart to let you perform an installation of
  OpenDJ directory server starting with a click in your web browser, which can
@@ -176,26 +179,136 @@ $ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></user
     <para>OpenDJ Control Panel offers basic administration capabilities.</para>
    </textobject>
  </mediaobject>
+ </section>
 
- <itemizedlist>
+ <section xml:id="install-gui-windows-msi">
+  <title>Installing OpenDJ From the Windows Installer Package</title>
+
   <para>
-   To launch OpenDJ Control Panel again later, run the
-   <link
-    xlink:show="new"
-    xlink:href="admin-guide#control-panel-1"
-    xlink:role="http://docbook.org/xlink/role/olink"
-   ><command>control-panel</command></link> command.
-   Depending on your host system, this command is one of the following.
+   You can start installing OpenDJ directory server on Windows systems
+   from the Windows installer package,
+   <filename>OpenDJ-${docTargetVersion}.msi</filename>.
   </para>
 
-  <listitem>
-   <para>(Mac OS X) <command>/path/to/opendj/bin/ControlPanel.app</command></para>
-  </listitem>
-  <listitem>
-   <para>(UNIX) <command>/path/to/opendj/bin/control-panel</command></para>
-  </listitem>
-  <listitem>
-   <para>(Windows) <command>C:\path\to\opendj\bat\control-panel.bat</command></para>
-  </listitem>
- </itemizedlist>
+  <indexterm><primary>Windows installer (.msi) package</primary></indexterm>
+
+  <procedure xml:id="install-gui-windows-msi-steps">
+   <title>To Install OpenDJ From the Windows Installer Package</title>
+
+   <para>
+    Installing OpenDJ directory server by using the Windows installer package
+    is a two-stage process.
+    First, you install the files by using the Windows installer package wizard.
+    Second, you configure OpenDJ by using the <command>setup</command> command.
+   </para>
+
+   <step>
+    <para>
+     Install OpenDJ files in one of the following ways.
+    </para>
+
+    <stepalternatives>
+     <step>
+      <substeps>
+       <step>
+        <para>
+         Double-click the Windows installer package,
+         <filename>OpenDJ-${docTargetVersion}.msi</filename>,
+         to start the install wizard.
+        </para>
+       </step>
+
+       <step>
+        <para>
+         In the Destination Folder screen, set the folder
+         where the wizard installs OpenDJ directory server files.
+        </para>
+
+        <para>
+         The default location is under Program Files on the system drive.
+         For example if the system drive is C:, the default location is
+         <filename>C:\Program Files (x86)\OpenDJ\</filename>,
+         as the native executable is a 32-bit application,
+         though you can run OpenDJ directory server
+         with a 64-bit Java environment.
+        </para>
+       </step>
+      </substeps>
+     </step>
+
+     <step>
+      <para>
+       Use the Microsoft <command>msiexec.exe</command> command
+       to install the files.
+      </para>
+
+      <para>
+       The following example installs OpenDJ directory server files under
+       <filename>C:\OpenDJ-${docTargetVersion}</filename>,
+       writing an installation log file, <filename>install.log</filename>,
+       in the current folder.
+      </para>
+
+      <screen>
+C:\><userinput>msiexec /i OpenDJ-${docTargetVersion}.msi /l* install.log /q OPENDJ=C:\OpenDJ-${docTargetVersion}</userinput>
+      </screen>
+     </step>
+    </stepalternatives>
+   </step>
+
+   <step>
+    <para>
+     Start the installation.
+    </para>
+
+    <para>
+     When installation is finished, OpenDJ directory server files
+     are found in the location you specified as Destination Folder.
+     You must still run the <command>setup</command> command
+     before you can use OpenDJ directory server.
+    </para>
+   </step>
+
+   <step>
+    <para>
+     Browse to the Destination Folder,
+     and double-click the <command>setup</command> command
+     to start the OpenDJ QuickSetup wizard
+     and following the instructions on screen
+     as described in <xref linkend="install-gui-quick-setup" />.
+    </para>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="install-launch-control-panel">
+  <title>Starting OpenDJ Control Panel</title>
+
+  <para>
+   You might close OpenDJ Control Panel,
+   or decide to start it later after closing the QuickSetup wizard.
+  </para>
+
+  <itemizedlist>
+   <para>
+    To launch OpenDJ Control Panel again later, run the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#control-panel-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>control-panel</command></link> command.
+    Depending on your host system, this command is one of the following.
+   </para>
+
+   <listitem>
+    <para>(Mac OS X) <command>/path/to/opendj/bin/ControlPanel.app</command></para>
+   </listitem>
+   <listitem>
+    <para>(UNIX) <command>/path/to/opendj/bin/control-panel</command></para>
+   </listitem>
+   <listitem>
+    <para>(Windows) <command>C:\path\to\opendj\bat\control-panel.bat</command></para>
+   </listitem>
+  </itemizedlist>
+ </section>
 </chapter>

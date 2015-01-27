@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS
   !    
 -->
 <book xml:id='install-guide'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+      xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xsi:schemaLocation='http://docbook.org/ns/docbook
+                          http://docbook.org/xml/5.0/xsd/docbook.xsd'
+      xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info>
   <xinclude:include href="../shared/mediaobject-fr-logo.xml" />
   <title>OpenDJ Installation Guide</title>
@@ -38,8 +38,8 @@
    OpenDJ project offers open source LDAP directory services in Java.</para>
   </abstract>
   <copyright>
-   <year>2011-2014</year>
-   <holder>ForgeRock AS</holder>
+   <year>2011-2015</year>
+   <holder>ForgeRock AS.</holder>
   </copyright>
   <authorgroup>
    <author>
