@@ -21,12 +21,27 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
+/**
+ * Function performing a read operation.
+ *
+ * @param <T>
+ *          type of the value that is read and returned by this read operation
+ */
+// @FunctionalInterface
 public interface ReadOperation<T>
 {
+  /**
+   * Executes a read operation, and returns the read value.
+   *
+   * @param txn
+   *          the read transaction where to execute the read operation
+   * @return the read value
+   * @throws Exception
+   *           if a problem occurs with the underlying storage engine
+   */
   T run(ReadableStorage txn) throws Exception;
 }

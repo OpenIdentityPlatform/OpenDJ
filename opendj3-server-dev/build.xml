@@ -22,7 +22,7 @@
  !
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2014 ForgeRock AS
+ !      Portions Copyright 2011-2015 ForgeRock AS
  !      Portions Copyright 2012 Delta Victor Consultants
  ! -->
 
@@ -43,7 +43,6 @@
   <!-- General server-wide properties                                 -->
   <property name="src.dir"          location="src/server"              />
   <property name="pluggablebackend.pkg" value="org/opends/server/backends/pluggable" />
-  <property name="persistit.pkg"        value="org/opends/server/backends/persistit" />
   <property name="build.dir"        location="build"                   />
   <property name="classes.dir"      location="${build.dir}/classes"    />
   <property name="build.lib.dir"    location="${build.dir}/lib"        />
@@ -681,7 +680,6 @@ Please:
         <include name="**/*.java"/>
         <exclude name="**/PublicAPI.java" />
         <exclude name="${pluggablebackend.pkg}/**/*.java" />
-        <exclude name="${persistit.pkg}/*.java" />
       </fileset>
       <formatter type="plain" />
     </checkstyle>

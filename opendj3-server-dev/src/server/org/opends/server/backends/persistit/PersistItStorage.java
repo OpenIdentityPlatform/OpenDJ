@@ -39,6 +39,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.Importer;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
@@ -63,13 +64,14 @@ import com.persistit.VolumeSpecification;
 import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
 
-@SuppressWarnings("javadoc")
+/** PersistIt database implementation of the {@link Storage} engine. */
 public final class PersistItStorage implements Storage
 {
   private static final String VOLUME_NAME = "dj";
   /** The buffer / page size used by the PersistIt storage. */
   private static final int BUFFER_SIZE = 16 * 1024;
 
+  /** PersistIt implementation of the {@link Cursor} interface. */
   private final class CursorImpl implements Cursor
   {
     private ByteString currentKey;
@@ -190,6 +192,7 @@ public final class PersistItStorage implements Storage
     }
   }
 
+  /** PersistIt implementation of the {@link Importer} interface. */
   private final class ImporterImpl implements Importer
   {
     private final TreeBuilder importer = new TreeBuilder(db);
@@ -245,6 +248,7 @@ public final class PersistItStorage implements Storage
     }
   }
 
+  /** PersistIt implementation of the {@link WriteableStorage} interface. */
   private final class StorageImpl implements WriteableStorage
   {
     private final Map<TreeName, Exchange> exchanges = new HashMap<TreeName, Exchange>();
@@ -484,6 +488,7 @@ public final class PersistItStorage implements Storage
   private Configuration dbCfg;
   private PersistitBackendCfg config;
 
+  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -501,15 +506,18 @@ public final class PersistItStorage implements Storage
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public void closeTree(final TreeName treeName)
   {
     // nothing to do, in persistit you close the volume itself
   }
 
+  /** {@inheritDoc} */
   @Override
-  public void initialize(final PersistitBackendCfg cfg)
+  public void initialize(final PluggableBackendCfg configuration)
   {
+    final PersistitBackendCfg cfg = (PersistitBackendCfg) configuration;
     backendDirectory = new File(getFileForPath(cfg.getDBDirectory()), cfg.getBackendId());
     config = cfg;
     dbCfg = new Configuration();
@@ -520,7 +528,7 @@ public final class PersistItStorage implements Storage
         Long.MAX_VALUE / BUFFER_SIZE, 2048, true, false, false)));
     final BufferPoolConfiguration bufferPoolCfg = getBufferPoolCfg();
     bufferPoolCfg.setMaximumCount(Integer.MAX_VALUE);
-    if (cfg.getDBCacheSize() > 0l)
+    if (cfg.getDBCacheSize() > 0)
     {
       bufferPoolCfg.setMaximumMemory(cfg.getDBCacheSize());
     }
@@ -536,12 +544,14 @@ public final class PersistItStorage implements Storage
     return dbCfg.getBufferPoolMap().get(BUFFER_SIZE);
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean isValid()
   {
     return !db.isFatal();
   }
 
+  /** {@inheritDoc} */
   @Override
   public void open()
   {
@@ -563,6 +573,7 @@ public final class PersistItStorage implements Storage
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public <T> T read(final ReadOperation<T> operation) throws Exception
   {
@@ -604,6 +615,7 @@ public final class PersistItStorage implements Storage
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public Importer startImport()
   {
@@ -614,12 +626,17 @@ public final class PersistItStorage implements Storage
 
   /**
    * Replace persistit reserved comma character with an underscore character.
+   *
+   * @param suffix
+   *          the suffix name to convert
+   * @return a new String suitable for use as a suffix name
    */
-  public String toSuffixName(final String prefix)
+  public String toSuffixName(final String suffix)
   {
-    return prefix.replaceAll("[,=]", "_");
+    return suffix.replaceAll("[,=]", "_");
   }
 
+  /** {@inheritDoc} */
   @Override
   public void write(final WriteOperation operation) throws Exception
   {

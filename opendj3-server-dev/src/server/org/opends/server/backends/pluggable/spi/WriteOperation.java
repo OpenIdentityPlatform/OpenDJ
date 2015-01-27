@@ -21,12 +21,23 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
+/**
+ * Function performing a write operation.
+ */
+// @FunctionalInterface
 public interface WriteOperation
 {
+  /**
+   * Executes a write operation.
+   *
+   * @param txn
+   *          the write transaction where to execute the write operation
+   * @throws Exception
+   *           if a problem occurs with the underlying storage engine
+   */
   void run(WriteableStorage txn) throws Exception;
 }

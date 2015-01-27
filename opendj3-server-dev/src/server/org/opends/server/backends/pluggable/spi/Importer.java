@@ -21,21 +21,40 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 
+/**
+ * Allows to run an import. For performance reasons, imports are run without transactions.
+ */
 public interface Importer extends Closeable
 {
+  /**
+   * Creates a new tree identified by the provided name.
+   *
+   * @param name
+   *          the tree name
+   */
   void createTree(TreeName name);
 
-  void put(TreeName name, ByteSequence key, ByteSequence value);
+  /**
+   * Creates a record with the provided key and value in the tree identified by the provided name.
+   *
+   * @param treeName
+   *          the tree name
+   * @param key
+   *          the new record's key
+   * @param value
+   *          the new record's value
+   */
+  void put(TreeName treeName, ByteSequence key, ByteSequence value);
 
+  /** {@inheritDoc} */
   @Override
   void close();
 }

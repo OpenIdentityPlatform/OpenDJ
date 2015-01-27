@@ -41,7 +41,7 @@ public interface WriteableStorage extends ReadableStorage
   void openTree(TreeName name);
 
   /**
-   * Truncates the tree having the provided name. It removes all the records in the tree. 
+   * Truncates the tree having the provided name. It removes all the records in the tree.
    *
    * @param name
    *          the tree name
@@ -82,7 +82,7 @@ public interface WriteableStorage extends ReadableStorage
   /**
    * Creates a new record with the provided key and value, in the tree whose name is provided, if
    * the key was not previously associated to any record.
-   * 
+   *
    * @param treeName
    *          the tree name
    * @param key
