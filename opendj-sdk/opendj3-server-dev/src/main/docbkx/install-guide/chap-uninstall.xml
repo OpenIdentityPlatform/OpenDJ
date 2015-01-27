@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-uninstall'
@@ -38,6 +38,7 @@
   <listitem><para><xref linkend="uninstall-gui" /></para></listitem>
   <listitem><para><xref linkend="uninstall-cli" /></para></listitem>
   <listitem><para><xref linkend="uninstall-deb" /></para></listitem>
+  <listitem><para><xref linkend="uninstall-msi" /></para></listitem>
   <listitem><para><xref linkend="uninstall-rpm" /></para></listitem>
  </itemizedlist>
  
@@ -162,6 +163,62 @@ $ </screen>
    <para>Removing the package does not remove your data or configuration.
     You must remove <filename>/opt/opendj</filename> manually to get rid of
     all files.</para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="uninstall-msi">
+  <title>To Uninstall the Windows Installer Package</title>
+  <indexterm><primary>Windows installer (.msi) package</primary></indexterm>
+
+  <para>
+   When you uninstall the files installed from the Windows installer package,
+   only the installed files are removed.
+   To remove OpenDJ directory server configuration files,
+   run the <command>uninstall</command> command
+   as described in <xref linkend="uninstall-gui" />
+   or <xref linkend="uninstall-cli" />.
+  </para>
+
+  <step>
+   <para>
+    Remove installed OpenDJ files in one of the following ways.
+   </para>
+
+   <stepalternatives>
+    <step>
+     <para>
+      Use Windows Control Panel.
+     </para>
+
+     <substeps>
+      <step>
+       <para>
+        Open Windows Control Panel and browse to the page to uninstall a program.
+       </para>
+      </step>
+
+      <step>
+       <para>
+        Find ForgeRock OpenDJ in the list and uninstall it.
+       </para>
+      </step>
+     </substeps>
+    </step>
+
+    <step>
+     <para>
+      Use the <command>msiexec</command> command.
+     </para>
+
+     <para>
+      The following command quietly removes installed files.
+     </para>
+
+     <screen>
+C:\><userinput>msiexec /x OpenDJ-${docTargetVersion}.msi /q</userinput>
+     </screen>
+    </step>
+   </stepalternatives>
   </step>
  </procedure>
 
