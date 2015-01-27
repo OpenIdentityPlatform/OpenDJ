@@ -267,13 +267,13 @@ public final class PersistItStorage implements Storage
     }
 
     @Override
-    public void delete(final TreeName treeName, final ByteSequence key)
+    public boolean delete(final TreeName treeName, final ByteSequence key)
     {
       try
       {
         final Exchange ex = getExchangeFromCache(treeName);
         bytesToKey(ex.getKey(), key);
-        ex.remove();
+        return ex.remove();
       }
       catch (final PersistitException e)
       {
@@ -388,21 +388,6 @@ public final class PersistItStorage implements Storage
     }
 
     @Override
-    public boolean remove(final TreeName treeName, final ByteSequence key)
-    {
-      try
-      {
-        final Exchange ex = getExchangeFromCache(treeName);
-        bytesToKey(ex.getKey(), key);
-        return ex.remove();
-      }
-      catch (final PersistitException e)
-      {
-        throw new StorageRuntimeException(e);
-      }
-    }
-
-    @Override
     public void renameTree(final TreeName oldTreeName,
         final TreeName newTreeName)
     {
@@ -423,8 +408,7 @@ public final class PersistItStorage implements Storage
     }
 
     @Override
-    public void update(final TreeName treeName, final ByteSequence key,
-        final UpdateFunction f)
+    public boolean update(final TreeName treeName, final ByteSequence key, final UpdateFunction f)
     {
       try
       {
@@ -433,13 +417,27 @@ public final class PersistItStorage implements Storage
         ex.fetch();
         final ByteSequence oldValue = valueToBytes(ex.getValue());
         final ByteSequence newValue = f.computeNewValue(oldValue);
-        ex.getValue().clear().putByteArray(newValue.toByteArray());
-        ex.store();
+        if (!equals(newValue, oldValue))
+        {
+          ex.getValue().clear().putByteArray(newValue.toByteArray());
+          ex.store();
+          return true;
+        }
+        return false;
       }
       catch (final Exception e)
       {
         throw new StorageRuntimeException(e);
       }
+    }
+
+    private boolean equals(ByteSequence b1, ByteSequence b2)
+    {
+      if (b1 == null)
+      {
+        return b2 == null;
+      }
+      return b1.equals(b2);
     }
 
     private Exchange getExchangeFromCache(final TreeName treeName)

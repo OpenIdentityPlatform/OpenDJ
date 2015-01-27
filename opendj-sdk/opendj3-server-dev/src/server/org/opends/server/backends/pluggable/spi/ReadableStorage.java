@@ -21,21 +21,49 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
+/**
+ * Represents a readable transaction on a storage engine.
+ */
 public interface ReadableStorage
 {
-  ByteString read(TreeName name, ByteSequence key);
+  /**
+   * Reads the record's value associated to the provided key, in the tree whose name is provided.
+   *
+   * @param treeName
+   *          the tree name
+   * @param key
+   *          the record's key
+   * @return the record's value, or {@code null} if none exists
+   */
+  ByteString read(TreeName treeName, ByteSequence key);
 
-  ByteString getRMW(TreeName name, ByteSequence key);
+  /**
+   * Reads the record's value associated to the provided key in a Read-Modify-Write fashion, in the
+   * tree whose name is provided.
+   *
+   * @param treeName
+   *          the tree name
+   * @param key
+   *          the record's key
+   * @return the record's value, or {@code null} if none exists
+   * @deprecated use {@link #update(TreeName, ByteSequence, UpdateFunction)} instead
+   */
+  @Deprecated
+  ByteString getRMW(TreeName treeName, ByteSequence key);
 
-  Cursor openCursor(TreeName name);
-
-  // TODO: contains, etc.
+  /**
+   * Opens a cursor on the tree whose name is provided.
+   *
+   * @param treeName
+   *          the tree name
+   * @return a new cursor
+   */
+  Cursor openCursor(TreeName treeName);
 }
