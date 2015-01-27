@@ -239,10 +239,8 @@ public class ImportTask extends Task
 
     Backend<?> backend = null;
     ArrayList<DN> defaultIncludeBranches;
-    ArrayList<DN> excludeBranches =
-        new ArrayList<DN>(excludeBranchStrings.size());
-    ArrayList<DN> includeBranches =
-        new ArrayList<DN>(includeBranchStrings.size());
+    HashSet<DN> excludeBranches = new HashSet<DN>(excludeBranchStrings.size());
+    HashSet<DN> includeBranches = new HashSet<DN>(includeBranchStrings.size());
 
     for (String s : includeBranchStrings)
     {
@@ -264,10 +262,7 @@ public class ImportTask extends Task
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
-      if(! includeBranches.contains(includeBranch))
-      {
-        includeBranches.add(includeBranch);
-      }
+      includeBranches.add(includeBranch);
     }
     for (String s : excludeBranchStrings)
     {
@@ -289,10 +284,7 @@ public class ImportTask extends Task
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
-      if (! excludeBranches.contains(excludeBranch))
-      {
-        excludeBranches.add(excludeBranch);
-      }
+      excludeBranches.add(excludeBranch);
     }
 
     for (String filterString : excludeFilterStrings)
@@ -487,11 +479,9 @@ public class ImportTask extends Task
 
     // Get the backend into which the LDIF should be imported.
     Backend<?> backend = null;
-    ArrayList<DN> defaultIncludeBranches;
-    ArrayList<DN> excludeBranches =
-        new ArrayList<DN>(excludeBranchStrings.size());
-    ArrayList<DN> includeBranches =
-        new ArrayList<DN>(includeBranchStrings.size());
+    HashSet<DN> defaultIncludeBranches;
+    HashSet<DN> excludeBranches = new HashSet<DN>(excludeBranchStrings.size());
+    HashSet<DN> includeBranches = new HashSet<DN>(includeBranchStrings.size());
 
     for (String s : includeBranchStrings)
     {
@@ -511,10 +501,7 @@ public class ImportTask extends Task
         return TaskState.STOPPED_BY_ERROR;
       }
 
-      if(! includeBranches.contains(includeBranch))
-      {
-        includeBranches.add(includeBranch);
-      }
+      includeBranches.add(includeBranch);
     }
 
     if(backendID != null)
@@ -574,7 +561,7 @@ public class ImportTask extends Task
     // Find backends with subordinate base DNs that should be excluded from the
     // import.
 
-    defaultIncludeBranches = new ArrayList<DN>(backend.getBaseDNs().length);
+    defaultIncludeBranches = new HashSet<DN>(backend.getBaseDNs().length);
     for (DN dn : backend.getBaseDNs())
     {
       defaultIncludeBranches.add(dn);
@@ -588,14 +575,9 @@ public class ImportTask extends Task
         {
           for (DN importBase : defaultIncludeBranches)
           {
-            if (baseDN.isDescendantOf(importBase)
-                && !baseDN.equals(importBase))
+            if (!baseDN.equals(importBase) && baseDN.isDescendantOf(importBase))
             {
-              if (! excludeBranches.contains(baseDN))
-              {
-                excludeBranches.add(baseDN);
-              }
-
+              excludeBranches.add(baseDN);
               break;
             }
           }
@@ -621,10 +603,7 @@ public class ImportTask extends Task
         return TaskState.STOPPED_BY_ERROR;
       }
 
-      if (! excludeBranches.contains(excludeBranch))
-      {
-        excludeBranches.add(excludeBranch);
-      }
+      excludeBranches.add(excludeBranch);
     }
 
     if (includeBranchStrings.isEmpty())
@@ -707,15 +686,8 @@ public class ImportTask extends Task
     {
       try
       {
-        ExistingFileBehavior existingBehavior;
-        if (overwrite)
-        {
-          existingBehavior = ExistingFileBehavior.OVERWRITE;
-        }
-        else
-        {
-          existingBehavior = ExistingFileBehavior.APPEND;
-        }
+        ExistingFileBehavior existingBehavior =
+            overwrite ? ExistingFileBehavior.OVERWRITE : ExistingFileBehavior.APPEND;
 
         importConfig.writeRejectedEntries(rejectFile, existingBehavior);
       }
@@ -730,15 +702,8 @@ public class ImportTask extends Task
     {
       try
       {
-        ExistingFileBehavior existingBehavior;
-        if (overwrite)
-        {
-          existingBehavior = ExistingFileBehavior.OVERWRITE;
-        }
-        else
-        {
-          existingBehavior = ExistingFileBehavior.APPEND;
-        }
+        ExistingFileBehavior existingBehavior =
+            overwrite ? ExistingFileBehavior.OVERWRITE : ExistingFileBehavior.APPEND;
         importConfig.writeSkippedEntries(skipFile, existingBehavior);
       }
       catch (Exception e)
@@ -804,19 +769,16 @@ public class ImportTask extends Task
         logger.traceException(de);
 
         DirectoryServer.notifyImportEnded(backend, importConfig, false);
-        LocalizableMessage message = null;
+        LocalizableMessage msg;
         if (de.getResultCode() == ResultCode.CONSTRAINT_VIOLATION)
         {
-          message =
-              ERR_LDIFIMPORT_ERROR_DURING_IMPORT
-                  .get(ERR_LDIFIMPORT_ERROR_CONSTRAINT_VIOLATION.get());
+          msg = ERR_LDIFIMPORT_ERROR_CONSTRAINT_VIOLATION.get();
         }
         else
         {
-          message = ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(
-              de.getMessageObject());
+          msg = de.getMessageObject();
         }
-        logger.error(message);
+        logger.error(ERR_LDIFIMPORT_ERROR_DURING_IMPORT.get(msg));
         return TaskState.STOPPED_BY_ERROR;
       }
       catch (Exception e)

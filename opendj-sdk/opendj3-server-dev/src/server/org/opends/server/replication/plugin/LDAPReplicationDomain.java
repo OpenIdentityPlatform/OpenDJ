@@ -1272,13 +1272,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     return list;
   }
 
-  private static <T> Set<T> newSet(T... elems)
+  private static <T> Set<T> newSet(T elem)
   {
-    final Set<T> list = new LinkedHashSet<T>(elems.length);
-    for (T elem : elems)
-    {
-      list.add(elem);
-    }
+    final Set<T> list = new LinkedHashSet<T>(1);
+    list.add(elem);
     return list;
   }
 
@@ -3578,7 +3575,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
       }
 
       importConfig = new LDIFImportConfig(input);
-      importConfig.setIncludeBranches(newList(getBaseDN()));
+      importConfig.setIncludeBranches(newSet(getBaseDN()));
       importConfig.setAppendToExistingData(false);
       importConfig.setSkipDNValidation(true);
       // We should not validate schema for replication

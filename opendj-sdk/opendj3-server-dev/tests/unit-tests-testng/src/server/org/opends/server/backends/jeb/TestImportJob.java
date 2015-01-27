@@ -33,6 +33,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
@@ -375,10 +377,8 @@ public class TestImportJob extends JebTestCase
     fileList.add(homeDirName + File.separator + "top.ldif");
     fileList.add(homeDirName + File.separator + "entries1.ldif");
 
-    ArrayList<DN> includeBranches = new ArrayList<DN>();
-    includeBranches.add(DN.valueOf("ou=People,dc=importtest,dc=com"));
-    ArrayList<DN> excludeBranches = new ArrayList<DN>();
-    excludeBranches.add(DN.valueOf("ou=Others,ou=People,dc=importtest,dc=com"));
+    Set<DN> includeBranches = Collections.singleton(DN.valueOf("ou=People,dc=importtest,dc=com"));
+    Set<DN> excludeBranches = Collections.singleton(DN.valueOf("ou=Others,ou=People,dc=importtest,dc=com"));
 
     ByteArrayOutputStream rejectedEntries = new ByteArrayOutputStream();
     ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
@@ -601,8 +601,7 @@ public class TestImportJob extends JebTestCase
   @Test(dependsOnMethods = "testImportPartial")
   public void testImportSkip() throws Exception
   {
-    ArrayList<DN> excludeBranches = new ArrayList<DN>();
-    excludeBranches.add(DN.valueOf("dc=skipped,dc=importtest1,dc=com"));
+    Set<DN> excludeBranches = Collections.singleton(DN.valueOf("dc=skipped,dc=importtest1,dc=com"));
     ByteArrayOutputStream skippedEntries = new ByteArrayOutputStream();
     LDIFImportConfig importConfig = new LDIFImportConfig(homeDirName
         + File.separator + "skipped.ldif");
