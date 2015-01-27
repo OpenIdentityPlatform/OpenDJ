@@ -21,12 +21,16 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable.spi;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 
+/**
+ * Function that computes the new value of a record for a Read-Modify-Write operation inside a transaction.
+ */
+// @FunctionalInterface
 public interface UpdateFunction {
     /**
      * Computes the new value for a record based on the record's existing
@@ -35,8 +39,8 @@ public interface UpdateFunction {
      * @param oldValue
      *            The record's existing content, or {@code null} if the record
      *            does not exist at the moment and is about to be created.
-     * @return The new value for the record, or {@code null} if the record
-     *         should be completely removed.
+     * @return The new value for the record (which may be {@code null} if the record should be removed),
+     *         or the old value if no update is required.
      */
     ByteSequence computeNewValue(ByteSequence oldValue);
 }
