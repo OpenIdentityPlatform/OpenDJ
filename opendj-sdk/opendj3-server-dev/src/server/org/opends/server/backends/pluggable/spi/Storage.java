@@ -21,30 +21,91 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
 
-import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 
+/**
+ * This interface abstracts the underlying storage engine,
+ * isolating the pluggable backend generic code from a particular storage engine implementation.
+ */
 public interface Storage extends Closeable
 {
-  void initialize(PersistitBackendCfg cfg) throws Exception;
+  /**
+   * Initializes the storage engine before opening it.
+   *
+   * @param cfg
+   *          the configuration object
+   * @throws Exception
+   *           if a problem occurs with the underlying storage engine
+   * @see #open() to open the storage engine
+   */
+  void initialize(PluggableBackendCfg cfg) throws Exception;
 
+  /**
+   * Starts the import operation.
+   *
+   * @return a new Importer object which must be closed to release all resources
+   * @throws Exception
+   *           if a problem occurs with the underlying storage engine
+   * @see #close() to release all resources once import is finished
+   */
   Importer startImport() throws Exception;
 
+  /**
+   * Opens the storage engine to allow executing operations on it.
+   *
+   * @throws Exception
+   *           if a problem occurs with the underlying storage engine
+   * @see #close() to release all resources once import is finished
+   */
   void open() throws Exception;
 
+  /**
+   * Executes a read operation. In case of a read operation rollback, implementations must ensure
+   * the read operation is retried until it succeeds.
+   *
+   * @param <T>
+   *          type of the value returned
+   * @param readOperation
+   *          the read operation to execute
+   * @return the value read by the read operation
+   * @throws Exception
+   *           if a problem occurs with the underlying storage engine
+   */
   <T> T read(ReadOperation<T> readOperation) throws Exception;
 
+  /**
+   * Executes a write operation. In case of a write operation rollback, implementations must ensure
+   * the write operation is retried until it succeeds.
+   *
+   * @param writeOperation
+   *          the write operation to execute
+   * @throws Exception
+   *           if a problem occurs with the underlying storage engine
+   */
   void write(WriteOperation writeOperation) throws Exception;
 
+  /**
+   * Closes the tree identified by the provided name.
+   *
+   * @param treeName
+   *          the tree name
+   */
   void closeTree(TreeName treeName);
 
+  /**
+   * Returns whether the storage engine is in a valid state, i.e. whether it can be used for processing.
+   *
+   * @return {@code true} if the storage engine is in a valid state, {@code false} otherwise
+   */
   boolean isValid();
 
+  /** {@inheritDoc} */
   @Override
   void close();
 }
