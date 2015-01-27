@@ -156,7 +156,8 @@ public abstract class DatabaseContainer implements Closeable
    * @param txn The JE transaction handle, or null if none.
    * @param key The record key.
    * @param value The record value.
-   * @return <code>true</code> if the key-value mapping could be inserted, <code>false</code> if the key was already mapped to another value
+   * @return {@code true} if the key-value mapping could be inserted,
+   *         {@code false} if the key was already mapped to another value
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
   boolean insert(WriteableStorage txn, ByteString key, ByteString value) throws StorageRuntimeException
@@ -174,7 +175,7 @@ public abstract class DatabaseContainer implements Closeable
    * simple wrapper around the JE Database.delete method.
    * @param txn The JE transaction handle, or null if none.
    * @param key The key of the record to be read.
-   * @return <code>true</code> if the key mapping was removed, <code>false</code> otherwise
+   * @return {@code true} if the key mapping was removed, {@code false} otherwise
    * @throws StorageRuntimeException If an error occurs in the JE operation.
    */
   boolean delete(WriteableStorage txn, ByteSequence key) throws StorageRuntimeException

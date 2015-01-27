@@ -42,7 +42,6 @@
 
   <!-- General server-wide properties                                 -->
   <property name="src.dir"          location="src/server"              />
-  <property name="pluggablebackend.pkg" value="org/opends/server/backends/pluggable" />
   <property name="build.dir"        location="build"                   />
   <property name="classes.dir"      location="${build.dir}/classes"    />
   <property name="build.lib.dir"    location="${build.dir}/lib"        />
@@ -679,7 +678,6 @@ Please:
       <fileset dir="${src.dir}">
         <include name="**/*.java"/>
         <exclude name="**/PublicAPI.java" />
-        <exclude name="${pluggablebackend.pkg}/**/*.java" />
       </fileset>
       <formatter type="plain" />
     </checkstyle>

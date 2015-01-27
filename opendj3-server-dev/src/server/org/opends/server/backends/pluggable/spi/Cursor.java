@@ -21,9 +21,8 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
@@ -31,22 +30,73 @@ import java.io.Closeable;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
+/**
+ * Cursor that iterates through records in a tree.
+ */
 public interface Cursor extends Closeable
 {
+  /**
+   * Positions the cursor to the provided key if it exists in the tree.
+   *
+   * @param key
+   *          the key where to position the cursor
+   * @return {@code true} if the cursor could be positioned to the key,
+   *         {@code false} otherwise
+   */
   boolean positionToKey(ByteSequence key);
 
+  /**
+   * Positions the cursor to the provided key if it exists in the tree,
+   * or else the lesser key greater than the provided key in the tree.
+   *
+   * @param key
+   *          the key where to position the cursor
+   * @return {@code true} if the cursor could be positioned to the key,
+   *         {@code false} otherwise
+   */
   boolean positionToKeyOrNext(ByteSequence key);
 
+  /**
+   * Positions the cursor to the last key in the tree.
+   *
+   * @return {@code true} if the cursor could be positioned to the last key,
+   *         {@code false} otherwise
+   */
   boolean positionToLastKey();
 
+  /**
+   * Moves this cursor to the next record in the tree.
+   *
+   * @return {@code true} if the cursor could move to the next record,
+   *         {@code false} if no next record exists
+   */
   boolean next();
 
+  /**
+   * Moves this cursor to the previous record in the tree.
+   *
+   * @return {@code true} if the cursor could move to the previous record,
+   *         {@code false} if no previous record exists
+   */
   boolean previous();
 
+  /**
+   * Returns the key of the record on which this cursor is currently positioned.
+   *
+   * @return the current record's key,
+   *         or {@code null} if this cursor is not positioned on any record.
+   */
   ByteString getKey();
 
+  /**
+   * Returns the value of the record on which this cursor is currently positioned.
+   *
+   * @return the current record's value,
+   *         or {@code null} if this cursor is not positioned on any record.
+   */
   ByteString getValue();
 
+  /** {@inheritDoc} */
   @Override
   public void close();
 }

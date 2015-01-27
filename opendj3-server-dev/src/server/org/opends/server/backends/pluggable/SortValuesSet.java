@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.pluggable;
 
@@ -98,7 +98,6 @@ public class SortValuesSet
    * Add the given entryID and values from these sort values.
    *
    * @param sv The sort values to add.
-   * @param types The types of the values to add.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
@@ -232,7 +231,6 @@ public class SortValuesSet
    *
    * @param sv The sort values to remove.
    * @throws DirectoryException If a Directory Server error occurs.
-   * @throws StorageRuntimeException If an error occurs in the JE database.
    */
   void remove(SortValues sv) throws DirectoryException
   {
@@ -354,9 +352,9 @@ public class SortValuesSet
     final ByteStringBuilder builder = new ByteStringBuilder(4 + entryIDs.length
         * 8 + valuesBytes.length);
     builder.append(entryIDs.length);
-    for (int i = 0; i < entryIDs.length; i++)
+    for (long entryID : entryIDs)
     {
-      builder.append(entryIDs[i]);
+      builder.append(entryID);
     }
     builder.append(valuesBytes);
     return builder.toByteString();

@@ -27,6 +27,10 @@
  */
 package org.opends.server.backends.pluggable;
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.Closeable;
 import java.util.*;
 
@@ -52,10 +56,6 @@ import org.opends.server.backends.pluggable.spi.WriteableStorage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Class representing an attribute index.
@@ -131,9 +131,11 @@ public class AttributeIndex
    *
    * @param indexConfig The attribute index configuration.
    * @param entryContainer The entryContainer of this attribute index.
+   * @param txn The database transaction
    * @throws ConfigException if a configuration related error occurs.
    */
-  public AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn) throws ConfigException
+  public AttributeIndex(BackendIndexCfg indexConfig, EntryContainer entryContainer, WriteableStorage txn)
+      throws ConfigException
   {
     this.entryContainer = entryContainer;
     this.indexConfig = indexConfig;
@@ -258,6 +260,7 @@ public class AttributeIndex
   /**
    * Open the attribute index.
    *
+   * @param txn The database transaction
    * @throws StorageRuntimeException if a JE database error occurs while
    * opening the index.
    */
@@ -643,7 +646,7 @@ public class AttributeIndex
     final ConfigChangeResult ccr = new ConfigChangeResult();
     try
     {
-      entryContainer.getStorage().write(new WriteOperation()
+      entryContainer.getRootContainer().getStorage().write(new WriteOperation()
       {
         @Override
         public void run(WriteableStorage txn) throws Exception
@@ -776,7 +779,8 @@ public class AttributeIndex
     return rules;
   }
 
-  private void applyChangeToIndex(WriteableStorage txn, IndexType indexType, BackendIndexCfg cfg, ConfigChangeResult ccr)
+  private void applyChangeToIndex(final WriteableStorage txn, final IndexType indexType, final BackendIndexCfg cfg,
+      final ConfigChangeResult ccr)
   {
     String indexId = indexType.toString();
     Index index = nameToIndexes.get(indexId);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.backends.pluggable;
 
@@ -85,7 +85,7 @@ public final class JECompressedSchema extends CompressedSchema
    * @param storage
    *          A reference to the database environment in which the databases
    *          will be held.
-   * @param txn
+   * @param txn The database transaction
    * @throws StorageRuntimeException
    *           If a database problem occurs while loading the compressed schema
    *           definitions from the database.

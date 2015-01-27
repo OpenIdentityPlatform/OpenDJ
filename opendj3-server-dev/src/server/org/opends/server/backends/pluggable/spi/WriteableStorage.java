@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 public interface WriteableStorage extends ReadableStorage
 {
   /**
-   * Opens the tree having the provided name. The tree is created if does not already exist.
+   * Opens the tree identified by the provided name. The tree is created if it does not already exist.
    *
    * @param name
    *          the tree name
@@ -41,7 +41,7 @@ public interface WriteableStorage extends ReadableStorage
   void openTree(TreeName name);
 
   /**
-   * Truncates the tree having the provided name. It removes all the records in the tree.
+   * Truncates the tree identified by the provided name. It removes all the records in the tree.
    *
    * @param name
    *          the tree name
@@ -59,7 +59,7 @@ public interface WriteableStorage extends ReadableStorage
   void renameTree(TreeName oldName, TreeName newName);
 
   /**
-   * Deletes the tree having the provided name.
+   * Deletes the tree identified by the provided name.
    *
    * @param name
    *          the tree name
