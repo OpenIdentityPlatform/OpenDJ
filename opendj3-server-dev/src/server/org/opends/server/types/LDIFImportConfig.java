@@ -22,19 +22,20 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.types;
+
+import static org.opends.messages.UtilityMessages.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.UtilityMessages.*;
 
 /**
  * This class defines a data structure for holding configuration
@@ -49,99 +50,79 @@ public final class LDIFImportConfig extends OperationConfig
                                     implements Closeable
 {
 
-  /**
-   * The default buffer size that will be used when reading LDIF data.
-   */
+  /** The default buffer size that will be used when reading LDIF data. */
   private static final int DEFAULT_BUFFER_SIZE = 8192;
 
-
-
-  // Indicates whether to append to the existing data set rather than
-  // replacing it.
+  /**
+   * Indicates whether to append to the existing data set rather than
+   * replacing it.
+   */
   private boolean appendToExistingData;
 
-  // Indicates whether to include the objectclasses in the entries
-  // read from the import.
-  private boolean includeObjectClasses;
+  /**
+   * Indicates whether to include the objectclasses in the entries
+   * read from the import.
+   */
+  private boolean includeObjectClasses = true;
 
-  // Indicates whether to invoke LDIF import plugins whenever an entry
-  // is read.
+  /** Indicates whether to invoke LDIF import plugins whenever an entry is read. */
   private boolean invokeImportPlugins;
-
-  // Indicates whether the import is compressed.
+  /** Indicates whether the import is compressed. */
   private boolean isCompressed;
-
-  // Indicates whether the import is encrypted.
+  /** Indicates whether the import is encrypted. */
   private boolean isEncrypted;
-
-  // Indicates whether to clear all base DNs in a backend.
+  /** Indicates whether to clear all base DNs in a backend. */
   private boolean clearBackend;
-
-  // Indicates whether to replace existing entries when appending
-  // data.
+  /** Indicates whether to replace existing entries when appending data. */
   private boolean replaceExistingEntries;
+  /** Indicates whether to perform schema validation on the entries read. */
+  private boolean validateSchema = true;
 
-  // Indicates whether to perform schema validation on the entries
-  // read.
-  private boolean validateSchema;
-
-  // The buffered reader from which the LDIF data should be read.
+  /** The buffered reader from which the LDIF data should be read. */
   private BufferedReader reader;
-
-  // The buffered writer to which rejected entries should be written.
+  /** The buffered writer to which rejected entries should be written. */
   private BufferedWriter rejectWriter;
-
-  // The buffered writer to which rejected entries should be written.
+  /** The buffered writer to which rejected entries should be written. */
   private BufferedWriter skipWriter;
-
-  // The input stream to use to read the data to import.
+  /** The input stream to use to read the data to import. */
   private InputStream ldifInputStream;
 
-  // The buffer size to use when reading data from the LDIF file.
-  private int bufferSize;
+  /** The buffer size to use when reading data from the LDIF file. */
+  private int bufferSize = DEFAULT_BUFFER_SIZE;
 
-  // The iterator used to read through the set of LDIF files.
+  /** The iterator used to read through the set of LDIF files. */
   private Iterator<String> ldifFileIterator;
 
-  // The set of base DNs to exclude from the import.
-  private List<DN> excludeBranches;
+  /** The set of base DNs to exclude from the import. */
+  private Set<DN> excludeBranches = new HashSet<DN>(0);
+  /** The set of base DNs to include from the import. */
+  private Set<DN> includeBranches = new HashSet<DN>(0);
 
-  // The set of base DNs to include from the import.
-  private List<DN> includeBranches;
+  /** The set of search filters for entries to exclude from the import. */
+  private List<SearchFilter> excludeFilters = new ArrayList<SearchFilter>(0);
+  /** The set of search filters for entries to include in the import. */
+  private List<SearchFilter> includeFilters = new ArrayList<SearchFilter>(0);
 
-  // The set of search filters for entries to exclude from the import.
-  private List<SearchFilter> excludeFilters;
-
-  // The set of search filters for entries to include in the import.
-  private List<SearchFilter> includeFilters;
-
-  // The set of LDIF files to be imported.
+  /** The set of LDIF files to be imported. */
   private List<String> ldifFiles;
 
-  // The set of attribute types that should be excluded from the
-  // import.
-  private Set<AttributeType> excludeAttributes;
+  /** The set of attribute types that should be excluded from the import. */
+  private Set<AttributeType> excludeAttributes = new HashSet<AttributeType>(0);
+  /** The set of attribute types that should be included in the import. */
+  private Set<AttributeType> includeAttributes = new HashSet<AttributeType>(0);
 
-  // The set of attribute types that should be included in the import.
-  private Set<AttributeType> includeAttributes;
-
-  // Indicates whether all the user attributes should be included.
+  /** Indicates whether all the user attributes should be included. */
   private boolean includeAllUserAttrs;
-
-  //Indicates whether all the operational attributes should be
-  // included.
+  /** Indicates whether all the operational attributes should be included. */
   private boolean includeAllOpAttrs;
-
-  //Indicates whether all the user attributes should be excluded.
+  /** Indicates whether all the user attributes should be excluded. */
   private boolean excludeAllUserAttrs;
-
-  //Indicates whether all the operational attributes should be
-  // excluded.
+  /** Indicates whether all the operational attributes should be excluded. */
   private boolean excludeAllOpAttrs;
 
   private String tmpDirectory;
-  private boolean skipDNValidation = false;
-  private int threadCount = 0;
+  private boolean skipDNValidation;
+  private int threadCount;
 
 
   /**
@@ -156,34 +137,7 @@ public final class LDIFImportConfig extends OperationConfig
     ldifFiles = new ArrayList<String>(1);
     ldifFiles.add(ldifFile);
     ldifFileIterator = ldifFiles.iterator();
-
-    ldifInputStream        = null;
-    bufferSize             = DEFAULT_BUFFER_SIZE;
-    excludeBranches        = new ArrayList<DN>();
-    includeBranches        = new ArrayList<DN>();
-    excludeFilters         = new ArrayList<SearchFilter>();
-    includeFilters         = new ArrayList<SearchFilter>();
-    appendToExistingData   = false;
-    replaceExistingEntries = false;
-    includeObjectClasses   = true;
-    invokeImportPlugins    = false;
-    isCompressed           = false;
-    isEncrypted            = false;
-    clearBackend           = false;
-    validateSchema         = true;
-    reader                 = null;
-    rejectWriter           = null;
-    skipWriter             = null;
-    excludeAttributes      = new HashSet<AttributeType>();
-    includeAttributes      = new HashSet<AttributeType>();
-    includeAllUserAttrs    = false;
-    includeAllOpAttrs      = false;
-    excludeAllUserAttrs    = false;
-    excludeAllOpAttrs      = false;
-
   }
-
-
 
   /**
    * Creates a new LDIF import configuration that will read from the
@@ -197,33 +151,7 @@ public final class LDIFImportConfig extends OperationConfig
   {
     this.ldifFiles = ldifFiles;
     ldifFileIterator = ldifFiles.iterator();
-
-    ldifInputStream        = null;
-    bufferSize             = DEFAULT_BUFFER_SIZE;
-    excludeBranches        = new ArrayList<DN>();
-    includeBranches        = new ArrayList<DN>();
-    excludeFilters         = new ArrayList<SearchFilter>();
-    includeFilters         = new ArrayList<SearchFilter>();
-    appendToExistingData   = false;
-    replaceExistingEntries = false;
-    includeObjectClasses   = true;
-    invokeImportPlugins    = false;
-    isCompressed           = false;
-    isEncrypted            = false;
-    validateSchema         = true;
-    reader                 = null;
-    rejectWriter           = null;
-    skipWriter             = null;
-    excludeAttributes      = new HashSet<AttributeType>();
-    includeAttributes      = new HashSet<AttributeType>();
-    includeAllUserAttrs    = false;
-    includeAllOpAttrs      = false;
-    excludeAllUserAttrs    = false;
-    excludeAllOpAttrs      = false;
-
   }
-
-
 
   /**
    * Creates a new LDIF import configuration that will read from the
@@ -235,31 +163,6 @@ public final class LDIFImportConfig extends OperationConfig
   public LDIFImportConfig(InputStream ldifInputStream)
   {
     this.ldifInputStream   = ldifInputStream;
-    bufferSize             = DEFAULT_BUFFER_SIZE;
-    ldifFiles              = null;
-    ldifFileIterator       = null;
-
-    excludeBranches        = new ArrayList<DN>();
-    includeBranches        = new ArrayList<DN>();
-    excludeFilters         = new ArrayList<SearchFilter>();
-    includeFilters         = new ArrayList<SearchFilter>();
-    appendToExistingData   = false;
-    replaceExistingEntries = false;
-    includeObjectClasses   = true;
-    invokeImportPlugins    = false;
-    isCompressed           = false;
-    isEncrypted            = false;
-    validateSchema         = true;
-    reader                 = null;
-    rejectWriter           = null;
-    skipWriter             = null;
-    excludeAttributes      = new HashSet<AttributeType>();
-    includeAttributes      = new HashSet<AttributeType>();
-    includeAllUserAttrs    = false;
-    includeAllOpAttrs      = false;
-    excludeAllUserAttrs    = false;
-    excludeAllOpAttrs      = false;
-
   }
 
   /**
@@ -271,32 +174,7 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public LDIFImportConfig(Reader ldifInputReader)
   {
-    ldifInputStream        = null;
-    bufferSize             = DEFAULT_BUFFER_SIZE;
-    ldifFiles              = null;
-    ldifFileIterator       = null;
-
-    excludeBranches        = new ArrayList<DN>();
-    includeBranches        = new ArrayList<DN>();
-    excludeFilters         = new ArrayList<SearchFilter>();
-    includeFilters         = new ArrayList<SearchFilter>();
-    appendToExistingData   = false;
-    replaceExistingEntries = false;
-    includeObjectClasses   = true;
-    invokeImportPlugins    = false;
-    isCompressed           = false;
-    isEncrypted            = false;
-    validateSchema         = true;
     reader                 = getBufferedReader(ldifInputReader);
-    rejectWriter           = null;
-    skipWriter             = null;
-    excludeAttributes      = new HashSet<AttributeType>();
-    includeAttributes      = new HashSet<AttributeType>();
-    includeAllUserAttrs    = false;
-    includeAllOpAttrs      = false;
-    excludeAllUserAttrs    = false;
-    excludeAllOpAttrs      = false;
-
   }
 
   /**
@@ -324,8 +202,6 @@ public final class LDIFImportConfig extends OperationConfig
   public LDIFImportConfig(TemplateFile templateFile)
   {
     this(new MakeLDIFInputStream(templateFile));
-
-
   }
 
 
@@ -347,14 +223,14 @@ public final class LDIFImportConfig extends OperationConfig
     if (reader == null)
     {
       InputStream inputStream;
-      if (ldifInputStream == null)
+      if (ldifInputStream != null)
       {
-        inputStream = ldifInputStream =
-             new FileInputStream(ldifFileIterator.next());
+        inputStream = ldifInputStream;
       }
       else
       {
-        inputStream = ldifInputStream;
+        inputStream = ldifInputStream =
+             new FileInputStream(ldifFileIterator.next());
       }
 
       if (isEncrypted)
@@ -384,13 +260,12 @@ public final class LDIFImportConfig extends OperationConfig
    * @return  The reader that should be used to read the LDIF data, or
    *          <CODE>null</CODE> if there are no more files to read.
    *
-   * @throws  IOException  If a problem occurs while obtaining the
-   *                       reader.
+   * @throws  IOException  If a problem occurs while obtaining the reader.
    */
   public BufferedReader nextReader()
          throws IOException
   {
-    if ((ldifFileIterator == null) || (! ldifFileIterator.hasNext()))
+    if (ldifFileIterator == null || !ldifFileIterator.hasNext())
     {
       return null;
     }
@@ -420,8 +295,7 @@ public final class LDIFImportConfig extends OperationConfig
    * Retrieves the writer that should be used to write entries that
    * are rejected rather than imported for some reason.
    *
-   * @return  The reject writer, or <CODE>null</CODE> if none is to be
-   *          used.
+   * @return  The reject writer, or <CODE>null</CODE> if none is to be used.
    */
   public BufferedWriter getRejectWriter()
   {
@@ -430,10 +304,9 @@ public final class LDIFImportConfig extends OperationConfig
 
   /**
    * Retrieves the writer that should be used to write entries that
-   * are skipped because they don't match the criteri.
+   * are skipped because they don't match the criteria.
    *
-   * @return  The skip writer, or <CODE>null</CODE> if none is to be
-   *          used.
+   * @return  The skip writer, or <CODE>null</CODE> if none is to be used.
    */
   public BufferedWriter getSkipWriter()
   {
@@ -448,10 +321,8 @@ public final class LDIFImportConfig extends OperationConfig
    * rejected because they matched exclude criteria.
    *
    * @param  rejectFile            The path to the file to which
-   *                               reject information should be
-   *                               written.
-   * @param  existingFileBehavior  Indicates how to treat an existing
-   *                               file.
+   *                               reject information should be written.
+   * @param  existingFileBehavior  Indicates how to treat an existing file.
    *
    * @throws  IOException  If a problem occurs while opening the
    *                       reject file for writing.
@@ -462,42 +333,37 @@ public final class LDIFImportConfig extends OperationConfig
   {
     if (rejectFile == null)
     {
-      if (rejectWriter != null)
-      {
-        StaticUtils.close(rejectWriter);
-        rejectWriter = null;
-      }
-
+      closeRejectWriter();
       return;
     }
 
-    switch (existingFileBehavior)
+    final BufferedWriter writer = newBufferedWriter(rejectFile, existingFileBehavior, ERR_REJECT_FILE_EXISTS);
+    if (writer != null)
     {
-      case APPEND:
-        rejectWriter =
-             new BufferedWriter(new FileWriter(rejectFile, true));
-        break;
-      case OVERWRITE:
-        rejectWriter =
-             new BufferedWriter(new FileWriter(rejectFile, false));
-        break;
-      case FAIL:
-        File f = new File(rejectFile);
-        if (f.exists())
-        {
-          throw new IOException(
-                  ERR_REJECT_FILE_EXISTS.get(rejectFile).toString());
-        }
-        else
-        {
-          rejectWriter =
-               new BufferedWriter(new FileWriter(rejectFile));
-        }
-        break;
+      rejectWriter = writer;
     }
   }
 
-
+  private BufferedWriter newBufferedWriter(String file, ExistingFileBehavior existingFileBehavior,
+      Arg1<Object> fileExistsErrorMsg) throws IOException
+  {
+    switch (existingFileBehavior)
+    {
+    case APPEND:
+      return new BufferedWriter(new FileWriter(file, true));
+    case OVERWRITE:
+      return new BufferedWriter(new FileWriter(file, false));
+    case FAIL:
+      File f = new File(file);
+      if (f.exists())
+      {
+        throw new IOException(fileExistsErrorMsg.get(file).toString());
+      }
+      return new BufferedWriter(new FileWriter(file));
+    default:
+      return null;
+    }
+  }
 
   /**
    * Indicates that rejected entries should be written to the provided
@@ -513,17 +379,21 @@ public final class LDIFImportConfig extends OperationConfig
   {
     if (outputStream == null)
     {
-      if (rejectWriter != null)
-      {
-        StaticUtils.close(rejectWriter);
-        rejectWriter = null;
-      }
-
+      closeRejectWriter();
       return;
     }
 
     rejectWriter =
          new BufferedWriter(new OutputStreamWriter(outputStream));
+  }
+
+  private void closeRejectWriter()
+  {
+    if (rejectWriter != null)
+    {
+      StaticUtils.close(rejectWriter);
+      rejectWriter = null;
+    }
   }
 
   /**
@@ -532,10 +402,8 @@ public final class LDIFImportConfig extends OperationConfig
    * skipped because they matched exclude criteria.
    *
    * @param  skipFile              The path to the file to which
-   *                               skipped information should be
-   *                               written.
-   * @param  existingFileBehavior  Indicates how to treat an existing
-   *                               file.
+   *                               skipped information should be written.
+   * @param  existingFileBehavior  Indicates how to treat an existing file.
    *
    * @throws  IOException  If a problem occurs while opening the
    *                       skip file for writing.
@@ -546,42 +414,25 @@ public final class LDIFImportConfig extends OperationConfig
   {
     if (skipFile == null)
     {
-      if (skipWriter != null)
-      {
-        StaticUtils.close(skipWriter);
-        skipWriter = null;
-      }
-
+      closeSkipWriter();
       return;
     }
 
-    switch (existingFileBehavior)
+    final BufferedWriter writer = newBufferedWriter(skipFile, existingFileBehavior, ERR_SKIP_FILE_EXISTS);
+    if (writer != null)
     {
-      case APPEND:
-        skipWriter =
-             new BufferedWriter(new FileWriter(skipFile, true));
-        break;
-      case OVERWRITE:
-        skipWriter =
-             new BufferedWriter(new FileWriter(skipFile, false));
-        break;
-      case FAIL:
-        File f = new File(skipFile);
-        if (f.exists())
-        {
-          throw new IOException(
-                  ERR_SKIP_FILE_EXISTS.get(skipFile).toString());
-        }
-        else
-        {
-          skipWriter =
-               new BufferedWriter(new FileWriter(skipFile));
-        }
-        break;
+      skipWriter = writer;
     }
   }
 
-
+  private void closeSkipWriter()
+  {
+    if (skipWriter != null)
+    {
+      StaticUtils.close(skipWriter);
+      skipWriter = null;
+    }
+  }
 
   /**
    * Indicates that skipped entries should be written to the provided
@@ -597,12 +448,7 @@ public final class LDIFImportConfig extends OperationConfig
   {
     if (outputStream == null)
     {
-      if (skipWriter != null)
-      {
-        StaticUtils.close(skipWriter);
-        skipWriter = null;
-      }
-
+      closeSkipWriter();
       return;
     }
     skipWriter =
@@ -664,8 +510,7 @@ public final class LDIFImportConfig extends OperationConfig
    *                                 existing entry if a duplicate is
    *                                 found or to reject the new entry.
    */
-  public void setReplaceExistingEntries(
-                   boolean replaceExistingEntries)
+  public void setReplaceExistingEntries(boolean replaceExistingEntries)
   {
     this.replaceExistingEntries = replaceExistingEntries;
   }
@@ -826,7 +671,7 @@ public final class LDIFImportConfig extends OperationConfig
    * @return  The set of base DNs that specify the set of entries to
    *          exclude from the import.
    */
-  public List<DN> getExcludeBranches()
+  public Set<DN> getExcludeBranches()
   {
     return excludeBranches;
   }
@@ -840,18 +685,15 @@ public final class LDIFImportConfig extends OperationConfig
    * @param  excludeBranches  The set of base DNs that specify the set
    *                          of entries to exclude from the import.
    */
-  public void setExcludeBranches(List<DN> excludeBranches)
+  public void setExcludeBranches(Set<DN> excludeBranches)
   {
-    if (excludeBranches == null)
-    {
-      this.excludeBranches = new ArrayList<DN>(0);
-    }
-    else
-    {
-      this.excludeBranches = excludeBranches;
-    }
+    this.excludeBranches = getSet(excludeBranches);
   }
 
+  private <T> Set<T> getSet(Set<T> set)
+  {
+    return set != null ? set : new HashSet<T>(0);
+  }
 
 
   /**
@@ -862,7 +704,7 @@ public final class LDIFImportConfig extends OperationConfig
    * @return  The set of base DNs that specify the set of entries to
    *          include in the import.
    */
-  public List<DN> getIncludeBranches()
+  public Set<DN> getIncludeBranches()
   {
     return includeBranches;
   }
@@ -876,19 +718,10 @@ public final class LDIFImportConfig extends OperationConfig
    * @param  includeBranches  The set of base DNs that specify the set
    *                          of entries to include in the import.
    */
-  public void setIncludeBranches(List<DN> includeBranches)
+  public void setIncludeBranches(Set<DN> includeBranches)
   {
-    if (includeBranches == null)
-    {
-      this.includeBranches = new ArrayList<DN>(0);
-    }
-    else
-    {
-      this.includeBranches = includeBranches;
-    }
+    this.includeBranches = getSet(includeBranches);
   }
-
-
 
   /**
    * Indicates whether to include the entry with the specified DN in
@@ -985,20 +818,10 @@ public final class LDIFImportConfig extends OperationConfig
    *                            excluded from the entries read from
    *                            the LDIF.
    */
-  public void setExcludeAttributes(
-                   Set<AttributeType> excludeAttributes)
+  public void setExcludeAttributes(Set<AttributeType> excludeAttributes)
   {
-    if (excludeAttributes == null)
-    {
-      this.excludeAttributes = new HashSet<AttributeType>(0);
-    }
-    else
-    {
-      this.excludeAttributes = excludeAttributes;
-    }
+    this.excludeAttributes = getSet(excludeAttributes);
   }
-
-
 
   /**
    * Retrieves the set of attributes that should be included in the
@@ -1023,20 +846,10 @@ public final class LDIFImportConfig extends OperationConfig
    *                            included in the entries read from the
    *                            LDIF.
    */
-  public void setIncludeAttributes(
-                   Set<AttributeType> includeAttributes)
+  public void setIncludeAttributes(Set<AttributeType> includeAttributes)
   {
-    if (includeAttributes == null)
-    {
-      this.includeAttributes = new HashSet<AttributeType>(0);
-    }
-    else
-    {
-      this.includeAttributes = includeAttributes;
-    }
+    this.includeAttributes = getSet(includeAttributes);
   }
-
-
 
   /**
    * Indicates whether the specified attribute should be included in
@@ -1051,20 +864,20 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public boolean includeAttribute(AttributeType attributeType)
   {
-    if ((! excludeAttributes.isEmpty()) &&
-        excludeAttributes.contains(attributeType))
+    if (!excludeAttributes.isEmpty()
+        && excludeAttributes.contains(attributeType))
     {
       return false;
     }
 
-     if(excludeAllOpAttrs && attributeType.isOperational() ||
-      excludeAllUserAttrs && !attributeType.isOperational())
+     if((excludeAllOpAttrs && attributeType.isOperational())
+         || (excludeAllUserAttrs && !attributeType.isOperational()))
     {
       return false;
     }
 
-    if(includeAllUserAttrs && !attributeType.isOperational() ||
-           includeAllOpAttrs && attributeType.isOperational())
+    if((includeAllUserAttrs && !attributeType.isOperational())
+        || (includeAllOpAttrs && attributeType.isOperational()))
     {
       return true;
     }
@@ -1073,13 +886,10 @@ public final class LDIFImportConfig extends OperationConfig
     {
       return includeAttributes.contains(attributeType);
     }
-    else
+    else if((includeAllUserAttrs && attributeType.isOperational())
+        || (includeAllOpAttrs && !attributeType.isOperational()))
     {
-       if(includeAllUserAttrs && attributeType.isOperational() ||
-               includeAllOpAttrs && !attributeType.isOperational())
-       {
-         return false;
-       }
+      return false;
     }
     return true;
   }
@@ -1111,17 +921,8 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public void setExcludeFilters(List<SearchFilter> excludeFilters)
   {
-    if (excludeFilters == null)
-    {
-      this.excludeFilters = new ArrayList<SearchFilter>(0);
-    }
-    else
-    {
-      this.excludeFilters = excludeFilters;
-    }
+    this.excludeFilters = getList(excludeFilters);
   }
-
-
 
   /**
    * Retrieves the set of search filters that should be used to
@@ -1148,17 +949,13 @@ public final class LDIFImportConfig extends OperationConfig
    */
   public void setIncludeFilters(List<SearchFilter> includeFilters)
   {
-    if (includeFilters == null)
-    {
-      this.includeFilters = new ArrayList<SearchFilter>(0);
-    }
-    else
-    {
-      this.includeFilters = includeFilters;
-    }
+    this.includeFilters = getList(includeFilters);
   }
 
-
+  private <T> List<T> getList(List<T> list)
+  {
+    return list != null ? list : new ArrayList<T>(0);
+  }
 
   /**
    * Indicates whether the specified entry should be included in the
@@ -1255,8 +1052,7 @@ public final class LDIFImportConfig extends OperationConfig
    *                            operational attributes
    *                            should be excluded.
    */
-  public void setExcludeAllOperationalAttributes(
-                                    boolean excludeAllOpAttrs)
+  public void setExcludeAllOperationalAttributes(boolean excludeAllOpAttrs)
   {
     this.excludeAllOpAttrs = excludeAllOpAttrs;
   }
@@ -1292,9 +1088,7 @@ public final class LDIFImportConfig extends OperationConfig
 
 
 
-  /**
-   * Closes any resources that this import config might have open.
-   */
+  /** Closes any resources that this import config might have open. */
   @Override
   public void close()
   {
@@ -1362,4 +1156,3 @@ public final class LDIFImportConfig extends OperationConfig
     return this.threadCount;
   }
 }
-

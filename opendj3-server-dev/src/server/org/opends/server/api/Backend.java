@@ -29,6 +29,7 @@ package org.opends.server.api;
 import static org.opends.messages.BackendMessages.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
@@ -1066,7 +1067,7 @@ public abstract class Backend<C extends Configuration>
    * @return  {@code true} if the backend should handle operations for
    *          the provided entry, or {@code false} if it does not.
    */
-  public static final boolean handlesEntry(DN entryDN, List<DN> baseDNs, List<DN> excludeDNs)
+  public static final boolean handlesEntry(DN entryDN, Collection<DN> baseDNs, Collection<DN> excludeDNs)
   {
     for (DN baseDN : baseDNs)
     {
@@ -1078,7 +1079,7 @@ public abstract class Backend<C extends Configuration>
     return false;
   }
 
-  private static boolean isExcluded(List<DN> excludeDNs, DN entryDN)
+  private static boolean isExcluded(Collection<DN> excludeDNs, DN entryDN)
   {
     if (excludeDNs == null || excludeDNs.isEmpty())
     {
