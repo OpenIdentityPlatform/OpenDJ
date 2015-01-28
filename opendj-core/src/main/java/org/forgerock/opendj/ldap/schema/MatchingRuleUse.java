@@ -22,16 +22,23 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2015 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR1;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE1;
+import static java.util.Arrays.*;
 
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +52,202 @@ import org.forgerock.util.Reject;
  * attribute types that may be used for a given matching rule.
  */
 public final class MatchingRuleUse extends SchemaElement {
+
+    /** A fluent API for incrementally constructing matching rule uses. */
+    public static final class Builder extends SchemaElementBuilder<Builder> {
+        private String oid;
+        private final List<String> names = new LinkedList<String>();
+        private boolean isObsolete;
+        private final Set<String> attributeOIDs = new LinkedHashSet<String>();
+
+        Builder(MatchingRuleUse mru, SchemaBuilder builder) {
+            super(builder, mru);
+            this.oid = mru.oid;
+            this.names.addAll(mru.names);
+            this.isObsolete = mru.isObsolete;
+            this.attributeOIDs.addAll(mru.attributeOIDs);
+        }
+
+        Builder(final String oid, final SchemaBuilder builder) {
+            super(builder);
+            this.oid = oid;
+        }
+
+        /**
+         * Adds this matching rule use definition to the schema, throwing a
+         * {@code  ConflictingSchemaElementException} if there is an existing
+         * matching rule definition with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing matching rule use definition with
+         *             the same numeric OID.
+         */
+        public SchemaBuilder addToSchema() {
+            return getSchemaBuilder().addMatchingRuleUse(new MatchingRuleUse(this), false);
+        }
+
+        /**
+         * Adds this matching rule use definition to the schema overwriting any
+         * existing matching rule use definition with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return getSchemaBuilder().addMatchingRuleUse(new MatchingRuleUse(this), true);
+        }
+
+        /**
+         * Adds the provided list of attribute types to the list of attribute
+         * type the matching rule applies to.
+         *
+         * @param attributeOIDs
+         *            The list of attribute type numeric OIDs.
+         * @return This builder.
+         */
+        public Builder attributes(Collection<String> attributeOIDs) {
+            this.attributeOIDs.addAll(attributeOIDs);
+            return this;
+        }
+
+        /**
+         * Adds the provided list of attribute types to the list of attribute
+         * type the matching rule applies to.
+         *
+         * @param attributeOIDs
+         *            The list of attribute type numeric OIDs.
+         * @return This builder.
+         */
+        public Builder attributes(String... attributeOIDs) {
+            this.attributeOIDs.addAll(asList(attributeOIDs));
+            return this;
+        }
+
+        @Override
+        public Builder description(final String description) {
+            return description0(description);
+        }
+
+        @Override
+        public Builder extraProperties(final Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(final String extensionName, final String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final Collection<String> names) {
+            this.names.addAll(names);
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final String... names) {
+            return names(asList(names));
+        }
+
+        /**
+         * Specifies whether this schema element is obsolete.
+         *
+         * @param isObsolete
+         *            {@code true} if this schema element is obsolete
+         *            (default is {@code false}).
+         * @return This builder.
+         */
+        public Builder obsolete(final boolean isObsolete) {
+            this.isObsolete = isObsolete;
+            return this;
+        }
+
+        /**
+         * Sets the numeric OID which uniquely identifies this matching rule use
+         * definition.
+         *
+         * @param oid
+         *            The numeric OID.
+         * @return This builder.
+         */
+        public Builder oid(final String oid) {
+            this.oid = oid;
+            return this;
+        }
+
+        /**
+         * Removes all attribute types the matching rule applies to.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllAttributes() {
+            this.attributeOIDs.clear();
+            return this;
+        }
+
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
+        /**
+         * Removes all user defined names.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllNames() {
+            this.names.clear();
+            return this;
+        }
+
+        /**
+         * Removes the provided attribute type.
+         *
+         * @param attributeOID
+         *            The attribute type OID to be removed.
+         * @return This builder.
+         */
+        public Builder removeAttribute(String attributeOID) {
+            this.attributeOIDs.remove(attributeOID);
+            return this;
+        }
+
+        @Override
+        public Builder removeExtraProperty(String extensionName, String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
+        }
+
+        /**
+         * Removes the provided user defined name.
+         *
+         * @param name
+         *            The user defined name to be removed.
+         * @return This builder.
+         */
+        public Builder removeName(String name) {
+            this.names.remove(name);
+            return this;
+        }
+
+    }
+
     /**
      * The OID of the matching rule associated with this matching rule
      * use definition.
@@ -66,16 +269,14 @@ public final class MatchingRuleUse extends SchemaElement {
     private MatchingRule matchingRule;
     private Set<AttributeType> attributes = Collections.emptySet();
 
-    MatchingRuleUse(final String oid, final List<String> names, final String description,
-            final boolean obsolete, final Set<String> attributeOIDs,
-            final Map<String, List<String>> extraProperties, final String definition) {
-        super(description, extraProperties, definition);
+    private MatchingRuleUse(final Builder builder) {
+        super(builder);
+        Reject.ifNull(builder.oid);
 
-        Reject.ifNull(oid, names, attributeOIDs);
-        this.oid = oid;
-        this.names = names;
-        this.isObsolete = obsolete;
-        this.attributeOIDs = attributeOIDs;
+        this.oid = builder.oid;
+        this.names = unmodifiableCopyOfList(builder.names);
+        this.isObsolete = builder.isObsolete;
+        this.attributeOIDs = unmodifiableCopyOfSet(builder.attributeOIDs);
     }
 
     /**
@@ -216,11 +417,6 @@ public final class MatchingRuleUse extends SchemaElement {
      */
     public boolean isObsolete() {
         return isObsolete;
-    }
-
-    MatchingRuleUse duplicate() {
-        return new MatchingRuleUse(oid, names, getDescription(), isObsolete, attributeOIDs,
-                getExtraProperties(), toString());
     }
 
     @Override
