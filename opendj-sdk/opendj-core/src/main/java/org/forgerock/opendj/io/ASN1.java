@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.io;
 
 import java.io.InputStream;
@@ -139,7 +138,7 @@ public final class ASN1 {
      * The bitmask that can be ANDed with the BER type to zero out all bits
      * except the primitive/constructed bit.
      */
-    static final byte TYPE_MASK_ALL_BUT_PC = (byte) 0x20;
+    static final byte TYPE_MASK_ALL_BUT_PC = 0x20;
     /**
      * The bitmask that can be ANDed with the BER type to determine if the
      * element is in the application-specific class.
