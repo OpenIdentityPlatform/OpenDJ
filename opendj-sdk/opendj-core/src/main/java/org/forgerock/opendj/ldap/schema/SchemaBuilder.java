@@ -820,13 +820,9 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = readOID(reader, allowsMalformedNamesAndOptions());
-
-            List<String> names = Collections.emptyList();
-            String description = "".intern();
-            boolean isObsolete = false;
+            final MatchingRuleUse.Builder useBuilder =
+                    buildMatchingRuleUse(readOID(reader, allowsMalformedNamesAndOptions()));
             Set<String> attributes = null;
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -843,17 +839,16 @@ public final class SchemaBuilder {
                     // No more tokens.
                     break;
                 } else if ("name".equalsIgnoreCase(tokenName)) {
-                    names = readNameDescriptors(reader, allowsMalformedNamesAndOptions());
+                    useBuilder.names(readNameDescriptors(reader, allowsMalformedNamesAndOptions()));
                 } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = readQuotedString(reader);
+                    useBuilder.description(readQuotedString(reader));
                 } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
-                    // considered obsolete. We do not need to do any more
-                    // parsing for this token.
-                    isObsolete = true;
+                    // considered obsolete.
+                    useBuilder.obsolete(true);
                 } else if ("applies".equalsIgnoreCase(tokenName)) {
                     attributes = readOIDs(reader, allowsMalformedNamesAndOptions());
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
@@ -862,10 +857,7 @@ public final class SchemaBuilder {
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, readExtensions(reader));
+                    useBuilder.extraProperties(tokenName, readExtensions(reader));
                 } else {
                     throw new LocalizedIllegalArgumentException(
                         ERR_ATTR_SYNTAX_MRUSE_ILLEGAL_TOKEN1.get(definition, tokenName));
@@ -876,21 +868,13 @@ public final class SchemaBuilder {
             if (attributes == null || attributes.size() == 0) {
                 throw new LocalizedIllegalArgumentException(ERR_ATTR_SYNTAX_MRUSE_NO_ATTR.get(definition));
             }
+            useBuilder.attributes(attributes);
 
-            if (!extraProperties.isEmpty()) {
-                extraProperties = Collections.unmodifiableMap(extraProperties);
-            }
-
-            final MatchingRuleUse use =
-                    new MatchingRuleUse(oid, names, description, isObsolete, attributes,
-                            extraProperties, definition);
-            addMatchingRuleUse(use, overwrite);
+            return overwrite ? useBuilder.addToSchemaOverwrite() : useBuilder.addToSchema();
         } catch (final DecodeException e) {
-            final LocalizableMessage msg =
-                    ERR_ATTR_SYNTAX_MRUSE_INVALID1.get(definition, e.getMessageObject());
+            final LocalizableMessage msg = ERR_ATTR_SYNTAX_MRUSE_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
-        return this;
     }
 
     /**
@@ -949,41 +933,23 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Adds the provided matching rule use definition to this schema builder.
+     * Returns a builder which can be used for incrementally constructing a new
+     * matching rule use before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildMatchingRuleUse("matchingrule-oid")
+     *        .name("matching rule use name")
+     *        .addToSchema();
+     * </pre>
      *
      * @param oid
-     *            The OID of the matching rule use definition.
-     * @param names
-     *            The user-friendly names of the matching rule use definition.
-     * @param description
-     *            The description of the matching rule use definition.
-     * @param obsolete
-     *            {@code true} if the matching rule use definition is obsolete,
-     *            otherwise {@code false}.
-     * @param attributeOIDs
-     *            The list of attribute types the matching rule applies to.
-     * @param extraProperties
-     *            A map containing additional properties associated with the
-     *            matching rule use definition.
-     * @param overwrite
-     *            {@code true} if any existing matching rule use with the same
-     *            OID should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
+     *            The OID of the matching rule definition.
+     * @return A builder to continue building the MatchingRuleUse.
      */
-    SchemaBuilder addMatchingRuleUse(final String oid, final List<String> names,
-            final String description, final boolean obsolete, final Set<String> attributeOIDs,
-            final Map<String, List<String>> extraProperties, final boolean overwrite) {
+    public MatchingRuleUse.Builder buildMatchingRuleUse(final String oid) {
         lazyInitBuilder();
-
-        final MatchingRuleUse use =
-                new MatchingRuleUse(oid, unmodifiableCopyOfList(names), description, obsolete,
-                        unmodifiableCopyOfSet(attributeOIDs),
-                        unmodifiableCopyOfExtraProperties(extraProperties), null);
-        addMatchingRuleUse(use, overwrite);
-        return this;
+        return new MatchingRuleUse.Builder(oid, this);
     }
 
     /**
@@ -1251,6 +1217,21 @@ public final class SchemaBuilder {
             lazyInitBuilder();
         }
         return new MatchingRule.Builder(matchingRule, this);
+    }
+
+    /**
+     * Returns a matching rule use builder whose fields are initialized to the
+     * values of the provided matching rule use object. This method should be used when
+     * duplicating matching rule uses from external schemas or when modifying
+     * existing matching rule uses.
+     *
+     * @param matchingRuleUse
+     *            The matching rule use source.
+     * @return A builder to continue building the MatchingRuleUse.
+     */
+    public MatchingRuleUse.Builder buildMatchingRuleUse(final MatchingRuleUse matchingRuleUse) {
+        lazyInitBuilder();
+        return new MatchingRuleUse.Builder(matchingRuleUse, this);
     }
 
     /**
@@ -2258,7 +2239,7 @@ public final class SchemaBuilder {
         return this;
     }
 
-    private void addMatchingRuleUse(final MatchingRuleUse use, final boolean overwrite) {
+    SchemaBuilder addMatchingRuleUse(final MatchingRuleUse use, final boolean overwrite) {
         MatchingRuleUse conflictingUse;
         if (numericOID2MatchingRuleUses.containsKey(use.getMatchingRuleOID())) {
             conflictingUse = numericOID2MatchingRuleUses.get(use.getMatchingRuleOID());
@@ -2285,6 +2266,8 @@ public final class SchemaBuilder {
                 uses.add(use);
             }
         }
+
+        return this;
     }
 
     SchemaBuilder addMatchingRule(final MatchingRule rule, final boolean overwrite) {
@@ -2402,7 +2385,7 @@ public final class SchemaBuilder {
         }
 
         for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses()) {
-            addMatchingRuleUse(matchingRuleUse.duplicate(), overwrite);
+            addMatchingRuleUse(matchingRuleUse, overwrite);
         }
 
         for (final AttributeType attributeType : schema.getAttributeTypes()) {
