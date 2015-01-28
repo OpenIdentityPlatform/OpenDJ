@@ -26,15 +26,10 @@
  */
 package org.opends.server.backends.pluggable;
 
-import java.util.Iterator;
-import java.util.TreeSet;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DN;
-import org.opends.server.types.RDN;
-import org.opends.server.util.StaticUtils;
 
 /**
  * Handles the disk representation of LDAP data.
@@ -88,15 +83,13 @@ public class JebFormat
    */
   public static ByteString dnToDNKey(DN dn, int prefixRDNs)
   {
-    ByteStringBuilder builder = new ByteStringBuilder();
-    int startSize = dn.size() - prefixRDNs - 1;
+    final ByteStringBuilder builder = new ByteStringBuilder();
+    final int startSize = dn.size() - prefixRDNs - 1;
     for (int i = startSize; i >= 0; i--)
     {
         builder.append(DN.NORMALIZED_RDN_SEPARATOR);
         dn.getRDN(i).toNormalizedByteString(builder);
     }
-
     return builder.toByteString();
   }
-
 }
