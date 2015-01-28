@@ -732,9 +732,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           // This entire base DN is explicitly included in the import with
           // no exclude branches that we need to migrate. Just clear the entry
           // container.
-          entryContainer.lock();
-          entryContainer.clear();
-          entryContainer.unlock();
+          clearSuffix(entryContainer);
         }
         else
         {
@@ -745,8 +743,14 @@ public final class Importer implements DiskSpaceMonitorHandler
         }
       }
     }
-    return Suffix.createSuffixContext(entryContainer, sourceEntryContainer,
-        includeBranches, excludeBranches);
+    return new Suffix(entryContainer, sourceEntryContainer, includeBranches, excludeBranches);
+  }
+
+  private void clearSuffix(EntryContainer entryContainer)
+  {
+    entryContainer.lock();
+    entryContainer.clear();
+    entryContainer.unlock();
   }
 
   private boolean isAnyNotEqualAndAncestorOf(List<DN> dns, DN childDN)
@@ -895,7 +899,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       final long phaseTwoFinishTime = System.currentTimeMillis();
 
       setIndexesTrusted(true);
-      switchContainers();
+      switchEntryContainers();
       recursiveDelete(tempDir);
       final long finishTime = System.currentTimeMillis();
       final long importTime = finishTime - startTime;
@@ -963,28 +967,25 @@ public final class Importer implements DiskSpaceMonitorHandler
     dir.delete();
   }
 
-  private void switchContainers() throws DatabaseException, JebException,
-      InitializationException
+  private void switchEntryContainers() throws DatabaseException, JebException, InitializationException
   {
-
     for (Suffix suffix : dnSuffixMap.values())
     {
       DN baseDN = suffix.getBaseDN();
       EntryContainer entryContainer = suffix.getSrcEntryContainer();
       if (entryContainer != null)
       {
-        EntryContainer needRegisterContainer =
-            rootContainer.unregisterEntryContainer(baseDN);
+        final EntryContainer toDelete = rootContainer.unregisterEntryContainer(baseDN);
+        toDelete.lock();
+        toDelete.close();
+        toDelete.delete();
+        toDelete.unlock();
 
-        needRegisterContainer.lock();
-        needRegisterContainer.close();
-        needRegisterContainer.delete();
-        needRegisterContainer.unlock();
-        EntryContainer newEC = suffix.getEntryContainer();
-        newEC.lock();
-        newEC.setDatabasePrefix(baseDN.toIrreversibleReadableString());
-        newEC.unlock();
-        rootContainer.registerEntryContainer(baseDN, newEC);
+        final EntryContainer replacement = suffix.getEntryContainer();
+        replacement.lock();
+        replacement.setDatabasePrefix(baseDN.toIrreversibleReadableString());
+        replacement.unlock();
+        rootContainer.registerEntryContainer(baseDN, replacement);
       }
     }
   }
@@ -2908,9 +2909,8 @@ public final class Importer implements DiskSpaceMonitorHandler
      */
     public void initialize() throws ConfigException, InitializationException
     {
-      entryContainer =
-          rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
-      suffix = Suffix.createSuffixContext(entryContainer, null, null, null);
+      entryContainer = rootContainer.getEntryContainer(rebuildConfig.getBaseDN());
+      suffix = new Suffix(entryContainer, null, null, null);
       if (suffix == null)
       {
         throw new InitializationException(
