@@ -34,12 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.backends.jeb.importLDIF.Importer.DNCache;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.InitializationException;
 
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.LockMode;
@@ -65,12 +63,17 @@ public class Suffix
           new ConcurrentHashMap<DN, CountDownLatch>();
   private final Set<DN> parentSet = new HashSet<DN>(PARENT_ID_SET_SIZE);
   private DN parentDN;
-  private ArrayList<EntryID> IDs;
 
-  private
+  /**
+   * Creates a suffix instance using the specified parameters.
+   *
+   * @param entryContainer The entry container pertaining to the suffix.
+   * @param srcEntryContainer The original entry container.
+   * @param includeBranches The include branches.
+   * @param excludeBranches The exclude branches.
+   */
   Suffix(EntryContainer entryContainer, EntryContainer srcEntryContainer,
          List<DN> includeBranches, List<DN> excludeBranches)
-          throws InitializationException, ConfigException
   {
     this.entryContainer = entryContainer;
     this.srcEntryContainer = srcEntryContainer;
@@ -92,30 +95,6 @@ public class Suffix
       this.excludeBranches = new ArrayList<DN>(0);
     }
   }
-
-
-  /**
-   * Creates a suffix instance using the specified parameters.
-   *
-   * @param entryContainer The entry container pertaining to the suffix.
-   * @param srcEntryContainer The original entry container.
-   * @param includeBranches The include branches.
-   * @param excludeBranches The exclude branches.
-   *
-   * @return A suffix instance.
-   * @throws InitializationException If the suffix cannot be initialized.
-   * @throws ConfigException If an error occurred reading the configuration.
-   */
-  public static Suffix
-  createSuffixContext(EntryContainer entryContainer,
-                      EntryContainer srcEntryContainer,
-                      List<DN> includeBranches, List<DN> excludeBranches)
-          throws InitializationException, ConfigException
-  {
-    return new Suffix(entryContainer, srcEntryContainer,
-            includeBranches, excludeBranches);
-  }
-
 
   /**
    * Returns the DN2ID instance pertaining to a suffix instance.
@@ -345,29 +324,6 @@ public class Suffix
   {
     this.parentDN = parentDN;
   }
-
-
-  /**
-   * Get the entry ID list of the last entry added to a suffix.
-   *
-   * @return Return the entry ID list of the last entry added to a suffix.
-   */
-  public ArrayList<EntryID> getIDs()
-  {
-    return IDs;
-  }
-
-
-  /**
-   * Set the entry ID list of the last entry added to a suffix.
-   *
-   * @param IDs The entry ID list to save.
-   */
-  public void setIDs(ArrayList<EntryID> IDs)
-  {
-    this.IDs = IDs;
-  }
-
 
   /**
    * Return a src entry container.
