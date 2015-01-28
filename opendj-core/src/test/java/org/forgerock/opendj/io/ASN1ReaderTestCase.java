@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.io;
@@ -96,7 +96,7 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
 
     /**
      * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array
-     * argument with an arry with a zero length that takes multiple bytes to
+     * argument with an array with a zero length that takes multiple bytes to
      * encode.
      *
      * @throws Exception
@@ -254,7 +254,7 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
 
     /**
      * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array
-     * argument with an arry with a nonzero length.
+     * argument with an array with a nonzero length.
      *
      * @throws Exception
      *             If an unexpected problem occurs.
@@ -512,7 +512,7 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
         assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
 
         // Next, test with a nonstandard Boolean type.
-        elementArray[0] = (byte) 0x50;
+        elementArray[0] = 0x50;
         assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
     }
 
@@ -640,13 +640,13 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
         assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
 
         // Next, test with a nonstandard Boolean type.
-        elementArray[0] = (byte) 0x50;
+        elementArray[0] = 0x50;
         assertEquals(getReader(elementArray, 0).readBoolean(), (b[0] != 0x00));
     }
 
     /**
      * Tests the <CODE>decodeAsNull</CODE> method that takes a byte array
-     * argument with an arry with a zero length.
+     * argument with an array with a zero length.
      *
      * @throws Exception
      *             If an unexpected problem occurs.

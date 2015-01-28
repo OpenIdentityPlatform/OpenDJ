@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -132,7 +132,7 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
                 throw new UnsupportedOperationException();
             }
 
-            return (LdapPromise<BindResult>) connection.bindAsync(request)
+            return connection.bindAsync(request)
                     .onSuccess(new SuccessHandler<BindResult>() {
                         @Override
                         public void handleResult(final BindResult result) {

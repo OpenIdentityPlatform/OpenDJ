@@ -22,15 +22,12 @@
  *
  *
  *      Copyright 2009-2011 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.byteToHex;
-import static com.forgerock.opendj.util.StaticUtils.getBytes;
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -77,6 +74,13 @@ import org.forgerock.util.Reject;
  *      and False Filters </a>
  */
 public final class Filter {
+
+    /** The asterisk character. */
+    private static final byte ASTERISK = 0x2A;
+
+    /** The backslash character. */
+    private static final byte BACKSLASH = 0x5C;
+
     private static final class AndImpl extends Impl {
         private final List<Filter> subFilters;
 
@@ -293,6 +297,7 @@ public final class Filter {
     private static final FilterVisitor<StringBuilder, StringBuilder> TO_STRING_VISITOR =
             new FilterVisitor<StringBuilder, StringBuilder>() {
 
+                @Override
                 public StringBuilder visitAndFilter(final StringBuilder builder,
                         final List<Filter> subFilters) {
                     builder.append("(&");
@@ -303,6 +308,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitApproxMatchFilter(final StringBuilder builder,
                         final String attributeDescription, final ByteString assertionValue) {
                     builder.append('(');
@@ -313,6 +319,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitEqualityMatchFilter(final StringBuilder builder,
                         final String attributeDescription, final ByteString assertionValue) {
                     builder.append('(');
@@ -323,6 +330,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitExtensibleMatchFilter(final StringBuilder builder,
                         final String matchingRule, final String attributeDescription,
                         final ByteString assertionValue, final boolean dnAttributes) {
@@ -347,6 +355,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitGreaterOrEqualFilter(final StringBuilder builder,
                         final String attributeDescription, final ByteString assertionValue) {
                     builder.append('(');
@@ -357,6 +366,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitLessOrEqualFilter(final StringBuilder builder,
                         final String attributeDescription, final ByteString assertionValue) {
                     builder.append('(');
@@ -367,6 +377,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitNotFilter(final StringBuilder builder,
                         final Filter subFilter) {
                     builder.append("(!");
@@ -375,6 +386,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitOrFilter(final StringBuilder builder,
                         final List<Filter> subFilters) {
                     builder.append("(|");
@@ -385,6 +397,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitPresentFilter(final StringBuilder builder,
                         final String attributeDescription) {
                     builder.append('(');
@@ -393,6 +406,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitSubstringsFilter(final StringBuilder builder,
                         final String attributeDescription, final ByteString initialSubstring,
                         final List<ByteString> anySubstrings, final ByteString finalSubstring) {
@@ -414,6 +428,7 @@ public final class Filter {
                     return builder;
                 }
 
+                @Override
                 public StringBuilder visitUnrecognizedFilter(final StringBuilder builder,
                         final byte filterTag, final ByteString filterBytes) {
                     // Fake up a representation.
@@ -968,9 +983,9 @@ public final class Filter {
         boolean hasEscape = false;
         final LinkedList<Integer> asteriskPositions = new LinkedList<Integer>();
         for (int i = 0; i < valueBytes.length; i++) {
-            if (valueBytes[i] == 0x2A /* The asterisk */) {
+            if (valueBytes[i] == ASTERISK) {
                 asteriskPositions.add(i);
-            } else if (valueBytes[i] == 0x5C /* The backslash. */) {
+            } else if (valueBytes[i] == BACKSLASH) {
                 hasEscape = true;
             }
         }
@@ -1036,7 +1051,7 @@ public final class Filter {
     private static void escapeHexChars(final ByteStringBuilder valueBuffer, final String string,
             final byte[] valueBytes, final int fromIndex, final int len, final int errorIndex) {
         for (int i = fromIndex; i < len; i++) {
-            if (valueBytes[i] == 0x5C /* The backslash character */) {
+            if (valueBytes[i] == BACKSLASH) {
                 // The next two bytes must be the hex characters that comprise
                 // the binary value.
                 if (i + 2 >= valueBytes.length) {
@@ -1110,55 +1125,55 @@ public final class Filter {
                 case 0x30: // '0'
                     break;
                 case 0x31: // '1'
-                    byteValue |= (byte) 0x01;
+                    byteValue |= 0x01;
                     break;
                 case 0x32: // '2'
-                    byteValue |= (byte) 0x02;
+                    byteValue |= 0x02;
                     break;
                 case 0x33: // '3'
-                    byteValue |= (byte) 0x03;
+                    byteValue |= 0x03;
                     break;
                 case 0x34: // '4'
-                    byteValue |= (byte) 0x04;
+                    byteValue |= 0x04;
                     break;
                 case 0x35: // '5'
-                    byteValue |= (byte) 0x05;
+                    byteValue |= 0x05;
                     break;
                 case 0x36: // '6'
-                    byteValue |= (byte) 0x06;
+                    byteValue |= 0x06;
                     break;
                 case 0x37: // '7'
-                    byteValue |= (byte) 0x07;
+                    byteValue |= 0x07;
                     break;
                 case 0x38: // '8'
-                    byteValue |= (byte) 0x08;
+                    byteValue |= 0x08;
                     break;
                 case 0x39: // '9'
-                    byteValue |= (byte) 0x09;
+                    byteValue |= 0x09;
                     break;
                 case 0x41: // 'A'
                 case 0x61: // 'a'
-                    byteValue |= (byte) 0x0A;
+                    byteValue |= 0x0A;
                     break;
                 case 0x42: // 'B'
                 case 0x62: // 'b'
-                    byteValue |= (byte) 0x0B;
+                    byteValue |= 0x0B;
                     break;
                 case 0x43: // 'C'
                 case 0x63: // 'c'
-                    byteValue |= (byte) 0x0C;
+                    byteValue |= 0x0C;
                     break;
                 case 0x44: // 'D'
                 case 0x64: // 'd'
-                    byteValue |= (byte) 0x0D;
+                    byteValue |= 0x0D;
                     break;
                 case 0x45: // 'E'
                 case 0x65: // 'e'
-                    byteValue |= (byte) 0x0E;
+                    byteValue |= 0x0E;
                     break;
                 case 0x46: // 'F'
                 case 0x66: // 'f'
-                    byteValue |= (byte) 0x0F;
+                    byteValue |= 0x0F;
                     break;
                 default:
                     final LocalizableMessage message =
@@ -1214,14 +1229,7 @@ public final class Filter {
         } else {
             // It must be a simple filter. It must have an equal sign at some
             // point, so find it.
-            int equalPos = -1;
-            for (int i = index; i < endIndex; i++) {
-                if (string.charAt(i) == '=') {
-                    equalPos = i;
-                    break;
-                }
-            }
-
+            final int equalPos = indexOf(string, index, endIndex);
             if (equalPos <= index) {
                 final LocalizableMessage message =
                         ERR_LDAP_FILTER_NO_EQUAL_SIGN.get(string, index, endIndex);
@@ -1255,24 +1263,34 @@ public final class Filter {
         }
     }
 
-    private static ByteString valueOfAssertionValue(final String string, final int startIndex,
-            final int endIndex) {
-        boolean hasEscape = false;
-        final byte[] valueBytes = getBytes(string.substring(startIndex, endIndex));
-        for (final byte valueByte : valueBytes) {
-            if (valueByte == 0x5C /* The backslash character */) {
-                hasEscape = true;
-                break;
+    private static int indexOf(final String string, final int index, final int endIndex) {
+        for (int i = index; i < endIndex; i++) {
+            if (string.charAt(i) == '=') {
+                return i;
             }
         }
+        return -1;
+    }
 
-        if (hasEscape) {
+    private static ByteString valueOfAssertionValue(final String string, final int startIndex,
+            final int endIndex) {
+        final byte[] valueBytes = getBytes(string.substring(startIndex, endIndex));
+        if (hasEscape(valueBytes)) {
             final ByteStringBuilder valueBuffer = new ByteStringBuilder(valueBytes.length);
             escapeHexChars(valueBuffer, string, valueBytes, 0, valueBytes.length, startIndex);
             return valueBuffer.toByteString();
         } else {
             return ByteString.wrap(valueBytes);
         }
+    }
+
+    private static boolean hasEscape(final byte[] valueBytes) {
+        for (final byte valueByte : valueBytes) {
+            if (valueByte == BACKSLASH) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String valueOfAttributeDescription(final String string, final int startIndex,
@@ -1566,8 +1584,8 @@ public final class Filter {
                     || b <= 0x1F  // Below the printable character range
                     || b == 0x28  // Open parenthesis
                     || b == 0x29  // Close parenthesis
-                    || b == 0x2A  // Asterisk
-                    || b == 0x5C  // Backslash
+                    || b == ASTERISK
+                    || b == BACKSLASH
                     || b == 0x7F  /* Delete character */) {
                 builder.append('\\');
                 builder.append(byteToHex(b));
