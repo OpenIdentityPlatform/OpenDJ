@@ -26,15 +26,15 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.*;
+import static org.testng.Assert.*;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.fest.assertions.Assertions.*;
-import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the org.forgerock.opendj.ldap.DN class.
@@ -546,13 +546,13 @@ public class DNTestCase extends SdkTestCase {
         final int h2 = dn2.hashCode();
 
         if (result == 0) {
-            if (h1 != h2) {
-                fail("Hash codes for <" + first + "> and <" + second + "> should be the same.");
-            }
+            assertThat(h1)
+                    .as("Hash codes for <" + first + "> and <" + second + "> should be the same.")
+                    .isEqualTo(h2);
         } else {
-            if (h1 == h2) {
-                fail("Hash codes for <" + first + "> and <" + second + "> should be the same.");
-            }
+            assertThat(h1)
+                    .as("Hash codes for <" + first + "> and <" + second + "> should NOT be the same.")
+                    .isNotEqualTo(h2);
         }
     }
 

@@ -123,7 +123,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
         }
 
         // First of all parse the HTTP headers for authentication credentials.
-        if (!(request instanceof HttpServletRequest && response instanceof HttpServletResponse)) {
+        if ((!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse))) {
             // This should never happen.
             throw new ServletException("non-HTTP request or response");
         }
@@ -165,7 +165,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
             } else if (headerAuthorization != null) {
                 final StringTokenizer st = new StringTokenizer(headerAuthorization);
                 final String method = st.nextToken();
-                if (method == null || !method.equalsIgnoreCase(HttpServletRequest.BASIC_AUTH)) {
+                if (method == null || !HttpServletRequest.BASIC_AUTH.equalsIgnoreCase(method)) {
                     throw ResourceException.getException(401);
                 }
                 final String b64Credentials = st.nextToken();
@@ -450,11 +450,11 @@ public final class Rest2LDAPAuthnFilter implements Filter {
     private AuthenticationMethod parseAuthenticationMethod(final JsonValue configuration) {
         if (configuration.isDefined("method")) {
             final String method = configuration.get("method").asString();
-            if (method.equalsIgnoreCase("simple")) {
+            if ("simple".equalsIgnoreCase(method)) {
                 return AuthenticationMethod.SIMPLE;
-            } else if (method.equalsIgnoreCase("sasl-plain")) {
+            } else if ("sasl-plain".equalsIgnoreCase(method)) {
                 return AuthenticationMethod.SASL_PLAIN;
-            } else if (method.equalsIgnoreCase("search-simple")) {
+            } else if ("search-simple".equalsIgnoreCase(method)) {
                 return AuthenticationMethod.SEARCH_SIMPLE;
             } else {
                 throw new JsonValueException(configuration,
@@ -469,9 +469,9 @@ public final class Rest2LDAPAuthnFilter implements Filter {
     private SearchScope parseSearchScope(final JsonValue configuration) {
         if (configuration.isDefined("searchScope")) {
             final String scope = configuration.get("searchScope").asString();
-            if (scope.equalsIgnoreCase("sub")) {
+            if ("sub".equalsIgnoreCase(scope)) {
                 return SearchScope.WHOLE_SUBTREE;
-            } else if (scope.equalsIgnoreCase("one")) {
+            } else if ("one".equalsIgnoreCase(scope)) {
                 return SearchScope.SINGLE_LEVEL;
             } else {
                 throw new JsonValueException(configuration,

@@ -204,17 +204,16 @@ public final class AddressMask {
         } else if (ruleString.startsWith("[") || ruleString.indexOf(':') != -1) {
             ruleType = RuleType.IPv6;
         } else {
-            int wildCount = 0;
+            int wildcardsCount = 0;
             final String[] s = ruleString.split("\\.", -1);
             /*
              * Try to figure out how many wildcards and if the rule is hostname
-             * (can't begin with digit) or ipv4 address. Default to IPv4
-             * ruletype.
+             * (can't begin with digit) or ipv4 address. Default to IPv4 ruletype.
              */
             ruleType = RuleType.HOST;
             for (final String value : s) {
-                if (value.equals("*")) {
-                    wildCount++;
+                if ("*".equals(value)) {
+                    wildcardsCount++;
                     continue;
                 }
                 // Looks like an ipv4 address
@@ -224,7 +223,7 @@ public final class AddressMask {
                 }
             }
             // All wildcards (*.*.*.*)
-            if (wildCount == s.length) {
+            if (wildcardsCount == s.length) {
                 ruleType = RuleType.ALLWILDCARD;
             }
         }
@@ -249,10 +248,9 @@ public final class AddressMask {
             return false;
         }
         for (int i = 0; i < prefixMask.length; i++) {
-            if (!wildCard.get(i)) {
-                if ((ruleMask[i] & prefixMask[i]) != (remoteMask[i] & prefixMask[i])) {
-                    return false;
-                }
+            if (!wildCard.get(i)
+                    && (ruleMask[i] & prefixMask[i]) != (remoteMask[i] & prefixMask[i])) {
+                return false;
             }
         }
         return true;
@@ -276,10 +274,9 @@ public final class AddressMask {
         }
         for (int i = 0; i < s.length; i++) {
             // skip if wildcard
-            if (!hostName[i].equals("*")) {
-                if (!s[i].equalsIgnoreCase(hostName[i])) {
-                    return false;
-                }
+            if (!"*".equals(hostName[i])
+                    && !s[i].equalsIgnoreCase(hostName[i])) {
+                return false;
             }
         }
         return true;
@@ -401,7 +398,7 @@ public final class AddressMask {
             }
             for (int i = 0; i < IN4ADDRSZ; i++) {
                 final String quad = s[i].trim();
-                if (quad.equals("*")) {
+                if ("*".equals(quad)) {
                     wildCard.set(i); // see wildcard mark bitset
                 } else {
                     final long val = Integer.parseInt(quad);
