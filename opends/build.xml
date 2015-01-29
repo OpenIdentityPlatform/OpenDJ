@@ -1356,6 +1356,8 @@ Please:
 
     <mkdir dir="${build.dir}/msi/build" />
     <copy file="${resource.dir}/msi/package.wxs" toDir="${build.dir}/msi/build"/>
+    <copy file="${resource.dir}/msi/opendjbanner.bmp" toDir="${build.dir}/msi/build"/>
+    <copy file="${resource.dir}/msi/opendjdialog.bmp" toDir="${build.dir}/msi/build"/>
     <mkdir dir="${build.dir}/msi/dist" />
 
     <!-- Construct a .wxs file from the directory structure -->

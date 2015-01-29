@@ -37,6 +37,10 @@
     <Property Id="ALLUSERS" Value="1"/>
     <Property Id="ARPHELPLINK" Value="http://forgerock.com"/>
 
+    <!-- UI customization -->
+    <WixVariable Id="WixUIBannerBmp" Value="opendjbanner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="opendjdialog.bmp" />
+
     <!-- Upgrading -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of $(var.name) is already installed."/>
 
