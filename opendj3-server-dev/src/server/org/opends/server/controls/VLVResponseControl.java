@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -57,7 +57,7 @@ import static org.opends.server.util.StaticUtils.*;
  *            insufficientAccessRights (50),
  *            timeLimitExceeded (3),
  *            adminLimitExceeded (11),
- *            innapropriateMatching (18),
+ *            inappropriateMatching (18),
  *            sortControlMissing (60),
  *            offsetRangeError (61),
  *            other(80),
