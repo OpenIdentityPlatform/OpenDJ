@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2013 ForgeRock AS
+ !      Copyright 2013-2015 ForgeRock AS
  ! -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" Codepage="1252" Language="1033" Manufacturer="ForgeRock"
