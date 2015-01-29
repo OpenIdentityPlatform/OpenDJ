@@ -148,11 +148,12 @@ public final class AuthRate extends ConsoleApplication {
                 Promise<BindResult, LdapException> returnedPromise;
                 if (filter != null && baseDN != null) {
                     if (sr == null) {
-                        if (dataSources == null) {
-                            sr = Requests.newSearchRequest(baseDN, scope, filter, attributes);
+                        if (dataSources != null) {
+                            final String newBaseDN = String.format(baseDN, data);
+                            final String newFilter = String.format(filter, data);
+                            sr = Requests.newSearchRequest(newBaseDN, scope, newFilter, attributes);
                         } else {
-                            sr = Requests.newSearchRequest(String.format(baseDN, data), scope,
-                                    String.format(filter, data), attributes);
+                            sr = Requests.newSearchRequest(baseDN, scope, filter, attributes);
                         }
                         sr.setDereferenceAliasesPolicy(dereferencesAliasesPolicy);
                     } else if (dataSources != null) {

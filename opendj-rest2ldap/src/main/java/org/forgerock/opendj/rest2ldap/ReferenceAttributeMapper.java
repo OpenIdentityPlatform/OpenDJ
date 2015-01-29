@@ -266,10 +266,10 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
 
                 private void completeIfNecessary() {
                     if (pendingSearches.decrementAndGet() == 0) {
-                        if (exception.get() == null) {
-                            h.handleResult(newLDAPAttribute);
-                        } else {
+                        if (exception.get() != null) {
                             h.handleError(exception.get());
+                        } else {
+                            h.handleResult(newLDAPAttribute);
                         }
                     }
                 }

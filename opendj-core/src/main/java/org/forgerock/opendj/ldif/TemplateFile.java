@@ -660,10 +660,10 @@ final class TemplateFile {
                 if ((openPos > 0 && newLine.charAt(openPos - 1) != '\\') || (openPos == 0)) {
                     final String constantName = newLine.substring(openPos + 1, closePos).toLowerCase();
                     final String constantValue = constants.get(constantName);
-                    if (constantValue == null) {
-                        warnings.add(WARN_ENTRY_GENERATOR_WARNING_UNDEFINED_CONSTANT.get(constantName, lineNumber));
-                    } else {
+                    if (constantValue != null) {
                         lineBuffer.replace(openPos, closePos + 1, constantValue);
+                    } else {
+                        warnings.add(WARN_ENTRY_GENERATOR_WARNING_UNDEFINED_CONSTANT.get(constantName, lineNumber));
                     }
                 }
                 if (openPos >= 0) {
