@@ -75,19 +75,14 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader {
 
     /** {@inheritDoc} */
     public boolean elementAvailable() throws IOException {
-        if ((state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(false)) {
-            return false;
-        }
-        if ((state == ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
-                && !needFirstLengthByteState(false)) {
-            return false;
-        }
-        return peekLength <= reader.remaining();
+        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(false))
+            && (state != ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE || needFirstLengthByteState(false))
+            && peekLength <= reader.remaining();
     }
 
     /** {@inheritDoc} */
     public boolean hasNextElement() throws IOException {
-        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(false);
+        return state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(false);
     }
 
     /** {@inheritDoc} */

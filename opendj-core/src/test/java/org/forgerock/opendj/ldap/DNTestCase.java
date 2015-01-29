@@ -1087,8 +1087,8 @@ public class DNTestCase extends SdkTestCase {
         assertThat(Integer.signum(cmp)).isEqualTo(expectedCompareResult);
     }
 
+    /** Additional tests with testDNs data provider. */
     @Test(dataProvider = "testDNs")
-    /** Additional tests with testDNs data provider */
     public void testToIrreversibleNormalizedByteString2(String one, String two, String three) {
         DN dn1 = DN.valueOf(one);
         DN dn2 = DN.valueOf(two);
@@ -1139,8 +1139,8 @@ public class DNTestCase extends SdkTestCase {
         assertEquals(actual.toIrreversibleReadableString(), expectedReadableString);
     }
 
+    /** Additional tests with testDNs data provider. */
     @Test(dataProvider = "testDNs")
-    /** Additional tests with testDNs data provider */
     public void testToIrreversibleReadableString2(String one, String two, String three) {
         DN dn1 = DN.valueOf(one);
         DN dn2 = DN.valueOf(two);

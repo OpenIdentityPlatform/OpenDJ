@@ -226,7 +226,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
     }
 
-    //To allow tests
+    /** To allow tests. */
     static ResponseTimeBuckets getResponseTimeBuckets() {
         return new ResponseTimeBuckets();
     }

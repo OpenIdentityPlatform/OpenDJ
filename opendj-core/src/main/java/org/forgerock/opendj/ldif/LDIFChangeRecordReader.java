@@ -475,11 +475,10 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
         boolean schemaValidationFailure = false;
         final List<LocalizableMessage> schemaErrors = new LinkedList<LocalizableMessage>();
 
-        if (lastLDIFLine != null) {
-            // This line was read when looking for the change type.
-            if (!readLDIFRecordAttributeValue(record, lastLDIFLine, entry, schemaErrors)) {
-                schemaValidationFailure = true;
-            }
+        if (lastLDIFLine != null
+                // This line was read when looking for the change type.
+                && !readLDIFRecordAttributeValue(record, lastLDIFLine, entry, schemaErrors)) {
+            schemaValidationFailure = true;
         }
 
         while (record.iterator.hasNext()) {
