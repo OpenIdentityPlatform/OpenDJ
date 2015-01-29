@@ -27,6 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -34,6 +35,7 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Iterator;
+
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -436,13 +438,13 @@ public final class RDNTestCase extends SdkTestCase {
         final int h2 = rdn2.hashCode();
 
         if (result == 0) {
-            if (h1 != h2) {
-                fail("Hash codes for <" + first + "> and <" + second + "> should be the same.");
-            }
+            assertThat(h1)
+                    .as("Hash codes for <" + first + "> and <" + second + "> should be the same.")
+                    .isEqualTo(h2);
         } else {
-            if (h1 == h2) {
-                fail("Hash codes for <" + first + "> and <" + second + "> should be the same.");
-            }
+            assertThat(h1)
+                    .as("Hash codes for <" + first + "> and <" + second + "> should NOT be the same.")
+                    .isNotEqualTo(h2);
         }
     }
 }

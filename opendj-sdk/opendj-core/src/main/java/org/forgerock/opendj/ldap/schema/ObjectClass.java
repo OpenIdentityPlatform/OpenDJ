@@ -67,7 +67,7 @@ public final class ObjectClass extends SchemaElement {
         private final Set<String> optionalAttributes = new LinkedHashSet<String>();
         private final Set<String> requiredAttributes = new LinkedHashSet<String>();
         private final Set<String> superiorClasses = new LinkedHashSet<String>();
-        private ObjectClassType type = null;
+        private ObjectClassType type;
 
         Builder(final ObjectClass oc, final SchemaBuilder builder) {
             super(builder, oc);
