@@ -54,7 +54,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         private int bytesRead;
 
         public void checkLimit(final int readSize) throws IOException {
-            if ((readLimit > 0) && (bytesRead + readSize > readLimit)) {
+            if (0 < readLimit && readLimit < bytesRead + readSize) {
                 final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
                 throw DecodeException.fatalError(message);
             }
@@ -178,14 +178,11 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      *             If an error occurs while trying to decode an ASN1 element.
      */
     public boolean elementAvailable() throws IOException {
-        return !((state == ASN1.ELEMENT_READ_STATE_NEED_TYPE)
-                        && !needTypeState(true))
-                && !((state == ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
-                        && !needFirstLengthByteState(true))
-                && !((state == ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
-                        && !needAdditionalLengthBytesState(true))
+        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(true))
+                && (state != ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE || needFirstLengthByteState(true))
+                && (state != ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES
+                    || needAdditionalLengthBytesState(true))
                 && peekLength <= readLimiter.remaining();
-
     }
 
     /**
@@ -198,7 +195,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      *             If an error occurs while trying to decode an ASN1 element.
      */
     public boolean hasNextElement() throws IOException {
-        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(true);
+        return state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(true);
     }
 
     /** {@inheritDoc} */

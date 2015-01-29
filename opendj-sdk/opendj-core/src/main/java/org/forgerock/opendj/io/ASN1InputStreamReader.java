@@ -84,18 +84,11 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
 
     /** {@inheritDoc} */
     public boolean elementAvailable() throws IOException {
-        if ((state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(false, false)) {
-            return false;
-        }
-        if ((state == ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
-                && !needFirstLengthByteState(false, false)) {
-            return false;
-        }
-        if ((state == ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
-                && !needAdditionalLengthBytesState(false, false)) {
-            return false;
-        }
-        return peekLength <= in.available();
+        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(false, false))
+            && (state != ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE || needFirstLengthByteState(false, false))
+            && (state != ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES
+                 || needAdditionalLengthBytesState(false, false))
+            && peekLength <= in.available();
     }
 
     /** {@inheritDoc} */
@@ -105,10 +98,10 @@ final class ASN1InputStreamReader extends AbstractASN1Reader {
             // haven't exhausted the size limit for the sub sequence sub input
             // stream.
             final SizeLimitInputStream subSq = (SizeLimitInputStream) in;
-            return (subSq.getSizeLimit() - subSq.getBytesRead() > 0);
+            return subSq.getSizeLimit() - subSq.getBytesRead() > 0;
         }
 
-        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(true, false);
+        return state != ASN1.ELEMENT_READ_STATE_NEED_TYPE || needTypeState(true, false);
     }
 
     /** {@inheritDoc} */

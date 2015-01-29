@@ -193,10 +193,9 @@ public class AddRate extends ConsoleApplication {
             private void startPurgeIfMaxNumberAddReached() {
                 AtomicBoolean purgeLatch = new AtomicBoolean();
                 if (!isPurgeBranchRunning.get()
-                            && 0 < maxNbAddIterations && maxNbAddIterations < totalAdds.get()) {
-                    if (purgeLatch.compareAndSet(false, true)) {
-                        newPurgerThread().start();
-                    }
+                            && 0 < maxNbAddIterations && maxNbAddIterations < totalAdds.get()
+                            && purgeLatch.compareAndSet(false, true)) {
+                    newPurgerThread().start();
                 }
             }
 
