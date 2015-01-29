@@ -168,10 +168,10 @@ public final class Converters {
      */
     public static org.opends.server.types.SearchScope to(
             final org.forgerock.opendj.ldap.SearchScope searchScope) {
-        if (searchScope == null) {
-            return null;
+        if (searchScope != null) {
+            return org.opends.server.types.SearchScope.values()[searchScope.intValue()];
         }
-        return org.opends.server.types.SearchScope.values()[searchScope.intValue()];
+        return null;
     }
 
     /**
@@ -436,10 +436,10 @@ public final class Converters {
      */
     public static org.forgerock.opendj.ldap.SearchScope from(
             final org.opends.server.types.SearchScope searchScope) {
-        if (searchScope == null) {
-            return null;
+        if (searchScope != null) {
+            return org.forgerock.opendj.ldap.SearchScope.values().get(searchScope.intValue());
         }
-        return org.forgerock.opendj.ldap.SearchScope.values().get(searchScope.intValue());
+        return null;
     }
 
     /**

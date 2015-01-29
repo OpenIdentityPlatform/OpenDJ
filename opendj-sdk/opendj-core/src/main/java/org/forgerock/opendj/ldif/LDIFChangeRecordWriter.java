@@ -344,10 +344,10 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
          * changetype, so only use it if a newSuperior element has been
          * provided, but use modrdn elsewhere.
          */
-        if (change.getNewSuperior() == null) {
-            writeLine("changetype: modrdn");
-        } else {
+        if (change.getNewSuperior() != null) {
             writeLine("changetype: moddn");
+        } else {
+            writeLine("changetype: modrdn");
         }
 
         writeKeyAndValue("newrdn", change.getNewRDN().toString());

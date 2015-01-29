@@ -135,14 +135,14 @@ final class AuthzIdTemplate {
             final Object value = principals.get(key);
             if (isJSONPrimitive(value)) {
                 values[i] = String.valueOf(value);
-            } else if (value == null) {
-                throw new ForbiddenException(i18n(
-                        "The request could not be authorized because the required "
-                                + "security principal '%s' could not be determined", key));
-            } else {
+            } else if (value != null) {
                 throw new ForbiddenException(i18n(
                         "The request could not be authorized because the required "
                                 + "security principal '%s' had an invalid data type", key));
+            } else {
+                throw new ForbiddenException(i18n(
+                        "The request could not be authorized because the required "
+                                + "security principal '%s' could not be determined", key));
             }
         }
         return values;
