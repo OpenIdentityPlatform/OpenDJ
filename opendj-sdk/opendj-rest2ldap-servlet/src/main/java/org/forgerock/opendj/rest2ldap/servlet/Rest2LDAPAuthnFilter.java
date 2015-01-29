@@ -11,9 +11,8 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013-2014 ForgeRock AS.
+ * Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.rest2ldap.servlet;
 
 import java.io.IOException;
@@ -123,7 +122,7 @@ public final class Rest2LDAPAuthnFilter implements Filter {
         }
 
         // First of all parse the HTTP headers for authentication credentials.
-        if ((!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse))) {
+        if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
             // This should never happen.
             throw new ServletException("non-HTTP request or response");
         }
