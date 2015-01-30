@@ -764,7 +764,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
      *            The subcommand for which to display the usage information.
      */
     public void getSubCommandUsage(StringBuilder buffer, SubCommand subCommand) {
-        setUsageOrVersionDisplayed(true);
         String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
         if (scriptName == null || scriptName.length() == 0) {
             scriptName = "java " + getMainClassName();
@@ -834,12 +833,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
     public String getUsage() {
         final StringBuilder buffer = new StringBuilder();
 
+        setUsageOrVersionDisplayed(true);
         if (subCommand == null) {
             if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
-                // Generate reference documentation for dsconfig subcommands
-                for (SubCommand s : subCommands.values()) {
-                    buffer.append(toRefSect2(s));
-                }
+                generateReferenceDoc(buffer, subCommands.values());
             } else if (usageGroupArguments.size() > 1) {
                 // We have sub-command groups, so don't display any
                 // sub-commands by default.
@@ -906,12 +903,8 @@ public class SubCommandArgumentParser extends ArgumentParser {
         writeToUsageOutputStream(buffer);
     }
 
-    /**
-     * Appends complete usage information for the specified set of sub-commands.
-     */
+    /** Appends complete usage information for the specified set of sub-commands. */
     private void getFullUsage(Collection<SubCommand> c, boolean showGlobalOptions, StringBuilder buffer) {
-        setUsageOrVersionDisplayed(true);
-
         final LocalizableMessage toolDescription = getToolDescription();
         if (toolDescription != null && toolDescription.length() > 0) {
             buffer.append(wrapText(toolDescription, MAX_LINE_WIDTH - 1));
@@ -1110,6 +1103,13 @@ public class SubCommandArgumentParser extends ArgumentParser {
             if (s.length() > 0) {
                 buffer.append(indent).append(s).append(EOL);
             }
+        }
+    }
+
+    /** Generate reference documentation for dsconfig subcommands. */
+    private void generateReferenceDoc(final StringBuilder buffer, Collection<SubCommand> values) {
+        for (SubCommand s : values) {
+            buffer.append(toRefSect2(s));
         }
     }
 
