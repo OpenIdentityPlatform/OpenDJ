@@ -22,13 +22,25 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
-import java.io.*;
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -38,20 +50,22 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.backends.jeb.EntryID;
-import org.opends.server.backends.jeb.RootContainer;
-import org.opends.server.backends.jeb.importLDIF.Importer;
-import org.opends.server.backends.jeb.importLDIF.Suffix;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.*;
-
-import static org.forgerock.util.Reject.*;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
+import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.RDN;
+import org.opends.server.types.RawModification;
 
 /**
  * This class provides the ability to read information from an LDIF file.  It
@@ -63,7 +77,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class LDIFReader implements Closeable
+public class LDIFReader implements Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -71,16 +85,16 @@ public final class LDIFReader implements Closeable
   private BufferedReader reader;
 
   /** The import configuration that specifies what should be imported. */
-  private LDIFImportConfig importConfig;
+  protected LDIFImportConfig importConfig;
 
   /** The lines that comprise the body of the last entry read. */
-  private List<StringBuilder> lastEntryBodyLines;
+  protected List<StringBuilder> lastEntryBodyLines;
 
   /**
    * The lines that comprise the header (DN and any comments) for the last entry
    * read.
    */
-  private List<StringBuilder> lastEntryHeaderLines;
+  protected List<StringBuilder> lastEntryHeaderLines;
 
 
   /**
@@ -94,13 +108,13 @@ public final class LDIFReader implements Closeable
    * those that were ignored because they didn't match the criteria, and
    * including those that were rejected because they were invalid in some way.
    */
-  private final AtomicLong entriesRead = new AtomicLong();
+  protected final AtomicLong entriesRead = new AtomicLong();
 
   /** The number of entries that have been rejected by this LDIF reader. */
   private final AtomicLong entriesRejected = new AtomicLong();
 
   /** The line number on which the last entry started. */
-  private long lastEntryLineNumber;
+  protected long lastEntryLineNumber = -1;
 
   /**
    * The line number of the last line read from the LDIF file, starting with 1.
@@ -111,10 +125,7 @@ public final class LDIFReader implements Closeable
    * The plugin config manager that will be used if we are to invoke plugins on
    * the entries as they are read.
    */
-  private PluginConfigManager pluginConfigManager;
-
-  private RootContainer rootContainer;
-
+  protected PluginConfigManager pluginConfigManager;
 
   /**
    * Creates a new LDIF reader that will read information from the specified
@@ -133,8 +144,6 @@ public final class LDIFReader implements Closeable
     this.importConfig = importConfig;
 
     reader               = importConfig.getReader();
-    lineNumber           = 0;
-    lastEntryLineNumber  = -1;
     lastEntryBodyLines   = new LinkedList<StringBuilder>();
     lastEntryHeaderLines = new LinkedList<StringBuilder>();
     pluginConfigManager  = DirectoryServer.getPluginConfigManager();
@@ -145,42 +154,6 @@ public final class LDIFReader implements Closeable
       pluginConfigManager.invokeLDIFImportBeginPlugins(importConfig);
     }
   }
-
-
-  /**
-   * Creates a new LDIF reader that will read information from the
-   * specified file.
-   *
-   * @param importConfig
-   *          The import configuration for this LDIF reader. It must not
-   *          be <CODE>null</CODE>.
-   * @param rootContainer The root container needed to get the next entry ID.
-   *
-   * @throws IOException
-   *           If a problem occurs while opening the LDIF file for
-   *           reading.
-   */
-  public LDIFReader(LDIFImportConfig importConfig, RootContainer rootContainer)
-         throws IOException
-  {
-    ifNull(importConfig);
-    this.importConfig = importConfig;
-    this.reader               = importConfig.getReader();
-    this.lineNumber           = 0;
-    this.lastEntryLineNumber  = -1;
-    this.lastEntryBodyLines   = new LinkedList<StringBuilder>();
-    this.lastEntryHeaderLines = new LinkedList<StringBuilder>();
-    this.pluginConfigManager  = DirectoryServer.getPluginConfigManager();
-    this.rootContainer = rootContainer;
-    // If we should invoke import plugins, then do so.
-    if (importConfig.invokeImportPlugins())
-    {
-      // Inform LDIF import plugins that an import session is ending
-      this.pluginConfigManager.invokeLDIFImportBeginPlugins(importConfig);
-    }
-  }
-
-
 
 
   /**
@@ -200,240 +173,6 @@ public final class LDIFReader implements Closeable
     return readEntry(importConfig.validateSchema());
   }
 
-
-
-  /**
-   * Reads the next entry from the LDIF source.
-   *
-   * @return  The next entry read from the LDIF source, or <CODE>null</CODE> if
-   *          the end of the LDIF data is reached.
-   *
-   * @param map  A map of suffixes instances.
-   *
-   * @param entryInfo A object to hold information about the entry ID and what
-   *                  suffix was selected.
-   *
-   * @throws  IOException  If an I/O problem occurs while reading from the file.
-   *
-   * @throws  LDIFException  If the information read cannot be parsed as an LDIF
-   *                         entry.
-   */
-  public final Entry readEntry(Map<DN, Suffix> map,
-                               Importer.EntryInformation entryInfo)
-         throws IOException, LDIFException
-  {
-    return readEntry(importConfig.validateSchema(), map, entryInfo);
-  }
-
-
-
-  private  Entry readEntry(boolean checkSchema, Map<DN, Suffix> map,
-                                Importer.EntryInformation entryInfo)
-          throws IOException, LDIFException
-  {
-    while (true)
-    {
-      LinkedList<StringBuilder> lines;
-      DN entryDN;
-      EntryID entryID;
-      Suffix suffix;
-      synchronized (this)
-      {
-        // Read the set of lines that make up the next entry.
-        lines = readEntryLines();
-        if (lines == null)
-        {
-          return null;
-        }
-        lastEntryBodyLines   = lines;
-        lastEntryHeaderLines = new LinkedList<StringBuilder>();
-
-
-        // Read the DN of the entry and see if it is one that should be included
-        // in the import.
-
-        try
-        {
-          entryDN = readDN(lines);
-        } catch (LDIFException le) {
-          continue;
-        }
-        if (entryDN == null)
-        {
-          // This should only happen if the LDIF starts with the "version:" line
-          // and has a blank line immediately after that.  In that case, simply
-          // read and return the next entry.
-          continue;
-        }
-        else if (!importConfig.includeEntry(entryDN))
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Skipping entry %s because the DN isn't" +
-                    "one that should be included based on the include and " +
-                    "exclude branches.", entryDN);
-          }
-          entriesRead.incrementAndGet();
-          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
-          continue;
-        }
-        entryID = rootContainer.getNextEntryID();
-        suffix = Importer.getMatchSuffix(entryDN, map);
-        if(suffix == null)
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Skipping entry %s because the DN isn't" +
-                    "one that should be included based on a suffix match" +
-                    "check." ,entryDN);
-          }
-          entriesRead.incrementAndGet();
-          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
-          continue;
-        }
-        entriesRead.incrementAndGet();
-        suffix.addPending(entryDN);
-      }
-      // Read the set of attributes from the entry.
-      Map<ObjectClass, String> objectClasses =
-           new HashMap<ObjectClass,String>();
-      Map<AttributeType, List<AttributeBuilder>> userAttrBuilders =
-           new HashMap<AttributeType,List<AttributeBuilder>>();
-      Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders =
-           new HashMap<AttributeType,List<AttributeBuilder>>();
-      try
-      {
-        for (StringBuilder line : lines)
-        {
-          readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders,
-                        operationalAttrBuilders, checkSchema);
-        }
-      }
-      catch (LDIFException e)
-      {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Skipping entry %s because reading" +
-                  "its attributes failed.", entryDN);
-        }
-        logToSkipWriter(lines, ERR_LDIF_READ_ATTR_SKIP.get(entryDN, e.getMessage()));
-        suffix.removePending(entryDN);
-        continue;
-      }
-
-      // Create the entry and see if it is one that should be included in the
-      // import.
-      Map<AttributeType, List<Attribute>> userAttributes =
-          toAttributesMap(userAttrBuilders);
-      Map<AttributeType, List<Attribute>> operationalAttributes =
-          toAttributesMap(operationalAttrBuilders);
-      Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
-                               operationalAttributes);
-      logger.trace("readEntry1(), created entry: %s", entry);
-
-      try
-      {
-        if (! importConfig.includeEntry(entry))
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Skipping entry %s because the DN is not one " +
-                "that should be included based on the include and exclude " +
-                "filters.", entryDN);
-          }
-          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
-          suffix.removePending(entryDN);
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-        suffix.removePending(entryDN);
-        logToSkipWriter(lines,
-            ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.get(entry.getName(), lastEntryLineNumber, e));
-        suffix.removePending(entryDN);
-        continue;
-      }
-
-
-      // If we should invoke import plugins, then do so.
-      if (importConfig.invokeImportPlugins())
-      {
-        PluginResult.ImportLDIF pluginResult =
-             pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
-        if (! pluginResult.continueProcessing())
-        {
-          LocalizableMessage m;
-          LocalizableMessage rejectMessage = pluginResult.getErrorMessage();
-          if (rejectMessage == null)
-          {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(entryDN);
-          }
-          else
-          {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(entryDN, rejectMessage);
-          }
-
-          logToRejectWriter(lines, m);
-          suffix.removePending(entryDN);
-          continue;
-        }
-      }
-
-
-      // Make sure that the entry is valid as per the server schema if it is
-      // appropriate to do so.
-      if (checkSchema)
-      {
-        //Add the RDN attributes.
-        addRDNAttributesIfNecessary(entryDN,userAttributes,
-                operationalAttributes);
-        //Add any superior objectclass(s) missing in the objectclass map.
-        addSuperiorObjectClasses(objectClasses);
-
-        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        if (! entry.conformsToSchema(null, false, true, false, invalidReason))
-        {
-          LocalizableMessage message = ERR_LDIF_SCHEMA_VIOLATION.get(
-              entryDN, lastEntryLineNumber, invalidReason);
-          logToRejectWriter(lines, message);
-          suffix.removePending(entryDN);
-          continue;
-        }
-      }
-      entryInfo.setEntryID(entryID);
-      entryInfo.setSuffix(suffix);
-      // The entry should be included in the import, so return it.
-      return entry;
-    }
-  }
-
-
-  private Map<AttributeType, List<Attribute>> toAttributesMap(
-      Map<AttributeType, List<AttributeBuilder>> attrBuilders)
-  {
-    Map<AttributeType, List<Attribute>> attributes =
-        new HashMap<AttributeType, List<Attribute>>(attrBuilders.size());
-    for (Map.Entry<AttributeType, List<AttributeBuilder>>
-      attrTypeEntry : attrBuilders.entrySet())
-    {
-      AttributeType attrType = attrTypeEntry.getKey();
-      List<Attribute> attrList = toAttributesList(attrTypeEntry.getValue());
-      attributes.put(attrType, attrList);
-    }
-    return attributes;
-  }
-
-  private List<Attribute> toAttributesList(List<AttributeBuilder> builders)
-  {
-    List<Attribute> results = new ArrayList<Attribute>(builders.size());
-    for (AttributeBuilder builder : builders)
-    {
-      results.add(builder.toAttribute());
-    }
-    return results;
-  }
 
 
   /**
@@ -481,12 +220,8 @@ public final class LDIFReader implements Closeable
       }
       else if (!importConfig.includeEntry(entryDN))
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Skipping entry %s because the DN is not one that " +
-              "should be included based on the include and exclude branches.",
-                    entryDN);
-        }
+        logger.trace("Skipping entry %s because the DN is not one that "
+            + "should be included based on the include and exclude branches.", entryDN);
         entriesRead.incrementAndGet();
         logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
         continue;
@@ -496,97 +231,140 @@ public final class LDIFReader implements Closeable
         entriesRead.incrementAndGet();
       }
 
-      // Read the set of attributes from the entry.
-      Map<ObjectClass,String> objectClasses =
-           new HashMap<ObjectClass,String>();
-      Map<AttributeType,List<AttributeBuilder>> userAttrBuilders =
-           new HashMap<AttributeType,List<AttributeBuilder>>();
-      Map<AttributeType,List<AttributeBuilder>> operationalAttrBuilders =
-           new HashMap<AttributeType,List<AttributeBuilder>>();
-      for (StringBuilder line : lines)
+      // Create the entry and see if it is one that should be included in the import.
+      final Entry entry = createEntry(entryDN, lines, checkSchema);
+      if (!isIncludedInImport(entry,lines)
+          || !invokeImportPlugins(entry, lines))
       {
-        readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders,
-            operationalAttrBuilders, checkSchema);
+        continue;
       }
-
-      // Create the entry and see if it is one that should be included in the
-      // import.
-      Map<AttributeType, List<Attribute>> userAttributes =
-          toAttributesMap(userAttrBuilders);
-      Map<AttributeType, List<Attribute>> operationalAttributes =
-          toAttributesMap(operationalAttrBuilders);
-      Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
-                               operationalAttributes);
-      logger.trace("readEntry2(), created entry: %s", entry);
-
-      try
-      {
-        if (! importConfig.includeEntry(entry))
-        {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Skipping entry %s because the DN is not one " +
-                "that should be included based on the include and exclude " +
-                "filters.", entryDN);
-          }
-          logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
-          continue;
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message = ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.
-            get(entry.getName(), lastEntryLineNumber, e);
-        throw new LDIFException(message, lastEntryLineNumber, true, e);
-      }
-
-
-      // If we should invoke import plugins, then do so.
-      if (importConfig.invokeImportPlugins())
-      {
-        PluginResult.ImportLDIF pluginResult =
-             pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
-        if (! pluginResult.continueProcessing())
-        {
-          LocalizableMessage m;
-          LocalizableMessage rejectMessage = pluginResult.getErrorMessage();
-          if (rejectMessage == null)
-          {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(entryDN);
-          }
-          else
-          {
-            m = ERR_LDIF_REJECTED_BY_PLUGIN.get(entryDN, rejectMessage);
-          }
-
-          logToRejectWriter(lines, m);
-          continue;
-        }
-      }
-
-
-      // Make sure that the entry is valid as per the server schema if it is
-      // appropriate to do so.
-      if (checkSchema)
-      {
-        LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        if (! entry.conformsToSchema(null, false, true, false, invalidReason))
-        {
-          LocalizableMessage message = ERR_LDIF_SCHEMA_VIOLATION.get(
-              entryDN, lastEntryLineNumber, invalidReason);
-          logToRejectWriter(lines, message);
-          throw new LDIFException(message, lastEntryLineNumber, true);
-        }
-        //Add any superior objectclass(s) missing in an entries objectclass map.
-        addSuperiorObjectClasses(entry.getObjectClasses());
-      }
-
+      validateAgainstSchemaIfNeeded(checkSchema, entry, lines);
 
       // The entry should be included in the import, so return it.
       return entry;
     }
+  }
+
+  private Entry createEntry(DN entryDN, List<StringBuilder> lines, boolean checkSchema) throws LDIFException
+  {
+    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
+    Map<AttributeType, List<AttributeBuilder>> userAttrBuilders = new HashMap<AttributeType, List<AttributeBuilder>>();
+    Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders =
+        new HashMap<AttributeType, List<AttributeBuilder>>();
+    for (StringBuilder line : lines)
+    {
+      readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders, operationalAttrBuilders, checkSchema);
+    }
+
+    final Entry entry = new Entry(entryDN, objectClasses,
+        toAttributesMap(userAttrBuilders), toAttributesMap(operationalAttrBuilders));
+    logger.trace("readEntry(), created entry: %s", entry);
+    return entry;
+  }
+
+  private boolean isIncludedInImport(Entry entry, LinkedList<StringBuilder> lines) throws LDIFException
+  {
+    try
+    {
+      if (!importConfig.includeEntry(entry))
+      {
+        final DN entryDN = entry.getName();
+        logger.trace("Skipping entry %s because the DN is not one that "
+            + "should be included based on the include and exclude filters.", entryDN);
+        logToSkipWriter(lines, ERR_LDIF_SKIP.get(entryDN));
+        return false;
+      }
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+
+      LocalizableMessage message =
+          ERR_LDIF_COULD_NOT_EVALUATE_FILTERS_FOR_IMPORT.get(entry.getName(), lastEntryLineNumber, e);
+      throw new LDIFException(message, lastEntryLineNumber, true, e);
+    }
+    return true;
+  }
+
+  private boolean invokeImportPlugins(Entry entry, LinkedList<StringBuilder> lines)
+  {
+    if (importConfig.invokeImportPlugins())
+    {
+      PluginResult.ImportLDIF pluginResult =
+          pluginConfigManager.invokeLDIFImportPlugins(importConfig, entry);
+      if (!pluginResult.continueProcessing())
+      {
+        final DN entryDN = entry.getName();
+        LocalizableMessage m;
+        LocalizableMessage rejectMessage = pluginResult.getErrorMessage();
+        if (rejectMessage == null)
+        {
+          m = ERR_LDIF_REJECTED_BY_PLUGIN_NOMESSAGE.get(entryDN);
+        }
+        else
+        {
+          m = ERR_LDIF_REJECTED_BY_PLUGIN.get(entryDN, rejectMessage);
+        }
+
+        logToRejectWriter(lines, m);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private void validateAgainstSchemaIfNeeded(boolean checkSchema, final Entry entry, LinkedList<StringBuilder> lines)
+      throws LDIFException
+  {
+    if (checkSchema)
+    {
+      LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
+      if (!entry.conformsToSchema(null, false, true, false, invalidReason))
+      {
+        final DN entryDN = entry.getName();
+        LocalizableMessage message = ERR_LDIF_SCHEMA_VIOLATION.get(entryDN, lastEntryLineNumber, invalidReason);
+        logToRejectWriter(lines, message);
+        throw new LDIFException(message, lastEntryLineNumber, true);
+      }
+      // Add any superior objectclass(s) missing in an entries objectclass map.
+      addSuperiorObjectClasses(entry.getObjectClasses());
+    }
+  }
+
+  /**
+   * Returns a new Map where the provided Map with AttributeBuilders is converted to another Map
+   * with Attributes.
+   *
+   * @param attrBuilders
+   *          the provided Map containing AttributeBuilders
+   * @return a new Map containing Attributes
+   */
+  protected Map<AttributeType, List<Attribute>> toAttributesMap(Map<AttributeType, List<AttributeBuilder>> attrBuilders)
+  {
+    Map<AttributeType, List<Attribute>> attributes = new HashMap<AttributeType, List<Attribute>>(attrBuilders.size());
+    for (Map.Entry<AttributeType, List<AttributeBuilder>> attrTypeEntry : attrBuilders.entrySet())
+    {
+      AttributeType attrType = attrTypeEntry.getKey();
+      List<Attribute> attrList = toAttributesList(attrTypeEntry.getValue());
+      attributes.put(attrType, attrList);
+    }
+    return attributes;
+  }
+
+  /**
+   * Converts the provided List of AttributeBuilders to a new list of Attributes.
+   *
+   * @param builders the list of AttributeBuilders
+   * @return a new list of Attributes
+   */
+  protected List<Attribute> toAttributesList(List<AttributeBuilder> builders)
+  {
+    List<Attribute> results = new ArrayList<Attribute>(builders.size());
+    for (AttributeBuilder builder : builders)
+    {
+      results.add(builder.toAttribute());
+    }
+    return results;
   }
 
   /**
@@ -684,8 +462,7 @@ public final class LDIFReader implements Closeable
    *
    * @throws  LDIFException  If the information read is not valid LDIF.
    */
-  private LinkedList<StringBuilder> readEntryLines()
-          throws IOException, LDIFException
+  protected LinkedList<StringBuilder> readEntryLines() throws IOException, LDIFException
   {
     // Read the entry lines into a buffer.
     LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
@@ -789,8 +566,7 @@ public final class LDIFReader implements Closeable
    *                         second after the LDIF version), or if a problem
    *                         occurs while trying to parse it.
    */
-  private DN readDN(LinkedList<StringBuilder> lines)
-          throws LDIFException
+  protected DN readDN(LinkedList<StringBuilder> lines) throws LDIFException
   {
     if (lines.isEmpty())
     {
@@ -1011,7 +787,7 @@ public final class LDIFReader implements Closeable
    * @throws  LDIFException  If a problem occurs while trying to decode the
    *                         attribute contained in the provided entry.
    */
-  private void readAttribute(List<StringBuilder> lines,
+  protected void readAttribute(List<StringBuilder> lines,
        StringBuilder line, DN entryDN,
        Map<ObjectClass,String> objectClasses,
        Map<AttributeType,List<AttributeBuilder>> userAttrBuilders,
@@ -1846,7 +1622,7 @@ public final class LDIFReader implements Closeable
    * @param message
    *          The associated error message.
    */
-  private void logToRejectWriter(List<StringBuilder> lines, LocalizableMessage message)
+  protected void logToRejectWriter(List<StringBuilder> lines, LocalizableMessage message)
   {
     entriesRejected.incrementAndGet();
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
@@ -1864,7 +1640,7 @@ public final class LDIFReader implements Closeable
    * @param message
    *          The associated error message.
    */
-  private void logToSkipWriter(List<StringBuilder> lines, LocalizableMessage message)
+  protected void logToSkipWriter(List<StringBuilder> lines, LocalizableMessage message)
   {
     entriesIgnored.incrementAndGet();
     BufferedWriter skipWriter = importConfig.getSkipWriter();
@@ -1912,8 +1688,11 @@ public final class LDIFReader implements Closeable
 
   /**
    * Adds any missing RDN attributes to the entry that is being imported.
+   * @param entryDN the entry DN
+   * @param userAttributes the user attributes
+   * @param operationalAttributes the operational attributes
    */
-  private void addRDNAttributesIfNecessary(DN entryDN,
+  protected void addRDNAttributesIfNecessary(DN entryDN,
           Map<AttributeType,List<Attribute>>userAttributes,
           Map<AttributeType,List<Attribute>> operationalAttributes)
   {
