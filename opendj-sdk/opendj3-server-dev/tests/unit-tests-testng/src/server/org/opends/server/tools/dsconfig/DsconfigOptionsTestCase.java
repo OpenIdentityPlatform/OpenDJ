@@ -20,9 +20,13 @@
  *
  * CDDL HEADER END
  *
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
+
+import static com.forgerock.opendj.cli.ReturnCode.*;
+
+import static org.testng.Assert.*;
 
 import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.opends.server.DirectoryServerTestCase;
@@ -30,9 +34,6 @@ import org.opends.server.TestCaseUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static com.forgerock.opendj.cli.ReturnCode.*;
-import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the dsconfig tool.
@@ -44,24 +45,23 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
    * Ensures that the Directory Server is running and performs other necessary
    * setup.
    */
-  @BeforeClass()
+  @BeforeClass
   public void before() throws Exception
   {
     TestCaseUtils.startServer();
   }
-  
+
   @AfterClass(alwaysRun = true)
   public void tearDown() throws Exception {
-    
     TestCaseUtils.dsconfig(
         "delete-connection-handler",
         "--handler-name", "HTTP Connection Handler",
         "-f");
-   }  
-  
-  @Test()
+  }
+
+  @Test
   public void testSetEnableHTTPConnectionHandler() {
-    
+
     final String[] args =
     {
       "set-connection-handler-prop",
@@ -71,13 +71,13 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--bindPassword" , "password",
       "--no-prompt",
       "--handler-name", "HTTP Connection Handler",
-      "--set", "authentication-required:false"     
+      "--set", "authentication-required:false"
     };
-    assertTrue(dsconfigMain(args) == SUCCESS.get());
+    assertEquals(dsconfigMain(args), SUCCESS.get());
   }
-  
-  @Test()
-  public void testSetSASLHandler() {    
+
+  @Test
+  public void testSetSASLHandler() {
     final String[] args =
     {
       "set-sasl-mechanism-handler-prop",
@@ -89,8 +89,8 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--handler-name", "DIGEST-MD5",
       "--set", "server-fqdn:" + "127.0.0.1"
     };
-    assertTrue(dsconfigMain(args) == SUCCESS.get());
-    
+    assertEquals(dsconfigMain(args), SUCCESS.get());
+
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
@@ -98,8 +98,8 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
             "--reset", "quality-of-protection");
   }
 
-    
-  @Test()
+
+  @Test
   public void testSetMaxAllowedClientConnections() {
     final String[] args =
     {
@@ -111,12 +111,12 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--no-prompt",
       "--set", "max-allowed-client-connections:32768"
     };
-    assertTrue(dsconfigMain(args) == SUCCESS.get());
+    assertEquals(dsconfigMain(args), SUCCESS.get());
   }
-  
-  @Test()
+
+  @Test
   public void testSetReturnBindPassword() throws Exception
-  {    
+  {
     final String[] args =
     {
       "set-global-configuration-prop",
@@ -127,15 +127,14 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--no-prompt",
       "--set", "return-bind-error-messages:true"
     };
-    assertTrue(dsconfigMain(args) == SUCCESS.get());
+    assertEquals(dsconfigMain(args), SUCCESS.get());
   }
-  
+
 
   /**
-   * Tests that multiple  "--set" option cannot be used with a single valued
-   * property
+   * Tests that multiple "--set" option cannot be used with a single valued property.
    */
-  @Test()
+  @Test
   public void testMultipleSetSingleValuedProperty() throws Exception
   {
     final String[] args =
@@ -151,12 +150,12 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     };
     assertTrue(dsconfigMain(args) != SUCCESS.get());
   }
-  
+
   /**
-   * Tests that multiple  "--set" option are allowed to be used with a multivalued
-   * property (see OPENDJ-255)
+   * Tests that multiple "--set" option are allowed to be used with a multivalued property (see
+   * OPENDJ-255).
    */
-  @Test()
+  @Test
   public void testMultipleSetMultiValuedProperty() throws Exception
   {
     final String[] args =
@@ -173,18 +172,19 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     };
     assertEquals(dsconfigMain(args), SUCCESS.get());
   }
-  
-  @Test()
+
+  @Test
   public void testGenerateDoc() throws Exception
   {
     System.setProperty("org.forgerock.opendj.gendoc", "true");
+    System.setProperty("com.forgerock.opendj.ldap.tools.scriptName", "dsconfig");
     final String[] args = {
       "--no-prompt",
       "-?",
     };
     try
     {
-      assertTrue(dsconfigMain(args) != SUCCESS.get());
+      assertEquals(dsconfigMain(args), SUCCESS.get());
     }
     finally
     {

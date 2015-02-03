@@ -836,9 +836,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     @Override
     public String getUsage() {
-        final StringBuilder buffer = new StringBuilder();
-
         setUsageOrVersionDisplayed(true);
+
+        final StringBuilder buffer = new StringBuilder();
         if (subCommand == null) {
             if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
                 generateReferenceDoc(buffer, subCommands.values());
@@ -853,7 +853,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
         } else {
             getSubCommandUsage(buffer, subCommand);
         }
-
         return buffer.toString();
     }
 
@@ -885,8 +884,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
     /** Get usage for a specific usage argument. */
     private void getUsage(Argument a) {
-        final StringBuilder buffer = new StringBuilder();
+        setUsageOrVersionDisplayed(true);
 
+        final StringBuilder buffer = new StringBuilder();
         final boolean isUsageArgument = isUsageArgument(a);
         if (isUsageArgument && subCommand != null) {
             getSubCommandUsage(buffer, subCommand);
@@ -900,7 +900,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
             // Requested help on specific group - don't display global options.
             getFullUsage(usageGroupArguments.get(a), false, buffer);
         }
-
         writeToUsageOutputStream(buffer);
     }
 

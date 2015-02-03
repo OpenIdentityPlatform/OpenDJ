@@ -22,22 +22,17 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
-
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.schema.GeneralizedTimeSyntax;
-
-import static org.testng.Assert.*;
-
-
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * A set of test cases for the ManageAccount tool.
@@ -52,8 +47,7 @@ public class ManageAccountTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
@@ -72,48 +66,48 @@ public class ManageAccountTestCase
   {
     return new Object[][]
     {
-      new Object[] { "get-all" },
-      new Object[] { "get-password-policy-dn" },
-      new Object[] { "get-account-is-disabled" },
-      new Object[] { "set-account-is-disabled" },
-      new Object[] { "clear-account-is-disabled" },
-      new Object[] { "get-account-expiration-time" },
-      new Object[] { "set-account-expiration-time" },
-      new Object[] { "clear-account-expiration-time" },
-      new Object[] { "get-seconds-until-account-expiration" },
-      new Object[] { "get-password-changed-time" },
-      new Object[] { "set-password-changed-time" },
-      new Object[] { "clear-password-changed-time" },
-      new Object[] { "get-password-expiration-warned-time" },
-      new Object[] { "set-password-expiration-warned-time" },
-      new Object[] { "clear-password-expiration-warned-time" },
-      new Object[] { "get-seconds-until-password-expiration" },
-      new Object[] { "get-seconds-until-password-expiration-warning" },
-      new Object[] { "get-authentication-failure-times" },
-      new Object[] { "add-authentication-failure-time" },
-      new Object[] { "set-authentication-failure-times" },
-      new Object[] { "clear-authentication-failure-times" },
-      new Object[] { "get-seconds-until-authentication-failure-unlock" },
-      new Object[] { "get-remaining-authentication-failure-count" },
-      new Object[] { "get-last-login-time" },
-      new Object[] { "set-last-login-time" },
-      new Object[] { "clear-last-login-time" },
-      new Object[] { "get-seconds-until-idle-lockout" },
-      new Object[] { "get-password-is-reset" },
-      new Object[] { "set-password-is-reset" },
-      new Object[] { "clear-password-is-reset" },
-      new Object[] { "get-seconds-until-password-reset-lockout" },
-      new Object[] { "get-grace-login-use-times" },
-      new Object[] { "add-grace-login-use-time" },
-      new Object[] { "set-grace-login-use-times" },
-      new Object[] { "clear-grace-login-use-times" },
-      new Object[] { "get-remaining-grace-login-count" },
-      new Object[] { "get-password-changed-by-required-time" },
-      new Object[] { "set-password-changed-by-required-time" },
-      new Object[] { "clear-password-changed-by-required-time" },
-      new Object[] { "get-seconds-until-required-change-time" },
-      new Object[] { "get-password-history" },
-      new Object[] { "clear-password-history" }
+      { "get-all" },
+      { "get-password-policy-dn" },
+      { "get-account-is-disabled" },
+      { "set-account-is-disabled" },
+      { "clear-account-is-disabled" },
+      { "get-account-expiration-time" },
+      { "set-account-expiration-time" },
+      { "clear-account-expiration-time" },
+      { "get-seconds-until-account-expiration" },
+      { "get-password-changed-time" },
+      { "set-password-changed-time" },
+      { "clear-password-changed-time" },
+      { "get-password-expiration-warned-time" },
+      { "set-password-expiration-warned-time" },
+      { "clear-password-expiration-warned-time" },
+      { "get-seconds-until-password-expiration" },
+      { "get-seconds-until-password-expiration-warning" },
+      { "get-authentication-failure-times" },
+      { "add-authentication-failure-time" },
+      { "set-authentication-failure-times" },
+      { "clear-authentication-failure-times" },
+      { "get-seconds-until-authentication-failure-unlock" },
+      { "get-remaining-authentication-failure-count" },
+      { "get-last-login-time" },
+      { "set-last-login-time" },
+      { "clear-last-login-time" },
+      { "get-seconds-until-idle-lockout" },
+      { "get-password-is-reset" },
+      { "set-password-is-reset" },
+      { "clear-password-is-reset" },
+      { "get-seconds-until-password-reset-lockout" },
+      { "get-grace-login-use-times" },
+      { "add-grace-login-use-time" },
+      { "set-grace-login-use-times" },
+      { "clear-grace-login-use-times" },
+      { "get-remaining-grace-login-count" },
+      { "get-password-changed-by-required-time" },
+      { "set-password-changed-by-required-time" },
+      { "clear-password-changed-by-required-time" },
+      { "get-seconds-until-required-change-time" },
+      { "get-password-history" },
+      { "clear-password-history" }
     };
   }
 
@@ -131,27 +125,27 @@ public class ManageAccountTestCase
   {
     return new Object[][]
     {
-      new Object[] { "get-all" },
-      new Object[] { "get-password-policy-dn" },
-      new Object[] { "get-account-is-disabled" },
-      new Object[] { "get-account-expiration-time" },
-      new Object[] { "get-seconds-until-account-expiration" },
-      new Object[] { "get-password-changed-time" },
-      new Object[] { "get-password-expiration-warned-time" },
-      new Object[] { "get-seconds-until-password-expiration" },
-      new Object[] { "get-seconds-until-password-expiration-warning" },
-      new Object[] { "get-authentication-failure-times" },
-      new Object[] { "get-seconds-until-authentication-failure-unlock" },
-      new Object[] { "get-remaining-authentication-failure-count" },
-      new Object[] { "get-last-login-time" },
-      new Object[] { "get-seconds-until-idle-lockout" },
-      new Object[] { "get-password-is-reset" },
-      new Object[] { "get-seconds-until-password-reset-lockout" },
-      new Object[] { "get-grace-login-use-times" },
-      new Object[] { "get-remaining-grace-login-count" },
-      new Object[] { "get-password-changed-by-required-time" },
-      new Object[] { "get-seconds-until-required-change-time" },
-      new Object[] { "get-password-history" }
+      { "get-all" },
+      { "get-password-policy-dn" },
+      { "get-account-is-disabled" },
+      { "get-account-expiration-time" },
+      { "get-seconds-until-account-expiration" },
+      { "get-password-changed-time" },
+      { "get-password-expiration-warned-time" },
+      { "get-seconds-until-password-expiration" },
+      { "get-seconds-until-password-expiration-warning" },
+      { "get-authentication-failure-times" },
+      { "get-seconds-until-authentication-failure-unlock" },
+      { "get-remaining-authentication-failure-count" },
+      { "get-last-login-time" },
+      { "get-seconds-until-idle-lockout" },
+      { "get-password-is-reset" },
+      { "get-seconds-until-password-reset-lockout" },
+      { "get-grace-login-use-times" },
+      { "get-remaining-grace-login-count" },
+      { "get-password-changed-by-required-time" },
+      { "get-seconds-until-required-change-time" },
+      { "get-password-history" }
     };
   }
 
@@ -169,8 +163,8 @@ public class ManageAccountTestCase
   {
     return new Object[][]
     {
-      new Object[] { "set-account-is-disabled" },
-      new Object[] { "set-password-is-reset" },
+      { "set-account-is-disabled" },
+      { "set-password-is-reset" },
     };
   }
 
@@ -189,15 +183,15 @@ public class ManageAccountTestCase
   {
     return new Object[][]
     {
-      new Object[] { "set-account-expiration-time" },
-      new Object[] { "set-password-changed-time" },
-      new Object[] { "set-password-expiration-warned-time" },
-      new Object[] { "set-authentication-failure-times" },
-      new Object[] { "add-authentication-failure-time" },
-      new Object[] { "set-last-login-time" },
-      new Object[] { "set-grace-login-use-times" },
-      new Object[] { "add-grace-login-use-time" },
-      new Object[] { "set-password-changed-by-required-time" },
+      { "set-account-expiration-time" },
+      { "set-password-changed-time" },
+      { "set-password-expiration-warned-time" },
+      { "set-authentication-failure-times" },
+      { "add-authentication-failure-time" },
+      { "set-last-login-time" },
+      { "set-grace-login-use-times" },
+      { "add-grace-login-use-time" },
+      { "set-password-changed-by-required-time" },
     };
   }
 
@@ -215,37 +209,34 @@ public class ManageAccountTestCase
   {
     return new Object[][]
     {
-      new Object[] { "clear-account-is-disabled" },
-      new Object[] { "clear-account-expiration-time" },
-      new Object[] { "clear-password-changed-time" },
-      new Object[] { "clear-password-expiration-warned-time" },
-      new Object[] { "clear-authentication-failure-times" },
-      new Object[] { "clear-last-login-time" },
-      new Object[] { "clear-password-is-reset" },
-      new Object[] { "clear-grace-login-use-times" },
-      new Object[] { "clear-password-changed-by-required-time" },
-      new Object[] { "clear-password-history" }
+      { "clear-account-is-disabled" },
+      { "clear-account-expiration-time" },
+      { "clear-password-changed-time" },
+      { "clear-password-expiration-warned-time" },
+      { "clear-authentication-failure-times" },
+      { "clear-last-login-time" },
+      { "clear-password-is-reset" },
+      { "clear-grace-login-use-times" },
+      { "clear-password-changed-by-required-time" },
+      { "clear-password-history" }
     };
   }
 
-
+  private int manageAccountMain(String... args)
+  {
+    return ManageAccount.main(args, false, null, System.err);
+  }
 
   /**
    * Tests the various sets of arguments that may be used to get usage
    * information when no subcommand is given.
    */
-  @Test()
+  @Test
   public void testHelpNoSubCommand()
   {
-    assertEquals(ManageAccount.main(new String[] { "-H" },
-                                    false, null, System.err),
-                 0);
-    assertEquals(ManageAccount.main(new String[] { "--help" }, false, null,
-                                    System.err),
-                 0);
-    assertEquals(ManageAccount.main(new String[] { "-?" }, false,
-                                    null, System.err),
-                 0);
+    assertEquals(manageAccountMain("-H"), 0);
+    assertEquals(manageAccountMain("--help"), 0);
+    assertEquals(manageAccountMain("-?"), 0);
   }
 
 
@@ -265,15 +256,13 @@ public class ManageAccountTestCase
       "--help"
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
-
-
 
   /**
    * Tests the manage-account tool without any subcommand.
    */
-  @Test()
+  @Test
   public void testNoSubCommand()
   {
     String[] args =
@@ -294,7 +283,7 @@ public class ManageAccountTestCase
   /**
    * Tests the manage-account tool with an invalid subcommand.
    */
-  @Test()
+  @Test
   public void testInvalidSubCommand()
   {
     String[] args =
@@ -347,7 +336,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
+    assertFalse(manageAccountMain(args) == 0);
   }
 
 
@@ -386,7 +375,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
+    assertFalse(manageAccountMain(args) == 0);
   }
 
 
@@ -427,7 +416,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
 
 
@@ -469,7 +458,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test",
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
 
 
@@ -512,7 +501,7 @@ public class ManageAccountTestCase
       "-O", "not-appropriate-for-this-subcommand"
     };
 
-    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
+    assertFalse(manageAccountMain(args) == 0);
   }
 
 
@@ -555,7 +544,7 @@ public class ManageAccountTestCase
       "-O", "true"
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
 
 
@@ -598,7 +587,7 @@ public class ManageAccountTestCase
       "-O", "false"
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
 
 
@@ -641,7 +630,7 @@ public class ManageAccountTestCase
       "-O", "nonboolean"
     };
 
-    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
+    assertFalse(manageAccountMain(args) == 0);
   }
 
 
@@ -683,7 +672,7 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test"
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
 
 
@@ -726,7 +715,7 @@ public class ManageAccountTestCase
       "-O", GeneralizedTimeSyntax.format(System.currentTimeMillis())
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
 
 
@@ -769,7 +758,7 @@ public class ManageAccountTestCase
       "-O", "invalid"
     };
 
-    assertFalse(ManageAccount.main(args, false, null, System.err) == 0);
+    assertFalse(manageAccountMain(args) == 0);
   }
 
 
@@ -811,7 +800,6 @@ public class ManageAccountTestCase
       "-b", "uid=test.user,o=test",
     };
 
-    assertEquals(ManageAccount.main(args, false, null, System.err), 0);
+    assertEquals(manageAccountMain(args), 0);
   }
 }
-
