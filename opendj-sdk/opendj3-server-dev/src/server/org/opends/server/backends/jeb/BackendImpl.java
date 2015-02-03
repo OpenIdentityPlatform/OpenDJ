@@ -58,7 +58,6 @@ import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.VerifyConfig;
-import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
@@ -1157,7 +1156,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
    * @param  e The DatabaseException to be converted.
    * @return  DirectoryException created from exception.
    */
-  DirectoryException createDirectoryException(DatabaseException e) {
+  private DirectoryException createDirectoryException(DatabaseException e) {
     if (e instanceof EnvironmentFailureException && !rootContainer.isValid()) {
       LocalizableMessage message = NOTE_BACKEND_ENVIRONMENT_UNUSABLE.get(getBackendID());
       logger.info(message);

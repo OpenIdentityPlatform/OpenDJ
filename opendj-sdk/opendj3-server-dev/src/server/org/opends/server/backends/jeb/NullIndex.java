@@ -29,7 +29,6 @@ import java.util.List;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
