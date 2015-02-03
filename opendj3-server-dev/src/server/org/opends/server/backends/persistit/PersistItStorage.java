@@ -592,7 +592,11 @@ public final class PersistItStorage implements Storage
         }
         catch (final StorageRuntimeException e)
         {
-          throw (Exception) e.getCause();
+          if (e.getCause() != null)
+          {
+              throw (Exception) e.getCause();
+          }
+          throw e;
         }
         finally
         {
@@ -655,7 +659,11 @@ public final class PersistItStorage implements Storage
         }
         catch (final StorageRuntimeException e)
         {
-          throw (Exception) e.getCause();
+          if (e.getCause() != null)
+          {
+              throw (Exception) e.getCause();
+          }
+          throw e;
         }
         finally
         {

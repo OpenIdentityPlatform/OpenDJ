@@ -150,6 +150,10 @@ public class VerifyJob
         }
       });
     }
+    catch (StorageRuntimeException e)
+    {
+      throw e;
+    }
     catch (Exception e)
     {
       throw new StorageRuntimeException(e);
