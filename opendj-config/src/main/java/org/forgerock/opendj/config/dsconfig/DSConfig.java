@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -32,6 +32,7 @@ import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
+import static org.forgerock.opendj.config.PropertyOption.*;
 import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
 import static org.forgerock.util.Utils.*;
 
@@ -51,6 +52,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -60,15 +62,43 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.ACIPropertyDefinition;
+import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.AdministratorAction;
+import org.forgerock.opendj.config.AdministratorAction.Type;
+import org.forgerock.opendj.config.AggregationPropertyDefinition;
+import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
+import org.forgerock.opendj.config.AttributeTypePropertyDefinition;
+import org.forgerock.opendj.config.BooleanPropertyDefinition;
+import org.forgerock.opendj.config.ClassPropertyDefinition;
 import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.DNPropertyDefinition;
+import org.forgerock.opendj.config.DefaultBehaviorProvider;
+import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.DurationPropertyDefinition;
+import org.forgerock.opendj.config.DurationUnit;
+import org.forgerock.opendj.config.EnumPropertyDefinition;
+import org.forgerock.opendj.config.IPAddressMaskPropertyDefinition;
+import org.forgerock.opendj.config.IPAddressPropertyDefinition;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.IntegerPropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinitionVisitor;
+import org.forgerock.opendj.config.PropertyOption;
 import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.SetRelationDefinition;
+import org.forgerock.opendj.config.SizePropertyDefinition;
+import org.forgerock.opendj.config.StringPropertyDefinition;
 import org.forgerock.opendj.config.Tag;
+import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.util.Utils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
@@ -87,12 +117,362 @@ import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.SubCommandUsageHandler;
 import com.forgerock.opendj.cli.VersionHandler;
 
 /**
  * This class provides a command-line tool which enables administrators to configure the Directory Server.
  */
 public final class DSConfig extends ConsoleApplication {
+
+    // FIXME: I18n support. Today all the strings are hardcoded in this file
+    private final class DSConfigSubCommandUsageHandler implements SubCommandUsageHandler {
+
+        private static final String ALLOW_UNLIMITED = "A value of \"-1\" or \"unlimited\" for no limit.";
+        private static final String ACI_SYNTAX_REL_URL =
+            "<link"
+                + " xlink:show=\"new\""
+                + " xlink:href=\"admin-guide#about-acis\""
+                + " xlink:role=\"http://docbook.org/xlink/role/olink\">"
+                + "<citetitle>About Access Control Instructions</citetitle></link>";
+        private static final String DURATION_SYNTAX_REL_URL =
+            "  <itemizedlist>"
+                + "    <para>Some property values take a time duration. Durations are expressed"
+                + "    as numbers followed by units. For example <literal>1 s</literal> means"
+                + "    one second, and <literal>2 w</literal> means two weeks. Some durations"
+                + "    have minimum granularity or maximum units, so you cannot necessary specify"
+                + "    every duration in milliseconds or weeks for example. Some durations allow"
+                + "    you to use a special value to mean unlimited. Units are specified as"
+                + "    follows.</para>"
+                + "    <listitem><para><literal>ms</literal>: milliseconds</para></listitem>"
+                + "    <listitem><para><literal>s</literal>: seconds</para></listitem>"
+                + "    <listitem><para><literal>m</literal>: minutes</para></listitem>"
+                + "    <listitem><para><literal>h</literal>: hours</para></listitem>"
+                + "    <listitem><para><literal>d</literal>: days</para></listitem>"
+                + "    <listitem><para><literal>w</literal>: weeks</para></listitem>"
+                + "  </itemizedlist>";
+
+        /** {@inheritDoc} */
+        @Override
+        public void appendUsage(StringBuilder sb, SubCommand sc, String argLongID) {
+            final String toolName = "dsconfig";
+            final SubCommandHandler sch = handlers.get(sc);
+            final RelationDefinition<?, ?> rd = getRelationDefinition(sch);
+            if (rd instanceof InstantiableRelationDefinition) {
+                final PropertyDefinition<?> pd =
+                        ((InstantiableRelationDefinition<?, ?>) rd).getNamingPropertyDefinition();
+                if (pd != null) {
+                    final AbstractManagedObjectDefinition<?, ?> defn = pd.getManagedObjectDefinition();
+                    final List<PropertyDefinition<?>> props =
+                            new ArrayList<PropertyDefinition<?>>(defn.getAllPropertyDefinitions());
+                    Collections.sort(props);
+                    final String propPrefix = toolName + "-" + sc.getName() + "-" + argLongID + "-";
+                    sb.append(EOL);
+                    toSimpleList(props, propPrefix, sb);
+                    sb.append(EOL);
+                    toVariableList(props, defn, propPrefix, sb);
+                }
+            }
+        }
+
+        private RelationDefinition<?, ?> getRelationDefinition(final SubCommandHandler sch) {
+            if (sch instanceof CreateSubCommandHandler) {
+                return ((CreateSubCommandHandler<?, ?>) sch).getRelationDefinition();
+            } else if (sch instanceof DeleteSubCommandHandler) {
+                return ((DeleteSubCommandHandler) sch).getRelationDefinition();
+            } else if (sch instanceof ListSubCommandHandler) {
+                return ((ListSubCommandHandler) sch).getRelationDefinition();
+            } else if (sch instanceof GetPropSubCommandHandler) {
+                return ((GetPropSubCommandHandler) sch).getRelationDefinition();
+            } else if (sch instanceof SetPropSubCommandHandler) {
+                return ((SetPropSubCommandHandler) sch).getRelationDefinition();
+            }
+            return null;
+        }
+
+        private void toSimpleList(List<PropertyDefinition<?>> props, String propPrefix, StringBuilder b) {
+            b.append("    <simplelist>").append(EOL);
+            for (PropertyDefinition<?> prop : props) {
+                b.append("      <member><xref linkend=\"")
+                    .append(propPrefix).append(prop.getName()).append("\" /></member>").append(EOL);
+            }
+            b.append("    </simplelist>").append(EOL);
+        }
+
+        private void toVariableList(List<PropertyDefinition<?>> props, AbstractManagedObjectDefinition<?, ?> defn,
+                String propPrefix, StringBuilder b) {
+            final String indent = "            ";
+            b.append("    <variablelist>").append(EOL);
+            for (PropertyDefinition<?> prop : props) {
+                b.append("      <varlistentry xml:id=\"")
+                    .append(propPrefix).append(prop.getName()).append("\">").append(EOL);
+                b.append("        <term>").append(prop.getName()).append("</term>").append(EOL);
+                b.append("        <listitem>").append(EOL);
+                b.append("          <variablelist>").append(EOL);
+                appendVarlistentry(b, "Description", getDescriptionString(prop), indent);
+                appendVarlistentry(b, "Default Value", getDefaultBehaviorString(prop), indent);
+                appendAllowedValues(b, prop, indent);
+                appendVarlistentry(b, "Multi-valued", getYN(prop, MULTI_VALUED), indent);
+                appendVarlistentry(b, "Required", getYN(prop, MANDATORY), indent);
+                appendVarlistentry(b, "Admin Action Required", getAdminActionRequired(prop, defn), indent);
+                appendVarlistentry(b, "Advanced Property", getYNAdvanced(prop, ADVANCED), indent);
+                appendVarlistentry(b, "Read-only", getYN(prop, READ_ONLY), indent);
+                b.append("          </variablelist>").append(EOL);
+                b.append("        </listitem>").append(EOL);
+                b.append("      </varlistentry>").append(EOL);
+            }
+            b.append("    </variablelist>").append(EOL);
+        }
+
+        private StringBuilder appendVarlistentry(StringBuilder b, String term, Object para, String indent) {
+            b.append(indent).append("<varlistentry>").append(EOL);
+            b.append(indent).append("  <term>").append(term).append("</term>").append(EOL);
+            b.append(indent).append("  <listitem>").append(EOL);
+            b.append(indent).append("    <para>").append(para).append("</para>").append(EOL);
+            b.append(indent).append("  </listitem>").append(EOL);
+            b.append(indent).append("</varlistentry>").append(EOL);
+            return b;
+        }
+
+        private void appendAllowedValues(StringBuilder b, PropertyDefinition<?> prop, String indent) {
+            b.append(indent).append("<varlistentry>").append(EOL);
+            b.append(indent).append("  <term>").append("Allowed Values").append("</term>").append(EOL);
+            if (prop instanceof EnumPropertyDefinition) {
+                b.append(indent).append("  <listitem>").append(EOL);
+                b.append(indent).append("    <variablelist>").append(EOL);
+                appendSyntax(b, prop, indent + "      ");
+                b.append(indent).append("    </variablelist>").append(EOL);
+                b.append(indent).append("  </listitem>").append(EOL);
+            } else if (prop instanceof BooleanPropertyDefinition) {
+                b.append(indent).append("  <listitem><para>true</para></listitem>").append(EOL);
+                b.append(indent).append("  <listitem><para>false</para></listitem>").append(EOL);
+            } else {
+                b.append(indent).append("  <listitem>").append(EOL);
+                b.append(indent).append("    <para>");
+                appendSyntax(b, prop, indent);
+                b.append("</para>").append(EOL);
+                b.append(indent).append("  </listitem>").append(EOL);
+            }
+            b.append(indent).append("</varlistentry>").append(EOL);
+        }
+
+        private Object getDescriptionString(PropertyDefinition<?> prop) {
+            return ((prop.getSynopsis() != null) ? prop.getSynopsis() + " " : "")
+                    + ((prop.getDescription() != null) ? prop.getDescription() : "");
+        }
+
+        private String getAdminActionRequired(PropertyDefinition<?> prop, AbstractManagedObjectDefinition<?, ?> defn) {
+            final AdministratorAction adminAction = prop.getAdministratorAction();
+            if (adminAction != null) {
+                final LocalizableMessage synopsis = adminAction.getSynopsis();
+                final Type actionType = adminAction.getType();
+                final StringBuilder action = new StringBuilder();
+                if (actionType == Type.COMPONENT_RESTART) {
+                    action.append("The ").append(defn.getUserFriendlyName())
+                             .append(" must be disabled and re-enabled for changes to this setting to take effect");
+                } else if (actionType == Type.SERVER_RESTART) {
+                    action.append("Restart the server");
+                } else if (actionType == Type.NONE) {
+                    action.append("None");
+                }
+                if (synopsis != null) {
+                    if (action.length() > 0) {
+                        action.append(". ");
+                    }
+                    action.append(synopsis);
+                }
+                return action.toString();
+            }
+            return "None";
+        }
+
+        private String getYN(PropertyDefinition<?> prop, PropertyOption option) {
+            return prop.hasOption(option) ? "Yes" : "No";
+        }
+
+        private String getYNAdvanced(PropertyDefinition<?> prop, PropertyOption option) {
+            return prop.hasOption(option) ? "Yes (Use --advanced in interactive mode.)" : "No";
+        }
+
+        private String getDefaultBehaviorString(PropertyDefinition<?> prop) {
+            DefaultBehaviorProvider<?> defaultBehavior = prop.getDefaultBehaviorProvider();
+            if (defaultBehavior instanceof UndefinedDefaultBehaviorProvider) {
+                return "None";
+            } else if (defaultBehavior instanceof DefinedDefaultBehaviorProvider) {
+                DefinedDefaultBehaviorProvider<?> behavior = (DefinedDefaultBehaviorProvider<?>) defaultBehavior;
+                final StringBuilder res = new StringBuilder();
+                for (Iterator<String> it = behavior.getDefaultValues().iterator(); it.hasNext();) {
+                    String str = it.next();
+                    res.append(str).append(it.hasNext() ? "\n" : "");
+                }
+                return res.toString();
+            } else if (defaultBehavior instanceof AliasDefaultBehaviorProvider) {
+                AliasDefaultBehaviorProvider<?> behavior = (AliasDefaultBehaviorProvider<?>) defaultBehavior;
+                return behavior.getSynopsis().toString();
+            } else if (defaultBehavior instanceof RelativeInheritedDefaultBehaviorProvider) {
+                final RelativeInheritedDefaultBehaviorProvider<?> behavior =
+                        (RelativeInheritedDefaultBehaviorProvider<?>) defaultBehavior;
+                return getDefaultBehaviorString(
+                        behavior.getManagedObjectDefinition().getPropertyDefinition(behavior.getPropertyName()));
+            } else if (defaultBehavior instanceof AbsoluteInheritedDefaultBehaviorProvider) {
+                final AbsoluteInheritedDefaultBehaviorProvider<?> behavior =
+                        (AbsoluteInheritedDefaultBehaviorProvider<?>) defaultBehavior;
+                return getDefaultBehaviorString(
+                        behavior.getManagedObjectDefinition().getPropertyDefinition(behavior.getPropertyName()));
+            }
+            return "";
+        }
+
+        private void appendSyntax(final StringBuilder b, PropertyDefinition<?> prop, final String indent) {
+            // Create a visitor for performing syntax specific processing.
+            PropertyDefinitionVisitor<String, Void> visitor = new PropertyDefinitionVisitor<String, Void>() {
+
+                @Override
+                public String visitACI(ACIPropertyDefinition prop, Void p) {
+                    b.append(ACI_SYNTAX_REL_URL);
+                    return null;
+                }
+
+                @Override
+                public String visitAggregation(AggregationPropertyDefinition prop, Void p) {
+                    final RelationDefinition<?, ?> rel = prop.getRelationDefinition();
+                    final String linkStr = getLink(rel.getName() + ".html");
+                    b.append("The DN of any ").append(linkStr).append(". ");
+                    final LocalizableMessage synopsis = prop.getSourceConstraintSynopsis();
+                    if (synopsis != null) {
+                        b.append(synopsis);
+                    }
+                    return null;
+                }
+
+                @Override
+                public String visitAttributeType(AttributeTypePropertyDefinition prop, Void p) {
+                    b.append("The name of an attribute type defined in the server schema.");
+                    return null;
+                }
+
+                @Override
+                public String visitBoolean(BooleanPropertyDefinition prop, Void p) {
+                    throw new RuntimeException("This case should be handled by the calling code.");
+                }
+
+                @Override
+                public String visitClass(ClassPropertyDefinition prop, Void p) {
+                    b.append("A java class that implements or extends the class(es) :")
+                        .append(Utils.joinAsString(EOL, prop.getInstanceOfInterface()));
+                    return null;
+                }
+
+                @Override
+                public String visitDN(DNPropertyDefinition prop, Void p) {
+                    final DN baseDN = prop.getBaseDN();
+                    b.append("A valid DN.");
+                    if (baseDN != null) {
+                        b.append(baseDN);
+                    }
+                    return null;
+                }
+
+                @Override
+                public String visitDuration(DurationPropertyDefinition prop, Void p) {
+                    b.append(DURATION_SYNTAX_REL_URL).append(". ");
+                    if (prop.isAllowUnlimited()) {
+                        b.append(ALLOW_UNLIMITED).append(" ");
+                    }
+                    if (prop.getMaximumUnit() != null) {
+                        b.append("Maximum unit is \"").append(prop.getMaximumUnit().getLongName()).append("\". ");
+                    }
+                    final DurationUnit baseUnit = prop.getBaseUnit();
+                    b.append("Lower limit is ").append(valueOf(baseUnit, prop.getLowerLimit()))
+                     .append(" ").append(baseUnit.getLongName()).append(". ");
+                    if (prop.getUpperLimit() != null) {
+                        b.append("Upper limit is ").append(valueOf(baseUnit, prop.getUpperLimit()))
+                         .append(" ").append(baseUnit.getLongName()).append(". ");
+                    }
+                    return null;
+                }
+
+                private long valueOf(final DurationUnit baseUnit, long upperLimit) {
+                    return Double.valueOf(baseUnit.fromMilliSeconds(upperLimit)).longValue();
+                }
+
+                @Override
+                public String visitEnum(EnumPropertyDefinition prop, Void p) {
+                    final Class<?> en = prop.getEnumClass();
+                    final Object[] constants = en.getEnumConstants();
+                    for (Object enumConstant : constants) {
+                        final LocalizableMessage valueSynopsis = prop.getValueSynopsis((Enum) enumConstant);
+                        appendVarlistentry(b, enumConstant.toString(), valueSynopsis, indent);
+                    }
+                    return null;
+                }
+
+                @Override
+                public String visitInteger(IntegerPropertyDefinition prop, Void p) {
+                    b.append("An integer value. Lower value is ").append(prop.getLowerLimit()).append(".");
+                    if (prop.getUpperLimit() != null) {
+                        b.append(" Upper value is ").append(prop.getUpperLimit()).append(".");
+                    }
+                    if (prop.isAllowUnlimited()) {
+                        b.append(" ").append(ALLOW_UNLIMITED);
+                    }
+                    if (prop.getUnitSynopsis() != null) {
+                        b.append(" Unit is ").append(prop.getUnitSynopsis()).append(".");
+                    }
+                    return null;
+                }
+
+                @Override
+                public String visitIPAddress(IPAddressPropertyDefinition prop, Void p) {
+                    b.append("An IP address");
+                    return null;
+                }
+
+                @Override
+                public String visitIPAddressMask(IPAddressMaskPropertyDefinition prop, Void p) {
+                    b.append("An IP address mask");
+                    return null;
+                }
+
+                @Override
+                public String visitSize(SizePropertyDefinition prop, Void p) {
+                    if (prop.getLowerLimit() != 0) {
+                        b.append(" Lower value is ").append(prop.getLowerLimit()).append(".");
+                    }
+                    if (prop.getUpperLimit() != null) {
+                        b.append(" Upper value is ").append(prop.getUpperLimit()).append(" .");
+                    }
+                    if (prop.isAllowUnlimited()) {
+                        b.append(" ").append(ALLOW_UNLIMITED);
+                    }
+                    return null;
+                }
+
+                @Override
+                public String visitString(StringPropertyDefinition prop, Void p) {
+                    if (prop.getPatternSynopsis() != null) {
+                        b.append(prop.getPatternSynopsis());
+                    } else {
+                        b.append("A String");
+                    }
+                    return null;
+                }
+
+                @Override
+                public String visitUnknown(PropertyDefinition prop, Void p) {
+                    b.append("Unknown");
+                    return null;
+                }
+            };
+
+            // Invoke the visitor against the property definition.
+            prop.accept(visitor, null);
+        }
+
+        private String getLink(String target) {
+            return " <xref linkend=" + target + " />";
+        }
+    }
 
     /** The name of this tool. */
     static final String DSCONFIGTOOLNAME = "dsconfig";
@@ -423,6 +803,9 @@ public final class DSConfig extends ConsoleApplication {
                 return "";
             }
         });
+        if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
+            this.parser.setUsageHandler(new DSConfigSubCommandUsageHandler());
+        }
     }
 
     /** {@inheritDoc} */
