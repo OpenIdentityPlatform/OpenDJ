@@ -947,7 +947,7 @@ public class BackendImpl extends Backend<PersistitBackendCfg> implements
       {
         return new DirectoryException(
             DirectoryServer.getServerErrorResultCode(),
-            LocalizableMessage.raw(e.getMessage()));
+            LocalizableMessage.raw(e.getMessage()), e);
       }
     }
     if (/*e instanceof EnvironmentFailureException && */ !rootContainer.isValid()) {
