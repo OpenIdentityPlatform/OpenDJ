@@ -552,16 +552,14 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     throw new ArgumentException(
                             ERR_SUBCMDPARSER_ARG_FOR_LONG_ID_DOESNT_TAKE_VALUE.get(origArgName));
                 }
+            } else if (arg.equals("-")) {
+                throw new ArgumentException(ERR_SUBCMDPARSER_INVALID_DASH_AS_ARGUMENT.get());
             } else if (arg.startsWith("-")) {
                 // This indicates that we are using the 1-character name to reference
                 // the argument. It may be in any of the following forms:
                 // -n
                 // -nvalue
                 // -n value
-                if (arg.equals("-")) {
-                    throw new ArgumentException(ERR_SUBCMDPARSER_INVALID_DASH_AS_ARGUMENT.get());
-                }
-
                 char argCharacter = arg.charAt(1);
                 String argValue;
                 if (arg.length() > 2) {
@@ -1167,38 +1165,44 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * @return Refsect2 representation of the subcommand.
      */
     private String toRefSect2(SubCommand sc) {
-        final StringBuilder options = new StringBuilder();
+        final String toolName = "dsconfig";
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append("<refsect2 xml:id=\"").append(toolName).append("-").append(sc.getName()).append("\">").append(EOL);
+        sb.append(" <title>dsconfig ").append(sc.getName()).append("</title>").append(EOL);
+        sb.append(" <para>").append(sc.getDescription()).append("</para>").append(EOL);
+
         if (!sc.getArguments().isEmpty()) {
-            options.append(" <variablelist>").append(EOL);
+            sb.append(" <variablelist>").append(EOL);
             for (Argument a : sc.getArguments()) {
-                options.append("  <varlistentry>").append(EOL);
-                options.append("   <term><option>");
+                sb.append("  <varlistentry>").append(EOL);
+                sb.append("   <term><option>");
                 Character shortID = a.getShortIdentifier();
                 if (shortID != null) {
-                    options.append("-").append(shortID.charValue());
+                    sb.append("-").append(shortID.charValue());
                 }
                 String longID = a.getLongIdentifier();
                 if (shortID != null && longID != null) {
-                    options.append(" | ");
+                    sb.append(" | ");
                 }
                 if (longID != null) {
-                    options.append("--").append(longID);
+                    sb.append("--").append(longID);
                 }
                 if (a.needsValue()) {
-                    options.append(" ").append(a.getValuePlaceholder());
+                    sb.append(" ").append(a.getValuePlaceholder());
                 }
-                options.append("</option></term>").append(EOL);
-                options.append("   <listitem>").append(EOL);
-                options.append("    <para>");
-                options.append(a.getDescription());
-                options.append("</para>").append(EOL);
-                options.append("   </listitem>").append(EOL);
-                options.append("  </varlistentry>").append(EOL);
+                sb.append("</option></term>").append(EOL);
+                sb.append("   <listitem>").append(EOL);
+                sb.append("    <para>");
+                sb.append(a.getDescription());
+                sb.append("</para>").append(EOL);
+                sb.append("   </listitem>").append(EOL);
+                sb.append("  </varlistentry>").append(EOL);
             }
-            options.append(" </variablelist>").append(EOL);
+            sb.append(" </variablelist>").append(EOL);
         }
 
-        return "<refsect2 xml:id=\"dsconfig-" + sc.getName() + "\">" + EOL + " <title>dsconfig " + sc.getName()
-                + "</title>" + EOL + " <para>" + sc.getDescription() + "</para>" + EOL + options + "</refsect2>" + EOL;
+        sb.append("</refsect2>").append(EOL);
+        return sb.toString();
     }
 }
