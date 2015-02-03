@@ -61,7 +61,6 @@ import org.opends.server.backends.jeb.VLVIndex;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
-import org.opends.server.util.LDIFReader;
 import org.opends.server.util.Platform;
 import org.opends.server.util.StaticUtils;
 
@@ -141,7 +140,7 @@ public final class Importer implements DiskSpaceMonitorHandler
   private final LocalDBBackendCfg backendConfiguration;
 
   /** LDIF reader. */
-  private LDIFReader reader;
+  private ImportLDIFReader reader;
 
   /** Migrated entry count. */
   private int migratedCount;
@@ -853,7 +852,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     try {
       try
       {
-        reader = new LDIFReader(importConfiguration, rootContainer);
+        reader = new ImportLDIFReader(importConfiguration, rootContainer);
       }
       catch (IOException ioe)
       {
