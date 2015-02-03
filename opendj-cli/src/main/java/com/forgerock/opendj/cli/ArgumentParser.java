@@ -74,6 +74,8 @@ public class ArgumentParser {
     public static final String DEFAULT_OPENDJ_PROPERTIES_FILE_EXTENSION = ".properties";
     /** The name of a command-line script used to launch a tool. */
     public static final String PROPERTY_SCRIPT_NAME = "com.forgerock.opendj.ldap.tools.scriptName";
+    /** The legacy name of a command-line script used to launch a tool. */
+    public static final String PROPERTY_SCRIPT_NAME_LEGACY = "org.opends.server.scriptName";
 
     /** The argument that will be used to indicate the file properties. */
     private StringArgument filePropertiesPathArgument;
@@ -425,7 +427,7 @@ public class ArgumentParser {
 
         // We have a location for the properties file.
         final Properties argumentProperties = new Properties();
-        final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+        final String scriptName = getScriptName();
         try {
             final Properties p = new Properties();
             final FileInputStream fis = new FileInputStream(propertiesFilePath);
@@ -651,13 +653,8 @@ public class ArgumentParser {
      */
     private void getUsage(final StringBuilder buffer) {
         usageOrVersionDisplayed = true;
-        final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-        if (scriptName == null || scriptName.length() == 0) {
-            buffer.append(INFO_ARGPARSER_USAGE_JAVA_CLASSNAME.get(mainClassName));
-        } else {
-            buffer.append(INFO_ARGPARSER_USAGE_JAVA_SCRIPTNAME.get(scriptName));
-        }
 
+        buffer.append(getLocalizableScriptName());
         if (allowsTrailingArguments) {
             buffer.append(" ");
             if (trailingArgsDisplayName != null) {
@@ -738,6 +735,49 @@ public class ArgumentParser {
             buffer.append("-?");
             buffer.append(EOL);
         }
+    }
+
+    /**
+     * Returns the script name or a Java equivalent command-line string.
+     *
+     * @return the script name or a Java equivalent command-line string
+     */
+    String getScriptNameOrJava() {
+        final String scriptName = getScriptName();
+        if (scriptName != null && scriptName.length() != 0) {
+            return scriptName;
+        }
+        return "java " + getMainClassName();
+    }
+
+    /**
+     * Returns the script name as a {@link LocalizableMessage}.
+     *
+     * @return the script name as a {@link LocalizableMessage}
+     */
+    LocalizableMessage getLocalizableScriptName() {
+        final String scriptName = getScriptName();
+        if (scriptName == null || scriptName.length() == 0) {
+            return INFO_ARGPARSER_USAGE_JAVA_CLASSNAME.get(mainClassName);
+        }
+        return INFO_ARGPARSER_USAGE_JAVA_SCRIPTNAME.get(scriptName);
+    }
+
+    /**
+     * Returns the script name if set.
+     *
+     * @return the script name, or {@code null} if not set
+     */
+    String getScriptName() {
+        final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
+        if (scriptName != null && scriptName.length() != 0) {
+            return scriptName;
+        }
+        final String legacyScriptName = System.getProperty(PROPERTY_SCRIPT_NAME_LEGACY);
+        if (legacyScriptName != null && legacyScriptName.length() != 0) {
+            return legacyScriptName;
+        }
+        return null;
     }
 
     /**

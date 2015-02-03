@@ -167,7 +167,7 @@ public final class DSConfig extends ConsoleApplication {
                             new ArrayList<PropertyDefinition<?>>(defn.getAllPropertyDefinitions());
                     Collections.sort(props);
 
-                    final String propPrefix = DSCONFIGTOOLNAME + "-" + sc.getName() + "-" + argLongID + "-";
+                    final String propPrefix = getScriptName() + "-" + sc.getName() + "-" + argLongID + "-";
                     sb.append(EOL);
                     toSimpleList(props, propPrefix, sb);
                     sb.append(EOL);
@@ -1239,7 +1239,7 @@ public final class DSConfig extends ConsoleApplication {
      * @return <T> The builded command.
      */
     <T> CommandBuilder getCommandBuilder(final T subCommand) {
-        final String commandName = getCommandName();
+        final String commandName = getScriptName();
         final String subCommandName;
         if (subCommand instanceof SubCommandHandler) {
             subCommandName = ((SubCommandHandler) subCommand).getSubCommand().getName();
@@ -1272,7 +1272,7 @@ public final class DSConfig extends ConsoleApplication {
         return commandBuilder;
     }
 
-    private String getCommandName() {
+    private String getScriptName() {
         final String commandName = System.getProperty(PROPERTY_SCRIPT_NAME);
         if (commandName != null && commandName.length() != 0) {
             return commandName;
@@ -1338,7 +1338,7 @@ public final class DSConfig extends ConsoleApplication {
      */
     private String getSessionStartTimeMessage() {
         final String date = formatDateTimeStringForEquivalentCommand(new Date(sessionStartTime));
-        return INFO_DSCFG_SESSION_START_TIME_MESSAGE.get(getCommandName(), date).toString();
+        return INFO_DSCFG_SESSION_START_TIME_MESSAGE.get(getScriptName(), date).toString();
     }
 
     private void handleBatchFile(String[] args) {

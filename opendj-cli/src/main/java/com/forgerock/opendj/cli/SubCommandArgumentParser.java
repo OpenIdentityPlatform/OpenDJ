@@ -772,11 +772,8 @@ public class SubCommandArgumentParser extends ArgumentParser {
      *            The subcommand for which to display the usage information.
      */
     public void getSubCommandUsage(StringBuilder buffer, SubCommand subCommand) {
-        String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-        if (scriptName == null || scriptName.length() == 0) {
-            scriptName = "java " + getMainClassName();
-        }
-        buffer.append(INFO_ARGPARSER_USAGE_JAVA_SCRIPTNAME.get(scriptName));
+        final String scriptName = getScriptNameOrJava();
+        buffer.append(getLocalizableScriptName());
         buffer.append("  ");
         buffer.append(scriptName);
 
@@ -867,13 +864,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     public LocalizableMessage getHelpUsageReference() {
         setUsageOrVersionDisplayed(true);
-        String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-        if (scriptName == null || scriptName.length() == 0) {
-            scriptName = "java " + getMainClassName();
-        }
 
         LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
-        buffer.append(INFO_GLOBAL_HELP_REFERENCE.get(scriptName));
+        buffer.append(INFO_GLOBAL_HELP_REFERENCE.get(getScriptNameOrJava()));
         buffer.append(EOL);
         return buffer.toMessage();
     }
@@ -919,13 +912,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
             buffer.append(EOL).append(EOL);
         }
 
-        String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-        if (scriptName == null || scriptName.length() == 0) {
-            scriptName = "java " + getMainClassName();
-        }
         buffer.append(INFO_ARGPARSER_USAGE.get());
         buffer.append("  ");
-        buffer.append(scriptName);
+        buffer.append(getScriptNameOrJava());
 
         if (subCommands.isEmpty()) {
             buffer.append(" ").append(INFO_SUBCMDPARSER_OPTIONS.get());
@@ -1175,10 +1164,14 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * @return Refsect2 representation of the subcommand.
      */
     private String toRefSect2(SubCommand sc) {
-        final String toolName = "dsconfig";
+        final String scriptName = getScriptName();
+        if (scriptName == null) {
+            throw new RuntimeException("The script name should have been set via the environment property '"
+                    + PROPERTY_SCRIPT_NAME + "'.");
+        }
 
         final StringBuilder sb = new StringBuilder();
-        sb.append("<refsect2 xml:id=\"").append(toolName).append("-").append(sc.getName()).append("\">").append(EOL);
+        sb.append("<refsect2 xml:id=\"").append(scriptName).append("-").append(sc.getName()).append("\">").append(EOL);
         sb.append(" <title>dsconfig ").append(sc.getName()).append("</title>").append(EOL);
         sb.append(" <para>").append(sc.getDescription()).append("</para>").append(EOL);
 
