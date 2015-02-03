@@ -75,6 +75,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
     /**The subcommand requested by the user as part of the command-line arguments.     */
     private SubCommand subCommand;
+    private SubCommandUsageHandler subCommandUsageHandler;
 
     /**
      * Creates a new instance of this subcommand argument parser with no arguments.
@@ -413,6 +414,15 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     public void setUsageGroupArgument(Argument argument, Collection<SubCommand> subCommands) {
         usageGroupArguments.put(argument, subCommands);
+    }
+
+    /**
+     * Sets the sub-command usage handler which will be used to display the usage information.
+     *
+     * @param subCommandUsageHandler the sub-command usage handler
+     */
+    public void setUsageHandler(SubCommandUsageHandler subCommandUsageHandler) {
+        this.subCommandUsageHandler = subCommandUsageHandler;
     }
 
     /**
@@ -1193,9 +1203,10 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 }
                 sb.append("</option></term>").append(EOL);
                 sb.append("   <listitem>").append(EOL);
-                sb.append("    <para>");
-                sb.append(a.getDescription());
-                sb.append("</para>").append(EOL);
+                sb.append("    <para>").append(a.getDescription()).append("</para>").append(EOL);
+                if (subCommandUsageHandler != null) {
+                    subCommandUsageHandler.appendUsage(sb, sc, longID);
+                }
                 sb.append("   </listitem>").append(EOL);
                 sb.append("  </varlistentry>").append(EOL);
             }
