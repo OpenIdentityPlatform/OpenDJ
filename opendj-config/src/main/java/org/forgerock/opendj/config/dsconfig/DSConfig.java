@@ -100,6 +100,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.util.Utils;
 
+import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -155,7 +156,6 @@ public final class DSConfig extends ConsoleApplication {
         /** {@inheritDoc} */
         @Override
         public void appendUsage(StringBuilder sb, SubCommand sc, String argLongID) {
-            final String toolName = "dsconfig";
             final SubCommandHandler sch = handlers.get(sc);
             final RelationDefinition<?, ?> rd = getRelationDefinition(sch);
             if (rd instanceof InstantiableRelationDefinition) {
@@ -166,7 +166,8 @@ public final class DSConfig extends ConsoleApplication {
                     final List<PropertyDefinition<?>> props =
                             new ArrayList<PropertyDefinition<?>>(defn.getAllPropertyDefinitions());
                     Collections.sort(props);
-                    final String propPrefix = toolName + "-" + sc.getName() + "-" + argLongID + "-";
+
+                    final String propPrefix = DSCONFIGTOOLNAME + "-" + sc.getName() + "-" + argLongID + "-";
                     sb.append(EOL);
                     toSimpleList(props, propPrefix, sb);
                     sb.append(EOL);
@@ -500,8 +501,7 @@ public final class DSConfig extends ConsoleApplication {
         @Override
         public MenuResult<Integer> invoke(ConsoleApplication app) throws ClientException {
             try {
-                MenuResult<Integer> result = handler.run(app, factory);
-
+                final MenuResult<Integer> result = handler.run(app, factory);
                 if (result.isQuit()) {
                     return result;
                 } else {
@@ -608,8 +608,7 @@ public final class DSConfig extends ConsoleApplication {
                 app.println();
                 app.println();
 
-                MenuResult<Integer> result = menu.run();
-
+                final MenuResult<Integer> result = menu.run();
                 if (result.isCancel()) {
                     return MenuResult.again();
                 }
@@ -1060,9 +1059,7 @@ public final class DSConfig extends ConsoleApplication {
 
     private void checkForConflictingArguments() throws ArgumentException {
         if (quietArgument.isPresent() && verboseArgument.isPresent()) {
-            final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(quietArgument.getLongIdentifier(),
-                    verboseArgument.getLongIdentifier());
-            throw new ArgumentException(message);
+            throw conflictingArgs(quietArgument, verboseArgument);
         }
 
         if (batchFileArgument.isPresent() && !noPromptArgument.isPresent()) {
@@ -1078,16 +1075,16 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         if (scriptFriendlyArgument.isPresent() && verboseArgument.isPresent()) {
-            final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-                    scriptFriendlyArgument.getLongIdentifier(), verboseArgument.getLongIdentifier());
-            throw new ArgumentException(message);
+            throw conflictingArgs(scriptFriendlyArgument, verboseArgument);
         }
 
         if (noPropertiesFileArgument.isPresent() && propertiesFileArgument.isPresent()) {
-            final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-                    noPropertiesFileArgument.getLongIdentifier(), propertiesFileArgument.getLongIdentifier());
-            throw new ArgumentException(message);
+            throw conflictingArgs(noPropertiesFileArgument, propertiesFileArgument);
         }
+    }
+
+    private ArgumentException conflictingArgs(Argument arg1, Argument arg2) {
+        return new ArgumentException(ERR_TOOL_CONFLICTING_ARGS.get(arg1.getLongIdentifier(), arg2.getLongIdentifier()));
     }
 
     /** Run the top-level interactive console. */
@@ -1182,7 +1179,6 @@ public final class DSConfig extends ConsoleApplication {
             app.println();
 
             final MenuResult<Integer> result = menu.run();
-
             if (result.isQuit()) {
                 return ReturnCode.SUCCESS.get();
             } else {
@@ -1198,7 +1194,6 @@ public final class DSConfig extends ConsoleApplication {
     private int runSubCommand(SubCommandHandler handler) {
         try {
             final MenuResult<Integer> result = handler.run(this, factory);
-
             if (result.isSuccess()) {
                 if (isInteractive() && handler.isCommandBuilderUseful()) {
                     printCommandBuilder(getCommandBuilder(handler));
@@ -1244,17 +1239,14 @@ public final class DSConfig extends ConsoleApplication {
      * @return <T> The builded command.
      */
     <T> CommandBuilder getCommandBuilder(final T subCommand) {
-        String commandName = System.getProperty(PROPERTY_SCRIPT_NAME);
-        if (commandName == null) {
-            commandName = DSCONFIGTOOLNAME;
-        }
-        CommandBuilder commandBuilder = null;
+        final String commandName = getCommandName();
+        final String subCommandName;
         if (subCommand instanceof SubCommandHandler) {
-            commandBuilder = new CommandBuilder(commandName,
-                    ((SubCommandHandler) subCommand).getSubCommand().getName());
+            subCommandName = ((SubCommandHandler) subCommand).getSubCommand().getName();
         } else {
-            commandBuilder = new CommandBuilder(commandName, (String) subCommand);
+            subCommandName = (String) subCommand;
         }
+        final CommandBuilder commandBuilder = new CommandBuilder(commandName, subCommandName);
         if (factory != null && factory.getContextCommandBuilder() != null) {
             commandBuilder.append(factory.getContextCommandBuilder());
         }
@@ -1278,6 +1270,14 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         return commandBuilder;
+    }
+
+    private String getCommandName() {
+        final String commandName = System.getProperty(PROPERTY_SCRIPT_NAME);
+        if (commandName != null && commandName.length() != 0) {
+            return commandName;
+        }
+        return DSCONFIGTOOLNAME;
     }
 
     /**
@@ -1337,12 +1337,8 @@ public final class DSConfig extends ConsoleApplication {
      *         session started.
      */
     private String getSessionStartTimeMessage() {
-        String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-        if (scriptName == null || scriptName.length() == 0) {
-            scriptName = DSCONFIGTOOLNAME;
-        }
         final String date = formatDateTimeStringForEquivalentCommand(new Date(sessionStartTime));
-        return INFO_DSCFG_SESSION_START_TIME_MESSAGE.get(scriptName, date).toString();
+        return INFO_DSCFG_SESSION_START_TIME_MESSAGE.get(getCommandName(), date).toString();
     }
 
     private void handleBatchFile(String[] args) {
