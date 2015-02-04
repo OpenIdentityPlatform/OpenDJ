@@ -41,19 +41,19 @@
    <dl>
     <dt>Release Notes</dt>
     <dd>
-     <a href="./opendj-server/doc/release-notes/index.html">HTML</a>,
+     <a href="./opendj-server/doc/bootstrap/release-notes/index.html">HTML</a>,
      <a href="./opendj-server/doc/OpenDJ-Release-Notes.pdf">PDF</a>
     </dd>
 
     <dt>Installation Guide</dt>
     <dd>
-     <a href="./opendj-server/doc/install-guide/index.html">HTML</a>,
+     <a href="./opendj-server/doc/bootstrap/install-guide/index.html">HTML</a>,
      <a href="./opendj-server/doc/OpenDJ-Install-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Administration Guide</dt>
     <dd>
-     <a href="./opendj-server/doc/admin-guide/index.html">HTML</a>,
+     <a href="./opendj-server/doc/bootstrap/admin-guide/index.html">HTML</a>,
      <a href="./opendj-server/doc/OpenDJ-Admin-Guide.pdf">PDF</a>
     </dd>
 
@@ -65,13 +65,13 @@
     
     <dt>SDK Developer Guide</dt>
     <dd>
-     <a href="./doc/dev-guide/index.html">HTML</a>,
+     <a href="./doc/bootstrap/dev-guide/index.html">HTML</a>,
      <a href="./doc/OpenDJ-Dev-Guide.pdf">PDF</a>
     </dd>
 
     <dt>SDK Release Notes</dt>
     <dd>
-     <a href="./doc/sdk-release-notes/index.html">HTML</a>
+     <a href="./doc/bootstrap/sdk-release-notes/index.html">HTML</a>
      <a href="./doc/OpenDJ-Sdk-Release-Notes.pdf">PDF</a>
     </dd>
 

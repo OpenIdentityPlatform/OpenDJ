@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
 <project name="${project.name}"
@@ -84,13 +84,13 @@
 
   <menu name="OpenDJ Documentation" inherit="top">
    <item name="All Formats" href="docs.html" />
-   <item name="Release Notes" href="./opendj-server/doc/release-notes/index.html" />
-   <item name="Installation Guide" href="./opendj-server/doc/install-guide/index.html" />
-   <item name="Administration Guide" href="./opendj-server/doc/admin-guide/index.html" />
+   <item name="Release Notes" href="./opendj-server/doc/bootstrap/release-notes/index.html" />
+   <item name="Installation Guide" href="./opendj-server/doc/bootstrap/install-guide/index.html" />
+   <item name="Administration Guide" href="./opendj-server/doc/bootstrap/admin-guide/index.html" />
    <item name="Config Reference" href="./opendj-server/configref/index.html" />
    <item name="Plugin Javadoc" href="./opendj-server/javadoc/index.html" />
-   <item name="SDK Release Notes" href="./doc/sdk-release-notes/index.html" />
-   <item name="SDK Developer Guide" href="./doc/dev-guide/index.html" />
+   <item name="SDK Release Notes" href="./doc/bootstrap/sdk-release-notes/index.html" />
+   <item name="SDK Developer Guide" href="./doc/bootstrap/dev-guide/index.html" />
    <item name="SDK Javadoc" href="./opendj-core/apidocs/index.html" />
   </menu>
   
