@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -67,7 +67,7 @@
     <section name="Getting started">
       <p>
         Once you have obtained a copy of the OpenDJ Directory Server, read the
-        <a href="./doc/install-guide/index.html">Installation Guide</a>
+        <a href="./doc/bootstrap/install-guide/index.html">Installation Guide</a>
         for further instructions.
       </p>
     </section>

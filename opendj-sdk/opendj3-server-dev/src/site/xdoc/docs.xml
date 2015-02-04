@@ -47,25 +47,25 @@
    <dl>
     <dt>Release Notes</dt>
     <dd>
-     <a href="./doc/release-notes/index.html">HTML</a>,
+     <a href="./doc/bootstrap/release-notes/index.html">HTML</a>,
      <a href="./doc/OpenDJ-Release-Notes.pdf">PDF</a>
     </dd>
 
     <dt>Installation Guide</dt>
     <dd>
-     <a href="./doc/install-guide/index.html">HTML</a>,
+     <a href="./doc/bootstrap/install-guide/index.html">HTML</a>,
      <a href="./doc/OpenDJ-Install-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Administration Guide</dt>
     <dd>
-     <a href="./doc/admin-guide/index.html">HTML</a>
+     <a href="./doc/bootstrap/admin-guide/index.html">HTML</a>
      <a href="./doc/OpenDJ-Admin-Guide.pdf">PDF</a>
     </dd>
 
     <dt>Developer Guide</dt>
     <dd>
-     <a href="../doc/dev-guide/index.html">HTML</a>
+     <a href="../doc/bootstrap/dev-guide/index.html">HTML</a>
      <a href="../doc/OpenDJ-Dev-Guide.pdf">PDF</a>
     </dd>
 
