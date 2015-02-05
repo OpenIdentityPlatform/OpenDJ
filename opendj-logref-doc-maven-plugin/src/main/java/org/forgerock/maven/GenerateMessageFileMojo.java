@@ -54,50 +54,51 @@ import org.apache.maven.project.MavenProject;
 import org.forgerock.util.Utils;
 
 /**
- * Generates xml files containing representations of messages found in properties files.
+ * Generates xml files containing representations of messages found in
+ * properties files.
  * <p>
  * There is a single goal that generates xml files.
  * <p>
  */
-@Mojo(defaultPhase=LifecyclePhase.PRE_SITE, name="generate-xml-messages-doc")
+@Mojo(defaultPhase = LifecyclePhase.PRE_SITE, name = "generate-xml-messages-doc")
 public class GenerateMessageFileMojo extends AbstractMojo {
 
     /**
      * The Maven Project.
      */
-    @Parameter(property="project", readonly=true, required=true)
+    @Parameter(property = "project", readonly = true, required = true)
     private MavenProject project;
 
     /**
      * The path to the directory containing the message properties files.
      */
-    @Parameter(required=true)
+    @Parameter(required = true)
     private String messagesDirectory;
 
     /**
      * The path to the directory where xml reference files should be written.
      * This path must be relative to ${project.build.directory}.
      */
-    @Parameter(required=true)
+    @Parameter(required = true)
     private String outputDirectory;
 
     /**
      * A list which contains all file names, the extension is not needed.
      */
-    @Parameter(required=true)
+    @Parameter(required = true)
     private List<String> messageFileNames;
 
     /**
-     * The path and file name of the log message reference file path which will be copied in
-     * the output directory with generated log reference files.
+     * The path and file name of the log message reference file path which will
+     * be copied in the output directory with generated log reference files.
      */
-    @Parameter(required=true)
+    @Parameter(required = true)
     private String logMessageReferenceFilePath;
 
     /**
      * If the plugin is supposed to overwrite existing generated xml files.
      */
-    @Parameter(required=true, defaultValue="false")
+    @Parameter(required = true, defaultValue = "false")
     private boolean overwrite;
 
     /** The end-of-line character for this platform. */
@@ -108,15 +109,14 @@ public class GenerateMessageFileMojo extends AbstractMojo {
      * of where the source are generated, the package name and the
      * DESCRIPTORS_REG value.
      */
-    private static String REGISTRY_FILE_NAME;
+    private static String registryFileName;
 
     /**
      * One-line descriptions for log reference categories.
      */
-    private static HashMap<String, String> CATEGORY_DESCRIPTIONS;
+    private static final HashMap<String, String> CATEGORY_DESCRIPTIONS = new HashMap<String, String>();
 
     static {
-        CATEGORY_DESCRIPTIONS = new HashMap<String, String>();
         CATEGORY_DESCRIPTIONS.put("ACCESS_CONTROL", "Access Control.");
         CATEGORY_DESCRIPTIONS.put("ADMIN", "the administration framework.");
         CATEGORY_DESCRIPTIONS.put("ADMIN_TOOL", "the tool like the offline" + " installer and uninstaller.");
@@ -146,7 +146,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
     private static final String DESCRIPTORS_REG = "descriptors.reg";
 
     /** Message giving formatting rules for string keys. */
-    public static String KEY_FORM_MSG = ".\n\nOpenDJ message property keys must be of the form\n\n"
+    public static final String KEY_FORM_MSG = ".\n\nOpenDJ message property keys must be of the form\n\n"
             + "\t\'[CATEGORY]_[SEVERITY]_[DESCRIPTION]_[ORDINAL]\'\n\n";
 
     private static final String ERROR_SEVERITY_IDENTIFIER_STRING = "ERR_";
@@ -220,6 +220,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
          *
          * @return See {@link java.lang.Comparable#compareTo(Object)}.
          */
+        @Override
         public int compareTo(MessageRefEntry mre) {
             if (this.ordinal == null || mre.ordinal == null) {
                 return 0;
@@ -293,8 +294,8 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         private String getVariablelistHead() {
             StringBuilder builder = new StringBuilder(getXMLPreamble());
             builder.append(" <variablelist xml:id=\"log-ref-").append(this.category).append("\" ")
-                   .append(getBaseElementAttrs()).append(">").append(EOL)
-                   .append("  <title>Log Message Category: ").append(category).append("</title>").append(EOL);
+                    .append(getBaseElementAttrs()).append(">").append(EOL).append("  <title>Log Message Category: ")
+                    .append(category).append("</title>").append(EOL);
 
             return builder.toString();
         }
@@ -359,6 +360,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         }
 
         /** {@inheritDoc} */
+        @Override
         public String toString() {
             StringBuilder builder = new StringBuilder(description);
             if (ordinal != null) {
@@ -369,6 +371,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         }
 
         /** {@inheritDoc} */
+        @Override
         public int compareTo(MessagePropertyKey k) {
             if (ordinal == k.ordinal) {
                 return description.compareTo(k.description);
@@ -383,16 +386,20 @@ public class GenerateMessageFileMojo extends AbstractMojo {
      * For maven exec plugin execution. Generates for all included message files
      * (sample.properties), a xml log ref file (log-ref-sample.xml)
      *
-     * @throws Exception
+     * @throws MojoExecutionException
+     *          if a problem occurs
+     * @throws MojoFailureException
+     *          if a problem occurs
      */
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         String projectBuildDir = project.getBuild().getDirectory();
 
         if (!outputDirectory.contains(projectBuildDir)) {
-          String errorMsg = String.format("outputDirectory parameter (%s) must be included "
-              + "in ${project.build.directory} (%s)", outputDirectory, projectBuildDir);
-          getLog().error(errorMsg);
-          throw new MojoExecutionException(errorMsg);
+            String errorMsg = String.format("outputDirectory parameter (%s) must be included "
+                    + "in ${project.build.directory} (%s)", outputDirectory, projectBuildDir);
+            getLog().error(errorMsg);
+            throw new MojoExecutionException(errorMsg);
         }
 
         for (String messageFileName : messageFileNames) {
@@ -408,8 +415,8 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         copyLogMessageReferenceFile();
     }
 
-
-    private void generateLogReferenceFile(File source, File dest, String globalCategory) throws MojoExecutionException {
+    private void generateLogReferenceFile(File source, File dest, String globalCategory)
+            throws MojoExecutionException {
         PrintWriter destWriter = null;
         try {
             // Decide whether to generate messages based on modification times
@@ -439,9 +446,8 @@ public class GenerateMessageFileMojo extends AbstractMojo {
                 messageRefEntries.add(new MessageRefEntry(msgKey.toString(), msgKey.getOrdinal(), formatString));
             }
 
-            destWriter.println(messageRefEntries.isEmpty() ?
-                            "<!-- No message for this category -->"
-                          : new MessageRefCategory(globalCategory, messageRefEntries).toXML());
+            destWriter.println(messageRefEntries.isEmpty() ? "<!-- No message for this category -->"
+                    : new MessageRefCategory(globalCategory, messageRefEntries).toXML());
             getLog().info(dest.getPath() + " has been successfully generated");
             getLog().debug("Message Generated: " + errorMessages.size());
         } catch (Exception e) {
@@ -454,7 +460,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             Utils.closeSilently(destWriter);
         }
     }
-
 
     private Map<MessagePropertyKey, String> loadErrorProperties(Properties properties) throws Exception {
         Map<MessagePropertyKey, String> errorMessage = new TreeMap<MessagePropertyKey, String>();
@@ -474,7 +479,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
 
         return errorMessage;
     }
-
 
     private boolean isOverwriteNeeded(File source, File dest) {
         boolean needsOverwrite = this.overwrite || source.lastModified() > dest.lastModified();
@@ -526,14 +530,16 @@ public class GenerateMessageFileMojo extends AbstractMojo {
      *
      * @param dest
      *            File destination
+     * @throws Exception
+     *          If a problem occurs
      */
     public void checkDestJava(File dest) throws Exception {
         File descriptorsRegFile = new File(dest.getParentFile(), DESCRIPTORS_REG);
 
-        if (REGISTRY_FILE_NAME != null) {
+        if (registryFileName != null) {
             // if REGISTRY_FILE_NAME is already set, ensure that we computed the
             // same one
-            File prevDescriptorsRegFile = new File(REGISTRY_FILE_NAME);
+            File prevDescriptorsRegFile = new File(registryFileName);
             if (!prevDescriptorsRegFile.equals(descriptorsRegFile)) {
                 throw new Exception("Error processing " + dest
                         + ": all messages must be located in the same package thus "
@@ -541,7 +547,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
                         + new File(prevDescriptorsRegFile.getParent(), dest.getName()));
             }
         } else {
-            REGISTRY_FILE_NAME = descriptorsRegFile.getCanonicalPath();
+            registryFileName = descriptorsRegFile.getCanonicalPath();
         }
     }
 
