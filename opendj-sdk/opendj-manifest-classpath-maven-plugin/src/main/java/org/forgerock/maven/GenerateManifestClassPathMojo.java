@@ -25,6 +25,8 @@
  */
 package org.forgerock.maven;
 
+import static java.lang.String.*;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,15 +45,16 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Generate a class path suitable for the Class-Path header of a Manifest file, allowing to filter
- * on included jars, using excludes/includes properties.
+ * Generate a class path suitable for the Class-Path header of a Manifest file, allowing to filter on included jars,
+ * using excludes/includes properties.
  * <p>
- * There is a single goal that generates a property given by 'classPathProperty' parameter, with the generated
- * classpath as the value.
+ * There is a single goal that generates a property given by 'classPathProperty' parameter, with the generated classpath
+ * as the value.
  *
  * @Checkstyle:ignoreFor 3
  */
-@Mojo(name="generate", defaultPhase=LifecyclePhase.VALIDATE, requiresDependencyResolution=ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.VALIDATE,
+    requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public final class GenerateManifestClassPathMojo extends AbstractMojo {
 
     private static final int MAX_LINE_LENGTH = 72;
@@ -60,13 +63,13 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
     /**
      * The Maven Project.
      */
-    @Parameter(property="project", required=true, readonly=true)
+    @Parameter(property = "project", required = true, readonly = true)
     private MavenProject project;
 
     /**
      * A property to set to the content of the generated classpath string.
      */
-    @Parameter(required=true)
+    @Parameter(required = true)
     private String classPathProperty;
 
     /**
@@ -82,13 +85,13 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
     private List<String> includes;
 
     /**
-     * Name of product jar, e.g. "OpenDJ"
+     * Name of product jar, e.g. "OpenDJ".
      */
     @Parameter
     private String productJarName;
 
     /**
-     * List of supported locales, separated by a ","
+     * List of supported locales, separated by a ",".
      * <p>
      * Example: "fr,es,de"
      */
@@ -96,15 +99,17 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
     private String supportedLocales;
 
     /** {@inheritDoc} */
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             String classPath = getClasspath();
-            getLog().info(String.format("Setting the classpath property: [%s] (debug to see actual value)", classPathProperty));
+            getLog().info(
+                    format("Setting the classpath property: [%s] (debug to see actual value)", classPathProperty));
             getLog().debug(String.format("Setting the classpath property %s to:\n%s", classPathProperty, classPath));
             project.getProperties().put(classPathProperty, classPath);
         } catch (DependencyResolutionRequiredException e) {
             getLog().error(
-                String.format("Unable to set the classpath property %s, an error occured", classPathProperty));
+                    String.format("Unable to set the classpath property %s, an error occured", classPathProperty));
             throw new MojoFailureException(e.getMessage());
         }
     }
@@ -151,7 +156,7 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
         if (productJarName != null) {
             if (supportedLocales != null) {
                 String[] locales = supportedLocales.split(",");
-                for (int i = locales.length-1; i >= 0; i--) {
+                for (int i = locales.length - 1; i >= 0; i--) {
                     classpathItems.add(0, productJarName + "_" + locales[i] + ".jar");
                 }
             }

@@ -43,216 +43,173 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Concatenates the contents of the files in the schema directory to create a
- * base schema that may be used during the upgrade process. Each element will
- * also include the X-SCHEMA-FILE extension to indicate the source schema file.
+ * Concatenates the contents of the files in the schema directory to create a base schema that may be used during the
+ * upgrade process. Each element will also include the X-SCHEMA-FILE extension to indicate the source schema file.
  * <p>
  * There is a single goal that generates the base schema.
  * <p>
  *
  * @Checkstyle:ignoreFor 3
  */
-@Mojo(name="concat", defaultPhase=LifecyclePhase.GENERATE_SOURCES)
+@Mojo(name = "concat", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public final class ConcatSchemaMojo extends AbstractMojo {
 
     /**
      * The Maven Project.
      */
-    @Parameter(property="project", required=true, readonly=true)
+    @Parameter(property = "project", required = true, readonly = true)
     private MavenProject project;
 
     /**
      * The path to the directory containing the schema files.
      */
-    @Parameter(required=true, defaultValue="${basedir}/resource/schema")
+    @Parameter(required = true, defaultValue = "${basedir}/resource/schema")
     private String schemaDirectory;
 
     /**
-     * The directory path of the concatenated schema file to create.
-     * Must be in ${project.build.directory}
+     * The directory path of the concatenated schema file to create. Must be in ${project.build.directory}
      */
-    @Parameter(required=true)
+    @Parameter(required = true)
     private String outputDirectory;
 
     /**
      * The file name of the concatenated schema file to create.
      */
-    @Parameter(required=true)
+    @Parameter(required = true)
     private String outputFile;
 
-
     /** {@inheritDoc} */
-    public void execute() throws MojoExecutionException, MojoFailureException
-    {
-      String projectBuildDir = project.getBuild().getDirectory();
-      String outputFilePath = outputDirectory + System.getProperty("file.separator") + outputFile;
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        String projectBuildDir = project.getBuild().getDirectory();
+        String outputFilePath = outputDirectory + System.getProperty("file.separator") + outputFile;
 
-      if (!outputDirectory.contains(projectBuildDir))
-      {
-        String errorMsg = String.format("outputDirectory parameter (%s) must be included "
-            + "in ${project.build.directory} (%s)", outputDirectory, projectBuildDir);
-        getLog().error(errorMsg);
-        throw new MojoExecutionException(errorMsg);
-      }
-      getLog().info(String.format("Concatenating all ldif files from directory: %s", schemaDirectory));
-      getLog().info(String.format("Concatenated file: %s", outputFilePath));
-
-      new File(outputFilePath).getParentFile().mkdirs();
-
-      // Get a sorted list of the files in the schema directory.
-      TreeSet<String> schemaFileNames = new TreeSet<String>();
-      for (File f : new File(schemaDirectory).listFiles())
-      {
-        if (f.isFile())
-        {
-          schemaFileNames.add(f.getName());
+        if (!outputDirectory.contains(projectBuildDir)) {
+            String errorMsg = String.format("outputDirectory parameter (%s) must be included "
+                    + "in ${project.build.directory} (%s)", outputDirectory, projectBuildDir);
+            getLog().error(errorMsg);
+            throw new MojoExecutionException(errorMsg);
         }
-      }
+        getLog().info(String.format("Concatenating all ldif files from directory: %s", schemaDirectory));
+        getLog().info(String.format("Concatenated file: %s", outputFilePath));
 
+        new File(outputFilePath).getParentFile().mkdirs();
 
-      // Create a set of lists that will hold the schema elements read from the
-      // files.
-      LinkedList<String> attributeTypes    = new LinkedList<String>();
-      LinkedList<String> objectClasses     = new LinkedList<String>();
-      LinkedList<String> nameForms         = new LinkedList<String>();
-      LinkedList<String> ditContentRules   = new LinkedList<String>();
-      LinkedList<String> ditStructureRules = new LinkedList<String>();
-      LinkedList<String> matchingRuleUses  = new LinkedList<String>();
-      LinkedList<String> ldapSyntaxes      = new LinkedList<String>();
-      int curLineNumber = 0;
-
-      // Open each of the files in order and read the elements that they contain,
-      // appending them to the appropriate lists.
-      for (String name : schemaFileNames)
-      {
-        // Read the contents of the file into a list with one schema element per
-        // list element.
-        LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
-        try
-        {
-          BufferedReader reader = new BufferedReader(new FileReader(
-                                           new File(schemaDirectory, name)));
-          String line = reader.readLine();
-          while (line != null)
-          {
-            curLineNumber++;
-            if (line.length() > 0 && !line.startsWith("#"))
-            {
-              if (line.startsWith(" "))
-              {
-                lines.getLast().append(line.substring(1));
-              }
-              else
-              {
-                lines.add(new StringBuilder(line));
-              }
+        // Get a sorted list of the files in the schema directory.
+        TreeSet<String> schemaFileNames = new TreeSet<String>();
+        for (File f : new File(schemaDirectory).listFiles()) {
+            if (f.isFile()) {
+                schemaFileNames.add(f.getName());
             }
-            line = reader.readLine();
-          }
-          reader.close();
         }
-        catch (Exception e)
-        {
-            getLog().error(String.format(
-                "Error while reading schema file %s at line %d: %s", name, curLineNumber, e.getMessage()));
+
+        // Create a set of lists that will hold the schema elements read from the
+        // files.
+        LinkedList<String> attributeTypes = new LinkedList<String>();
+        LinkedList<String> objectClasses = new LinkedList<String>();
+        LinkedList<String> nameForms = new LinkedList<String>();
+        LinkedList<String> ditContentRules = new LinkedList<String>();
+        LinkedList<String> ditStructureRules = new LinkedList<String>();
+        LinkedList<String> matchingRuleUses = new LinkedList<String>();
+        LinkedList<String> ldapSyntaxes = new LinkedList<String>();
+        int curLineNumber = 0;
+
+        // Open each of the files in order and read the elements that they contain,
+        // appending them to the appropriate lists.
+        for (String name : schemaFileNames) {
+            // Read the contents of the file into a list with one schema element per
+            // list element.
+            LinkedList<StringBuilder> lines = new LinkedList<StringBuilder>();
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(new File(schemaDirectory, name)));
+                String line = reader.readLine();
+                while (line != null) {
+                    curLineNumber++;
+                    if (line.length() > 0 && !line.startsWith("#")) {
+                        if (line.startsWith(" ")) {
+                            lines.getLast().append(line.substring(1));
+                        } else {
+                            lines.add(new StringBuilder(line));
+                        }
+                    }
+                    line = reader.readLine();
+                }
+                reader.close();
+            } catch (Exception e) {
+                getLog().error(
+                        String.format("Error while reading schema file %s at line %d: %s", name, curLineNumber,
+                                e.getMessage()));
+                throw new MojoExecutionException(e.getMessage());
+            }
+
+            // Iterate through each line in the list. Find the colon and get the
+            // attribute name at the beginning. If it's someting that we don't
+            // recognize, then skip it. Otherwise, add the X-SCHEMA-FILE extension
+            // and add it to the appropriate schema element list.
+            for (StringBuilder buffer : lines) {
+                // Get the line and add the X-SCHEMA-FILE extension to the end of it.
+                // All of them should end with " )" but some might have the parenthesis
+                // crammed up against the last character so deal with that as well.
+                String line = buffer.toString().trim();
+                if (line.endsWith(" )")) {
+                    line = line.substring(0, line.length() - 1) + "X-SCHEMA-FILE '" + name + "' )";
+                } else if (line.endsWith(")")) {
+                    line = line.substring(0, line.length() - 1) + " X-SCHEMA-FILE '" + name + "' )";
+                } else {
+                    continue;
+                }
+
+                String lowerLine = line.toLowerCase();
+                if (lowerLine.startsWith("attributetypes:")) {
+                    attributeTypes.add(line);
+                } else if (lowerLine.startsWith("objectclasses:")) {
+                    objectClasses.add(line);
+                } else if (lowerLine.startsWith("nameforms:")) {
+                    nameForms.add(line);
+                } else if (lowerLine.startsWith("ditcontentrules:")) {
+                    ditContentRules.add(line);
+                } else if (lowerLine.startsWith("ditstructurerules:")) {
+                    ditStructureRules.add(line);
+                } else if (lowerLine.startsWith("matchingruleuse:")) {
+                    matchingRuleUses.add(line);
+                } else if (lowerLine.startsWith("ldapsyntaxes:")) {
+                    ldapSyntaxes.add(line);
+                }
+            }
+        }
+
+        // Write the resulting output to the merged schema file.
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath));
+            writer.write("dn: cn=schema");
+            writer.newLine();
+            writer.write("objectClass: top");
+            writer.newLine();
+            writer.write("objectClass: ldapSubentry");
+            writer.newLine();
+            writer.write("objectClass: subschema");
+            writer.newLine();
+
+            writeSchemaElements(ldapSyntaxes, writer);
+            writeSchemaElements(attributeTypes, writer);
+            writeSchemaElements(objectClasses, writer);
+            writeSchemaElements(nameForms, writer);
+            writeSchemaElements(ditContentRules, writer);
+            writeSchemaElements(ditStructureRules, writer);
+            writeSchemaElements(matchingRuleUses, writer);
+
+            writer.close();
+        } catch (Exception e) {
+            getLog().error(
+                    String.format("Error while writing concatenated schema file %s:  %s", outputFile, e.getMessage()));
             throw new MojoExecutionException(e.getMessage());
         }
-
-
-        // Iterate through each line in the list.  Find the colon and get the
-        // attribute name at the beginning.  If it's someting that we don't
-        // recognize, then skip it.  Otherwise, add the X-SCHEMA-FILE extension
-        // and add it to the appropriate schema element list.
-        for (StringBuilder buffer : lines)
-        {
-          // Get the line and add the X-SCHEMA-FILE extension to the end of it.
-          // All of them should end with " )" but some might have the parenthesis
-          // crammed up against the last character so deal with that as well.
-          String line = buffer.toString().trim();
-          if (line.endsWith(" )"))
-          {
-           line = line.substring(0, line.length() - 1) + "X-SCHEMA-FILE '" + name + "' )";
-          }
-          else if (line.endsWith(")"))
-          {
-           line = line.substring(0, line.length() - 1) + " X-SCHEMA-FILE '" + name + "' )";
-          }
-          else
-          {
-            continue;
-          }
-
-          String lowerLine = line.toLowerCase();
-          if (lowerLine.startsWith("attributetypes:"))
-          {
-            attributeTypes.add(line);
-          }
-          else if (lowerLine.startsWith("objectclasses:"))
-          {
-            objectClasses.add(line);
-          }
-          else if (lowerLine.startsWith("nameforms:"))
-          {
-            nameForms.add(line);
-          }
-          else if (lowerLine.startsWith("ditcontentrules:"))
-          {
-            ditContentRules.add(line);
-          }
-          else if (lowerLine.startsWith("ditstructurerules:"))
-          {
-            ditStructureRules.add(line);
-          }
-          else if (lowerLine.startsWith("matchingruleuse:"))
-          {
-            matchingRuleUses.add(line);
-          }
-          else if (lowerLine.startsWith("ldapsyntaxes:"))
-          {
-            ldapSyntaxes.add(line);
-          }
-        }
-      }
-
-
-      // Write the resulting output to the merged schema file.
-      try
-      {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath));
-        writer.write("dn: cn=schema");
-        writer.newLine();
-        writer.write("objectClass: top");
-        writer.newLine();
-        writer.write("objectClass: ldapSubentry");
-        writer.newLine();
-        writer.write("objectClass: subschema");
-        writer.newLine();
-
-        writeSchemaElements(ldapSyntaxes, writer);
-        writeSchemaElements(attributeTypes, writer);
-        writeSchemaElements(objectClasses, writer);
-        writeSchemaElements(nameForms, writer);
-        writeSchemaElements(ditContentRules, writer);
-        writeSchemaElements(ditStructureRules, writer);
-        writeSchemaElements(matchingRuleUses, writer);
-
-        writer.close();
-      }
-      catch (Exception e)
-      {
-        getLog().error(String.format(
-            "Error while writing concatenated schema file %s:  %s", outputFile, e.getMessage()));
-        throw new MojoExecutionException(e.getMessage());
-      }
     }
 
-
-
     private void writeSchemaElements(LinkedList<String> schemaElements, BufferedWriter writer) throws IOException {
-        for (String line : schemaElements)
-        {
-          writer.write(line);
-          writer.newLine();
+        for (String line : schemaElements) {
+            writer.write(line);
+            writer.newLine();
         }
     }
 
