@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS
   !
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -100,7 +100,7 @@
   <properties>
     <grizzlyFrameworkVersion>2.3.11</grizzlyFrameworkVersion>
     <forgerockRestVersion>2.0.2</forgerockRestVersion>
-    <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
+    <i18nFrameworkVersion>1.4.1</i18nFrameworkVersion>
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional />
     <!--
