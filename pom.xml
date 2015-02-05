@@ -91,6 +91,9 @@
   </distributionManagement>
   <modules>
     <module>opendj-config-maven-plugin</module>
+    <module>opendj-manifest-classpath-maven-plugin</module>
+    <module>opendj-logref-doc-maven-plugin</module>
+    <module>opendj-concat-schema-maven-plugin</module>
     <module>opendj-core</module>
     <module>opendj-grizzly</module>
     <module>opendj-config</module>
