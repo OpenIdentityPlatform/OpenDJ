@@ -157,23 +157,20 @@ public final class DSConfig extends ConsoleApplication {
         @Override
         public void appendUsage(StringBuilder sb, SubCommand sc, String argLongID) {
             final SubCommandHandler sch = handlers.get(sc);
-            final RelationDefinition<?, ?> rd = getRelationDefinition(sch);
-            if (rd instanceof InstantiableRelationDefinition) {
-                final PropertyDefinition<?> pd =
-                        ((InstantiableRelationDefinition<?, ?>) rd).getNamingPropertyDefinition();
-                if (pd != null) {
-                    final AbstractManagedObjectDefinition<?, ?> defn = pd.getManagedObjectDefinition();
-                    final List<PropertyDefinition<?>> props =
-                            new ArrayList<PropertyDefinition<?>>(defn.getAllPropertyDefinitions());
-                    Collections.sort(props);
-
-                    final String propPrefix = getScriptName() + "-" + sc.getName() + "-" + argLongID + "-";
-                    sb.append(EOL);
-                    toSimpleList(props, propPrefix, sb);
-                    sb.append(EOL);
-                    toVariableList(props, defn, propPrefix, sb);
-                }
+            if (sch instanceof HelpSubCommandHandler) {
+                return;
             }
+            final RelationDefinition<?, ?> rd = getRelationDefinition(sch);
+            final AbstractManagedObjectDefinition<?, ?> defn = rd.getChildDefinition();
+            final List<PropertyDefinition<?>> props =
+                    new ArrayList<PropertyDefinition<?>>(defn.getAllPropertyDefinitions());
+            Collections.sort(props);
+
+            final String propPrefix = getScriptName() + "-" + sc.getName() + "-" + argLongID + "-";
+            sb.append(EOL);
+            toSimpleList(props, propPrefix, sb);
+            sb.append(EOL);
+            toVariableList(props, defn, propPrefix, sb);
         }
 
         private RelationDefinition<?, ?> getRelationDefinition(final SubCommandHandler sch) {
@@ -245,8 +242,10 @@ public final class DSConfig extends ConsoleApplication {
                 b.append(indent).append("    </variablelist>").append(EOL);
                 b.append(indent).append("  </listitem>").append(EOL);
             } else if (prop instanceof BooleanPropertyDefinition) {
-                b.append(indent).append("  <listitem><para>true</para></listitem>").append(EOL);
-                b.append(indent).append("  <listitem><para>false</para></listitem>").append(EOL);
+                b.append(indent).append("  <listitem>").append(EOL);
+                b.append(indent).append("    <para>true</para>").append(EOL);
+                b.append(indent).append("    <para>false</para>").append(EOL);
+                b.append(indent).append("  </listitem>").append(EOL);
             } else {
                 b.append(indent).append("  <listitem>").append(EOL);
                 b.append(indent).append("    <para>");

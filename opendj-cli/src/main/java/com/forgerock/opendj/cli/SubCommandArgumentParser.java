@@ -1103,9 +1103,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
     }
 
     /** Generate reference documentation for dsconfig subcommands. */
-    private void generateReferenceDoc(final StringBuilder buffer, Collection<SubCommand> values) {
+    private void generateReferenceDoc(final StringBuilder builder, Collection<SubCommand> values) {
         for (SubCommand s : values) {
-            buffer.append(toRefSect2(s));
+            toRefSect2(s, builder);
         }
     }
 
@@ -1160,16 +1160,16 @@ public class SubCommandArgumentParser extends ArgumentParser {
      *
      * @param sc
      *            The SubCommand containing reference information.
-     * @return Refsect2 representation of the subcommand.
+     * @param sb
+     *            The string builder where to output the Refsect2 representation of the subcommand
      */
-    private String toRefSect2(SubCommand sc) {
+    private void toRefSect2(SubCommand sc, StringBuilder sb) {
         final String scriptName = getScriptName();
         if (scriptName == null) {
             throw new RuntimeException("The script name should have been set via the environment property '"
                     + PROPERTY_SCRIPT_NAME + "'.");
         }
 
-        final StringBuilder sb = new StringBuilder();
         sb.append("<refsect2 xml:id=\"").append(scriptName).append("-").append(sc.getName()).append("\">").append(EOL);
         sb.append(" <title>dsconfig ").append(sc.getName()).append("</title>").append(EOL);
         sb.append(" <para>").append(sc.getDescription()).append("</para>").append(EOL);
@@ -1206,6 +1206,5 @@ public class SubCommandArgumentParser extends ArgumentParser {
         }
 
         sb.append("</refsect2>").append(EOL);
-        return sb.toString();
     }
 }
