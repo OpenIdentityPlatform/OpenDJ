@@ -349,6 +349,24 @@
             </lifecycleMappingMetadata>
           </configuration>
         </plugin>
+        <!-- This is needed to use annotations in maven plugins with maven 3.0.x -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-plugin-plugin</artifactId>
+            <version>3.2</version>
+            <configuration>
+                <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>mojo-descriptor</id>
+                    <phase>process-classes</phase>
+                    <goals>
+                        <goal>descriptor</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
