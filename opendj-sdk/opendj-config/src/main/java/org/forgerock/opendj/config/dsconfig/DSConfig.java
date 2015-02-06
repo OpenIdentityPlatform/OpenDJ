@@ -437,9 +437,7 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitACI(ACIPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append(ACI_SYNTAX_REL_URL);
-                    b.append("</para>").append(EOL);
+                    b.append(indent).append("<para>").append(ACI_SYNTAX_REL_URL).append("</para>").append(EOL);
                     return null;
                 }
 
@@ -552,17 +550,13 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitIPAddress(IPAddressPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append("An IP address");
-                    b.append("</para>").append(EOL);
+                    b.append(indent).append("<para>An IP address</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitIPAddressMask(IPAddressMaskPropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append("An IP address mask");
-                    b.append("</para>").append(EOL);
+                    b.append(indent).append("<para>An IP address mask</para>").append(EOL);
                     return null;
                 }
 
@@ -596,9 +590,7 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitUnknown(PropertyDefinition prop, Void p) {
-                    b.append(indent).append("<para>");
-                    b.append("Unknown");
-                    b.append("</para>").append(EOL);
+                    b.append(indent).append("<para>Unknown</para>").append(EOL);
                     return null;
                 }
             };
