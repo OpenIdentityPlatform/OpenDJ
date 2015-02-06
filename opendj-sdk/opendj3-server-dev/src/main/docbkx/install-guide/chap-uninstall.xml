@@ -49,7 +49,7 @@
     Run the
     <link
      xlink:show="new"
-     xlink:href="admin-guide#uninstall-1"
+     xlink:href="reference#uninstall-1"
      xlink:role="http://docbook.org/xlink/role/olink"
     ><command>uninstall</command></link> command.
    </para>
