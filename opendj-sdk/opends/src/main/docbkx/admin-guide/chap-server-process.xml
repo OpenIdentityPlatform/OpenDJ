@@ -52,7 +52,7 @@
      Use the
      <link
       xlink:show="new"
-      xlink:href="admin-guide#start-ds-1"
+      xlink:href="reference#start-ds-1"
       xlink:role="http://docbook.org/xlink/role/olink"
      ><command>start-ds</command></link> command.
     </para>
@@ -89,7 +89,7 @@ ubuntu$ <userinput>sudo service opendj start</userinput>
      (UNIX) Create an RC script by using the
      <link
       xlink:show="new"
-      xlink:href="admin-guide#create-rc-script-1"
+      xlink:href="reference#create-rc-script-1"
       xlink:role="http://docbook.org/xlink/role/olink"
      ><command>create-rc-script</command></link> command,
      and then use the script to start the server.
@@ -130,7 +130,7 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
      (Windows) Register OpenDJ as a Windows Service by using the
      <link
       xlink:show="new"
-      xlink:href="admin-guide#windows-service"
+      xlink:href="reference#windows-service"
       xlink:role="http://docbook.org/xlink/role/olink"
      ><command>windows-service</command></link> command,
      and then manage the service through Windows administration tools.
@@ -163,7 +163,7 @@ C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput
      Use the
      <link
       xlink:show="new"
-      xlink:href="admin-guide#stop-ds-1"
+      xlink:href="reference#stop-ds-1"
       xlink:role="http://docbook.org/xlink/role/olink"
      ><command>stop-ds</command></link> command.
     </para>

@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-ldap-operations'
@@ -63,7 +63,7 @@
    The
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldapsearch-1"
+    xlink:href="reference#ldapsearch-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldapsearch</command></link> command
    thus takes at minimum a search base DN option and an LDAP filter.
@@ -372,7 +372,7 @@ mail: kvaughan@example.com</computeroutput>
    <title>Search: Language Subtype</title>
 
    <para>OpenDJ directory server supports many language subtypes. See the
-   chapter on <link xlink:href="admin-guide#appendix-l10n"
+   chapter on <link xlink:href="reference#appendix-l10n"
    xlink:role="http://docbook.org/xlink/role/olink"
    ><citetitle>Localization</citetitle></link> for a list.</para>
 
@@ -437,7 +437,7 @@ $ <userinput>base64 decode -d RnJlZMOpcmlxdWUgRHVwb250</userinput>
     In this example, Kirsten Vaughan uses the
     <link
      xlink:show="new"
-     xlink:href="admin-guide#ldapcompare-1"
+     xlink:href="reference#ldapcompare-1"
      xlink:role="http://docbook.org/xlink/role/olink"
     ><command>ldapcompare</command></link> command
     to check whether the hashed password value matches the stored value
@@ -471,7 +471,7 @@ Compare operation returned true for entry
    You can use the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldapmodify-1"
+    xlink:href="reference#ldapmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldapmodify</command></link> command to make changes.
   </para>
@@ -616,7 +616,7 @@ MODIFY operation successful for DN uid=scarter,ou=people,dc=example,dc=com</comp
     <para>OpenDJ offers a couple of features to help you in this situation.
     One of the features is the <link
     xlink:role="http://docbook.org/xlink/role/olink"
-    xlink:href="admin-guide#assertion-request-control">LDAP Assertion
+    xlink:href="reference#assertion-request-control">LDAP Assertion
     Control</link>, used to tell OpenDJ to perform the modify only if
     an assertion you make stays true. The other feature is OpenDJ's support
     for <link xlink:href="http://tools.ietf.org/html/rfc2616#section-3.11"
@@ -1020,7 +1020,7 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</computero
    With the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldappasswordmodify-1"
+    xlink:href="reference#ldappasswordmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldappasswordmodify</command></link> command,
    authorized users can change and reset user passwords.
@@ -1098,7 +1098,7 @@ $ <userinput>ldappasswordmodify \
     You could also accomplish password reset with the
     <link
      xlink:show="new"
-     xlink:href="admin-guide#manage-account-1"
+     xlink:href="reference#manage-account-1"
      xlink:role="http://docbook.org/xlink/role/olink"
     ><command>manage-account</command></link> command,
     although <command>set-password-is-reset</command> is a hidden option,

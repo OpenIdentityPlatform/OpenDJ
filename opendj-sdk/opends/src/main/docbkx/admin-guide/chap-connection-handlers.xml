@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-connection-handlers'
@@ -38,7 +38,7 @@
   and update the configuration using the
   <link
    xlink:show="new"
-   xlink:href="admin-guide#dsconfig-1"
+   xlink:href="reference#dsconfig-1"
    xlink:role="http://docbook.org/xlink/role/olink"
   ><command>dsconfig</command></link> command.
  </para>
@@ -1194,7 +1194,7 @@ $ <userinput>dsconfig \
    by editing the configuration file for the HTTP connection handler, by
    default <filename>/path/to/opendj/config/http-config.json</filename>. The
    configuration is described in the appendix, <link xlink:show="new"
-   xlink:href="admin-guide#appendix-rest2ldap"
+   xlink:href="reference#appendix-rest2ldap"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
    Configuration</citetitle></link>. The default mapping works out of the box
    with Example.com data generated as part of the setup process and with
@@ -1377,7 +1377,7 @@ $ <userinput>curl \
 
    <step>
     <para>Adjust the configuration for your directory service as described in
-    <link xlink:href="admin-guide#appendix-rest2ldap"
+    <link xlink:href="reference#appendix-rest2ldap"
     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
     Configuration</citetitle></link>.</para>
    </step>

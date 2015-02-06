@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-pwd-policy'
@@ -344,7 +344,7 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</co
    You configure server based password policies by using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#dsconfig-1"
+    xlink:href="reference#dsconfig-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>dsconfig</command></link> command.
    Notice that server based password policies are
@@ -839,7 +839,7 @@ pwdPolicySubentry: cn=People Password Policy,dc=example,dc=com</computeroutput>
    by using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldappasswordmodify-1"
+    xlink:href="reference#ldappasswordmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldappasswordmodify</command></link> command.
   </para>

@@ -389,14 +389,14 @@ $ <userinput>dsconfig \
    You modify index configurations by using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#dsconfig-1"
+    xlink:href="reference#dsconfig-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>dsconfig</command></link> command.
    The configuration changes then take effect
    after you rebuild the index according to the new configuration, using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#rebuild-index-1"
+    xlink:href="reference#rebuild-index-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>rebuild-index</command></link> command.
    The <command>dsconfig --help-database</command> command lists subcommands
@@ -640,7 +640,7 @@ Rebuild Index task 20120131164324838 has been successfully completed</computerou
      Start by testing the index status by using the
      <link
       xlink:show="new"
-      xlink:href="admin-guide#dbtest-1"
+      xlink:href="reference#dbtest-1"
       xlink:role="http://docbook.org/xlink/role/olink"
      ><command>dbtest</command></link> command.
      The final column show in the output is the Index Valid column,
@@ -776,7 +776,7 @@ Undefined keys: [1] [2]</computeroutput>
    <para>
     For an explanation of the output
     of the <command>dbtest list-index-status</command> command, see
-    <link xlink:show="new" xlink:href="admin-guide#dbtest-1"
+    <link xlink:show="new" xlink:href="reference#dbtest-1"
           xlink:role="http://docbook.org/xlink/role/olink">dbtest(1)</link>.
    </para>
 
@@ -844,7 +844,7 @@ $ <userinput>rebuild-index \
    and that indexes do not contain errors by using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#verify-index-1"
+    xlink:href="reference#verify-index-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>verify-index</command></link> command.
   </para>
