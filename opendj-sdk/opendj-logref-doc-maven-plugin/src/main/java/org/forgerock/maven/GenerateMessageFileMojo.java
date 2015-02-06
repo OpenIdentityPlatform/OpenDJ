@@ -162,12 +162,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
 
         /**
          * Build log reference entry for an log message.
-         *
-         * @param msgPropKey
-         * @param category
-         * @param severity
-         * @param ordinal
-         * @param formatString
          */
         public MessageRefEntry(final String msgPropKey, final Integer ordinal, final String formatString) {
             this.formatString = formatString;
@@ -222,11 +216,10 @@ public class GenerateMessageFileMojo extends AbstractMojo {
          */
         @Override
         public int compareTo(MessageRefEntry mre) {
-            if (this.ordinal == null || mre.ordinal == null) {
-                return 0;
-            } else {
+            if (this.ordinal != null && mre.ordinal != null) {
                 return this.ordinal.compareTo(mre.ordinal);
             }
+            return 0;
         }
     }
 
@@ -292,12 +285,9 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         }
 
         private String getVariablelistHead() {
-            StringBuilder builder = new StringBuilder(getXMLPreamble());
-            builder.append(" <variablelist xml:id=\"log-ref-").append(this.category).append("\" ")
-                    .append(getBaseElementAttrs()).append(">").append(EOL).append("  <title>Log Message Category: ")
-                    .append(category).append("</title>").append(EOL);
-
-            return builder.toString();
+            return getXMLPreamble()
+                + " <variablelist xml:id=\"log-ref-" + this.category + "\" " + getBaseElementAttrs() + ">" + EOL
+                + "  <title>Log Message Category: " + category + "</title>" + EOL;
         }
 
         private String getVariablelistTail() {
@@ -313,21 +303,18 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         /**
          * Creates a message property key from a string value.
          *
-         * @param keyString3
+         * @param key
          *            from properties file
          * @return MessagePropertyKey created from string
          */
         public static MessagePropertyKey parseString(String key) {
-            String description;
-            Integer ordinal = null;
-
             int li = key.lastIndexOf("_");
-            if (li != -1) {
-                description = key.substring(0, li).toUpperCase();
-            } else {
+            if (li == -1) {
                 throw new IllegalArgumentException("Incorrectly formatted key " + key);
             }
 
+            final String description = key.substring(0, li).toUpperCase();
+            Integer ordinal = null;
             try {
                 String ordString = key.substring(li + 1);
                 ordinal = Integer.parseInt(ordString);
@@ -362,12 +349,10 @@ public class GenerateMessageFileMojo extends AbstractMojo {
         /** {@inheritDoc} */
         @Override
         public String toString() {
-            StringBuilder builder = new StringBuilder(description);
             if (ordinal != null) {
-                builder.append("_").append(ordinal);
+                return description + "_" + ordinal;
             }
-
-            return builder.toString();
+            return description;
         }
 
         /** {@inheritDoc} */
@@ -379,7 +364,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
                 return ordinal.compareTo(k.ordinal);
             }
         }
-
     }
 
     /**
@@ -535,7 +519,6 @@ public class GenerateMessageFileMojo extends AbstractMojo {
      */
     public void checkDestJava(File dest) throws Exception {
         File descriptorsRegFile = new File(dest.getParentFile(), DESCRIPTORS_REG);
-
         if (registryFileName != null) {
             // if REGISTRY_FILE_NAME is already set, ensure that we computed the
             // same one
@@ -550,5 +533,4 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             registryFileName = descriptorsRegFile.getCanonicalPath();
         }
     }
-
 }
