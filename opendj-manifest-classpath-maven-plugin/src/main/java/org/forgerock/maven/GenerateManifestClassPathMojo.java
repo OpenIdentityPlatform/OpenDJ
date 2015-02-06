@@ -136,12 +136,11 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
         return classpath.toString();
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> getClasspathItems() throws DependencyResolutionRequiredException {
         final List<String> classpathItems = new ArrayList<String>();
 
         // add project dependencies
-        for (String artifactFile : (List<String>) project.getRuntimeClasspathElements()) {
+        for (String artifactFile : project.getRuntimeClasspathElements()) {
             final File file = new File(artifactFile);
             if (file.getAbsoluteFile().isFile()) {
                 final Artifact artifact = findArtifactWithFile(project.getArtifacts(), file);
@@ -189,10 +188,9 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
 
     private Artifact findArtifactWithFile(Set<Artifact> artifacts, File file) {
         for (Artifact artifact : artifacts) {
-            if (artifact.getFile() != null) {
-                if (artifact.getFile().equals(file)) {
-                    return artifact;
-                }
+            if (artifact.getFile() != null
+                    && artifact.getFile().equals(file)) {
+                return artifact;
             }
         }
         return null;
