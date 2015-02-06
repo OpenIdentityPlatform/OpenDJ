@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-understanding-ldap'
@@ -359,7 +359,7 @@ mail: escape@example.com</computeroutput>
   responses for entry change notification, password policy, and paged results.</para>
 
   <para>For the list of supported LDAP controls, see
-  <link xlink:show="new" xlink:href="admin-guide#appendix-controls"
+  <link xlink:show="new" xlink:href="reference#appendix-controls"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
   Controls</citetitle></link>.</para>
 
@@ -375,7 +375,7 @@ mail: escape@example.com</computeroutput>
   Transport Layer Security negotiations to protect communications.</para>
 
   <para>For the list of supported LDAP extended operations, see
-  <link xlink:show="new" xlink:href="admin-guide#appendix-extended-ops"
+  <link xlink:show="new" xlink:href="reference#appendix-extended-ops"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP Extended
   Operations</citetitle></link>.</para>
  </section>

@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-tuning'
@@ -208,7 +208,7 @@
   production, and then conduct experiments to determine how best to meet
   the requirements defined in the SLA.</para>
   
-  <para>Use <link xlink:show="new" xlink:href="admin-guide#make-ldif-1"
+  <para>Use <link xlink:show="new" xlink:href="reference#make-ldif-1"
   xlink:role="http://docbook.org/xlink/role/olink">make-ldif</link> to generate
   sample data that match what you expect to find in production.</para>
   
@@ -296,7 +296,7 @@ $ <userinput>dsconfig \
      and apply the changes with the
      <link
       xlink:show="new"
-      xlink:href="admin-guide#dsjavaproperties-1"
+      xlink:href="reference#dsjavaproperties-1"
       xlink:role="http://docbook.org/xlink/role/olink"
      ><command>dsjavaproperties</command></link> command.
     </para>
@@ -434,7 +434,7 @@ $ <userinput>import-ldif \
     Use the
     <link
      xlink:show="new"
-     xlink:href="admin-guide#import-ldif-1"
+     xlink:href="reference#import-ldif-1"
      xlink:role="http://docbook.org/xlink/role/olink"
     ><command>import-ldif</command></link> command
     with the <option>--tmpdirectory</option> option
