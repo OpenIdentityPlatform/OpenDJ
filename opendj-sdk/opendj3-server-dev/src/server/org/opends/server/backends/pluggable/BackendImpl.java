@@ -759,8 +759,8 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
     BackupManager backupManager = new BackupManager(getBackendID());
     File parentDir = getFileForPath(cfg.getDBDirectory());
     File backendDir = new File(parentDir, cfg.getBackendId());
-    // Storage storage = newStorageInstance();
-    // backupConfig.setFilesToBackupFilter(storage.getFilesToBackupFilter());
+    Storage storage = newStorageInstance();
+    backupConfig.setFilesToBackupFilter(storage.getFilesToBackupFilter());
     backupManager.createBackup(backendDir, backupConfig);
   }
 

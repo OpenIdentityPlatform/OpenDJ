@@ -61,7 +61,7 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
- * A backup manager for JE backends.
+ * A backup manager for backends.
  */
 public class BackupManager
 {
@@ -106,7 +106,7 @@ public class BackupManager
 
 
   /**
-   * Construct a backup manager for a JE backend.
+   * Construct a backup manager for a backend.
    * @param backendID The ID of the backend instance for which a backup
    * manager is required.
    */
@@ -116,11 +116,11 @@ public class BackupManager
   }
 
   /**
-   * Create a backup of the JE backend.  The backup is stored in a single zip
+   * Create a backup of the backend.  The backup is stored in a single zip
    * file in the backup directory.  If the backup is incremental, then the
-   * first entry in the zip is a text file containing a list of all the JE
+   * first entry in the zip is a text file containing a list of all the
    * log files that are unchanged since the previous backup.  The remaining
-   * zip entries are the JE log files themselves, which, for an incremental,
+   * zip entries are the log files themselves, which, for an incremental,
    * only include those files that have changed.
    * @param backendDir The directory of the backend instance for
    * which the backup is required.
@@ -139,6 +139,7 @@ public class BackupManager
     boolean         encrypt         = backupConfig.encryptData();
     boolean         hash            = backupConfig.hashData();
     boolean         signHash        = backupConfig.signHash();
+    FilenameFilter  filenameFilter  = backupConfig.getFilesToBackupFilter();
 
 
     HashMap<String,String> backupProperties = new HashMap<String,String>();
@@ -321,17 +322,8 @@ public class BackupManager
       zipStream.setLevel(Deflater.NO_COMPRESSION);
     }
 
-    // Get a list of all the log files comprising the database.
-    FilenameFilter filenameFilter = new FilenameFilter()
-    {
-      @Override
-      public boolean accept(File d, String name)
-      {
-        return name.endsWith(".jdb");
-      }
-    };
-
     File[] logFiles;
+
     try
     {
       logFiles = backendDir.listFiles(filenameFilter);
@@ -367,7 +359,7 @@ public class BackupManager
 
     // Sort the log files from oldest to youngest since this is the order
     // in which they must be copied.
-    // This is easy since the files are created in alphabetical order by JE.
+    // This is easy since the files are created in alphabetical order.
     Arrays.sort(logFiles);
 
     try
@@ -464,8 +456,7 @@ public class BackupManager
           been written to new log files, so we must include those new files.
           */
           final String latest = logFiles[logFiles.length-1].getName();
-          FilenameFilter filter = new JELatestFileFilter(latest,
-              latestFileSize);
+          FilenameFilter filter = new DBLatestFileFilter(latest, latestFileSize, filenameFilter);
 
           try
           {
@@ -581,7 +572,7 @@ public class BackupManager
 
 
   /**
-   * Restore a JE backend from backup, or verify the backup.
+   * Restore a backend from backup, or verify the backup.
    * @param backendDir The configuration of the backend instance to be
    * restored.
    * @param  restoreConfig The configuration to use when performing the restore.
@@ -1236,22 +1227,26 @@ public class BackupManager
   }
 
   /**
-   * This class implements a FilenameFilter to detect the last file
-   * from a JE database.
+   * This class implements a FilenameFilter to detect the last file from a database.
    */
-  private static class JELatestFileFilter implements FilenameFilter {
+  private static class DBLatestFileFilter implements FilenameFilter {
     private final String latest;
     private final long latestSize;
+    private FilenameFilter filenameFilter;
 
-    public JELatestFileFilter(String latest, long latestSize) {
+    public DBLatestFileFilter(String latest, long latestSize, FilenameFilter filenameFilter) {
       this.latest = latest;
       this.latestSize = latestSize;
+      this.filenameFilter = filenameFilter;
     }
 
     @Override
     public boolean accept(File d, String name)
     {
-      if (!name.endsWith(".jdb")) return false;
+      if (!filenameFilter.accept(d, name))
+      {
+        return false;
+      }
       int compareTo = name.compareTo(latest);
       return compareTo > 0 || compareTo == 0 && d.length() > latestSize;
     }

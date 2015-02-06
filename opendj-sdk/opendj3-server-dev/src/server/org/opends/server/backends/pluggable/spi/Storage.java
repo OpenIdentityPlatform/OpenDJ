@@ -26,6 +26,7 @@
 package org.opends.server.backends.pluggable.spi;
 
 import java.io.Closeable;
+import java.io.FilenameFilter;
 
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 
@@ -104,6 +105,12 @@ public interface Storage extends Closeable
    * @return {@code true} if the storage engine is in a valid state, {@code false} otherwise
    */
   boolean isValid();
+
+  /**
+   * Returns a filename filter which selects the files to be included in a backup.
+   * @return a filename filter which selects the files to be included in a backup
+   */
+  FilenameFilter getFilesToBackupFilter();
 
   /** {@inheritDoc} */
   @Override
