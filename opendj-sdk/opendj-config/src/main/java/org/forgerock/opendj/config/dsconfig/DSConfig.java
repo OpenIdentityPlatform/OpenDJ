@@ -307,7 +307,7 @@ public final class DSConfig extends ConsoleApplication {
                 b.append("        <listitem>").append(EOL);
                 b.append("          <variablelist>").append(EOL);
                 appendVarlistentry(b, "Description", getDescriptionString(prop), indent);
-                appendVarlistentry(b, "Default Value", getDefaultBehaviorString(prop), indent);
+                appendDefaultBehavior(b, indent, prop);
                 appendAllowedValues(b, prop, indent);
                 appendVarlistentry(b, "Multi-valued", getYN(prop, MULTI_VALUED), indent);
                 appendVarlistentry(b, "Required", getYN(prop, MANDATORY), indent);
@@ -331,22 +331,20 @@ public final class DSConfig extends ConsoleApplication {
             return b;
         }
 
+        private void appendDefaultBehavior(StringBuilder b, final String indent, PropertyDefinition<?> prop) {
+            b.append(indent).append("<varlistentry>").append(EOL);
+            b.append(indent).append("  <term>").append("Default Value").append("</term>").append(EOL);
+            b.append(indent).append("  <listitem>").append(EOL);
+            appendDefaultBehaviorString(b, indent + "    ", prop);
+            b.append(indent).append("  </listitem>").append(EOL);
+            b.append(indent).append("</varlistentry>").append(EOL);
+        }
+
         private void appendAllowedValues(StringBuilder b, PropertyDefinition<?> prop, String indent) {
             b.append(indent).append("<varlistentry>").append(EOL);
             b.append(indent).append("  <term>").append("Allowed Values").append("</term>").append(EOL);
             b.append(indent).append("  <listitem>").append(EOL);
-            if (prop instanceof EnumPropertyDefinition) {
-                b.append(indent).append("    <variablelist>").append(EOL);
-                appendSyntax(b, prop, indent + "      ");
-                b.append(indent).append("    </variablelist>").append(EOL);
-            } else if (prop instanceof BooleanPropertyDefinition) {
-                b.append(indent).append("    <para>true</para>").append(EOL);
-                b.append(indent).append("    <para>false</para>").append(EOL);
-            } else {
-                b.append(indent).append("    <para>");
-                appendSyntax(b, prop, indent);
-                b.append("</para>").append(EOL);
-            }
+            appendSyntax(b, prop, indent + "    ");
             b.append(indent).append("  </listitem>").append(EOL);
             b.append(indent).append("</varlistentry>").append(EOL);
         }
@@ -389,33 +387,48 @@ public final class DSConfig extends ConsoleApplication {
             return prop.hasOption(option) ? "Yes (Use --advanced in interactive mode.)" : "No";
         }
 
-        private String getDefaultBehaviorString(PropertyDefinition<?> prop) {
-            DefaultBehaviorProvider<?> defaultBehavior = prop.getDefaultBehaviorProvider();
+        private void appendDefaultBehaviorString(StringBuilder b, String indent, PropertyDefinition<?> prop) {
+            b.append(indent);
+            final DefaultBehaviorProvider<?> defaultBehavior = prop.getDefaultBehaviorProvider();
             if (defaultBehavior instanceof UndefinedDefaultBehaviorProvider) {
-                return "None";
+                b.append("<para>None</para>").append(EOL);
+                return;
             } else if (defaultBehavior instanceof DefinedDefaultBehaviorProvider) {
                 DefinedDefaultBehaviorProvider<?> behavior = (DefinedDefaultBehaviorProvider<?>) defaultBehavior;
-                final StringBuilder res = new StringBuilder();
-                for (Iterator<String> it = behavior.getDefaultValues().iterator(); it.hasNext();) {
-                    String str = it.next();
-                    res.append(str).append(it.hasNext() ? "\n" : ""); // TODO JNR refactor
+                final Collection<String> defaultValues = behavior.getDefaultValues();
+                if (defaultValues.size() == 0) {
+                    b.append("<para>None</para>").append(EOL);
+                    return;
+                } else if (defaultValues.size() == 1) {
+                    b.append("<para>").append(defaultValues.iterator().next()).append("</para>").append(EOL);
+                    return;
+                } else {
+                    final Iterator<String> it = defaultValues.iterator();
+                    b.append("<para>").append(it.next()).append("</para>");
+                    for (; it.hasNext();) {
+                        final String str = it.next();
+                        b.append(EOL).append(indent).append("<para>").append(str).append("</para>");
+                    }
+                    b.append(EOL);
+                    return;
                 }
-                return res.toString();
             } else if (defaultBehavior instanceof AliasDefaultBehaviorProvider) {
                 AliasDefaultBehaviorProvider<?> behavior = (AliasDefaultBehaviorProvider<?>) defaultBehavior;
-                return behavior.getSynopsis().toString();
+                b.append("<para>").append(behavior.getSynopsis().toString()).append("</para>").append(EOL);
+                return;
             } else if (defaultBehavior instanceof RelativeInheritedDefaultBehaviorProvider) {
                 final RelativeInheritedDefaultBehaviorProvider<?> behavior =
                         (RelativeInheritedDefaultBehaviorProvider<?>) defaultBehavior;
-                return getDefaultBehaviorString(
+                appendDefaultBehaviorString(b, indent,
                         behavior.getManagedObjectDefinition().getPropertyDefinition(behavior.getPropertyName()));
+                return;
             } else if (defaultBehavior instanceof AbsoluteInheritedDefaultBehaviorProvider) {
                 final AbsoluteInheritedDefaultBehaviorProvider<?> behavior =
                         (AbsoluteInheritedDefaultBehaviorProvider<?>) defaultBehavior;
-                return getDefaultBehaviorString(
+                appendDefaultBehaviorString(b, indent,
                         behavior.getManagedObjectDefinition().getPropertyDefinition(behavior.getPropertyName()));
+                return;
             }
-            return "";
         }
 
         private void appendSyntax(final StringBuilder b, PropertyDefinition<?> prop, final String indent) {
@@ -424,12 +437,15 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitACI(ACIPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append(ACI_SYNTAX_REL_URL);
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitAggregation(AggregationPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     final RelationDefinition<?, ?> rel = prop.getRelationDefinition();
                     final String linkStr = getLink(rel.getName() + ".html");
                     b.append("The DN of any ").append(linkStr).append(". ");
@@ -437,39 +453,49 @@ public final class DSConfig extends ConsoleApplication {
                     if (synopsis != null) {
                         b.append(synopsis);
                     }
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitAttributeType(AttributeTypePropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append("The name of an attribute type defined in the server schema.");
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitBoolean(BooleanPropertyDefinition prop, Void p) {
-                    throw new RuntimeException("This case should be handled by the calling code.");
+                    b.append(indent).append("<para>true</para>").append(EOL);
+                    b.append(indent).append("<para>false</para>").append(EOL);
+                    return null;
                 }
 
                 @Override
                 public String visitClass(ClassPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append("A java class that implements or extends the class(es) :")
                         .append(Utils.joinAsString(EOL, prop.getInstanceOfInterface()));
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitDN(DNPropertyDefinition prop, Void p) {
-                    final DN baseDN = prop.getBaseDN();
+                    b.append(indent).append("<para>");
                     b.append("A valid DN.");
+                    final DN baseDN = prop.getBaseDN();
                     if (baseDN != null) {
-                        b.append(baseDN);
+                        b.append(" ").append(baseDN);
                     }
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitDuration(DurationPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append(DURATION_SYNTAX_REL_URL).append(". ");
                     if (prop.isAllowUnlimited()) {
                         b.append(ALLOW_UNLIMITED).append(" ");
@@ -484,6 +510,7 @@ public final class DSConfig extends ConsoleApplication {
                         b.append("Upper limit is ").append(valueOf(baseUnit, prop.getUpperLimit()))
                          .append(" ").append(baseUnit.getLongName()).append(". ");
                     }
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
@@ -493,17 +520,22 @@ public final class DSConfig extends ConsoleApplication {
 
                 @Override
                 public String visitEnum(EnumPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>").append(EOL);
+                    b.append(indent).append("  <variablelist>").append(EOL);
                     final Class<?> en = prop.getEnumClass();
                     final Object[] constants = en.getEnumConstants();
                     for (Object enumConstant : constants) {
                         final LocalizableMessage valueSynopsis = prop.getValueSynopsis((Enum) enumConstant);
-                        appendVarlistentry(b, enumConstant.toString(), valueSynopsis, indent);
+                        appendVarlistentry(b, enumConstant.toString(), valueSynopsis, indent + "    ");
                     }
+                    b.append(indent).append("  </variablelist>").append(EOL);
+                    b.append(indent).append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitInteger(IntegerPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append("An integer value. Lower value is ").append(prop.getLowerLimit()).append(".");
                     if (prop.getUpperLimit() != null) {
                         b.append(" Upper value is ").append(prop.getUpperLimit()).append(".");
@@ -514,23 +546,29 @@ public final class DSConfig extends ConsoleApplication {
                     if (prop.getUnitSynopsis() != null) {
                         b.append(" Unit is ").append(prop.getUnitSynopsis()).append(".");
                     }
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitIPAddress(IPAddressPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append("An IP address");
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitIPAddressMask(IPAddressMaskPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append("An IP address mask");
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitSize(SizePropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     if (prop.getLowerLimit() != 0) {
                         b.append(" Lower value is ").append(prop.getLowerLimit()).append(".");
                     }
@@ -540,22 +578,27 @@ public final class DSConfig extends ConsoleApplication {
                     if (prop.isAllowUnlimited()) {
                         b.append(" ").append(ALLOW_UNLIMITED);
                     }
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitString(StringPropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     if (prop.getPatternSynopsis() != null) {
                         b.append(prop.getPatternSynopsis());
                     } else {
                         b.append("A String");
                     }
+                    b.append("</para>").append(EOL);
                     return null;
                 }
 
                 @Override
                 public String visitUnknown(PropertyDefinition prop, Void p) {
+                    b.append(indent).append("<para>");
                     b.append("Unknown");
+                    b.append("</para>").append(EOL);
                     return null;
                 }
             };
