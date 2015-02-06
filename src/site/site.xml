@@ -87,6 +87,7 @@
    <item name="Release Notes" href="./opendj-server/doc/bootstrap/release-notes/index.html" />
    <item name="Installation Guide" href="./opendj-server/doc/bootstrap/install-guide/index.html" />
    <item name="Administration Guide" href="./opendj-server/doc/bootstrap/admin-guide/index.html" />
+   <item name="Reference" href="./opendj-server/doc/bootstrap/reference/index.html" />
    <item name="Config Reference" href="./opendj-server/configref/index.html" />
    <item name="Plugin Javadoc" href="./opendj-server/javadoc/index.html" />
    <item name="SDK Release Notes" href="./doc/bootstrap/sdk-release-notes/index.html" />

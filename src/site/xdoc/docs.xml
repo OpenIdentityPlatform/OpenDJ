@@ -57,6 +57,12 @@
      <a href="./opendj-server/doc/OpenDJ-Admin-Guide.pdf">PDF</a>
     </dd>
 
+    <dt>Reference</dt>
+    <dd>
+     <a href="./opendj-server/doc/bootstrap/reference/index.html">HTML</a>,
+     <a href="./opendj-server/doc/OpenDJ-Reference.pdf">PDF</a>
+    </dd>
+
     <dt>Configuration Reference</dt>
     <dd><a href="./opendj-server/configref/index.html">HTML</a></dd>
     
