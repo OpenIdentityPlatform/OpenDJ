@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <refentry xml:id='make-ldif-1'
@@ -30,7 +30,7 @@
  xsi:schemaLocation='http://docbook.org/ns/docbook
                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'>
- <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
+ <info><copyright><year>2011-2015</year><holder>ForgeRock AS.</holder></copyright></info>
  <refmeta>
   <refentrytitle>make-ldif</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -121,7 +121,7 @@ LDIF processing complete.  10003 entries written</computeroutput>
  </refsect1>
  <refsect1>
   <title>See Also</title>
-  <para><link xlink:href="admin-guide#make-ldif-template-5"
+  <para><link xlink:href="reference#make-ldif-template-5"
   xlink:role="http://docbook.org/xlink/role/olink"><citerefentry><refentrytitle
   >make-ldif.template</refentrytitle><manvolnum>5</manvolnum
   ></citerefentry></link></para>

@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2015 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-privileges-acis'
@@ -902,7 +902,7 @@ aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
    you configure privileges using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#dsconfig-1"
+    xlink:href="reference#dsconfig-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>dsconfig</command></link> command.
   </para>
@@ -912,7 +912,7 @@ aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
    you add privileges with the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldapmodify-1"
+    xlink:href="reference#ldapmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldapmodify</command></link> command.
   </para>

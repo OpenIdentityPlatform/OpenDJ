@@ -82,7 +82,7 @@ $ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></user
   and then run the
   <link
    xlink:show="new"
-   xlink:href="admin-guide#setup-1"
+   xlink:href="reference#setup-1"
    xlink:role="http://docbook.org/xlink/role/olink"
   ><command>setup</command></link> command,
   <command>opendj/setup</command> (UNIX),
@@ -294,7 +294,7 @@ C:\><userinput>msiexec /i OpenDJ-${docTargetVersion}.msi /l* install.log /q OPEN
     To launch OpenDJ Control Panel again later, run the
     <link
      xlink:show="new"
-     xlink:href="admin-guide#control-panel-1"
+     xlink:href="reference#control-panel-1"
      xlink:role="http://docbook.org/xlink/role/olink"
     ><command>control-panel</command></link> command.
     Depending on your host system, this command is one of the following.

@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-account-lockout'
@@ -57,13 +57,13 @@
   This chapter shows you how to set up account lockout policies by using the
   <link
    xlink:show="new"
-   xlink:href="admin-guide#dsconfig-1"
+   xlink:href="reference#dsconfig-1"
    xlink:role="http://docbook.org/xlink/role/olink"
   ><command>dsconfig</command></link> command,
   and how to intervene manually to lock and unlock accounts by using the
   <link
    xlink:show="new"
-   xlink:href="admin-guide#manage-account-1"
+   xlink:href="reference#manage-account-1"
    xlink:role="http://docbook.org/xlink/role/olink"
   ><command>manage-account</command></link> command.
  </para>
@@ -244,7 +244,7 @@ $ <userinput>manage-account \
   automatically scan entries to send password expiry notifications. OpenDJ does
   implement controls that you can pass in an LDAP search to determine whether a
   user's password is about to expire. See the appendix on
-  <link xlink:href="admin-guide#appendix-controls" xlink:show="new"
+  <link xlink:href="reference#appendix-controls" xlink:show="new"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
   Controls</citetitle></link> for a list. You can send notifications then
   based on the results of your search.</para>

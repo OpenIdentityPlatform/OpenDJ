@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-admin-tools'
@@ -61,7 +61,7 @@
     Start OpenDJ Control Panel by running the
     <link
      xlink:show="new"
-     xlink:href="admin-guide#control-panel-1"
+     xlink:href="reference#control-panel-1"
      xlink:role="http://docbook.org/xlink/role/olink"
     ><command>control-panel</command></link> command.
    </para>
@@ -240,14 +240,14 @@
   
   <variablelist>
    <varlistentry>
-    <term><link xlink:href="admin-guide#backup-1"
+    <term><link xlink:href="reference#backup-1"
     xlink:role="http://docbook.org/xlink/role/olink">backup</link></term>
     <listitem>
      <para>Backup or schedule backup of directory data.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#base64-1"
+    <term><link xlink:href="reference#base64-1"
     xlink:role="http://docbook.org/xlink/role/olink">base64</link></term>
     <listitem>
      <para>Encode and decode data in base64 format.</para>
@@ -256,7 +256,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#create-rc-script-1"
+    <term><link xlink:href="reference#create-rc-script-1"
     xlink:role="http://docbook.org/xlink/role/olink">create-rc-script</link>
     (UNIX)</term>
     <listitem>
@@ -266,14 +266,14 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#dbtest-1"
+    <term><link xlink:href="reference#dbtest-1"
     xlink:role="http://docbook.org/xlink/role/olink">dbtest</link></term>
     <listitem>
      <para>Debug JE databases.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#dsconfig-1"
+    <term><link xlink:href="reference#dsconfig-1"
     xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link></term>
     <listitem>
      <para>The <command>dsconfig</command> command is the primary command-line
@@ -291,7 +291,7 @@
      useful when you have many <command>dsconfig</command> commands to run
      and want to avoid starting the JVM and setting up a new connection for
      each command.</para>
-     <para>In addition to the <link xlink:href="admin-guide#dsconfig-1"
+     <para>In addition to the <link xlink:href="reference#dsconfig-1"
      xlink:role="http://docbook.org/xlink/role/olink">dsconfig</link> reference
      that covers subcommands, the <link xlink:show="new"
      xlink:href="${configRefBase}"
@@ -301,7 +301,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#dsjavaproperties-1"
+    <term><link xlink:href="reference#dsjavaproperties-1"
     xlink:role="http://docbook.org/xlink/role/olink">dsjavaproperties</link></term>
     <listitem>
      <para>Apply changes you make to
@@ -310,7 +310,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#dsreplication-1"
+    <term><link xlink:href="reference#dsreplication-1"
     xlink:role="http://docbook.org/xlink/role/olink">dsreplication</link></term>
     <listitem>
      <para>Configure data replication between directory servers to keep their
@@ -318,7 +318,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#encode-password-1"
+    <term><link xlink:href="reference#encode-password-1"
     xlink:role="http://docbook.org/xlink/role/olink">encode-password</link></term>
     <listitem>
      <para>Encode a clear text password according to one of the available
@@ -326,7 +326,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#export-ldif-1"
+    <term><link xlink:href="reference#export-ldif-1"
     xlink:role="http://docbook.org/xlink/role/olink">export-ldif</link></term>
     <listitem>
      <para>Export directory data to LDAP Data Interchange Format, a standard,
@@ -334,7 +334,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#import-ldif-1"
+    <term><link xlink:href="reference#import-ldif-1"
     xlink:role="http://docbook.org/xlink/role/olink">import-ldif</link></term>
     <listitem>
      <para>Load LDIF content into the directory, overwriting existing
@@ -342,7 +342,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldapcompare-1"
+    <term><link xlink:href="reference#ldapcompare-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldapcompare</link></term>
     <listitem>
      <para>Compare the attribute values you specify with those stored on
@@ -350,7 +350,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldapdelete-1"
+    <term><link xlink:href="reference#ldapdelete-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldapdelete</link></term>
     <listitem>
      <para>Delete one entry or an entire branch of subordinate entries in the
@@ -358,7 +358,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldapmodify-1"
+    <term><link xlink:href="reference#ldapmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldapmodify</link></term>
     <listitem>
      <para>Modify the specified attribute values for the specified
@@ -368,14 +368,14 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldappasswordmodify-1"
+    <term><link xlink:href="reference#ldappasswordmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldappasswordmodify</link></term>
     <listitem>
      <para>Modify user passwords.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldapsearch-1"
+    <term><link xlink:href="reference#ldapsearch-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldapsearch</link></term>
     <listitem>
      <para>Search a branch of directory data for entries matching the LDAP
@@ -383,7 +383,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldif-diff-1"
+    <term><link xlink:href="reference#ldif-diff-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldif-diff</link></term>
     <listitem>
      <para>Display differences between two LDIF files, with the resulting output
@@ -391,7 +391,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldifmodify-1"
+    <term><link xlink:href="reference#ldifmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldifmodify</link></term>
     <listitem>
      <para>Similar to the <command>ldapmodify</command> command, modify
@@ -399,7 +399,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#ldifsearch-1"
+    <term><link xlink:href="reference#ldifsearch-1"
     xlink:role="http://docbook.org/xlink/role/olink">ldifsearch</link></term>
     <listitem>
      <para>Similar to the <command>ldapsearch</command> command, search a branch
@@ -407,14 +407,14 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#list-backends-1"
+    <term><link xlink:href="reference#list-backends-1"
     xlink:role="http://docbook.org/xlink/role/olink">list-backends</link></term>
     <listitem>
      <para>List backends and base DNs served by OpenDJ.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#make-ldif-1"
+    <term><link xlink:href="reference#make-ldif-1"
     xlink:role="http://docbook.org/xlink/role/olink">make-ldif</link></term>
     <listitem>
      <para>Generate directory data in LDIF, based on templates that define how
@@ -425,7 +425,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#manage-account-1"
+    <term><link xlink:href="reference#manage-account-1"
     xlink:role="http://docbook.org/xlink/role/olink">manage-account</link></term>
     <listitem>
      <para>Lock and unlock user accounts, and view and manipulate password
@@ -433,7 +433,7 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#manage-tasks-1"
+    <term><link xlink:href="reference#manage-tasks-1"
     xlink:role="http://docbook.org/xlink/role/olink">manage-tasks</link></term>
     <listitem>
      <para>View information about tasks scheduled to run in the server, and
@@ -441,49 +441,49 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#rebuild-index-1"
+    <term><link xlink:href="reference#rebuild-index-1"
     xlink:role="http://docbook.org/xlink/role/olink">rebuild-index</link></term>
     <listitem>
      <para>Rebuild an index stored in a JE backend.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#restore-1"
+    <term><link xlink:href="reference#restore-1"
     xlink:role="http://docbook.org/xlink/role/olink">restore</link></term>
     <listitem>
      <para>Restore user data from backup.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#start-ds-1"
+    <term><link xlink:href="reference#start-ds-1"
     xlink:role="http://docbook.org/xlink/role/olink">start-ds</link></term>
     <listitem>
      <para>Start OpenDJ directory server.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#status-1"
+    <term><link xlink:href="reference#status-1"
     xlink:role="http://docbook.org/xlink/role/olink">status</link></term>
     <listitem>
      <para>Display information about the server.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#stop-ds-1"
+    <term><link xlink:href="reference#stop-ds-1"
     xlink:role="http://docbook.org/xlink/role/olink">stop-ds</link></term>
     <listitem>
      <para>Stop OpenDJ directory server.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#verify-index-1"
+    <term><link xlink:href="reference#verify-index-1"
     xlink:role="http://docbook.org/xlink/role/olink">verify-index</link></term>
     <listitem>
      <para>Verify that an index stored in a JE backend is not corrupt.</para>
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term><link xlink:href="admin-guide#windows-service"
+    <term><link xlink:href="reference#windows-service"
     xlink:role="http://docbook.org/xlink/role/olink">windows-service</link>
     (Windows only)</term>
     <listitem>

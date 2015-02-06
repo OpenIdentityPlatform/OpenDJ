@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2014 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !    
 -->
 <chapter xml:id='chap-import-export'
@@ -66,7 +66,7 @@
    This procedure demonstrates how to generate LDIF by using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#make-ldif-1"
+    xlink:href="reference#make-ldif-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>make-ldif</command></link> command.
   </para>
@@ -94,7 +94,7 @@
     <filename>OpenDJ/config/MakeLDIF/example.template</filename>, and
     associated data.</para>
 
-    <para>See <link xlink:href="admin-guide#make-ldif-template-5"
+    <para>See <link xlink:href="reference#make-ldif-template-5"
     xlink:role="http://docbook.org/xlink/role/olink" xlink:show="new"><citetitle
     >make-ldif.template</citetitle></link> for reference information about
     template files.</para>
@@ -144,12 +144,12 @@ LDIF processing complete.  10003 entries written</computeroutput>
    The following procedures demonstrate how to use the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#import-ldif-1"
+    xlink:href="reference#import-ldif-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>import-ldif</command></link> and
    <link
     xlink:show="new"
-    xlink:href="admin-guide#export-ldif-1"
+    xlink:href="reference#export-ldif-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>export-ldif</command></link> commands.
   </para>
@@ -268,17 +268,17 @@ $ <userinput>export-ldif \
    This section demonstrates the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldifsearch-1"
+    xlink:href="reference#ldifsearch-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldifsearch</command></link>,
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldifmodify-1"
+    xlink:href="reference#ldifmodify-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldifmodify</command></link> and
    <link
     xlink:show="new"
-    xlink:href="admin-guide#ldif-diff-1"
+    xlink:href="reference#ldif-diff-1"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>ldif-diff</command></link> commands.
   </para>
@@ -380,7 +380,7 @@ description: This is the description for Aaccf Amar.
    You can create new backends using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#dsconfig-create-backend"
+    xlink:href="reference#dsconfig-create-backend"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>dsconfig create-backend</command></link> command.
    The following example creates a local backend named <literal>testData</literal>.
@@ -621,7 +621,7 @@ base-dn  : "dc=example,dc=com", o=example</computeroutput>
    You delete a database backend by using the
    <link
     xlink:show="new"
-    xlink:href="admin-guide#dsconfig-delete-backend"
+    xlink:href="reference#dsconfig-delete-backend"
     xlink:role="http://docbook.org/xlink/role/olink"
    ><command>dsconfig delete-backend</command></link> command.
   </para>

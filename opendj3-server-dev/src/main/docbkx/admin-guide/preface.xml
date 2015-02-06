@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2015 ForgeRock AS.
   !
 -->
 <preface xml:id='preface'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Preface</title>
 
  <para>This guide shows you how to configure, maintain, and troubleshoot
@@ -39,7 +39,7 @@
  <section>
   <title>Who Should Read this Guide</title>
 
-  <para>This guide is written for directory designers and administrators who
+  <para>This guide is written for directory integrators and administrators who
   build, deploy, and maintain OpenDJ directory services for your
   organizations.</para>
 
@@ -49,9 +49,7 @@
   by showing how to configure and monitor the principle features of individual
   OpenDJ servers, and how to configure and monitor replicated server
   topologies for distributed high availability. It then demonstrates how to
-  tune, troubleshoot, and move servers. This guide concludes with appendices
-  of useful reference information for directory designers and
-  administrators.</para>
+  tune, troubleshoot, and move servers.</para>
 
   <para>You do not need to be an LDAP wizard to learn something from this
   guide, though a background in directory services and maintaining server

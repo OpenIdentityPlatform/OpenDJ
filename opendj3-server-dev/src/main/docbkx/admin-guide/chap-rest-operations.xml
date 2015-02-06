@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013-2015 ForgeRock AS
+  !      Copyright 2013-2015 ForgeRock AS.
   !
 -->
 <chapter xml:id='chap-rest-operations'
@@ -59,7 +59,7 @@
   but the procedure also shows how to set up HTTPS access to the server.
  </para>
 
- <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+ <para>Interface stability: <link xlink:href="reference#interface-stability"
  xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
  >Evolving</link></para>
 
@@ -264,7 +264,7 @@ $ <userinput>curl \
   authentication to PLAIN SASL authentication on the LDAP side. Moreover, the
   gateway can fall back to proxied authorization as necessary, using a root DN
   authenticated connection to LDAP servers. See <link xlink:show="new"
-  xlink:href="admin-guide#appendix-rest2ldap"
+  xlink:href="reference#appendix-rest2ldap"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
   Configuration</citetitle></link> for details on all configuration
   choices.</para>
@@ -730,12 +730,14 @@ $ <userinput>curl \
      <para>The add operation ensures that the target field contains the value
      provided, creating parent fields as necessary.</para>
 
-     <para>If the target field is single-valued and a value already exists, then
-     that value is replaced with the value you provide. <emphasis
-     role="strong">Note that you do not get an error when adding a value to a
-     single-valued field that already has a value.</emphasis> A single-valued
-     field is one whose value is not an array (an object, string, boolean, or
-     number).</para>
+     <para>
+      If the target field is single-valued and a value already exists,
+      then that value is replaced with the value you provide.
+      <emphasis>Note that you do not get an error when adding a value
+       to a single-valued field that already has a value.</emphasis>
+      A single-valued field is one whose value is not an array
+      (an object, string, boolean, or number).
+     </para>
 
      <para>If the target field is multi-valued, then the array of values you
      provide is merged with the set of values already in the resource. New
