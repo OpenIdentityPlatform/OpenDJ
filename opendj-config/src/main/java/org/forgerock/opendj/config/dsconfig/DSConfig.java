@@ -47,6 +47,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -126,51 +127,158 @@ import com.forgerock.opendj.cli.VersionHandler;
  */
 public final class DSConfig extends ConsoleApplication {
 
+    private static final String ALLOW_UNLIMITED = "A value of \"-1\" or \"unlimited\" for no limit.";
+    private static final String ACI_SYNTAX_REL_URL =
+        "<link" + EOL
+            + " xlink:show=\"new\"" + EOL
+            + " xlink:href=\"admin-guide#about-acis\"" + EOL
+            + " xlink:role=\"http://docbook.org/xlink/role/olink\">" + EOL
+            + "<citetitle>About Access Control Instructions</citetitle></link>" + EOL;
+    private static final String DURATION_SYNTAX_REL_URL =
+        "  <itemizedlist>" + EOL
+            + "    <para>Some property values take a time duration. Durations are expressed" + EOL
+            + "    as numbers followed by units. For example <literal>1 s</literal> means" + EOL
+            + "    one second, and <literal>2 w</literal> means two weeks. Some durations" + EOL
+            + "    have minimum granularity or maximum units, so you cannot necessary specify" + EOL
+            + "    every duration in milliseconds or weeks for example. Some durations allow" + EOL
+            + "    you to use a special value to mean unlimited. Units are specified as" + EOL
+            + "    follows.</para>" + EOL
+            + "    <listitem><para><literal>ms</literal>: milliseconds</para></listitem>" + EOL
+            + "    <listitem><para><literal>s</literal>: seconds</para></listitem>" + EOL
+            + "    <listitem><para><literal>m</literal>: minutes</para></listitem>" + EOL
+            + "    <listitem><para><literal>h</literal>: hours</para></listitem>" + EOL
+            + "    <listitem><para><literal>d</literal>: days</para></listitem>" + EOL
+            + "    <listitem><para><literal>w</literal>: weeks</para></listitem>" + EOL
+            + "  </itemizedlist>" + EOL;
+
     // FIXME: I18n support. Today all the strings are hardcoded in this file
     private final class DSConfigSubCommandUsageHandler implements SubCommandUsageHandler {
 
-        private static final String ALLOW_UNLIMITED = "A value of \"-1\" or \"unlimited\" for no limit.";
-        private static final String ACI_SYNTAX_REL_URL =
-            "<link"
-                + " xlink:show=\"new\""
-                + " xlink:href=\"admin-guide#about-acis\""
-                + " xlink:role=\"http://docbook.org/xlink/role/olink\">"
-                + "<citetitle>About Access Control Instructions</citetitle></link>";
-        private static final String DURATION_SYNTAX_REL_URL =
-            "  <itemizedlist>"
-                + "    <para>Some property values take a time duration. Durations are expressed"
-                + "    as numbers followed by units. For example <literal>1 s</literal> means"
-                + "    one second, and <literal>2 w</literal> means two weeks. Some durations"
-                + "    have minimum granularity or maximum units, so you cannot necessary specify"
-                + "    every duration in milliseconds or weeks for example. Some durations allow"
-                + "    you to use a special value to mean unlimited. Units are specified as"
-                + "    follows.</para>"
-                + "    <listitem><para><literal>ms</literal>: milliseconds</para></listitem>"
-                + "    <listitem><para><literal>s</literal>: seconds</para></listitem>"
-                + "    <listitem><para><literal>m</literal>: minutes</para></listitem>"
-                + "    <listitem><para><literal>h</literal>: hours</para></listitem>"
-                + "    <listitem><para><literal>d</literal>: days</para></listitem>"
-                + "    <listitem><para><literal>w</literal>: weeks</para></listitem>"
-                + "  </itemizedlist>";
+        /** {@inheritDoc} */
+        @Override
+        public void appendArgumentAdditionalInfo(StringBuilder sb, SubCommand sc, Argument a, String nameOption) {
+            final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
+            if (defn == null) {
+                return;
+            }
+            final String longID = a.getLongIdentifier();
+            if ("set".equals(longID)
+                    || "reset".equals(longID)
+                    || "add".equals(longID)
+                    || "remove".equals(longID)) {
+                sb.append("         <para>").append(EOL);
+                final LocalizableMessage name = defn.getUserFriendlyName();
+                sb.append("           ").append(name).append(" properties depend on the ").append(name)
+                  .append(" type, which depends on the ").append(nameOption).append(" option.").append(EOL);
+                sb.append("         </para>").append(EOL);
+            } else {
+                listSubtypes(sb, a.getValuePlaceholder(), defn);
+            }
+            return;
+        }
+
+        private void listSubtypes(StringBuilder sb, LocalizableMessage placeholder,
+                AbstractManagedObjectDefinition<?, ?> defn) {
+            sb.append("         <variablelist>").append(EOL);
+            sb.append("           <para>").append(EOL);
+            final LocalizableMessage name = defn.getUserFriendlyName();
+            sb.append("             ").append(name).append(" properties depend on the ").append(name)
+                .append(" type, which depends on the ").append(placeholder).append(" you provide.").append(EOL);
+            sb.append("           </para>").append(EOL);
+            sb.append("           <para>").append(EOL);
+            sb.append("             By default, OpenDJ directory server supports the following ")
+                .append(defn.getUserFriendlyName()).append(" types:").append(EOL);
+            sb.append("           </para>").append(EOL);
+
+            for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
+                sb.append("           <varlistentry>").append(EOL);
+                sb.append("             <term>").append(childDefn.getName()).append("</term>").append(EOL);
+                sb.append("             <listitem>").append(EOL);
+                sb.append("               <para>").append(EOL);
+                sb.append("                 Default ").append(placeholder).append(": ")
+                    .append(childDefn.getUserFriendlyName()).append(EOL);
+                sb.append("               </para>").append(EOL);
+                sb.append("               <para>").append(EOL);
+                final boolean isEnabled = propertyExists(childDefn, "enabled");
+                sb.append("                 Enabled by default: ").append(isEnabled).append(EOL);
+                sb.append("               </para>").append(EOL);
+                sb.append("               <para>").append(EOL);
+                final String string = "dsconfig-set-log-publisher-prop-file-based-access";
+                sb.append("                 See <xref linkend=\"").append(string)
+                    .append("\" /> for the properties of this ").append(defn.getUserFriendlyName())
+                    .append(" type.").append(EOL);
+                sb.append("               </para>").append(EOL);
+                sb.append("             </listitem>").append(EOL);
+                sb.append("           </varlistentry>").append(EOL);
+            }
+            sb.append("         </variablelist>").append(EOL);
+        }
+
+        private boolean propertyExists(AbstractManagedObjectDefinition<?, ?> defn, String name) {
+            try {
+                return defn.getPropertyDefinition(name) != null;
+            } catch (IllegalArgumentException e) {
+                return false;
+            }
+        }
 
         /** {@inheritDoc} */
         @Override
-        public void appendUsage(StringBuilder sb, SubCommand sc, String argLongID) {
-            final SubCommandHandler sch = handlers.get(sc);
-            if (sch instanceof HelpSubCommandHandler) {
+        public void appendProperties(StringBuilder sb, SubCommand sc) {
+            final AbstractManagedObjectDefinition<?, ?> defn = getManagedObjectDefinition(sc);
+            if (defn == null) {
                 return;
             }
-            final RelationDefinition<?, ?> rd = getRelationDefinition(sch);
-            final AbstractManagedObjectDefinition<?, ?> defn = rd.getChildDefinition();
-            final List<PropertyDefinition<?>> props =
-                    new ArrayList<PropertyDefinition<?>>(defn.getAllPropertyDefinitions());
-            Collections.sort(props);
 
-            final String propPrefix = getScriptName() + "-" + sc.getName() + "-" + argLongID + "-";
-            sb.append(EOL);
-            toSimpleList(props, propPrefix, sb);
-            sb.append(EOL);
-            toVariableList(props, defn, propPrefix, sb);
+            for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
+                final List<PropertyDefinition<?>> props =
+                    new ArrayList<PropertyDefinition<?>>(childDefn.getAllPropertyDefinitions());
+                Collections.sort(props);
+
+                final String propPrefix = getScriptName() + "-" + sc.getName() + "-" + childDefn.getName();
+                sb.append(" <refsect3 xml:id=\"").append(propPrefix).append("\">").append(EOL);
+                sb.append("   <title>").append(childDefn.getUserFriendlyName()).append("</title>").append(EOL);
+                sb.append("   <para>").append(EOL);
+                sb.append("     ").append(defn.getUserFriendlyPluralName()).append(" of type ")
+                  .append(childDefn.getName()).append(" have the following properties:").append(EOL);
+                sb.append("   </para>").append(EOL);
+                toVariableList(props, defn, propPrefix, sb);
+                sb.append(" </refsect3>").append(EOL);
+            }
+        }
+
+        private AbstractManagedObjectDefinition<?, ?> getManagedObjectDefinition(SubCommand sc) {
+            final SubCommandHandler sch = handlers.get(sc);
+            if (sch instanceof HelpSubCommandHandler) {
+                return null;
+            }
+            final RelationDefinition<?, ?> rd = getRelationDefinition(sch);
+            return rd.getChildDefinition();
+        }
+
+        private List<AbstractManagedObjectDefinition<?, ?>> getLeafChildren(
+                AbstractManagedObjectDefinition<?, ?> defn) {
+            final ArrayList<AbstractManagedObjectDefinition<?, ?>> results =
+                    new ArrayList<AbstractManagedObjectDefinition<?, ?>>();
+            addLeafChildren(results, defn);
+            Collections.sort(results, new Comparator<AbstractManagedObjectDefinition<?, ?>>() {
+                @Override
+                public int compare(AbstractManagedObjectDefinition<?, ?> o1, AbstractManagedObjectDefinition<?, ?> o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            return results;
+        }
+
+        private void addLeafChildren(final Collection<AbstractManagedObjectDefinition<?, ?>> results,
+                final AbstractManagedObjectDefinition<?, ?> defn) {
+            for (AbstractManagedObjectDefinition<?, ?> child : defn.getChildren()) {
+                if (child.getChildren().isEmpty()) {
+                    results.add(child);
+                } else {
+                    addLeafChildren(results, child);
+                }
+            }
         }
 
         private RelationDefinition<?, ?> getRelationDefinition(final SubCommandHandler sch) {
@@ -188,22 +296,13 @@ public final class DSConfig extends ConsoleApplication {
             return null;
         }
 
-        private void toSimpleList(List<PropertyDefinition<?>> props, String propPrefix, StringBuilder b) {
-            b.append("    <simplelist>").append(EOL);
-            for (PropertyDefinition<?> prop : props) {
-                b.append("      <member><xref linkend=\"")
-                    .append(propPrefix).append(prop.getName()).append("\" /></member>").append(EOL);
-            }
-            b.append("    </simplelist>").append(EOL);
-        }
-
         private void toVariableList(List<PropertyDefinition<?>> props, AbstractManagedObjectDefinition<?, ?> defn,
                 String propPrefix, StringBuilder b) {
             final String indent = "            ";
             b.append("    <variablelist>").append(EOL);
             for (PropertyDefinition<?> prop : props) {
                 b.append("      <varlistentry xml:id=\"")
-                    .append(propPrefix).append(prop.getName()).append("\">").append(EOL);
+                    .append(propPrefix).append("-").append(prop.getName()).append("\">").append(EOL);
                 b.append("        <term>").append(prop.getName()).append("</term>").append(EOL);
                 b.append("        <listitem>").append(EOL);
                 b.append("          <variablelist>").append(EOL);
@@ -235,24 +334,20 @@ public final class DSConfig extends ConsoleApplication {
         private void appendAllowedValues(StringBuilder b, PropertyDefinition<?> prop, String indent) {
             b.append(indent).append("<varlistentry>").append(EOL);
             b.append(indent).append("  <term>").append("Allowed Values").append("</term>").append(EOL);
+            b.append(indent).append("  <listitem>").append(EOL);
             if (prop instanceof EnumPropertyDefinition) {
-                b.append(indent).append("  <listitem>").append(EOL);
                 b.append(indent).append("    <variablelist>").append(EOL);
                 appendSyntax(b, prop, indent + "      ");
                 b.append(indent).append("    </variablelist>").append(EOL);
-                b.append(indent).append("  </listitem>").append(EOL);
             } else if (prop instanceof BooleanPropertyDefinition) {
-                b.append(indent).append("  <listitem>").append(EOL);
                 b.append(indent).append("    <para>true</para>").append(EOL);
                 b.append(indent).append("    <para>false</para>").append(EOL);
-                b.append(indent).append("  </listitem>").append(EOL);
             } else {
-                b.append(indent).append("  <listitem>").append(EOL);
                 b.append(indent).append("    <para>");
                 appendSyntax(b, prop, indent);
                 b.append("</para>").append(EOL);
-                b.append(indent).append("  </listitem>").append(EOL);
             }
+            b.append(indent).append("  </listitem>").append(EOL);
             b.append(indent).append("</varlistentry>").append(EOL);
         }
 
@@ -303,7 +398,7 @@ public final class DSConfig extends ConsoleApplication {
                 final StringBuilder res = new StringBuilder();
                 for (Iterator<String> it = behavior.getDefaultValues().iterator(); it.hasNext();) {
                     String str = it.next();
-                    res.append(str).append(it.hasNext() ? "\n" : "");
+                    res.append(str).append(it.hasNext() ? "\n" : ""); // TODO JNR refactor
                 }
                 return res.toString();
             } else if (defaultBehavior instanceof AliasDefaultBehaviorProvider) {
