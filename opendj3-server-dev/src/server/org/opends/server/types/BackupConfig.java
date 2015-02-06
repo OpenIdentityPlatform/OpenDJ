@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 Forgerock AS
  */
 package org.opends.server.types;
 
+import java.io.FilenameFilter;
 
 /**
  * This class defines a data structure for holding configuration
@@ -50,36 +52,51 @@ package org.opends.server.types;
      mayInvoke=true)
 public final class BackupConfig extends OperationConfig
 {
-  // The path to the directory in which the backup file(s) should be
-  // created.
+  /**
+   * The path to the directory in which the backup file(s) should be
+   * created.
+   */
   private BackupDirectory backupDirectory;
 
-  // Indicates whether the data should be compressed as it is written.
+  /** Indicates whether the data should be compressed as it is written. */
   private boolean compressData;
 
-  // Indicates whether the data should be encrypted as it is written.
+  /** Indicates whether the data should be encrypted as it is written. */
   private boolean encryptData;
 
-  // Indicates whether to generate a cryptographic hash of the data as
-  // it is written.
+  /**
+   * Indicates whether to generate a cryptographic hash of the data as
+   * it is written.
+   */
   private boolean hashData;
 
-  // Indicates whether to attempt an incremental backup.
+  /** Indicates whether to attempt an incremental backup. */
   private boolean isIncremental;
 
-  // Indicates whether to digitally sign the hash when the backup is
-  // complete.
+  /**
+   * Indicates whether to digitally sign the hash when the backup is
+   * complete.
+   */
   private boolean signHash;
 
-  // The unique identifier assigned to this backup operation (which
-  // may be used to indicate which version to restore if multiple
-  // backups are in the same directory).
+  /**
+   * The unique identifier assigned to this backup operation (which
+   * may be used to indicate which version to restore if multiple
+   * backups are in the same directory).
+   */
   private String backupID;
 
-  // The unique ID for the existing full or incremental backup against
-  // which the incremental backup should be based.
+  /**
+   * The unique ID for the existing full or incremental backup against
+   * which the incremental backup should be based.
+   */
   private String incrementalBaseID;
 
+  /**
+   * The filename filter to decide which files should be included as defined
+   * by the storage.
+   */
+  private FilenameFilter filesToBackupFilter;
 
 
   /**
@@ -297,6 +314,26 @@ public final class BackupConfig extends OperationConfig
   public void setSignHash(boolean signHash)
   {
     this.signHash = signHash;
+  }
+
+  /**
+   * Returns the storage-defined filename filter deciding which files should go into a backup.
+   *
+   * @return the storage-defined filename filter deciding which files should go into a backup
+   */
+  public FilenameFilter getFilesToBackupFilter()
+  {
+    return filesToBackupFilter;
+  }
+
+  /**
+   * Sets the storage-defined filter for files belonging to the backend.
+   *
+   * @param filenameFilter the filenameFilter to set
+   */
+  public void setFilesToBackupFilter(FilenameFilter filenameFilter)
+  {
+    this.filesToBackupFilter = filenameFilter;
   }
 }
 

@@ -27,11 +27,11 @@ package org.opends.server.backends.persistit;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
-
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -684,6 +684,20 @@ public final class PersistItStorage implements Storage
         txn.end();
       }
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public FilenameFilter getFilesToBackupFilter()
+  {
+    return new FilenameFilter()
+    {
+      @Override
+      public boolean accept(File d, String name)
+      {
+        return name.startsWith(VOLUME_NAME) && !name.endsWith(".lck");
+      }
+    };
   }
 
   /*
