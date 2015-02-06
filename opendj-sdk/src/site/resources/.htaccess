@@ -8,3 +8,84 @@ RedirectMatch 301 ^/doc/install-guide/(.*)$ http://opendj.forgerock.org/opendj-s
 
 RedirectMatch 301 ^/doc/OpenDJ-Release-Notes(.*)$ http://opendj.forgerock.org/opendj-server/doc/OpenDJ-Release-Notes$1
 RedirectMatch 301 ^/doc/release-notes/(.*)$ http://opendj.forgerock.org/opendj-server/doc/release-notes/$1
+
+
+# OPENDJ-1789 Redirect away from obsolete in-progress documentation
+# sending obsolete formats to the Bootstrap-styled HTML.
+
+### OpenDJ trunk server docs ###
+
+# EPUB, trunk server docs
+RedirectMatch 301 ^/doc/opendj-server/OpenDJ-Admin-Guide.epub     http://opendj.forgerock.org/opendj-server/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj-server/OpenDJ-Install-Guide.epub   http://opendj.forgerock.org/opendj-server/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj-server/OpenDJ-Release-Notes.epub   http://opendj.forgerock.org/opendj-server/doc/bootstrap/release-notes/
+
+# Single page HTML, trunk server docs
+RedirectMatch 301 ^/doc/opendj-server/admin-guide/(.*)            http://opendj.forgerock.org/opendj-server/doc/bootstrap/admin-guide/$1
+RedirectMatch 301 ^/doc/opendj-server/install-guide/(.*)          http://opendj.forgerock.org/opendj-server/doc/bootstrap/install-guide/$1
+RedirectMatch 301 ^/doc/opendj-server/release-notes/(.*)          http://opendj.forgerock.org/opendj-server/doc/bootstrap/release-notes/$1
+
+# Chunked HTML, trunk server docs
+RedirectMatch 301 ^/doc/opendj-server/admin-guide/index/(.*)      http://opendj.forgerock.org/opendj-server/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj-server/install-guide/index/(.*)    http://opendj.forgerock.org/opendj-server/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj-server/release-notes/index/(.*)    http://opendj.forgerock.org/opendj-server/doc/bootstrap/release-notes/
+
+# RTF, trunk server docs
+RedirectMatch 301 ^/doc/opendj-server/OpenDJ-Admin-Guide.rtf      http://opendj.forgerock.org/opendj-server/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj-server/OpenDJ-Install-Guide.rtf    http://opendj.forgerock.org/opendj-server/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj-server/OpenDJ-Release-Notes.rtf    http://opendj.forgerock.org/opendj-server/doc/bootstrap/release-notes/
+
+# Webhelp, trunk server docs
+RedirectMatch 301 ^/doc/opendj-server/webhelp/admin-guide/(.*)    http://opendj.forgerock.org/opendj-server/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj-server/webhelp/install-guide/(.*)  http://opendj.forgerock.org/opendj-server/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj-server/webhelp/release-notes/(.*)  http://opendj.forgerock.org/opendj-server/doc/bootstrap/release-notes/
+
+### OpenDJ dev branch server docs ###
+
+# EPUB, dev branch server docs
+RedirectMatch 301 ^/doc/opendj3-server-dev/OpenDJ-Admin-Guide.epub     http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/OpenDJ-Install-Guide.epub   http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/OpenDJ-Release-Notes.epub   http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/release-notes/
+
+# Single page HTML, dev branch server docs
+RedirectMatch 301 ^/doc/opendj3-server-dev/admin-guide/(.*)            http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/admin-guide/$1
+RedirectMatch 301 ^/doc/opendj3-server-dev/install-guide/(.*)          http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/install-guide/$1
+RedirectMatch 301 ^/doc/opendj3-server-dev/release-notes/(.*)          http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/release-notes/$1
+
+# Chunked HTML, dev branch server docs
+RedirectMatch 301 ^/doc/opendj3-server-dev/admin-guide/index/(.*)      http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/install-guide/index/(.*)    http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/release-notes/index/(.*)    http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/release-notes/
+
+# RTF, dev branch server docs
+RedirectMatch 301 ^/doc/opendj3-server-dev/OpenDJ-Admin-Guide.rtf      http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/OpenDJ-Install-Guide.rtf    http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/OpenDJ-Release-Notes.rtf    http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/release-notes/
+
+# Webhelp, dev branch server docs
+RedirectMatch 301 ^/doc/opendj3-server-dev/webhelp/admin-guide/(.*)    http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/admin-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/webhelp/install-guide/(.*)  http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/install-guide/
+RedirectMatch 301 ^/doc/opendj3-server-dev/webhelp/release-notes/(.*)  http://opendj.forgerock.org/opendj3-server-dev/doc/bootstrap/release-notes/
+
+### OpenDJ LDAP SDK docs ###
+
+# EPUB, LDAP SDK docs
+RedirectMatch 301 ^/doc/OpenDJ-Dev-Guide.epub           http://opendj.forgerock.org/doc/bootstrap/dev-guide/
+RedirectMatch 301 ^/doc/OpenDJ-Sdk-Release-Notes.epub   http://opendj.forgerock.org/doc/bootstrap/sdk-release-notes/
+
+# Single page HTML, LDAP SDK docs
+RedirectMatch 301 ^/doc/dev-guide/(.*)                  http://opendj.forgerock.org/doc/bootstrap/dev-guide/$1
+RedirectMatch 301 ^/doc/sdk-release-notes/(.*)          http://opendj.forgerock.org/doc/bootstrap/sdk-release-notes/$1
+
+# Chunked HTML, LDAP SDK docs
+RedirectMatch 301 ^/doc/dev-guide/index/(.*)            http://opendj.forgerock.org/doc/bootstrap/dev-guide/
+RedirectMatch 301 ^/doc/sdk-release-notes/index/(.*)    http://opendj.forgerock.org/doc/bootstrap/sdk-release-notes/
+
+# RTF, LDAP SDK docs
+RedirectMatch 301 ^/doc/OpenDJ-Dev-Guide.rtf            http://opendj.forgerock.org/doc/bootstrap/dev-guide/
+RedirectMatch 301 ^/doc/OpenDJ-Sdk-Release-Notes.rtf    http://opendj.forgerock.org/doc/bootstrap/sdk-release-notes/
+
+# Webhelp, LDAP SDK docs
+RedirectMatch 301 ^/doc/webhelp/dev-guide/(.*)          http://opendj.forgerock.org/doc/bootstrap/dev-guide/
+RedirectMatch 301 ^/doc/webhelp/sdk-release-notes/(.*)  http://opendj.forgerock.org/doc/bootstrap/sdk-release-notes/
+
