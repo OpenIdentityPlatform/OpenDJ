@@ -32,15 +32,27 @@ package com.forgerock.opendj.cli;
 public interface SubCommandUsageHandler {
 
     /**
-     * Invoked when the sub-command usage information should be printed.
+     * Appends properties information for the sub-command.
      *
      * @param builder
-     *          the string builder
-     * @param sc
+     *          the string builder where to append
+     * @param subCommand
      *          the sub command for which to print usage information
-     * @param argLongID
-     *          the argument long identifier
      */
-    void appendUsage(StringBuilder builder, SubCommand sc, String argLongID);
+    void appendProperties(StringBuilder builder, SubCommand subCommand);
+
+    /**
+     * Appends additional information for the provided sub-command argument.
+     *
+     * @param builder
+     *          the string builder where to append
+     * @param subCommand
+     *          the sub command for which to print usage information
+     * @param arg
+     *          the argument for which to append additional information
+     * @param nameOption
+     *          the string representing the name option
+     */
+    void appendArgumentAdditionalInfo(StringBuilder builder, SubCommand subCommand, Argument arg, String nameOption);
 
 }

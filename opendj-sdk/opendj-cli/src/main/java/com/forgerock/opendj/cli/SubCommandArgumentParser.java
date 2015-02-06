@@ -1170,41 +1170,70 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     + PROPERTY_SCRIPT_NAME + "'.");
         }
 
-        sb.append("<refsect2 xml:id=\"").append(scriptName).append("-").append(sc.getName()).append("\">").append(EOL);
-        sb.append(" <title>dsconfig ").append(sc.getName()).append("</title>").append(EOL);
+        final String idRef = scriptName + "-" + sc.getName();
+        final String nameRef = scriptName + " " + sc.getName();
+        sb.append("<refsect2 xml:id=\"").append(idRef).append("\">").append(EOL);
+        sb.append(" <title>").append(nameRef).append("</title>").append(EOL);
         sb.append(" <para>").append(sc.getDescription()).append("</para>").append(EOL);
 
         if (!sc.getArguments().isEmpty()) {
-            sb.append(" <variablelist>").append(EOL);
+            sb.append(" <refsect3 xml:id=\"").append(idRef).append("-options\">").append(EOL);
+            sb.append("   <title>Options</title>").append(EOL);
+            sb.append("   <variablelist>").append(EOL);
+            sb.append("     <para>").append(EOL);
+            sb.append("       The <command>").append(nameRef)
+              .append("</command> command supports the following options.").append(EOL);
+            sb.append("     </para>").append(EOL);
+            String nameOption = null;
             for (Argument a : sc.getArguments()) {
-                sb.append("  <varlistentry>").append(EOL);
-                sb.append("   <term><option>");
-                Character shortID = a.getShortIdentifier();
-                if (shortID != null) {
-                    sb.append("-").append(shortID.charValue());
+                sb.append("     <varlistentry>").append(EOL);
+                sb.append("       <term>");
+                final String option = getOption(a);
+                sb.append(option);
+                sb.append("</term>").append(EOL);
+                sb.append("       <listitem>").append(EOL);
+                sb.append("         <para>").append(a.getDescription()).append("</para>").append(EOL);
+                final String longID = a.getLongIdentifier();
+                if (!"set".equals(longID)
+                        && !"reset".equals(longID)
+                        && !"add".equals(longID)
+                        && !"remove".equals(longID)) {
+                    nameOption = option;
                 }
-                String longID = a.getLongIdentifier();
-                if (shortID != null && longID != null) {
-                    sb.append(" | ");
-                }
-                if (longID != null) {
-                    sb.append("--").append(longID);
-                }
-                if (a.needsValue()) {
-                    sb.append(" ").append(a.getValuePlaceholder());
-                }
-                sb.append("</option></term>").append(EOL);
-                sb.append("   <listitem>").append(EOL);
-                sb.append("    <para>").append(a.getDescription()).append("</para>").append(EOL);
                 if (subCommandUsageHandler != null) {
-                    subCommandUsageHandler.appendUsage(sb, sc, longID);
+                    subCommandUsageHandler.appendArgumentAdditionalInfo(sb, sc, a, nameOption);
                 }
-                sb.append("   </listitem>").append(EOL);
-                sb.append("  </varlistentry>").append(EOL);
+                sb.append("       </listitem>").append(EOL);
+                sb.append("     </varlistentry>").append(EOL);
             }
-            sb.append(" </variablelist>").append(EOL);
+            sb.append("   </variablelist>").append(EOL);
+            sb.append(" </refsect3>").append(EOL);
+        }
+        if (subCommandUsageHandler != null) {
+            subCommandUsageHandler.appendProperties(sb, sc);
         }
 
         sb.append("</refsect2>").append(EOL);
+    }
+
+    private String getOption(Argument a) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("<option>");
+        final Character shortID = a.getShortIdentifier();
+        if (shortID != null) {
+            sb.append("-").append(shortID.charValue());
+        }
+        final String longID = a.getLongIdentifier();
+        if (shortID != null && longID != null) {
+            sb.append(" | ");
+        }
+        if (longID != null) {
+            sb.append("--").append(longID);
+        }
+        if (a.needsValue()) {
+            sb.append(" ").append(a.getValuePlaceholder());
+        }
+        sb.append("</option>");
+        return sb.toString();
     }
 }
