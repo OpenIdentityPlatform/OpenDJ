@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -74,10 +74,10 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
 
   // Exceptions to config objects having a differnt objectclass
   private static final List<String> CLASS_OBJECT_CLASS_EXCEPTIONS =
-          Arrays.asList(new String[]{
+          Arrays.asList(
                   "org.opends.server.admin.std.meta.RootCfgDefn",
-                  "org.opends.server.admin.std.meta.GlobalCfgDefn",
-          });
+                  "org.opends.server.admin.std.meta.GlobalCfgDefn"
+          );
 
 
   @Test(dataProvider="enumrateManageObjectDefns")
@@ -114,21 +114,21 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
 
   // Exceptions to properties ending in -class being exactly 'java-class'.
   private static final List<String> CLASS_PROPERTY_EXCEPTIONS =
-          Arrays.asList(new String[]{
+          Arrays.asList(
                   // e.g. "prop-name-ending-with-class"
-          });
+          );
 
   // Exceptions to properties ending in -enabled being exactly 'enabled'.
   private static final List<String> ENABLED_PROPERTY_EXCEPTIONS =
-          Arrays.asList(new String[]{
+          Arrays.asList(
                   "index-filter-analyzer-enabled",
                   "subordinate-indexes-enabled"
                   // e.g. "prop-name-ending-with-enabled"
-          });
+          );
 
   // Exceptions to properties not starting with the name of their config object
   private static final List<String> OBJECT_PREFIX_PROPERTY_EXCEPTIONS =
-          Arrays.asList(new String[]{
+          Arrays.asList(
                   "backend-id",
                   "plugin-type",
                   "replication-server-id",
@@ -137,7 +137,7 @@ public class ValidateConfigDefinitionsTest extends DirectoryServerTestCase {
                   "workflow-element-id",
                   "workflow-element"
                   // e.g. "prop-name-starting-with-object-prefix"
-          });
+          );
 
 
   private void validatePropertyDefinition(AbstractManagedObjectDefinition<?, ?> objectDef,
