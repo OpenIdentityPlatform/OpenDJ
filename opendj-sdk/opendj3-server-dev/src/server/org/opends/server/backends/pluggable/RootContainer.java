@@ -46,11 +46,11 @@ import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
-import org.opends.server.api.Backend;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
+import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -119,7 +119,7 @@ public class RootContainer
 
   private final File backendDirectory;
   /** The backend to which this entry root container belongs. */
-  private final Backend<?> backend;
+  private final BackendImpl backend;
   /** The backend configuration. */
   private PersistitBackendCfg config;
   /** The database environment monitor for this JE environment. */
@@ -143,7 +143,7 @@ public class RootContainer
    * @param backend A reference to the JE back end that is creating this
    *                root container.
    */
-  public RootContainer(Backend<?> backend, PersistitBackendCfg config)
+  public RootContainer(BackendImpl backend, PersistitBackendCfg config)
   {
     this.backend = backend;
     this.config = config;
@@ -161,7 +161,7 @@ public class RootContainer
    *
    * @return the underlying storage engine
    */
-  PersistItStorage getStorage()
+  Storage getStorage()
   {
     return storage;
   }
@@ -401,7 +401,7 @@ public class RootContainer
 
     try
     {
-      storage = new PersistItStorage();
+      storage = (PersistItStorage) backend.newStorageInstance();
       storage.initialize(config);
       storage.open();
       storage.write(new WriteOperation()

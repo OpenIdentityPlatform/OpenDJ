@@ -22,7 +22,7 @@
   ! CDDL HEADER END
   !
   !
-  !      Copyright 2014 ForgeRock AS.
+  !      Copyright 2014-2015 ForgeRock AS.
   ! -->
 <adm:managed-object name="persistit-backend"
   plural-name="persistit-backends" package="org.forgerock.opendj.server.config"
@@ -43,7 +43,7 @@
     <adm:default-behavior>
       <adm:defined>
         <adm:value>
-          org.opends.server.backends.pluggable.BackendImpl
+          org.opends.server.backends.persistit.PitBackend
         </adm:value>
       </adm:defined>
     </adm:default-behavior>
@@ -185,7 +185,7 @@
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>false</adm:value>
+        <adm:value>true</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
