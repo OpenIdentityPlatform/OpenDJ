@@ -53,6 +53,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.VerifyConfig;
+import org.opends.server.backends.pluggable.spi.Storage;
 import org.opends.server.backends.pluggable.spi.StorageRuntimeException;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
@@ -64,7 +65,7 @@ import org.opends.server.types.*;
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
  */
-public class BackendImpl extends Backend<PersistitBackendCfg> implements
+public abstract class BackendImpl extends Backend<PersistitBackendCfg> implements
     ConfigurationChangeListener<PersistitBackendCfg>, AlertGenerator,
     DiskSpaceMonitorHandler
 {
@@ -758,9 +759,16 @@ public class BackendImpl extends Backend<PersistitBackendCfg> implements
     BackupManager backupManager = new BackupManager(getBackendID());
     File parentDir = getFileForPath(cfg.getDBDirectory());
     File backendDir = new File(parentDir, cfg.getBackendId());
+    // Storage storage = newStorageInstance();
+    // backupConfig.setFilesToBackupFilter(storage.getFilesToBackupFilter());
     backupManager.createBackup(backendDir, backupConfig);
   }
 
+  /**
+   * Returns the storage corresponding to the backend class defined in the configuration.
+   * @return the storage corresponding to the backend class defined in the configuration
+   */
+  protected abstract Storage newStorageInstance();
 
 
   /** {@inheritDoc} */
