@@ -110,7 +110,7 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
         } catch (DependencyResolutionRequiredException e) {
             getLog().error(
                     String.format("Unable to set the classpath property %s, an error occured", classPathProperty));
-            throw new MojoFailureException(e.getMessage());
+            throw new MojoFailureException(e.getMessage(), e);
         }
     }
 
@@ -167,23 +167,27 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
     private boolean isAccepted(Artifact artifact) {
         String artifactString = artifact.getGroupId() + ":" + artifact.getArtifactId();
         if (includes != null) {
-            for (String included : includes) {
-                if (artifactString.equalsIgnoreCase(included)) {
-                    return true;
-                }
+            if (containsIgnoreCase(includes, artifactString)) {
+                return true;
             }
             if (!includes.isEmpty()) {
                 return false;
             }
         }
-        if (excludes != null) {
-            for (String excluded : excludes) {
-                if (artifactString.equalsIgnoreCase(excluded)) {
-                    return false;
-                }
-            }
+        if (excludes != null
+                && containsIgnoreCase(excludes, artifactString)) {
+            return false;
         }
         return true;
+    }
+
+    private boolean containsIgnoreCase(List<String> strings, String toFind) {
+        for (String s : strings) {
+            if (toFind.equalsIgnoreCase(s)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Artifact findArtifactWithFile(Set<Artifact> artifacts, File file) {
@@ -195,5 +199,4 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
         }
         return null;
     }
-
 }
