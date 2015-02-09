@@ -427,7 +427,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
                             + " has been previously defined in " + source + KEY_FORM_MSG);
                 }
                 usedOrdinals.add(ordinal);
-                messageRefEntries.add(new MessageRefEntry(msgKey.toString(), msgKey.getOrdinal(), formatString));
+                messageRefEntries.add(new MessageRefEntry(msgKey.toString(), ordinal, formatString));
             }
 
             destWriter.println(messageRefEntries.isEmpty() ? "<!-- No message for this category -->"
@@ -439,7 +439,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             if (dest.exists()) {
                 dest.deleteOnExit();
             }
-            throw new MojoExecutionException(e.getMessage());
+            throw new MojoExecutionException(e.getMessage(), e);
         } finally {
             Utils.closeSilently(destWriter);
         }
@@ -457,7 +457,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
                     errorMessage.put(key, formatString);
                 }
             } catch (IllegalArgumentException iae) {
-                throw new Exception("invalid property key " + propKey + ": " + iae.getMessage() + KEY_FORM_MSG);
+                throw new Exception("invalid property key " + propKey + ": " + iae.getMessage() + KEY_FORM_MSG, iae);
             }
         }
 
@@ -502,7 +502,7 @@ public class GenerateMessageFileMojo extends AbstractMojo {
             getLog().info("log message reference file has been successfully generated");
         } catch (Exception e) {
             throw new MojoExecutionException("Impossible to copy log reference message file into output directory: "
-                    + e.getMessage());
+                    + e.getMessage(), e);
         } finally {
             Utils.closeSilently(input, output);
         }

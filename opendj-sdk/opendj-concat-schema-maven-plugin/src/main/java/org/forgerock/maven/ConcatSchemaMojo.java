@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.maven.plugin.AbstractMojo;
@@ -136,10 +137,9 @@ public final class ConcatSchemaMojo extends AbstractMojo {
                 }
                 reader.close();
             } catch (Exception e) {
-                getLog().error(
-                        String.format("Error while reading schema file %s at line %d: %s", name, curLineNumber,
-                                e.getMessage()));
-                throw new MojoExecutionException(e.getMessage());
+                getLog().error(String.format(
+                        "Error while reading schema file %s at line %d: %s", name, curLineNumber, e.getMessage()));
+                throw new MojoExecutionException(e.getMessage(), e);
             }
 
             // Iterate through each line in the list. Find the colon and get the
@@ -202,11 +202,11 @@ public final class ConcatSchemaMojo extends AbstractMojo {
         } catch (Exception e) {
             getLog().error(
                     String.format("Error while writing concatenated schema file %s:  %s", outputFile, e.getMessage()));
-            throw new MojoExecutionException(e.getMessage());
+            throw new MojoExecutionException(e.getMessage(), e);
         }
     }
 
-    private void writeSchemaElements(LinkedList<String> schemaElements, BufferedWriter writer) throws IOException {
+    private void writeSchemaElements(List<String> schemaElements, BufferedWriter writer) throws IOException {
         for (String line : schemaElements) {
             writer.write(line);
             writer.newLine();

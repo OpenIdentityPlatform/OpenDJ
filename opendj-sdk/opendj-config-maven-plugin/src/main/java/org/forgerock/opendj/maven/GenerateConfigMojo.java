@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.maven;
 
@@ -106,7 +106,7 @@ import org.apache.maven.project.MavenProject;
  * @requiresDependencyResolution compile+runtime
  */
 public final class GenerateConfigMojo extends AbstractMojo {
-    private static interface StreamSourceFactory {
+    private interface StreamSourceFactory {
         StreamSource newStreamSource() throws IOException;
     }
 
@@ -188,7 +188,7 @@ public final class GenerateConfigMojo extends AbstractMojo {
     };
 
     @Override
-    public final void execute() throws MojoExecutionException {
+    public void execute() throws MojoExecutionException {
         if (getPackagePath() == null) {
             throw new MojoExecutionException("<packagePath> must be set.");
         } else if (!isXMLPackageDirectoryValid()) {
@@ -422,15 +422,15 @@ public final class GenerateConfigMojo extends AbstractMojo {
     private void loadXMLDescriptors() throws IOException {
         getLog().info("Loading XML descriptors...");
         final String parentPath = getXMLPackageDirectory();
+        final String configFileName = "Configuration.xml";
         if (isExtension) {
             final File dir = new File(parentPath);
             dir.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(final File path) {
                     final String name = path.getName();
-                    if (path.isFile() && name.endsWith("Configuration.xml")) {
-                        final String key =
-                                name.substring(0, name.length() - "Configuration.xml".length());
+                    if (path.isFile() && name.endsWith(configFileName)) {
+                        final String key = name.substring(0, name.length() - configFileName.length());
                         componentDescriptors.put(key, new StreamSourceFactory() {
                             @Override
                             public StreamSource newStreamSource() {
@@ -449,9 +449,9 @@ public final class GenerateConfigMojo extends AbstractMojo {
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
                 final String name = entry.getName();
-                if (name.startsWith(parentPath) && name.endsWith("Configuration.xml")) {
+                if (name.startsWith(parentPath) && name.endsWith(configFileName)) {
                     final int startPos = name.lastIndexOf('/') + 1;
-                    final int endPos = name.length() - "Configuration.xml".length();
+                    final int endPos = name.length() - configFileName.length();
                     final String key = name.substring(startPos, endPos);
                     componentDescriptors.put(key, new StreamSourceFactory() {
                         @Override
