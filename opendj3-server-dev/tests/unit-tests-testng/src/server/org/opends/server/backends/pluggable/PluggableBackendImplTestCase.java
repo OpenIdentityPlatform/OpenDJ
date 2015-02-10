@@ -521,7 +521,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
       "postalAddress: {cn}${street}${l}, {st}  {postalCode}",
       "description: This is the description for {cn}.",
       ""};
-    // Add suffix and barnch entries
+    // Add suffix and branch entries
     ldifNumberOfEntries += 2;
   }
 
@@ -550,6 +550,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     }
   }
 
+  @Test
   public void testAdd() throws Exception
   {
     addEntriesToBackend(topEntries);
@@ -743,16 +744,24 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     assertTrue(backend.getEntry(oldEntry.getName()).hasValue(modifyAttribute, null, modifyValue));
   }
 
-  @Test(dependsOnMethods = { "testAdd", "testRenameEntry", "testHasSubordinates" })
+  @Test(dependsOnMethods = { "testAdd", "testRenameEntry", "testHasSubordinates", "testUtilityAPIs" })
   public void testDeleteEntry() throws Exception
   {
     deleteEntry(dnToDel);
   }
 
-  @Test(dependsOnMethods = "testDeleteEntry", expectedExceptions = DirectoryException.class)
+  @Test(dependsOnMethods = "testDeleteEntry")
   public void testDeleteAlreadyDeletedEntry() throws Exception
   {
-    deleteEntry(dnToDel);
+    try
+    {
+      deleteEntry(dnToDel);
+      fail("Should have generated a DirectoryException");
+    }
+    catch (DirectoryException de)
+    {
+      // Expected exception, do nothing, test succeeds.
+    }
   }
 
   private void deleteEntry(DN dn) throws Exception
