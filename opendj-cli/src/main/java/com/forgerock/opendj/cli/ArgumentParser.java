@@ -627,8 +627,55 @@ public class ArgumentParser {
      */
     public String getUsage() {
         final StringBuilder buffer = new StringBuilder();
-        getUsage(buffer);
+        usageOrVersionDisplayed = true;
+        if (System.getProperty("org.forgerock.opendj.gendoc") != null) {
+            toRefSect2(buffer);
+        } else {
+            getUsage(buffer);
+        }
         return buffer.toString();
+    }
+
+    private void toRefSect2(StringBuilder sb) {
+        final String scriptName = getScriptName();
+        if (scriptName == null) {
+            throw new RuntimeException("The script name should have been set via the environment property '"
+                    + PROPERTY_SCRIPT_NAME + "'.");
+        }
+
+        sb.append("<refsect2 xml:id=\"").append(scriptName).append("\">").append(EOL);
+        sb.append(" <title>").append(scriptName).append("</title>").append(EOL);
+        sb.append(" <para>").append(getToolDescription()).append("</para>").append(EOL);
+
+        if (!argumentList.isEmpty()) {
+            sb.append(" <variablelist>").append(EOL);
+            for (Argument a : argumentList) {
+                sb.append("  <varlistentry>").append(EOL);
+                sb.append("    <term><option>");
+                final Character shortID = a.getShortIdentifier();
+                if (shortID != null) {
+                    sb.append("-").append(shortID.charValue());
+                }
+                final String longID = a.getLongIdentifier();
+                if (shortID != null && longID != null) {
+                    sb.append(" | ");
+                }
+                if (longID != null) {
+                    sb.append("--").append(longID);
+                }
+                if (a.needsValue()) {
+                    sb.append(" ").append(a.getValuePlaceholder());
+                }
+                sb.append("</option></term>").append(EOL);
+                sb.append("    <listitem>").append(EOL);
+                sb.append("      <para>").append(a.getDescription()).append("</para>").append(EOL);
+                sb.append("    </listitem>").append(EOL);
+                sb.append("  </varlistentry>").append(EOL);
+            }
+            sb.append(" </variablelist>").append(EOL);
+        }
+
+        sb.append("</refsect2>").append(EOL);
     }
 
     /**
@@ -652,8 +699,6 @@ public class ArgumentParser {
      *            The buffer to which the usage information should be appended.
      */
     private void getUsage(final StringBuilder buffer) {
-        usageOrVersionDisplayed = true;
-
         buffer.append(getLocalizableScriptName());
         if (allowsTrailingArguments) {
             buffer.append(" ");
