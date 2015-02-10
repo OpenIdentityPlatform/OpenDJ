@@ -268,7 +268,7 @@
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
         <excludes>
-          <exclude>java-stubs</exclude>
+          <exclude>java-stubs/</exclude>
         </excludes>
       </resource>
       <!-- Property files used in test sources -->
