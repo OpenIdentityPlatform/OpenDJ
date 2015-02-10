@@ -421,7 +421,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
             }
             else
             {
-              errors.add(ERR_CTRL_PANEL_ERROR_DECODING_BASE_64.get(t));
+              errors.add(ERR_CTRL_PANEL_ERROR_DECODING_BASE64.get(t));
             }
             displayErrorDialog(errors);
           }
@@ -531,7 +531,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     gbc.insets.left = 0;
     gbc.gridwidth = 3;
     useBase64 = Utilities.createRadioButton(
-        INFO_CTRL_PANEL_USE_CONTENTS_IN_BASE_64.get());
+        INFO_CTRL_PANEL_USE_CONTENTS_IN_BASE64.get());
     useBase64.setFont(ColorAndFontConstants.primaryFont);
     add(useBase64, gbc);
 
@@ -621,7 +621,7 @@ public class BinaryAttributeEditorPanel extends StatusGenericPanel
     else
     {
       base64.setText(
-          INFO_CTRL_PANEL_SPECIFY_CONTENTS_IN_BASE_64.get().toString());
+          INFO_CTRL_PANEL_SPECIFY_CONTENTS_IN_BASE64.get().toString());
     }
   }
 

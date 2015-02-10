@@ -28,11 +28,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <!-- This is Maven build file is just a hack in order to leverage
-       Maven's site generation capabilities. It duplicates version information,
-       and the Ant build is not split into phases: we just do it in one single
-       blast during the compile phase -->
-
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.forgerock.opendj</groupId>
@@ -40,7 +35,7 @@
     <version>3.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj3-server-dev</artifactId>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
   <name>OpenDJ Directory Server</name>
   <description>
     OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
@@ -49,9 +44,9 @@
   </description>
   <inceptionYear>2006</inceptionYear>
   <scm>
-    <url>https://svn.forgerock.org/opendj/trunk/opends/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opends/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opends/</developerConnection>
+    <url>https://svn.forgerock.org/opendj/branches/opendj3-server-dev/</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/branches/opendj3-server-dev/</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/branches/opendj3-server-dev/</developerConnection>
     <tag>HEAD</tag>
   </scm>
   <ciManagement>
@@ -86,92 +81,1026 @@
         <enabled>false</enabled>
       </releases>
     </repository>
+    <repository>
+      <id>oracle-repository</id>
+      <name>Oracle Maven Repository</name>
+      <url>http://download.oracle.com/maven</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
   </repositories>
 
   <properties>
-    <ant.home>ext/ant</ant.home>
-    <BUILD_NUMBER>0</BUILD_NUMBER>
+    <!-- General server-wide properties -->
+    <docgen.dir>${project.build.directory}/docgen</docgen.dir>
+    <jars.dir>${project.build.directory}/jars</jars.dir>
 
+    <!-- Product information properties -->
+    <shortProductName>OpenDJ</shortProductName>
+    <lowerCaseProductName>opendj</lowerCaseProductName>
+    <patchFixIds></patchFixIds>
+    <isDebugBuild>false</isDebugBuild>
+    <docHomepageUrl>http://opendj.forgerock.org/</docHomepageUrl>
+    <docWikiUrl>http://opendj.forgerock.org/docs.html</docWikiUrl>
+    <docGuideRefUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideRefUrl>
+    <docGuideAdminUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</docGuideAdminUrl>
+    <locales>ca_ES,es,de,fr,ja,ko,pl,zh_CN,zh_TW</locales>
+
+    <!-- Dependencies version properties -->
+    <project.version>3.0.0-SNAPSHOT</project.version>
+    <i18n.version>1.4.2-SNAPSHOT</i18n.version>
+    <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
+    <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
+    <slf4jVersion>1.7.5</slf4jVersion>
+    <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
+
+    <!-- Other properties -->
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
+
   </properties>
+
+  <dependencies>
+    <!-- ForgeRock libraries -->
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-rest2ldap-servlet</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-slf4j-adapter</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.forgerock.opendj</groupId>
+          <artifactId>opendj3-server-dev</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-server3x-adapter</artifactId>
+      <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.forgerock.opendj</groupId>
+          <artifactId>opendj-server</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.forgerock.opendj</groupId>
+          <artifactId>opendj3-server-dev</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-config</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-legacy</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-cli</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.forgerock</groupId>
+      <artifactId>forgerock-build-tools</artifactId>
+      <version>${forgerockBuildToolsVersion}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+    </dependency>
+
+    <!-- servlet and mail -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1-b02</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.grizzly</groupId>
+      <artifactId>grizzly-http-servlet</artifactId>
+      <version>2.3.16</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>javax.servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <version>1.4.7</version>
+    </dependency>
+
+    <!-- Tests -->
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.0.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>1.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Databases -->
+    <dependency>
+      <groupId>com.sleepycat</groupId>
+      <artifactId>je</artifactId>
+      <version>5.0.104</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-persistit</artifactId>
+      <version>3.3.1</version>
+    </dependency>
+  </dependencies>
+
   <build>
+
     <directory>build</directory>
+
+    <resources>
+      <!-- Main resources -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>java-stubs</exclude>
+        </excludes>
+      </resource>
+      <!-- Property files used in test sources -->
+      <resource>
+        <directory>tests/unit-tests-testng/src/server</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+      <!-- Images for quicksetup must be explicitely copied from sources -->
+      <resource>
+        <directory>src/quicksetup</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/images/*.gif</include>
+          <include>**/images/*.png</include>
+        </includes>
+      </resource>
+      <!-- Images for guitools must be explicitely copied from sources -->
+      <resource>
+        <directory>src/guitools</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>**/images/*.gif</include>
+          <include>**/images/*.png</include>
+        </includes>
+      </resource>
+      <!-- .plist files for macos must be filtered to include build properties -->
+      <resource>
+        <directory>resource/mac</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/Info.plist</include>
+        </includes>
+      </resource>
+      <!-- Generation of DynamicConstants class from build properties -->
+      <resource>
+        <directory>src/main/resources/java-stubs</directory>
+        <filtering>true</filtering>
+        <targetPath>${project.build.directory}/java-stubs</targetPath>
+      </resource>
+    </resources>
+
     <plugins>
+
+      <!-- Clean classes generated outside the build directory -->
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <inherited>false</inherited>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}/src</directory>
+              <includes>
+                <include>admin/generated/**</include>
+                <include>messages/generated/**</include>
+              </includes>
+              <followSymlinks>false</followSymlinks>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
+      <!-- Generate i18n messages -->
+      <plugin>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>clean</id>
-            <phase>clean</phase>
+            <phase>generate-sources</phase>
             <goals>
-              <goal>run</goal>
+              <goal>generate-messages</goal>
             </goals>
             <configuration>
-              <target>
-                <delete dir="target" />
-                <ant target="clean" />
-              </target>
+              <resourceDirectory>${basedir}/src/messages</resourceDirectory>
+              <targetDirectory>${basedir}/src/messages/generated/</targetDirectory>
+              <force>true</force>
+              <messageFiles>
+                <!-- Warning: messageFile must contains at least one "/" -->
+                <messageFile>org/opends/messages/access_control.properties</messageFile>
+                <messageFile>org/opends/messages/admin.properties</messageFile>
+                <messageFile>org/opends/messages/admin_tool.properties</messageFile>
+                <messageFile>org/opends/messages/backend.properties</messageFile>
+                <messageFile>org/opends/messages/config.properties</messageFile>
+                <messageFile>org/opends/messages/core.properties</messageFile>
+                <messageFile>org/opends/messages/dsconfig.properties</messageFile>
+                <messageFile>org/opends/messages/extension.properties</messageFile>
+                <messageFile>org/opends/messages/jeb.properties</messageFile>
+                <messageFile>org/opends/messages/logger.properties</messageFile>
+                <messageFile>org/opends/messages/plugin.properties</messageFile>
+                <messageFile>org/opends/messages/protocol.properties</messageFile>
+                <messageFile>org/opends/messages/quickSetup.properties</messageFile>
+                <messageFile>org/opends/messages/replication.properties</messageFile>
+                <messageFile>org/opends/messages/runtime.properties</messageFile>
+                <messageFile>org/opends/messages/schema.properties</messageFile>
+                <messageFile>org/opends/messages/task.properties</messageFile>
+                <messageFile>org/opends/messages/tool.properties</messageFile>
+                <messageFile>org/opends/messages/utility.properties</messageFile>
+                <messageFile>org/opends/messages/version.properties</messageFile>
+              </messageFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <!-- Copy messages properties files for inclusion in main jar -->
+          <execution>
+            <id>copy-l10n-messages</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}/org/opends/messages</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/messages/org/opends/messages</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
             </configuration>
           </execution>
           <execution>
-            <id>compile</id>
-            <phase>compile</phase>
+            <id>copy-l10n-config-messages</id>
+            <phase>validate</phase>
             <goals>
-              <goal>run</goal>
+              <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <target>
-                <!-- We need to significantly refactor build.xml in order
-                     to split this up any more -->
-                <ant target="precommit" />
-              </target>
+              <outputDirectory>${project.build.outputDirectory}/admin/messages/org/opends/server/admin/std/meta</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/admin/messages</directory>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.forgerock</groupId>
+        <artifactId>manifest-classpath-maven-plugin</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <id>generate-bootstrap-manifest</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <classPathProperty>classpath.bootstrap</classPathProperty>
+              <productJarName>${shortProductName}</productJarName>
+              <supportedLocales>${locales}</supportedLocales>
+              <excludes>
+                <exclude>org.slf4j:slf4j-jdk14</exclude>
+              </excludes>
             </configuration>
           </execution>
           <execution>
-            <id>generate-docs</id>
-            <phase>pre-site</phase>
+            <id>generate-bootstrap-client-manifest</id>
             <goals>
-              <goal>run</goal>
+              <goal>generate</goal>
             </goals>
             <configuration>
-              <target>
-                <ant target="javadoc" />
-                <ant target="configguide" />
-                <ant target="generateLogReference" />
-              </target>
+              <classPathProperty>classpath.bootstrap-client</classPathProperty>
+              <productJarName>${shortProductName}</productJarName>
+              <supportedLocales>${locales}</supportedLocales>
+              <excludes>
+                <exclude>org.forgerock.opendj:opendj-slf4j-adapter</exclude>
+              </excludes>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+
+      <!-- Generate configuration classes from XML definitions -->
+      <!-- Leave default lifecycle phase once new config framework migration 
+        is done -->
+      <plugin>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-config-maven-plugin</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+        <executions>
           <execution>
-            <id>cp-generated-docs</id>
-            <phase>site</phase>
+            <id>generate-config</id>
+            <phase>generate-sources</phase>
             <goals>
-              <goal>run</goal>
+              <goal>generate</goal>
             </goals>
             <configuration>
-              <target>
-                <copy todir="build/site/configref">
-                  <fileset dir="build/docgen/configuration_guide/" />
-                </copy>
-                <copy todir="build/site/javadoc">
-                  <fileset dir="build/javadoc/" />
-                </copy>
-              </target>
+              <phase>none</phase>
+              <packageName>org.forgerock.opendj.server.config</packageName>
+              <isExtension>false</isExtension>
             </configuration>
           </execution>
         </executions>
       </plugin>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <!-- Take into account several sources directories for the build -->
+          <execution>
+            <id>main-java-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/server</source>
+                <source>src/quicksetup</source>
+                <source>src/ads</source>
+                <source>src/guitools</source>
+                <source>src/messages/generated</source>
+                <source>src/messages/src</source>
+                <source>src/admin/generated</source>
+                <source>src/build-tools</source>
+                <source>src/dsml</source>
+                <source>${project.build.directory}/java-stubs</source>
+              </sources>
+            </configuration>
+          </execution>
+          <!-- Take into account tests directory for the build -->
+          <execution>
+            <id>test-sources</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>tests/unit-tests-testng/src/server</source>
+              </sources>
+            </configuration>
+          </execution>
+          <!-- Parse version to generate properties (major.version, minor.version, 
+            ...) -->
+          <execution>
+            <id>parse-version</id>
+            <goals>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Retrieve the SVN revision number and the build timestamp -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.3</version>
+        <executions>
+          <execution>
+            <id>generate-buildnumber</id>
+            <goals>
+              <goal>create</goal>
+            </goals>
+            <configuration>
+              <useLastCommittedRevision>true</useLastCommittedRevision>
+              <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
+              <revisionOnScmFailure>-1</revisionOnScmFailure>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-timestamp</id>
+            <goals>
+              <goal>create</goal>
+            </goals>
+            <configuration>
+              <format>{0,date,yyyyMMddHHmmss}</format>
+              <items>
+                <item>timestamp</item>
+              </items>
+              <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Create consolidated schema file for use in upgrade -->
+      <plugin>
+        <groupId>org.forgerock</groupId>
+        <artifactId>concat-schema-maven-plugin</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <id>creates-base-schema-files</id>
+            <goals>
+              <goal>concat</goal>
+            </goals>
+            <configuration>
+              <schemaDirectory>${basedir}/resource/schema</schemaDirectory>
+              <outputDirectory>${project.build.directory}/upgrade</outputDirectory>
+              <outputFile>schema.ldif.${buildRevision}</outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Compile unit tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-testCompile</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <testSourceDirectory>tests/unit-tests-testng/src/server</testSourceDirectory>
+              <showDeprecation>false</showDeprecation>
+              <showWarnings>false</showWarnings>
+              <testCompilerArgument>-nowarn</testCompilerArgument>
+              <testExcludes>
+                <testExclude>**/org/opends/server/snmp/**</testExclude>
+              </testExcludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Disable surefire plugin because all tests are run with failsafe 
+        plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <!-- Package boostrap jar - contains only a manifest with classpath 
+            for the server -->
+          <execution>
+            <id>build-bootstrap-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>bootstrap</finalName>
+              <includes>
+                <include>nothing</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <manifestFile>${project.build.outputDirectory}/bootstrap/manifest-bootstrap</manifestFile>
+              </archive>
+            </configuration>
+          </execution>
+          <!-- Package boostrap-client jar - contains only a manifest with 
+            classpath for clients -->
+          <execution>
+            <id>build-bootstrap-client-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>bootstrap-client</finalName>
+              <includes>
+                <include>nothing</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <manifestFile>${project.build.outputDirectory}/bootstrap/manifest-bootstrap-client</manifestFile>
+              </archive>
+            </configuration>
+          </execution>
+          <!-- Package build-tools jar -->
+          <execution>
+            <id>create-build-tools-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>build-tools</finalName>
+              <!-- TODO: Adds the resource/Messages.java.stub to build/build-tools/classes/org/opends/build/tools/resource -->
+              <includes>
+                <include>**/messages/Severity.class</include>
+                <include>**/messages/Category.class</include>
+                <include>**/messages/Message.class</include>
+                <include>**/messages/MessagePropertyKey.class</include>
+                <include>**/messages/MessageDescriptor.class</include>
+                <include>**/server/types/PublicAPI.class</include>
+                <include>**/server/types/StabilityLevel.class</include>
+                <include>**/javax/jnlp/*</include>
+                <include>**/netscape/ldap/*</include>
+                <include>**/build/tools/*</include>
+              </includes>
+            </configuration>
+          </execution>
+          <!-- Package quicksetup jar -->
+          <execution>
+            <id>build-quicksetup-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>quicksetup</finalName>
+              <includes>
+                <include>**/quicksetup/**</include>
+                <include>**/org/opends/admin/ads/*</include>
+                <include>**/org/opends/server/util/SetupUtils.class</include>
+                <include>**/org/opends/server/util/CertificateManager.class</include>
+                <include>**/org/opends/server/util/DynamicConstants.class</include>
+                <include>**/org/opends/server/types/OperatingSystem.class</include>
+                <include>**/org/opends/messages/Message.class</include>
+                <include>**/org/opends/messages/MessageBuilder.class</include>
+                <include>**/org/opends/messages/MessageDescriptor.class</include>
+                <include>**/org/opends/messages/Severity.class</include>
+                <include>**/org/opends/messages/Category.class</include>
+                <include>**/org/opends/messages/QuickSetupMessages.class</include>
+                <include>**/org/opends/server/types/OpenDsException.class</include>
+              </includes>
+            </configuration>
+          </execution>
+          <!-- Build localized jars (one per supported locale) -->
+          <!-- (is there a way to avoid all these repeated executions ?) -->
+          <execution>
+            <id>build-caES-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_ca_ES</finalName>
+              <includes>
+                <include>**/*_ca_ES.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-de-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_de</finalName>
+              <includes>
+                <include>**/*_de.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-es-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_es</finalName>
+              <includes>
+                <include>**/*_es.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-fr-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_fr</finalName>
+              <includes>
+                <include>**/*_fr.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-ja-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_ja</finalName>
+              <includes>
+                <include>**/*_ja.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-ko-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_ko</finalName>
+              <includes>
+                <include>**/*_ko.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-pl-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_pl</finalName>
+              <includes>
+                <include>**/*_pl.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-zh-CN-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_zh_CN</finalName>
+              <includes>
+                <include>**/*_zh_CN.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-zh-TW-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}_zh_TW</finalName>
+              <includes>
+                <include>**/*_zh_TW.properties</include>
+              </includes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+          <!-- Main jar -->
+          <execution>
+            <id>default-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>${shortProductName}</finalName>
+              <excludes>
+                <exclude>*.app/**</exclude>
+                <exclude>java-stubs/**</exclude>
+                <exclude>bootstrap/**</exclude>
+                <exclude>javax/jnlp/**</exclude>
+                <exclude>netscape/**</exclude>
+                <exclude>META-INF/**</exclude>
+                <exclude>org/opends/dsml/**</exclude>
+                <exclude>**/*_ca_ES.properties</exclude>
+                <exclude>**/*_de.properties</exclude>
+                <exclude>**/*_es.properties</exclude>
+                <exclude>**/*_fr.properties</exclude>
+                <exclude>**/*_ja.properties</exclude>
+                <exclude>**/*_ko.properties</exclude>
+                <exclude>**/*_pl.properties</exclude>
+                <exclude>**/*_zh_CN.properties</exclude>
+                <exclude>**/*_zh_TW.properties</exclude>
+              </excludes>
+              <archive>
+                <addMavenDescriptor>false</addMavenDescriptor>
+                <index>true</index>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <!-- Package the example plugin in a zip -->
+          <execution>
+            <id>build-example-package</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <finalName>example-plugin</finalName>
+              <addMavenDescriptor>false</addMavenDescriptor>
+              <appendAssemblyId>false</appendAssemblyId>
+              <attach>false</attach>
+              <descriptors>
+                <descriptor>src/main/assembly/example-plugin-assembly.xml</descriptor>
+              </descriptors>
+              <formats>
+                <format>zip</format>
+              </formats>
+            </configuration>
+          </execution>
+          <!-- Creates the archive folder -->
+          <execution>
+            <id>build-opendj-archive</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <finalName>${lowerCaseProductName}</finalName>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <appendAssemblyId>false</appendAssemblyId>
+              <attach>false</attach>
+              <descriptors>
+                <descriptor>src/main/assembly/opendj-archive-assembly.xml</descriptor>
+              </descriptors>
+              <formats>
+                <format>dir</format>
+              </formats>
+              <archive>
+                <manifestFile>${project.build.outputDirectory}/bootstrap/manifest-bootstrap</manifestFile>
+              </archive>
+            </configuration>
+          </execution>
+          <!-- Package DSML war -->
+          <execution>
+            <id>build-dsml-war</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <finalName>${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML</finalName>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <appendAssemblyId>false</appendAssemblyId>
+              <addMavenDescriptor>false</addMavenDescriptor>
+              <descriptors>
+                <descriptor>src/main/assembly/dsml-war-assembly.xml</descriptor>
+              </descriptors>
+              <formats>
+                <format>war</format>
+              </formats>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- Temporary solution for configuration classes until migration 
+              to new config framework -->
+            <id>generate-config</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <target>
+                <ant antfile="${basedir}/build.xml">
+                  <target name="generateadmin" />
+                </ant>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <!-- Generate final zip and attach artefact -->
+          <execution>
+            <id>attach-artifact</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <zip
+                  destfile="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip"
+                  basedir="${project.build.directory}/package/"
+                  includes="${lowerCaseProductName}/**">
+                  <zipfileset
+                    dir="${project.build.directory}/package/${lowerCaseProductName}"
+                    includes="**/*"
+                    excludes="bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+                    filemode="644" dirmode="755" prefix="opendj" />
+                  <zipfileset
+                    dir="${project.build.directory}/package/${lowerCaseProductName}"
+                    includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh"
+                    filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset
+                    dir="${project.build.directory}/package/${lowerCaseProductName}"
+                    includes="bin/*" filemode="755" dirmode="755"
+                    prefix="opendj" />
+                  <zipfileset
+                    dir="${project.build.directory}/package/${lowerCaseProductName}"
+                    includes="setup,uninstall,upgrade,QuickSetup.app/Contents/MacOS/JavaApplicationStub,Uninstall.app/Contents/MacOS/JavaApplicationStub,bin/ControlPanel.app/Contents/MacOS/JavaApplicationStub"
+                    filemode="755" dirmode="755" prefix="opendj" />
+                  <zipfileset
+                    dir="${project.build.directory}/package/${lowerCaseProductName}"
+                    includes="template/**/*" filemode="444" dirmode="744"
+                    prefix="opendj" />
+                </zip>
+                <attachartifact
+                  file="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip"
+                  type="zip" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Generates log references for documentation -->
+      <plugin>
+        <groupId>org.forgerock</groupId>
+        <artifactId>genlogref-documentation-maven-plugin</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate-xml-messages-doc</goal>
+            </goals>
+            <configuration>
+              <messagesDirectory>${basedir}/src/messages/org/opends/messages</messagesDirectory>
+              <outputDirectory>${project.build.directory}/docgen/logref</outputDirectory>
+              <logMessageReferenceFilePath>${basedir}/resource/log-message-reference.xml</logMessageReferenceFilePath>
+              <messageFileNames>
+                <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml 
+                  file -->
+                <messageFileName>admin</messageFileName>
+                <messageFileName>backend</messageFileName>
+                <messageFileName>config</messageFileName>
+                <messageFileName>core</messageFileName>
+                <messageFileName>dsconfig</messageFileName>
+                <messageFileName>extension</messageFileName>
+                <messageFileName>jeb</messageFileName>
+                <messageFileName>log</messageFileName>
+                <messageFileName>plugin</messageFileName>
+                <messageFileName>protocol</messageFileName>
+                <messageFileName>replication</messageFileName>
+                <messageFileName>schema</messageFileName>
+                <messageFileName>task</messageFileName>
+                <messageFileName>tool</messageFileName>
+                <messageFileName>utility</messageFileName>
+
+                <!-- Ignore following message files as we document only serious 
+                  errors. -->
+                <!-- <messageFileName>access_control</messageFileName> -->
+                <!-- <messageFileName>admin_tool</messageFileName> -->
+                <!-- <messageFileName>quicksetup.properties</messageFileName> -->
+                <!-- <messageFileName>runtime_information.properties</messageFileName> -->
+                <!-- <messageFileName>version.properties</messageFileName> -->
+              </messageFileNames>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Generate documentation (guide) -->
+      <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-doc-maven-plugin</artifactId>
         <version>${frDocPluginVersion}</version>
         <inherited>false</inherited>
         <configuration>
-         <projectName>OpenDJ</projectName>
-         <projectVersion>${docTargetVersion}</projectVersion>
-         <releaseVersion>${docTargetVersion}</releaseVersion>
-         <googleAnalyticsId>${gaId}</googleAnalyticsId>
+          <projectName>${shortProductName}</projectName>
+          <projectVersion>${docTargetVersion}</projectVersion>
+          <releaseVersion>${docTargetVersion}</releaseVersion>
+          <googleAnalyticsId>${gaId}</googleAnalyticsId>
+          <latestJson>http://docs.forgerock.org/latest.json</latestJson>
+          <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
         </configuration>
         <executions>
           <execution>
@@ -205,6 +1134,7 @@
         </executions>
       </plugin>
 
+      <!-- Build javadoc -->
       <plugin>
         <groupId>org.forgerock.maven.plugins</groupId>
         <artifactId>javadoc-updater-maven-plugin</artifactId>
@@ -216,81 +1146,161 @@
               <goal>fixjavadoc</goal>
             </goals>
             <configuration>
-              <directory>build/site/javadoc</directory>
+              <directory>${project.build.directory}/site/javadoc</directory>
             </configuration>
           </execution>
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <id>parse-version</id>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>attach-artifacts</id>
-            <phase>package</phase>
-            <goals>
-              <goal>attach-artifact</goal>
-            </goals>
-            <configuration>
-              <artifacts>
-                <artifact>
-                  <file>build/package/OpenDJ-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip</file>
-                  <type>zip</type>
-                </artifact>
-                <artifact>
-                  <file>build/package/OpenDJ-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-DSML.war</file>
-                  <type>war</type>
-                </artifact>
-                <artifact>
-                  <file>build/package/OpenDJ-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}/lib/OpenDJ.jar</file>
-                  <type>jar</type>
-                </artifact>
-              </artifacts>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!-- Release project -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <configuration>
-          <!--  Required for release:perform: the parent pom specifies a value
-                for "arguments" in the plugin configuration. This prevents
-                command line setting of the option. -->
+          <!-- Required for release:perform: the parent pom specifies a value 
+            for "arguments" in the plugin configuration. This prevents command line setting 
+            of the option. -->
           <arguments>-Penforce -Dopendmk.lib.dir=${opendmk.lib.dir}</arguments>
         </configuration>
       </plugin>
+
+      <!-- Generate DSML code from XML files -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>prepare-dsml-library</id>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/dsml/gen</outputDirectory>
+              <schemaDirectory>${basedir}/resource/dsml/schema</schemaDirectory>
+              <schemaFiles>DSMLv2.xsd</schemaFiles>
+              <packageName>org.opends.dsml.protocol</packageName>
+              <bindingDirectory>${basedir}/resource/dsml/schema</bindingDirectory>
+              <bindingFiles>bindings.xjb</bindingFiles>
+              <target>2.1</target>
+              <npa>true</npa>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+
   <profiles>
+    <!-- 
+       Profile to run precommit tasks: checkstyle, copyright (TODO), SVN eol check (TODO),
+       unit-tests
+       
+       Tests are not run by default due to running time (average of 8-10 minutes).
+     
+    -->
     <profile>
-      <id>tests-only</id>
+      <id>precommit</id>
       <build>
         <plugins>
+          <!-- Enforce Checkstyle -->
           <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <inherited>false</inherited>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>2.14</version>
+            <executions>
+              <!-- Disable default from parent -->
+              <execution>
+                <id>check-src-and-tests</id>
+                <phase>none</phase>
+                <goals>
+                  <goal>checkstyle</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>check-src-and-tests-alternative</id>
+                <configuration>
+                  <excludes>org/opends/messages/**,**/server/admin/std/**,**/config/meta/**,**/config/client/**,**/config/server/**,**/dsml/protocol/**,javax/jnlp/**,netscape/ldap/**</excludes>
+                  <configLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opends-checkstyle.xml</configLocation>
+                  <headerLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/opendj.sourceheader</headerLocation>
+                  <suppressionsLocation>${project.build.outputDirectory}/org/forgerock/checkstyle/unit-test-suppressions.xml</suppressionsLocation>
+                  <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                  <includeResources>false</includeResources>
+                  <!-- Only output errors if we're not expecting any -->
+                  <consoleOutput>${checkstyleFailOnError}</consoleOutput>
+                  <failsOnError>${checkstyleFailOnError}</failsOnError>
+                </configuration>
+                <phase>process-test-classes</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+         </plugin>
+        
+          <!-- 
+             Run unit/integration tests.
+             
+             A lot of existing tests requires a running server, which is why the tests are
+             run using failsafe instead of surefire.
+             
+             It should be possible in the future to separate tests into unit (no server) and 
+             integration (with server), by using respectively surefire and failsafe plugin 
+             to run them, but it will require identifying them. 
+             We could use an "unit" marker in TestNG groups to do so.
+          
+          -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
             <executions>
               <execution>
-                <id>compile</id>
-                <phase>compile</phase>
                 <goals>
-                  <goal>run</goal>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
                 </goals>
                 <configuration>
-                  <target>
-                <!-- We need to significantly refactor build.xml in order
-                     to split this up any more -->
-                    <ant target="test" />
-                  </target>
+                  <testSourceDirectory>tests/unit-tests-testng/src/server</testSourceDirectory>
+                  <excludes>
+                    <exclude>org/opends/server/snmp/**</exclude>
+                    <exclude>org/opends/quicksetup/**</exclude>
+                  </excludes>
+                  <includes>
+                    <include>**/Test*.java</include>
+                    <include>**/*Test.java</include>
+                    <include>**/*Tests.java</include>
+                    <include>**/*TestCase.java</include>
+                    <include>**/*TestCases.java</include>
+                  </includes>
+                  <properties>
+                    <property>
+                      <name>usedefaultlisteners</name>
+                      <value>false</value>
+                    </property>
+                    <property>
+                      <name>listener</name>
+                      <value>org.opends.server.TestListener</value>
+                    </property>
+                    <property>
+                      <name>excludegroups</name>
+                      <value>slow</value>
+                    </property>
+                    <property>
+                      <name>configfailurepolicy</name>
+                      <value>skip</value>
+                    </property>
+                  </properties>
+                  <systemPropertyVariables>
+                    <org.opends.server.BuildRoot>${basedir}</org.opends.server.BuildRoot>
+                    <org.opends.server.BuildDir>${project.build.directory}</org.opends.server.BuildDir>
+                    <org.opends.test.replicationDbImpl>LOG</org.opends.test.replicationDbImpl>
+                    <!-- <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}"/> -->
+                    <org.opends.server.CleanupDirectories>true</org.opends.server.CleanupDirectories>
+                    <org.opends.test.suppressOutput>true</org.opends.test.suppressOutput>
+                    <org.opends.test.pauseOnFailure>false</org.opends.test.pauseOnFailure>
+                    <org.opends.test.copyClassesToTestPackage>false</org.opends.test.copyClassesToTestPackage>
+                  </systemPropertyVariables>
+                  <argLine>-server -Xms1024M -Xmx1024M</argLine>
                 </configuration>
               </execution>
             </executions>
@@ -298,5 +1308,189 @@
         </plugins>
       </build>
     </profile>
+
+    <!-- 
+      Profile to build SNMP extension. 
+      
+      This profile is only actived when command line contains the 'opendmk.lib.dir' 
+      property that must point to the directory where OpenDMK jars are located. 
+      Example: mvn install -Dopendmk.lib.dir=/path/to/opendmk/jars 
+    -->
+    <profile>
+      <id>snmp</id>
+      <activation>
+        <property>
+          <name>opendmk.lib.dir</name>
+        </property>
+      </activation>
+
+      <properties>
+        <snmp.gen.dir>${basedir}/src/snmp/generated</snmp.gen.dir>
+        <snmp.mib.dir>${basedir}/src/snmp/resource/mib</snmp.mib.dir>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>opendmk</groupId>
+          <artifactId>jdmkrt</artifactId>
+          <version>1.0</version>
+          <scope>system</scope>
+          <systemPath>${opendmk.lib.dir}/jdmkrt.jar</systemPath>
+        </dependency>
+        <dependency>
+          <groupId>opendmk</groupId>
+          <artifactId>jdmktk</artifactId>
+          <version>1.0</version>
+          <scope>system</scope>
+          <systemPath>${opendmk.lib.dir}/jdmktk.jar</systemPath>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <resources>
+          <resource>
+            <directory>src/snmp/resource</directory>
+          </resource>
+        </resources>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <!-- Add snmp source directory and snmp generated directory 
+                as sources -->
+              <execution>
+                <id>snmp-java-sources</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/snmp/src</source>
+                    <source>src/snmp/generated</source>
+                    <source>tests/unit-tests-testng/src/server/snmp</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Cleans SNMP directory -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>createMibDir</id>
+                <phase>initialize</phase>
+                <configuration>
+                  <target>
+                    <delete dir="${snmp.gen.dir}/org/opends/server/snmp" />
+                    <mkdir dir="${snmp.gen.dir}/org/opends/server/snmp" />
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- MIB generation -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.3.2</version>
+            <executions>
+              <execution>
+                <id>mib-generation</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>java</executable>
+                  <classpathScope>compile</classpathScope>
+                  <arguments>
+                    <argument>-classpath</argument>
+                    <classpath />
+                    <argument>com.sun.jdmk.tools.MibGen</argument>
+                    <argument>-X:use-display-hint</argument>
+                    <argument>-d</argument>
+                    <argument>${snmp.gen.dir}/org/opends/server/snmp</argument>
+                    <argument>-mc</argument>
+                    <argument>-desc</argument>
+                    <argument>-tp</argument>
+                    <argument>org.opends.server.snmp</argument>
+                    <argument>${snmp.mib.dir}/rfc2605.txt</argument>
+                    <argument>${snmp.mib.dir}/mib_core.txt</argument>
+                    <argument>${snmp.mib.dir}/rfc2021.txt</argument>
+                    <argument>${snmp.mib.dir}/rfc2788.txt</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Creates snmp-mib2605 jar file -->
+          <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>create-snmp-jar</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${jars.dir}</outputDirectory>
+                  <finalName>snmp-mib2605</finalName>
+                  <includes>
+                    <include>org/opends/server/snmp/**</include>
+                    <include>admin/extension.manifest</include>
+                  </includes>
+                  <archive>
+                    <index>true</index>
+                    <addMavenDescriptor>false</addMavenDescriptor>
+                    <manifestEntries>
+                      <Extension-Name>snmp-mib2605</Extension-Name>
+                      <Implementation-Version>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}"</Implementation-Version>
+                      <Revision-Number>${buildRevision}</Revision-Number>
+                    </manifestEntries>
+                  </archive>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Package the final zip -->
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>build-opendj-archive</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${project.build.directory}/package</outputDirectory>
+                  <finalName>${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</finalName>
+                  <descriptors>
+                    <descriptor>src/main/assembly/opendj-snmp-archive-assembly.xml</descriptor>
+                  </descriptors>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <formats>
+                    <format>zip</format>
+                  </formats>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
   </profiles>
+
 </project>

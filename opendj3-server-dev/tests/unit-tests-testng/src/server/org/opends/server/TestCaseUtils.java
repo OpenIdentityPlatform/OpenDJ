@@ -286,9 +286,13 @@ public final class TestCaseUtils {
          testInstallRoot = new File(unitRoot, "package");
          testInstanceRoot = testInstallRoot;
       }
+      System.out.println("unitRoot=" + unitRoot);
+      System.out.println("testInstallRoot=" + testInstallRoot);
+      System.out.println("testInstanceRoot=" + testInstanceRoot);
 
       File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
                                     File.separator + "unit-tests-testng");
+      System.out.println("testSrcRoot=" + testSrcRoot);
 
       String cleanupRequiredString = System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
       boolean cleanupRequired = !"false".equalsIgnoreCase(cleanupRequiredString);
@@ -327,7 +331,9 @@ public final class TestCaseUtils {
       // appropriate place under the test package.
       File serverClassesDir = new File(buildDir, "classes");
       File unitClassesDir   = new File(unitRoot, "classes");
-      File libDir           = new File(buildRoot, "lib");
+      File libDir           = new File(buildDirStr + "/package/opendj/lib");
+      File upgradeDir       = new File(buildDirStr + "/package/opendj/template/config/upgrade");
+      System.out.println("libDir=" + libDir);
       File resourceDir      = new File(buildRoot, "resource");
       File testResourceDir  = new File(testSrcRoot, "resource");
       // Set the class variable
@@ -367,6 +373,8 @@ public final class TestCaseUtils {
         copyDirectory(libDir, testLibDir);
         copyDirectory(new File(resourceDir, "bin"), testBinDir);
         copyDirectory(new File(resourceDir, "config"), testConfigDir );
+        // copy upgrade directory
+        copyDirectory(upgradeDir, new File(testConfigDir, "upgrade"));
         copyDirectory(new File(resourceDir, "schema"),
             new File(testSchemaDir, "schema"));
         copyDirectory(new File(resourceDir, "MakeLDIF"),
