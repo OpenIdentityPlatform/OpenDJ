@@ -1008,9 +1008,7 @@
             <configuration>
               <target>
                 <zip
-                  destfile="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip"
-                  basedir="${project.build.directory}/package/"
-                  includes="${lowerCaseProductName}/**">
+                  destfile="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip">
                   <zipfileset
                     dir="${project.build.directory}/package/${lowerCaseProductName}"
                     includes="**/*"
@@ -1475,14 +1473,17 @@
                 </goals>
                 <configuration>
                   <outputDirectory>${project.build.directory}/package</outputDirectory>
-                  <finalName>${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</finalName>
+                  <finalName>${lowerCaseProductName}</finalName>
                   <descriptors>
                     <descriptor>src/main/assembly/opendj-snmp-archive-assembly.xml</descriptor>
                   </descriptors>
                   <appendAssemblyId>false</appendAssemblyId>
                   <formats>
-                    <format>zip</format>
+                    <format>dir</format>
                   </formats>
+                  <archive>
+                    <manifestFile>${project.build.outputDirectory}/bootstrap/manifest-bootstrap</manifestFile>
+                  </archive>
                 </configuration>
               </execution>
             </executions>
