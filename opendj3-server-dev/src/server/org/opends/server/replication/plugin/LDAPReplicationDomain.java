@@ -67,6 +67,7 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -3567,7 +3568,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     ImportExportContext ieCtx = getImportExportContext();
     try
     {
-      if (!backend.supportsLDIFImport())
+      if (!backend.supports(BackendOperation.LDIF_IMPORT))
       {
         ieCtx.setExceptionIfNoneSet(new DirectoryException(OTHER,
             ERR_INIT_IMPORT_NOT_SUPPORTED.get(backend.getBackendID())));
@@ -4250,7 +4251,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   public long countEntries() throws DirectoryException
   {
     Backend<?> backend = getBackend();
-    if (!backend.supportsLDIFExport())
+    if (!backend.supports(BackendOperation.LDIF_EXPORT))
     {
       LocalizableMessage msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());
       logger.error(msg);

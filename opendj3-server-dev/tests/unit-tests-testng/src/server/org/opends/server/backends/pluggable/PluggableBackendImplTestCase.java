@@ -23,18 +23,13 @@
  *
  *      Copyright 2015 ForgeRock AS
  */
-
 package org.opends.server.backends.pluggable;
 
-import static org.forgerock.opendj.ldap.ModificationType.ADD;
-import static org.opends.server.protocols.internal.InternalClientConnection.getRootConnection;
-import static org.opends.server.protocols.internal.Requests.newSearchRequest;
-import static org.opends.server.types.Attributes.create;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.forgerock.opendj.ldap.ModificationType.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.opends.server.types.Attributes.*;
+import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -49,6 +44,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -768,7 +764,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   @Test(dependsOnMethods = { "testBaseSearch", "testOneLevelSearch", "testSubTreeSearch", "testUserEntrySearch" })
   public void testImportLDIF() throws Exception
   {
-    assertTrue(backend.supportsLDIFImport(), "Import not supported");
+    assertTrue(backend.supports(BackendOperation.LDIF_IMPORT), "Import not supported");
 
     // Import wants the backend to be configured but not initialized. Finalizing resets the status.
     backend.finalizeBackend();
@@ -816,7 +812,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   @Test(dependsOnMethods = "testPreloadEntryCache")
   public void testBackup() throws Exception
   {
-    assertEquals(backend.supportsBackup(), true, "Skip Backup");
+    assertEquals(backend.supports(BackendOperation.BACKUP), true, "Skip Backup");
     assertNotNull(backupID, "Need to setup a backupID");
 
     backupPath = TestCaseUtils.createTemporaryDirectory("backup").getAbsolutePath();
@@ -830,7 +826,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   @Test(dependsOnMethods = "testBackup")
   public void testRestore() throws Exception
   {
-    assertTrue(backend.supportsRestore(), "Skip Restore");
+    assertTrue(backend.supports(BackendOperation.RESTORE), "Skip Restore");
 
     backend.restoreBackup(new RestoreConfig(backupDirectory, backupID, true));
   }
@@ -838,7 +834,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   @Test(dependsOnMethods = "testRestore")
   public void testExportLDIF() throws Exception
   {
-    assertTrue(backend.supportsLDIFExport(), "Export not supported");
+    assertTrue(backend.supports(BackendOperation.LDIF_EXPORT), "Export not supported");
 
     ByteArrayOutputStream ldifData = new ByteArrayOutputStream();
     LDIFExportConfig exportConfig = new LDIFExportConfig(ldifData);

@@ -22,31 +22,41 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.messages.Severity;
-import org.opends.messages.TaskMessages;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.getAttributeType;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.DATE_FORMAT_GMT_TIME;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.ServerConstants.
-     BACKUP_DIRECTORY_DESCRIPTOR_FILE;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.messages.Severity;
+import org.opends.messages.TaskMessages;
+import org.opends.server.admin.std.server.BackendCfg;
+import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.api.Backend;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
@@ -55,17 +65,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.admin.std.server.BackendCfg;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-import java.util.HashMap;
-import java.text.SimpleDateFormat;
-import java.io.File;
 
 /**
  * This class provides an implementation of a Directory Server task that may be
@@ -147,7 +146,7 @@ public class BackupTask extends Task
    */
   private Map<String,ConfigEntry> configEntries;
 
-  private ArrayList<Backend> backendsToArchive;
+  private ArrayList<Backend<?>> backendsToArchive;
 
   /**
    * {@inheritDoc}
@@ -345,14 +344,14 @@ public class BackupTask extends Task
     int numBackends = configEntries.size();
 
 
-    backendsToArchive = new ArrayList<Backend>(numBackends);
+    backendsToArchive = new ArrayList<Backend<?>>(numBackends);
 
     if (backUpAll)
     {
       for (Map.Entry<String,ConfigEntry> mapEntry : configEntries.entrySet())
       {
-        Backend b = DirectoryServer.getBackend(mapEntry.getKey());
-        if (b != null && b.supportsBackup())
+        Backend<?> b = DirectoryServer.getBackend(mapEntry.getKey());
+        if (b != null && b.supports(BackendOperation.BACKUP))
         {
           backendsToArchive.add(b);
         }
@@ -364,12 +363,12 @@ public class BackupTask extends Task
       // be used.
       for (String id : backendIDList)
       {
-        Backend b = DirectoryServer.getBackend(id);
+        Backend<?> b = DirectoryServer.getBackend(id);
         if (b == null || configEntries.get(id) == null)
         {
           logger.error(ERR_BACKUPDB_NO_BACKENDS_FOR_ID, id);
         }
-        else if (! b.supportsBackup())
+        else if (!b.supports(BackendOperation.BACKUP))
         {
           logger.warn(WARN_BACKUPDB_BACKUP_NOT_SUPPORTED, b.getBackendID());
         }
@@ -405,7 +404,7 @@ public class BackupTask extends Task
    * @param backupLocation The backup directory.
    * @return true if the backend was successfully archived.
    */
-  private boolean backupBackend(Backend b, File backupLocation)
+  private boolean backupBackend(Backend<?> b, File backupLocation)
   {
     // Get the config entry for this backend.
     BackendCfg cfg = TaskUtils.getConfigEntry(b);
@@ -506,7 +505,7 @@ public class BackupTask extends Task
    * @param b The backend on which the lock is to be acquired.
    * @return true if the lock was successfully acquired.
    */
-  private boolean lockBackend(Backend b)
+  private boolean lockBackend(Backend<?> b)
   {
     try
     {
@@ -532,7 +531,7 @@ public class BackupTask extends Task
    * @param b The backend on which the lock is held.
    * @return true if the lock was successfully released.
    */
-  private boolean unlockBackend(Backend b)
+  private boolean unlockBackend(Backend<?> b)
   {
     try
     {
@@ -607,7 +606,7 @@ public class BackupTask extends Task
 
     // Iterate through the backends to archive and back them up individually.
     boolean errorsEncountered = false;
-    for (Backend b : backendsToArchive)
+    for (Backend<?> b : backendsToArchive)
     {
       if (isCancelled())
       {

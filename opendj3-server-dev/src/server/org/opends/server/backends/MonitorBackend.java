@@ -589,32 +589,11 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
     // We can export all the monitor entries as a point-in-time snapshot.
     // TODO implementation of export is incomplete
     // TODO export-ldif reports nonsense for upTime etc.
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFImport()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
     return false;
   }
 

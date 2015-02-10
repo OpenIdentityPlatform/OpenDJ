@@ -3618,14 +3618,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
-  {
-    // We will only export the DSE entry itself.
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -3669,9 +3661,21 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFImport()
+  public boolean supports(BackendOperation backendOperation)
   {
-    return true;
+    switch (backendOperation)
+    {
+    case LDIF_EXPORT:
+    case LDIF_IMPORT:
+    case RESTORE:
+      // We will provide a restore, but only for offline operations.
+    case BACKUP:
+      // We do support an online backup mechanism for the schema.
+      return true;
+
+    default:
+      return false;
+    }
   }
 
   /** {@inheritDoc} */
@@ -3983,14 +3987,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       updateSchemaFiles(newSchema, modifiedSchemaFiles);
       DirectoryServer.setSchema(newSchema);
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup()
-  {
-    // We do support an online backup mechanism for the schema.
-    return true;
   }
 
   /** {@inheritDoc} */
@@ -4391,14 +4387,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
 
     // Remove the archive file.
     archiveFile.delete();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
-    // We will provide a restore, but only for offline operations.
-    return true;
   }
 
   /** {@inheritDoc} */

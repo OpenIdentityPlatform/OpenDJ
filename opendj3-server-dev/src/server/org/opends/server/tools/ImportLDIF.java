@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
@@ -965,7 +966,7 @@ public class ImportLDIF extends TaskTool {
       logger.error(ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID);
       return 1;
     }
-    else if (! backend.supportsLDIFImport())
+    else if (!backend.supports(BackendOperation.LDIF_IMPORT))
     {
       logger.error(ERR_LDIFIMPORT_CANNOT_IMPORT, backendID.getValue());
       return 1;

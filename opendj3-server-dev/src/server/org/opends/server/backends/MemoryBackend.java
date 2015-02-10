@@ -619,9 +619,17 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
-    return true;
+    switch (backendOperation)
+    {
+    case LDIF_EXPORT:
+    case LDIF_IMPORT:
+      return true;
+
+    default:
+      return false;
+    }
   }
 
   /** {@inheritDoc} */
@@ -663,13 +671,6 @@ public class MemoryBackend
     {
       close(ldifWriter);
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFImport()
-  {
-    return true;
   }
 
   /** {@inheritDoc} */
@@ -748,13 +749,6 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -774,13 +768,6 @@ public class MemoryBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsRestore()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -794,4 +781,3 @@ public class MemoryBackend
     throw new UnsupportedOperationException("Operation not supported.");
   }
 }
-

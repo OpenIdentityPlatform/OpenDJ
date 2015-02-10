@@ -40,6 +40,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
@@ -181,7 +182,7 @@ public class RebuildTask extends Task
       logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDN);
       return TaskState.STOPPED_BY_ERROR;
     }
-    if (!backend.supportsIndexing())
+    if (!backend.supports(BackendOperation.INDEXING))
     {
       logger.error(ERR_REBUILDINDEX_WRONG_BACKEND_TYPE);
       return TaskState.STOPPED_BY_ERROR;

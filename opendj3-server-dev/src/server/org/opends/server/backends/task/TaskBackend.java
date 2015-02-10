@@ -992,8 +992,6 @@ public class TaskBackend
     return Collections.emptySet();
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
@@ -1001,17 +999,21 @@ public class TaskBackend
     return Collections.emptySet();
   }
 
-
-
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
-    // LDIF exports are supported.
-    return true;
+    switch (backendOperation)
+    {
+    case LDIF_EXPORT:
+    case BACKUP:
+    case RESTORE:
+      return true;
+
+    default:
+      return false;
+    }
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -1089,25 +1091,11 @@ public class TaskBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFImport()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_IMPORT_NOT_SUPPORTED.get(getBackendID()));
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup()
-  {
-    return true;
   }
 
   /** {@inheritDoc} */
@@ -1425,18 +1413,6 @@ public class TaskBackend
     // Remove the archive file.
     archiveFile.delete();
   }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
-    // This backend does provide a backup/restore mechanism.
-    return true;
-  }
-
-
 
   /** {@inheritDoc} */
   @Override

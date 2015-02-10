@@ -330,29 +330,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFImport()
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup()
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
+    // it supports all the operations so far
     return true;
   }
 
@@ -807,13 +787,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     envConfig.setConfigParam(LOG_FILE_MAX,
         String.valueOf(cfg.getDBLogFileMax()));
     return envConfig;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsIndexing()
-  {
-    return true;
   }
 
   /** {@inheritDoc} */

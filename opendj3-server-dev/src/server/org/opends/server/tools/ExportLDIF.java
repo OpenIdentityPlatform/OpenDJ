@@ -45,6 +45,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
@@ -754,7 +755,7 @@ public class ExportLDIF extends TaskTool {
       logger.error(ERR_LDIFEXPORT_NO_BACKENDS_FOR_ID, backendID.getValue());
       return 1;
     }
-    else if (! backend.supportsLDIFExport())
+    else if (!backend.supports(BackendOperation.RESTORE))
     {
       logger.error(ERR_LDIFEXPORT_CANNOT_EXPORT_BACKEND, backendID.getValue());
       return 1;

@@ -42,11 +42,12 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.VerifyConfig;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
 import org.opends.server.core.DirectoryServer.DirectoryServerVersionHandler;
+import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.DN;
@@ -416,7 +417,7 @@ public class VerifyIndex
       return 1;
     }
 
-    if (!backend.supportsIndexing())
+    if (!backend.supports(BackendOperation.INDEXING))
     {
       err.println(wrapText(ERR_BACKEND_NO_INDEXING_SUPPORT.get(), MAX_LINE_WIDTH));
       return 1;

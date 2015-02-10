@@ -22,44 +22,45 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.messages.Severity;
-import org.opends.messages.TaskMessages;
 
-import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.messages.Severity;
+import org.opends.messages.TaskMessages;
+import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.api.Backend;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.BackupInfo;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.io.File;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -90,31 +91,28 @@ public class RestoreTask extends Task
   }
 
 
-  // The task arguments.
+  /** The task arguments. */
   private File backupDirectory;
   private String backupID;
   private boolean verifyOnly;
 
   private RestoreConfig restoreConfig;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_RESTORE_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getAttributeDisplayName(String name) {
     return argDisplayMap.get(name);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override public void initializeTask() throws DirectoryException
+  /** {@inheritDoc} */
+  @Override
+  public void initializeTask() throws DirectoryException
   {
     // If the client connection is available, then make sure the associated
     // client has the BACKEND_RESTORE privilege.
@@ -166,7 +164,7 @@ public class RestoreTask extends Task
    * @param backend The backend on which the lock is to be acquired.
    * @return true if the lock was successfully acquired.
    */
-  private boolean lockBackend(Backend backend)
+  private boolean lockBackend(Backend<?> backend)
   {
     try
     {
@@ -191,7 +189,7 @@ public class RestoreTask extends Task
    * @param backend The backend on which the lock is held.
    * @return true if the lock was successfully released.
    */
-  private boolean unlockBackend(Backend backend)
+  private boolean unlockBackend(Backend<?> backend)
   {
     try
     {
@@ -211,10 +209,8 @@ public class RestoreTask extends Task
     return true;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
@@ -227,18 +223,14 @@ public class RestoreTask extends Task
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isInterruptable() {
     return true;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected TaskState runTask()
   {
     // Open the backup directory and make sure it is valid.
@@ -300,9 +292,8 @@ public class RestoreTask extends Task
     String backendID = TaskUtils.getBackendID(configEntry);
 
     // Get the backend.
-    Backend backend = DirectoryServer.getBackend(backendID);
-
-    if (! backend.supportsRestore())
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
+    if (!backend.supports(BackendOperation.RESTORE))
     {
       logger.error(ERR_RESTOREDB_CANNOT_RESTORE, backend.getBackendID());
       return TaskState.STOPPED_BY_ERROR;

@@ -692,7 +692,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
     return false;
   }
@@ -708,25 +708,11 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFImport()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup()
-  {
-    return false;
   }
 
   /** {@inheritDoc} */
@@ -746,13 +732,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
-    return false;
   }
 
   /** {@inheritDoc} */
