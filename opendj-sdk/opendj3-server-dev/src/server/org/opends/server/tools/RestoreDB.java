@@ -48,6 +48,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -594,7 +595,7 @@ public class RestoreDB extends TaskTool {
       logger.error(ERR_RESTOREDB_NO_BACKENDS_FOR_DN, backupDirectory.getValue(), configEntryDN);
       return 1;
     }
-    else if (! backend.supportsRestore())
+    else if (!backend.supports(BackendOperation.RESTORE))
     {
       logger.error(ERR_RESTOREDB_CANNOT_RESTORE, backend.getBackendID());
       return 1;

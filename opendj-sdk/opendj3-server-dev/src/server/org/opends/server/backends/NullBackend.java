@@ -361,9 +361,17 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
-    return true;
+    switch (backendOperation)
+    {
+    case LDIF_EXPORT:
+    case LDIF_IMPORT:
+      return true;
+
+    default:
+      return false;
+    }
   }
 
   /** {@inheritDoc} */
@@ -384,13 +392,6 @@ public class NullBackend extends Backend<BackendCfg>
     }
 
     close(ldifWriter);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFImport()
-  {
-    return true;
   }
 
   /** {@inheritDoc} */
@@ -469,13 +470,6 @@ public class NullBackend extends Backend<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -491,13 +485,6 @@ public class NullBackend extends Backend<BackendCfg>
   {
     LocalizableMessage message = LocalizableMessage.raw("The null backend does not support remove backup operation");
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
-    return false;
   }
 
   /** {@inheritDoc} */

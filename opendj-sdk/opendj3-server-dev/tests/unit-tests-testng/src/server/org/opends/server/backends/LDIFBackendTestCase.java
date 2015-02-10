@@ -38,6 +38,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
@@ -70,9 +71,8 @@ public class LDIFBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void setUp()
-         throws Exception
+  @BeforeClass
+  public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
 
@@ -687,11 +687,10 @@ public class LDIFBackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testLDIFExport()
-         throws Exception
+  public void testLDIFExport() throws Exception
   {
     Backend<?> b = getLDIFBackend();
-    assertTrue(b.supportsLDIFExport());
+    assertTrue(b.supports(BackendOperation.LDIF_EXPORT));
 
     String tempFilePath = TestCaseUtils.createTempFile();
 
@@ -725,7 +724,7 @@ public class LDIFBackendTestCase
     LDIFBackend b = getLDIFBackend();
     assertTrue(b.getEntryCount() > 0);
     assertTrue(b.isLocal());
-    assertFalse(b.supportsBackup());
+    assertFalse(b.supports(BackendOperation.BACKUP));
 
     try
     {
@@ -739,7 +738,7 @@ public class LDIFBackendTestCase
       fail("Expected an exception when calling removeBackup");
     } catch (DirectoryException de) {}
 
-    assertFalse(b.supportsRestore());
+    assertFalse(b.supports(BackendOperation.RESTORE));
 
     try
     {

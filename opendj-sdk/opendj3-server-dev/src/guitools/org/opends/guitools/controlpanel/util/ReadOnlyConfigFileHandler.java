@@ -441,28 +441,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFExport()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFImport()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
+  public boolean supports(BackendOperation backendOperation)
   {
     return false;
   }

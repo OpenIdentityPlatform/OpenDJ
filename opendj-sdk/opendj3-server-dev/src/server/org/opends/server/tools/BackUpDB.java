@@ -51,6 +51,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -140,20 +141,20 @@ public class BackUpDB extends TaskTool
     return tool.process(args, initializeServer, outStream, errStream);
   }
 
-  // Define the command-line arguments that may be used with this program.
-  private BooleanArgument backUpAll         = null;
-  private BooleanArgument compress          = null;
-  private BooleanArgument displayUsage      = null;
-  private BooleanArgument encrypt           = null;
-  private BooleanArgument hash              = null;
-  private BooleanArgument incremental       = null;
-  private BooleanArgument signHash          = null;
-  private StringArgument  backendID         = null;
-  private StringArgument  backupIDString    = null;
-  private StringArgument  configClass       = null;
-  private StringArgument  configFile        = null;
-  private StringArgument  backupDirectory   = null;
-  private StringArgument  incrementalBaseID = null;
+  /** Define the command-line arguments that may be used with this program. */
+  private BooleanArgument backUpAll;
+  private BooleanArgument compress;
+  private BooleanArgument displayUsage;
+  private BooleanArgument encrypt;
+  private BooleanArgument hash;
+  private BooleanArgument incremental;
+  private BooleanArgument signHash;
+  private StringArgument  backendID;
+  private StringArgument  backupIDString;
+  private StringArgument  configClass;
+  private StringArgument  configFile;
+  private StringArgument  backupDirectory;
+  private StringArgument  incrementalBaseID;
 
   private int process(String[] args, boolean initializeServer,
                       OutputStream outStream, OutputStream errStream)
@@ -431,9 +432,7 @@ public class BackUpDB extends TaskTool
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
@@ -531,25 +530,19 @@ public class BackUpDB extends TaskTool
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getTaskObjectclass() {
     return "ds-task-backup";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Class<?> getTaskClass() {
     return BackupTask.class;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
@@ -742,15 +735,15 @@ public class BackUpDB extends TaskTool
     int numBackends = backendList.size();
 
     boolean multiple;
-    ArrayList<Backend> backendsToArchive = new ArrayList<Backend>(numBackends);
+    ArrayList<Backend<?>> backendsToArchive = new ArrayList<Backend<?>>(numBackends);
     HashMap<String,BackendCfg> configEntries =
          new HashMap<String,BackendCfg>(numBackends);
     if (backUpAll.isPresent())
     {
       for (int i=0; i < numBackends; i++)
       {
-        Backend b = backendList.get(i);
-        if (b.supportsBackup())
+        Backend<?> b = backendList.get(i);
+        if (b.supports(BackendOperation.BACKUP))
         {
           backendsToArchive.add(b);
           configEntries.put(b.getBackendID(), entryList.get(i));
@@ -771,10 +764,10 @@ public class BackUpDB extends TaskTool
 
       for (int i=0; i < numBackends; i++)
       {
-        Backend b = backendList.get(i);
+        Backend<?> b = backendList.get(i);
         if (requestedBackends.contains(b.getBackendID()))
         {
-          if (! b.supportsBackup())
+          if (!b.supports(BackendOperation.BACKUP))
           {
             logger.warn(WARN_BACKUPDB_BACKUP_NOT_SUPPORTED, b.getBackendID());
           }
@@ -813,7 +806,7 @@ public class BackUpDB extends TaskTool
 
     // Iterate through the backends to archive and back them up individually.
     boolean errorsEncountered = false;
-    for (Backend b : backendsToArchive)
+    for (Backend<?> b : backendsToArchive)
     {
       // Acquire a shared lock for this backend.
       try
@@ -964,7 +957,7 @@ public class BackUpDB extends TaskTool
       backupConfig.setSignHash(signHash.isPresent());
       backupConfig.setIncrementalBaseID(incrementalBase);
 
-      if (!b.supportsBackup())
+      if (!b.supports(BackendOperation.BACKUP))
       {
         logger.error(ERR_BACKUPDB_CANNOT_BACKUP, b.getBackendID());
         errorsEncountered = true;
@@ -1070,16 +1063,9 @@ public class BackUpDB extends TaskTool
     return ret;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getTaskId() {
-    if (backupIDString != null) {
-      return backupIDString.getValue();
-    } else {
-      return null;
-    }
+    return backupIDString != null ? backupIDString.getValue() : null;
   }
 }
-

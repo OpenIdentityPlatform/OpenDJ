@@ -22,44 +22,45 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.messages.Severity;
-import org.opends.messages.TaskMessages;
 
-import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.util.StaticUtils.*;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.messages.Severity;
+import org.opends.messages.TaskMessages;
+import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.api.Backend;
-import org.opends.server.api.ClientConnection;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.io.File;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -147,24 +148,21 @@ public class ExportTask extends Task
 
   private LDIFExportConfig exportConfig;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getDisplayName() {
     return INFO_TASK_EXPORT_NAME.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getAttributeDisplayName(String name) {
     return argDisplayMap.get(name);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override public void initializeTask() throws DirectoryException
+  /** {@inheritDoc} */
+  @Override
+  public void initializeTask() throws DirectoryException
   {
     // If the client connection is available, then make sure the associated
     // client has the LDIF_EXPORT privilege.
@@ -182,57 +180,9 @@ public class ExportTask extends Task
 
 
     Entry taskEntry = getTaskEntry();
+    AttributeType typeWrapColumn = getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN, true);
 
-    AttributeType typeLdifFile;
-    AttributeType typeBackendID;
-    AttributeType typeAppendToLDIF;
-    AttributeType typeCompressLDIF;
-    AttributeType typeEncryptLDIF;
-    AttributeType typeSignHash;
-    AttributeType typeIncludeAttribute;
-    AttributeType typeExcludeAttribute;
-    AttributeType typeIncludeFilter;
-    AttributeType typeExcludeFilter;
-    AttributeType typeIncludeBranch;
-    AttributeType typeExcludeBranch;
-    AttributeType typeWrapColumn;
-    AttributeType typeIncludeOperationalAttributes;
-
-
-    typeLdifFile =
-         getAttributeType(ATTR_TASK_EXPORT_LDIF_FILE, true);
-    typeBackendID =
-         getAttributeType(ATTR_TASK_EXPORT_BACKEND_ID, true);
-    typeAppendToLDIF =
-         getAttributeType(ATTR_TASK_EXPORT_APPEND_TO_LDIF, true);
-    typeCompressLDIF =
-         getAttributeType(ATTR_TASK_EXPORT_COMPRESS_LDIF, true);
-    typeEncryptLDIF =
-         getAttributeType(ATTR_TASK_EXPORT_ENCRYPT_LDIF, true);
-    typeSignHash =
-         getAttributeType(ATTR_TASK_EXPORT_SIGN_HASH, true);
-    typeIncludeAttribute =
-         getAttributeType(ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE, true);
-    typeExcludeAttribute =
-         getAttributeType(ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE, true);
-    typeIncludeFilter =
-         getAttributeType(ATTR_TASK_EXPORT_INCLUDE_FILTER, true);
-    typeExcludeFilter =
-         getAttributeType(ATTR_TASK_EXPORT_EXCLUDE_FILTER, true);
-    typeIncludeBranch =
-         getAttributeType(ATTR_TASK_EXPORT_INCLUDE_BRANCH, true);
-    typeExcludeBranch =
-         getAttributeType(ATTR_TASK_EXPORT_EXCLUDE_BRANCH, true);
-    typeWrapColumn =
-         getAttributeType(ATTR_TASK_EXPORT_WRAP_COLUMN, true);
-    typeIncludeOperationalAttributes =
-      getAttributeType(ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES, true);
-
-
-    List<Attribute> attrList;
-
-    attrList = taskEntry.getAttribute(typeLdifFile);
-    ldifFile = TaskUtils.getSingleValueString(attrList);
+    ldifFile = toString(taskEntry, ATTR_TASK_EXPORT_LDIF_FILE);
     File f = new File (ldifFile);
     if (! f.isAbsolute())
     {
@@ -247,51 +197,47 @@ public class ExportTask extends Task
       }
     }
 
-    attrList = taskEntry.getAttribute(typeBackendID);
-    backendID = TaskUtils.getSingleValueString(attrList);
+    backendID = toString(taskEntry, ATTR_TASK_EXPORT_BACKEND_ID);
+    appendToLDIF = toBoolean(taskEntry, false, ATTR_TASK_EXPORT_APPEND_TO_LDIF);
+    compressLDIF = toBoolean(taskEntry, false, ATTR_TASK_EXPORT_COMPRESS_LDIF);
+    encryptLDIF = toBoolean(taskEntry, false, ATTR_TASK_EXPORT_ENCRYPT_LDIF);
+    signHash = toBoolean(taskEntry, false, ATTR_TASK_EXPORT_SIGN_HASH);
+    includeAttributeStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_INCLUDE_ATTRIBUTE);
+    excludeAttributeStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_EXCLUDE_ATTRIBUTE);
+    includeFilterStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_INCLUDE_FILTER);
+    excludeFilterStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_EXCLUDE_FILTER);
+    includeBranchStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_INCLUDE_BRANCH);
+    excludeBranchStrings = toListOfString(taskEntry, ATTR_TASK_EXPORT_EXCLUDE_BRANCH);
 
-    attrList = taskEntry.getAttribute(typeAppendToLDIF);
-    appendToLDIF = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeCompressLDIF);
-    compressLDIF = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeEncryptLDIF);
-    encryptLDIF = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeSignHash);
-    signHash = TaskUtils.getBoolean(attrList, false);
-
-    attrList = taskEntry.getAttribute(typeIncludeAttribute);
-    includeAttributeStrings = TaskUtils.getMultiValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeExcludeAttribute);
-    excludeAttributeStrings = TaskUtils.getMultiValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeIncludeFilter);
-    includeFilterStrings = TaskUtils.getMultiValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeExcludeFilter);
-    excludeFilterStrings = TaskUtils.getMultiValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeIncludeBranch);
-    includeBranchStrings = TaskUtils.getMultiValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeExcludeBranch);
-    excludeBranchStrings = TaskUtils.getMultiValueString(attrList);
-
-    attrList = taskEntry.getAttribute(typeWrapColumn);
+    List<Attribute> attrList = taskEntry.getAttribute(typeWrapColumn);
     wrapColumn = TaskUtils.getSingleValueInteger(attrList, 0);
 
-    attrList = taskEntry.getAttribute(typeIncludeOperationalAttributes);
-    includeOperationalAttributes = TaskUtils.getBoolean(attrList, true);
-
+    includeOperationalAttributes = toBoolean(taskEntry, true, ATTR_TASK_EXPORT_INCLUDE_OPERATIONAL_ATTRIBUTES);
   }
 
+  private boolean toBoolean(Entry entry, boolean defaultValue, String attrName)
+  {
+    final AttributeType attrType = getAttributeType(attrName, true);
+    final List<Attribute> attrs = entry.getAttribute(attrType);
+    return TaskUtils.getBoolean(attrs, defaultValue);
+  }
 
-  /**
-   * {@inheritDoc}
-   */
+  private ArrayList<String> toListOfString(Entry entry, String attrName)
+  {
+    final AttributeType attrType = getAttributeType(attrName, true);
+    final List<Attribute> attrs = entry.getAttribute(attrType);
+    return TaskUtils.getMultiValueString(attrs);
+  }
+
+  private String toString(Entry entry, String attrName)
+  {
+    final AttributeType attrType = getAttributeType(attrName, true);
+    final List<Attribute> attrs = entry.getAttribute(attrType);
+    return TaskUtils.getSingleValueString(attrs);
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public void interruptTask(TaskState interruptState, LocalizableMessage interruptReason)
   {
     if (TaskState.STOPPED_BY_ADMINISTRATOR.equals(interruptState) &&
@@ -304,63 +250,20 @@ public class ExportTask extends Task
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isInterruptable() {
     return true;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected TaskState runTask()
   {
     // See if there were any user-defined sets of include/exclude attributes or
     // filters.  If so, then process them.
-    HashSet<AttributeType> excludeAttributes;
-    if (excludeAttributeStrings == null)
-    {
-      excludeAttributes = null;
-    }
-    else
-    {
-      excludeAttributes = new HashSet<AttributeType>();
-      for (String attrName : excludeAttributeStrings)
-      {
-        String        lowerName = attrName.toLowerCase();
-        AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
-        }
-
-        excludeAttributes.add(attrType);
-      }
-    }
-
-    HashSet<AttributeType> includeAttributes;
-    if (includeAttributeStrings == null)
-    {
-      includeAttributes = null;
-    }
-    else
-    {
-      includeAttributes = new HashSet<AttributeType>();
-      for (String attrName : includeAttributeStrings)
-      {
-        String        lowerName = attrName.toLowerCase();
-        AttributeType attrType  = DirectoryServer.getAttributeType(lowerName);
-        if (attrType == null)
-        {
-          attrType = DirectoryServer.getDefaultAttributeType(attrName);
-        }
-
-        includeAttributes.add(attrType);
-      }
-    }
+    HashSet<AttributeType> excludeAttributes = toAttributeTypes(excludeAttributeStrings);
+    HashSet<AttributeType> includeAttributes = toAttributeTypes(includeAttributeStrings);
 
     ArrayList<SearchFilter> excludeFilters;
     if (excludeFilterStrings == null)
@@ -417,23 +320,21 @@ public class ExportTask extends Task
     }
 
     // Get the backend into which the LDIF should be imported.
-    Backend       backend;
-    ArrayList<DN> defaultIncludeBranches;
 
-    backend = DirectoryServer.getBackend(backendID);
+    Backend<?> backend = DirectoryServer.getBackend(backendID);
 
     if (backend == null)
     {
       logger.error(ERR_LDIFEXPORT_NO_BACKENDS_FOR_ID, backendID);
       return TaskState.STOPPED_BY_ERROR;
     }
-    else if (! backend.supportsLDIFExport())
+    else if (!backend.supports(BackendOperation.LDIF_EXPORT))
     {
       logger.error(ERR_LDIFEXPORT_CANNOT_EXPORT_BACKEND, backendID);
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    defaultIncludeBranches = new ArrayList<DN>(backend.getBaseDNs().length);
+    ArrayList<DN> defaultIncludeBranches = new ArrayList<DN>(backend.getBaseDNs().length);
     for (DN dn : backend.getBaseDNs())
     {
       defaultIncludeBranches.add(dn);
@@ -624,5 +525,26 @@ public class ExportTask extends Task
     // If we got here the task either completed successfully or
     // was interrupted
     return getFinalTaskState();
+  }
+
+  private HashSet<AttributeType> toAttributeTypes(ArrayList<String> attributeStrings)
+  {
+    if (attributeStrings == null)
+    {
+      return null;
+    }
+    HashSet<AttributeType> attributes = new HashSet<AttributeType>();
+    for (String attrName : attributeStrings)
+    {
+      String lowerName = attrName.toLowerCase();
+      AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
+      if (attrType == null)
+      {
+        attrType = DirectoryServer.getDefaultAttributeType(attrName);
+      }
+
+      attributes.add(attrType);
+    }
+    return attributes;
   }
 }

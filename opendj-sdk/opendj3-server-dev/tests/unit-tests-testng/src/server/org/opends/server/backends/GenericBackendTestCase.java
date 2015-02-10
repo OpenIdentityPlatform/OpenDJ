@@ -22,25 +22,22 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends;
 
-
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
-import org.opends.server.api.Backend;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DN;
-
-import static org.testng.Assert.*;
-
 
 /**
  * A set of generic test cases that apply to all Directory Server backends.
@@ -53,9 +50,8 @@ public class GenericBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
     TestCaseUtils.initializeTestBackend(true);
@@ -71,9 +67,7 @@ public class GenericBackendTestCase
   @DataProvider(name = "backends")
   public Object[][] getBackends()
   {
-    ArrayList<Backend> backendList = new ArrayList<Backend>();
-    backendList.addAll(DirectoryServer.getBackends().values());
-
+    ArrayList<Backend> backendList = new ArrayList<Backend>(DirectoryServer.getBackends().values());
     Object[][] objectArray = new Object[backendList.size()][1];
     for (int i=0; i < objectArray.length; i++)
     {
@@ -91,7 +85,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetBaseDNs(Backend b)
+  public void testGetBaseDNs(Backend<?> b)
   {
     DN[] baseDNs = b.getBaseDNs();
     assertNotNull(baseDNs);
@@ -106,7 +100,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testIsLocal(Backend b)
+  public void testIsLocal(Backend<?> b)
   {
     b.isLocal();
   }
@@ -119,7 +113,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetSupportedControls(Backend b)
+  public void testGetSupportedControls(Backend<?> b)
   {
     assertNotNull(b.getSupportedControls());
   }
@@ -132,7 +126,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testSupportsControl(Backend b)
+  public void testSupportsControl(Backend<?> b)
   {
     assertFalse(b.supportsControl("1.2.3.4"));
   }
@@ -145,7 +139,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetSupportedFeatures(Backend b)
+  public void testGetSupportedFeatures(Backend<?> b)
   {
     assertNotNull(b.getSupportedFeatures());
     b.getSupportedFeatures();
@@ -159,7 +153,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testSupportsFeature(Backend b)
+  public void testSupportsFeature(Backend<?> b)
   {
     assertFalse(b.supportsFeature("1.2.3.4"));
   }
@@ -172,9 +166,9 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testSupportsLDIFExport(Backend b)
+  public void testSupportsLDIFExport(Backend<?> b)
   {
-    b.supportsLDIFExport();
+    b.supports(BackendOperation.LDIF_EXPORT);
   }
 
 
@@ -185,9 +179,9 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testSupportsLDIFImport(Backend b)
+  public void testSupportsLDIFImport(Backend<?> b)
   {
-    b.supportsLDIFImport();
+    b.supports(BackendOperation.LDIF_IMPORT);
   }
 
 
@@ -198,9 +192,9 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testSupportsBackup(Backend b)
+  public void testSupportsBackup(Backend<?> b)
   {
-    b.supportsBackup();
+    b.supports(BackendOperation.BACKUP);
   }
 
 
@@ -211,9 +205,9 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testSupportsRestore(Backend b)
+  public void testSupportsRestore(Backend<?> b)
   {
-    b.supportsRestore();
+    b.supports(BackendOperation.RESTORE);
   }
 
 
@@ -224,7 +218,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetBackendID(Backend b)
+  public void testGetBackendID(Backend<?> b)
   {
     assertNotNull(b.getBackendID());
     assertTrue(b.getBackendID().length() > 0);
@@ -238,7 +232,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testIsPrivateBackend(Backend b)
+  public void testIsPrivateBackend(Backend<?> b)
   {
     b.isPrivateBackend();
   }
@@ -251,7 +245,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetWritabilityMode(Backend b)
+  public void testGetWritabilityMode(Backend<?> b)
   {
     assertNotNull(b.getWritabilityMode());
   }
@@ -264,7 +258,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetBackendMonitor(Backend b)
+  public void testGetBackendMonitor(Backend<?> b)
   {
     assertNotNull(b.getBackendMonitor());
   }
@@ -277,7 +271,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetEntryCount(Backend b)
+  public void testGetEntryCount(Backend<?> b)
   {
     b.getEntryCount();
   }
@@ -290,7 +284,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetParentBackend(Backend b)
+  public void testGetParentBackend(Backend<?> b)
   {
     b.getParentBackend();
   }
@@ -303,7 +297,7 @@ public class GenericBackendTestCase
    * @param  b  The backend to test.
    */
   @Test(dataProvider = "backends")
-  public void testGetSubordinateBackends(Backend b)
+  public void testGetSubordinateBackends(Backend<?> b)
   {
     assertNotNull(b.getSubordinateBackends());
   }
@@ -319,14 +313,12 @@ public class GenericBackendTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "backends")
-  public void testHandlesEntry(Backend b)
-         throws Exception
+  public void testHandlesEntry(Backend<?> b) throws Exception
   {
     for (DN baseDN : b.getBaseDNs())
     {
       assertTrue(b.handlesEntry(baseDN));
-      assertTrue(b.handlesEntry(DN.valueOf("cn=child," + baseDN.toString())));
+      assertTrue(b.handlesEntry(DN.valueOf("cn=child," + baseDN)));
     }
   }
 }
-

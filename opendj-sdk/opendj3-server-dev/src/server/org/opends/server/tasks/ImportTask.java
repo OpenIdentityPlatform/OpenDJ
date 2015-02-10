@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.Severity;
 import org.opends.messages.TaskMessages;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
@@ -323,7 +324,7 @@ public class ImportTask extends Task
         LocalizableMessage message = ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
-      else if (! backend.supportsLDIFImport())
+      else if (!backend.supports(BackendOperation.LDIF_IMPORT))
       {
         LocalizableMessage message = ERR_LDIFIMPORT_CANNOT_IMPORT.get(backendID);
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
@@ -513,7 +514,7 @@ public class ImportTask extends Task
         logger.error(ERR_LDIFIMPORT_NO_BACKENDS_FOR_ID);
         return TaskState.STOPPED_BY_ERROR;
       }
-      else if (! backend.supportsLDIFImport())
+      else if (!backend.supports(BackendOperation.LDIF_IMPORT))
       {
         logger.error(ERR_LDIFIMPORT_CANNOT_IMPORT, backendID);
         return TaskState.STOPPED_BY_ERROR;

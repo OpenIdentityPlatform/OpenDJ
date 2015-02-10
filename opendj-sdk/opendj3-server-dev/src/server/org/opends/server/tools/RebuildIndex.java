@@ -45,6 +45,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
+import org.opends.server.api.Backend.BackendOperation;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
 import org.opends.server.core.CoreConfigManager;
@@ -662,7 +663,7 @@ public class RebuildIndex extends TaskTool
     {
       throw new ConfigException(ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue()));
     }
-    if (!backend.supportsIndexing())
+    if (!backend.supports(BackendOperation.INDEXING))
     {
       throw new ConfigException(ERR_BACKEND_NO_INDEXING_SUPPORT.get());
     }

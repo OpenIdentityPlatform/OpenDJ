@@ -604,14 +604,36 @@ public abstract class Backend<C extends Configuration>
     return supportedFeatures != null && supportedFeatures.contains(featureOID);
   }
 
+  /** Enumeration of optional backend operations. */
+  public static enum BackendOperation
+  {
+    /** Indicates whether this backend supports indexing attributes to speed up searches. */
+    INDEXING,
+    /** Indicates whether this backend supports exporting the data it contains to an LDIF file. */
+    LDIF_EXPORT,
+    /** Indicates whether this backend supports importing its data from an LDIF file. */
+    LDIF_IMPORT,
+    /**
+     * Indicates whether this backend provides a backup mechanism of any kind. This method is used
+     * by the backup process when backing up all backends to determine whether this backend is one
+     * that should be skipped. It should only return {@code true} for backends that it is not
+     * possible to archive directly (e.g., those that don't store their data locally, but rather
+     * pass through requests to some other repository).
+     */
+    BACKUP,
+    /** Indicates whether this backend can restore a backup. */
+    RESTORE;
+  }
+
   /**
-   * Indicates whether this backend provides a mechanism to export the
-   * data it contains to an LDIF file.
+   * Indicates whether this backend supports the provided backend operation.
    *
-   * @return  {@code true} if this backend provides an LDIF export
-   *          mechanism, or {@code false} if not.
+   * @param backendOperation
+   *          the backend operation
+   * @return {@code true} if this backend supports the provided backend operation, {@code false}
+   *         otherwise.
    */
-  public abstract boolean supportsLDIFExport();
+  public abstract boolean supports(BackendOperation backendOperation);
 
   /**
    * Exports the contents of this backend to LDIF.  This method should
@@ -626,15 +648,6 @@ public abstract class Backend<C extends Configuration>
    *                              the LDIF export.
    */
   public abstract void exportLDIF(LDIFExportConfig exportConfig) throws DirectoryException;
-
-  /**
-   * Indicates whether this backend provides a mechanism to import its
-   * data from an LDIF file.
-   *
-   * @return  {@code true} if this backend provides an LDIF import
-   *          mechanism, or {@code false} if not.
-   */
-  public abstract boolean supportsLDIFImport();
 
   /**
    * Imports information from an LDIF file into this backend.  This
@@ -652,16 +665,6 @@ public abstract class Backend<C extends Configuration>
    */
   public abstract LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException;
-
-  /**
-   * Indicates whether this backend supports indexing attributes to speed up searches.
-   *
-   * @return {@code true} if this backend supports indexing attributes, {@code false} otherwise
-   */
-  public boolean supportsIndexing()
-  {
-    return false;
-  }
 
   /**
    * Verify the integrity of the backend instance.
@@ -706,20 +709,6 @@ public abstract class Backend<C extends Configuration>
   }
 
   /**
-   * Indicates whether this backend provides a backup mechanism of any
-   * kind.  This method is used by the backup process when backing up
-   * all backends to determine whether this backend is one that should
-   * be skipped.  It should only return {@code true} for backends that
-   * it is not possible to archive directly (e.g., those that don't
-   * store their data locally, but rather pass through requests to
-   * some other repository).
-   *
-   * @return  {@code true} if this backend provides any kind of backup
-   *          mechanism, or {@code false} if it does not.
-   */
-  public abstract boolean supportsBackup();
-
-  /**
    * Creates a backup of the contents of this backend in a form that
    * may be restored at a later date if necessary.  This method should
    * only be called if {@code supportsBackup} returns {@code true}.
@@ -752,15 +741,6 @@ public abstract class Backend<C extends Configuration>
    */
   public abstract void removeBackup(BackupDirectory backupDirectory, String backupID)
          throws DirectoryException;
-
-  /**
-   * Indicates whether this backend provides a mechanism to restore a
-   * backup.
-   *
-   * @return  {@code true} if this backend provides a mechanism for
-   *          restoring backups, or {@code false} if not.
-   */
-  public abstract boolean supportsRestore();
 
   /**
    * Restores a backup of the contents of this backend.  This method

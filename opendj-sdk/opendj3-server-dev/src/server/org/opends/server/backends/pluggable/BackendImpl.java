@@ -302,29 +302,9 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsLDIFImport()
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup()
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
+    // it supports all the operations so far
     return true;
   }
 
@@ -685,13 +665,6 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
           ERR_JEB_IMPORT_BACKEND_ONLINE.get());
     }
     return new RootContainer(this, cfg).importLDIF(importConfig);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsIndexing()
-  {
-    return true;
   }
 
   /** {@inheritDoc} */

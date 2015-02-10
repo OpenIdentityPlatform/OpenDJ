@@ -1850,10 +1850,17 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
-    // TODO We would need export-ldif to initialize this backend.
-    return false;
+    switch (backendOperation)
+    {
+    case BACKUP:
+    case RESTORE:
+      return true;
+
+    default:
+      return false;
+    }
   }
 
   /** {@inheritDoc} */
@@ -1864,8 +1871,6 @@ public class ConfigFileHandler
     // TODO We would need export-ldif to initialize this backend.
     writeLDIF(exportConfig);
   }
-
-
 
   /**
    * Writes the current configuration to LDIF with the provided export
@@ -1952,26 +1957,11 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFImport()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     LocalizableMessage message = ERR_CONFIG_FILE_UNWILLING_TO_IMPORT.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup()
-  {
-    // We do support an online backup mechanism for the configuration.
-    return true;
   }
 
   /** {@inheritDoc} */
@@ -2328,14 +2318,6 @@ public class ConfigFileHandler
          throws DirectoryException
   {
     // NYI
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
-    // We will provide a restore, but only for offline operations.
-    return true;
   }
 
   /** {@inheritDoc} */

@@ -919,10 +919,10 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFExport()
+  public boolean supports(BackendOperation backendOperation)
   {
     // We will only export the DSE entry itself.
-    return true;
+    return backendOperation.equals(BackendOperation.LDIF_EXPORT);
   }
 
   /** {@inheritDoc} */
@@ -970,25 +970,11 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsLDIFImport()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
         ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup()
-  {
-    return false;
   }
 
   /** {@inheritDoc} */
@@ -1008,13 +994,6 @@ public class RootDSEBackend
   {
     LocalizableMessage message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsRestore()
-  {
-    return false;
   }
 
   /** {@inheritDoc} */
