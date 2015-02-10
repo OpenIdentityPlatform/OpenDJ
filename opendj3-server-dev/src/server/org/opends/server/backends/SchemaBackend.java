@@ -26,11 +26,20 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.types.CommonSchemaElements.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
@@ -57,26 +66,26 @@ import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.AttributeTypeSyntax;
@@ -92,15 +101,6 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.types.CommonSchemaElements.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend to hold the Directory Server schema information.
@@ -3990,18 +3990,6 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   public boolean supportsBackup()
   {
     // We do support an online backup mechanism for the schema.
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup(BackupConfig backupConfig,
-                                StringBuilder unsupportedReason)
-  {
-    // We should support online backup for the schema in any form.  This
-    // implementation does not support incremental backups, but in this case
-    // even if we're asked to do an incremental we'll just do a full backup
-    // instead.  So the answer to this should always be "true".
     return true;
   }
 

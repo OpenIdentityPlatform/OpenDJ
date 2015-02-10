@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.util;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.Collections;
@@ -59,9 +62,6 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * A class used to read the configuration from a file.  This config file
@@ -442,13 +442,6 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   /** {@inheritDoc} */
   @Override
   public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup(BackupConfig arg0, StringBuilder arg1)
   {
     return false;
   }

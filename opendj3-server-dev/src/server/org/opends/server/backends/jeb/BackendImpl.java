@@ -351,14 +351,6 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsBackup(BackupConfig backupConfig,
-                                StringBuilder unsupportedReason)
-  {
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public boolean supportsRestore()
   {
     return true;

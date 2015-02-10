@@ -720,24 +720,6 @@ public abstract class Backend<C extends Configuration>
   public abstract boolean supportsBackup();
 
   /**
-   * Indicates whether this backend provides a mechanism to perform a
-   * backup of its contents in a form that can be restored later,
-   * based on the provided configuration.
-   *
-   * @param  backupConfig       The configuration of the backup for
-   *                            which to make the determination.
-   * @param  unsupportedReason  A buffer to which a message can be
-   *                            appended
-   *                            explaining why the requested backup is
-   *                            not supported.
-   *
-   * @return  {@code true} if this backend provides a mechanism for
-   *          performing backups with the provided configuration, or
-   *          {@code false} if not.
-   */
-  public abstract boolean supportsBackup(BackupConfig backupConfig, StringBuilder unsupportedReason);
-
-  /**
    * Creates a backup of the contents of this backend in a form that
    * may be restored at a later date if necessary.  This method should
    * only be called if {@code supportsBackup} returns {@code true}.

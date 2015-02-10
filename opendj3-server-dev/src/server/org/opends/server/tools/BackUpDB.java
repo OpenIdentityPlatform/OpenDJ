@@ -964,10 +964,9 @@ public class BackUpDB extends TaskTool
       backupConfig.setSignHash(signHash.isPresent());
       backupConfig.setIncrementalBaseID(incrementalBase);
 
-      StringBuilder unsupportedReason = new StringBuilder();
-      if (! b.supportsBackup(backupConfig, unsupportedReason))
+      if (!b.supportsBackup())
       {
-        logger.error(ERR_BACKUPDB_CANNOT_BACKUP, b.getBackendID(), unsupportedReason);
+        logger.error(ERR_BACKUPDB_CANNOT_BACKUP, b.getBackendID());
         errorsEncountered = true;
 
         try
