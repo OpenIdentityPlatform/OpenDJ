@@ -152,6 +152,11 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   @Override
   public void generateReport(List<XmlSuite> xmlSuites, List<ISuite> suites, String outputDirectory) {
+    File outputDir = new File(outputDirectory);
+    if (!outputDir.exists()) {
+      outputDir.mkdir();
+    }
+
     File reportFile = new File(outputDirectory, REPORT_FILE_NAME);
 
     writeReportToFile(reportFile);

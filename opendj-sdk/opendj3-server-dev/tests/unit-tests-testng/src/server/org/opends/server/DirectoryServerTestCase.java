@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.opends.server.replication.ReplicationTestCase;
 
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ import java.lang.reflect.Modifier;
  */
 @Test(sequential=true)
 @SuppressWarnings("javadoc")
-public abstract class DirectoryServerTestCase {
+public abstract class DirectoryServerTestCase extends ForgeRockTestCase {
 
   @BeforeSuite
   public final void suppressOutput() {
@@ -113,7 +114,7 @@ public abstract class DirectoryServerTestCase {
    * since we might need these again.
    */
   @AfterClass(alwaysRun = true)
-  public void clearSuccessfulTestParams() {
+  public void clearSuccessfulTestParams2() {
     Set<Object[]> paramsSet = successfulTestParams.keySet();
     if (paramsSet == null) {  // Can this ever happen?
       return;
@@ -139,7 +140,7 @@ public abstract class DirectoryServerTestCase {
    * all of the subclass methods, so this isn't too dangerous.
    */
   @AfterClass(alwaysRun = true)
-  public void nullMemberVariablesAfterTest() {
+  public void nullMemberVariablesAfterTest2() {
     Class<?> cls = this.getClass();
     // Iterate through all of the fields in all subclasses of
     // DirectoryServerTestCase, but not DirectoryServerTestCase itself.

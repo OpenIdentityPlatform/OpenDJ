@@ -920,7 +920,7 @@ public final class TestStaticUtils extends UtilTestCase {
    *
    * @throws Exception If the test failed unexpectedly.
    */
-  @Test(groups={"windows"}, expectedExceptions=IOException.class)
+  @Test(enabled=false, groups={"windows"}, expectedExceptions=IOException.class)
   public void testRenameFileLockedTarget() throws Exception {
     File src = File.createTempFile("src", null);
     File target = File.createTempFile("target", null);

@@ -7,9 +7,9 @@
 	<key>CFBundleIdentifier</key>
 	<string>org.opends.guitools.controlpanel.ControlPanelLauncher</string>
 	<key>CFBundleShortVersionString</key>
-	<string>@version@</string>
+	<string>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</string>
 	<key>CFBundleVersion</key>
-	<string>@revision@</string>
+	<string>${buildRevision}</string>
 	<key>CFBundleAllowMixedLocalizations</key>
 	<string>true</string>
 	<key>CFBundleExecutable</key>

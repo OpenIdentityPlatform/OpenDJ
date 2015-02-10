@@ -102,7 +102,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
 
   /**
    * Configures a backend for the specified backend
-   * 
+   *
    * @param homeDirName
    *          Directory where database file live
    * @param testBaseDN
@@ -110,17 +110,17 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
    * @return a backend object.
    */
   protected abstract BackendImpl createBackend() throws Exception;
-  
+
   @BeforeClass
   public void setUp() throws Exception
   {
     // Need the schema to be available, so make sure the server is started.
     TestCaseUtils.startServer();
-  
+
     testBaseDN = DN.valueOf("dc=test,dc=com");
     backend = createBackend();
     backend.initializeBackend();
-  
+
     topEntries = TestCaseUtils.makeEntries(
                 "dn: " + testBaseDN,
                 "objectclass: top",
@@ -429,7 +429,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
                 "postalCode: 93507",
                 "postalAddress: Ardyth Bainton$81170 Taylor Street$Syracuse, WV  93507",
                 "description: This is the description for Ardyth Bainton.");
-  
+
     workEntries = TestCaseUtils.makeEntries(
                 "dn: uid=user.11,ou=People," + testBaseDN,
                 "objectClass: top",
@@ -480,13 +480,13 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
                 "postalCode: 60905",
                 "postalAddress: Andaree Asawa$81028 Forest Street$Wheeling, IA  60905",
                 "description: This is the description for Andaree Asawa.");
-  
+
     dnToMod = workEntries.get(0).getName();
     dnToDel = workEntries.get(1).getName();
     searchDN = entries.get(8).getName();
     badEntryDN = testBaseDN.child(DN.valueOf("ou=bogus")).child(DN.valueOf("ou=dummy"));
     backupID = "backupID1";
-  
+
     ldifNumberOfEntries = 20;
     ldifTemplate = new String [] {
       "define suffix=" + testBaseDN,
@@ -534,7 +534,10 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   {
     try
     {
-      backend.removeBackup(backupDirectory, backupID);
+      if (backupDirectory != null)
+      {
+        backend.removeBackup(backupDirectory, backupID);
+      }
     }
     catch (DirectoryException ignore)
     {
@@ -605,7 +608,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     assertEquals(backend.hasSubordinates(searchDN), ConditionResult.FALSE,
         "Leaf entry should not have any subordinates.");
   }
-  
+
   private List<SearchResultEntry> runSearch(SearchRequest request, boolean useInternalConnection) throws Exception
   {
     InternalClientConnection conn = getRootConnection();
@@ -622,19 +625,19 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
       return search.getSearchEntries();
     }
   }
-  
+
   @Test(dependsOnMethods = { "testAdd", "testModifyEntry", "testRenameEntry", "testDeleteAlreadyDeletedEntry" })
   public void testBaseSearch() throws Exception
   {
     baseSearch(false);
     baseSearch(true);
   }
-  
+
   private void baseSearch(boolean useInternalConnection) throws Exception
   {
     SearchRequest request = newSearchRequest(testBaseDN, SearchScope.BASE_OBJECT, "objectclass=*");
     List<SearchResultEntry> result = runSearch(request, useInternalConnection);
-    
+
     assertEquals(result.size(), 1, "Base Search should return only one Entry");
     assertEquals(result.get(0).getName(), testBaseDN, "Base Search on the suffix should return the suffix itself");
   }
@@ -650,7 +653,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   {
     SearchRequest request = newSearchRequest(testBaseDN, SearchScope.SINGLE_LEVEL, "objectclass=*");
     List<SearchResultEntry> result = runSearch(request, useInternalConnection);
-  
+
     assertEquals(result.size(), 1, "One Level search should return a single child entry");
     SearchResultEntry resEntry = result.get(0);
     assertEquals(topEntries.get(1).getName(), resEntry.getName(),
@@ -668,7 +671,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   {
     SearchRequest request = newSearchRequest(testBaseDN, SearchScope.WHOLE_SUBTREE, "objectclass=*");
     List<SearchResultEntry> result = runSearch(request, useInternalConnection);
-    
+
     // Sum of all entry sets minus a delete
     assertEquals(result.size(), getTotalNumberOfLDIFEntries() - 1,
         "Subtree search should return a correct number of entries");
@@ -685,7 +688,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   {
     SearchRequest request = newSearchRequest(searchDN, SearchScope.BASE_OBJECT, "objectclass=*");
     List<SearchResultEntry> result = runSearch(request, useInternalConnection);
-    
+
     assertEquals(result.size(), 1, "User entry search should return a single child entry");
     assertEquals(searchDN, result.get(0).getName(), "User entry search should return the expected entry");
   }
@@ -695,7 +698,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   {
     Assertions.assertThat(getDbEntries(entries)).isEqualTo(entries);
   }
-  
+
   private List<Entry> getDbEntries(List<Entry> entries) throws DirectoryException
   {
     List<Entry> result = new ArrayList<Entry>(entries.size());
@@ -739,7 +742,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
 
     modifyAttribute = DirectoryServer.getAttributeType("jpegphoto");
     newEntry.applyModifications(Arrays.asList(new Modification(ADD, create(modifyAttribute, modifyValue))));
-    
+
     backend.replaceEntry(oldEntry, newEntry, null);
     assertTrue(backend.getEntry(oldEntry.getName()).hasValue(modifyAttribute, null, modifyValue));
   }
@@ -749,7 +752,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
   {
     deleteEntry(dnToDel);
   }
-  
+
   @Test(dependsOnMethods = "testDeleteEntry", expectedExceptions = DirectoryException.class)
   public void testDeleteAlreadyDeletedEntry() throws Exception
   {
@@ -761,7 +764,7 @@ public abstract class PluggableBackendImplTestCase extends DirectoryServerTestCa
     backend.deleteEntry(dn, null);
     assertNull(backend.getEntry(workEntries.get(1).getName()));
   }
-  
+
   @Test(dependsOnMethods = { "testBaseSearch", "testOneLevelSearch", "testSubTreeSearch", "testUserEntrySearch" })
   public void testImportLDIF() throws Exception
   {

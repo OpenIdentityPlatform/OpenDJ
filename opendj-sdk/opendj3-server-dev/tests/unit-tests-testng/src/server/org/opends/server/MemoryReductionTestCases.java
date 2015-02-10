@@ -45,7 +45,7 @@ public class MemoryReductionTestCases extends DirectoryServerTestCase {
    */
   @Test
   public void testNullMemberVariablesAfterTest() {
-    nullMemberVariablesAfterTest();
+    nullMemberVariablesAfterTest2();
 
     Assert.assertNull(normalMemberStr);
     Assert.assertNull(normalMemberObj);
@@ -66,7 +66,7 @@ public class MemoryReductionTestCases extends DirectoryServerTestCase {
     addParamsFromFailedTest(successfulAndFailed);
     addParamsFromFailedTest(failedOnly);
 
-    clearSuccessfulTestParams();
+    clearSuccessfulTestParams2();
 
     Assert.assertEquals(successfulOnly, new String[]{null, null});
     Assert.assertEquals(successfulAndFailed, new String[]{"", ""});

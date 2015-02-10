@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  The contents of this file are subject to the terms of the Common Development and
+  Distribution License (the License). You may not use this file except in compliance with the
+  License.
+ 
+  You can obtain a copy of the License at legal/CDDLv1.0.txt. See the License for the
+  specific language governing permission and limitations under the License.
+ 
+  When distributing Covered Software, include this CDDL Header Notice in each file and include
+  the License file at legal/CDDLv1.0.txt. If applicable, add the following below the CDDL
+  Header, with the fields enclosed by brackets [] replaced by your own identifying
+  information: "Portions Copyrighted [year] [name of copyright owner]".
+ 
+  Copyright 2012-2015 ForgeRock AS. All rights reserved.
+-->
+<!DOCTYPE suppressions PUBLIC
+    "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+    "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+<suppressions>
+ <!-- 
+    This Checkstyle suppressions file contains suppressions for any checks
+    that we don't want to enforce against unit tests.
+    
+    It is not possible to rely on same file provided by forgerock-build-tools because 
+    1) path of tests source files is different,
+    2) lot of classes are violating others suppressions.
+    Once/if tests are moved under /src/test/java directory and additional suppressions 
+    added at the end of the file can be removed due to code cleaning, then this file may
+    be deleted and replaced by equivalent in forgerock-build-tools. 
+
+  -->
+ 
+ <!-- check-src-default.xml -->
+ <suppress checks="JavadocPackage"              files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="JavadocType"                 files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="JavadocMethod"               files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="JavadocVariable"             files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="JavadocStyle"                files="/tests/unit-tests-testng/src/server" />
+<!--
+  <suppress checks="ModifierOrder"               files="/tests/unit-tests-testng/src/server" />
+  <suppress checks="RedundantModifier"           files="/tests/unit-tests-testng/src/server" />
+-->
+ <suppress checks="RedundantThrows"             files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="FinalClass"                  files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="HideUtilityClassConstructor" files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="InterfaceIsType"             files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="VisibilityModifier"          files="/tests/unit-tests-testng/src/server" />
+ 
+ <suppress checks="Translation"                 files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="FileLength"                  files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="MethodLength"                files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="ParameterNumber"             files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="MissingSwitchDefault"        files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="DesignForExtension"          files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="TodoComment"                 files="/tests/unit-tests-testng/src/server" />
+
+ <!-- Additional suppressions (compared to forgerock-build-tools equivalent file)  --> 
+ <suppress checks="LineLength"                  files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="RegexpSingleline"            files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="FileTabCharacter"            files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="LineLength"                  files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="RedundantImport"             files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="UnusedImports"               files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="EmptyStatement"              files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="EqualsHashCode"              files="/tests/unit-tests-testng/src/server" />
+
+</suppressions>

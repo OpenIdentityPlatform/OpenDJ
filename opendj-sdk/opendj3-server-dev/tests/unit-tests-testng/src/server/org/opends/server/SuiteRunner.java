@@ -40,7 +40,7 @@ public class SuiteRunner {
     } catch (Throwable e) {
       originalSystemErr.println("TestNG.main threw an expected exception:");
       e.printStackTrace(originalSystemErr);
-      System.exit(TestNG.HAS_FAILURE);
+      System.exit(1);
     }
   }
 }

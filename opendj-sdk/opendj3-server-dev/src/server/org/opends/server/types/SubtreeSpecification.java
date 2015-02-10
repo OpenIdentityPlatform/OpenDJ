@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -1282,23 +1282,23 @@ public final class SubtreeSpecification
    * @param rootDN
    *          The root DN of the subtree.
    * @param relativeBaseDN
-   *          The relative base DN (or <code>null</code> if not
+   *          The relative base DN (or {@code null} if not
    *          specified).
    * @param minimumDepth
-   *          The minimum depth (<=0 means unlimited).
+   *          The minimum depth (less than or equal to 0 means unlimited).
    * @param maximumDepth
-   *          The maximum depth (<0 means unlimited).
+   *          The maximum depth (less than 0 means unlimited).
    * @param chopBefore
    *          The set of chop before local names (relative to the
-   *          relative base DN), or <code>null</code> if there are
+   *          relative base DN), or {@code null} if there are
    *          none.
    * @param chopAfter
    *          The set of chop after local names (relative to the
-   *          relative base DN), or <code>null</code> if there are
+   *          relative base DN), or {@code null} if there are
    *          none.
    * @param refinements
    *          The optional specification filter refinements, or
-   *          <code>null</code> if there are none.
+   *          {@code null} if there are none.
    */
   public SubtreeSpecification(final DN rootDN,
       final DN relativeBaseDN, final int minimumDepth,
@@ -1439,7 +1439,7 @@ public final class SubtreeSpecification
   /**
    * Get the maximum depth of the subtree specification.
    *
-   * @return Returns the maximum depth (<0 indicates unlimited depth).
+   * @return Returns the maximum depth (less than 0 indicates unlimited depth).
    */
   public int getMaximumDepth()
   {

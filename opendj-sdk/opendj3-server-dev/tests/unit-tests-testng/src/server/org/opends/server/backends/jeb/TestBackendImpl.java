@@ -565,11 +565,23 @@ public class TestBackendImpl extends JebTestCase {
     TestCaseUtils.disableBackend("importRoot");
   }
 
-  @Test(expectedExceptions = DirectoryException.class)
+  // Note: this test has been rewritten to avoid expectedException in the test annotation because
+  // it was skipping all tests that depends on this method
+  @Test
   public void testAddNoParent() throws Exception {
-    for (Entry entry : entries) {
-      backend.addEntry(entry, null);
+
+    try
+    {
+      for (Entry entry : entries) {
+        backend.addEntry(entry, null);
+      }
+      failBecauseExceptionWasNotThrown(DirectoryException.class);
     }
+    catch (DirectoryException e)
+    {
+       // expected
+    }
+
   }
 
   @Test(dependsOnMethods = "testAddNoParent")
