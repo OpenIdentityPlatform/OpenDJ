@@ -415,8 +415,8 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.forgerock</groupId>
-        <artifactId>manifest-classpath-maven-plugin</artifactId>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-manifest-classpath-maven-plugin</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <executions>
           <execution>
@@ -559,8 +559,8 @@
 
       <!-- Create consolidated schema file for use in upgrade -->
       <plugin>
-        <groupId>org.forgerock</groupId>
-        <artifactId>concat-schema-maven-plugin</artifactId>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-concat-schema-maven-plugin</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <executions>
           <execution>
@@ -1044,8 +1044,8 @@
 
       <!-- Generates log references for documentation -->
       <plugin>
-        <groupId>org.forgerock</groupId>
-        <artifactId>genlogref-documentation-maven-plugin</artifactId>
+        <groupId>org.forgerock.opendj</groupId>
+        <artifactId>opendj-logref-doc-maven-plugin</artifactId>
         <version>1.0.0-SNAPSHOT</version>
         <executions>
           <execution>
