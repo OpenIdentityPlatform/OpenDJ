@@ -26,12 +26,21 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -39,20 +48,11 @@ import org.opends.server.admin.std.server.MonitorBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend to hold Directory Server monitor entries. It
@@ -72,7 +72,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   private ArrayList<Attribute> userDefinedAttributes;
 
   /** The set of objectclasses that will be used in monitor entries. */
-  private HashMap<ObjectClass, String> monitorObjectClasses;
+  private final HashMap<ObjectClass, String> monitorObjectClasses = new LinkedHashMap<ObjectClass, String>(2);
 
   /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
@@ -182,31 +182,10 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     // attributes that we don't recognize will be included directly in the base
     // monitor entry.
     userDefinedAttributes = new ArrayList<Attribute>();
-    for (final List<Attribute> attrs : configEntry.getEntry()
-        .getUserAttributes().values())
-    {
-      for (final Attribute a : attrs)
-      {
-        if (!isMonitorConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
-    for (final List<Attribute> attrs : configEntry.getEntry()
-        .getOperationalAttributes().values())
-    {
-      for (final Attribute a : attrs)
-      {
-        if (!isMonitorConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
+    addAll(userDefinedAttributes, configEntry.getEntry().getUserAttributes().values());
+    addAll(userDefinedAttributes, configEntry.getEntry().getOperationalAttributes().values());
 
     // Construct the set of objectclasses to include in the base monitor entry.
-    monitorObjectClasses = new LinkedHashMap<ObjectClass, String>(2);
     final ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
     monitorObjectClasses.put(topOC, OC_TOP);
 
@@ -233,6 +212,20 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     this.baseDNs = new DN[] { baseMonitorDN };
 
     currentConfig = cfg;
+  }
+
+  private void addAll(ArrayList<Attribute> attributes, Collection<List<Attribute>> attributesToAdd)
+  {
+    for (final List<Attribute> attrs : attributesToAdd)
+    {
+      for (final Attribute a : attrs)
+      {
+        if (!isMonitorConfigAttribute(a))
+        {
+          attributes.add(a);
+        }
+      }
+    }
   }
 
   /** {@inheritDoc} */
@@ -279,8 +272,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
       final LocalizableMessage message = ERR_ROOTDSE_UNABLE_TO_CREATE_LDIF_WRITER
           .get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
 
     // Write the base monitor entry to the LDIF.
@@ -296,8 +288,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
 
       final LocalizableMessage message = ERR_MONITOR_UNABLE_TO_EXPORT_BASE
           .get(stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message);
     }
 
     // Get all the monitor providers, convert them to entries, and write them to
@@ -316,8 +307,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
         close(ldifWriter);
 
         final LocalizableMessage message = ERR_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY
-            .get(monitorProvider.getMonitorInstanceName(),
-                stackTraceToSingleLineString(e));
+            .get(monitorProvider.getMonitorInstanceName(), stackTraceToSingleLineString(e));
         throw new DirectoryException(
             DirectoryServer.getServerErrorResultCode(), message);
       }
@@ -409,8 +399,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     if (dit.containsKey(entryDN))
     {
       final DN nextDN = dit.higherKey(entryDN);
-      return ConditionResult.valueOf(
-          nextDN != null && nextDN.isDescendantOf(entryDN));
+      return ConditionResult.valueOf(nextDN != null && nextDN.isDescendantOf(entryDN));
     }
     return ConditionResult.UNDEFINED;
   }
@@ -579,8 +568,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     }
 
     // Walk through all entries and send the ones that match.
-    for (final Map.Entry<DN, MonitorProvider<?>> e : dit.tailMap(baseDN)
-        .entrySet())
+    for (final Map.Entry<DN, MonitorProvider<?>> e : dit.tailMap(baseDN).entrySet())
     {
       final DN dn = e.getKey();
       if (dn.matchesBaseAndScope(baseDN, scope))
@@ -602,14 +590,6 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   /** {@inheritDoc} */
   @Override
   public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup(final BackupConfig backupConfig,
-      final StringBuilder unsupportedReason)
   {
     return false;
   }
@@ -638,27 +618,6 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     return false;
   }
 
-
-
-  /**
-   * Creates an attribute for a monitor entry with the following criteria.
-   *
-   * @param name
-   *          The name for the attribute.
-   * @param lowerName
-   *          The name for the attribute formatted in all lowercase characters.
-   * @param value
-   *          The value to use for the attribute.
-   * @return The constructed attribute.
-   */
-  private Attribute createAttribute(final String name, final String lowerName,
-      final String value)
-  {
-    return Attributes.create(name, value);
-  }
-
-
-
   /**
    * Retrieves the base monitor entry for the Directory Server.
    *
@@ -666,62 +625,55 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private Entry getBaseMonitorEntry()
   {
-    final HashMap<ObjectClass, String> monitorClasses =
-        new LinkedHashMap<ObjectClass, String>(3);
-    monitorClasses.putAll(monitorObjectClasses);
-
-    final ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass(
-        OC_EXTENSIBLE_OBJECT_LC, true);
-    monitorClasses.put(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
+    final ObjectClass extensibleObjectOC = DirectoryServer.getObjectClass(OC_EXTENSIBLE_OBJECT_LC, true);
+    final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(extensibleObjectOC, OC_EXTENSIBLE_OBJECT);
 
     final HashMap<AttributeType, List<Attribute>> monitorUserAttrs =
         new LinkedHashMap<AttributeType, List<Attribute>>();
     final HashMap<AttributeType, List<Attribute>> monitorOperationalAttrs =
         new LinkedHashMap<AttributeType, List<Attribute>>();
 
-    // Add the "cn" attribute.
-    final Attribute cnAttr = createAttribute(ATTR_COMMON_NAME,
-        ATTR_COMMON_NAME, "monitor");
-    final ArrayList<Attribute> cnList = new ArrayList<Attribute>(1);
-    cnList.add(cnAttr);
-    monitorUserAttrs.put(cnAttr.getAttributeType(), cnList);
+    put(monitorUserAttrs, Attributes.create(ATTR_COMMON_NAME, "monitor"));
+    put(monitorUserAttrs, Attributes.create(ATTR_PRODUCT_NAME, DynamicConstants.PRODUCT_NAME));
+    put(monitorUserAttrs, Attributes.create(ATTR_VENDOR_NAME, SERVER_VENDOR_NAME));
+    put(monitorUserAttrs, Attributes.create(ATTR_VENDOR_VERSION, DirectoryServer.getVersionString()));
+    put(monitorUserAttrs, Attributes.create(ATTR_START_TIME, DirectoryServer.getStartTimeUTC()));
+    put(monitorUserAttrs, Attributes.create(ATTR_CURRENT_TIME, TimeThread.getGMTTime()));
+    put(monitorUserAttrs, Attributes.create(ATTR_UP_TIME, getHumanReadableUpTime()));
 
-    // Add the server product name.
-    final Attribute productNameAttr = createAttribute(ATTR_PRODUCT_NAME,
-        ATTR_PRODUCT_NAME_LC, DynamicConstants.PRODUCT_NAME);
-    final ArrayList<Attribute> productNameList = new ArrayList<Attribute>(1);
-    productNameList.add(productNameAttr);
-    monitorUserAttrs.put(productNameAttr.getAttributeType(), productNameList);
+    // Add the number of connections currently established.
+    final long currentConns = DirectoryServer.getCurrentConnections();
+    put(monitorUserAttrs, Attributes.create(ATTR_CURRENT_CONNS, String.valueOf(currentConns)));
 
-    // Add the vendor name.
-    final Attribute vendorNameAttr = createAttribute(ATTR_VENDOR_NAME,
-        ATTR_VENDOR_NAME_LC, SERVER_VENDOR_NAME);
-    final ArrayList<Attribute> vendorNameList = new ArrayList<Attribute>(1);
-    vendorNameList.add(vendorNameAttr);
-    monitorUserAttrs.put(vendorNameAttr.getAttributeType(), vendorNameList);
+    // Add the maximum number of connections established at one time.
+    final long maxConns = DirectoryServer.getMaxConnections();
+    put(monitorUserAttrs, Attributes.create(ATTR_MAX_CONNS, String.valueOf(maxConns)));
 
-    // Add the vendor version.
-    final Attribute versionAttr = createAttribute(ATTR_VENDOR_VERSION,
-        ATTR_VENDOR_VERSION_LC, DirectoryServer.getVersionString());
-    final ArrayList<Attribute> versionList = new ArrayList<Attribute>(1);
-    versionList.add(versionAttr);
-    monitorUserAttrs.put(versionAttr.getAttributeType(), versionList);
+    // Add the total number of connections the server has accepted.
+    final long totalConns = DirectoryServer.getTotalConnections();
+    put(monitorUserAttrs, Attributes.create(ATTR_TOTAL_CONNS, String.valueOf(totalConns)));
 
-    // Add the server startup time.
-    final Attribute startTimeAttr = createAttribute(ATTR_START_TIME,
-        ATTR_START_TIME_LC, DirectoryServer.getStartTimeUTC());
-    final ArrayList<Attribute> startTimeList = new ArrayList<Attribute>(1);
-    startTimeList.add(startTimeAttr);
-    monitorUserAttrs.put(startTimeAttr.getAttributeType(), startTimeList);
+    // Add all the user-defined attributes.
+    for (final Attribute a : userDefinedAttributes)
+    {
+      final AttributeType type = a.getAttributeType();
 
-    // Add the current time.
-    final Attribute currentTimeAttr = createAttribute(ATTR_CURRENT_TIME,
-        ATTR_CURRENT_TIME_LC, TimeThread.getGMTTime());
-    final ArrayList<Attribute> currentTimeList = new ArrayList<Attribute>(1);
-    currentTimeList.add(currentTimeAttr);
-    monitorUserAttrs.put(currentTimeAttr.getAttributeType(), currentTimeList);
+      final HashMap<AttributeType, List<Attribute>> attrsMap =
+          type.isOperational() ? monitorOperationalAttrs : monitorUserAttrs;
+      List<Attribute> attrs = attrsMap.get(type);
+      if (attrs == null)
+      {
+        attrs = new ArrayList<Attribute>();
+        attrsMap.put(type, attrs);
+      }
+      attrs.add(a);
+    }
 
-    // Add the uptime as a human-readable string.
+    return newEntry(baseMonitorDN, monitorClasses, monitorUserAttrs, monitorOperationalAttrs);
+  }
+
+  private String getHumanReadableUpTime()
+  {
     long upSeconds = (System.currentTimeMillis() - DirectoryServer.getStartTime()) / 1000;
     final long upDays = upSeconds / 86400;
     upSeconds %= 86400;
@@ -729,81 +681,20 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     upSeconds %= 3600;
     final long upMinutes = upSeconds / 60;
     upSeconds %= 60;
-    final LocalizableMessage upTimeStr = INFO_MONITOR_UPTIME.get(upDays, upHours,
-        upMinutes, upSeconds);
-    final Attribute upTimeAttr = createAttribute(ATTR_UP_TIME, ATTR_UP_TIME_LC,
-        upTimeStr.toString());
-    final ArrayList<Attribute> upTimeList = new ArrayList<Attribute>(1);
-    upTimeList.add(upTimeAttr);
-    monitorUserAttrs.put(upTimeAttr.getAttributeType(), upTimeList);
-
-    // Add the number of connections currently established.
-    final long currentConns = DirectoryServer.getCurrentConnections();
-    final Attribute currentConnsAttr = createAttribute(ATTR_CURRENT_CONNS,
-        ATTR_CURRENT_CONNS_LC, String.valueOf(currentConns));
-    final ArrayList<Attribute> currentConnsList = new ArrayList<Attribute>(1);
-    currentConnsList.add(currentConnsAttr);
-    monitorUserAttrs.put(currentConnsAttr.getAttributeType(), currentConnsList);
-
-    // Add the maximum number of connections established at one time.
-    final long maxConns = DirectoryServer.getMaxConnections();
-    final Attribute maxConnsAttr = createAttribute(ATTR_MAX_CONNS,
-        ATTR_MAX_CONNS_LC, String.valueOf(maxConns));
-    final ArrayList<Attribute> maxConnsList = new ArrayList<Attribute>(1);
-    maxConnsList.add(maxConnsAttr);
-    monitorUserAttrs.put(maxConnsAttr.getAttributeType(), maxConnsList);
-
-    // Add the total number of connections the server has accepted.
-    final long totalConns = DirectoryServer.getTotalConnections();
-    final Attribute totalConnsAttr = createAttribute(ATTR_TOTAL_CONNS,
-        ATTR_TOTAL_CONNS_LC, String.valueOf(totalConns));
-    final ArrayList<Attribute> totalConnsList = new ArrayList<Attribute>(1);
-    totalConnsList.add(totalConnsAttr);
-    monitorUserAttrs.put(totalConnsAttr.getAttributeType(), totalConnsList);
-
-    // Add all the user-defined attributes.
-    for (final Attribute a : userDefinedAttributes)
-    {
-      final AttributeType type = a.getAttributeType();
-
-      if (type.isOperational())
-      {
-        List<Attribute> attrs = monitorOperationalAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          attrs.add(a);
-          monitorOperationalAttrs.put(type, attrs);
-        }
-        else
-        {
-          attrs.add(a);
-        }
-      }
-      else
-      {
-        List<Attribute> attrs = monitorUserAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          attrs.add(a);
-          monitorUserAttrs.put(type, attrs);
-        }
-        else
-        {
-          attrs.add(a);
-        }
-      }
-    }
-
-    // Construct and return the entry.
-    final Entry e = new Entry(baseMonitorDN, monitorClasses, monitorUserAttrs,
-        monitorOperationalAttrs);
-    e.processVirtualAttributes();
-    return e;
+    return INFO_MONITOR_UPTIME.get(upDays, upHours, upMinutes, upSeconds).toString();
   }
 
+  private void put(final HashMap<AttributeType, List<Attribute>> attrsMap, final Attribute attr)
+  {
+    attrsMap.put(attr.getAttributeType(), toList(attr));
+  }
 
+  private ArrayList<Attribute> toList(final Attribute attr)
+  {
+    final ArrayList<Attribute> results = new ArrayList<Attribute>(1);
+    results.add(attr);
+    return results;
+  }
 
   /**
    * Retrieves the branch monitor entry for the Directory Server.
@@ -814,13 +705,8 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private Entry getBranchMonitorEntry(final DN dn)
   {
-
-    final HashMap<ObjectClass, String> monitorClasses =
-        new LinkedHashMap<ObjectClass, String>(3);
-    monitorClasses.putAll(monitorObjectClasses);
-    final ObjectClass monitorOC = DirectoryServer.getObjectClass(
-        OC_MONITOR_BRANCH, true);
-    monitorClasses.put(monitorOC, OC_MONITOR_BRANCH);
+    final ObjectClass monitorOC = DirectoryServer.getObjectClass(OC_MONITOR_BRANCH, true);
+    final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, OC_MONITOR_BRANCH);
 
     final HashMap<AttributeType, List<Attribute>> monitorUserAttrs =
         new LinkedHashMap<AttributeType, List<Attribute>>();
@@ -834,19 +720,12 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
         final AttributeType attributeType = rdn.getAttributeType(i);
         final ByteString value = rdn.getAttributeValue(attributeType);
         final Attribute attr = Attributes.create(attributeType, value);
-        final List<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(attr);
-        monitorUserAttrs.put(attributeType, attrList);
+        monitorUserAttrs.put(attributeType, toList(attr));
       }
     }
 
-    // Construct and return the entry.
-    final Entry e = new Entry(dn, monitorClasses, monitorUserAttrs, null);
-    e.processVirtualAttributes();
-    return e;
+    return newEntry(dn, monitorClasses, monitorUserAttrs, null);
   }
-
-
 
   /**
    * Returns a map containing records for each DN in the monitor backend's DIT.
@@ -930,13 +809,8 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   private Entry getMonitorEntry(final DN entryDN,
       final MonitorProvider<?> monitorProvider)
   {
-    final HashMap<ObjectClass, String> monitorClasses =
-        new LinkedHashMap<ObjectClass, String>(
-        3);
-    monitorClasses.putAll(monitorObjectClasses);
-
     final ObjectClass monitorOC = monitorProvider.getMonitorObjectClass();
-    monitorClasses.put(monitorOC, monitorOC.getPrimaryName());
+    final HashMap<ObjectClass, String> monitorClasses = newObjectClasses(monitorOC, monitorOC.getPrimaryName());
 
     final List<Attribute> monitorAttrs = monitorProvider.getMonitorData();
     final HashMap<AttributeType, List<Attribute>> attrMap =
@@ -948,10 +822,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     final AttributeType rdnType = entryRDN.getAttributeType(0);
     final ByteString rdnValue = entryRDN.getAttributeValue(0);
 
-    final Attribute rdnAttr = Attributes.create(rdnType, rdnValue);
-    final ArrayList<Attribute> rdnList = new ArrayList<Attribute>(1);
-    rdnList.add(rdnAttr);
-    attrMap.put(rdnType, rdnList);
+    attrMap.put(rdnType, toList(Attributes.create(rdnType, rdnValue)));
 
     // Take the rest of the information from the monitor data.
     for (final Attribute a : monitorAttrs)
@@ -962,22 +833,30 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
       if (attrs == null)
       {
         attrs = new ArrayList<Attribute>();
-        attrs.add(a);
         attrMap.put(type, attrs);
       }
-      else
-      {
-        attrs.add(a);
-      }
+      attrs.add(a);
     }
 
-    final Entry e = new Entry(entryDN, monitorClasses, attrMap,
-        new HashMap<AttributeType, List<Attribute>>(0));
+    return newEntry(entryDN, monitorClasses, attrMap, new HashMap<AttributeType, List<Attribute>>(0));
+  }
+
+  private HashMap<ObjectClass, String> newObjectClasses(ObjectClass objectClass, String objectClassName)
+  {
+    final HashMap<ObjectClass, String> monitorClasses =
+        new LinkedHashMap<ObjectClass, String>(monitorObjectClasses.size() + 1);
+    monitorClasses.putAll(monitorObjectClasses);
+    monitorClasses.put(objectClass, objectClassName);
+    return monitorClasses;
+  }
+
+  private Entry newEntry(final DN dn, final Map<ObjectClass, String> objectClasses,
+      final Map<AttributeType, List<Attribute>> userAttrs, Map<AttributeType, List<Attribute>> opAttrs)
+  {
+    final Entry e = new Entry(dn, objectClasses, userAttrs, opAttrs);
     e.processVirtualAttributes();
     return e;
   }
-
-
 
   /**
    * Indicates whether the provided attribute is one that is used in the

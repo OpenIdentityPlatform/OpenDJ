@@ -26,6 +26,11 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -44,17 +49,12 @@ import org.opends.server.api.Backend;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend used to present information about Directory
@@ -1016,18 +1016,6 @@ public class BackupBackend
     return false;
   }
 
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup(BackupConfig backupConfig,
-                                StringBuilder unsupportedReason)
-  {
-    return false;
-  }
-
-
-
   /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig)
@@ -1122,6 +1110,7 @@ public class BackupBackend
 
 
   /** {@inheritDoc} */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }

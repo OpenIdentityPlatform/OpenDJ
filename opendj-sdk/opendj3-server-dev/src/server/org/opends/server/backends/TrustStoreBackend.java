@@ -26,6 +26,11 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,8 +50,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.SortedSet;
 import java.util.Set;
+import java.util.SortedSet;
 
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.KeyManager;
@@ -56,15 +61,16 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
 import org.opends.server.api.Backend;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -72,15 +78,8 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.FilePermission;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend used to provide an LDAP view of public keys
@@ -726,14 +725,6 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   /** {@inheritDoc} */
   @Override
   public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup(BackupConfig backupConfig,
-                                StringBuilder unsupportedReason)
   {
     return false;
   }

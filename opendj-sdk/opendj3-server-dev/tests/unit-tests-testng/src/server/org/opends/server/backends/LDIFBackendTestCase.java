@@ -22,9 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends;
+
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.internal.Requests.*;
+import static org.testng.Assert.*;
 
 import java.io.File;
 import java.util.UUID;
@@ -53,10 +57,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.protocols.internal.Requests.*;
-import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the LDIF backend.
@@ -629,9 +629,7 @@ public class LDIFBackendTestCase
   @Test
   public void testHasSubordinates() throws Exception
   {
-    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
-    assertNotNull(b);
-    assertTrue(b instanceof LDIFBackend);
+    Backend<?> b = getLDIFBackend();
 
     assertEquals(b.hasSubordinates(DN.valueOf("o=ldif")), ConditionResult.TRUE);
     assertEquals(b.hasSubordinates(DN.valueOf("uid=user.1,ou=People,o=ldif")),
@@ -660,9 +658,7 @@ public class LDIFBackendTestCase
   public void testNumSubordinates()
          throws Exception
   {
-    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
-    assertNotNull(b);
-    assertTrue(b instanceof LDIFBackend);
+    Backend<?> b = getLDIFBackend();
 
     assertEquals(b.numSubordinates(DN.valueOf("o=ldif"), false), 1);
     assertEquals(b.numSubordinates(DN.valueOf("o=ldif"), true), 26);
@@ -694,9 +690,7 @@ public class LDIFBackendTestCase
   public void testLDIFExport()
          throws Exception
   {
-    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
-    assertNotNull(b);
-    assertTrue(b instanceof LDIFBackend);
+    Backend<?> b = getLDIFBackend();
     assertTrue(b.supportsLDIFExport());
 
     String tempFilePath = TestCaseUtils.createTempFile();
@@ -728,16 +722,10 @@ public class LDIFBackendTestCase
   public void testMiscellaneousBackendMethods()
          throws Exception
   {
-    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
-    assertNotNull(b);
-    assertTrue(b instanceof LDIFBackend);
-
+    LDIFBackend b = getLDIFBackend();
     assertTrue(b.getEntryCount() > 0);
-
     assertTrue(b.isLocal());
-
     assertFalse(b.supportsBackup());
-    assertFalse(b.supportsBackup(null, null));
 
     try
     {
@@ -759,10 +747,16 @@ public class LDIFBackendTestCase
       fail("Expected an exception when calling restoreBackup");
     } catch (DirectoryException de) {}
 
-    LDIFBackend ldifBackend = (LDIFBackend) b;
-    assertNotNull(ldifBackend.getClassName());
-    assertNotNull(ldifBackend.getAlerts());
-    assertFalse(ldifBackend.getAlerts().isEmpty());
+    assertNotNull(b.getClassName());
+    assertNotNull(b.getAlerts());
+    assertFalse(b.getAlerts().isEmpty());
+  }
+
+  private LDIFBackend getLDIFBackend()
+  {
+    Backend<?> b = DirectoryServer.getBackend("ldifRoot");
+    assertNotNull(b);
+    assertTrue(b instanceof LDIFBackend);
+    return (LDIFBackend) b;
   }
 }
-

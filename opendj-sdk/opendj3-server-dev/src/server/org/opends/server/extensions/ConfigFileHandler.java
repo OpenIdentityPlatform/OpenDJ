@@ -1976,18 +1976,6 @@ public class ConfigFileHandler
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsBackup(BackupConfig backupConfig,
-                                StringBuilder unsupportedReason)
-  {
-    // We should support online backup for the configuration in any form.  This
-    // implementation does not support incremental backups, but in this case
-    // even if we're asked to do an incremental we'll just do a full backup
-    // instead.  So the answer to this should always be "true".
-    return true;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {

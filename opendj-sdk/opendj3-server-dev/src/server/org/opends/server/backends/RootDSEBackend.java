@@ -993,14 +993,6 @@ public class RootDSEBackend
 
   /** {@inheritDoc} */
   @Override
-  public boolean supportsBackup(BackupConfig backupConfig,
-                                StringBuilder unsupportedReason)
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {

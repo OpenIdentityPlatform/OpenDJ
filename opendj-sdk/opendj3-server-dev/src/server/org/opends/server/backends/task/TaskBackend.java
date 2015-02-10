@@ -1110,18 +1110,6 @@ public class TaskBackend
     return true;
   }
 
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup(BackupConfig backupConfig,
-                                StringBuilder unsupportedReason)
-  {
-    return true;
-  }
-
-
-
   /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig backupConfig)

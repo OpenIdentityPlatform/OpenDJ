@@ -25,6 +25,16 @@
  */
 package org.opends.server.backends;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.replication.plugin.MultimasterReplication.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+import static org.opends.server.util.LDIFWriter.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Collections;
@@ -106,16 +116,6 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.replication.plugin.MultimasterReplication.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
-import static org.opends.server.util.LDIFWriter.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * A backend that provides access to the changelog, i.e. the "cn=changelog"
@@ -647,13 +647,6 @@ public class ChangelogBackend extends Backend<Configuration>
   /** {@inheritDoc} */
   @Override
   public boolean supportsBackup()
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean supportsBackup(BackupConfig backupConfig, StringBuilder unsupportedReason)
   {
     return false;
   }
