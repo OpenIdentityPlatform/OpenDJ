@@ -608,7 +608,7 @@ public class BackupBackend
 
     BackupDirectory backupDirectory;
     try {
-      backupDirectory = BackupDirectory.readBackupDirectoryDescriptor(v.toString());
+      backupDirectory = backupDirectories.get(new File(v.toString())).getBackupDirectory();
     } catch (ConfigException ce) {
       logger.traceException(ce);
 
