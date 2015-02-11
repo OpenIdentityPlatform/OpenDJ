@@ -57,65 +57,65 @@ public class TestDN extends TypesTestCase {
   @DataProvider(name = "testDNs")
   public Object[][] createData() {
     return new Object[][] {
-      // raw dn, irreversible normalized string representation, toString representation
-//        { "", "", "" },
-//        { "   ", "", "" },
-//        { "cn=", "cn=", "cn=" },
-//        { "cn= ", "cn=", "cn=" },
-//        { "cn =", "cn=", "cn=" },
-//        { "cn = ", "cn=", "cn=" },
-//        { "dc=com", "dc=com", "dc=com" },
-//        { "dc=com+o=com", "dc=com+o=com", "dc=com+o=com" },
-//        { "DC=COM", "dc=com", "DC=COM" },
-//        { "dc = com", "dc=com", "dc=com" },
-//        { " dc = com ", "dc=com", "dc=com" },
-//        { "dc=example,dc=com", "dc=example,dc=com",
-//            "dc=example,dc=com" },
-//        { "dc=example, dc=com", "dc=example,dc=com",
-//            "dc=example,dc=com" },
-//        { "dc=example ,dc=com", "dc=example,dc=com",
-//            "dc=example,dc=com" },
-//        { "dc =example , dc  =   com", "dc=example,dc=com",
-//            "dc=example,dc=com" },
-//        { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
-//            "cn=doe+givenname=john,ou=people,dc=example,dc=com",
-//            "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
-//        { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
-//            "givenname=john%2Bcn%3Ddoe,ou=people,dc=example,dc=com",
-//            "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
-//        { "cn=Doe\\, John,ou=People,dc=example,dc=com",
-//            "cn=doe%2C%20john,ou=people,dc=example,dc=com",
-//            "cn=Doe\\, John,ou=People,dc=example,dc=com" },
-//        { "UID=jsmith,DC=example,DC=net",
-//            "uid=jsmith,dc=example,dc=net",
-//            "UID=jsmith,DC=example,DC=net" },
-//        { "OU=Sales+CN=J. Smith,DC=example,DC=net",
-//            "cn=j.%20smith+ou=sales,dc=example,dc=net",
-//            "OU=Sales+CN=J. Smith,DC=example,DC=net" },
-//        { "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net",
-//            "cn=james%20%22jim%22%20smith%2C%20iii,dc=example,dc=net",
-//            "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net" },
-//        { "CN=John Smith\\2C III,DC=example,DC=net",
-//            "cn=john%20smith%2C%20iii,dc=example,dc=net",
-//            "CN=John Smith\\, III,DC=example,DC=net" },
-//        { "CN=\\23John Smith\\20,DC=example,DC=net",
-//            "cn=%23john%20smith,dc=example,dc=net",
-//            "CN=\\#John Smith\\ ,DC=example,DC=net" },
-//        { "CN=Before\\0dAfter,DC=example,DC=net",
-//             //\0d is a hex representation of Carriage return. It is mapped
-//             //to a SPACE as defined in the MAP ( RFC 4518)
-//            "cn=before%20after,dc=example,dc=net",
-//            "CN=Before\\0dAfter,DC=example,DC=net" },
-//        { "1.3.6.1.4.1.1466.0=#04024869",
-//             //Unicode codepoints from 0000-0008 are mapped to nothing.
-//            "1.3.6.1.4.1.1466.0=hi",
-//            "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
-//        { "1.1.1=", "1.1.1=", "1.1.1=" },
-//        { "CN=Lu\\C4\\8Di\\C4\\87", "cn=luc%CC%8Cic%CC%81",
-//            "CN=Lu\u010di\u0107" },
-//        { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
-//            "ou=%E5%96%B6%E6%A5%AD%E9%83%A8,o=airius",
-//            "ou=\u55b6\u696d\u90e8,o=Airius" },
+         // raw dn, irreversible normalized string representation, toString representation
+        { "", "", "" },
+        { "   ", "", "" },
+        { "cn=", "cn=", "cn=" },
+        { "cn= ", "cn=", "cn=" },
+        { "cn =", "cn=", "cn=" },
+        { "cn = ", "cn=", "cn=" },
+        { "dc=com", "dc=com", "dc=com" },
+        { "dc=com+o=com", "dc=com+o=com", "dc=com+o=com" },
+        { "DC=COM", "dc=com", "DC=COM" },
+        { "dc = com", "dc=com", "dc=com" },
+        { " dc = com ", "dc=com", "dc=com" },
+        { "dc=example,dc=com", "dc=example,dc=com",
+            "dc=example,dc=com" },
+        { "dc=example, dc=com", "dc=example,dc=com",
+            "dc=example,dc=com" },
+        { "dc=example ,dc=com", "dc=example,dc=com",
+            "dc=example,dc=com" },
+        { "dc =example , dc  =   com", "dc=example,dc=com",
+            "dc=example,dc=com" },
+        { "givenName=John+cn=Doe,ou=People,dc=example,dc=com",
+            "cn=doe+givenname=john,ou=people,dc=example,dc=com",
+            "givenName=John+cn=Doe,ou=People,dc=example,dc=com" },
+        { "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com",
+            "givenname=john%2Bcn%3Ddoe,ou=people,dc=example,dc=com",
+            "givenName=John\\+cn=Doe,ou=People,dc=example,dc=com" },
+        { "cn=Doe\\, John,ou=People,dc=example,dc=com",
+            "cn=doe%2C%20john,ou=people,dc=example,dc=com",
+            "cn=Doe\\, John,ou=People,dc=example,dc=com" },
+        { "UID=jsmith,DC=example,DC=net",
+            "uid=jsmith,dc=example,dc=net",
+            "UID=jsmith,DC=example,DC=net" },
+        { "OU=Sales+CN=J. Smith,DC=example,DC=net",
+            "cn=j.%20smith+ou=sales,dc=example,dc=net",
+            "OU=Sales+CN=J. Smith,DC=example,DC=net" },
+        { "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net",
+            "cn=james%20%22jim%22%20smith%2C%20iii,dc=example,dc=net",
+            "CN=James \\\"Jim\\\" Smith\\, III,DC=example,DC=net" },
+        { "CN=John Smith\\2C III,DC=example,DC=net",
+            "cn=john%20smith%2C%20iii,dc=example,dc=net",
+            "CN=John Smith\\, III,DC=example,DC=net" },
+        { "CN=\\23John Smith\\20,DC=example,DC=net",
+            "cn=%23john%20smith,dc=example,dc=net",
+            "CN=\\#John Smith\\ ,DC=example,DC=net" },
+        { "CN=Before\\0dAfter,DC=example,DC=net",
+             //\0d is a hex representation of Carriage return. It is mapped
+             //to a SPACE as defined in the MAP ( RFC 4518)
+            "cn=before%20after,dc=example,dc=net",
+            "CN=Before\\0dAfter,DC=example,DC=net" },
+        { "1.3.6.1.4.1.1466.0=#04024869",
+             //Unicode codepoints from 0000-0008 are mapped to nothing.
+            "1.3.6.1.4.1.1466.0=hi",
+            "1.3.6.1.4.1.1466.0=\\04\\02Hi" },
+        { "1.1.1=", "1.1.1=", "1.1.1=" },
+        { "CN=Lu\\C4\\8Di\\C4\\87", "cn=luc%CC%8Cic%CC%81",
+            "CN=Lu\u010di\u0107" },
+        { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
+            "ou=%E5%96%B6%E6%A5%AD%E9%83%A8,o=airius",
+            "ou=\u55b6\u696d\u90e8,o=Airius" },
         { "photo=\\ john \\ ,dc=com", "photo=%20%6A%6F%68%6E%20%20,dc=com",
             "photo=\\ john \\ ,dc=com" },
         { "AB-global=", "ab-global=", "AB-global=" },
@@ -307,7 +307,7 @@ public class TestDN extends TypesTestCase {
   public void testValueOf(String rawDN, String normDN, String unused) throws Exception {
     DN dn = DN.valueOf(rawDN);
     StringBuilder normalizedDnString = new StringBuilder(normDN);
-    Platform.normalize(normalizedDnString);
+    //Platform.normalize(normalizedDnString);
     assertEquals(dn.toIrreversibleReadableString(), normalizedDnString.toString());
   }
 
@@ -330,7 +330,7 @@ public class TestDN extends TypesTestCase {
   public void testDecodeByteString(String rawDN, String normDN, String unused) throws Exception {
     DN dn = DN.decode(ByteString.valueOf(rawDN));
     StringBuilder normalizedDNString = new StringBuilder(normDN);
-    Platform.normalize(normalizedDNString);
+    //Platform.normalize(normalizedDNString);
 
     assertEquals(dn.toIrreversibleReadableString(), normalizedDNString.toString());
   }
