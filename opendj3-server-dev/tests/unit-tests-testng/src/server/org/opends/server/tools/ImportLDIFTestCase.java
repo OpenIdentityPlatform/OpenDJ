@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,9 +45,6 @@ import org.opends.server.types.Entry;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class ImportLDIFTestCase extends ToolsTestCase
@@ -68,17 +68,28 @@ public class ImportLDIFTestCase extends ToolsTestCase
     configFilePath = DirectoryServer.getConfigFile();
     TaskUtils.disableBackend(beID);
 
-    String entry = "dn: dc=example,dc=com\n" + "objectclass: domain\n"
-        + "objectclass: top\n" + "dc: example\n\n"
-        + "dn: uid=user.0,dc=example,dc=com\n" + "objectClass: person\n"
+    String entry =
+        "dn: dc=example,dc=com\n"
+        + "objectclass: domain\n"
+        + "objectclass: top\n"
+        + "dc: example\n"
+        + "\n"
+        + "dn: uid=user.0,dc=example,dc=com\n"
+        + "objectClass: person\n"
         + "objectClass: inetorgperson\n"
-        + "objectClass: organizationalPerson\n" + "objectClass: top\n"
-        + "givenName: Aaccf\n" + "sn: Amar\n" + "cn: Aaccf Amar\n"
-        + "employeeNumber: 0\n" + "uid: user.0\n"
-        + "mail: user.0@example.com\n" + "userPassword: password\n"
+        + "objectClass: organizationalPerson\n"
+        + "objectClass: top\n"
+        + "givenName: Aaccf\n"
+        + "sn: Amar\n"
+        + "cn: Aaccf Amar\n"
+        + "employeeNumber: 0\n"
+        + "uid: user.0\n"
+        + "mail: user.0@example.com\n"
+        + "userPassword: password\n"
         + "telephoneNumber: +1 380-535-2354\n"
         + "description: This is the description for Aaccf Amar\n"
-        + "creatorsName: cn=Import\n" + "modifiersName: cn=Import\n";
+        + "creatorsName: cn=Import\n"
+        + "modifiersName: cn=Import\n";
 
     tempDir = TestCaseUtils.createTemporaryDirectory("importLDIFtest");
     homeDirName = tempDir.getAbsolutePath();
@@ -117,8 +128,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-i",
         "+"
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     // Expecting a non-empty reject file.
     assertRejectedFile(reject, false);
   }
@@ -149,8 +159,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-i",
         "*"
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     // Expecting an empty reject file.
     assertRejectedFile(reject, true);
 
@@ -186,8 +195,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-R",
         rejectFilePath
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     // Reject file should be empty.
     assertRejectedFile(reject, true);
     // check the presence of some random attributes.
@@ -224,8 +232,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-R",
         rejectFilePath
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     // Reject file should be empty.
     assertRejectedFile(reject, true);
     // check the presence of some random attributes.
@@ -240,7 +247,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
 
   /**
    * Tests an import of LDIF with all the user attributes included but
-   * "description"
+   * "description".
    */
   @Test
   public void testImportLDIFIncludeUserExcludeDescription() throws Exception
@@ -266,8 +273,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "description"
     };
 
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
     assertEntry(false,
         Attributes.create("description", "This is the description for Aaccf Amar"));
@@ -299,8 +305,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "*"
     };
 
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, false);
   }
 
@@ -331,15 +336,12 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-e",
         "+"
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
     assertEntry(false,
         Attributes.create("creatorsname", "cn=Import"),
         Attributes.create("modifiersname", "cn=Import"));
   }
-
-
 
   /**
    * Tests an import of LDIF with all user attributes and one
@@ -348,7 +350,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   @Test
   public void testImportLDIFUserAndOperational() throws Exception
   {
-
     File reject = File.createTempFile("reject", ".ldif");
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
@@ -368,8 +369,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-i",
         "creatorsname"
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
     assertEntry(true, Attributes.create("creatorsname", "cn=Import"));
   }
@@ -383,7 +383,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   @Test
   public void testImportLDIFSelectiveIncludeAttributes() throws Exception
   {
-
     File reject = File.createTempFile("reject", ".ldif");
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
@@ -409,8 +408,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-i",
         "creatorsname"
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
     assertEntry(true,
         Attributes.create("creatorsname", "cn=Import"));
@@ -447,8 +445,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "-e",
         "creatorsname"
     };
-    assertEquals(
-        ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
+    assertEquals(importLDIF(args), 0);
     assertRejectedFile(reject, true);
     assertEntry(true,
         Attributes.create("modifiersname", "cn=Import"),
@@ -458,7 +455,10 @@ public class ImportLDIFTestCase extends ToolsTestCase
         Attributes.create("givenname", "Aaccf"));
   }
 
-
+  private int importLDIF(String[] args)
+  {
+    return ImportLDIF.mainImportLDIF(args, false, System.out, System.err);
+  }
 
   /**
    * Utility method which is called by the testcase for asserting the rejected
@@ -473,21 +473,11 @@ public class ImportLDIFTestCase extends ToolsTestCase
   {
     try
     {
-      if (shouldBeEmpty)
-      {
-        if (reject.length() > 0)
-        {
-          RootCfg root = ServerManagementContext.getInstance()
-              .getRootConfiguration();
-          fail("Unexpected content in reject file:\n\n" + readFile(reject)
-              + "\n\nThe backend was configured with the following base DNs: "
-              + root.getBackend(beID).getBaseDN() + "\n\n");
-        }
-      }
-      else
-      {
-        assertFalse(reject.length() == 0);
-      }
+      final RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
+      final String errorMsg = "Unexpected content in reject file:\n\n" + readFile(reject)
+          + "\n\nThe backend was configured with the following base DNs: "
+          + root.getBackend(beID).getBaseDN() + "\n\n";
+      assertEquals(reject.length() == 0, shouldBeEmpty, errorMsg);
     }
     finally
     {
@@ -522,9 +512,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
     }
   }
 
-  /**
-   * Clean up method.
-   */
+  /** Clean up method. */
   @AfterClass
   public void cleanUp() throws Exception
   {
