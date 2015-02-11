@@ -1064,7 +1064,7 @@
                 <messageFileName>dsconfig</messageFileName>
                 <messageFileName>extension</messageFileName>
                 <messageFileName>jeb</messageFileName>
-                <messageFileName>log</messageFileName>
+                <messageFileName>logger</messageFileName>
                 <messageFileName>plugin</messageFileName>
                 <messageFileName>protocol</messageFileName>
                 <messageFileName>replication</messageFileName>
