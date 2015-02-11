@@ -24,6 +24,6 @@
  *      Copyright 2015 ForgeRock AS.
  */
 
-/** Classes implementing the maven plugin to create a base schema that may be used during the upgrade process. */
+/** Classes implementing the maven plugin to create xml files from messages for documentation guides generation. */
 package org.forgerock.maven;
 
