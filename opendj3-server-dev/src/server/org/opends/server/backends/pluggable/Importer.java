@@ -27,7 +27,7 @@
 package org.opends.server.backends.pluggable;
 
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType.*;
+import static org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType.*;
 import static org.opends.server.backends.pluggable.IndexOutputBuffer.*;
 import static org.opends.server.util.DynamicConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -94,10 +94,10 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.std.server.LocalDBIndexCfg;
+import org.opends.server.admin.std.meta.BackendIndexCfgDefn.IndexType;
+import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.RebuildConfig;
 import org.opends.server.backends.RebuildConfig.RebuildMode;
@@ -192,7 +192,7 @@ final class Importer implements DiskSpaceMonitorHandler
   /** Import configuration. */
   private final LDIFImportConfig importConfiguration;
   /** Backend configuration. */
-  private final LocalDBBackendCfg backendConfiguration;
+  private final PersistitBackendCfg backendConfiguration;
 
   /** LDIF reader. */
   private ImportLDIFReader reader;
@@ -289,7 +289,7 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws ConfigException
    *           If a problem occurs during initialization.
    */
-  public Importer(RebuildConfig rebuildConfig, LocalDBBackendCfg cfg) throws InitializationException,
+  public Importer(RebuildConfig rebuildConfig, PersistitBackendCfg cfg) throws InitializationException,
       StorageRuntimeException, ConfigException
   {
     this.importConfiguration = null;
@@ -318,7 +318,7 @@ final class Importer implements DiskSpaceMonitorHandler
    *
    * @param importConfiguration
    *          The LDIF import configuration.
-   * @param localDBBackendCfg
+   * @param backendCfg
    *          The local DB back-end configuration.
    * @throws InitializationException
    *           If a problem occurs during initialization.
@@ -327,12 +327,12 @@ final class Importer implements DiskSpaceMonitorHandler
    * @throws StorageRuntimeException
    *           If an error occurred when opening the DB.
    */
-  public Importer(LDIFImportConfig importConfiguration, LocalDBBackendCfg localDBBackendCfg)
+  public Importer(LDIFImportConfig importConfiguration, PersistitBackendCfg backendCfg)
       throws InitializationException, ConfigException, StorageRuntimeException
   {
     this.rebuildManager = null;
     this.importConfiguration = importConfiguration;
-    this.backendConfiguration = localDBBackendCfg;
+    this.backendConfiguration = backendCfg;
 
     if (importConfiguration.getThreadCount() == 0)
     {
@@ -344,14 +344,14 @@ final class Importer implements DiskSpaceMonitorHandler
     }
 
     // Determine the number of indexes.
-    this.indexCount = getTotalIndexCount(localDBBackendCfg);
+    this.indexCount = getTotalIndexCount(backendCfg);
 
-    this.clearedBackend = mustClearBackend(importConfiguration, localDBBackendCfg);
+    this.clearedBackend = mustClearBackend(importConfiguration, backendCfg);
     this.scratchFileWriterList =
         new ArrayList<ScratchFileWriterTask>(indexCount);
     this.scratchFileWriterFutures = new CopyOnWriteArrayList<Future<Void>>();
 
-    this.tempDir = getTempDir(localDBBackendCfg, importConfiguration.getTmpDirectory());
+    this.tempDir = getTempDir(backendCfg, importConfiguration.getTmpDirectory());
     recursiveDelete(tempDir);
     if (!tempDir.exists() && !tempDir.mkdirs())
     {
@@ -376,17 +376,20 @@ final class Importer implements DiskSpaceMonitorHandler
   /**
    * Returns whether the backend must be cleared.
    *
-   * @param importCfg the import configuration object
-   * @param backendCfg the backend configuration object
+   * @param importCfg
+   *          the import configuration object
+   * @param backendCfg
+   *          the backend configuration object
    * @return true if the backend must be cleared, false otherwise
+   * @see Importer#getSuffix(WriteableStorage, EntryContainer) for per-suffix cleanups.
    */
-  public static boolean mustClearBackend(LDIFImportConfig importCfg, LocalDBBackendCfg backendCfg)
+  static boolean mustClearBackend(LDIFImportConfig importCfg, PluggableBackendCfg backendCfg)
   {
     return !importCfg.appendToExistingData()
         && (importCfg.clearBackend() || backendCfg.getBaseDN().size() <= 1);
   }
 
-  private File getTempDir(LocalDBBackendCfg localDBBackendCfg, String tmpDirectory)
+  private File getTempDir(PluggableBackendCfg backendCfg, String tmpDirectory)
   {
     File parentDir;
     if (tmpDirectory != null)
@@ -397,16 +400,16 @@ final class Importer implements DiskSpaceMonitorHandler
     {
       parentDir = getFileForPath(DEFAULT_TMP_DIR);
     }
-    return new File(parentDir, localDBBackendCfg.getBackendId());
+    return new File(parentDir, backendCfg.getBackendId());
   }
 
-  private int getTotalIndexCount(LocalDBBackendCfg localDBBackendCfg)
+  private int getTotalIndexCount(PluggableBackendCfg backendCfg)
       throws ConfigException
   {
     int indexes = 2; // dn2id, dn2uri
-    for (String indexName : localDBBackendCfg.listLocalDBIndexes())
+    for (String indexName : backendCfg.listBackendIndexes())
     {
-      LocalDBIndexCfg index = localDBBackendCfg.getLocalDBIndex(indexName);
+      BackendIndexCfg index = backendCfg.getBackendIndex(indexName);
       SortedSet<IndexType> types = index.getIndexType();
       if (types.contains(IndexType.EXTENSIBLE))
       {
@@ -846,15 +849,6 @@ final class Importer implements DiskSpaceMonitorHandler
     this.rootContainer = rootContainer;
     final long startTime = System.currentTimeMillis();
 
-    DiskSpaceMonitor tmpMonitor = createDiskSpaceMonitor(tempDir, "backend index rebuild tmp directory");
-    tmpMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(tmpMonitor);
-    File parentDirectory = getFileForPath(backendConfiguration.getDBDirectory());
-    File backendDirectory = new File(parentDirectory, backendConfiguration.getBackendId());
-    DiskSpaceMonitor dbMonitor = createDiskSpaceMonitor(backendDirectory, "backend index rebuild DB directory");
-    dbMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(dbMonitor);
-
     try
     {
       rootContainer.getStorage().write(new WriteOperation()
@@ -873,13 +867,6 @@ final class Importer implements DiskSpaceMonitorHandler
     catch (Exception e)
     {
       logger.traceException(e);
-    }
-    finally
-    {
-      DirectoryServer.deregisterMonitorProvider(tmpMonitor);
-      DirectoryServer.deregisterMonitorProvider(dbMonitor);
-      tmpMonitor.finalizeMonitorProvider();
-      dbMonitor.finalizeMonitorProvider();
     }
   }
 
@@ -907,8 +894,6 @@ final class Importer implements DiskSpaceMonitorHandler
       InterruptedException, ExecutionException
   {
     this.rootContainer = rootContainer;
-    DiskSpaceMonitor tmpMonitor = null;
-    DiskSpaceMonitor dbMonitor = null;
     try {
       try
       {
@@ -919,15 +904,6 @@ final class Importer implements DiskSpaceMonitorHandler
         LocalizableMessage message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
         throw new InitializationException(message, ioe);
       }
-
-      tmpMonitor = createDiskSpaceMonitor(tempDir, "backend import tmp directory");
-      tmpMonitor.initializeMonitorProvider(null);
-      DirectoryServer.registerMonitorProvider(tmpMonitor);
-      File parentDirectory = getFileForPath(backendConfiguration.getDBDirectory());
-      File backendDirectory = new File(parentDirectory, backendConfiguration.getBackendId());
-      dbMonitor = createDiskSpaceMonitor(backendDirectory, "backend import DB directory");
-      dbMonitor.initializeMonitorProvider(null);
-      DirectoryServer.registerMonitorProvider(dbMonitor);
 
       logger.info(NOTE_JEB_IMPORT_STARTING, DirectoryServer.getVersionString(),
               BUILD_ID, REVISION_NUMBER);
@@ -990,24 +966,7 @@ final class Importer implements DiskSpaceMonitorHandler
           // Do nothing.
         }
       }
-      if (tmpMonitor != null)
-      {
-        DirectoryServer.deregisterMonitorProvider(tmpMonitor);
-        tmpMonitor.finalizeMonitorProvider();
-      }
-      if (dbMonitor != null)
-      {
-        DirectoryServer.deregisterMonitorProvider(dbMonitor);
-        dbMonitor.finalizeMonitorProvider();
-      }
     }
-  }
-
-  private DiskSpaceMonitor createDiskSpaceMonitor(File dir, String backendSuffix)
-  {
-    final LocalDBBackendCfg cfg = backendConfiguration;
-    return new DiskSpaceMonitor(cfg.getBackendId() + " " + backendSuffix, dir,
-        cfg.getDiskLowThreshold(), cfg.getDiskFullThreshold(), 5, TimeUnit.SECONDS, this);
   }
 
   private void recursiveDelete(File dir)
@@ -2890,7 +2849,7 @@ final class Importer implements DiskSpaceMonitorHandler
     private final RebuildConfig rebuildConfig;
 
     /** Local DB backend configuration. */
-    private final LocalDBBackendCfg cfg;
+    private final PluggableBackendCfg cfg;
 
     /** Map of index keys to indexes. */
     private final Map<IndexKey, Index> indexMap =
@@ -2930,7 +2889,7 @@ final class Importer implements DiskSpaceMonitorHandler
      * @param cfg
      *          The local DB configuration to use.
      */
-    public RebuildIndexManager(RebuildConfig rebuildConfig, LocalDBBackendCfg cfg)
+    public RebuildIndexManager(RebuildConfig rebuildConfig, PluggableBackendCfg cfg)
     {
       super(null);
       this.rebuildConfig = rebuildConfig;
@@ -3375,7 +3334,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    private int getRebuildListIndexCount(LocalDBBackendCfg cfg)
+    private int getRebuildListIndexCount(PluggableBackendCfg cfg)
         throws StorageRuntimeException, ConfigException, InitializationException
     {
       final List<String> rebuildList = rebuildConfig.getRebuildList();
@@ -3451,12 +3410,12 @@ final class Importer implements DiskSpaceMonitorHandler
           else
           {
             boolean found = false;
-            for (final String idx : cfg.listLocalDBIndexes())
+            for (final String idx : cfg.listBackendIndexes())
             {
               if (idx.equalsIgnoreCase(index))
               {
                 found = true;
-                final LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+                final BackendIndexCfg indexCfg = cfg.getBackendIndex(idx);
                 indexCount += getAttributeIndexCount(indexCfg.getIndexType(),
                     PRESENCE, EQUALITY, ORDERING, SUBSTRING, APPROXIMATE);
                 indexCount += getExtensibleIndexCount(indexCfg);
@@ -3477,11 +3436,11 @@ final class Importer implements DiskSpaceMonitorHandler
       return new InitializationException(ERR_JEB_ATTRIBUTE_INDEX_NOT_CONFIGURED.get(index));
     }
 
-    private boolean findExtensibleMatchingRule(LocalDBBackendCfg cfg, String indexExRuleName) throws ConfigException
+    private boolean findExtensibleMatchingRule(PluggableBackendCfg cfg, String indexExRuleName) throws ConfigException
     {
-      for (String idx : cfg.listLocalDBIndexes())
+      for (String idx : cfg.listBackendIndexes())
       {
-        LocalDBIndexCfg indexCfg = cfg.getLocalDBIndex(idx);
+        BackendIndexCfg indexCfg = cfg.getBackendIndex(idx);
         if (indexCfg.getIndexType().contains(EXTENSIBLE))
         {
           for (String exRule : indexCfg.getIndexExtensibleMatchingRule())
@@ -3509,7 +3468,7 @@ final class Importer implements DiskSpaceMonitorHandler
       return result;
     }
 
-    private int getExtensibleIndexCount(LocalDBIndexCfg indexCfg)
+    private int getExtensibleIndexCount(BackendIndexCfg indexCfg)
     {
       int result = 0;
       if (indexCfg.getIndexType().contains(EXTENSIBLE))

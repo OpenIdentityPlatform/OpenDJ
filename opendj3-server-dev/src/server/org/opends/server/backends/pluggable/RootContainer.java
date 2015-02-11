@@ -178,7 +178,7 @@ public class RootContainer
   LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
     RuntimeInformation.logInfo();
-    if (importConfig.clearBackend())
+    if (Importer.mustClearBackend(importConfig, config))
     {
       removeFiles();
     }
