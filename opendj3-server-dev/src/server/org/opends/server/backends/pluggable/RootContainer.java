@@ -310,7 +310,12 @@ public class RootContainer
     timerService.awaitTermination(20, TimeUnit.SECONDS);
   }
 
-  private void removeFiles() throws StorageRuntimeException
+  /**
+   * Removes all the files from the rootContainer's directory.
+   *
+   * @throws StorageRuntimeException If a problem occurred
+   */
+  void removeFiles() throws StorageRuntimeException
   {
     if (!backendDirectory.isDirectory())
     {
