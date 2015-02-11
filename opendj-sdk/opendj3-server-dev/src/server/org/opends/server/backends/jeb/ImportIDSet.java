@@ -428,13 +428,13 @@ class ImportIDSet {
   public byte[] toDatabase()
   {
     if(isDefined) {
-      return encode();
+      return encodeDefined();
     } else {
       return JebFormat.entryIDUndefinedSizeToDatabase(undefinedSize);
     }
   }
 
-  private byte[] encode()
+  private byte[] encodeDefined()
   {
     final int encodedSize = count * 8;
     final byte[] bytes = new byte[encodedSize];
