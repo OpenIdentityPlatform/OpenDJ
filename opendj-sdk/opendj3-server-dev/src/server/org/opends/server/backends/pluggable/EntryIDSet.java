@@ -101,9 +101,7 @@ public class EntryIDSet implements Iterable<EntryID>
     else if ((bytes.byteAt(0) & 0x80) == 0x80)
     {
       // Entry limit has exceeded and there is an encoded undefined set size.
-      undefinedSize = bytes.length() == 8
-              ? bytes.toLong() & Long.MAX_VALUE // remove top bit
-              : Long.MAX_VALUE;
+      undefinedSize = decodeUndefinedSize(bytes);
     }
     else
     {
@@ -113,7 +111,28 @@ public class EntryIDSet implements Iterable<EntryID>
     }
   }
 
-  private long[] decodeEntryIDList(ByteString bytes)
+  /**
+   * Decodes and returns the undefined size out of the provided byte string.
+   *
+   * @param bytes
+   *          the encoded undefined size
+   * @return the undefined size
+   */
+  static long decodeUndefinedSize(ByteString bytes)
+  {
+    return bytes.length() == 8
+            ? bytes.toLong() & Long.MAX_VALUE // remove top bit
+            : Long.MAX_VALUE;
+  }
+
+  /**
+   * Decodes and returns the entryID list out of the provided byte sequence.
+   *
+   * @param bytes
+   *          the encoded entryID list
+   * @return a long array representing the entryID list
+   */
+  static long[] decodeEntryIDList(ByteSequence bytes)
   {
     final ByteSequenceReader reader = bytes.asReader();
     final int count = bytes.length() / 8;
@@ -301,9 +320,9 @@ public class EntryIDSet implements Iterable<EntryID>
     if (isDefined())
     {
       final ByteStringBuilder builder = new ByteStringBuilder(8 * values.length);
-      for (int i = 0; i < values.length; i++)
+      for (long value : values)
       {
-        builder.append(values[i]);
+        builder.append(value);
       }
       return builder.toByteString();
     }

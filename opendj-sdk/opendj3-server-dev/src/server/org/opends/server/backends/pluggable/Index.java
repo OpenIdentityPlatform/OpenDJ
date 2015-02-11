@@ -106,6 +106,8 @@ public class Index extends DatabaseContainer
    */
   private boolean rebuildRunning;
 
+  private final ImportIDSet newImportIDSet;
+
   /**
    * Create a new index object.
    * @param name The name of the index database within the entryContainer.
@@ -132,6 +134,7 @@ public class Index extends DatabaseContainer
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
     this.maintainCount = maintainCount;
+    this.newImportIDSet = new ImportIDSet(indexEntryLimit, indexEntryLimit, maintainCount);
 
     this.state = state;
     this.trusted = state.getIndexTrustState(txn, this);
@@ -153,6 +156,60 @@ public class Index extends DatabaseContainer
   void insertID(IndexBuffer buffer, ByteString keyBytes, EntryID entryID)
   {
     getBufferedIndexValues(buffer, keyBytes).addEntryID(keyBytes, entryID);
+  }
+
+  /**
+   * Delete the specified import ID set from the import ID set associated with the key.
+   *
+   * @param txn The database transaction
+   * @param key The key to delete the set from.
+   * @param importIdSet The import ID set to delete.
+   * @throws StorageRuntimeException If a database error occurs.
+   */
+  void delete(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet) throws StorageRuntimeException {
+    ByteString value = read(txn, key, false);
+    if (value != null) {
+      newImportIDSet.clear();
+      newImportIDSet.remove(value, importIdSet);
+      if (newImportIDSet.isDefined() && newImportIDSet.size() == 0)
+      {
+        delete(txn, key);
+      }
+      else
+      {
+        value = newImportIDSet.valueToByteString();
+        put(txn, key, value);
+      }
+    } else {
+      // Should never happen -- the keys should always be there.
+      throw new RuntimeException();
+    }
+  }
+
+  /**
+   * Insert the specified import ID set into this index. Creates a DB cursor if needed.
+   *
+   * @param txn The database transaction
+   * @param key The key to add the set to.
+   * @param importIdSet The set of import IDs.
+   * @throws StorageRuntimeException If a database error occurs.
+   */
+  void insert(WriteableStorage txn, ByteSequence key, ImportIDSet importIdSet) throws StorageRuntimeException {
+    ByteString value = read(txn, key, false);
+    if(value != null) {
+      newImportIDSet.clear();
+      if (newImportIDSet.merge(value, importIdSet)) {
+        entryLimitExceededCount++;
+      }
+      value = newImportIDSet.valueToByteString();
+      put(txn, key, value);
+    } else {
+      if(!importIdSet.isDefined()) {
+        entryLimitExceededCount++;
+      }
+      value = importIdSet.valueToByteString();
+      put(txn, key, value);
+    }
   }
 
   /**
