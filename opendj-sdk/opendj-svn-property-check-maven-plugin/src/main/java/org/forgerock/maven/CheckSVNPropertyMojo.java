@@ -105,7 +105,7 @@ public class CheckSVNPropertyMojo extends AbstractMojo implements ISVNStatusHand
      * @param status
      *            The SVN status information for the file of interest.
      */
-    public void handleStatus(org.tmatesoft.svn.core.wc.SVNStatus status) throws SVNException {
+    public void handleStatus(org.tmatesoft.svn.core.wc.SVNStatus status) {
         File changedFile = status.getFile();
         if (!changedFile.exists() || !changedFile.isFile()) {
             return;
