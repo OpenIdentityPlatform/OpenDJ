@@ -53,7 +53,7 @@
  <xinclude:include href="log-ref-dsconfig.xml" />
  <xinclude:include href="log-ref-extension.xml" />
  <xinclude:include href="log-ref-jeb.xml" />
- <xinclude:include href="log-ref-log.xml" />
+ <xinclude:include href="log-ref-logger.xml" />
  <xinclude:include href="log-ref-plugin.xml" />
  <xinclude:include href="log-ref-protocol.xml" />
  <!-- <xinclude:include href="log-ref-quicksetup.xml" /> -->
@@ -61,7 +61,7 @@
  <!-- <xinclude:include href="log-ref-runtime-information.xml" /> -->
  <xinclude:include href="log-ref-schema.xml" />
  <xinclude:include href="log-ref-task.xml" />
- <xinclude:include href="log-ref-tools.xml" />
+ <xinclude:include href="log-ref-tool.xml" />
  <xinclude:include href="log-ref-utility.xml" />
  <!-- <xinclude:include href="log-ref-version.xml" /> -->
 </appendix>
