@@ -109,6 +109,7 @@
     <module>opendj-server-example-plugin</module>
     <module>opendj-slf4j-adapter</module>
     <module>opendj-legacy</module>
+    <module>opendj-server-legacy</module>
   </modules>
   <properties>
     <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
