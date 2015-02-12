@@ -21,20 +21,19 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
 import java.util.*;
 import java.util.Map.Entry;
 
+import org.forgerock.util.Pair;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * {@link DBCursor} implementation that iterates across a Collection of

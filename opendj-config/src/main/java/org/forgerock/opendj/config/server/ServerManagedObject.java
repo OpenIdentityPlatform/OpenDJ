@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS.
  */
-
 package org.forgerock.opendj.config.server;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
@@ -52,11 +52,9 @@ import org.forgerock.opendj.config.server.spi.ConfigChangeListener;
 import org.forgerock.opendj.config.server.spi.ConfigDeleteListener;
 import org.forgerock.opendj.config.server.spi.ConfigurationRepository;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.forgerock.opendj.util.Pair;
-
 
 /**
  * A server-side managed object.
@@ -520,9 +518,8 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public DN getDN() {
         if (configDN != null) {
             return configDN;
-        } else {
-            return DN.rootDN();
         }
+        return DN.rootDN();
     }
 
     /**
@@ -562,11 +559,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      */
     public <T> T getPropertyValue(PropertyDefinition<T> d) {
         Set<T> values = getPropertyValues(d);
-        if (values.isEmpty()) {
-            return null;
-        } else {
+        if (!values.isEmpty()) {
             return values.iterator().next();
         }
+        return null;
     }
 
     /**
@@ -585,6 +581,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *             If the property definition is not associated with this
      *             managed object's definition.
      */
+    @Override
     @SuppressWarnings("unchecked")
     public <T> SortedSet<T> getPropertyValues(PropertyDefinition<T> d) {
         if (!properties.containsKey(d)) {

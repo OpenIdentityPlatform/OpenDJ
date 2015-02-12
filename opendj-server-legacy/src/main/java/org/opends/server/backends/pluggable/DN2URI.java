@@ -43,6 +43,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Pair;
 import org.opends.server.backends.pluggable.spi.Cursor;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.Storage;
@@ -60,8 +61,6 @@ import org.opends.server.types.LDAPURL;
 import org.opends.server.types.Modification;
 import org.opends.server.types.SearchResultReference;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * This class represents the referral database which contains URIs from referral

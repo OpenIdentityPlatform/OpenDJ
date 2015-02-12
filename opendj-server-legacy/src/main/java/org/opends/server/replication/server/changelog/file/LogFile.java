@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -36,13 +36,12 @@ import java.io.RandomAccessFile;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * A log file, containing part of a {@code Log}. The log file may be:
@@ -413,6 +412,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   }
 
   /** {@inheritDoc} */
+  @Override
   public void close()
   {
     if (isWriteEnabled)
@@ -599,6 +599,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     }
 
     /** {@inheritDoc} */
+    @Override
     public String toString()
     {
       return String.format("Cursor on log file: %s, current record: %s", logFile.logfile, currentRecord);

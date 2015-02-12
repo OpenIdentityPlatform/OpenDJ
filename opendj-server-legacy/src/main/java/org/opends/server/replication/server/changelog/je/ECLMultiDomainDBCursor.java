@@ -20,20 +20,19 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.util.Pair;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * Multi domain DB cursor that only returns updates for the domains which have
