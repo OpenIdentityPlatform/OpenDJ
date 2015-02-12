@@ -49,6 +49,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.forgerock.util.time.TimeService;
@@ -58,8 +59,6 @@ import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingSt
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.LogFile.LogFileCursor;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * A multi-file log that features appending key-value records and reading them
@@ -1271,6 +1270,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     }
 
     /** {@inheritDoc} */
+    @Override
     public String toString()
     {
       return actAsEmptyCursor ?

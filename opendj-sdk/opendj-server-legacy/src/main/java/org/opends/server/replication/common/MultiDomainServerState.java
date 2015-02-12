@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.common;
+
+import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,13 +39,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Pair;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
-
-import com.forgerock.opendj.util.Pair;
-
-import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * This object is used to store a list of ServerState object, one by replication

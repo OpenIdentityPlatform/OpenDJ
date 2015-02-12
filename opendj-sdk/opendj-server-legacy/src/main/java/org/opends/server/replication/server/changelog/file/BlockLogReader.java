@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -37,13 +37,12 @@ import java.io.RandomAccessFile;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * A log reader with binary search support.

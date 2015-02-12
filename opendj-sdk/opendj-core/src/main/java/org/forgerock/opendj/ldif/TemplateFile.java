@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldif;
 
@@ -79,10 +79,9 @@ import org.forgerock.opendj.ldif.TemplateTag.StaticTextTag;
 import org.forgerock.opendj.ldif.TemplateTag.TagResult;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreDNTag;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreParentDNTag;
+import org.forgerock.util.Pair;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
-
-import com.forgerock.opendj.util.Pair;
 
 /**
  * A template file allow to generate entries from a collection of constant

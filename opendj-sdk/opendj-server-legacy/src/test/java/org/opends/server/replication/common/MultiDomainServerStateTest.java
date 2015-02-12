@@ -22,19 +22,18 @@
  *
  *
  *      Copyright 2013-2014 ForgeRock AS
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.testng.Assert.*;
+
+import org.forgerock.util.Pair;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.types.DN;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.Pair;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class MultiDomainServerStateTest extends ReplicationTestCase

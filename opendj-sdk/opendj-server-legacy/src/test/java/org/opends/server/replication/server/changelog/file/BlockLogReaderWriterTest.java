@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -40,6 +40,7 @@ import java.util.List;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.util.Pair;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -51,8 +52,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.Pair;
 
 @SuppressWarnings("javadoc")
 public class BlockLogReaderWriterTest extends DirectoryServerTestCase
@@ -516,6 +515,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
    */
   private static class IntRecordParser implements RecordParser<Integer, Integer>
   {
+    @Override
     public Record<Integer, Integer> decodeRecord(final ByteString data) throws DecodingException
     {
       ByteSequenceReader reader = data.asReader();
@@ -524,6 +524,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       return Record.from(key, value);
     }
 
+    @Override
     public ByteString encodeRecord(Record<Integer, Integer> record)
     {
       return new ByteStringBuilder().append((int) record.getKey()).append((int) record.getValue()).toByteString();

@@ -22,15 +22,15 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2012 profiq, s.r.o.
  */
 package org.forgerock.opendj.config.dsconfig;
 
-import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.displayMissingMandatoryPropertyException;
-import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.displayOperationRejectedException;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
+
+import static org.forgerock.opendj.config.dsconfig.ArgumentExceptionFactory.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -65,6 +65,7 @@ import org.forgerock.opendj.config.conditions.Condition;
 import org.forgerock.opendj.config.conditions.ContainsCondition;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.LdapException;
+import org.forgerock.util.Pair;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -76,7 +77,6 @@ import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.util.Pair;
 
 /**
  * A sub-command handler which is used to modify the properties of a managed object.

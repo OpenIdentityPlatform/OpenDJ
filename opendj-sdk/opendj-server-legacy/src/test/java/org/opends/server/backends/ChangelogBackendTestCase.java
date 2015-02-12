@@ -21,9 +21,21 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.backends;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -40,6 +52,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.util.Pair;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.ChangelogBackend.ChangeNumberRange;
@@ -97,20 +110,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.Pair;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.forgerock.opendj.ldap.ResultCode.*;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
-import static org.opends.server.util.CollectionUtils.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class ChangelogBackendTestCase extends ReplicationTestCase

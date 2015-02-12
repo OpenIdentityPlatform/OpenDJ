@@ -21,22 +21,20 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
+import static org.forgerock.util.Pair.*;
+import static org.testng.Assert.*;
+
+import org.forgerock.util.Pair;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.Pair;
-
-import static com.forgerock.opendj.util.Pair.*;
-
-import static org.testng.Assert.*;
 
 @SuppressWarnings({ "javadoc", "unchecked" })
 public class CompositeDBCursorTest extends DirectoryServerTestCase

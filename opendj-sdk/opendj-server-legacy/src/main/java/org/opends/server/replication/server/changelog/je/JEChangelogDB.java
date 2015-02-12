@@ -21,9 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.util.Collections;
@@ -41,6 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.util.Pair;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.backends.ChangelogBackend;
@@ -61,11 +65,6 @@ import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-
-import com.forgerock.opendj.util.Pair;
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * JE implementation of the ChangelogDB interface.
