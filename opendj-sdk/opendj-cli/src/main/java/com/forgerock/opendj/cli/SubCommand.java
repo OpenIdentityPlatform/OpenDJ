@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014-2015 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -161,6 +161,35 @@ public class SubCommand {
      */
     public LocalizableMessage getDescription() {
         return description;
+    }
+
+    /**
+     * A supplement to the description for this subcommand
+     * intended for use in generated reference documentation.
+     */
+    private LocalizableMessage docDescriptionSupplement;
+
+    /**
+     * Retrieves a supplement to the description for this subcommand
+     * intended for use in generated reference documentation.
+     *
+     * @return The supplement to the description for this subcommand
+     *         for use in generated reference documentation,
+     *         or LocalizableMessage.EMPTY if there is no supplement.
+     */
+    public LocalizableMessage getDocDescriptionSupplement() {
+        return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
+    }
+
+    /**
+     * Sets a supplement to the description for this subcommand
+     * intended for use in generated reference documentation.
+     *
+     * @param docDescriptionSupplement  The supplement to the description for this subcommand
+     *                                  for use in generated reference documentation.
+     */
+    public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
+        this.docDescriptionSupplement = docDescriptionSupplement;
     }
 
     /**

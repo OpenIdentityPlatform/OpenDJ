@@ -608,6 +608,35 @@ public class ArgumentParser {
     }
 
     /**
+     * A supplement to the description for this tool
+     * intended for use in generated reference documentation.
+     */
+    private LocalizableMessage docToolDescriptionSupplement;
+
+    /**
+     * Retrieves a supplement to the description for this tool,
+     * intended for use in generated reference documentation.
+     *
+     * @return A supplement to the description for this tool
+     *         intended for use in generated reference documentation,
+     *         or LocalizableMessage.EMPTY if there is no supplement.
+     */
+    LocalizableMessage getDocToolDescriptionSupplement() {
+        return docToolDescriptionSupplement != null ? docToolDescriptionSupplement : LocalizableMessage.EMPTY;
+    }
+
+    /**
+     * Sets a supplement to the description for this tool,
+     * intended for use in generated reference documentation.
+     *
+     * @param docToolDescriptionSupplement  The supplement to the description for this tool
+     *                                      intended for use in generated reference documentation.
+     */
+    public void setDocToolDescriptionSupplement(final LocalizableMessage docToolDescriptionSupplement) {
+        this.docToolDescriptionSupplement = docToolDescriptionSupplement;
+    }
+
+    /**
      * Retrieves the set of unnamed trailing arguments that were provided on the
      * command line.
      *
@@ -647,6 +676,14 @@ public class ArgumentParser {
         sb.append(" <title>").append(scriptName).append("</title>").append(EOL);
         sb.append(" <para>").append(getToolDescription()).append("</para>").append(EOL);
 
+        // If there is a supplement to the description for this utility,
+        // then it is formatted for use in generated reference documentation.
+        // In other words, it is already DocBook XML, so append it as is.
+        final LocalizableMessage toolDocDescriptionSupplement = getDocToolDescriptionSupplement();
+        if (!LocalizableMessage.EMPTY.equals(toolDocDescriptionSupplement)) {
+            sb.append(toolDocDescriptionSupplement.toString()).append(EOL);
+        }
+
         if (!argumentList.isEmpty()) {
             sb.append(" <variablelist>").append(EOL);
             for (Argument a : argumentList) {
@@ -669,6 +706,19 @@ public class ArgumentParser {
                 sb.append("</option></term>").append(EOL);
                 sb.append("    <listitem>").append(EOL);
                 sb.append("      <para>").append(a.getDescription()).append("</para>").append(EOL);
+
+                final String defaultValue = a.getDefaultValue();
+                if (defaultValue != null && !defaultValue.isEmpty()) {
+                    sb.append("      <para>Default: ").append(defaultValue).append("</para>").append(EOL);
+                }
+
+                // If there is a supplement to the description for this argument,
+                // then for now it is already formatted in DocBook XML.
+                final LocalizableMessage aDocDescriptionSupplement = a.getDocDescriptionSupplement();
+                if (!LocalizableMessage.EMPTY.equals(aDocDescriptionSupplement)) {
+                    sb.append(aDocDescriptionSupplement.toString()).append(EOL);
+                }
+
                 sb.append("    </listitem>").append(EOL);
                 sb.append("  </varlistentry>").append(EOL);
             }
