@@ -35,7 +35,7 @@
 
   <artifactId>opendj-svn-property-check-maven-plugin</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <name>Check SVN property maven plugin</name>
+  <name>OpenDJ Check SVN property maven plugin</name>
   <description>
     Checks ForgeRock source file copyrights.
   </description>

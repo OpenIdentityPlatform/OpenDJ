@@ -63,6 +63,9 @@ public class CheckSVNPropertyMojo extends AbstractMojo implements ISVNStatusHand
     @Parameter(required = true)
     private String svnPropertyExpectedValue;
 
+    @Parameter(property = "skipSvnPropCheck", required = true, defaultValue = "false")
+    private boolean checkDisabled;
+
     /**
      * The name of the system property that may be used to prevent eol-style
      * problems from failing the build.
@@ -77,6 +80,11 @@ public class CheckSVNPropertyMojo extends AbstractMojo implements ISVNStatusHand
 
     /** {@inheritDoc} **/
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (checkDisabled) {
+            getLog().info("Check svn property " + svnPropertyName + " is disabled");
+            return;
+        }
+
         try {
             svnClientManager.getStatusClient().doStatus(new File(svnWorkspaceRoot), SVNRevision.WORKING,
                     SVNDepth.INFINITY, false, false, false, false, this, null);
