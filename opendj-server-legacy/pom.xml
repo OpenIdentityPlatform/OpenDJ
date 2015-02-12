@@ -34,53 +34,15 @@
     <artifactId>opendj-project</artifactId>
     <version>3.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>opendj3-server-dev</artifactId>
+  <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
   <name>OpenDJ Directory Server</name>
   <description>
-    OpenDJ is a new LDAPv3 compliant directory service, developed for the Java
-    platform, providing a high performance, highly available and secure store
-    for the identities managed by enterprises.
+    This module provides the OpenDJ server.  
   </description>
   <inceptionYear>2006</inceptionYear>
-  <scm>
-    <url>https://svn.forgerock.org/opendj/branches/opendj3-server-dev/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/branches/opendj3-server-dev/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/branches/opendj3-server-dev/</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-  <ciManagement>
-    <system>jenkins</system>
-    <url>http://builds.forgerock.org/job/OpenDJ%20-%20trunk%20-%20postcommit</url>
-    <notifiers>
-      <notifier>
-        <type>mail</type>
-        <sendOnError>true</sendOnError>
-        <sendOnFailure>true</sendOnFailure>
-        <sendOnSuccess>false</sendOnSuccess>
-        <sendOnWarning>false</sendOnWarning>
-        <address>opendj-dev@forgerock.org</address>
-      </notifier>
-    </notifiers>
-  </ciManagement>
 
   <repositories>
-    <repository>
-      <id>forgerock-staging-repository</id>
-      <name>ForgeRock Release Repository</name>
-      <url>http://maven.forgerock.org/repo/releases</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>forgerock-snapshots-repository</id>
-      <name>ForgeRock Snapshot Repository</name>
-      <url>http://maven.forgerock.org/repo/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-    </repository>
     <repository>
       <id>oracle-repository</id>
       <name>Oracle Maven Repository</name>
@@ -113,11 +75,7 @@
     <!-- Dependencies version properties -->
     <project.version>3.0.0-SNAPSHOT</project.version>
     <i18n.version>1.4.2-SNAPSHOT</i18n.version>
-    <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
-    <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
-    <slf4jVersion>1.7.5</slf4jVersion>
-    <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
-
+ 
     <!-- Other properties -->
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
 
@@ -1188,6 +1146,19 @@
       </plugin>
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <!-- No javadoc generation for the server -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 
   <profiles>
     <!-- 
