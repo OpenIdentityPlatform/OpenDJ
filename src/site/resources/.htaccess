@@ -43,7 +43,7 @@ RedirectMatch 301 ^/opendj-server/doc/webhelp/release-notes/(.*)  http://opendj.
 ### OpenDJ dev branch server docs ###
 
 # Handle the move from opendj3-server-dev to opendj/opendj-server-legacy
-RedirectMatch 301 ^/opendj3-server-dev/doc/bootstrap/(.*)              http://opendj.forgerock.org/opendj-server-legacy/doc/$1
+RedirectMatch 301 ^/opendj3-server-dev/doc/bootstrap/(.*)              http://opendj.forgerock.org/opendj-server-legacy/doc/bootstrap/$1
 RedirectMatch 301 ^/opendj3-server-dev/doc/([^\.]+).pdf                http://opendj.forgerock.org/opendj-server-legacy/doc/$1.pdf
 
 # EPUB, dev branch server docs
