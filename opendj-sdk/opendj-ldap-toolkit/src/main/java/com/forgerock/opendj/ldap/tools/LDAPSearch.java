@@ -93,6 +93,7 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
  * A tool that can be used to issue Search requests to the Directory Server.
  */
 public final class LDAPSearch extends ConsoleApplication {
+
     private class LDAPSearchResultHandler implements SearchResultHandler {
         private int entryCount;
 
@@ -302,6 +303,7 @@ public final class LDAPSearch extends ConsoleApplication {
                             INFO_PSEARCH_PLACEHOLDER.get(), null, null,
                             INFO_DESCRIPTION_PSEARCH_INFO.get());
             pSearchInfo.setPropertyName("persistentSearch");
+            pSearchInfo.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_PSEARCH_INFO.get());
             argParser.addArgument(pSearchInfo);
 
             simplePageSize =
@@ -343,6 +345,7 @@ public final class LDAPSearch extends ConsoleApplication {
                             INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
                             INFO_DESCRIPTION_CONTROLS.get());
             controlStr.setPropertyName("control");
+            controlStr.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_CONTROLS.get());
             argParser.addArgument(controlStr);
 
             effectiveRightsUser =
