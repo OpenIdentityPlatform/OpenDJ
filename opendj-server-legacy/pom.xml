@@ -1038,8 +1038,6 @@
           <projectVersion>${docTargetVersion}</projectVersion>
           <releaseVersion>${docTargetVersion}</releaseVersion>
           <googleAnalyticsId>${gaId}</googleAnalyticsId>
-          <latestJson>http://docs.forgerock.org/latest.json</latestJson>
-          <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
         </configuration>
         <executions>
           <execution>
