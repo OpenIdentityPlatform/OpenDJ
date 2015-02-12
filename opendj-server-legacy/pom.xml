@@ -445,10 +445,6 @@
             </goals>
             <configuration>
               <sources>
-                <source>src/server</source>
-                <source>src/quicksetup</source>
-                <source>src/ads</source>
-                <source>src/guitools</source>
                 <source>src/messages/generated</source>
                 <source>src/messages/src</source>
                 <source>src/admin/generated</source>
