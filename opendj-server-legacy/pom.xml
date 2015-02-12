@@ -231,7 +231,7 @@
       </resource>
       <!-- Property files used in test sources -->
       <resource>
-        <directory>tests/unit-tests-testng/src/server</directory>
+        <directory>src/test/java</directory>
         <filtering>false</filtering>
         <includes>
           <include>**/*.properties</include>
@@ -454,19 +454,6 @@
               </sources>
             </configuration>
           </execution>
-          <!-- Take into account tests directory for the build -->
-          <execution>
-            <id>test-sources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>add-test-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>tests/unit-tests-testng/src/server</source>
-              </sources>
-            </configuration>
-          </execution>
           <!-- Parse version to generate properties (major.version, minor.version, 
             ...) -->
           <execution>
@@ -542,7 +529,7 @@
               <goal>testCompile</goal>
             </goals>
             <configuration>
-              <testSourceDirectory>tests/unit-tests-testng/src/server</testSourceDirectory>
+              <testSourceDirectory>src/test/java</testSourceDirectory>
               <showDeprecation>false</showDeprecation>
               <showWarnings>false</showWarnings>
               <testCompilerArgument>-nowarn</testCompilerArgument>
@@ -1245,7 +1232,7 @@
                   <goal>verify</goal>
                 </goals>
                 <configuration>
-                  <testSourceDirectory>tests/unit-tests-testng/src/server</testSourceDirectory>
+                  <testSourceDirectory>src/test/java</testSourceDirectory>
                   <excludes>
                     <exclude>org/opends/server/snmp/**</exclude>
                     <exclude>org/opends/quicksetup/**</exclude>
@@ -1355,7 +1342,6 @@
                   <sources>
                     <source>src/snmp/src</source>
                     <source>src/snmp/generated</source>
-                    <source>tests/unit-tests-testng/src/server/snmp</source>
                   </sources>
                 </configuration>
               </execution>

@@ -23,46 +23,45 @@
     that we don't want to enforce against unit tests.
     
     It is not possible to rely on same file provided by forgerock-build-tools because 
-    1) path of tests source files is different,
-    2) lot of classes are violating others suppressions.
-    Once/if tests are moved under /src/test/java directory and additional suppressions 
-    added at the end of the file can be removed due to code cleaning, then this file may
-    be deleted and replaced by equivalent in forgerock-build-tools. 
+    lot of classes are violating others suppressions.
+    Once additional suppressions added at the end of the file can be removed due to code 
+    cleaning, then this file may be deleted and replaced by equivalent in 
+    forgerock-build-tools. 
 
   -->
  
  <!-- check-src-default.xml -->
- <suppress checks="JavadocPackage"              files="/tests/unit-tests-testng/src/server" />
- <suppress checks="JavadocType"                 files="/tests/unit-tests-testng/src/server" />
- <suppress checks="JavadocMethod"               files="/tests/unit-tests-testng/src/server" />
- <suppress checks="JavadocVariable"             files="/tests/unit-tests-testng/src/server" />
- <suppress checks="JavadocStyle"                files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="JavadocPackage"              files="/src/test/java" />
+ <suppress checks="JavadocType"                 files="/src/test/java" />
+ <suppress checks="JavadocMethod"               files="/src/test/java" />
+ <suppress checks="JavadocVariable"             files="/src/test/java" />
+ <suppress checks="JavadocStyle"                files="/src/test/java" />
 <!--
-  <suppress checks="ModifierOrder"               files="/tests/unit-tests-testng/src/server" />
-  <suppress checks="RedundantModifier"           files="/tests/unit-tests-testng/src/server" />
+  <suppress checks="ModifierOrder"               files="/src/test/java" />
+  <suppress checks="RedundantModifier"           files="/src/test/java" />
 -->
- <suppress checks="RedundantThrows"             files="/tests/unit-tests-testng/src/server" />
- <suppress checks="FinalClass"                  files="/tests/unit-tests-testng/src/server" />
- <suppress checks="HideUtilityClassConstructor" files="/tests/unit-tests-testng/src/server" />
- <suppress checks="InterfaceIsType"             files="/tests/unit-tests-testng/src/server" />
- <suppress checks="VisibilityModifier"          files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="RedundantThrows"             files="/src/test/java" />
+ <suppress checks="FinalClass"                  files="/src/test/java" />
+ <suppress checks="HideUtilityClassConstructor" files="/src/test/java" />
+ <suppress checks="InterfaceIsType"             files="/src/test/java" />
+ <suppress checks="VisibilityModifier"          files="/src/test/java" />
  
- <suppress checks="Translation"                 files="/tests/unit-tests-testng/src/server" />
- <suppress checks="FileLength"                  files="/tests/unit-tests-testng/src/server" />
- <suppress checks="MethodLength"                files="/tests/unit-tests-testng/src/server" />
- <suppress checks="ParameterNumber"             files="/tests/unit-tests-testng/src/server" />
- <suppress checks="MissingSwitchDefault"        files="/tests/unit-tests-testng/src/server" />
- <suppress checks="DesignForExtension"          files="/tests/unit-tests-testng/src/server" />
- <suppress checks="TodoComment"                 files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="Translation"                 files="/src/test/java" />
+ <suppress checks="FileLength"                  files="/src/test/java" />
+ <suppress checks="MethodLength"                files="/src/test/java" />
+ <suppress checks="ParameterNumber"             files="/src/test/java" />
+ <suppress checks="MissingSwitchDefault"        files="/src/test/java" />
+ <suppress checks="DesignForExtension"          files="/src/test/java" />
+ <suppress checks="TodoComment"                 files="/src/test/java" />
 
  <!-- Additional suppressions (compared to forgerock-build-tools equivalent file)  --> 
- <suppress checks="LineLength"                  files="/tests/unit-tests-testng/src/server" />
- <suppress checks="RegexpSingleline"            files="/tests/unit-tests-testng/src/server" />
- <suppress checks="FileTabCharacter"            files="/tests/unit-tests-testng/src/server" />
- <suppress checks="LineLength"                  files="/tests/unit-tests-testng/src/server" />
- <suppress checks="RedundantImport"             files="/tests/unit-tests-testng/src/server" />
- <suppress checks="UnusedImports"               files="/tests/unit-tests-testng/src/server" />
- <suppress checks="EmptyStatement"              files="/tests/unit-tests-testng/src/server" />
- <suppress checks="EqualsHashCode"              files="/tests/unit-tests-testng/src/server" />
+ <suppress checks="LineLength"                  files="/src/test/java" />
+ <suppress checks="RegexpSingleline"            files="/src/test/java" />
+ <suppress checks="FileTabCharacter"            files="/src/test/java" />
+ <suppress checks="LineLength"                  files="/src/test/java" />
+ <suppress checks="RedundantImport"             files="/src/test/java" />
+ <suppress checks="UnusedImports"               files="/src/test/java" />
+ <suppress checks="EmptyStatement"              files="/src/test/java" />
+ <suppress checks="EqualsHashCode"              files="/src/test/java" />
 
 </suppressions>
