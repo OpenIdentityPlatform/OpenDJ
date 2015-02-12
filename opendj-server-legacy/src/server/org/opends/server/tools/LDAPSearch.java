@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2015 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -903,6 +903,7 @@ public class LDAPSearch
                              INFO_PSEARCH_PLACEHOLDER.get(),
                               null, null, INFO_DESCRIPTION_PSEARCH_INFO.get());
       pSearchInfo.setPropertyName("persistentSearch");
+      pSearchInfo.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_PSEARCH_INFO.get());
       argParser.addArgument(pSearchInfo);
 
       simplePageSize = new IntegerArgument(
@@ -953,6 +954,7 @@ public class LDAPSearch
                     INFO_LDAP_CONTROL_PLACEHOLDER.get(),
                     null, null, INFO_DESCRIPTION_CONTROLS.get());
       controlStr.setPropertyName("control");
+      controlStr.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_CONTROLS.get());
       argParser.addArgument(controlStr);
 
       subEntriesArgument = new BooleanArgument("subEntries",
@@ -1008,7 +1010,7 @@ public class LDAPSearch
       dereferencePolicy =
            new StringArgument("derefpolicy", 'a', "dereferencePolicy", false,
                               false, true,
-                              INFO_DEREFERENCE_POLICE_PLACEHOLDER.get(), null,
+                              INFO_DEREFERENCE_POLICE_PLACEHOLDER.get(), "never",
                               null,
                               INFO_SEARCH_DESCRIPTION_DEREFERENCE_POLICY.get());
       dereferencePolicy.setPropertyName("dereferencePolicy");

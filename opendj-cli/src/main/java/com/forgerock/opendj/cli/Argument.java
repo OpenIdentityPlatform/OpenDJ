@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2014-2015 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -236,6 +236,35 @@ public abstract class Argument {
      */
     public LocalizableMessage getDescription() {
         return description != null ? description : LocalizableMessage.EMPTY;
+    }
+
+    /**
+     * A supplement to the description for this argument
+     * intended for use in generated reference documentation.
+     */
+    private LocalizableMessage docDescriptionSupplement;
+
+    /**
+     * Retrieves a supplement to the description for this argument
+     * intended for use in generated reference documentation.
+     *
+     * @return The supplement to the description for this argument
+     *         for use in generated reference documentation,
+     *         or LocalizableMessage.EMPTY if there is no supplement.
+     */
+    public LocalizableMessage getDocDescriptionSupplement() {
+        return docDescriptionSupplement != null ? docDescriptionSupplement : LocalizableMessage.EMPTY;
+    }
+
+    /**
+     * Sets a supplement to the description for this argument
+     * intended for use in generated reference documentation.
+     *
+     * @param docDescriptionSupplement  The supplement to the description for this argument
+     *                                  for use in generated reference documentation.
+     */
+    public void setDocDescriptionSupplement(final LocalizableMessage docDescriptionSupplement) {
+        this.docDescriptionSupplement = docDescriptionSupplement;
     }
 
     /**

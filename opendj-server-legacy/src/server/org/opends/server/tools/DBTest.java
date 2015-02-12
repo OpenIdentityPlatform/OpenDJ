@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -331,6 +331,8 @@ public class DBTest
 
       sub = new SubCommand(parser, "list-index-status",
                         INFO_DESCRIPTION_DBTEST_SUBCMD_LIST_INDEX_STATUS.get());
+      sub.setDocDescriptionSupplement(
+              SUPPLEMENT_DESCRIPTION_DBTEST_SUBCMD_LIST_INDEX_STATUS.get());
       backendID =
           new StringArgument("backendid", 'n', "backendID", true, false, true,
                              INFO_BACKENDNAME_PLACEHOLDER.get(), null, null,

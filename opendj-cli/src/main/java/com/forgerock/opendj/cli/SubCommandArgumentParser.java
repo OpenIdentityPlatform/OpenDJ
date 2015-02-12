@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -1176,6 +1176,14 @@ public class SubCommandArgumentParser extends ArgumentParser {
         sb.append(" <title>").append(nameRef).append("</title>").append(EOL);
         sb.append(" <para>").append(sc.getDescription()).append("</para>").append(EOL);
 
+        // If there is a supplement to the description for this subcommand,
+        // then it is formatted for use in generated reference documentation.
+        // In other words, it is already DocBook XML, so append it as is.
+        final LocalizableMessage scDocDescriptionSupplement = sc.getDocDescriptionSupplement();
+        if (!LocalizableMessage.EMPTY.equals(scDocDescriptionSupplement)) {
+            sb.append(scDocDescriptionSupplement.toString()).append(EOL);
+        }
+
         if (!sc.getArguments().isEmpty()) {
             sb.append(" <refsect3 xml:id=\"").append(idRef).append("-options\">").append(EOL);
             sb.append("   <title>Options</title>").append(EOL);
@@ -1202,6 +1210,18 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 }
                 if (subCommandUsageHandler != null) {
                     subCommandUsageHandler.appendArgumentAdditionalInfo(sb, sc, a, nameOption);
+                } else {
+                    final String defaultValue = a.getDefaultValue();
+                    if (defaultValue != null && !defaultValue.isEmpty()) {
+                        sb.append("         <para>Default: ").append(defaultValue).append("</para>").append(EOL);
+                    }
+
+                    // If there is a supplement to the description for this argument,
+                    // then for now it is already formatted in DocBook XML.
+                    final LocalizableMessage aDocDescriptionSupplement = a.getDocDescriptionSupplement();
+                    if (!LocalizableMessage.EMPTY.equals(aDocDescriptionSupplement)) {
+                        sb.append(aDocDescriptionSupplement.toString()).append(EOL);
+                    }
                 }
                 sb.append("       </listitem>").append(EOL);
                 sb.append("     </varlistentry>").append(EOL);

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2015 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools.upgrade;
 
@@ -102,6 +102,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         new SubCommandArgumentParser(getClass().getName(),
             INFO_UPGRADE_DESCRIPTION_CLI.get(), false);
     this.parser.setVersionHandler(new DirectoryServerVersionHandler());
+    this.parser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_UPGRADE_CLI.get());
   }
 
   /**
