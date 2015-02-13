@@ -100,8 +100,6 @@
     <module>opendj-ldap-sdk-examples</module>
     <module>opendj-rest2ldap</module>
     <module>opendj-rest2ldap-servlet</module>
-    <module>opendj-server2x-adapter</module>
-    <module>opendj-server3x-adapter</module>
     <module>opendj-server</module>
     <module>opendj-server-example-plugin</module>
     <module>opendj-slf4j-adapter</module>

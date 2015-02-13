@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -66,6 +66,7 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
@@ -90,8 +91,8 @@ import org.testng.annotations.Test;
  * </pre>
  */
 @SuppressWarnings("javadoc")
-@Test
-public class ConvertersTestCase extends ForgeRockTestCase {
+@Test(sequential=true)
+public class ConvertersTestCase extends DirectoryServerTestCase {
 
     /**
      * Launched before the tests, this function starts the embedded server.
