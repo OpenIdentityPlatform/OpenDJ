@@ -171,14 +171,13 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
                 return false;
             }
         }
-        if (excludes != null
-                && containsIgnoreCase(excludes, artifactString)) {
-            return false;
-        }
-        return true;
+        return !containsIgnoreCase(excludes, artifactString);
     }
 
     private boolean containsIgnoreCase(List<String> strings, String toFind) {
+        if (strings == null) {
+            return false;
+        }
         for (String s : strings) {
             if (toFind.equalsIgnoreCase(s)) {
                 return true;
