@@ -26,15 +26,24 @@
  */
 package org.opends.server.backends.pluggable;
 
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.BackendMessages.ERR_LDIF_BACKEND_CANNOT_CREATE_LDIF_READER;
+import static org.opends.messages.BackendMessages.ERR_LDIF_BACKEND_ERROR_READING_LDIF;
+import static org.opends.messages.JebMessages.ERR_JEB_CACHE_PRELOAD;
+import static org.opends.messages.JebMessages.ERR_JEB_REMOVE_FAIL;
+import static org.opends.messages.JebMessages.ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED;
+import static org.opends.messages.JebMessages.ERR_JEB_IMPORT_PARENT_NOT_FOUND;
+import static org.opends.messages.JebMessages.NOTE_JEB_IMPORT_FINAL_STATUS;
+import static org.opends.messages.JebMessages.NOTE_JEB_IMPORT_PROGRESS_REPORT;
+import static org.opends.messages.JebMessages.WARN_JEB_IMPORT_ENTRY_EXISTS;
+import static org.opends.messages.UtilityMessages.ERR_LDIF_SKIP;
+import static org.opends.server.core.DirectoryServer.getServerErrorResultCode;
+import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
-import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -45,9 +54,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.CompressedSchema;
-import org.opends.server.backends.persistit.PersistItStorage;
 import org.opends.server.backends.pluggable.spi.ReadOperation;
 import org.opends.server.backends.pluggable.spi.ReadableStorage;
 import org.opends.server.backends.pluggable.spi.Storage;
@@ -58,7 +66,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.FilePermission;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
@@ -67,13 +74,13 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.RuntimeInformation;
 
+
 /**
  * Wrapper class for the JE environment. Root container holds all the entry
  * containers for each base DN. It also maintains all the openings and closings
  * of the entry containers.
  */
-public class RootContainer
-     implements ConfigurationChangeListener<PersistitBackendCfg>
+public class RootContainer implements ConfigurationChangeListener<PluggableBackendCfg>
 {
   /** Logs the progress of the import. */
   private static final class ImportProgress implements Runnable
@@ -112,16 +119,14 @@ public class RootContainer
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private static final int IMPORT_PROGRESS_INTERVAL = 10000;
-  private static final int KB = 1024;
 
   /** The JE database environment. */
-  private PersistItStorage storage; // FIXME JNR do not hardcode here
+  private Storage storage;
 
-  private final File backendDirectory;
   /** The backend to which this entry root container belongs. */
   private final BackendImpl backend;
   /** The backend configuration. */
-  private PersistitBackendCfg config;
+  private PluggableBackendCfg config;
   /** The database environment monitor for this JE environment. */
   private DatabaseEnvironmentMonitor monitor;
 
@@ -134,26 +139,25 @@ public class RootContainer
   /** The compressed schema manager for this backend. */
   private JECompressedSchema compressedSchema;
 
-
   /**
    * Creates a new RootContainer object. Each root container represents a JE
    * environment.
    *
-   * @param config The configuration of the JE backend.
-   * @param backend A reference to the JE back end that is creating this
-   *                root container.
+   * @param config
+   *          The configuration of the JE backend.
+   * @param backend
+   *          A reference to the JE back end that is creating this root
+   *          container.
    */
-  public RootContainer(BackendImpl backend, PersistitBackendCfg config)
+  RootContainer(BackendImpl backend, PluggableBackendCfg config)
   {
     this.backend = backend;
     this.config = config;
-    this.backendDirectory = new File(getFileForPath(config.getDBDirectory()),
-        config.getBackendId());
 
     getMonitorProvider().enableFilterUseStats(config.isIndexFilterAnalyzerEnabled());
     getMonitorProvider().setMaxEntries(config.getIndexFilterAnalyzerMaxFilters());
 
-    config.addPersistitChangeListener(this);
+    config.addPluggableChangeListener(this);
   }
 
   /**
@@ -167,20 +171,33 @@ public class RootContainer
   }
 
   /**
-   * Imports information from an LDIF file into this backend.
-   * This method should only be called if {@code supportsLDIFImport} returns {@code true}.
-   * Note that the server will not explicitly initialize this backend before calling this method.
+   * Imports information from an LDIF file into this backend. This method should
+   * only be called if {@code supportsLDIFImport} returns {@code true}. <p>Note
+   * that the server will not explicitly initialize this backend before calling
+   * this method.
    *
-   * @param importConfig The configuration to use when performing the import.
+   * @param importConfig
+   *          The configuration to use when performing the import.
    * @return information about the result of the import processing.
-   * @throws DirectoryException If a problem occurs while performing the LDIF import.
+   * @throws DirectoryException
+   *           If a problem occurs while performing the LDIF import.
    */
   LDIFImportResult importLDIF(LDIFImportConfig importConfig) throws DirectoryException
   {
     RuntimeInformation.logInfo();
     if (Importer.mustClearBackend(importConfig, config))
     {
-      removeFiles();
+      try
+      {
+        Storage storage = backend.newStorageInstance();
+        storage.initialize(config);
+        storage.removeStorageFiles();
+      }
+      catch (Exception e)
+      {
+        LocalizableMessage m = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), m, e);
+      }
     }
     try
     {
@@ -275,8 +292,8 @@ public class RootContainer
         {
           rate = 1000f * reader.getEntriesRead() / importTime;
         }
-        logger.info(NOTE_JEB_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount,
-            reader.getEntriesIgnored(), reader.getEntriesRejected(), 0, importTime / 1000, rate);
+        logger.info(NOTE_JEB_IMPORT_FINAL_STATUS, reader.getEntriesRead(), importCount, reader.getEntriesIgnored(),
+            reader.getEntriesRejected(), 0, importTime / 1000, rate);
         return new LDIFImportResult(reader.getEntriesRead(), reader.getEntriesRejected(), reader.getEntriesIgnored());
       }
       finally
@@ -311,35 +328,6 @@ public class RootContainer
   }
 
   /**
-   * Removes all the files from the rootContainer's directory.
-   *
-   * @throws StorageRuntimeException If a problem occurred
-   */
-  void removeFiles() throws StorageRuntimeException
-  {
-    if (!backendDirectory.isDirectory())
-    {
-      LocalizableMessage msg = ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
-      throw new StorageRuntimeException(msg.toString());
-    }
-
-    try
-    {
-      File[] jdbFiles = backendDirectory.listFiles();
-      for (File f : jdbFiles)
-      {
-        f.delete();
-      }
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-      LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
-      throw new StorageRuntimeException(message.toString(), e);
-    }
-  }
-
-  /**
    * Opens the root container.
    *
    * @throws StorageRuntimeException
@@ -349,64 +337,9 @@ public class RootContainer
    */
   void open() throws StorageRuntimeException, ConfigException
   {
-    // Create the directory if it doesn't exist.
-    if (!backendDirectory.exists())
-    {
-      if(!backendDirectory.mkdirs())
-      {
-        LocalizableMessage message =
-          ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
-        throw new ConfigException(message);
-      }
-    }
-    //Make sure the directory is valid.
-    else if (!backendDirectory.isDirectory())
-    {
-      throw new ConfigException(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
-    }
-
-    FilePermission backendPermission;
     try
     {
-      backendPermission =
-          FilePermission.decodeUNIXMode(config.getDBDirectoryPermissions());
-    }
-    catch(Exception e)
-    {
-      throw new ConfigException(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
-    }
-
-    //Make sure the mode will allow the server itself access to
-    //the database
-    if(!backendPermission.isOwnerWritable() ||
-        !backendPermission.isOwnerReadable() ||
-        !backendPermission.isOwnerExecutable())
-    {
-      LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
-          config.getDBDirectoryPermissions());
-      throw new ConfigException(message);
-    }
-
-    // Get the backend database backendDirectory permissions and apply
-    if(FilePermission.canSetPermissions())
-    {
-      try
-      {
-        if(!FilePermission.setPermissions(backendDirectory, backendPermission))
-        {
-          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
-        }
-      }
-      catch(Exception e)
-      {
-        // Log an warning that the permissions were not set.
-        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
-      }
-    }
-
-    try
-    {
-      storage = (PersistItStorage) backend.newStorageInstance();
+      storage = backend.newStorageInstance();
       storage.initialize(config);
       storage.open();
       storage.write(new WriteOperation()
@@ -433,21 +366,24 @@ public class RootContainer
    * containers opened in a non transactional root container will also be non
    * transactional.
    *
-   * @param baseDN The base DN of the entry container to open.
-   * @param name The name of the entry container or <CODE>NULL</CODE> to open
-   * the default entry container for the given base DN.
-   * @param txn The database transaction
+   * @param baseDN
+   *          The base DN of the entry container to open.
+   * @param name
+   *          The name of the entry container or <CODE>NULL</CODE> to open the
+   *          default entry container for the given base DN.
+   * @param txn
+   *          The database transaction
    * @return The opened entry container.
-   * @throws StorageRuntimeException If an error occurs while opening the entry
-   *                           container.
-   * @throws ConfigException If an configuration error occurs while opening
-   *                         the entry container.
+   * @throws StorageRuntimeException
+   *           If an error occurs while opening the entry container.
+   * @throws ConfigException
+   *           If an configuration error occurs while opening the entry container.
    */
-  public EntryContainer openEntryContainer(DN baseDN, String name, WriteableStorage txn)
+  EntryContainer openEntryContainer(DN baseDN, String name, WriteableStorage txn)
       throws StorageRuntimeException, ConfigException
   {
     String databasePrefix;
-    if(name == null || name.equals(""))
+    if (name == null || "".equals(name))
     {
       databasePrefix = baseDN.toIrreversibleReadableString();
     }
@@ -456,8 +392,8 @@ public class RootContainer
       databasePrefix = name;
     }
 
-    EntryContainer ec = new EntryContainer(baseDN, storage.toSuffixName(databasePrefix),
-                                           backend, config, storage, this);
+    EntryContainer ec =
+        new EntryContainer(baseDN, storage.toSafeSuffixName(databasePrefix), backend, config, storage, this);
     ec.open(txn);
     return ec;
   }
@@ -465,13 +401,14 @@ public class RootContainer
   /**
    * Registers the entry container for a base DN.
    *
-   * @param baseDN The base DN of the entry container to close.
-   * @param entryContainer The entry container to register for the baseDN.
-   * @throws InitializationException If an error occurs while opening the
-   *                                 entry container.
+   * @param baseDN
+   *          The base DN of the entry container to close.
+   * @param entryContainer
+   *          The entry container to register for the baseDN.
+   * @throws InitializationException
+   *           If an error occurs while opening the entry container.
    */
-  public void registerEntryContainer(DN baseDN, EntryContainer entryContainer)
-      throws InitializationException
+  void registerEntryContainer(DN baseDN, EntryContainer entryContainer) throws InitializationException
   {
     EntryContainer ec1 = this.entryContainers.get(baseDN);
 
@@ -479,8 +416,8 @@ public class RootContainer
     // another to be opened.
     if (ec1 != null)
     {
-      throw new InitializationException(ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(
-          ec1.getDatabasePrefix(), baseDN));
+      throw new InitializationException(ERR_JEB_ENTRY_CONTAINER_ALREADY_REGISTERED.get(ec1.getDatabasePrefix(),
+          baseDN));
     }
 
     this.entryContainers.put(baseDN, entryContainer);
@@ -489,24 +426,27 @@ public class RootContainer
   /**
    * Opens the entry containers for multiple base DNs.
    *
-   * @param baseDNs The base DNs of the entry containers to open.
-   * @throws StorageRuntimeException       If a database error occurs while opening
-   *                                 the entry container.
-   * @throws InitializationException If an initialization error occurs while
-   *                                 opening the entry container.
-   * @throws ConfigException         If a configuration error occurs while
-   *                                 opening the entry container.
+   * @param baseDNs
+   *          The base DNs of the entry containers to open.
+   * @throws StorageRuntimeException
+   *           If a database error occurs while opening the entry container.
+   * @throws InitializationException
+   *           If an initialization error occurs while opening the entry
+   *           container.
+   * @throws ConfigException
+   *           If a configuration error occurs while opening the entry
+   *           container.
    */
-  private void openAndRegisterEntryContainers(WriteableStorage txn, Set<DN> baseDNs)
-      throws StorageRuntimeException, InitializationException, ConfigException
+  private void openAndRegisterEntryContainers(WriteableStorage txn, Set<DN> baseDNs) throws StorageRuntimeException,
+      InitializationException, ConfigException
   {
     EntryID highestID = null;
-    for(DN baseDN : baseDNs)
+    for (DN baseDN : baseDNs)
     {
       EntryContainer ec = openEntryContainer(baseDN, null, txn);
       EntryID id = ec.getHighestEntryID(txn);
       registerEntryContainer(baseDN, ec);
-      if(highestID == null || id.compareTo(highestID) > 0)
+      if (highestID == null || id.compareTo(highestID) > 0)
       {
         highestID = id;
       }
@@ -518,11 +458,12 @@ public class RootContainer
   /**
    * Unregisters the entry container for a base DN.
    *
-   * @param baseDN The base DN of the entry container to close.
+   * @param baseDN
+   *          The base DN of the entry container to close.
    * @return The entry container that was unregistered or NULL if a entry
-   * container for the base DN was not registered.
+   *         container for the base DN was not registered.
    */
-  public EntryContainer unregisterEntryContainer(DN baseDN)
+  EntryContainer unregisterEntryContainer(DN baseDN)
   {
     return entryContainers.remove(baseDN);
   }
@@ -530,7 +471,7 @@ public class RootContainer
   /**
    * Retrieves the compressed schema manager for this backend.
    *
-   * @return  The compressed schema manager for this backend.
+   * @return The compressed schema manager for this backend.
    */
   public CompressedSchema getCompressedSchema()
   {
@@ -541,11 +482,11 @@ public class RootContainer
    * Get the DatabaseEnvironmentMonitor object for JE environment used by this
    * root container.
    *
-   * @return The DatabaseEnvironmentMonito object.
+   * @return The DatabaseEnvironmentMonitor object.
    */
   public DatabaseEnvironmentMonitor getMonitorProvider()
   {
-    if(monitor == null)
+    if (monitor == null)
     {
       String monitorName = backend.getBackendID() + " Database Storage";
       monitor = new DatabaseEnvironmentMonitor(monitorName, this);
@@ -558,9 +499,10 @@ public class RootContainer
    * Preload the database cache. There is no preload if the configured preload
    * time limit is zero.
    *
-   * @param timeLimit The time limit for the preload process.
+   * @param timeLimit
+   *          The time limit for the preload process.
    */
-  public void preload(long timeLimit)
+  void preload(long timeLimit)
   {
     if (timeLimit > 0)
     {
@@ -601,12 +543,12 @@ public class RootContainer
   /**
    * Closes this root container.
    *
-   * @throws StorageRuntimeException If an error occurs while attempting to close
-   * the root container.
+   * @throws StorageRuntimeException
+   *           If an error occurs while attempting to close the root container.
    */
-  public void close() throws StorageRuntimeException
+  void close() throws StorageRuntimeException
   {
-    for(DN baseDN : entryContainers.keySet())
+    for (DN baseDN : entryContainers.keySet())
     {
       EntryContainer ec = unregisterEntryContainer(baseDN);
       ec.exclusiveLock.lock();
@@ -621,7 +563,7 @@ public class RootContainer
     }
 
     compressedSchema.close();
-    config.removePersistitChangeListener(this);
+    config.removePluggableChangeListener(this);
 
     if (storage != null)
     {
@@ -653,10 +595,11 @@ public class RootContainer
   /**
    * Return the entry container for a specific base DN.
    *
-   * @param baseDN The base DN of the entry container to retrieve.
+   * @param baseDN
+   *          The base DN of the entry container to retrieve.
    * @return The entry container for the base DN.
    */
-  public EntryContainer getEntryContainer(DN baseDN)
+  EntryContainer getEntryContainer(DN baseDN)
   {
     EntryContainer ec = null;
     DN nodeDN = baseDN;
@@ -673,14 +616,12 @@ public class RootContainer
     return ec;
   }
 
-
-
   /**
    * Get the backend configuration used by this root container.
    *
    * @return The backend configuration used by this root container.
    */
-  public PersistitBackendCfg getConfiguration()
+  public PluggableBackendCfg getConfiguration()
   {
     return config;
   }
@@ -689,8 +630,8 @@ public class RootContainer
    * Get the total number of entries in this root container.
    *
    * @return The number of entries in this root container
-   * @throws StorageRuntimeException If an error occurs while retrieving the entry
-   *                           count.
+   * @throws StorageRuntimeException
+   *           If an error occurs while retrieving the entry count.
    */
   public long getEntryCount() throws StorageRuntimeException
   {
@@ -745,7 +686,7 @@ public class RootContainer
   }
 
   /**
-   * Resets the next entry ID counter to zero.  This should only be used after
+   * Resets the next entry ID counter to zero. This should only be used after
    * clearing all databases.
    */
   public void resetNextEntryID()
@@ -753,176 +694,28 @@ public class RootContainer
     nextid.set(1);
   }
 
-
-
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationChangeAcceptable(
-      PersistitBackendCfg cfg,
+  public boolean isConfigurationChangeAcceptable(PluggableBackendCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {
-    boolean acceptable = true;
-
-    File parentDirectory = getFileForPath(config.getDBDirectory());
-    File backendDirectory = new File(parentDirectory, config.getBackendId());
-
-    //Make sure the directory either already exists or is able to create.
-    if (!backendDirectory.exists())
-    {
-      if(!backendDirectory.mkdirs())
-      {
-        unacceptableReasons.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
-        acceptable = false;
-      }
-      else
-      {
-        backendDirectory.delete();
-      }
-    }
-    //Make sure the directory is valid.
-    else if (!backendDirectory.isDirectory())
-    {
-      unacceptableReasons.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
-      acceptable = false;
-    }
-
-    try
-    {
-      FilePermission newBackendPermission =
-          FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
-
-      //Make sure the mode will allow the server itself access to
-      //the database
-      if(!newBackendPermission.isOwnerWritable() ||
-          !newBackendPermission.isOwnerReadable() ||
-          !newBackendPermission.isOwnerExecutable())
-      {
-        LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
-            cfg.getDBDirectoryPermissions());
-        unacceptableReasons.add(message);
-        acceptable = false;
-      }
-    }
-    catch(Exception e)
-    {
-      unacceptableReasons.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(cfg.dn()));
-      acceptable = false;
-    }
-
-    try
-    {
-      // FIXME JNR validate database specific configuration
-    }
-    catch (Exception e)
-    {
-      unacceptableReasons.add(LocalizableMessage.raw(e.getLocalizedMessage()));
-      acceptable = false;
-    }
-
-    return acceptable;
+    // Storage has also registered a change listener, delegate to it.
+    return true;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(PersistitBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(PluggableBackendCfg configuration)
   {
-    final ConfigChangeResult ccr = new ConfigChangeResult();
+    getMonitorProvider().enableFilterUseStats(configuration.isIndexFilterAnalyzerEnabled());
+    getMonitorProvider().setMaxEntries(configuration.getIndexFilterAnalyzerMaxFilters());
 
-    try
-    {
-      // Create the directory if it doesn't exist.
-      if(!cfg.getDBDirectory().equals(this.config.getDBDirectory()))
-      {
-        File parentDirectory = getFileForPath(cfg.getDBDirectory());
-        File backendDirectory =
-          new File(parentDirectory, cfg.getBackendId());
-
-        if (!backendDirectory.exists())
-        {
-          if(!backendDirectory.mkdirs())
-          {
-            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-            ccr.addMessage(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
-            return ccr;
-          }
-        }
-        //Make sure the directory is valid.
-        else if (!backendDirectory.isDirectory())
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
-          return ccr;
-        }
-
-        ccr.setAdminActionRequired(true);
-        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(this.config.getDBDirectory(), cfg.getDBDirectory()));
-      }
-
-      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
-          || !cfg.getDBDirectory().equals(this.config.getDBDirectory()))
-      {
-        FilePermission backendPermission;
-        try
-        {
-          backendPermission =
-              FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
-        }
-        catch(Exception e)
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
-          return ccr;
-        }
-
-        // Make sure the mode will allow the server itself access to the database
-        if(!backendPermission.isOwnerWritable() ||
-            !backendPermission.isOwnerReadable() ||
-            !backendPermission.isOwnerExecutable())
-        {
-          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-          ccr.addMessage(ERR_CONFIG_BACKEND_INSANE_MODE.get(cfg.getDBDirectoryPermissions()));
-          return ccr;
-        }
-
-        // Get the backend database backendDirectory permissions and apply
-        if(FilePermission.canSetPermissions())
-        {
-          File parentDirectory = getFileForPath(config.getDBDirectory());
-          File backendDirectory = new File(parentDirectory, config.getBackendId());
-          try
-          {
-            if (!FilePermission.setPermissions(backendDirectory, backendPermission))
-            {
-              logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
-            }
-          }
-          catch(Exception e)
-          {
-            // Log an warning that the permissions were not set.
-            logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
-          }
-        }
-      }
-
-      getMonitorProvider().enableFilterUseStats(cfg.isIndexFilterAnalyzerEnabled());
-      getMonitorProvider().setMaxEntries(cfg.getIndexFilterAnalyzerMaxFilters());
-
-      this.config = cfg;
-    }
-    catch (Exception e)
-    {
-      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
-      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
-      return ccr;
-    }
-    return ccr;
+    return new ConfigChangeResult();
   }
 
   /**
-   * Returns whether this container JE database environment is
-   * open, valid and can be used.
+   * Returns whether this container JE database environment is open, valid and
+   * can be used.
    *
    * @return {@code true} if valid, or {@code false} otherwise.
    */

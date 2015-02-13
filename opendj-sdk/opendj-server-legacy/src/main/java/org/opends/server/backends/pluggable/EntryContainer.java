@@ -60,7 +60,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.BackendIndexCfg;
 import org.opends.server.admin.std.server.BackendVLVIndexCfg;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
@@ -109,14 +109,14 @@ import org.opends.server.util.StaticUtils;
  * the guts of the backend API methods for LDAP operations.
  */
 public class EntryContainer
-    implements SuffixContainer, ConfigurationChangeListener<PersistitBackendCfg>
+    implements SuffixContainer, ConfigurationChangeListener<PluggableBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The name of the entry database. */
-  public static final String ID2ENTRY_DATABASE_NAME = ID2ENTRY_INDEX_NAME;
+  private static final String ID2ENTRY_DATABASE_NAME = ID2ENTRY_INDEX_NAME;
   /** The name of the DN database. */
-  public static final String DN2ID_DATABASE_NAME = DN2ID_INDEX_NAME;
+  private static final String DN2ID_DATABASE_NAME = DN2ID_INDEX_NAME;
   /** The name of the children index database. */
   private static final String ID2CHILDREN_DATABASE_NAME = ID2CHILDREN_INDEX_NAME;
   /** The name of the subtree index database. */
@@ -141,7 +141,7 @@ public class EntryContainer
   private final DN baseDN;
 
   /** The backend configuration. */
-  private PersistitBackendCfg config;
+  private PluggableBackendCfg config;
 
   /** The JE database environment. */
   private final Storage storage;
@@ -441,8 +441,8 @@ public class EntryContainer
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
-      PersistitBackendCfg config, Storage env, RootContainer rootContainer)
+  EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
+      PluggableBackendCfg config, Storage env, RootContainer rootContainer)
           throws ConfigException
   {
     this.backend = backend;
@@ -452,7 +452,7 @@ public class EntryContainer
     this.rootContainer = rootContainer;
     this.databasePrefix = databasePrefix;
 
-    config.addPersistitChangeListener(this);
+    config.addPluggableChangeListener(this);
 
     attributeJEIndexCfgManager = new AttributeJEIndexCfgManager();
     config.addBackendIndexAddListener(attributeJEIndexCfgManager);
@@ -475,7 +475,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public void open(WriteableStorage txn) throws StorageRuntimeException, ConfigException
+  void open(WriteableStorage txn) throws StorageRuntimeException, ConfigException
   {
     try
     {
@@ -577,7 +577,7 @@ public class EntryContainer
     }
 
     // Deregister any listeners.
-    config.removePersistitChangeListener(this);
+    config.removePluggableChangeListener(this);
     config.removeBackendIndexAddListener(attributeJEIndexCfgManager);
     config.removeBackendIndexDeleteListener(attributeJEIndexCfgManager);
     config.removeBackendVLVIndexAddListener(vlvJEIndexCfgManager);
@@ -668,7 +668,7 @@ public class EntryContainer
    * @param attrType The attribute type for which an attribute index is needed.
    * @return The attribute index or null if there is none for that type.
    */
-  public AttributeIndex getAttributeIndex(AttributeType attrType)
+  AttributeIndex getAttributeIndex(AttributeType attrType)
   {
     return attrIndexMap.get(attrType);
   }
@@ -688,7 +688,7 @@ public class EntryContainer
    * @param vlvIndexName The vlv index name for which an vlv index is needed.
    * @return The VLV index or null if there is none with that name.
    */
-  public VLVIndex getVLVIndex(String vlvIndexName)
+  VLVIndex getVLVIndex(String vlvIndexName)
   {
     return vlvIndexMap.get(vlvIndexName);
   }
@@ -721,7 +721,7 @@ public class EntryContainer
    * @return The highest entry ID.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public EntryID getHighestEntryID(ReadableStorage txn) throws StorageRuntimeException
+  EntryID getHighestEntryID(ReadableStorage txn) throws StorageRuntimeException
   {
     Cursor cursor = txn.openCursor(id2entry.getName());
     try
@@ -750,7 +750,7 @@ public class EntryContainer
    *         the entry does not exist.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public long getNumSubordinates(final DN entryDN, final boolean subtree)
+  long getNumSubordinates(final DN entryDN, final boolean subtree)
   throws StorageRuntimeException
   {
     try
@@ -801,7 +801,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void search(final SearchOperation searchOperation)
+  void search(final SearchOperation searchOperation)
   throws DirectoryException, StorageRuntimeException, CanceledOperationException
   {
     try
@@ -819,7 +819,7 @@ public class EntryContainer
               searchOperation.getRequestControl(ServerSideSortRequestControl.DECODER);
           if (sortRequest != null && !sortRequest.containsSortKeys() && sortRequest.isCritical())
           {
-            /**
+            /*
              * If the control's criticality field is true then the server SHOULD
              * do the following: return unavailableCriticalExtension as a return
              * code in the searchResultDone message; include the
@@ -1316,7 +1316,7 @@ public class EntryContainer
    * @throws DirectoryException
    *           If an error occurs retrieving the entry
    */
-  public Entry getEntry(ReadableStorage txn, EntryID entryID) throws DirectoryException
+  Entry getEntry(ReadableStorage txn, EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
     final EntryCache entryCache = getEntryCache();
@@ -1421,12 +1421,8 @@ public class EntryContainer
         }
 
         // Process the candidate entry.
-        if (entry != null)
-        {
-          // Filter the entry if it is in scope.
-          if (isInScope(candidatesAreInScope, searchScope, aBaseDN, entry)
-              && (manageDsaIT || entry.getReferralURLs() == null)
-              && searchOperation.getFilter().matchesEntry(entry))
+        if (entry != null && isInScope(candidatesAreInScope, searchScope, aBaseDN, entry)
+              && (manageDsaIT || entry.getReferralURLs() == null) && searchOperation.getFilter().matchesEntry(entry))
           {
             if (pageRequest != null
                 && searchOperation.getEntriesSent() == pageRequest.getSize())
@@ -1447,7 +1443,6 @@ public class EntryContainer
               break;
             }
           }
-        }
       }
       searchOperation.checkIfCanceled(false);
     }
@@ -1521,7 +1516,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void addEntry(final Entry entry, final AddOperation addOperation)
+  void addEntry(final Entry entry, final AddOperation addOperation)
   throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
     try
@@ -1676,7 +1671,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs in the JE database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void deleteEntry(final DN entryDN, final DeleteOperation deleteOperation)
+  void deleteEntry(final DN entryDN, final DeleteOperation deleteOperation)
   throws DirectoryException, StorageRuntimeException, CanceledOperationException
   {
     try
@@ -1934,7 +1929,7 @@ public class EntryContainer
    * @throws  DirectoryException  If a problem occurs while trying to make the
    *                              determination.
    */
-  public boolean entryExists(final DN entryDN) throws DirectoryException
+  private boolean entryExists(final DN entryDN) throws DirectoryException
   {
     // Try the entry cache first.
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
@@ -1975,7 +1970,7 @@ public class EntryContainer
    *                            the entry.
    * @throws StorageRuntimeException An error occurred during a database operation.
    */
-  public Entry getEntry(final DN entryDN) throws StorageRuntimeException, DirectoryException
+  Entry getEntry(final DN entryDN) throws StorageRuntimeException, DirectoryException
   {
     try
     {
@@ -2060,7 +2055,7 @@ public class EntryContainer
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void replaceEntry(final Entry oldEntry, final Entry newEntry, final ModifyOperation modifyOperation)
+  void replaceEntry(final Entry oldEntry, final Entry newEntry, final ModifyOperation modifyOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
     try
@@ -2187,7 +2182,7 @@ public class EntryContainer
    *          modify DN operation.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public void renameEntry(final DN currentDN, final Entry entry, final ModifyDNOperation modifyDNOperation)
+  void renameEntry(final DN currentDN, final Entry entry, final ModifyDNOperation modifyDNOperation)
       throws StorageRuntimeException, DirectoryException, CanceledOperationException
   {
     try
@@ -2640,7 +2635,7 @@ public class EntryContainer
    * @param newSuffixDN The new DN of the renamed or moved entry.
    * @return The new DN of the subordinate entry.
    */
-  public static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
+  static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
   {
     int oldDNNumComponents    = oldDN.size();
     int oldDNKeepComponents   = oldDNNumComponents - oldSuffixLen;
@@ -2745,7 +2740,7 @@ public class EntryContainer
    * @return The number of entries stored in this entry container.
    * @throws StorageRuntimeException If an error occurs in the JE database.
    */
-  public long getEntryCount(ReadableStorage txn) throws StorageRuntimeException
+  long getEntryCount(ReadableStorage txn) throws StorageRuntimeException
   {
     final EntryID entryID = dn2id.get(txn, baseDN, false);
     if (entryID != null)
@@ -2793,7 +2788,7 @@ public class EntryContainer
    * Get a list of the databases opened by the entryContainer.
    * @param dbList A list of database containers.
    */
-  public void listDatabases(List<DatabaseContainer> dbList)
+  void listDatabases(List<DatabaseContainer> dbList)
   {
     dbList.add(dn2id);
     dbList.add(id2entry);
@@ -2847,7 +2842,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs while removing the entry
    *                           container.
    */
-  public void delete(WriteableStorage txn) throws StorageRuntimeException
+  void delete(WriteableStorage txn) throws StorageRuntimeException
   {
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
@@ -2866,7 +2861,7 @@ public class EntryContainer
    * @throws StorageRuntimeException If an error occurs while attempting to delete the
    * database.
    */
-  public void deleteDatabase(WriteableStorage txn, DatabaseContainer database) throws StorageRuntimeException
+  void deleteDatabase(WriteableStorage txn, DatabaseContainer database) throws StorageRuntimeException
   {
     if(database == state)
     {
@@ -3011,7 +3006,7 @@ public class EntryContainer
    * @param dn A DN which is in the scope of the base DN.
    * @return The parent DN, or null if the given DN is the base DN.
    */
-  public DN getParentWithinBase(DN dn)
+  DN getParentWithinBase(DN dn)
   {
     if (dn.equals(baseDN))
     {
@@ -3023,7 +3018,7 @@ public class EntryContainer
   /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
-      PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+      PluggableBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     // This is always true because only all config attributes used
     // by the entry container should be validated by the admin framework.
@@ -3032,7 +3027,7 @@ public class EntryContainer
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(final PersistitBackendCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(final PluggableBackendCfg cfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
@@ -3345,6 +3340,6 @@ public class EntryContainer
   /** {@inheritDoc} */
   @Override
   public String toString() {
-    return databasePrefix.toString();
+    return databasePrefix;
   }
 }
