@@ -25,7 +25,7 @@
  */
 
 /**
- * Classes implementing the maven plugin for generation of configuration classes based on XML definition files.
+ * Classes implementing the maven plugin for build tasks.
  */
 package org.forgerock.opendj.maven;
 
