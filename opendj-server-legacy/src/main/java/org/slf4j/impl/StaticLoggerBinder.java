@@ -27,11 +27,10 @@ package org.slf4j.impl;
 
 import org.opends.server.loggers.OpenDJLoggerFactory;
 import org.slf4j.ILoggerFactory;
-import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
 
 /**
- * Binds {@link LoggerFactory} class with an instance of {@link ILoggerFactory}.
+ * Binds {@link org.slf4j.LoggerFactory} class with an instance of {@link ILoggerFactory}.
  */
 //@Checkstyle:off
 public class StaticLoggerBinder implements LoggerFactoryBinder {
