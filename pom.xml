@@ -90,10 +90,7 @@
     </site>
   </distributionManagement>
   <modules>
-    <module>opendj-config-maven-plugin</module>
-    <module>opendj-manifest-classpath-maven-plugin</module>
-    <module>opendj-logref-doc-maven-plugin</module>
-    <module>opendj-concat-schema-maven-plugin</module>
+    <module>opendj-maven-plugin</module>
     <module>opendj-svn-property-check-maven-plugin</module>
     <module>opendj-core</module>
     <module>opendj-grizzly</module>
@@ -334,10 +331,10 @@
                 <pluginExecution>
                   <pluginExecutionFilter>
                     <groupId>org.forgerock.opendj</groupId>
-                    <artifactId>opendj-config-maven-plugin</artifactId>
-                    <versionRange>[3.0.0-SNAPSHOT,)</versionRange>
+                    <artifactId>opendj-maven-plugin</artifactId>
+                    <versionRange>[1.0.0-SNAPSHOT,)</versionRange>
                     <goals>
-                      <goal>generate</goal>
+                      <goal>generate-config</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>

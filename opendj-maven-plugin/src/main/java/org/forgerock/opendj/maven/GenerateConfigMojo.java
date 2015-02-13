@@ -25,6 +25,9 @@
  */
 package org.forgerock.opendj.maven;
 
+import static org.apache.maven.plugins.annotations.LifecyclePhase.*;
+import static org.apache.maven.plugins.annotations.ResolutionScope.*;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
@@ -55,6 +58,8 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
@@ -99,12 +104,8 @@ import org.apache.maven.project.MavenProject;
  * config.AbstractManagedObjectDefinition</td>
  * </tr>
  * </table>
- *
- * @Checkstyle:ignoreFor 3
- * @goal generate
- * @phase generate-sources
- * @requiresDependencyResolution compile+runtime
  */
+@Mojo(name = "generate-config", defaultPhase = GENERATE_SOURCES, requiresDependencyResolution = COMPILE_PLUS_RUNTIME)
 public final class GenerateConfigMojo extends AbstractMojo {
     private interface StreamSourceFactory {
         StreamSource newStreamSource() throws IOException;
@@ -112,11 +113,8 @@ public final class GenerateConfigMojo extends AbstractMojo {
 
     /**
      * The Maven Project.
-     *
-     * @parameter property="project"
-     * @required
-     * @readonly
      */
+    @Parameter(required = true, readonly = true, property = "project")
     private MavenProject project;
 
     /**
@@ -124,10 +122,8 @@ public final class GenerateConfigMojo extends AbstractMojo {
      * <p>
      * This relative path is used to locate xml definition files and to locate
      * generated artifacts.
-     *
-     * @parameter
-     * @required
      */
+    @Parameter(required = true)
     private String packageName;
 
     /**
@@ -135,10 +131,8 @@ public final class GenerateConfigMojo extends AbstractMojo {
      * <p>
      * This relative path is used to locate xml definition files and to locate
      * generated artifacts.
-     *
-     * @parameter default-value="true"
-     * @required
      */
+    @Parameter(required = true, defaultValue = "true")
     private Boolean isExtension;
 
     private final Map<String, StreamSourceFactory> componentDescriptors =

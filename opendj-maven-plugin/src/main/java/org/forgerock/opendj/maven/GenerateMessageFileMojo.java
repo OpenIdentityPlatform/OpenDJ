@@ -24,7 +24,9 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
-package org.forgerock.maven;
+package org.forgerock.opendj.maven;
+
+import static org.apache.maven.plugins.annotations.LifecyclePhase.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,7 +49,6 @@ import java.util.TreeSet;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -60,7 +61,7 @@ import org.forgerock.util.Utils;
  * There is a single goal that generates xml files.
  * <p>
  */
-@Mojo(defaultPhase = LifecyclePhase.PRE_SITE, name = "generate-xml-messages-doc")
+@Mojo(name = "generate-xml-messages-doc", defaultPhase = PRE_SITE)
 public class GenerateMessageFileMojo extends AbstractMojo {
 
     /**

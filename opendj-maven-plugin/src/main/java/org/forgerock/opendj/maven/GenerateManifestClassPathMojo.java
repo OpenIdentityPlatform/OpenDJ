@@ -23,8 +23,7 @@
  *
  *      Copyright 2015 ForgeRock AS.
  */
-package org.forgerock.maven;
-
+package org.forgerock.opendj.maven;
 import static java.lang.String.*;
 
 import java.io.File;
@@ -45,15 +44,13 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Generate a class path suitable for the Class-Path header of a Manifest file, allowing to filter on included jars,
- * using excludes/includes properties.
+ * Generate a class path suitable for the Class-Path header of a Manifest file,
+ * allowing to filter on included jars, using excludes/includes properties.
  * <p>
- * There is a single goal that generates a property given by 'classPathProperty' parameter, with the generated classpath
- * as the value.
- *
- * @Checkstyle:ignoreFor 3
+ * There is a single goal that generates a property given by 'classPathProperty'
+ * parameter, with the generated classpath as the value.
  */
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.VALIDATE,
+@Mojo(name = "generate-manifest", defaultPhase = LifecyclePhase.VALIDATE,
     requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public final class GenerateManifestClassPathMojo extends AbstractMojo {
 
