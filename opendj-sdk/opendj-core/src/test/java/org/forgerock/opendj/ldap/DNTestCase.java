@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -1122,7 +1122,7 @@ public class DNTestCase extends SdkTestCase {
             { "dc=example\\+other,dc=com", "dc=com,dc=example%2Bother" },
             { "dc=example\\2Bother,dc=com", "dc=com,dc=example%2Bother" },
             // integer
-            { "governingStructureRule=256,dc=com", "dc=com,governingstructurerule=%01%00" },
+            { "governingStructureRule=256,dc=com", "dc=com,governingstructurerule=%82%01%00" },
             // uuid
             { "entryUUID=597ae2f6-16a6-1027-98f4-d28b5365dc14,dc=com",
               "dc=com,entryuuid=597ae2f6-16a6-1027-98f4-d28b5365dc14" },

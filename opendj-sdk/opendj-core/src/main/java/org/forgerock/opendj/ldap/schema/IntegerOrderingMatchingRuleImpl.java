@@ -22,121 +22,118 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions copyright 2014-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
 
 import java.math.BigInteger;
-import java.util.Comparator;
 
-import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 
 /**
  * This class defines the integerOrderingMatch matching rule defined in X.520
  * and referenced in RFC 4519. The implementation of this matching rule is
- * intentionally aligned with the ordering matching rule so that they could
+ * intentionally aligned with the equality matching rule so that they could
  * potentially share the same index.
  */
 final class IntegerOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImpl {
-    static final Comparator<ByteSequence> COMPARATOR = new Comparator<ByteSequence>() {
-        @Override
-        public int compare(final ByteSequence o1, final ByteSequence o2) {
-            final BigInteger i1 = decodeNormalizedValue(o1);
-            final BigInteger i2 = decodeNormalizedValue(o2);
-            return i1.compareTo(i2);
-        }
-    };
+    /** Sign mask to be used when encoding zero or positive integers. */
+    static final byte SIGN_MASK_POSITIVE = (byte) 0x00;
 
+    /** Sign mask to be used when encoding negative integers. */
+    static final byte SIGN_MASK_NEGATIVE = (byte) 0xff;
+
+    /**
+     * Encodes an integer using a format which is suitable for comparisons using
+     * {@link ByteSequence#compareTo(ByteSequence)}. The integer is encoded as
+     * follows:
+     * <ul>
+     * <li>bit 0: sign bit, 0 = negative, 1 = positive
+     * <li>bits 1-3: length of the encoded length in bytes (0 when length is <
+     *     2^4, 4 when length is < 2^32)
+     * <li>bits 4-7: encoded length when length is < 2^4
+     * <li>bits 4-15: encoded length when length is < 2^12
+     * <li>bits 4-23: encoded length when length is < 2^20
+     * <li>bits 4-31: encoded length when length is < 2^28
+     * <li>bits 4-35: encoded length when length is < 2^31 (bits 35-39 are
+     *     always zero, because an int is 32 bits)
+     * <li>remaining: byte encoding of the absolute value of the integer.
+     * </ul>
+     * When the value is negative all bits from bit 1 onwards are inverted.
+     */
     static ByteString normalizeValueAndEncode(final ByteSequence value) throws DecodeException {
-        return encodeNormalizedValue(normalizeValue(value));
-    }
-
-    private static BigInteger normalizeValue(final ByteSequence value) throws DecodeException {
+        final BigInteger bi;
         try {
-            return new BigInteger(value.toString());
+            bi = new BigInteger(value.toString());
         } catch (final Exception e) {
             throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value));
         }
+
+        /*
+         * BigInteger.toByteArray() always includes a sign bit, which means that
+         * we gain an extra zero byte for numbers that require a multiple of 8
+         * bits, e.g. 128-255, 32768-65535, because the sign bit overflows into
+         * an additional byte. We'll strip it out in that case because we encode
+         * the sign bit in the header.
+         */
+        final byte[] absBytes = bi.abs().toByteArray();
+        final int length = absBytes.length;
+        final boolean removeLeadingByte = length > 1 && absBytes[0] == 0;
+        final int trimmedLength = removeLeadingByte ? length - 1 : length;
+        final int startIndex = removeLeadingByte ? 1 : 0;
+        final byte signMask = bi.signum() < 0 ? SIGN_MASK_NEGATIVE : SIGN_MASK_POSITIVE;
+
+        // Encode the sign, length of the length, and the length.
+        final ByteStringBuilder builder = new ByteStringBuilder(trimmedLength + 5);
+        encodeHeader(builder, trimmedLength, signMask);
+
+        // Encode the absolute value of the integer..
+        for (int i = startIndex; i < length; i++) {
+            builder.append((byte) (absBytes[i] ^ signMask));
+        }
+
+        return builder.toByteString();
     }
 
-    private static BigInteger decodeNormalizedValue(final ByteSequence normalizedValue) {
-        return new BigInteger(normalizedValue.toByteArray());
-    }
-
-    private static ByteString encodeNormalizedValue(final BigInteger normalizedValue) {
-        return ByteString.wrap(normalizedValue.toByteArray());
-    }
-
-    @Override
-    public Comparator<ByteSequence> comparator(final Schema schema) {
-        return COMPARATOR;
-    }
-
-    @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
-            throws DecodeException {
-        final BigInteger normAssertion = normalizeValue(value);
-        return new Assertion() {
-            @Override
-            public <T> T createIndexQuery(final IndexQueryFactory<T> factory)
-                    throws DecodeException {
-                return factory.createRangeMatchQuery(getIndexId(), ByteString.empty(),
-                        encodeNormalizedValue(normAssertion), false, false);
-            }
-
-            @Override
-            public ConditionResult matches(final ByteSequence normValue) {
-                return ConditionResult.valueOf(decodeNormalizedValue(normValue).compareTo(
-                        normAssertion) < 0);
-            }
-        };
-    }
-
-    @Override
-    public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value)
-            throws DecodeException {
-        final BigInteger normAssertion = normalizeValue(value);
-        return new Assertion() {
-            @Override
-            public <T> T createIndexQuery(final IndexQueryFactory<T> factory)
-                    throws DecodeException {
-                return factory.createRangeMatchQuery(getIndexId(), encodeNormalizedValue(normAssertion), ByteString
-                        .empty(), true, false);
-            }
-
-            @Override
-            public ConditionResult matches(final ByteSequence normValue) {
-                return ConditionResult.valueOf(decodeNormalizedValue(normValue).compareTo(
-                        normAssertion) >= 0);
-            }
-        };
-    }
-
-    @Override
-    public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
-            throws DecodeException {
-        final BigInteger normAssertion = normalizeValue(value);
-        return new Assertion() {
-            @Override
-            public <T> T createIndexQuery(final IndexQueryFactory<T> factory)
-                    throws DecodeException {
-                return factory.createRangeMatchQuery(getIndexId(), ByteString.empty(),
-                        encodeNormalizedValue(normAssertion), false, true);
-            }
-
-            @Override
-            public ConditionResult matches(final ByteSequence normValue) {
-                return ConditionResult.valueOf(decodeNormalizedValue(normValue).compareTo(
-                        normAssertion) <= 0);
-            }
-        };
+    // Package private for unit testing.
+    static void encodeHeader(final ByteStringBuilder builder, final int length,
+            final byte signMask) {
+        if ((length & 0x0000000F) == length) {
+            // 0000xxxx
+            final byte b0 = (byte) (0x80 | length & 0x0F);
+            builder.append((byte) (b0 ^ signMask));
+        } else if ((length & 0x00000FFF) == length) {
+            // 0001xxxx xxxxxxxx
+            final byte b0 = (byte) (0x90 | length >> 8 & 0x0F);
+            builder.append((byte) (b0 ^ signMask));
+            builder.append((byte) (length & 0xFF ^ signMask));
+        } else if ((length & 0x000FFFFF) == length) {
+            // 0010xxxx xxxxxxxx xxxxxxxx
+            final byte b0 = (byte) (0xA0 | length >> 16 & 0x0F);
+            builder.append((byte) (b0 ^ signMask));
+            builder.append((byte) (length >> 8 & 0xFF ^ signMask));
+            builder.append((byte) (length & 0xFF ^ signMask));
+        } else if ((length & 0x0FFFFFFF) == length) {
+            // 0011xxxx xxxxxxxx xxxxxxxx xxxxxxxx
+            final byte b0 = (byte) (0xB0 | length >> 24 & 0x0F);
+            builder.append((byte) (b0 ^ signMask));
+            builder.append((byte) (length >> 16 & 0xFF ^ signMask));
+            builder.append((byte) (length >> 8 & 0xFF ^ signMask));
+            builder.append((byte) (length & 0xFF ^ signMask));
+        } else {
+            // 0100xxxx xxxxxxxx xxxxxxxx xxxxxxxx xxxx0000
+            final byte b0 = (byte) (0xC0 | length >> 28 & 0x0F);
+            builder.append((byte) (b0 ^ signMask));
+            builder.append((byte) (length >> 20 & 0xFF ^ signMask));
+            builder.append((byte) (length >> 12 & 0xFF ^ signMask));
+            builder.append((byte) (length >> 4 & 0xFF ^ signMask));
+            builder.append((byte) (length << 4 & 0xFF ^ signMask));
+        }
     }
 
     @Override
