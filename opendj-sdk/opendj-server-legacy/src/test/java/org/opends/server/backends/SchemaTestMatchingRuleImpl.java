@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends;
 
 
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.Assertion;
@@ -62,17 +61,6 @@ public class SchemaTestMatchingRuleImpl implements MatchingRuleImpl
     caseIgnoreMatchingRule = CoreSchema.getCaseIgnoreMatchingRule();
   }
 
-  /**
-   * Retrieves the normalized form of the provided value, which is best suited
-   * for efficiently performing matching operations on that value.
-   *
-   * @param  value  The value to be normalized.
-   *
-   * @return  The normalized version of the provided value.
-   *
-   * @throws  DecodeException  If the provided value is invalid according to
-   *                              the associated attribute syntax.
-   */
   @Override
   public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
          throws DecodeException
@@ -80,21 +68,12 @@ public class SchemaTestMatchingRuleImpl implements MatchingRuleImpl
     return caseIgnoreMatchingRule.normalizeAttributeValue(value);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public Comparator<ByteSequence> comparator(Schema schema)
-  {
-    return caseIgnoreMatchingRule.comparator();
-  }
-
-  /** {@inheritDoc} */
   @Override
   public Assertion getAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException
   {
     return caseIgnoreMatchingRule.getAssertion(assertionValue);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Assertion getSubstringAssertion(Schema schema, ByteSequence subInitial,
       List<? extends ByteSequence> subAnyElements, ByteSequence subFinal) throws DecodeException
@@ -102,28 +81,24 @@ public class SchemaTestMatchingRuleImpl implements MatchingRuleImpl
     return caseIgnoreMatchingRule.getSubstringAssertion(subInitial, subAnyElements, subFinal);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException
   {
     return caseIgnoreMatchingRule.getGreaterOrEqualAssertion(value);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value) throws DecodeException
   {
     return caseIgnoreMatchingRule.getLessOrEqualAssertion(value);
   }
 
-  /** {@inheritDoc} */
   @Override
   public Collection<? extends Indexer> getIndexers()
   {
     return caseIgnoreMatchingRule.getIndexers();
   }
 
-  /** {@inheritDoc} */
   @Override
   public boolean isIndexingSupported()
   {

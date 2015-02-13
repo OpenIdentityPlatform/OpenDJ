@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -98,14 +98,12 @@ public final class SortKey {
     private static final class EntryComparator implements Comparator<Entry> {
         private final AttributeDescription attributeDescription;
         private final MatchingRule matchingRule;
-        private final Comparator<ByteSequence> valueComparator;
         private final boolean isReverseOrder;
 
         private EntryComparator(final AttributeDescription attributeDescription,
                 final MatchingRule matchingRule, final boolean isReverseOrder) {
             this.attributeDescription = attributeDescription;
             this.matchingRule = matchingRule;
-            this.valueComparator = matchingRule.comparator();
             this.isReverseOrder = isReverseOrder;
         }
 
@@ -125,9 +123,9 @@ public final class SortKey {
             } else if (normalizedValue2 == null) {
                 return -1;
             } else if (isReverseOrder) {
-                return valueComparator.compare(normalizedValue2, normalizedValue1);
+                return normalizedValue2.compareTo(normalizedValue1);
             } else {
-                return valueComparator.compare(normalizedValue1, normalizedValue2);
+                return normalizedValue1.compareTo(normalizedValue2);
             }
         }
 
@@ -137,9 +135,7 @@ public final class SortKey {
                 for (final ByteString value : attribute) {
                     try {
                         final ByteString tmp = matchingRule.normalizeAttributeValue(value);
-                        if (normalizedValue == null) {
-                            normalizedValue = tmp;
-                        } else if (valueComparator.compare(tmp, normalizedValue) < 0) {
+                        if (normalizedValue == null || tmp.compareTo(normalizedValue) < 0) {
                             normalizedValue = tmp;
                         }
                     } catch (final DecodeException ignored) {

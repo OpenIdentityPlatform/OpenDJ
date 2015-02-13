@@ -61,8 +61,6 @@ public final class RDN
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private static final char HEX_STRING_SEPARATOR = '%';
-
   /** The set of attribute types for the elements in this RDN. */
   private AttributeType[] attributeTypes;
 
@@ -1343,7 +1341,7 @@ public final class RDN
       {
         val1 = rule.normalizeAttributeValue(val1);
         val2 = rule.normalizeAttributeValue(val2);
-        return rule.comparator().compare(val1, val2);
+        return val1.compareTo(val2);
       }
       catch (DecodeException e)
       {

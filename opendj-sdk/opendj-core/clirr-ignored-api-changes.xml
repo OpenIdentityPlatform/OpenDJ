@@ -408,4 +408,16 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>boolean copyTo(java.nio.CharBuffer, java.nio.charset.CharsetDecoder)</method>
     <justification>OPENDJ-1585: Added new utility method copyTo for a char buffer</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/MatchingRule</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Comparator comparator()</method>
+    <justification>OPENDJ-1689 method has been removed because all matching rules should support the default comparator</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/MatchingRuleImpl</className>
+    <differenceType>7002</differenceType>
+    <method>java.util.Comparator comparator(org.forgerock.opendj.ldap.schema.Schema)</method>
+    <justification>OPENDJ-1689 method has been removed because all matching rules should support the default comparator</justification>
+  </difference>
 </differences>

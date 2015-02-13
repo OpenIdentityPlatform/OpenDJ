@@ -22,13 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import java.util.Comparator;
-
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -201,11 +198,9 @@ public class VLVKeyComparator implements DatabaseComparator
         return -1;
       }
 
-      final Comparator<ByteSequence> comp = orderingRules[j].comparator();
       final ByteString val1 = ByteString.valueOf(b1Bytes);
       final ByteString val2 = ByteString.valueOf(b2Bytes);
-      final int result = ascending[j] ? comp.compare(val1, val2) : comp.compare(val2, val1);
-
+      final int result = ascending[j] ? val1.compareTo(val2) : val2.compareTo(val1);
       if(result != 0)
       {
         return result;
@@ -299,9 +294,7 @@ public class VLVKeyComparator implements DatabaseComparator
         return -1;
       }
 
-      final Comparator<ByteSequence> comp = orderingRules[j].comparator();
-      final int result = ascending[j] ? comp.compare(b1Bytes, b2Bytes) : comp.compare(b2Bytes, b1Bytes);
-
+      final int result = ascending[j] ? b1Bytes.compareTo(b2Bytes) : b2Bytes.compareTo(b1Bytes);
       if(result != 0)
       {
         return result;

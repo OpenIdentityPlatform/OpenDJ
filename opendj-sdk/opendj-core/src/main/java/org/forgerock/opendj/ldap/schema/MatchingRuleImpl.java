@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.Assertion;
@@ -41,17 +40,6 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  * a new matching rule.
  */
 public interface MatchingRuleImpl {
-
-    /**
-     * Get a comparator that can be used to compare the attribute values
-     * normalized by this matching rule.
-     *
-     * @param schema
-     *            The schema in which this matching rule is defined.
-     * @return A comparator that can be used to compare the attribute values
-     *         normalized by this matching rule.
-     */
-    Comparator<ByteSequence> comparator(Schema schema);
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
@@ -128,6 +116,10 @@ public interface MatchingRuleImpl {
     /**
      * Retrieves the normalized form of the provided attribute value, which is
      * best suited for efficiently performing matching operations on that value.
+     * Equality and ordering matching rules should return a normalized
+     * representation which can be compared with other normalized values using
+     * {@link ByteSequence#equals(Object)} and
+     * {@link ByteSequence#compareTo(ByteSequence)}.
      *
      * @param schema
      *            The schema in which this matching rule is defined.
@@ -135,7 +127,7 @@ public interface MatchingRuleImpl {
      *            The attribute value to be normalized.
      * @return The normalized version of the provided attribute value.
      * @throws DecodeException
-     *             if an syntax error occurred while parsing the value.
+     *             If an syntax error occurred while parsing the value.
      */
     ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException;
 

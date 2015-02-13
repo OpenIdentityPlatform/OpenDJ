@@ -30,9 +30,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
@@ -44,7 +43,6 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.internal.Requests.*;
-import static org.opends.server.schema.EqualLengthApproximateMatchingRule.*;
 import static org.testng.Assert.*;
 
 /**
@@ -149,16 +147,8 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
   @Test
   public void testXAPPROXExtension() throws Exception
   {
-    // Create and register the approximate matching rule for testing purposes.
-    MatchingRule testApproxRule = new SchemaBuilder(CoreSchema.getInstance())
-        .buildMatchingRule(EQUAL_LENGTH_APPROX_MR_OID)
-          .names(EQUAL_LENGTH_APPROX_MR_NAME).implementation(new EqualLengthApproximateMatchingRule())
-          .syntaxOID(EQUAL_LENGTH_APPROX_MR_SYNTAX_OID)
-          .addToSchema()
-        .toSchema().getMatchingRule(EQUAL_LENGTH_APPROX_MR_OID);
-    DirectoryServer.registerMatchingRule(testApproxRule, false);
-
-
+    MatchingRule mrule = Schema.getCoreSchema().getMatchingRule("ds-mr-double-metaphone-approx");
+      
     // Get a reference to the attribute type syntax implementation in the
     // server.
     AttributeTypeSyntax attrTypeSyntax =
@@ -185,7 +175,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
                                                  false);
     assertNotNull(attrType);
     assertNotNull(attrType.getApproximateMatchingRule());
-    assertEquals(attrType.getApproximateMatchingRule(), testApproxRule);
+    assertEquals(attrType.getApproximateMatchingRule(), mrule);
   }
 
 

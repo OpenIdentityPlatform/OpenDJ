@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -30,7 +30,6 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -256,17 +255,6 @@ public final class MatchingRule extends SchemaElement {
     }
 
     /**
-     * Get a comparator that can be used to compare the attribute values
-     * normalized by this matching rule.
-     *
-     * @return A comparator that can be used to compare the attribute values
-     *         normalized by this matching rule.
-     */
-    public Comparator<ByteSequence> comparator() {
-        return impl.comparator(schema);
-    }
-
-    /**
      * Returns {@code true} if the provided object is a matching rule having the
      * same numeric OID as this matching rule.
      *
@@ -468,12 +456,17 @@ public final class MatchingRule extends SchemaElement {
     /**
      * Returns the normalized form of the provided attribute value, which is
      * best suited for efficiently performing matching operations on that value.
+     * The returned normalized representation can be compared for equality with
+     * other values normalized with this matching rule using
+     * {@link ByteSequence#equals(Object)}. In addition, normalized values can
+     * be compared using {@link ByteSequence#compareTo(ByteSequence)}, although
+     * the sort order is only defined for ordering matching rules.
      *
      * @param value
      *            The attribute value to be normalized.
      * @return The normalized version of the provided attribute value.
      * @throws DecodeException
-     *             if the syntax of the value is not valid.
+     *             If the syntax of the value is not valid.
      */
     public ByteString normalizeAttributeValue(final ByteSequence value) throws DecodeException {
         return impl.normalizeAttributeValue(schema, value);

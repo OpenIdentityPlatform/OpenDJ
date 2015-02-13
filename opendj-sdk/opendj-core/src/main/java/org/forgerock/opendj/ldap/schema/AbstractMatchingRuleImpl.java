@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.Assertion;
@@ -105,11 +104,6 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
     }
 
     @Override
-    public Comparator<ByteSequence> comparator(final Schema schema) {
-        return ByteSequence.COMPARATOR;
-    }
-
-    @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
         return UNDEFINED_ASSERTION;
@@ -134,7 +128,6 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         return UNDEFINED_ASSERTION;
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isIndexingSupported() {
         return !getIndexers().isEmpty();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2015 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -36,7 +36,6 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
-import java.util.Comparator;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -657,13 +656,7 @@ public final class AVA implements Comparable<AVA> {
 
         final ByteString normalizedValue = getOrderingNormalizedValue();
         final ByteString otherNormalizedValue = ava.getOrderingNormalizedValue();
-        final MatchingRule rule = attributeType.getOrderingMatchingRule();
-        if (rule != null) {
-            final Comparator<ByteSequence> comparator = rule.comparator();
-            return comparator.compare(normalizedValue, otherNormalizedValue);
-        } else {
-            return normalizedValue.compareTo(otherNormalizedValue);
-        }
+        return normalizedValue.compareTo(otherNormalizedValue);
     }
 
     /** {@inheritDoc} */
@@ -680,13 +673,7 @@ public final class AVA implements Comparable<AVA> {
 
             final ByteString normalizedValue = getEqualityNormalizedValue();
             final ByteString otherNormalizedValue = ava.getEqualityNormalizedValue();
-            final MatchingRule rule = attributeType.getEqualityMatchingRule();
-            if (rule != null) {
-                final Comparator<ByteSequence> comparator = rule.comparator();
-                return comparator.compare(normalizedValue, otherNormalizedValue) == 0;
-            } else {
-                return normalizedValue.equals(otherNormalizedValue);
-            }
+            return normalizedValue.equals(otherNormalizedValue);
         } else {
             return false;
         }

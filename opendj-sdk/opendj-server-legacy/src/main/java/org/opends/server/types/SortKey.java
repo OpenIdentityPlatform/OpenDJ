@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -187,14 +187,7 @@ public final class SortKey
     {
       final ByteString val1 = rule.normalizeAttributeValue(value1);
       final ByteString val2 = rule.normalizeAttributeValue(value2);
-      if (ascending)
-      {
-        return rule.comparator().compare(val1, val2);
-      }
-      else
-      {
-        return rule.comparator().compare(val2, val1);
-      }
+      return ascending ? val1.compareTo(val2) : val2.compareTo(val1);
     }
     catch (Exception e)
     {

@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.Assertion;
@@ -73,18 +72,6 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
     }
   }
 
-  /**
-   * Compare two ByteString values containing historical information.
-   *
-   * @param value1 first value to compare
-   * @param value2 second value to compare
-   * @return 0 when equals, -1 or 1 to establish order
-   */
-  private int compareValues(ByteSequence value1, ByteSequence value2)
-  {
-    return value1.compareTo(value2);
-  }
-
   /** {@inheritDoc} */
   @Override
   public ByteString normalizeAttributeValue(Schema schema, ByteSequence value) throws DecodeException
@@ -114,20 +101,6 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
 
   /** {@inheritDoc} */
   @Override
-  public Comparator<ByteSequence> comparator(Schema schema)
-  {
-    return new Comparator<ByteSequence>()
-    {
-      @Override
-      public int compare(final ByteSequence o1, final ByteSequence o2)
-      {
-        return compareValues(o1, o2);
-      }
-    };
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public Assertion getAssertion(final Schema schema, final ByteSequence value) throws DecodeException
   {
     final ByteString normAssertion = normalizeAttributeValue(schema, value);
@@ -136,7 +109,7 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
       @Override
       public ConditionResult matches(final ByteSequence attributeValue)
       {
-        return ConditionResult.valueOf(compareValues(attributeValue, normAssertion) < 0);
+        return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) < 0);
       }
 
       @Override
@@ -165,7 +138,7 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
       @Override
       public ConditionResult matches(final ByteSequence normalizedAttributeValue)
       {
-        return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertion) >= 0);
+        return ConditionResult.valueOf(normalizedAttributeValue.compareTo(normAssertion) >= 0);
       }
 
       @Override
@@ -186,7 +159,7 @@ public final class HistoricalCsnOrderingMatchingRuleImpl implements MatchingRule
       @Override
       public ConditionResult matches(final ByteSequence normalizedAttributeValue)
       {
-        return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertion) <= 0);
+        return ConditionResult.valueOf(normalizedAttributeValue.compareTo(normAssertion) <= 0);
       }
 
       @Override

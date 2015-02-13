@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.Assertion;
@@ -67,13 +66,6 @@ abstract class AbstractPasswordEqualityMatchingRuleImpl implements MatchingRuleI
       return EQUALITY_ID;
     }
   });
-
-  /** {@inheritDoc} */
-  @Override
-  public Comparator<ByteSequence> comparator(Schema schema)
-  {
-    return ByteSequence.COMPARATOR;
-  }
 
   /**
    * Retrieves the normalized form of the provided value, which is best suited

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions copyright 2014-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -70,7 +70,7 @@ public abstract class OrderingMatchingRuleTest extends AbstractSchemaTestCase {
                 ruleInstance.normalizeAttributeValue(ByteString.valueOf(value2));
 
         // Test the comparator
-        final int comp = ruleInstance.comparator().compare(normalizedValue1, normalizedValue2);
+        final int comp = normalizedValue1.compareTo(normalizedValue2);
         if (comp == 0) {
             Assert.assertEquals(comp, result);
         } else if (comp > 0) {
