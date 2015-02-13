@@ -64,7 +64,7 @@
         <exclude>_*.sh</exclude>
         <exclude>*.bat</exclude>
       </excludes>
-      <fileMode>755</fileMode> 
+      <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>
     </fileSet>
 
@@ -115,7 +115,7 @@
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>
     </fileSet>
-    
+
     <!-- Adds Mac Info.plist files at the archive root -->
     <fileSet>
       <directory>${project.build.outputDirectory}</directory>
@@ -250,16 +250,9 @@
     <fileSet>
       <directory>${jars.dir}</directory>
       <outputDirectory>lib</outputDirectory>
-      <includes>
-        <include>${shortProductName}_*.jar</include>
-      </includes>
-    </fileSet>
-    <fileSet>
-      <directory>${jars.dir}</directory>
-      <outputDirectory>lib</outputDirectory>
-      <includes>
-        <include>bootstrap*.jar</include>
-      </includes>
+      <excludes>
+        <exclude>build-tools.jar</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>.</directory>
@@ -269,37 +262,27 @@
       </excludes>
     </fileSet>
   </fileSets>
-    <files>
-        <!-- Adds logo png to root directory -->
-        <file>
-            <source>${basedir}/resource/images/opendj_logo.png</source>
-            <outputDirectory></outputDirectory>
-        </file>
-        <!-- Main jar (OpenDJ) -->
+  <files>
+    <!-- Adds logo png to root directory -->
     <file>
-      <source>${jars.dir}/${shortProductName}.jar</source>
-      <outputDirectory>lib</outputDirectory>
+      <source>${basedir}/resource/images/opendj_logo.png</source>
+      <outputDirectory></outputDirectory>
     </file>
-    <!-- quicksetup jar -->
+    <!-- Adds buildinfo to configuration template/config -->
     <file>
-      <source>${jars.dir}/quicksetup.jar</source>
-      <outputDirectory>lib</outputDirectory>
-    </file>
-        <!-- Adds buildinfo to configuration template/config -->
-    <file>
-        <source>${project.build.outputDirectory}/META-INF/product/buildinfo</source>
-        <outputDirectory>template/config</outputDirectory>
+      <source>${project.build.outputDirectory}/META-INF/product/buildinfo</source>
+      <outputDirectory>template/config</outputDirectory>
     </file>
     <!-- Adds base schema that may be used during the upgrade process -->
     <file>
-        <source>${project.build.directory}/upgrade/schema.ldif.${buildRevision}</source>
-        <outputDirectory>template/config/upgrade</outputDirectory>
+      <source>${project.build.directory}/upgrade/schema.ldif.${buildRevision}</source>
+      <outputDirectory>template/config/upgrade</outputDirectory>
     </file>
 
     <!-- Adds example-plugin.zip to root directory -->
     <file>
-        <source>${project.build.directory}/example-plugin.zip</source>
-        <outputDirectory></outputDirectory>
+      <source>${project.build.directory}/example-plugin.zip</source>
+      <outputDirectory></outputDirectory>
     </file>
-    </files>
+  </files>
 </component>

@@ -26,12 +26,11 @@
 package org.slf4j.impl;
 
 import org.slf4j.IMarkerFactory;
-import org.slf4j.MarkerFactory;
 import org.slf4j.helpers.BasicMarkerFactory;
 import org.slf4j.spi.MarkerFactoryBinder;
 
 /**
- * Binds {@link MarkerFactory} class with an instance of {@link IMarkerFactory}.
+ * Binds {@link org.slf4j.MarkerFactory} class with an instance of {@link IMarkerFactory}.
  */
 //@Checkstyle:off
 public class StaticMarkerBinder implements MarkerFactoryBinder {

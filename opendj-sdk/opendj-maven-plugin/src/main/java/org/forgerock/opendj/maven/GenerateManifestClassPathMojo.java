@@ -82,6 +82,12 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
     private List<String> includes;
 
     /**
+     * List of additional JARs to include in the classpath. Each item must be of format "file.jar".
+     */
+    @Parameter
+    private List<String> additionalJars;
+
+    /**
      * Name of product jar, e.g. "OpenDJ".
      */
     @Parameter
@@ -158,6 +164,11 @@ public final class GenerateManifestClassPathMojo extends AbstractMojo {
             }
             classpathItems.add(0, productJarName + ".jar");
         }
+        // add additional JARs
+        if (additionalJars != null) {
+            classpathItems.addAll(additionalJars);
+        }
+
         return classpathItems;
     }
 

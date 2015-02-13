@@ -94,17 +94,6 @@
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-slf4j-adapter</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.forgerock.opendj</groupId>
-          <artifactId>opendj3-server-dev</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-config</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -376,6 +365,9 @@
               <excludes>
                 <exclude>org.slf4j:slf4j-jdk14</exclude>
               </excludes>
+              <additionalJars>
+                 <additionalJar>opendj-slf4j-adapter.jar</additionalJar>
+              </additionalJars>
             </configuration>
           </execution>
           <execution>
@@ -387,9 +379,6 @@
               <classPathProperty>classpath.bootstrap-client</classPathProperty>
               <productJarName>${shortProductName}</productJarName>
               <supportedLocales>${locales}</supportedLocales>
-              <excludes>
-                <exclude>org.forgerock.opendj:opendj-slf4j-adapter</exclude>
-              </excludes>
             </configuration>
           </execution>
 
@@ -661,6 +650,22 @@
               </includes>
             </configuration>
           </execution>
+          <!-- Package OpenDJ SL4J Logger Adapter jar -->
+          <execution>
+            <id>build-opendj-slf4j-adapter-jar</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${jars.dir}</outputDirectory>
+              <finalName>opendj-slf4j-adapter</finalName>
+              <includes>
+                <include>**/org/slf4j/**</include>
+                <include>**/org/opends/server/loggers/OpenDJLogger*</include>
+              </includes>
+            </configuration>
+          </execution>
           <!-- Build localized jars (one per supported locale) -->
           <!-- (is there a way to avoid all these repeated executions ?) -->
           <execution>
@@ -852,6 +857,8 @@
                 <exclude>**/*_pl.properties</exclude>
                 <exclude>**/*_zh_CN.properties</exclude>
                 <exclude>**/*_zh_TW.properties</exclude>
+                <exclude>org/slf4j/**</exclude>
+                <exclude>org/opends/server/loggers/OpenDJLogger*</exclude>
               </excludes>
               <archive>
                 <addMavenDescriptor>false</addMavenDescriptor>

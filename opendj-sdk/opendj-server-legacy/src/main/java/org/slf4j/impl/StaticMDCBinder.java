@@ -23,8 +23,41 @@
  *
  *      Copyright 2014 ForgeRock AS.
  */
+package org.slf4j.impl;
+
+import org.slf4j.helpers.BasicMDCAdapter;
+import org.slf4j.spi.MDCAdapter;
 
 /**
- * Classes implementing a SLF4J Logging Adapter for OpenDJ server.
+ * Binds {@link org.slf4j.MarkerFactory} class with an instance of {@link org.slf4j.IMarkerFactory}.
  */
-package org.opends.server.loggers;
+//@Checkstyle:off
+public class StaticMDCBinder {
+
+    /**
+     * The unique instance of this class.
+     */
+    public static final StaticMDCBinder SINGLETON = new StaticMDCBinder();
+
+    private StaticMDCBinder() {
+        // no implementation
+    }
+
+    /**
+     * Returns an instance of MDC.
+     *
+     * @return a MDC
+     */
+    public MDCAdapter getMDCA() {
+        return new BasicMDCAdapter();
+    }
+
+    /**
+     * Returns the class name of MDC.
+     *
+     * @return the class name
+     */
+    public String getMDCAdapterClassStr() {
+        return BasicMDCAdapter.class.getName();
+    }
+}
