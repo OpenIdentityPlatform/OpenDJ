@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS
+ *      Portions copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.schema.IntegerOrderingMatchingRuleImpl.*;
-
-import java.util.Comparator;
+import static org.forgerock.opendj.ldap.schema.IntegerOrderingMatchingRuleImpl.normalizeValueAndEncode;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -41,12 +39,6 @@ import org.forgerock.opendj.ldap.DecodeException;
  * potentially share the same index.
  */
 final class IntegerEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
-
-    @Override
-    public Comparator<ByteSequence> comparator(final Schema schema) {
-        return COMPARATOR;
-    }
-
     @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
