@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -148,7 +148,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
   public void testXAPPROXExtension() throws Exception
   {
     MatchingRule mrule = Schema.getCoreSchema().getMatchingRule("ds-mr-double-metaphone-approx");
-      
+
     // Get a reference to the attribute type syntax implementation in the
     // server.
     AttributeTypeSyntax attrTypeSyntax =
@@ -161,7 +161,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
     ByteString definition = ByteString.valueOf(
       "( testxapproxtype-oid NAME 'testXApproxType' " +
            "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 " +
-           "X-APPROX 'equalLengthApproximateMatch' )");
+           "X-APPROX 'ds-mr-double-metaphone-approx' )");
     LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
     assertTrue(attrTypeSyntax.valueIsAcceptable(definition, invalidReason),
             invalidReason.toString());
