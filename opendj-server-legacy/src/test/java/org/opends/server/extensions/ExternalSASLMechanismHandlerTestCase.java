@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -72,7 +72,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -154,7 +154,7 @@ public class ExternalSASLMechanismHandlerTestCase
   /**
    * Tests the <CODE>isPasswordBased</CODE> method.
    */
-  @Test()
+  @Test
   public void testIsPasswordBased()
   {
     ExternalSASLMechanismHandler handler =
@@ -169,7 +169,7 @@ public class ExternalSASLMechanismHandlerTestCase
   /**
    * Tests the <CODE>isSecure</CODE> method.
    */
-  @Test()
+  @Test
   public void testIsSecure()
   {
     ExternalSASLMechanismHandler handler =
@@ -188,7 +188,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEXTERNALTrustStore()
          throws Exception
   {
@@ -235,7 +235,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEXTERNALTrustAll()
          throws Exception
   {
@@ -279,7 +279,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailEXTERNALInsecureConnection()
          throws Exception
   {
@@ -311,7 +311,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailEXTERNALTrustAllNoSuchUser()
          throws Exception
   {
@@ -348,7 +348,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailEXTERNALTrustAllNoRequiredCert()
          throws Exception
   {
@@ -412,7 +412,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEXTERNALTrustAllValidOptionalCert()
          throws Exception
   {
@@ -467,7 +467,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailEXTERNALTrustAllInvalidOptionalCert()
          throws Exception
   {
@@ -533,7 +533,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEXTERNALTrustAllValidRequiredCert()
          throws Exception
   {
@@ -605,7 +605,7 @@ public class ExternalSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailEXTERNALTrustAllInvalidRequiredCert()
          throws Exception
   {

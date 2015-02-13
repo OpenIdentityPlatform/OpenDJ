@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  *      Portions copyright 2013 Manuel Gaupp
  */
 package org.opends.server.core;
@@ -233,7 +233,7 @@ public class TestModifyDNOperation extends OperationTestCase
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   protected Operation[] createTestOperations() throws Exception
   {
     return new ModifyDNOperationBasis[] {
@@ -1092,7 +1092,7 @@ public class TestModifyDNOperation extends OperationTestCase
    * Tests performing a modify DN operation in which the new RDN contains an
    * attribute type marked OBSOLETE in the server schema.
    */
-  @Test()
+  @Test
   public void testModifyDNWithObsoleteAttribute()
          throws Exception
   {
@@ -1154,7 +1154,7 @@ public class TestModifyDNOperation extends OperationTestCase
    * Tests a subtree rename operation to ensure that subordinate modify DN
    * plugins will be invoked as expected.
    */
-  @Test()
+  @Test
   public void testSubordinateModifyDNPluginsForSubtreeRename()
          throws Exception
   {
@@ -1227,7 +1227,7 @@ public class TestModifyDNOperation extends OperationTestCase
    * Tests a subtree move operation to ensure that subordinate modify DN
    * plugins will be invoked as expected.
    */
-  @Test()
+  @Test
   public void testSubordinateModifyDNPluginsForSubtreeMove()
          throws Exception
   {

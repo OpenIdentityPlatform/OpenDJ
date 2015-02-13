@@ -70,7 +70,7 @@ public class SimilarityBasedPasswordValidator extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordValidator(
                    SimilarityBasedPasswordValidatorCfg configuration)
          throws ConfigException, InitializationException
@@ -83,7 +83,7 @@ public class SimilarityBasedPasswordValidator extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeSimilarityBasedChangeListener(this);
@@ -94,7 +94,7 @@ public class SimilarityBasedPasswordValidator extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,

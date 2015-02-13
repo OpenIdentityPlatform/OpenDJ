@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -88,7 +89,7 @@ public final class InternalLDAPSocketFactory
    *
    * @return  The created internal LDAP socket.
    */
-  @Override()
+  @Override
   public Socket createSocket(InetAddress host, int port)
   {
     return new InternalLDAPSocket();
@@ -107,7 +108,7 @@ public final class InternalLDAPSocketFactory
    *
    * @return  The created internal LDAP socket.
    */
-  @Override()
+  @Override
   public Socket createSocket(String host, int port)
   {
     return new InternalLDAPSocket();
@@ -130,7 +131,7 @@ public final class InternalLDAPSocketFactory
    *
    * @return  The created internal LDAP socket.
    */
-  @Override()
+  @Override
   public Socket createSocket(InetAddress host, int port,
                              InetAddress clientHost, int clientPort)
   {
@@ -154,7 +155,7 @@ public final class InternalLDAPSocketFactory
    *
    * @return  The created internal LDAP socket.
    */
-  @Override()
+  @Override
   public Socket createSocket(String host, int port,
                              InetAddress clientHost, int clientPort)
   {
@@ -170,7 +171,7 @@ public final class InternalLDAPSocketFactory
    * @return  A string representation of this internal LDAP socket
    *          factory.
    */
-  @Override()
+  @Override
   public String toString()
   {
     return "InternalLDAPSocketFactory";

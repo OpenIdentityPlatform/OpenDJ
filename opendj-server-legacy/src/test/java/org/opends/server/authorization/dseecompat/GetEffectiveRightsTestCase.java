@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -176,7 +176,7 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    * @throws Exception If the search result is empty or a right string
    * doesn't match the expected value.
    */
-  @Test()
+  @Test
   public void testAnonEntryLevelParams() throws Exception {
     String aciLdif=makeAddLDIF("aci", "ou=People,o=test", readSearchAnonAci,
                                controlACI);
@@ -194,7 +194,7 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    * @throws Exception If the search result is empty or a right string
    * doesn't match the expected value.
    */
-  @Test()
+  @Test
   public void testSuEntryLevelParams() throws Exception {
     String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
                                controlACI);
@@ -247,7 +247,7 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    * @throws Exception If the search result is empty or a right string
    * doesn't match the expected value.
    */
-  @Test()
+  @Test
    public void testSuEntryLevelCtrl() throws Exception {
      String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
                                 controlACI);
@@ -300,7 +300,7 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
   * @throws Exception If the search result is empty or a right string
   * doesn't match the expected value.
   */
- @Test()
+ @Test
   public void testBypassEntryLevelCtrl() throws Exception {
     String aciLdif=makeAddLDIF("aci", "ou=People,o=test",  controlACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -319,7 +319,7 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
    * @throws Exception If the search result is empty or a right string
    * doesn't match the expected value.
    */
-  @Test()
+  @Test
   public void testSuAttrLevelParams() throws Exception {
     String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
                                controlACI);
@@ -346,7 +346,7 @@ public class GetEffectiveRightsTestCase extends AciTestCase {
  * @throws Exception If the search result is empty or a right string
  * doesn't match the expected value.
  */
-@Test()
+@Test
 public void testSuAttrLevelParams2() throws Exception {
   String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
                              controlACI);
@@ -379,7 +379,7 @@ public void testSuAttrLevelParams2() throws Exception {
  * @throws Exception If the search result is empty or a right string
  * doesn't match the expected value.
  */
-@Test()
+@Test
 public void testSuAttrLevelParams3() throws Exception {
   String aciLdif=makeAddLDIF("aci", "ou=People,o=test", aclRightsAci,
                             controlACI);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  *
  */
 package org.opends.server.schema;
@@ -121,7 +121,7 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCreateAndDecodeUTCTimeValue()
          throws Exception
   {
@@ -142,7 +142,7 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecode50to99()
          throws Exception
   {
@@ -167,7 +167,7 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecode00to49()
          throws Exception
   {
@@ -192,7 +192,7 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCreate50to99()
          throws Exception
   {
@@ -217,7 +217,7 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCreate00to49()
          throws Exception
   {

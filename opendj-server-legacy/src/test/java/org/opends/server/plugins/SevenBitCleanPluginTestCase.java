@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -59,7 +59,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -74,7 +74,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCleanAllowedDisabled()
          throws Exception
   {
@@ -114,7 +114,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDirtyAllowedDisabled()
          throws Exception
   {
@@ -154,7 +154,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCleanAllowedEnabled()
          throws Exception
   {
@@ -210,7 +210,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDirtyRejectedEnabled()
          throws Exception
   {
@@ -267,7 +267,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDirtyAcceptedEnabledOutsideScope()
          throws Exception
   {
@@ -325,7 +325,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDirtyAllowedDisabled()
          throws Exception
   {
@@ -370,7 +370,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDirtyRejectedEnabled()
          throws Exception
   {
@@ -431,7 +431,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDirtyToCleanAllowedEnabled()
          throws Exception
   {
@@ -492,7 +492,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyRemoveDirtyValueAllowedEnabled()
          throws Exception
   {
@@ -553,7 +553,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNDirtyAllowedDisabled()
          throws Exception
   {
@@ -598,7 +598,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNDirtyRejectedEnabled()
          throws Exception
   {
@@ -659,7 +659,7 @@ public class SevenBitCleanPluginTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNDirtyToCleanAllowedEnabled()
          throws Exception
   {

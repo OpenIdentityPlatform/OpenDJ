@@ -114,7 +114,7 @@ public final class EntryUUIDPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      EntryUUIDPluginCfg configuration)
          throws ConfigException
@@ -143,7 +143,7 @@ public final class EntryUUIDPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     currentConfig.removeEntryUUIDChangeListener(this);
@@ -154,7 +154,7 @@ public final class EntryUUIDPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
@@ -188,7 +188,7 @@ public final class EntryUUIDPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
   {
@@ -221,7 +221,7 @@ public final class EntryUUIDPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

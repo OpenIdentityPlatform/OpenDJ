@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -34,7 +35,7 @@ import static org.opends.server.TestCaseUtils.*;
 
 public class ReplicationRepairControlTest extends ReplicationTestCase
 {
-  @Test()
+  @Test
   public void testRepairControl()
          throws Exception
   {

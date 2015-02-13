@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -70,7 +70,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -163,7 +163,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingDefaultConfig()
          throws Exception
   {
@@ -223,7 +223,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingAlternateSubjectAttribute()
          throws Exception
   {
@@ -286,7 +286,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingAlternateBaseDNs()
          throws Exception
   {
@@ -348,7 +348,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingNoUsers()
          throws Exception
   {
@@ -407,7 +407,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingMultipleUsers()
          throws Exception
   {
@@ -479,7 +479,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingNoUserBelowBaseDNs()
          throws Exception
   {
@@ -541,7 +541,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveSubjectAttribute()
          throws Exception
   {
@@ -721,7 +721,7 @@ public class SubjectDNToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPrivilegeWithSuccessfulMappingDefaultConfig()
          throws Exception
   {

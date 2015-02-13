@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -64,7 +64,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -2188,7 +2188,7 @@ public class PasswordPolicyTestCase
    * Tests the <CODE>getPasswordAttribute</CODE> method for the default password
    * policy.
    */
-  @Test()
+  @Test
   public void testGetPasswordAttributeDefault()
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
@@ -2204,7 +2204,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPasswordAttributeAuth()
          throws Exception
   {
@@ -2221,7 +2221,7 @@ public class PasswordPolicyTestCase
    * Tests the <CODE>usesAuthPasswordSyntax</CODE> method for the default
    * password policy.
    */
-  @Test()
+  @Test
   public void testUsesAuthPasswordSyntaxDefault()
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
@@ -2236,7 +2236,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUsesAuthPasswordSyntaxAuth()
          throws Exception
   {
@@ -2254,7 +2254,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetDefaultStorageSchemesDefault()
          throws Exception
   {
@@ -2288,7 +2288,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetDefaultStorageSchemesAuth()
          throws Exception
   {
@@ -2324,7 +2324,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsDefaultStorageSchemeDefault()
          throws Exception
   {
@@ -2355,7 +2355,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsDefaultStorageSchemeAuth()
          throws Exception
   {
@@ -2388,7 +2388,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetDeprecatedStorageSchemesDefault()
          throws Exception
   {
@@ -2422,7 +2422,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetDeprecatedStorageSchemesAuth()
          throws Exception
   {
@@ -2458,7 +2458,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsDeprecatedStorageSchemeDefault()
          throws Exception
   {
@@ -2487,7 +2487,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsDeprecatedStorageSchemeAuth()
          throws Exception
   {
@@ -2518,7 +2518,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPasswordValidatorsDefault()
          throws Exception
   {
@@ -2549,7 +2549,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPasswordValidatorsAuth()
          throws Exception
   {
@@ -2582,7 +2582,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetAccountStatusNotificationHandlersDefault()
          throws Exception
   {
@@ -2613,7 +2613,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetAccountStatusNotificationHandlersAuth()
          throws Exception
   {
@@ -2646,7 +2646,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowUserPasswordChangesDefault()
          throws Exception
   {
@@ -2675,7 +2675,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowUserPasswordChangesAuth()
          throws Exception
   {
@@ -2706,7 +2706,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequireCurrentPasswordDefault()
          throws Exception
   {
@@ -2735,7 +2735,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequireCurrentPasswordAuth()
          throws Exception
   {
@@ -2766,7 +2766,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testForceChangeOnAddDefault()
          throws Exception
   {
@@ -2795,7 +2795,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testForceChangeOnAddAuth()
          throws Exception
   {
@@ -2826,7 +2826,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testForceChangeOnResetDefault()
          throws Exception
   {
@@ -2855,7 +2855,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testForceChangeOnResetAuth()
          throws Exception
   {
@@ -2886,7 +2886,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSkipValidationForAdministratorsDefault()
          throws Exception
   {
@@ -2915,7 +2915,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSkipValidationForAdministratorsAuth()
          throws Exception
   {
@@ -2946,7 +2946,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPasswordGeneratorDNDefault()
          throws Exception
   {
@@ -2975,7 +2975,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPasswordGeneratorDNAuth()
          throws Exception
   {
@@ -3006,7 +3006,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPasswordGeneratorDefault()
          throws Exception
   {
@@ -3035,7 +3035,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPasswordGeneratorAuth()
          throws Exception
   {
@@ -3066,7 +3066,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequireSecureAuthenticationDefault()
          throws Exception
   {
@@ -3095,7 +3095,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequireSecureAuthenticationAuth()
          throws Exception
   {
@@ -3126,7 +3126,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequireSecurePasswordChangesDefault()
          throws Exception
   {
@@ -3155,7 +3155,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequireSecurePasswordChangesAuth()
          throws Exception
   {
@@ -3186,7 +3186,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowMultiplePasswordValuesDefault()
          throws Exception
   {
@@ -3215,7 +3215,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowMultiplePasswordValuesAuth()
          throws Exception
   {
@@ -3246,7 +3246,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowPreEncodedPasswordsDefault()
          throws Exception
   {
@@ -3275,7 +3275,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowPreEncodedPasswordsAuth()
          throws Exception
   {
@@ -3306,7 +3306,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMinimumPasswordAgeDefault()
          throws Exception
   {
@@ -3335,7 +3335,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMinimumPasswordAgeAuth()
          throws Exception
   {
@@ -3366,7 +3366,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMaximumPasswordAgeDefault()
          throws Exception
   {
@@ -3395,7 +3395,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMaximumPasswordAgeAuth()
          throws Exception
   {
@@ -3426,7 +3426,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMaximumPasswordResetAgeDefault()
          throws Exception
   {
@@ -3455,7 +3455,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMaximumPasswordResetAgeAuth()
          throws Exception
   {
@@ -3486,7 +3486,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetWarningIntervalDefault()
          throws Exception
   {
@@ -3515,7 +3515,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetWarningIntervalAuth()
          throws Exception
   {
@@ -3546,7 +3546,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testExpirePasswordsWithoutWarningDefault()
          throws Exception
   {
@@ -3575,7 +3575,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testExpirePasswordsWithoutWarningAuth()
          throws Exception
   {
@@ -3606,7 +3606,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowExpiredPasswordChangesDefault()
          throws Exception
   {
@@ -3635,7 +3635,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowExpiredPasswordChangesAuth()
          throws Exception
   {
@@ -3666,7 +3666,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetGraceLoginCountDefault()
          throws Exception
   {
@@ -3695,7 +3695,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetGraceLoginCountAuth()
          throws Exception
   {
@@ -3726,7 +3726,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLockoutFailureCountDefault()
          throws Exception
   {
@@ -3755,7 +3755,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLockoutFailureCountAuth()
          throws Exception
   {
@@ -3786,7 +3786,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLockoutDurationDefault()
          throws Exception
   {
@@ -3815,7 +3815,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLockoutDurationAuth()
          throws Exception
   {
@@ -3846,7 +3846,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLockoutFailureExpirationIntervalDefault()
          throws Exception
   {
@@ -3875,7 +3875,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLockoutFailureExpirationIntervalAuth()
          throws Exception
   {
@@ -3906,7 +3906,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetRequireChangeByTimeDefault()
          throws Exception
   {
@@ -3935,7 +3935,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetRequireChangeByTimeAuth()
          throws Exception
   {
@@ -3966,7 +3966,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLastLoginTimeAttributeDefault()
          throws Exception
   {
@@ -3995,7 +3995,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLastLoginTimeAttributeAuth()
          throws Exception
   {
@@ -4026,7 +4026,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLastLoginTimeAttributeFormatDefault()
          throws Exception
   {
@@ -4055,7 +4055,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetLastLoginTimeFormatAuth()
          throws Exception
   {
@@ -4086,7 +4086,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPreviousLastLoginTimeFormatsDefault()
          throws Exception
   {
@@ -4117,7 +4117,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPreviousLastLoginTimeFormatsAuth()
          throws Exception
   {
@@ -4150,7 +4150,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetIdleLockoutIntervalDefault()
          throws Exception
   {
@@ -4179,7 +4179,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetIdleLockoutIntervalAuth()
          throws Exception
   {
@@ -4211,7 +4211,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testResetWithLastLoginTime()
          throws Exception
   {
@@ -4339,7 +4339,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHistoryWithMultipleSchemes()
          throws Exception
   {
@@ -4446,7 +4446,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordHistoryUsingCount()
          throws Exception
   {
@@ -4740,7 +4740,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testWarningIntervalGreaterThanMaxAge()
          throws Exception
   {
@@ -4775,7 +4775,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMinAgePlusWarningIntervalGreaterThanMaxAge()
          throws Exception
   {
@@ -4809,7 +4809,7 @@ public class PasswordPolicyTestCase
   /**
    * Tests the <CODE>toString</CODE> methods with the default password policy.
    */
-  @Test()
+  @Test
   public void testToStringDefault()
   {
     PasswordPolicy p = DirectoryServer.getDefaultPasswordPolicy();
@@ -4824,7 +4824,7 @@ public class PasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testToStringAuth()
          throws Exception
   {

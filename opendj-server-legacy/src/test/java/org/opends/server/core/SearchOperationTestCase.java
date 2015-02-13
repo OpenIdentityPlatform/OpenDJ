@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -1206,7 +1206,7 @@ public class SearchOperationTestCase extends OperationTestCase
   /**
    * Tests the one-level search with a lower allid threshold value.
    */
-  @Test()
+  @Test
   public void testOneLevelSearchWithAllIDThreshold() throws Exception
   {
     //Set a lower value for allid threshold. We set 2.

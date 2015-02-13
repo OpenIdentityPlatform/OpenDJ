@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -63,7 +63,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -87,7 +87,7 @@ public class PasswordValidatorTestCase
    * Gets simple test coverage for the default
    * PasswordValidator.finalizePasswordValidator method.
    */
-  @Test()
+  @Test
   public void testFinalizePasswordValidator()
   {
     TestPasswordValidator.getInstance().finalizePasswordValidator();
@@ -101,7 +101,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulValidationPasswordModifyExtOp()
          throws Exception
   {
@@ -149,7 +149,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedValidationPasswordModifyExtOp()
          throws Exception
   {
@@ -202,7 +202,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCurrentPasswordNotAvailablePasswordModifyExtOp()
          throws Exception
   {
@@ -248,7 +248,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCurrentPasswordAvailablePasswordModifyExtOp()
          throws Exception
   {
@@ -299,7 +299,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStoredPasswordAvailablePasswordModifyExtOp()
          throws Exception
   {
@@ -351,7 +351,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStoredAndCurrentPasswordAvailablePasswordModifyExtOp()
          throws Exception
   {
@@ -403,7 +403,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulValidationModify()
          throws Exception
   {
@@ -471,7 +471,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedValidationModify()
          throws Exception
   {
@@ -543,7 +543,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCurrentPasswordAvailableModify()
          throws Exception
   {
@@ -620,7 +620,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStoredPasswordAvailableModify()
          throws Exception
   {
@@ -694,7 +694,7 @@ public class PasswordValidatorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStoredAndCurrentPasswordAvailableModify()
          throws Exception
   {

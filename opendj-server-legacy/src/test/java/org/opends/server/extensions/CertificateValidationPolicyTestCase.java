@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -74,7 +75,7 @@ public class CertificateValidationPolicyTestCase
   /**
    * Tests the <CODE>policyForName</CODE> method with an invalid policy name.
    */
-  @Test()
+  @Test
   public void testPolicyForInvalidName()
   {
     assertNull(CertificateValidationPolicy.policyForName("invalid"));
@@ -109,7 +110,7 @@ public class CertificateValidationPolicyTestCase
   /**
    * Tests the <CODE>values</CODE> method.
    */
-  @Test()
+  @Test
   public void testValues()
   {
     assertNotNull(CertificateValidationPolicy.values());

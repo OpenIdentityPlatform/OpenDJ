@@ -68,7 +68,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
     }
 
 
-    @Test ()
+    @Test
     public void testBindRequestToString() throws Exception
     {
         List<String> referralURLs=new ArrayList<String>();

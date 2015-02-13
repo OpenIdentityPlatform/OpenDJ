@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -60,7 +61,7 @@ public class NullPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
   {

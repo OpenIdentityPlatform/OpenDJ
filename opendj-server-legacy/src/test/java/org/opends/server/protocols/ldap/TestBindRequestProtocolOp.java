@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -45,7 +45,7 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
     private static String newDn="cn=new dn, dc=example,dc=com";
     private static String creds="some creds";
 
-  @Test()
+  @Test
   public void testBindRequestEncodeDecode() throws Exception {
     ByteStringBuilder simpleBuilder = new ByteStringBuilder();
     ASN1Writer simpleWriter = ASN1.getWriter(simpleBuilder);
@@ -97,7 +97,7 @@ public class TestBindRequestProtocolOp extends LdapTestCase {
     assertTrue(saslOpCreds.equals(saslCreds));
   }
 
-  @Test ()
+  @Test
   public void testBindRequestToString() throws Exception
   {
     ByteString bindDn=ByteString.valueOf(dn);

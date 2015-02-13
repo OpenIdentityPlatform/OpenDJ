@@ -114,7 +114,7 @@ public final class PasswordPolicyImportPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                          PasswordPolicyImportPluginCfg configuration)
          throws ConfigException
@@ -309,7 +309,7 @@ public final class PasswordPolicyImportPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
@@ -561,7 +561,7 @@ policyLoop:
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

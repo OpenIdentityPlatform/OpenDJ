@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -276,7 +276,7 @@ public final class TestEntry extends TypesTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasAttribute()
          throws Exception
   {
@@ -364,7 +364,7 @@ public final class TestEntry extends TypesTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasUserAttribute()
          throws Exception
   {
@@ -410,7 +410,7 @@ public final class TestEntry extends TypesTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasOperationalAttribute()
          throws Exception
   {
@@ -456,7 +456,7 @@ public final class TestEntry extends TypesTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetAttribute()
          throws Exception
   {
@@ -711,7 +711,7 @@ public final class TestEntry extends TypesTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetUserAttribute()
          throws Exception
   {
@@ -860,7 +860,7 @@ public final class TestEntry extends TypesTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetOperationalAttribute()
          throws Exception
   {

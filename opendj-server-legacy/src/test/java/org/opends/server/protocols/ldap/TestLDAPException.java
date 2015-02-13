@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.protocols.ldap;
@@ -43,7 +43,7 @@ import org.opends.server.util.StaticUtils;
 public class TestLDAPException extends LdapTestCase
 {
 
-  @Test()
+  @Test
   public void testLDAPException()
   {
     LocalizableMessageDescriptor.Arg1 msgDesc = ERR_ECN_INVALID_ELEMENT_TYPE;
@@ -53,7 +53,7 @@ public class TestLDAPException extends LdapTestCase
     assertTrue(StaticUtils.hasDescriptor(ex.getMessageObject(), msgDesc));
   }
 
-  @Test()
+  @Test
   public void testLDAPExceptionThrowable()
   {
     LocalizableMessageDescriptor.Arg1 msgID = ERR_ECN_INVALID_ELEMENT_TYPE;

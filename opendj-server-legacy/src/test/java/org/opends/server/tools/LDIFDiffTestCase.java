@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -65,7 +65,7 @@ public class LDIFDiffTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -99,7 +99,7 @@ public class LDIFDiffTestCase
    * Tests the LDIFDiff tool with an argument that will simply cause it to
    * display usage information.
    */
-  @Test()
+  @Test
   public void testUsage()
   {
     String[] args = { "--help" };
@@ -117,7 +117,7 @@ public class LDIFDiffTestCase
   /**
    * Tests the LDIFDiff tool with an invalid set of arguments.
    */
-  @Test()
+  @Test
   public void testInvalidArguments()
   {
     String[] args =

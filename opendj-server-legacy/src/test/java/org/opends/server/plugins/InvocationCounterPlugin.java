@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -110,7 +110,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
   {
@@ -122,7 +122,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseAbandonOperation abandonOperation)
   {
@@ -135,7 +135,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse doPreParse(PreParseAddOperation addOperation)
   {
     preParseCounter.incrementAndGet();
@@ -147,7 +147,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse doPreParse(PreParseBindOperation bindOperation)
   {
     preParseCounter.incrementAndGet();
@@ -159,7 +159,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseCompareOperation compareOperation)
   {
@@ -172,7 +172,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseDeleteOperation deleteOperation)
   {
@@ -185,7 +185,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseExtendedOperation extendedOperation)
   {
@@ -198,7 +198,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyOperation modifyOperation)
   {
@@ -211,7 +211,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
@@ -224,7 +224,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseSearchOperation searchOperation)
   {
@@ -237,7 +237,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreParse
        doPreParse(PreParseUnbindOperation unbindOperation)
   {
@@ -276,7 +276,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
   {
@@ -289,7 +289,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationBindOperation bindOperation)
   {
@@ -302,7 +302,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationCompareOperation compareOperation)
   {
@@ -315,7 +315,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
   {
@@ -328,7 +328,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
   {
@@ -341,7 +341,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
@@ -354,7 +354,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
@@ -367,7 +367,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
   {
@@ -406,7 +406,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationAbandonOperation abandonOperation)
   {
@@ -419,7 +419,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
   {
@@ -432,7 +432,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationBindOperation bindOperation)
   {
@@ -445,7 +445,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationCompareOperation compareOperation)
   {
@@ -458,7 +458,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
@@ -471,7 +471,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationExtendedOperation extendedOperation)
   {
@@ -484,7 +484,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
@@ -497,7 +497,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
@@ -510,7 +510,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationSearchOperation searchOperation)
   {
@@ -523,7 +523,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostOperation
        doPostOperation(PostOperationUnbindOperation unbindOperation)
   {
@@ -562,7 +562,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseAddOperation addOperation)
   {
@@ -575,7 +575,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseBindOperation bindOperation)
   {
@@ -588,7 +588,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseCompareOperation compareOperation)
   {
@@ -601,7 +601,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseDeleteOperation deleteOperation)
   {
@@ -614,7 +614,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseExtendedOperation extendedOperation)
   {
@@ -627,7 +627,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseModifyOperation modifyOperation)
   {
@@ -640,7 +640,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseModifyDNOperation modifyDNOperation)
   {
@@ -653,7 +653,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostResponse
        doPostResponse(PostResponseSearchOperation searchOperation)
   {
@@ -692,7 +692,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void doPostSynchronization(PostSynchronizationAddOperation
                                          addOperation)
   {
@@ -704,7 +704,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void doPostSynchronization(PostSynchronizationModifyOperation
                                          modifyOperation)
   {
@@ -716,7 +716,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void doPostSynchronization(PostSynchronizationModifyDNOperation
                                          modifyDNOperation)
   {
@@ -755,7 +755,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.IntermediateResponse
        processSearchEntry(SearchEntrySearchOperation searchOperation,
                           SearchResultEntry searchEntry)
@@ -796,7 +796,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.IntermediateResponse
        processSearchReference(SearchReferenceSearchOperation searchOperation,
                               SearchResultReference searchReference)
@@ -837,7 +837,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.SubordinateModifyDN processSubordinateModifyDN(
               SubordinateModifyDNOperation modifyDNOperation, Entry oldEntry,
               Entry newEntry, List<Modification> modifications)
@@ -879,7 +879,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.IntermediateResponse processIntermediateResponse(
               IntermediateResponse intermediateResponse)
   {
@@ -919,7 +919,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostConnect doPostConnect(ClientConnection
                                                     clientConnection)
   {
@@ -958,7 +958,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PostDisconnect doPostDisconnect(
           ClientConnection clientConnection, DisconnectReason disconnectReason,
           LocalizableMessage message)
@@ -998,7 +998,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.ImportLDIF doLDIFImport(LDIFImportConfig importConfig,
                                         Entry entry)
   {
@@ -1037,7 +1037,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.ImportLDIF doLDIFExport(LDIFExportConfig exportConfig,
                                        Entry entry)
   {
@@ -1099,7 +1099,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.Startup doStartup()
   {
     startupCalled = true;
@@ -1135,7 +1135,7 @@ public class InvocationCounterPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void doShutdown(LocalizableMessage reason)
   {
     shutdownCalled = true;

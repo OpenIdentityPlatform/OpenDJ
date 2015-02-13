@@ -91,7 +91,7 @@ public class RandomPasswordGenerator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordGenerator(
       RandomPasswordGeneratorCfg configuration)
          throws ConfigException, InitializationException
@@ -219,7 +219,7 @@ public class RandomPasswordGenerator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordGenerator()
   {
     currentConfig.removeRandomChangeListener(this);
@@ -261,7 +261,7 @@ public class RandomPasswordGenerator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PasswordGeneratorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

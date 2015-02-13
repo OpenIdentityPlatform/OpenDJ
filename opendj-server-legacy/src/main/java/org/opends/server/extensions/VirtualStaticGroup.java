@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -113,7 +113,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeGroupImplementation(
                    VirtualStaticGroupImplementationCfg configuration)
          throws ConfigException, InitializationException
@@ -127,7 +127,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public VirtualStaticGroup newInstance(ServerContext serverContext, Entry groupEntry)
          throws DirectoryException
   {
@@ -182,7 +182,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
   {
@@ -197,7 +197,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isGroupDefinition(Entry entry)
   {
     ifNull(entry);
@@ -214,7 +214,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public DN getGroupDN()
   {
     return groupEntryDN;
@@ -248,7 +248,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean supportsNestedGroups()
   {
     // Virtual static groups don't support nesting.
@@ -260,7 +260,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public List<DN> getNestedGroupDNs()
   {
     // Virtual static groups don't support nesting.
@@ -272,7 +272,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
@@ -286,7 +286,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
@@ -300,7 +300,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isMember(DN userDN, Set<DN> examinedGroups)
          throws DirectoryException
   {
@@ -332,7 +332,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
   {
@@ -364,7 +364,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public MemberList getMembers()
          throws DirectoryException
   {
@@ -391,7 +391,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public MemberList getMembers(DN baseDN, SearchScope scope,
                                SearchFilter filter)
          throws DirectoryException
@@ -419,7 +419,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean mayAlterMemberList()
   {
     return false;
@@ -430,7 +430,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void addMember(Entry userEntry)
          throws UnsupportedOperationException, DirectoryException
   {
@@ -444,7 +444,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void removeMember(DN userDN)
          throws UnsupportedOperationException, DirectoryException
   {
@@ -458,7 +458,7 @@ public class VirtualStaticGroup
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("VirtualStaticGroup(dn=");

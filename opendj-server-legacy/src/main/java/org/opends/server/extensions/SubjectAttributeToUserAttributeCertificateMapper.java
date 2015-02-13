@@ -371,7 +371,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

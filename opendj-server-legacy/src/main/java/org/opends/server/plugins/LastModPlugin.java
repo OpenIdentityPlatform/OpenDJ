@@ -110,7 +110,7 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      LastModPluginCfg configuration)
          throws ConfigException
@@ -140,7 +140,7 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     currentConfig.removeLastModChangeListener(this);
@@ -151,7 +151,7 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
   {
@@ -192,7 +192,7 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {
@@ -253,7 +253,7 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
   {
@@ -292,7 +292,7 @@ public final class LastModPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

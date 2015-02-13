@@ -159,7 +159,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeWorkQueue(TraditionalWorkQueueCfg configuration)
       throws ConfigException, InitializationException
   {
@@ -227,7 +227,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeWorkQueue(LocalizableMessage reason)
   {
     queueWriteLock.lock();
@@ -781,7 +781,7 @@ public class TraditionalWorkQueue extends WorkQueue<TraditionalWorkQueueCfg>
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isIdle()
   {
     queueReadLock.lock();

@@ -280,7 +280,7 @@ public class ExactMatchIdentityMapper
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

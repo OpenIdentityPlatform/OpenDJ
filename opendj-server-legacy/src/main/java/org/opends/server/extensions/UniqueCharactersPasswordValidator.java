@@ -72,7 +72,7 @@ public class UniqueCharactersPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordValidator(
                    UniqueCharactersPasswordValidatorCfg configuration)
   {
@@ -85,7 +85,7 @@ public class UniqueCharactersPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeUniqueCharactersChangeListener(this);
@@ -96,7 +96,7 @@ public class UniqueCharactersPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,

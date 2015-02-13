@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -103,7 +103,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   /**
    * Check the basic comparator on the HistoricalCsnOrderingMatchingRule
    */
-  @Test()
+  @Test
   public void basicRuleTest() throws Exception
   {
     // Creates a rule
@@ -134,7 +134,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * a replication server and can  re-build operations from the historical
    * informations.
    */
-  @Test()
+  @Test
   public void buildAndPublishMissingChangesOneEntryTest() throws Exception
   {
     final int serverId = 123;
@@ -234,7 +234,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * a replication server and can  re-build operations from the historical
    * informations.
    */
-  @Test()
+  @Test
   public void buildAndPublishMissingChangesSeveralEntriesTest() throws Exception
   {
     final DN baseDN = DN.valueOf(TEST_ROOT_DN_STRING);

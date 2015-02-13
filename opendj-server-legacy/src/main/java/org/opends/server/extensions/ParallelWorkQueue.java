@@ -123,7 +123,7 @@ public class ParallelWorkQueue
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeWorkQueue(ParallelWorkQueueCfg configuration)
          throws ConfigException, InitializationException
   {
@@ -174,7 +174,7 @@ public class ParallelWorkQueue
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeWorkQueue(LocalizableMessage reason)
   {
     shutdownRequested = true;
@@ -530,7 +530,7 @@ public class ParallelWorkQueue
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isIdle()
   {
     if (opQueue.size() > 0) {

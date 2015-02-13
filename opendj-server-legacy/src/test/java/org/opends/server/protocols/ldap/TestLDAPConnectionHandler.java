@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
@@ -73,7 +73,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
    *
    * @throws Exception if the handler cannot be instantiated.
    */
-  @Test()
+  @Test
   public void testLDAPConnectionHandler() throws Exception {
     Entry LDAPHandlerEntry=null;
 
@@ -212,7 +212,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
    * it is acceptable and applied.
    * @throws Exception if handler cannot be instantiated.
    */
-  @Test()
+  @Test
   public void testGoodLDAPConnectionHandlerConfiguration() throws Exception
   {
     Entry GoodHandlerEntry=TestCaseUtils.makeEntry(

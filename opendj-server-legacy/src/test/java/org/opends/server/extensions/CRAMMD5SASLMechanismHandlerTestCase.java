@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -143,7 +143,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsPasswordBased()
          throws Exception
   {
@@ -161,7 +161,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsSecure()
          throws Exception
   {
@@ -180,7 +180,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindSuccessWithUID()
          throws Exception
   {
@@ -222,7 +222,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindSuccessWithDN()
          throws Exception
   {
@@ -264,7 +264,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindSuccessWithDNAndLongPassword()
          throws Exception
   {
@@ -309,7 +309,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailWrongPasswordWithUID()
          throws Exception
   {
@@ -351,7 +351,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailWrongPasswordWithDN()
          throws Exception
   {
@@ -393,7 +393,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailIrreversiblePasswordWithUID()
          throws Exception
   {
@@ -433,7 +433,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailIrreversiblePasswordWithDN()
          throws Exception
   {
@@ -473,7 +473,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailInvalidDN()
          throws Exception
   {
@@ -513,7 +513,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNoSuchUser()
          throws Exception
   {
@@ -553,7 +553,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNullDN()
          throws Exception
   {
@@ -581,7 +581,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailIrreversiblePasswordWithRootDN()
          throws Exception
   {
@@ -608,7 +608,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testOutOfSequenceBind()
          throws Exception
   {
@@ -628,7 +628,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMalformedCredentials()
          throws Exception
   {
@@ -653,7 +653,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMalformedDigest()
          throws Exception
   {
@@ -680,7 +680,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMalformedDigestWithCorrectLength()
          throws Exception
   {

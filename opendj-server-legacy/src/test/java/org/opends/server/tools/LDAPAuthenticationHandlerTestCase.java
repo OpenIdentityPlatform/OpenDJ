@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -65,7 +65,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -146,7 +146,7 @@ public class LDAPAuthenticationHandlerTestCase
    * Tests the <CODE>getSASLProperties</CODE> method with an unsupported
    * mechanism name.
    */
-  @Test()
+  @Test
   public void testGetSASLPropertiesInvlaid()
   {
     LinkedHashMap<String,LocalizableMessage> properties =
@@ -163,7 +163,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSimpleBindWithValidDNAndPWNoControls()
          throws Exception
   {
@@ -192,7 +192,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSimpleBindWithNullDNAndPWNoControls()
          throws Exception
   {
@@ -219,7 +219,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSimpleBindWithEmptyDNAndPWNoControls()
          throws Exception
   {
@@ -317,7 +317,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSimpleBindWithPasswordPolicyControl()
          throws Exception
   {
@@ -497,7 +497,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindAnonymous()
          throws Exception
   {
@@ -536,7 +536,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindAnonymousNoTrace()
          throws Exception
   {
@@ -666,7 +666,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindAnonymousWithPasswordPolicyControl()
          throws Exception
   {
@@ -770,7 +770,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindCRAMMD5()
          throws Exception
   {
@@ -1195,7 +1195,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindCRAMMD5WithPasswordPolicyControl()
          throws Exception
   {
@@ -1318,7 +1318,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindDigestMD5()
          throws Exception
   {
@@ -1372,7 +1372,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindDigestMD5WithAuthzID()
          throws Exception
   {
@@ -1678,7 +1678,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindDigestMD5ValidQoP()
          throws Exception
   {
@@ -2268,7 +2268,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindDigestMD5WithPasswordPolicyControl()
          throws Exception
   {
@@ -2392,7 +2392,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindExternal()
          throws Exception
   {
@@ -2520,7 +2520,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindExternalWithPasswordPolicy()
          throws Exception
   {
@@ -3217,7 +3217,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindPlain()
          throws Exception
   {
@@ -3649,7 +3649,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDoSASLBindPlainWithPasswordPolicy()
          throws Exception
   {
@@ -3700,7 +3700,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentityUnauthenticated()
          throws Exception
   {
@@ -3724,7 +3724,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentitySimpleAnonymous()
          throws Exception
   {
@@ -3753,7 +3753,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentitySimpleRootUser()
          throws Exception
   {
@@ -3783,7 +3783,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentitySimpleTestUser()
          throws Exception
   {
@@ -3827,7 +3827,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentitySASLAnonymous()
          throws Exception
   {
@@ -3868,7 +3868,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentityCRAMMD5()
          throws Exception
   {
@@ -3922,7 +3922,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentityDigestMD5()
          throws Exception
   {
@@ -3977,7 +3977,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentityExternal()
          throws Exception
   {
@@ -4034,7 +4034,7 @@ public class LDAPAuthenticationHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequestAuthorizationIdentityPlain()
          throws Exception
   {

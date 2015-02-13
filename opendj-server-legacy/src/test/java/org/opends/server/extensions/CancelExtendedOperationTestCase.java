@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -81,7 +81,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -95,7 +95,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelAddOperation()
          throws Exception
   {
@@ -188,7 +188,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelCompareOperation()
          throws Exception
   {
@@ -271,7 +271,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelDeleteOperation()
          throws Exception
   {
@@ -358,7 +358,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelExtendedOperation()
          throws Exception
   {
@@ -428,7 +428,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelModifyOperation()
          throws Exception
   {
@@ -517,7 +517,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelModifyDNOperation()
          throws Exception
   {
@@ -605,7 +605,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelSearchOperation()
          throws Exception
   {
@@ -692,7 +692,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelNoSuchOperation()
          throws Exception
   {
@@ -749,7 +749,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelNoValue()
          throws Exception
   {
@@ -800,7 +800,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelMalformedValue()
          throws Exception
   {
@@ -850,7 +850,7 @@ public class CancelExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCancelCancelExtendedOperation()
          throws Exception
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -47,7 +47,7 @@ public class UnbindOperationTestCase extends OperationTestCase
 {
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   protected Operation[] createTestOperations()
          throws Exception
   {
@@ -77,7 +77,7 @@ public class UnbindOperationTestCase extends OperationTestCase
    * since there's nothing to disconnect with an internal connection, but it
    * will at least exercise the code path.
    */
-  @Test()
+  @Test
   public void testUnbindInternal()
   {
     InvocationCounterPlugin.resetAllCounters();
@@ -96,7 +96,7 @@ public class UnbindOperationTestCase extends OperationTestCase
    * Tests the <CODE>cancel</CODE> method to ensure that it indicates that the
    * operation cannot be cancelled.
    */
-  @Test()
+  @Test
   public void testCancel()
   {
     final InternalClientConnection conn = getRootConnection();

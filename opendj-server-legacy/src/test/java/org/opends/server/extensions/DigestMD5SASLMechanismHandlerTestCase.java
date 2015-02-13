@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -64,7 +64,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -164,7 +164,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsPasswordBased()
          throws Exception
   {
@@ -182,7 +182,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsSecure()
          throws Exception
   {
@@ -201,7 +201,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindSuccessWithUID()
          throws Exception
   {
@@ -244,7 +244,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindSuccessWithDN()
          throws Exception
   {
@@ -287,7 +287,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailWrongPasswordWithUID()
          throws Exception
   {
@@ -330,7 +330,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailWrongPasswordWithDN()
          throws Exception
   {
@@ -373,7 +373,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailIrreversiblePasswordWithUID()
          throws Exception
   {
@@ -414,7 +414,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailIrreversiblePasswordWithDN()
          throws Exception
   {
@@ -455,7 +455,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailInvalidDN()
          throws Exception
   {
@@ -496,7 +496,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNoSuchUserForUID()
          throws Exception
   {
@@ -537,7 +537,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNoSuchUserForDN()
          throws Exception
   {
@@ -578,7 +578,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailEmptyUID()
          throws Exception
   {
@@ -608,7 +608,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNullDN()
          throws Exception
   {
@@ -638,7 +638,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailEmptyAuthID()
          throws Exception
   {
@@ -668,7 +668,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailEmptyAuthzID()
          throws Exception
   {
@@ -713,7 +713,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailIrreversiblePasswordWithRootDN()
          throws Exception
   {
@@ -742,7 +742,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulBindReversiblePasswordWithRootDN()
          throws Exception
   {
@@ -789,7 +789,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNonexistentAuthzDN()
          throws Exception
   {
@@ -833,7 +833,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNonexistentAuthzUsername()
          throws Exception
   {
@@ -877,7 +877,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailMalformedAuthzDN()
          throws Exception
   {
@@ -921,7 +921,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testOutOfSequenceBind()
          throws Exception
   {
@@ -941,7 +941,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMalformedCredentials()
          throws Exception
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -62,7 +62,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -270,7 +270,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMapperEnabled()
          throws Exception
   {
@@ -288,7 +288,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchWithoutBaseDN()
          throws Exception
   {
@@ -346,7 +346,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchWithValidBaseDN()
          throws Exception
   {
@@ -406,7 +406,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchWithInvalidBaseDN()
          throws Exception
   {
@@ -462,7 +462,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMismatch()
          throws Exception
   {
@@ -591,7 +591,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompoundFirstMatch()
          throws Exception
   {
@@ -650,7 +650,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompoundSecondMatch()
          throws Exception
   {
@@ -709,7 +709,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompoundMismatch()
          throws Exception
   {
@@ -766,7 +766,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testChangingMapAttribute()
          throws Exception
   {
@@ -849,7 +849,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testChangingMapBaseDN()
          throws Exception
   {
@@ -934,7 +934,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectChangingToNoMatchAttr()
          throws Exception
   {
@@ -958,7 +958,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectChangingToInvalidMatchAttr()
          throws Exception
   {
@@ -986,7 +986,7 @@ public class ExactMatchIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectChangingToInvalidMatchBaseDN()
          throws Exception
   {

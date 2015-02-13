@@ -355,7 +355,7 @@ public class TestJebFormat extends DirectoryServerTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test()
+  @Test
   public void testEntryToAndFromDatabase() throws Exception {
     ensureTheServerIsUpAndRunning();
 
@@ -426,7 +426,7 @@ public class TestJebFormat extends DirectoryServerTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test()
+  @Test
   public void testEntryToAndFromDatabaseV1() throws Exception {
     ensureTheServerIsUpAndRunning();
 

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
@@ -211,7 +211,7 @@ public class AuthenticationPolicyTestCase extends APITestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void beforeClass() throws Exception
   {
     TestCaseUtils.startServer();

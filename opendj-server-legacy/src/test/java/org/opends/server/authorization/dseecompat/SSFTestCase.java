@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 /**
@@ -204,7 +204,7 @@ public class SSFTestCase extends AciTestCase {
      *
      * @throws Exception If a test doesn't pass.
      */
-    @Test()
+    @Test
     public void testIntegrity() throws Exception {
         //set QOP to integrity.
         TestCaseUtils.dsconfig(
@@ -244,7 +244,7 @@ public class SSFTestCase extends AciTestCase {
      * Test confidentiality settings using DIGEST-MD5.
      * @throws Exception
      */
-    @Test()
+    @Test
     public void testConfidentiality() throws Exception {
         //set QOP to integrity.
         TestCaseUtils.dsconfig(

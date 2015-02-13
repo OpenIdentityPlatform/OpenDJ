@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -70,7 +71,7 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

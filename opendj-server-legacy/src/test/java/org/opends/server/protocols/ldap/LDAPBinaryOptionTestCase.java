@@ -22,7 +22,7 @@
  *
  *
  *      Copyright  2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -93,7 +93,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -108,7 +108,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
    * protocol.
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void binaryAttributeAddV3() throws Exception
   {
     //Add a binary attribute both with or without the binary option.
@@ -161,7 +161,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
    * transfer option using a V3 protocol.
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void nonBinaryAttributeAddV3() throws Exception
   {
     String filePath = TestCaseUtils.createTempFile(
@@ -236,7 +236,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
    * V2 protocol.
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void binaryOptionUsingV2() throws Exception
   {
     //Construct a V2 connection.
@@ -424,7 +424,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
    * protocol.
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void binaryModifyV3() throws Exception
   {
     String filePath = TestCaseUtils.createTempFile(

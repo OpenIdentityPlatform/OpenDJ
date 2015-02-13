@@ -304,7 +304,7 @@ public class FingerprintCertificateMapper
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

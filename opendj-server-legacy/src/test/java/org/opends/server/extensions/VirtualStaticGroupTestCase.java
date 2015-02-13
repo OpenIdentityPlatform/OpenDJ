@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -245,7 +245,7 @@ public class VirtualStaticGroupTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {

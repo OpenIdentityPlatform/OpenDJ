@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -81,7 +81,7 @@ public class MemoryUsageMonitorProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public String getMonitorInstanceName()
   {
     return "JVM Memory Usage";
@@ -128,7 +128,7 @@ public class MemoryUsageMonitorProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ArrayList<Attribute> getMonitorData()
   {
     ArrayList<Attribute> attrs = new ArrayList<Attribute>();

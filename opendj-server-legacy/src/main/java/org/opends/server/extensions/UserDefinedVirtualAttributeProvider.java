@@ -71,7 +71,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeVirtualAttributeProvider(
                             UserDefinedVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
@@ -85,7 +85,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeVirtualAttributeProvider()
   {
     currentConfig.removeUserDefinedChangeListener(this);
@@ -96,7 +96,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     if (currentConfig != null)
@@ -111,7 +111,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     Set<String> userDefinedValues = currentConfig.getValue();
@@ -137,7 +137,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -151,7 +151,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {

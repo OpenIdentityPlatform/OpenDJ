@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -98,7 +98,7 @@ public class UpdatePreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
          throws ConfigException
@@ -133,7 +133,7 @@ public class UpdatePreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
   {
@@ -167,7 +167,7 @@ public class UpdatePreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
   {

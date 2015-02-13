@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS.
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  */
 package org.opends.server.schema;
 
@@ -76,7 +76,7 @@ public final class TimeBasedMatchingRuleTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -117,7 +117,7 @@ public final class TimeBasedMatchingRuleTest
   /**
    * Test to search using the less-than relative time matching rule for expired events.
    */
-  @Test()
+  @Test
   public void testRTLessThanExpiredEvents() throws Exception
   {
     try
@@ -142,7 +142,7 @@ public final class TimeBasedMatchingRuleTest
   /**
    * Test to search using the less-than relative time matching rule for future events.
    */
-  @Test()
+  @Test
   public void testRTLessThanFutureEvents() throws Exception
   {
     try
@@ -167,7 +167,7 @@ public final class TimeBasedMatchingRuleTest
   /**
    * Test to search using the greater-than relative time matching rule for expired events.
    */
-  @Test()
+  @Test
   public void testRTGreaterThanExpiredEvents() throws Exception
   {
     try
@@ -193,7 +193,7 @@ public final class TimeBasedMatchingRuleTest
     /**
    * Test to search using the greater-than relative time matching rule for future events.
    */
-  @Test()
+  @Test
   public void testRTGreaterThanFutureEvents() throws Exception
   {
     try
@@ -221,7 +221,7 @@ public final class TimeBasedMatchingRuleTest
     * Dates for this test are hardcoded to avoid test failures depending
     * on when the tests are launched.
     */
-  @Test()
+  @Test
   public void testPartialDateNTimeMatchingRuleUsingSearch() throws Exception
   {
     try

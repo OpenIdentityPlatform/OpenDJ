@@ -83,7 +83,7 @@ public class DictionaryPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordValidator(
                    DictionaryPasswordValidatorCfg configuration)
          throws ConfigException, InitializationException
@@ -99,7 +99,7 @@ public class DictionaryPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeDictionaryChangeListener(this);
@@ -110,7 +110,7 @@ public class DictionaryPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
@@ -234,7 +234,7 @@ public class DictionaryPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -47,7 +47,7 @@ public class StartTLSExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -61,7 +61,7 @@ public class StartTLSExtendedOperationTestCase
    * server in conjunction with no authentication and using a client trust store
    * to validate the server certificate.
    */
-  @Test()
+  @Test
   public void testStartTLSNoAuthTrustStore()
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
@@ -88,7 +88,7 @@ public class StartTLSExtendedOperationTestCase
    * Tests the use of the StartTLS extended operation to communicate with the
    * server in conjunction with no authentication and using blind trust.
    */
-  @Test()
+  @Test
   public void testStartTLSNoAuthTrustAll()
   {
     String[] args =
@@ -113,7 +113,7 @@ public class StartTLSExtendedOperationTestCase
    * server in conjunction with simple authentication and using a client trust
    * store to validate the server certificate.
    */
-  @Test()
+  @Test
   public void testStartTLSSimpleAuthTrustStore()
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
@@ -142,7 +142,7 @@ public class StartTLSExtendedOperationTestCase
    * Tests the use of the StartTLS extended operation to communicate with the
    * server in conjunction with simple authentication and using blind trust.
    */
-  @Test()
+  @Test
   public void testStartTLSSimpleAuthTrustAll()
   {
     String[] args =
@@ -171,7 +171,7 @@ public class StartTLSExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSExternalAuthTrustStore()
          throws Exception
   {
@@ -218,7 +218,7 @@ public class StartTLSExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSExternalAuthTrustAll()
          throws Exception
   {

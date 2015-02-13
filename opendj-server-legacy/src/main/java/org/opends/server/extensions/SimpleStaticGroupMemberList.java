@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.forgerock.i18n.LocalizableMessage;
@@ -82,14 +82,14 @@ public class SimpleStaticGroupMemberList extends MemberList
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasMoreMembers()
   {
     return memberDNIterator.hasNext();
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public DN nextMemberDN()
          throws MembershipException
   {
@@ -113,7 +113,7 @@ public class SimpleStaticGroupMemberList extends MemberList
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Entry nextMemberEntry() throws MembershipException
   {
     if (memberDNIterator.hasNext())
@@ -143,7 +143,7 @@ public class SimpleStaticGroupMemberList extends MemberList
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void close()
   {
     // No implementation is required.

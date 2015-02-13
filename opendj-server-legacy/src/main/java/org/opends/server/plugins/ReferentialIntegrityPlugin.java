@@ -282,7 +282,7 @@ public class ReferentialIntegrityPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
@@ -978,7 +978,7 @@ public class ReferentialIntegrityPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin() {
     currentConfiguration.removeReferentialIntegrityChangeListener(this);
     if(interval > 0)

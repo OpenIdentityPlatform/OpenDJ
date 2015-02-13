@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -132,7 +132,7 @@ public class TargetAttrTestCase extends AciTestCase {
    *
    * @throws Exception  If a test result is unexpected.
    */
-  @Test()
+  @Test
   public void testTargetAttrUserAttr() throws Exception {
     String aciLdif=makeAddLDIF("aci", user1, userAttrAci);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -170,7 +170,7 @@ public class TargetAttrTestCase extends AciTestCase {
    *
    * @throws Exception If a test result is unexpected.
    */
-  @Test()
+  @Test
   public void testTargetAttrOpAttr() throws Exception {
     //Add aci that only allows non-operational attributes search/read.
     String aciLdif=makeAddLDIF("aci", user1, nonOpAttrAci);
@@ -221,7 +221,7 @@ public class TargetAttrTestCase extends AciTestCase {
    *
    * @throws Exception  If a test result is unexpected.
    */
-  @Test()
+  @Test
   public void testTargetAttrAllAttr() throws Exception {
     //Add aci with: (targetattr = "+ || *")
     String aciLdif=makeAddLDIF("aci", user1, allAttrs);
@@ -245,7 +245,7 @@ public class TargetAttrTestCase extends AciTestCase {
    *
    * @throws Exception If a test result is unexpected.
    */
-  @Test()
+  @Test
   public void testTargetAttrOpPlusAttr() throws Exception {
     //Add aci with: (targetattr = "objectclass|| +")
     String aciLdif=makeAddLDIF("aci", user1, ocOpAttrs);
@@ -269,7 +269,7 @@ public class TargetAttrTestCase extends AciTestCase {
    *
    * @throws Exception  If a test result is unexpected.
    */
-  @Test()
+  @Test
   public void testTargetAttrUserStarAttr() throws Exception {
     //Add aci with: (targetattr = "*|| aci")
     String aciLdif=makeAddLDIF("aci", user1, starAciAttrs);
@@ -293,7 +293,7 @@ public class TargetAttrTestCase extends AciTestCase {
    *
    * @throws Exception If test result is unexpected.
    */
-  @Test()
+  @Test
   public void testTargetAttrSrchShorthand() throws Exception {
     //Aci: (targetattrs="sn || uid || +) and search with an
     //operational attr (aci).
@@ -342,7 +342,7 @@ public class TargetAttrTestCase extends AciTestCase {
    *
    * @throws Exception Exception If test result is unexpected.
    */
-  @Test()
+  @Test
   public void testTargetAttrGrpDN() throws Exception {
     String aciLdif=makeAddLDIF("aci", user1, grpAttrAci);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);

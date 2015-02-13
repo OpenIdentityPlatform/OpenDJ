@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -80,7 +80,7 @@ public class AlertHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -94,7 +94,7 @@ public class AlertHandlerTestCase
    * Tests the ability of the alert handler to send an administrative alert
    * with no special configuration.
    */
-  @Test()
+  @Test
   public void testAlertHandler()
   {
     int count = DummyAlertHandler.getAlertCount();
@@ -109,7 +109,7 @@ public class AlertHandlerTestCase
   /**
    * Tests alert handler functionality when a given alert is explicitly enabled.
    */
-  @Test()
+  @Test
   public void testEnabledAlert()
   {
     TestCaseUtils.dsconfig(
@@ -140,7 +140,7 @@ public class AlertHandlerTestCase
    * Tests alert handler functionality when a given alert is not explicitly
    * enabled but others are.
    */
-  @Test()
+  @Test
   public void testNotEnabledAlert()
   {
     TestCaseUtils.dsconfig(
@@ -171,7 +171,7 @@ public class AlertHandlerTestCase
    * Tests alert handler functionality when a given alert is explicitly
    * disabled.
    */
-  @Test()
+  @Test
   public void testDisabledAlert()
   {
     TestCaseUtils.dsconfig(
@@ -202,7 +202,7 @@ public class AlertHandlerTestCase
    * Tests alert handler functionality when a given alert is not explicitly
    * disabled but others are.
    */
-  @Test()
+  @Test
   public void testNotDisabledAlert()
   {
     TestCaseUtils.dsconfig(
@@ -233,7 +233,7 @@ public class AlertHandlerTestCase
    * Tests alert handler functionality when a given alert is both enabled and
    * disabled.
    */
-  @Test()
+  @Test
   public void testEnabledAndDisabledAlert()
   {
     TestCaseUtils.dsconfig(

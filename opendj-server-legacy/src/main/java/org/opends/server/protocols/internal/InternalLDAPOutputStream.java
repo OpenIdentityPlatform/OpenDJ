@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -216,7 +216,7 @@ public final class InternalLDAPOutputStream
    * Closes this output stream, its associated socket, and the
    * socket's associated input stream.
    */
-  @Override()
+  @Override
   public void close()
   {
     socket.close();
@@ -246,7 +246,7 @@ public final class InternalLDAPOutputStream
    * written out.  This will have no effect, since this output
    * stream implementation does not use buffering.
    */
-  @Override()
+  @Override
   public void flush()
   {
     // No implementation is required.
@@ -263,7 +263,7 @@ public final class InternalLDAPOutputStream
    * @throws  IOException  If the output stream is closed, or if there
    *                       is a problem with the data being written.
    */
-  @Override()
+  @Override
   public void write(byte[] b)
          throws IOException
   {
@@ -287,7 +287,7 @@ public final class InternalLDAPOutputStream
    * @throws  IOException  If the output stream is closed, or if there
    *                       is a problem with the data being written.
    */
-  @Override()
+  @Override
   public synchronized void write(byte[] b, int off, int len)
          throws IOException
   {
@@ -340,7 +340,7 @@ public final class InternalLDAPOutputStream
    * @throws  IOException  If the output stream is closed, or if there
    *                       is a problem with the data being written.
    */
-  @Override()
+  @Override
   public synchronized void write(int b)
          throws IOException
   {
@@ -842,7 +842,7 @@ public final class InternalLDAPOutputStream
    *
    * @return  A string representation of this internal LDAP socket.
    */
-  @Override()
+  @Override
   public String toString()
   {
     return "InternalLDAPOutputStream";

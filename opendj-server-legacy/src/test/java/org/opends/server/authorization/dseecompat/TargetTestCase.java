@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -453,7 +453,7 @@ public class TargetTestCase extends AciTestCase
    *
    * @throws Exception If a test doesn't pass.
    */
-  @Test()
+  @Test
   public void testEntryCheckACI() throws Exception {
     try {
       String addACILDIF = makeAddLDIF("aci", aciUser, entryCheckACI);

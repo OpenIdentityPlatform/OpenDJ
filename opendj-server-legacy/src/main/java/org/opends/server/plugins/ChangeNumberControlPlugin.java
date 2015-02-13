@@ -122,7 +122,7 @@ public final class ChangeNumberControlPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ChangeNumberControlPluginCfg configuration)
          throws ConfigException
@@ -179,7 +179,7 @@ public final class ChangeNumberControlPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     currentConfig.removeChangeNumberControlChangeListener(this);
@@ -189,7 +189,7 @@ public final class ChangeNumberControlPlugin
  /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
   {
@@ -202,7 +202,7 @@ public final class ChangeNumberControlPlugin
    /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
@@ -215,7 +215,7 @@ public final class ChangeNumberControlPlugin
    /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
@@ -228,7 +228,7 @@ public final class ChangeNumberControlPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
@@ -243,7 +243,7 @@ public final class ChangeNumberControlPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

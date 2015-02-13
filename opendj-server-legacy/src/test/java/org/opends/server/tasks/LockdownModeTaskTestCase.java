@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tasks;
 
@@ -57,7 +57,7 @@ public class LockdownModeTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -70,7 +70,7 @@ public class LockdownModeTaskTestCase
    * Make sure that no matter what, when these tests are done the server is no
    * longer in lockdown mode.
    */
-  @AfterClass()
+  @AfterClass
   public void disableLockdownMode()
   {
     DirectoryServer.setLockdownMode(false);

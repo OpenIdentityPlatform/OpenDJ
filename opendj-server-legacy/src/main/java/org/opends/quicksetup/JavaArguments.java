@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -112,7 +112,7 @@ public class JavaArguments
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean equals(Object o)
   {
     boolean equals = o == this;
@@ -151,7 +151,7 @@ public class JavaArguments
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public int hashCode()
   {
     int hashCode = 44 + initialMemory + maxMemory;
@@ -165,7 +165,7 @@ public class JavaArguments
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public String toString()
   {
     StringBuilder sb = new StringBuilder();

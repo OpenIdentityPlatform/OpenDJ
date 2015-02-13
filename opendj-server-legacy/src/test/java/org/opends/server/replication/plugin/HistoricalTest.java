@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -343,7 +343,7 @@ public class HistoricalTest extends ReplicationTestCase
    * Test that historical information is correctly added when performing ADD,
    * MOD and MODDN operations.
    */
-  @Test()
+  @Test
   public void historicalAdd() throws Exception
   {
     final DN dn1 = DN.valueOf("cn=testHistoricalAdd,o=test");

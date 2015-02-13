@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -762,7 +762,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test that WindowMsg encoding and decoding works
    * by checking that : msg == new WindowMsg(msg.getBytes()).
    */
-  @Test()
+  @Test
   public void windowMsgTest() throws Exception
   {
     WindowMsg msg = new WindowMsg(123);
@@ -775,7 +775,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : new WindowProbeMsg(msg.getBytes()) does not throws
    * an exception.
    */
-  @Test()
+  @Test
   public void windowProbeMsgTest() throws Exception
   {
     WindowProbeMsg msg = new WindowProbeMsg();
@@ -980,7 +980,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   /**
    * Test MonitorMsg.
    */
-  @Test()
+  @Test
   public void monitorMsgTest() throws Exception
   {
     int sender = 2;
@@ -1061,7 +1061,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test that EntryMsg encoding and decoding works
    * by checking that : msg == new EntryMessageTest(msg.getBytes()).
    */
-  @Test()
+  @Test
   public void entryMsgTest() throws Exception
   {
     String taskInitFromS2 = new String(
@@ -1086,7 +1086,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   /**
    * Test that InitializeRequestMsg encoding and decoding works
    */
-  @Test()
+  @Test
   public void initializeRequestMsgTest() throws Exception
   {
     int sender = 1;
@@ -1102,7 +1102,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   /**
    * Test that InitializeTargetMsg encoding and decoding works
    */
-  @Test()
+  @Test
   public void initializeTargetMsgTest() throws Exception
   {
     int senderID = 45678;
@@ -1130,7 +1130,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   /**
    * Test that DoneMsg encoding and decoding works
    */
-  @Test()
+  @Test
   public void doneMsgTest() throws Exception
   {
     DoneMsg msg = new DoneMsg(1, 2);
@@ -1142,7 +1142,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   /**
    * Test that ErrorMsg encoding and decoding works
    */
-  @Test()
+  @Test
   public void errorMsgTest() throws Exception
   {
     ErrorMsg msg = new ErrorMsg(1, 2, LocalizableMessage.raw("details"));

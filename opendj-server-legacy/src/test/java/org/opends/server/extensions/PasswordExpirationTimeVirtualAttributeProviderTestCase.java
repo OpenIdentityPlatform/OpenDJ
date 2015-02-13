@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2012 profiq, s.r.o.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -59,7 +59,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
   private Entry notExpired;
   private Entry expired;
 
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -113,7 +113,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     assertEquals(expirationTime, createTime + 2592000000L);
   }
 
-  @BeforeMethod()
+  @BeforeMethod
   public void environmentSetup() throws Exception
   {
     TestCaseUtils.initializeMemoryBackend(TestCaseUtils.TEST_BACKEND_ID,
@@ -121,7 +121,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
                                           true);
   }
 
-  @AfterMethod()
+  @AfterMethod
   public void environmentCleanup() throws Exception
   {
     TestCaseUtils.clearMemoryBackend(TestCaseUtils.TEST_BACKEND_ID);

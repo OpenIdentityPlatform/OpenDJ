@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -43,7 +43,7 @@ public class InitializationExceptionTestCase
   /**
    * Tests the first constructor, which takes int and String arguments.
    */
-  @Test()
+  @Test
   public void testConstructor1()
   {
     LocalizableMessage message = LocalizableMessage.raw("Test Constructor 1");
@@ -58,7 +58,7 @@ public class InitializationExceptionTestCase
    * Tests the second constructor, which takes int, String, and Throwable
    * arguments.
    */
-  @Test()
+  @Test
   public void testConstructor2()
   {
     LocalizableMessage   message = LocalizableMessage.raw("Test Constructor 2");

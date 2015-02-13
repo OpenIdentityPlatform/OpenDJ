@@ -125,7 +125,7 @@ public class ErrorLogAccountStatusNotificationHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                       AccountStatusNotificationHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)

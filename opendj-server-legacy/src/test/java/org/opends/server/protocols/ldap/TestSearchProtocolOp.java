@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -77,7 +77,7 @@ public class TestSearchProtocolOp extends LdapTestCase
                                        attributes);
   }
 
-  @Test ()
+  @Test
   public void testSearchRequestToString() throws Exception
   {
     SearchRequestProtocolOp protocolOp = buildSearchRequestProtocolOp();
@@ -86,7 +86,7 @@ public class TestSearchProtocolOp extends LdapTestCase
     protocolOp.toString(sb, 1);
   }
 
-  @Test ()
+  @Test
   public void testSearchRequestEncodeDecode() throws Exception
   {
     ByteStringBuilder builder = new ByteStringBuilder();

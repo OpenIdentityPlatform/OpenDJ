@@ -99,7 +99,7 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeSASLMechanismHandler(
           DigestMD5SASLMechanismHandlerCfg configuration)
   throws ConfigException, InitializationException {
@@ -134,7 +134,7 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeSASLMechanismHandler() {
     configuration.removeDigestMD5ChangeListener(this);
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_DIGEST_MD5);
@@ -144,7 +144,7 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSASLBind(BindOperation bindOp) {
       ClientConnection clientConnection = bindOp.getClientConnection();
       if (clientConnection == null) {
@@ -180,7 +180,7 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isPasswordBased(String mechanism)
   {
     // This is a password-based mechanism.
@@ -192,7 +192,7 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSecure(String mechanism)
   {
     // This may be considered a secure mechanism.
@@ -203,7 +203,7 @@ public class DigestMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)

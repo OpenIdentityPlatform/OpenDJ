@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -67,7 +67,7 @@ public class BlindTrustManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeTrustManagerProvider(
                   BlindTrustManagerProviderCfg configuration)
          throws ConfigException, InitializationException
@@ -81,7 +81,7 @@ public class BlindTrustManagerProvider
    * Performs any finalization that may be necessary for this trust manager
    * provider.
    */
-  @Override()
+  @Override
   public void finalizeTrustManagerProvider()
   {
     // No implementation is required.
@@ -92,7 +92,7 @@ public class BlindTrustManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {

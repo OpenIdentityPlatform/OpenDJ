@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -215,7 +215,7 @@ public class FilteredStaticGroupMemberList extends MemberList
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasMoreMembers()
   {
     if (! memberDNIterator.hasNext())
@@ -226,7 +226,7 @@ public class FilteredStaticGroupMemberList extends MemberList
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public DN nextMemberDN() throws MembershipException
   {
     if (! memberDNIterator.hasNext())
@@ -239,7 +239,7 @@ public class FilteredStaticGroupMemberList extends MemberList
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Entry nextMemberEntry() throws MembershipException
   {
     if (! memberDNIterator.hasNext())
@@ -261,7 +261,7 @@ public class FilteredStaticGroupMemberList extends MemberList
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void close()
   {
     // No implementation is required.

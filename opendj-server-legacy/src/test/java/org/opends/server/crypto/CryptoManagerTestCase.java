@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.crypto;
 
@@ -73,13 +73,13 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class CryptoManagerTestCase extends CryptoTestCase {
 
-  @BeforeClass()
+  @BeforeClass
   public void setUp()
          throws Exception {
     TestCaseUtils.startServer();
   }
 
-  @AfterClass()
+  @AfterClass
   public void CleanUp() throws Exception {
     // Removes at least secret keys added in this test case.
     TestCaseUtils.restartServer();
@@ -302,7 +302,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
    @throws Exception  In case an error occurs in the encryption routine.
    */
-  @Test()
+  @Test
   public void testKeyPersistence()
         throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
@@ -333,7 +333,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
 
    @throws Exception In case something exceptional happens.
    */
-  @Test()
+  @Test
   public void testCompromisedKey() throws Exception {
     final CryptoManager cm = DirectoryServer.getCryptoManager();
     final String secretMessage = "zyxwvutsrqponmlkjihgfedcba";

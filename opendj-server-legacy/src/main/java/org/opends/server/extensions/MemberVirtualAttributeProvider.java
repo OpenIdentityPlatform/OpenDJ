@@ -83,7 +83,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeVirtualAttributeProvider(
                             MemberVirtualAttributeCfg configuration)
          throws ConfigException, InitializationException
@@ -97,7 +97,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return true;
@@ -108,7 +108,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     if (! currentConfig.isAllowRetrievingMembership())
@@ -159,7 +159,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     Group<?> g =
@@ -205,7 +205,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     Group<?> g =
@@ -232,7 +232,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
                                           ByteString subInitial,
@@ -248,7 +248,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -262,7 +262,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -276,7 +276,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -290,7 +290,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -303,7 +303,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {

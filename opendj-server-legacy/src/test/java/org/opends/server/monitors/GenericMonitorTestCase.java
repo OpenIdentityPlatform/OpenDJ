@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.monitors;
 
@@ -96,7 +96,7 @@ public abstract class GenericMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testInitialization()
          throws Exception
   {
@@ -111,7 +111,7 @@ public abstract class GenericMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMonitorInstanceName()
          throws Exception
   {
@@ -125,7 +125,7 @@ public abstract class GenericMonitorTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetMonitorData()
          throws Exception
   {

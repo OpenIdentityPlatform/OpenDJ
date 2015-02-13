@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -71,7 +71,7 @@ public class AnonymousSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeSASLMechanismHandler(AnonymousSASLMechanismHandlerCfg
                                                   configuration)
          throws ConfigException, InitializationException
@@ -87,7 +87,7 @@ public class AnonymousSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeSASLMechanismHandler()
   {
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_ANONYMOUS);
@@ -99,7 +99,7 @@ public class AnonymousSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSASLBind(BindOperation bindOperation)
   {
     // See if the client provided SASL credentials including trace information.
@@ -131,7 +131,7 @@ public class AnonymousSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isPasswordBased(String mechanism)
   {
     // This is not a password-based mechanism.
@@ -143,7 +143,7 @@ public class AnonymousSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSecure(String mechanism)
   {
     // This is not a secure mechanism.

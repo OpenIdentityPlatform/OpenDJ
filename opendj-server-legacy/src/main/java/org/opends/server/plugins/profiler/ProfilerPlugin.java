@@ -121,7 +121,7 @@ public final class ProfilerPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      ProfilerPluginCfg configuration)
          throws ConfigException
@@ -164,7 +164,7 @@ public final class ProfilerPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     currentConfig.removeProfilerChangeListener(this);
@@ -199,7 +199,7 @@ public final class ProfilerPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.Startup doStartup()
   {
     ProfilerPluginCfg config = currentConfig;
@@ -219,7 +219,7 @@ public final class ProfilerPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

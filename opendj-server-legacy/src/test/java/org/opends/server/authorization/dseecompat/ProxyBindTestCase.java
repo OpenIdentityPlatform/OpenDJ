@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 
 /**
@@ -165,7 +165,7 @@ public class ProxyBindTestCase extends AciTestCase {
      *
      * @throws Exception If an error occurs.
      */
-    @Test()
+    @Test
     public void testAci() throws Exception {
         Hashtable<String, String> env = new Hashtable<String, String>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, factory);
@@ -211,7 +211,7 @@ public class ProxyBindTestCase extends AciTestCase {
      *
      * @throws Exception If an error occurs.
      */
-    @Test()
+    @Test
     public void testBypass() throws Exception {
         Hashtable<String, String> env = new Hashtable<String, String>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, factory);

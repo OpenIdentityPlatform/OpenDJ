@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -58,7 +58,7 @@ class DefaultAccessControlHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeAccessControlHandler(AccessControlHandlerCfg
                                                   configuration)
       throws ConfigException, InitializationException
@@ -71,7 +71,7 @@ class DefaultAccessControlHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeAccessControlHandler()
   {
     // No implementation required.

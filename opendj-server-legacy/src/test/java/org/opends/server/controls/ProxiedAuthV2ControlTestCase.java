@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -56,7 +56,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -79,7 +79,7 @@ public class ProxiedAuthV2ControlTestCase
   /**
    * Tests the constructor with an empty authorization ID.
    */
-  @Test()
+  @Test
   public void testConstructorEmptyAuthzID()
   {
     ProxiedAuthV2Control proxyControl =
@@ -93,7 +93,7 @@ public class ProxiedAuthV2ControlTestCase
    * Tests the constructor with a non-empty authorization ID using the "dn:"
    * form.
    */
-  @Test()
+  @Test
   public void testConstructorNonEmptyAuthzIDDN()
   {
     ProxiedAuthV2Control proxyControl =
@@ -108,7 +108,7 @@ public class ProxiedAuthV2ControlTestCase
    * Tests the constructor with a non-empty authorization ID using the "u:"
    * form.
    */
-  @Test()
+  @Test
   public void testConstructorNonEmptyAuthzIDUsername()
   {
     ProxiedAuthV2Control proxyControl =
@@ -158,7 +158,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeControlDNValue()
          throws Exception
   {
@@ -177,7 +177,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeControlUsernameValue()
          throws Exception
   {
@@ -216,7 +216,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeControlLegacyDNValue()
          throws Exception
   {
@@ -240,7 +240,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeControlLegacyUsernameValue()
          throws Exception
   {
@@ -263,7 +263,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidatedAuthorizationDNEmptyAuthzID()
          throws Exception
   {
@@ -280,7 +280,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidatedAuthorizationDNEmptyAuthzIDDN()
          throws Exception
   {
@@ -297,7 +297,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidatedAuthorizationDNExistingUserDN()
          throws Exception
   {
@@ -377,7 +377,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidatedAuthorizationDNEmptyAuthzIDUsername()
          throws Exception
   {
@@ -394,7 +394,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidatedAuthorizationDNExistingUserUsername()
          throws Exception
   {
@@ -490,7 +490,7 @@ public class ProxiedAuthV2ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testToString()
          throws Exception
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -56,7 +56,7 @@ public class SubentryPasswordPolicyTestCase
   private static final String SUFFIX = "dc=example,dc=com";
   private static final String BASE = "ou=People," + SUFFIX;
 
-  @BeforeClass()
+  @BeforeClass
   public void setUp() throws Exception
   {
     TestCaseUtils.startServer();
@@ -248,7 +248,7 @@ public class SubentryPasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidConfiguration()
          throws Exception
   {
@@ -337,7 +337,7 @@ public class SubentryPasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidConfigurationWithValidator()
       throws Exception
   {
@@ -406,7 +406,7 @@ public class SubentryPasswordPolicyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPasswordPolicySubentryAttribute()
          throws Exception
   {

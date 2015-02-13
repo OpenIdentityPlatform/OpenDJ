@@ -79,7 +79,7 @@ import java.lang.annotation.Target;
  * annotation, then it should be assumed the package is private and
  * should not be used by third-party code.
  */
-@Documented()
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PACKAGE,
           ElementType.TYPE,

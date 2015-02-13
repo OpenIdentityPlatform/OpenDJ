@@ -164,7 +164,7 @@ public final class LDAPADListPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                          LDAPAttributeDescriptionListPluginCfg configuration)
          throws ConfigException
@@ -198,7 +198,7 @@ public final class LDAPADListPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     currentConfig.removeLDAPAttributeDescriptionListChangeListener(this);
@@ -209,7 +209,7 @@ public final class LDAPADListPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreParse doPreParse(
       PreParseSearchOperation searchOperation)
   {
@@ -223,7 +223,7 @@ public final class LDAPADListPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

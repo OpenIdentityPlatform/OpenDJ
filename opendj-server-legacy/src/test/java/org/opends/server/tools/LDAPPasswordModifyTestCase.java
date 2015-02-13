@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -64,7 +65,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServerAndCreatePasswordFiles()
          throws Exception
   {
@@ -359,7 +360,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSelfChangeCurrentPasswordNewPassword()
          throws Exception
   {
@@ -390,7 +391,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSelfChangeNoCurrentPasswordNewPassword()
          throws Exception
   {
@@ -420,7 +421,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSelfChangeCurrentPasswordNoNewPassword()
          throws Exception
   {
@@ -450,7 +451,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSelfChangeNoCurrentPasswordNoNewPassword()
          throws Exception
   {
@@ -479,7 +480,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAuthenticatedSelfExplicitAuthzIDCurrentNew()
          throws Exception
   {
@@ -511,7 +512,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAuthenticatedSelfImplicitAuthzIDCurrentNew()
          throws Exception
   {
@@ -544,7 +545,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAuthenticatedSelfImplicitAuthzIDNoCurrentNew()
          throws Exception
   {
@@ -575,7 +576,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUnauthenticatedSelfChangeNewPassword()
          throws Exception
   {
@@ -605,7 +606,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUnauthenticatedSelfChangeNoNewPassword()
          throws Exception
   {
@@ -633,7 +634,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAdminResetNewPassword()
          throws Exception
   {
@@ -663,7 +664,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAdminResetNoNewPassword()
          throws Exception
   {
@@ -692,7 +693,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLBlindTrust()
          throws Exception
   {
@@ -723,7 +724,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLTrustStore()
          throws Exception
   {
@@ -758,7 +759,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSBlindTrust()
          throws Exception
   {
@@ -790,7 +791,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSTrustStore()
          throws Exception
   {
@@ -825,7 +826,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testBindAndNewPasswordsFromFile()
          throws Exception
   {
@@ -856,7 +857,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCurrentAndNewPasswordsFromFile()
          throws Exception
   {
@@ -886,7 +887,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testResetWithInvalidAuthzDN()
          throws Exception
   {
@@ -915,7 +916,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testResetOnNonExistentUser()
          throws Exception
   {
@@ -945,7 +946,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testResetOnDisabledUser()
          throws Exception
   {
@@ -988,7 +989,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUnsupportedCriticalControl()
          throws Exception
   {
@@ -1020,7 +1021,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPNoOpExplicitOID()
          throws Exception
   {
@@ -1052,7 +1053,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPNoOpImplicitOID()
          throws Exception
   {
@@ -1084,7 +1085,7 @@ public class LDAPPasswordModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPMultipleControls()
          throws Exception
   {
@@ -1114,7 +1115,7 @@ public class LDAPPasswordModifyTestCase
   /**
    * Tests the LDAPModify tool with the "--help" option.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--help" };

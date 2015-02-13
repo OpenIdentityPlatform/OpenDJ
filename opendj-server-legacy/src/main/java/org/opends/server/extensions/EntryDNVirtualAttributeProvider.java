@@ -63,14 +63,14 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     String dnString = entry.getName().toString();
@@ -78,7 +78,7 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     // This virtual attribute provider will always generate a value.
@@ -86,7 +86,7 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     try
@@ -105,7 +105,7 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
                                           ByteString subInitial,
@@ -117,7 +117,7 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -127,7 +127,7 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -137,7 +137,7 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -161,7 +161,7 @@ public class EntryDNVirtualAttributeProvider
    * </UL>
    * This virtual attribute also can be optimized as pre-indexed.
    */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -229,7 +229,7 @@ public class EntryDNVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {

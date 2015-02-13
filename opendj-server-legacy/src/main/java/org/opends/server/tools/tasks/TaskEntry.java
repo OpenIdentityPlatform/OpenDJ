@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.tasks;
 
@@ -174,7 +174,7 @@ public class TaskEntry {
    *
    * @return  The hash code for this task entry.
    */
-  @Override()
+  @Override
   public int hashCode()
   {
     return hashCode;
@@ -183,7 +183,7 @@ public class TaskEntry {
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)

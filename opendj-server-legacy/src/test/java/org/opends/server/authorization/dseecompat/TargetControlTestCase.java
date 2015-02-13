@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -229,7 +229,7 @@ public class TargetControlTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-  @Test()
+  @Test
   public void testTargetattrSideEffect() throws Exception {
    String pwdLdifs =
         makeAddLDIF("aci", peopleBase, complicated);
@@ -247,7 +247,7 @@ public class TargetControlTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-   @Test()
+   @Test
   public void testExtendOpControls() throws Exception {
    String pwdLdifs =
         makeAddLDIF("aci", peopleBase, extOpControls, extOpAll, ALLOW_ALL);
@@ -269,7 +269,7 @@ public class TargetControlTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-   @Test()
+   @Test
   public void testBindControl() throws Exception {
     String pwdLdifs =
             makeAddLDIF("aci", peopleBase, pwdControls, ALLOW_ALL);
@@ -300,7 +300,7 @@ public class TargetControlTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result happens.
    */
-  @Test()
+  @Test
   public void testGlobalTargets() throws Exception {
     String globalControlAcis=
             makeAddLDIF(ATTR_AUTHZ_GLOBAL_ACI, ACCESS_HANDLER_DN,
@@ -342,7 +342,7 @@ public class TargetControlTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result happens.
    */
-  @Test()
+  @Test
   public void testWildCard() throws Exception {
     String aciDeny=makeAddLDIF("aci", base, controlNotWC);
     String aciRight=makeAddLDIF("aci", base, aclRightsAci);

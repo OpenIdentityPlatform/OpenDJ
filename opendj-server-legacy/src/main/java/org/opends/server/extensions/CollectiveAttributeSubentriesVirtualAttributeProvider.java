@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -61,14 +61,14 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
 
@@ -91,7 +91,7 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -100,7 +100,7 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {

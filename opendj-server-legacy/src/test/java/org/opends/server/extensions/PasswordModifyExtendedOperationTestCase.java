@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -64,7 +64,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -162,7 +162,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsRootImplicitSelfWithOldPassword()
          throws Exception
   {
@@ -218,7 +218,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsRootExplicitSelfWithOldPassword()
          throws Exception
   {
@@ -276,7 +276,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsAnonymousExplicitRootWithOldPassword()
          throws Exception
   {
@@ -330,7 +330,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsUserImplicitSelfWithOldPasswordWithNewPassword()
          throws Exception
   {
@@ -385,7 +385,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsUserImplicitSelfNoOldPasswordWithNewPassword()
          throws Exception
   {
@@ -439,7 +439,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsUserImplicitSelfNoOldPasswordNoNewPassword()
          throws Exception
   {
@@ -485,7 +485,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsUserExplicitDNColonSelfNoOldPasswordWithNewPassword()
          throws Exception
   {
@@ -540,7 +540,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsUserExplicitUColonSelfNoOldPasswordWithNewPassword()
          throws Exception
   {
@@ -595,7 +595,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsUserExplicitDNSelfNoOldPasswordWithNewPassword()
          throws Exception
   {
@@ -650,7 +650,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsUserExplicitUSelfNoOldPasswordWithNewPassword()
          throws Exception
   {
@@ -705,7 +705,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsExplicitDNColonAnonymousWithOldPasswordWithNewPassword()
          throws Exception
   {
@@ -758,7 +758,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAsExplicitUColonAnonymousWithOldPasswordWithNewPassword()
          throws Exception
   {
@@ -811,7 +811,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testRootPasswordResetNoCurrentPasswordWithNewPassword()
          throws Exception
   {
@@ -859,7 +859,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureDNColonNoSuchUser()
          throws Exception
   {
@@ -890,7 +890,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureDNColonMalformedDN()
          throws Exception
   {
@@ -922,7 +922,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureDNColonNoSuchBaseDN()
          throws Exception
   {
@@ -953,7 +953,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureUColonNoSuchUser()
          throws Exception
   {
@@ -985,7 +985,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureUColonNoSuchUserWithCurrentPassword()
          throws Exception
   {
@@ -1017,7 +1017,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureMalformedAuthZID()
          throws Exception
   {
@@ -1048,7 +1048,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureWrongCurrentPassword()
          throws Exception
   {
@@ -1091,7 +1091,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAllowPreEncoded()
          throws Exception
   {
@@ -1151,7 +1151,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailurePreEncodedNewPassword()
          throws Exception
   {
@@ -1202,7 +1202,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailurePreEncodedNewPasswordWithCurrentPassword()
          throws Exception
   {
@@ -1249,7 +1249,7 @@ public class PasswordModifyExtendedOperationTestCase
    * Tests the password modify extended operation over an internal connection
    * with a request whose value isn't a valid encoded sequence.
    */
-  @Test()
+  @Test
   public void testFailureInvalidRequestValueFormat()
   {
     ByteString requestValue = ByteString.valueOf("malformed");
@@ -1268,7 +1268,7 @@ public class PasswordModifyExtendedOperationTestCase
    * Tests the password modify extended operation over an internal connection
    * with a request that contain an invalid sequence element type.
    */
-  @Test()
+  @Test
   public void testFailureInvalidSequenceElementType() throws Exception
   {
     ByteStringBuilder builder = new ByteStringBuilder();
@@ -1292,7 +1292,7 @@ public class PasswordModifyExtendedOperationTestCase
    * Tests the password modify extended operation over an unauthenticated
    * internal connection and without providing an authorization ID.
    */
-  @Test()
+  @Test
   public void testFailureCompletelyAnonymous() throws Exception
   {
     ByteStringBuilder builder = new ByteStringBuilder();
@@ -1319,7 +1319,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureRejectUserPasswordChanges()
          throws Exception
   {
@@ -1378,7 +1378,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureRejectUserPasswordChangesWithCurrentPassword()
          throws Exception
   {
@@ -1438,7 +1438,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureRequireCurrentPassword()
          throws Exception
   {
@@ -1497,7 +1497,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureRequireSecureAuthentication()
          throws Exception
   {
@@ -1556,7 +1556,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureRequireSecurePasswordChanges()
          throws Exception
   {
@@ -1615,7 +1615,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureRequireSecurePasswordChangesWithCurrentPassword()
          throws Exception
   {
@@ -1675,7 +1675,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureWithinMinAge()
          throws Exception
   {
@@ -1733,7 +1733,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureWithinMinAgeWithCurrentPassword()
          throws Exception
   {
@@ -1793,7 +1793,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureExpiredChangesNotAllowed()
          throws Exception
   {
@@ -1863,7 +1863,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testExpiredChangesAllowed()
          throws Exception
   {
@@ -1941,7 +1941,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureNoPasswordNoGenerator()
          throws Exception
   {
@@ -2001,7 +2001,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureNoPasswordNoGeneratorWithPassword()
          throws Exception
   {
@@ -2060,7 +2060,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureValidatorReject()
          throws Exception
   {
@@ -2120,7 +2120,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testFailureValidatorRejectWithCurrentPassword()
          throws Exception
   {
@@ -2181,7 +2181,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAllowMultiplePasswords()
          throws Exception
   {
@@ -2246,7 +2246,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testAllowMultipleAuthPasswords()
          throws Exception
   {
@@ -2312,7 +2312,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testUpdateLastLoginTime()
          throws Exception
   {
@@ -2395,7 +2395,7 @@ public class PasswordModifyExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected error occurs.
    */
-  @Test()
+  @Test
   public void testUpdateAuthFailureTimes()
          throws Exception
   {

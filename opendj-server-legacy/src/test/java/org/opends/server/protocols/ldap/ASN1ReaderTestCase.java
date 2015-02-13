@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -188,7 +188,7 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeZeroLengthArrayAsNull()
       throws Exception
   {
@@ -204,7 +204,7 @@ public abstract class ASN1ReaderTestCase extends DirectoryServerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeExtendedZeroLengthArrayAsNull()
       throws Exception
   {

@@ -367,7 +367,7 @@ public final class JmxConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

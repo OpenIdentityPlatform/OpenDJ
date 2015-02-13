@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -694,7 +694,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     }
 
     /** {@inheritDoc} */
-    @Override()
+    @Override
     public void initializePasswordValidator(PasswordValidatorCfg configuration)
         throws ConfigException, InitializationException
     {
@@ -702,7 +702,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     }
 
     /** {@inheritDoc} */
-    @Override()
+    @Override
     public boolean passwordIsAcceptable(ByteString newPassword,
                                         Set<ByteString> currentPasswords,
                                         Operation operation, Entry userEntry,

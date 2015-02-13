@@ -70,7 +70,7 @@ public class LengthBasedPasswordValidator extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordValidator(
                    LengthBasedPasswordValidatorCfg configuration)
          throws ConfigException, InitializationException
@@ -96,7 +96,7 @@ public class LengthBasedPasswordValidator extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeLengthBasedChangeListener(this);
@@ -107,7 +107,7 @@ public class LengthBasedPasswordValidator extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
@@ -139,7 +139,7 @@ public class LengthBasedPasswordValidator extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

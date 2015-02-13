@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -298,7 +298,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
@@ -312,7 +312,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * with the default configuration settings for
    * "ds-cfg-reject-unauthenticated-requests".
    */
-  @Test()
+  @Test
   public void testAuthSearchDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
@@ -345,7 +345,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * with the default configuration settings for
    * "ds-cfg-reject-unauthenticated-requests".
    */
-  @Test()
+  @Test
   public void testUnauthSearchDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
@@ -374,7 +374,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * the default configuration settings for
    * "ds-cfg-reject-unauthenticated-requests" .
    */
-  @Test()
+  @Test
   public void testAuthBindDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
@@ -394,7 +394,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * with the default configuration settings for
    * "ds-cfg-reject-unauthenticated-requests".
    */
-  @Test()
+  @Test
   public void testUnauthBindDefCfg()
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
@@ -415,7 +415,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAuthWAIDefCfg() throws Exception
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
@@ -449,7 +449,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUnauthWAIDefCfg() throws Exception
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
@@ -480,7 +480,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSUnauthDefCfg() throws Exception
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);
@@ -516,7 +516,7 @@ public class RejectUnauthReqTests extends CoreTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testOtherOpsAuthDefCfg() throws Exception
   {
     DirectoryServer.setRejectUnauthenticatedRequests(false);

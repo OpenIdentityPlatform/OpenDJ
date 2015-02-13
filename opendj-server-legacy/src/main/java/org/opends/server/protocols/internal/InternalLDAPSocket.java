@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -192,7 +192,7 @@ public final class InternalLDAPSocket
    *
    * @param  bindpoint  The socket address to which to bind.
    */
-  @Override()
+  @Override
   public void bind(SocketAddress bindpoint)
   {
     // No implementation is required.
@@ -203,7 +203,7 @@ public final class InternalLDAPSocket
   /**
    * Closes this socket.  This will make it unavailable for use.
    */
-  @Override()
+  @Override
   public synchronized void close()
   {
     try
@@ -231,7 +231,7 @@ public final class InternalLDAPSocket
    *
    * @param  endpoint  The address of the remote endpoint.
    */
-  @Override()
+  @Override
   public synchronized void connect(SocketAddress endpoint)
   {
     closed       = false;
@@ -250,7 +250,7 @@ public final class InternalLDAPSocket
    * @param  timeout   The maximum length of time in milliseconds to
    *                   wait for the connection to be established.
    */
-  @Override()
+  @Override
   public void connect(SocketAddress endpoint, int timeout)
   {
     closed       = false;
@@ -268,7 +268,7 @@ public final class InternalLDAPSocket
    * @return  {@code null} because this implementation does not
    *          support use with NIO channels.
    */
-  @Override()
+  @Override
   public SocketChannel getChannel()
   {
     // This implementation does not support use with NIO channels.
@@ -284,7 +284,7 @@ public final class InternalLDAPSocket
    *
    * @return The address to which this socket is connected.
    */
-  @Override()
+  @Override
   public InetAddress getInetAddress()
   {
     try
@@ -305,7 +305,7 @@ public final class InternalLDAPSocket
    *
    * @return  The input stream for this socket.
    */
-  @Override()
+  @Override
   public InternalLDAPInputStream getInputStream()
   {
     return inputStream;
@@ -322,7 +322,7 @@ public final class InternalLDAPSocket
    * @return  {@code true} if SO_KEEPALIVE is enabled, or
    *          {@code false} if not.
    */
-  @Override()
+  @Override
   public boolean getKeepAlive()
   {
     return keepAlive;
@@ -337,7 +337,7 @@ public final class InternalLDAPSocket
    *
    * @return The local address to which this socket is bound.
    */
-  @Override()
+  @Override
   public InetAddress getLocalAddress()
   {
     try
@@ -360,7 +360,7 @@ public final class InternalLDAPSocket
    *
    * @return  The local port to which this socket is bound.
    */
-  @Override()
+  @Override
   public int getLocalPort()
   {
     return 389;
@@ -375,7 +375,7 @@ public final class InternalLDAPSocket
    *
    * @return  The local socket address to which this socket is bound.
    */
-  @Override()
+  @Override
   public SocketAddress getLocalSocketAddress()
   {
     try
@@ -400,7 +400,7 @@ public final class InternalLDAPSocket
    * @return  {@code true} if OOBINLINE is enabled, or {@code false}
    *          if it is not.
    */
-  @Override()
+  @Override
   public boolean getOOBInline()
   {
     return oobInline;
@@ -413,7 +413,7 @@ public final class InternalLDAPSocket
    *
    * @return  The output stream for this socket.
    */
-  @Override()
+  @Override
   public InternalLDAPOutputStream getOutputStream()
   {
     return outputStream;
@@ -428,7 +428,7 @@ public final class InternalLDAPSocket
    *
    * @return  The remote port to which this socket is connected.
    */
-  @Override()
+  @Override
   public int getPort()
   {
     return 389;
@@ -443,7 +443,7 @@ public final class InternalLDAPSocket
    *
    * @return  The value of the SO_RCVBUF option for this socket.
    */
-  @Override()
+  @Override
   public int getReceiveBufferSize()
   {
     return receiveBufferSize;
@@ -460,7 +460,7 @@ public final class InternalLDAPSocket
    * @return  The remote socket address to which this socket is
    *          connected.
    */
-  @Override()
+  @Override
   public SocketAddress getRemoteSocketAddress()
   {
     try
@@ -485,7 +485,7 @@ public final class InternalLDAPSocket
    * @return  {@code true} if SO_REUSEADDR is enabled, or
    *          {@code false} if it is not.
    */
-  @Override()
+  @Override
   public boolean getReuseAddress()
   {
     return reuseAddress;
@@ -500,7 +500,7 @@ public final class InternalLDAPSocket
    *
    * @return  The value of the SO_SNDBUF option for this socket.
    */
-  @Override()
+  @Override
   public int getSendBufferSize()
   {
     return sendBufferSize;
@@ -515,7 +515,7 @@ public final class InternalLDAPSocket
    *
    * @return  The value of the SO_LINGER option for this socket.
    */
-  @Override()
+  @Override
   public int getSoLinger()
   {
     return lingerDuration;
@@ -530,7 +530,7 @@ public final class InternalLDAPSocket
    *
    * @return  The value of the SO_TIMEOUT option for this socket.
    */
-  @Override()
+  @Override
   public int getSoTimeout()
   {
     return timeout;
@@ -547,7 +547,7 @@ public final class InternalLDAPSocket
    * @return  {@code true} if TCP_NODELAY is enabled, or {@code false}
    *          if it is not.
    */
-  @Override()
+  @Override
   public boolean getTcpNoDelay()
   {
     return tcpNoDelay;
@@ -562,7 +562,7 @@ public final class InternalLDAPSocket
    *
    * @return  The traffic class for this socket.
    */
-  @Override()
+  @Override
   public int getTrafficClass()
   {
     return trafficClass;
@@ -578,7 +578,7 @@ public final class InternalLDAPSocket
    * @return  {@code true} to indicate that the socket is bound to a
    *          local address.
    */
-  @Override()
+  @Override
   public boolean isBound()
   {
     return true;
@@ -592,7 +592,7 @@ public final class InternalLDAPSocket
    *
    * @return  {@code false} to indicate that the socket is not closed.
    */
-  @Override()
+  @Override
   public boolean isClosed()
   {
     return closed;
@@ -607,7 +607,7 @@ public final class InternalLDAPSocket
    *
    * @return  {@code true} to indicate that the socket is connected.
    */
-  @Override()
+  @Override
   public boolean isConnected()
   {
     return (! closed);
@@ -623,7 +623,7 @@ public final class InternalLDAPSocket
    * @return  {@code false} to indicate that the input side of this
    *          socket is not closed.
    */
-  @Override()
+  @Override
   public boolean isInputShutdown()
   {
     return closed;
@@ -639,7 +639,7 @@ public final class InternalLDAPSocket
    * @return  {@code false} to indicate that the output side of this
    *          socket is not closed.
    */
-  @Override()
+  @Override
   public boolean isOutputShutdown()
   {
     return closed;
@@ -655,7 +655,7 @@ public final class InternalLDAPSocket
    * @throws  IOException  If a problem occurs while trying to write
    *                       the provided data over this socket.
    */
-  @Override()
+  @Override
   public void sendUrgentData(int data)
          throws IOException
   {
@@ -671,7 +671,7 @@ public final class InternalLDAPSocket
    *
    * @param  on  The value to use for the SO_KEEPALIVE option.
    */
-  @Override()
+  @Override
   public void setKeepAlive(boolean on)
   {
     keepAlive = on;
@@ -686,7 +686,7 @@ public final class InternalLDAPSocket
    *
    * @param  on  The value to use for the OOBINLINE option.
    */
-  @Override()
+  @Override
   public void setOOBInline(boolean on)
   {
     oobInline = on;
@@ -706,7 +706,7 @@ public final class InternalLDAPSocket
    * @param  bandwidth       An {@code int} expressing the relative
    *                         importance of high bandwidth.
    */
-  @Override()
+  @Override
   public void setPerformancePreferences(int connectionTime,
                                         int latency, int bandwidth)
   {
@@ -722,7 +722,7 @@ public final class InternalLDAPSocket
    *
    * @param  size  The value to use for the SO_RCVBUF option.
    */
-  @Override()
+  @Override
   public void setReceiveBufferSize(int size)
   {
     receiveBufferSize = size;
@@ -737,7 +737,7 @@ public final class InternalLDAPSocket
    *
    * @param  on  The value to use for the SO_REUSEADDR option.
    */
-  @Override()
+  @Override
   public void setReuseAddress(boolean on)
   {
     reuseAddress = on;
@@ -752,7 +752,7 @@ public final class InternalLDAPSocket
    *
    * @param  size  The value to use for the SO_SNDBUF option.
    */
-  @Override()
+  @Override
   public void setSendBufferSize(int size)
   {
     sendBufferSize = size;
@@ -769,7 +769,7 @@ public final class InternalLDAPSocket
    * @param  linger  The length of time in milliseconds to allow the
    *                 connection to linger.
    */
-  @Override()
+  @Override
   public void setSoLinger(boolean on, int linger)
   {
     lingerDuration = linger;
@@ -784,7 +784,7 @@ public final class InternalLDAPSocket
    *
    * @param  timeout  The value to use for the SO_TIMEOUT option.
    */
-  @Override()
+  @Override
   public void setSoTimeout(int timeout)
   {
     this.timeout = timeout;
@@ -799,7 +799,7 @@ public final class InternalLDAPSocket
    *
    * @param  on  The value to use for the TCP_NODELAY option.
    */
-  @Override()
+  @Override
   public void setTcpNoDelay(boolean on)
   {
     tcpNoDelay = on;
@@ -814,7 +814,7 @@ public final class InternalLDAPSocket
    *
    * @param  tc  The value to use for the traffic class.
    */
-  @Override()
+  @Override
   public void setTrafficClass(int tc)
   {
     trafficClass = tc;
@@ -826,7 +826,7 @@ public final class InternalLDAPSocket
    * Shuts down the input side of this socket.  This will have the
    * effect of closing the entire socket.
    */
-  @Override()
+  @Override
   public void shutdownInput()
   {
     close();
@@ -838,7 +838,7 @@ public final class InternalLDAPSocket
    * Shuts down the output side of this socket.  This will have the
    * effect of closing the entire socket.
    */
-  @Override()
+  @Override
   public void shutdownOutput()
   {
     close();
@@ -851,7 +851,7 @@ public final class InternalLDAPSocket
    *
    * @return  A string representation of this internal LDAP socket.
    */
-  @Override()
+  @Override
   public String toString()
   {
     return "InternalLDAPSocket";

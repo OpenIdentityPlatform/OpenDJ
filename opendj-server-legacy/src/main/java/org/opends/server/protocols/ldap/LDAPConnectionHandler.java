@@ -787,7 +787,7 @@ public final class LDAPConnectionHandler extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {

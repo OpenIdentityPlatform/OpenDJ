@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014-2015 ForgeRock AS.
  *
  */
 package org.opends.server.schema;
@@ -69,7 +69,7 @@ public class GenericSchemaTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void setUp()
          throws Exception
   {
@@ -82,7 +82,7 @@ public class GenericSchemaTestCase
    * Tests to ensure that all attribute syntaxes defined in the schema have
    * valid OIDs.
    */
-  @Test()
+  @Test
   public void testEnsureValidSyntaxOIDs()
   {
     TreeSet<String> invalidOIDs = new TreeSet<String>();
@@ -120,7 +120,7 @@ public class GenericSchemaTestCase
    * Tests to ensure that all matching rules defined in the schema have valid
    * OIDs.
    */
-  @Test()
+  @Test
   public void testEnsureValidMatchingRuleOIDs()
   {
     TreeSet<String> invalidOIDs = new TreeSet<String>();
@@ -160,7 +160,7 @@ public class GenericSchemaTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEnsureValidAttributeTypeOIDs()
          throws Exception
   {
@@ -237,7 +237,7 @@ public class GenericSchemaTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEnsureValidObjectClassOIDs()
          throws Exception
   {
@@ -313,7 +313,7 @@ public class GenericSchemaTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEnsureValidNameFormOIDs()
          throws Exception
   {

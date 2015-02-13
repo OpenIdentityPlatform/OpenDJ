@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -58,7 +58,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void before()
          throws Exception
   {
@@ -83,7 +83,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
    * Ensures ADS is removed.
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass
   public void afterClass()
          throws Exception
   {
@@ -92,7 +92,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   /**
    * Tests list-list-connection-handlers with a malformed bind DN.
    */
-  @Test()
+  @Test
   public void testMalformedBindDN()
   {
     String[] args =
@@ -113,7 +113,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   /**
    * Tests list-connection-handlers with a nonexistent bind DN.
    */
-  @Test()
+  @Test
   public void testNonExistentBindDN()
   {
     String[] args =
@@ -135,7 +135,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
    *  --bindPassword and the --bindPasswordFile arguments can not be provided 
    *  together.
    */
-  @Test()
+  @Test
   public void testConflictualArgumentsPasswordAndFilePassword()
   {
     String[] args =
@@ -158,7 +158,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
    *  Quiet mode and verbose arguments can not be provided 
    *  together.
    */
-  @Test()
+  @Test
   public void testConflictualArgumentsQuietAndVerbose()
   {
     String[] args =
@@ -180,7 +180,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   /**
    * Tests list-connection-handlers with an invalid password.
    */
-  @Test()
+  @Test
   public void testInvalidBindPassword()
   {
     String[] args =
@@ -201,7 +201,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   /**
    * Tests list-connection-handlers with an valid password.
    */
-  @Test()
+  @Test
   public void testValidBindPassword()
   {
     String[] args =
@@ -225,7 +225,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidPasswordFromFile()
          throws Exception
   {
@@ -249,7 +249,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testInvalidPasswordFromFile()
          throws Exception
   {
@@ -271,7 +271,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   /**
    * Tests list-connection-handlers over SSL using a trust store.
    */
-  @Test()
+  @Test
   public void testListConnectionHandlersSSLTrustStore()
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
@@ -296,7 +296,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   /**
    * Tests the dsconfig with the "--help" option.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--noPropertiesFile", "--help" };

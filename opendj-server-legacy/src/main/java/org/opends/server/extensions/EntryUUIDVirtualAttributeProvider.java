@@ -70,14 +70,14 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     return Attributes.create(rule.getAttributeType(), getUUIDString(entry));
@@ -90,7 +90,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     // This virtual attribute provider will always generate a value.
@@ -98,7 +98,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     MatchingRule matchingRule = rule.getAttributeType().getEqualityMatchingRule();
@@ -116,7 +116,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
                                           ByteString subInitial,
@@ -128,7 +128,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -138,7 +138,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -148,7 +148,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -158,7 +158,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -167,7 +167,7 @@ public class EntryUUIDVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -70,7 +70,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -189,7 +189,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingDefaultConfig()
          throws Exception
   {
@@ -249,7 +249,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingSHA1()
          throws Exception
   {
@@ -312,7 +312,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingNoMatchingEntries()
          throws Exception
   {
@@ -370,7 +370,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingMultipleMatchingEntries()
          throws Exception
   {
@@ -444,7 +444,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveFingerprintAttribute()
          throws Exception
   {
@@ -472,7 +472,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveFingerprintAlgorithm()
          throws Exception
   {
@@ -690,7 +690,7 @@ public class FingerprintCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPrivilegeWithSuccessfulMappingDefaultConfig()
          throws Exception
   {

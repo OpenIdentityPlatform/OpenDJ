@@ -129,7 +129,7 @@ public final class FractionalLDIFImportPlugin
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
     FractionalLDIFImportPluginCfg configuration)
     throws ConfigException
@@ -151,7 +151,7 @@ public final class FractionalLDIFImportPlugin
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     // Nothing to do
@@ -213,7 +213,7 @@ public final class FractionalLDIFImportPlugin
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public final void doLDIFImportEnd(LDIFImportConfig importConfig)
   {
     // Remove the cookie of this import session
@@ -227,7 +227,7 @@ public final class FractionalLDIFImportPlugin
    * See class comment for what we achieve here...
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.ImportLDIF doLDIFImport(
     LDIFImportConfig importConfig, Entry entry)
   {
@@ -478,7 +478,7 @@ public final class FractionalLDIFImportPlugin
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
     List<LocalizableMessage> unacceptableReasons)
   {

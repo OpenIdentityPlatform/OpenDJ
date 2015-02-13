@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -45,7 +45,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
    * Tests the applyConfigurationChange method of the ReplicationServer
    * class.
    */
-  @Test()
+  @Test
   public void replServerApplyChangeTest() throws Exception
   {
     TestCaseUtils.startServer();

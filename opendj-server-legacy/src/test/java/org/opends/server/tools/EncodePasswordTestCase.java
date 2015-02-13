@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -65,7 +66,7 @@ public class EncodePasswordTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -228,7 +229,7 @@ public class EncodePasswordTestCase
   /**
    * Tests the EncodePassword tool with the --listSchemes argument.
    */
-  @Test()
+  @Test
   public void testListSchemes()
   {
     String[] args =
@@ -246,7 +247,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --listSchemes and
    * --authPasswordSyntax arguments.
    */
-  @Test()
+  @Test
   public void testListAuthSchemes()
   {
     String[] args =
@@ -265,7 +266,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --clearPassword and --storageScheme
    * arguments.
    */
-  @Test()
+  @Test
   public void testEncodeClearPassword()
   {
     String[] args =
@@ -284,7 +285,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --clearPassword, --storageScheme,
    * and --authPasswordSyntax arguments.
    */
-  @Test()
+  @Test
   public void testEncodeClearAuthPassword()
   {
     String[] args =
@@ -304,7 +305,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --clearPasswordFile and
    * --storageScheme arguments.
    */
-  @Test()
+  @Test
   public void testEncodeClearPasswordFromFile()
   {
     String[] args =
@@ -323,7 +324,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --clearPasswordFile, --storageScheme,
    * and --authPasswordSyntax arguments.
    */
-  @Test()
+  @Test
   public void testEncodeClearAuthPasswordFromFile()
   {
     String[] args =
@@ -343,7 +344,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --clearPassword and --storageScheme
    * arguments using an invalid storage scheme.
    */
-  @Test()
+  @Test
   public void testEncodeClearPasswordWithInvalidScheme()
   {
     String[] args =
@@ -362,7 +363,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --clearPassword, --storageScheme,
    * and --authPasswordSyntax arguments using an invalid storage scheme.
    */
-  @Test()
+  @Test
   public void testEncodeClearPasswordWithInvalidAuthScheme()
   {
     String[] args =
@@ -382,7 +383,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool with the --clearPasswordFile and
    * --storageScheme arguments using an a password file that doesn't exist.
    */
-  @Test()
+  @Test
   public void testEncodeClearPasswordFromMissingFile()
   {
     String[] args =
@@ -402,7 +403,7 @@ public class EncodePasswordTestCase
    * --storageScheme, and --authPasswordSyntax arguments using an a password
    * file that doesn't exist.
    */
-  @Test()
+  @Test
   public void testEncodeClearAuthPasswordFromMissingFile()
   {
     String[] args =
@@ -422,7 +423,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a valid matching encoded password.
    */
-  @Test()
+  @Test
   public void testCompareMatchingPasswordsNoScheme()
   {
     String[] args =
@@ -441,7 +442,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a valid matching encoded password.
    */
-  @Test()
+  @Test
   public void testCompareMatchingPasswordsWithScheme()
   {
     String[] args =
@@ -461,7 +462,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a valid matching encoded password.
    */
-  @Test()
+  @Test
   public void testCompareMatchingEncodedPasswordsFromFile()
   {
     String[] args =
@@ -480,7 +481,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a valid matching auth password.
    */
-  @Test()
+  @Test
   public void testCompareMatchingAuthPasswords()
   {
     String[] args =
@@ -500,7 +501,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a non-matching encoded password.
    */
-  @Test()
+  @Test
   public void testCompareNonMatchingPasswordsNoScheme()
   {
     String[] args =
@@ -519,7 +520,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a non-matching encoded password.
    */
-  @Test()
+  @Test
   public void testCompareNonMatchingPasswordsWithScheme()
   {
     String[] args =
@@ -539,7 +540,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a non-matching auth password.
    */
-  @Test()
+  @Test
   public void testCompareNonMatchingAuthPasswords()
   {
     String[] args =
@@ -560,7 +561,7 @@ public class EncodePasswordTestCase
    * with a valid matching encoded password using the LDAP compare result as an
    * exit code.
    */
-  @Test()
+  @Test
   public void testCompareMatchingPasswordsNoSchemeCompareResult()
   {
     String[] args =
@@ -582,7 +583,7 @@ public class EncodePasswordTestCase
    * with a valid matching encoded password using the LDAP compare result as an
    * exit code.
    */
-  @Test()
+  @Test
   public void testCompareMatchingPasswordsWithSchemeCompareResult()
   {
     String[] args =
@@ -605,7 +606,7 @@ public class EncodePasswordTestCase
    * with a valid matching auth password using the LDAP compare result as an
    * exit code.
    */
-  @Test()
+  @Test
   public void testCompareMatchingAuthPasswordsCompareResult()
   {
     String[] args =
@@ -628,7 +629,7 @@ public class EncodePasswordTestCase
    * with a non-matching encoded password using the LDAP compare result as an
    * exit code.
    */
-  @Test()
+  @Test
   public void testCompareNonMatchingPasswordsNoSchemeCompareResult()
   {
     String[] args =
@@ -650,7 +651,7 @@ public class EncodePasswordTestCase
    * with a non-matching encoded password using the LDAP compare result as an
    * exit code.
    */
-  @Test()
+  @Test
   public void testCompareNonMatchingPasswordsWithSchemeCompareResult()
   {
     String[] args =
@@ -673,7 +674,7 @@ public class EncodePasswordTestCase
    * with a non-matching auth password using the LDAP compare result as an
    * exit code.
    */
-  @Test()
+  @Test
   public void testCompareNonMatchingAuthPasswordsCompareResult()
   {
     String[] args =
@@ -695,7 +696,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with a malformed encoded auth password.
    */
-  @Test()
+  @Test
   public void testCompareInvalidEncodedAuthPassword()
   {
     String[] args =
@@ -715,7 +716,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with an encoded password that uses an unknown scheme.
    */
-  @Test()
+  @Test
   public void testCompareEncodedPasswordWithUnknownScheme()
   {
     String[] args =
@@ -734,7 +735,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with an encoded password that uses an unknown scheme.
    */
-  @Test()
+  @Test
   public void testCompareEncodedPasswordWithUnknownSeparateScheme()
   {
     String[] args =
@@ -754,7 +755,7 @@ public class EncodePasswordTestCase
    * Tests the EncodePassword tool by performing a comparison of clear-text
    * with an encoded auth password that uses an unknown scheme.
    */
-  @Test()
+  @Test
   public void testCompareEncodedAuthPasswordWithUnknownScheme()
   {
     String[] args =
@@ -773,7 +774,7 @@ public class EncodePasswordTestCase
   /**
    * Tests the EncodePassword tool with the help options.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--help" };

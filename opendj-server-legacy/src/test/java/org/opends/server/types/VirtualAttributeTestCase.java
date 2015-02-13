@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -62,7 +62,7 @@ public class VirtualAttributeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -98,7 +98,7 @@ public class VirtualAttributeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetters()
          throws Exception
   {
@@ -115,7 +115,7 @@ public class VirtualAttributeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValues()
          throws Exception
   {
@@ -142,7 +142,7 @@ public class VirtualAttributeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMatching()
          throws Exception
   {
@@ -165,7 +165,7 @@ public class VirtualAttributeTestCase
   /**
    * Tests the {@code toString} method.
    */
-  @Test()
+  @Test
   public void testToString()
   {
     String vattrString = virtualAttribute.toString();

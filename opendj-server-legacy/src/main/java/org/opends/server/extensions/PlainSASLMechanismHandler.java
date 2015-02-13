@@ -92,7 +92,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeSASLMechanismHandler(
                    PlainSASLMechanismHandlerCfg configuration)
          throws ConfigException, InitializationException
@@ -114,7 +114,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeSASLMechanismHandler()
   {
     currentConfig.removePlainChangeListener(this);
@@ -127,7 +127,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSASLBind(BindOperation bindOperation)
   {
     // Get the SASL credentials provided by the user and decode them.
@@ -502,7 +502,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isPasswordBased(String mechanism)
   {
     // This is a password-based mechanism.
@@ -514,7 +514,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSecure(String mechanism)
   {
     // This is not a secure mechanism.
@@ -526,7 +526,7 @@ public class PlainSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)

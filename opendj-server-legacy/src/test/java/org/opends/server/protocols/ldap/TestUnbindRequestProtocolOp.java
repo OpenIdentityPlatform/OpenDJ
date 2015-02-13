@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -36,7 +36,7 @@ import static org.testng.Assert.*;
 
 public class TestUnbindRequestProtocolOp  extends LdapTestCase {
 
-  @Test()
+  @Test
   public void testUnbindEncodeDecodeRequest() throws Exception {
       ByteStringBuilder builder = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(builder);
@@ -48,7 +48,7 @@ public class TestUnbindRequestProtocolOp  extends LdapTestCase {
       assertTrue(reqOp.getType() == req.getType());
   }
 
-  @Test ()
+  @Test
   public void testUnbindRequestToString() throws Exception
   {
       UnbindRequestProtocolOp r =
