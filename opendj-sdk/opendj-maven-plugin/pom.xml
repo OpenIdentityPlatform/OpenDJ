@@ -22,24 +22,22 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2014-2015 ForgeRock AS.
+  !      Copyright 2015 ForgeRock AS.
   !
 -->
-<project
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
   xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.forgerock.opendj</groupId>
     <artifactId>opendj-project</artifactId>
+    <groupId>org.forgerock.opendj</groupId>
     <version>3.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>opendj-config-maven-plugin</artifactId>
-  <name>OpenDJ Config Maven Plugin</name>
+  <artifactId>opendj-maven-plugin</artifactId>
+  <name>OpenDJ Maven Plugin</name>
   <description>
-    Generation of configuration classes, messages and profiles 
-    from xml definition files for opendj server.
+    Set of build tools for OpenDJ project.
   </description>
   <packaging>maven-plugin</packaging>
 
@@ -49,35 +47,19 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-      <version>3.0.4</version>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>forgerock-util</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-plugin-api</artifactId>
-      <version>${mavenVersion}</version>
+        <groupId>org.twdata.maven</groupId>
+        <artifactId>mojo-executor</artifactId>
+        <version>2.2.0</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven.plugin-tools</groupId>
-      <artifactId>maven-plugin-annotations</artifactId>
-      <version>3.2</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.twdata.maven</groupId>
-      <artifactId>mojo-executor</artifactId>
-      <version>2.2.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-resources-plugin</artifactId>
-      <version>2.6</version>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>3.2</version>
+        <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

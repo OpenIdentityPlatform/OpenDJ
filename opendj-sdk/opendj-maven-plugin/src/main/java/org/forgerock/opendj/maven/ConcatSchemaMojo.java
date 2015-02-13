@@ -23,7 +23,7 @@
  *
  *      Copyright 2015 ForgeRock AS.
  */
-package org.forgerock.maven;
+package org.forgerock.opendj.maven;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -44,13 +44,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Concatenates the contents of the files in the schema directory to create a base schema that may be used during the
- * upgrade process. Each element will also include the X-SCHEMA-FILE extension to indicate the source schema file.
+ * Concatenates the contents of the files in the schema directory to create a
+ * base schema that may be used during the upgrade process. Each element will
+ * also include the X-SCHEMA-FILE extension to indicate the source schema file.
  * <p>
  * There is a single goal that generates the base schema.
  * <p>
- *
- * @Checkstyle:ignoreFor 3
  */
 @Mojo(name = "concat", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public final class ConcatSchemaMojo extends AbstractMojo {

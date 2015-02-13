@@ -128,14 +128,14 @@
       <!-- Validate core components XML definition files and generate the components. -->
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-config-maven-plugin</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <artifactId>opendj-maven-plugin</artifactId>
+        <version>${project.version}</version>
         <executions>
           <execution>
             <id>generate-config</id>
             <phase>generate-sources</phase>
             <goals>
-              <goal>generate</goal>
+              <goal>generate-config</goal>
             </goals>
             <configuration>
               <packageName>org.forgerock.opendj.server.config</packageName>
