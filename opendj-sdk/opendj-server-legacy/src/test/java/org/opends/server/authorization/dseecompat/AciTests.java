@@ -834,8 +834,7 @@ public class AciTests extends AciTestCase {
   public Object[][] invalidAcis() throws Exception {
     TestCaseUtils.startServer();  // This appears to be necessary since the DataProviders can be called before @BeforeClass.
 
-    List<String> invalid = new ArrayList<String>();
-    invalid.addAll(Arrays.asList(INVALID_ACIS));
+    List<String> invalid = new ArrayList<String>(Arrays.asList(INVALID_ACIS));
     for (String[] aciAndMask: INVALID_ACIS_IF_ANY_CHAR_REMOVED) {
       invalid.addAll(getAciMissingCharCombos(aciAndMask[0], aciAndMask[1]));
     }
@@ -1737,22 +1736,6 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       }
     }
 
-    private List<SingleSearchParams> explodeTestParams() throws Exception {
-      List<SingleSearchParams> explodedTests = new ArrayList<SingleSearchParams>();
-
-      for (SingleSearchParams searchTest: _searchTests) {
-        // Add the search test as is.
-        explodedTests.add(searchTest);
-
-        // Enabling this doubles the number of test cases without much benefit, so we disable it for now
-        // And add it with the ACIs merged into the initial import
-        // String ditWithAcis = applyChangesToLdif(searchTest._initialDitLdif, searchTest._aciLdif);
-        // explodedTests.add(searchTest.clone(ditWithAcis, ""));
-      }
-
-      return explodedTests;
-    }
-
     /**
      * @return the LDIF result of applying changesLdif to changesLdif
      */
@@ -1780,8 +1763,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       List<Object[]> allTestParams = new ArrayList<Object[]>();
 
       for (SearchTestParams testParams: SEARCH_TEST_PARAMS) {
-        List<SingleSearchParams> explodedTests = testParams.explodeTestParams();
-        for (SingleSearchParams singleTest: explodedTests) {
+        for (SingleSearchParams singleTest: testParams._searchTests) {
           allTestParams.add(new Object[]{singleTest});
         }
       }

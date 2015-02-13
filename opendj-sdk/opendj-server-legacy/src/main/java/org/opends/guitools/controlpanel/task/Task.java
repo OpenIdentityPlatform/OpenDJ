@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -939,8 +939,7 @@ public abstract class Task
   protected void printEquivalentCommandToModify(String dn,
       Collection<ModificationItem> mods, boolean useAdminCtx)
   {
-    ArrayList<String> args = new ArrayList<String>();
-    args.addAll(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
@@ -1081,8 +1080,7 @@ public abstract class Task
   protected void printEquivalentRenameCommand(DN oldDN, DN newDN,
       boolean useAdminCtx)
   {
-    ArrayList<String> args = new ArrayList<String>();
-    args.addAll(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),

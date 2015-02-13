@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.admin.ads;
@@ -135,9 +135,7 @@ public class ReplicaDescriptor
    */
   public Set<String> getReplicationServers()
   {
-    HashSet<String> copy = new HashSet<String>();
-    copy.addAll(replicationServers);
-    return copy;
+    return new HashSet<String>(replicationServers);
   }
 
   /**

@@ -1093,12 +1093,7 @@ public class PasswordModifyExtendedOperation
 
   private Collection<ByteString> toAttributeValues(Collection<ByteString> values)
   {
-    Set<ByteString> results = new LinkedHashSet<ByteString>(values.size());
-    for (ByteString s : values)
-    {
-      results.add(s);
-    }
-    return results;
+    return new LinkedHashSet<ByteString>(values);
   }
 
   /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -94,14 +94,8 @@ public class SchemaLoader
         attributesToKeep.add(attr);
       }
     }
-    for (MatchingRule mr : sc.getMatchingRules().values())
-    {
-      matchingRulesToKeep.add(mr);
-    }
-    for (AttributeSyntax<?> syntax : sc.getSyntaxes().values())
-    {
-      syntaxesToKeep.add(syntax);
-    }
+    matchingRulesToKeep.addAll(sc.getMatchingRules().values());
+    syntaxesToKeep.addAll(sc.getSyntaxes().values());
   }
 
   private static String getSchemaDirectoryPath()

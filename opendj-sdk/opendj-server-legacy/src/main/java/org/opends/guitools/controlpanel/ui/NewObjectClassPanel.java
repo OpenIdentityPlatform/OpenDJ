@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -501,14 +501,8 @@ public class NewObjectClassPanel extends StatusGenericPanel
         inheritedRequiredAttributes.clear();
         for (ObjectClass oc : superiors.getSelectedSuperiors())
         {
-          for (AttributeType attr : oc.getRequiredAttributeChain())
-          {
-            inheritedRequiredAttributes.add(attr);
-          }
-          for (AttributeType attr : oc.getOptionalAttributeChain())
-          {
-            inheritedOptionalAttributes.add(attr);
-          }
+          inheritedRequiredAttributes.addAll(oc.getRequiredAttributeChain());
+          inheritedOptionalAttributes.addAll(oc.getOptionalAttributeChain());
         }
         for (AttributeType attr : inheritedRequiredAttributes)
         {
@@ -752,24 +746,24 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
   private Set<AttributeType> getRequiredAttributes()
   {
-    HashSet<AttributeType> attrs = new HashSet<AttributeType>();
-    attrs.addAll(attributes.getSelectedListModel1().getData());
-    attrs.removeAll(inheritedRequiredAttributes);
-    return attrs;
+    return intersect(attributes.getSelectedListModel1().getData(), inheritedRequiredAttributes);
   }
 
   private Set<AttributeType> getOptionalAttributes()
   {
-    HashSet<AttributeType> attrs = new HashSet<AttributeType>();
-    attrs.addAll(attributes.getSelectedListModel2().getData());
-    attrs.removeAll(inheritedOptionalAttributes);
+    return intersect(attributes.getSelectedListModel2().getData(), inheritedOptionalAttributes);
+  }
+
+  private Set<AttributeType> intersect(Set<AttributeType> set1, Set<AttributeType> set2)
+  {
+    HashSet<AttributeType> attrs = new HashSet<AttributeType>(set1);
+    attrs.removeAll(set2);
     return attrs;
   }
 
   /**
    * A renderer for the attribute lists.  The renderer basically marks the
    * inherited attributes with an asterisk.
-   *
    */
   private class AttributeTypeCellRenderer implements ListCellRenderer
   {

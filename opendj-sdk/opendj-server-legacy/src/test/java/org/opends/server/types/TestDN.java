@@ -36,13 +36,10 @@ import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.Platform;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
-
-
 
 /**
  * This class defines a set of tests for the org.opends.server.core.DN
@@ -568,15 +565,8 @@ public class TestDN extends TypesTestCase {
   @DataProvider(name = "namingContexts")
   public Object[][] getNamingContexts() {
     ArrayList<DN> contextList = new ArrayList<DN>();
-    for (DN baseDN : DirectoryServer.getPublicNamingContexts().keySet())
-    {
-      contextList.add(baseDN);
-    }
-
-    for (DN baseDN : DirectoryServer.getPrivateNamingContexts().keySet())
-    {
-      contextList.add(baseDN);
-    }
+    contextList.addAll(DirectoryServer.getPublicNamingContexts().keySet());
+    contextList.addAll(DirectoryServer.getPrivateNamingContexts().keySet());
 
     Object[][] contextArray = new Object[contextList.size()][1];
     for (int i=0; i < contextArray.length; i++)

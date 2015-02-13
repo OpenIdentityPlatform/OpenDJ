@@ -133,9 +133,7 @@ public class ServerDescriptor
    */
   public Set<ReplicaDescriptor> getReplicas()
   {
-    Set<ReplicaDescriptor> copy = new HashSet<ReplicaDescriptor>();
-    copy.addAll(replicas);
-    return copy;
+    return new HashSet<ReplicaDescriptor>(replicas);
   }
 
   /**

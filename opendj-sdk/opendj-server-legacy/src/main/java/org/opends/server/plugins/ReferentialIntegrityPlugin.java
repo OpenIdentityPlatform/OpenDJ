@@ -206,19 +206,10 @@ public class ReferentialIntegrityPlugin
     final ConfigChangeResult ccr = new ConfigChangeResult();
 
     //Load base DNs from new configuration.
-    LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>();
-    for(DN baseDN : newConfiguration.getBaseDN())
-    {
-      newConfiguredBaseDNs.add(baseDN);
-    }
-
+    LinkedHashSet<DN> newConfiguredBaseDNs = new LinkedHashSet<DN>(newConfiguration.getBaseDN());
     //Load attribute types from new configuration.
     LinkedHashSet<AttributeType> newAttributeTypes =
-            new LinkedHashSet<AttributeType>();
-    for (AttributeType type : newConfiguration.getAttributeType())
-    {
-      newAttributeTypes.add(type);
-    }
+            new LinkedHashSet<AttributeType>(newConfiguration.getAttributeType());
 
     // Load the attribute-filter mapping
 

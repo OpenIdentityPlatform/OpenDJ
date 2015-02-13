@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -1005,23 +1004,24 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
   private Set<AttributeType> getRequiredAttributes()
   {
-    HashSet<AttributeType> attrs = new HashSet<AttributeType>();
-    attrs.addAll(attributes.getSelectedListModel1().getData());
-    attrs.removeAll(inheritedRequiredAttributes);
-    return attrs;
+    return intersect(attributes.getSelectedListModel1().getData(), inheritedRequiredAttributes);
   }
 
   private Set<AttributeType> getOptionalAttributes()
   {
-    HashSet<AttributeType> attrs = new HashSet<AttributeType>();
-    attrs.addAll(attributes.getSelectedListModel2().getData());
-    attrs.removeAll(inheritedOptionalAttributes);
+    return intersect(attributes.getSelectedListModel2().getData(), inheritedOptionalAttributes);
+  }
+
+  private Set<AttributeType> intersect(Set<AttributeType> set1, Set<AttributeType> set2)
+  {
+    HashSet<AttributeType> attrs = new HashSet<AttributeType>(set1);
+    attrs.removeAll(set2);
     return attrs;
   }
 
   private ObjectClass getNewObjectClass()
   {
-    ObjectClass newObjectClass = new ObjectClass("",
+    return new ObjectClass("",
         getObjectClassName(),
         getAllNames(),
         getOID(),
@@ -1032,8 +1032,6 @@ public class CustomObjectClassPanel extends SchemaElementPanel
         getObjectClassType(),
         obsolete.isSelected(),
         getExtraProperties());
-
-    return newObjectClass;
   }
 
   private void updateAttributes()
@@ -1132,14 +1130,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     inheritedRequiredAttributes.clear();
     for (ObjectClass p : getObjectClassSuperiors())
     {
-      for (AttributeType attr : p.getRequiredAttributeChain())
-      {
-        inheritedRequiredAttributes.add(attr);
-      }
-      for (AttributeType attr : p.getOptionalAttributeChain())
-      {
-        inheritedOptionalAttributes.add(attr);
-      }
+      inheritedRequiredAttributes.addAll(p.getRequiredAttributeChain());
+      inheritedOptionalAttributes.addAll(p.getOptionalAttributeChain());
     }
     for (AttributeType attr : inheritedRequiredAttributes)
     {

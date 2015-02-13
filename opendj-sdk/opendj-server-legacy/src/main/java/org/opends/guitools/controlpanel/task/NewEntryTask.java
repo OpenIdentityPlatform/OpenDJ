@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -311,8 +311,7 @@ public class NewEntryTask extends Task
    */
   private void printEquivalentCommand()
   {
-    ArrayList<String> args = new ArrayList<String>();
-    args.addAll(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     args.add("--defaultAdd");

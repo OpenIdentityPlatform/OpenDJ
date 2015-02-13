@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -127,12 +127,9 @@ public class MonitoringAttributesViewPanel<T> extends StatusGenericPanel
   * @param attributes the attributes that will be proposed to the user.
   *
   */
- protected MonitoringAttributesViewPanel(
-     LinkedHashSet<T> attributes)
+ protected MonitoringAttributesViewPanel(LinkedHashSet<T> attributes)
  {
-   super();
-   monitoringAttributes = new LinkedHashSet<T>();
-   monitoringAttributes.addAll(attributes);
+   monitoringAttributes = new LinkedHashSet<T>(attributes);
    createLayout();
  }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -708,9 +708,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
 //  Get all attributes that the entry can have
     Set<String> attributes = new LinkedHashSet<String>();
-    ArrayList<String> entryAttrs = new ArrayList<String>();
-    entryAttrs.addAll(sr.getAttributeNames());
-
+    ArrayList<String> entryAttrs = new ArrayList<String>(sr.getAttributeNames());
     ArrayList<String> attrsWithNoOptions = new ArrayList<String>();
     for (String attr : entryAttrs)
     {
@@ -823,11 +821,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           attrsWithNoOptions, false);
 
 
-      for (String attr : entryAttrs)
-      {
-        attributes.add(attr);
-      }
-
+      attributes.addAll(entryAttrs);
       attributes.add("aci");
 
       // In read-only mode display only the attributes with values
@@ -1574,10 +1568,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           Object value = comp.getValue();
           if (value instanceof Collection<?>)
           {
-            for (Object o : (Collection<?>)value)
-            {
-              values.add(o);
-            }
+            values.addAll((Collection<?>) value);
           }
           else
           {

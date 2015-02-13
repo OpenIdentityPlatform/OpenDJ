@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -192,8 +192,7 @@ public class ObjectClassCellPanel extends JPanel
     LocalizableMessageBuilder sb = new LocalizableMessageBuilder();
     if (value != null)
     {
-      Set<String> aux = new TreeSet<String>();
-      aux.addAll(value.getAuxiliary());
+      Set<String> aux = new TreeSet<String>(value.getAuxiliary());
       aux.remove("top");
       if (value.getStructural() != null)
       {

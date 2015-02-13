@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
 import org.forgerock.i18n.LocalizableMessage;
@@ -563,20 +563,8 @@ public abstract class ConfigAttribute
 
     // Create a temporary set of values that we will use for this change.  It
     // may not actually be applied if an error occurs for some reason.
-    LinkedHashSet<ByteString> tempValues;
-    if (requiresAdminAction && hasPendingValues)
-    {
-      tempValues =
-           new LinkedHashSet<ByteString>(pendingValues.size() + numValues);
-      tempValues.addAll(pendingValues);
-    }
-    else
-    {
-      tempValues =
-           new LinkedHashSet<ByteString>(activeValues.size() + numValues);
-      tempValues.addAll(activeValues);
-    }
-
+    final LinkedHashSet<ByteString> vals = getValues();
+    LinkedHashSet<ByteString> tempValues = new LinkedHashSet<ByteString>(vals.size() + numValues);
 
     // Iterate through all of the provided values.  Make sure that each is
     // acceptable for use and that it is not already contained in the value set.
@@ -612,7 +600,12 @@ public abstract class ConfigAttribute
     }
   }
 
-
+  private LinkedHashSet<ByteString> getValues()
+  {
+    return requiresAdminAction && hasPendingValues
+        ? pendingValues
+        : activeValues;
+  }
 
   /**
    * Attempts to remove the set of values from this configuration attribute.
@@ -624,23 +617,11 @@ public abstract class ConfigAttribute
    *                           value set, or if this is a required attribute and
    *                           the resulting value list would be empty.
    */
-  protected void removeValues(List<ByteString> values)
-         throws ConfigException
+  protected void removeValues(List<ByteString> values) throws ConfigException
   {
     // Create a temporary set of values that we will use for this change.  It
     // may not actually be applied if an error occurs for some reason.
-    LinkedHashSet<ByteString> tempValues;
-    if (requiresAdminAction && hasPendingValues)
-    {
-      tempValues = new LinkedHashSet<ByteString>(pendingValues.size());
-      tempValues.addAll(pendingValues);
-    }
-    else
-    {
-      tempValues = new LinkedHashSet<ByteString>(activeValues.size());
-      tempValues.addAll(activeValues);
-    }
-
+    LinkedHashSet<ByteString> tempValues = new LinkedHashSet<ByteString>(getValues());
 
     // Iterate through all the provided values and make sure that they are
     // contained in the list.  If not, then throw an exception.  If so, then

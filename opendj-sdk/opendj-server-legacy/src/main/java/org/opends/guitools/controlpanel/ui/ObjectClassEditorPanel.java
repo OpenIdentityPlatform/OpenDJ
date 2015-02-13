@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -158,8 +158,7 @@ public class ObjectClassEditorPanel extends StatusGenericPanel
   public void okClicked()
   {
     String struct = (String)  structural.getSelectedItem();
-    TreeSet<String> aux = new TreeSet<String>();
-    aux.addAll(auxiliary.getSelectedListModel().getData());
+    TreeSet<String> aux = new TreeSet<String>(auxiliary.getSelectedListModel().getData());
     aux.add("top");
     ObjectClassValue newValue = new ObjectClassValue(struct, aux);
     valueChanged = !newValue.equals(value);

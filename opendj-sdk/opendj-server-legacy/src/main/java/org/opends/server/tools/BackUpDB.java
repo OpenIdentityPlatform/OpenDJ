@@ -758,10 +758,7 @@ public class BackUpDB extends TaskTool
     {
       // Iterate through the set of backends and pick out those that were
       // requested.
-      HashSet<String> requestedBackends =
-           new HashSet<String>(backendList.size());
-      requestedBackends.addAll(backendID.getValues());
-
+      HashSet<String> requestedBackends = new HashSet<String>(backendID.getValues());
       for (int i=0; i < numBackends; i++)
       {
         Backend<?> b = backendList.get(i);

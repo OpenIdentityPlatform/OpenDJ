@@ -1117,12 +1117,7 @@ public class LDAPSearch
           return CLIENT_SIDE_PARAM_ERROR;
         }
       }
-      // The rest are attributes
-      for(String s : filterAndAttributeStrings)
-      {
-        attributes.add(s);
-      }
-
+      attributes.addAll(filterAndAttributeStrings);
     }
 
     if(bindPassword.isPresent() && bindPasswordFile.isPresent())

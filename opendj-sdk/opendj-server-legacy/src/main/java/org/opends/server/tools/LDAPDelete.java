@@ -679,10 +679,7 @@ public class LDAPDelete
     }
 
     ArrayList<String> trailingArgs = argParser.getTrailingArguments();
-    for(String s : trailingArgs)
-    {
-      dnStrings.add(s);
-    }
+    dnStrings.addAll(trailingArgs);
 
     // Set the connection options.
     // Parse the SASL properties.

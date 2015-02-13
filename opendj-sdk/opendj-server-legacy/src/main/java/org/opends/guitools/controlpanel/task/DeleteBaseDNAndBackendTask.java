@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -449,8 +449,7 @@ public class DeleteBaseDNAndBackendTask extends Task
     {
       oldBaseDNs.add(baseDN.getDn());
     }
-    LinkedList<DN> newBaseDNs = new LinkedList<DN>();
-    newBaseDNs.addAll(oldBaseDNs);
+    LinkedList<DN> newBaseDNs = new LinkedList<DN>(oldBaseDNs);
     ArrayList<DN> dnsToRemove = new ArrayList<DN>();
     for (BaseDNDescriptor baseDN : baseDNs)
     {
@@ -490,8 +489,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       (LocalDBBackendCfgClient)root.getBackend(
           baseDNs.iterator().next().getBackend().getBackendID());
     SortedSet<DN> oldBaseDNs = backend.getBaseDN();
-    SortedSet<DN> newBaseDNs = new TreeSet<DN>();
-    newBaseDNs.addAll(oldBaseDNs);
+    SortedSet<DN> newBaseDNs = new TreeSet<DN>(oldBaseDNs);
     ArrayList<DN> dnsToRemove = new ArrayList<DN>();
     for (BaseDNDescriptor baseDN : baseDNs)
     {

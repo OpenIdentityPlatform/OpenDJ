@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -139,10 +139,7 @@ implements Comparator<TaskEntry>
     TreeSet<TaskEntry> sortedSet = new TreeSet<TaskEntry>(this);
     sortedSet.addAll(data);
     dataSourceArray.clear();
-    for (TaskEntry task : sortedSet)
-    {
-      dataSourceArray.add(task);
-    }
+    dataSourceArray.addAll(sortedSet);
   }
 
   /**
