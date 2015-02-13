@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -40,13 +40,13 @@ TestAbandonRequestProtocolOp extends LdapTestCase {
 
   static int id=56;
 
-  @Test ()
+  @Test
   public void testAbandonRequestToString() throws Exception
   {
     toString(new AbandonRequestProtocolOp(id));
   }
 
-  @Test()
+  @Test
   public void testAbandonRequestEncodeDecode() throws Exception {
     ByteStringBuilder builder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(builder);

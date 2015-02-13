@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -78,7 +78,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-replace and modify-add for
    * multi-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void replaceAndAdd() throws Exception
   {
     Entry entry = initializeEntry();
@@ -122,7 +122,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-replace and modify-add for
    * single-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void replaceAndAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -166,7 +166,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * by doing first a replace with null, then add at at previous time
    * then check that the add was ignored
    */
-  @Test()
+  @Test
   public void replaceWithNull() throws Exception
   {
     Entry entry = initializeEntry();
@@ -211,7 +211,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between modify-add and modify-replace for
    * multi-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void addAndReplace() throws Exception
   {
     Entry entry = initializeEntry();
@@ -260,7 +260,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between modify-add and modify-replace for
    * single-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void addAndReplaceSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -301,7 +301,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void deleteAndAdd() throws Exception
   {
     Entry entry = initializeEntry();
@@ -348,7 +348,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * add attribute-values from 2 different servers are handled correctly.
    * This test was created to reproduce issue 3392.
    */
-  @Test()
+  @Test
   public void delValueAndAddValue() throws Exception
   {
     // create an entry to use with conflicts tests.
@@ -401,7 +401,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * are handled correctly.
    * This test was created to reproduce and fix issue 3397.
    */
-  @Test()
+  @Test
   public void delValueAndDelValue() throws Exception
   {
     // create an entry to use with conflicts tests.
@@ -453,7 +453,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * value on a single valued attribute works correctly.
    * This test was created to reproduce and fix issue 3399.
    */
-  @Test()
+  @Test
   public void delAttributeAndDelValueSingle() throws Exception
   {
     // create an entry to use with conflicts tests.
@@ -486,7 +486,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * value on a single valued attribute works correctly.
    * This test was created to reproduce and fix issue 3399.
    */
-  @Test()
+  @Test
   public void delValueAndDelAttributeSingle() throws Exception
   {
     // create an entry to use with conflicts tests.
@@ -520,7 +520,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * and replayed in the non-natural order are handled correctly.
    * This test was created to reproduce issue 3392.
    */
-  @Test()
+  @Test
   public void delValueAndAddValueDisordered() throws Exception
   {
     // create an entry to use with conflicts tests.
@@ -574,7 +574,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void deleteAndAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -624,7 +624,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void deleteAndReplace() throws Exception
   {
     Entry entry = initializeEntry();
@@ -650,7 +650,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * with some attribute values is resolved correctly.
    * This test has been created to reproduce Issue 3397.
    */
-  @Test()
+  @Test
   public void replaceAndDelete() throws Exception
   {
     // create an entry to use with conflicts tests.
@@ -715,7 +715,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * disorderly.
    * This test has been created to reproduce Issue 3397.
    */
-  @Test()
+  @Test
   public void replaceAndDeleteDisorder() throws Exception
   {
     AttributeType descriptionAttrType =
@@ -797,7 +797,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-delete-attribute and modify-add
    * for multi-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void deleteAndReplaceSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -829,7 +829,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-add and modify-add for
    * multi-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void addAndAdd() throws Exception
   {
     Entry entry = initializeEntry();
@@ -882,7 +882,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    *  This is not a conflict in the strict definition but does exert
    *  the conflict resolution code.
    */
-  @Test()
+  @Test
   public void delAndAddSameOp() throws Exception
   {
     Entry entry = initializeEntry();
@@ -927,7 +927,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * This is not a conflict in the strict definition but does exert
    * the conflict resolution code.
    */
-  @Test()
+  @Test
   public void delAndReplaceSameOp() throws Exception
   {
     Entry entry = initializeEntry();
@@ -989,7 +989,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * This is not a conflict in the strict definition but does exert
    *  the conflict resolution code.
    */
-  @Test()
+  @Test
   public void addAndDelSameOp() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1028,7 +1028,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    *  - second ADD done with value1 and value2
    * This test has been created to make sure that issue 3394 is fixed.
    */
-  @Test()
+  @Test
   public void addAndAddSameValues() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1087,7 +1087,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between a modify-add and modify-add for
    * single-valued attributes are handled correctly.
    */
-  @Test()
+  @Test
   public void addAndAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1134,7 +1134,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test that conflict between add, delete and add on aingle valued attribute
    * are handled correctly.
    */
-  @Test()
+  @Test
   public void addDelAddSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1175,7 +1175,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * a delete of the second value is done on another server.
    * The test checks that the first value wins and stays in the entry.
    */
-  @Test()
+  @Test
   public void addAddDelSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1452,7 +1452,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * modify-add of a value followed by modify-delete of that value
    * is handled properly.
    */
-  @Test()
+  @Test
   public void addDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1480,7 +1480,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * modify-add of a value followed by modify-delete of the attribute
    * is handled properly.
    */
-  @Test()
+  @Test
   public void addDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1513,7 +1513,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * that contains a modify-add of a value followed by modify-delete
    * of the same value is handled properly.
    */
-  @Test()
+  @Test
   public void replayAddDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1556,7 +1556,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test we can del an existing value and add a new one, and then replay
    * a del of the same existing value and add of a different new one.
    */
-  @Test()
+  @Test
   public void replayDelAddDifferent() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1614,7 +1614,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * Test we can del an existing value and add a new one, and then replay
    * a del of another existing value and add of the same one.
    */
-  @Test()
+  @Test
   public void replayDelAddSame() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1675,7 +1675,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * that contains a modify-add of a value followed by modify-delete
    * of the attribute is handled properly.
    */
-  @Test()
+  @Test
   public void replayAddDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1720,7 +1720,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * modify-replace of a value followed by modify-delete of that value
    * is handled properly.
    */
-  @Test()
+  @Test
   public void replaceDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1754,7 +1754,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * modify-replace of a value followed by modify-delete of the attribute
    * is handled properly.
    */
-  @Test()
+  @Test
   public void replaceDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1787,7 +1787,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * that contains a modify-replace of a value followed by modify-delete
    * of the same value is handled properly.
    */
-  @Test()
+  @Test
   public void replayReplaceDeleteSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1828,7 +1828,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * that contains a modify-replace of a value followed by modify-delete
    * of the attribute is handled properly.
    */
-  @Test()
+  @Test
   public void replayReplaceDeleteAttrSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1870,7 +1870,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * modify-replace of a value followed by modify-delete of that value,
    * followed by a modify-add of a new value is handled properly.
    */
-  @Test()
+  @Test
   public void replaceDeleteAddSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();
@@ -1908,7 +1908,7 @@ public class ModifyConflictTest extends ReplicationTestCase
    * modify-replace of a value followed by modify-delete of the attribute,
    * followed by a modify-add of a new value is handled properly.
    */
-  @Test()
+  @Test
   public void replaceDeleteAttrAddSameOpSingle() throws Exception
   {
     Entry entry = initializeEntry();

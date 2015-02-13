@@ -181,7 +181,7 @@ public class SubentryManagerTestCase extends CoreTestCase
    * @throws Exception
    *           If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCollectiveAttributesWorkWithVirtualAttributes()
          throws Exception
   {

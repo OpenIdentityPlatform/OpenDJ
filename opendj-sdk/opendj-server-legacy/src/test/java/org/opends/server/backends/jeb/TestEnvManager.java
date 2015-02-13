@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
@@ -73,7 +74,7 @@ public class TestEnvManager extends JebTestCase {
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test()
+  @Test
   public void testValidHomeDir() throws Exception {
     File homeDir = new File(homeDirName);
 

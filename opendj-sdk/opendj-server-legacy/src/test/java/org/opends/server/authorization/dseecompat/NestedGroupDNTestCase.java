@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 
@@ -73,7 +74,7 @@ public class NestedGroupDNTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is received.
    */
-  @Test()
+  @Test
   public void testNestedGroup() throws Exception {
     String aciLdif=makeAddLDIF("aci", peopleBase, groupAci);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -105,7 +106,7 @@ public class NestedGroupDNTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-  @Test()
+  @Test
   public void testNestedDynamicGroup() throws Exception {
     String aciLdif=makeAddLDIF("aci", peopleBase, groupAci);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -135,7 +136,7 @@ public class NestedGroupDNTestCase extends AciTestCase {
    *
    * @throws Exception IKf an unexpected result is returned.
    */
-  @Test()
+  @Test
   public void testNestedCircularGroup() throws Exception {
     String aciLdif=makeAddLDIF("aci", peopleBase, groupAci);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);

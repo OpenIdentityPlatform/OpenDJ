@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -137,7 +137,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void initializeGroupImplementation(StaticGroupImplementationCfg configuration)
          throws ConfigException, InitializationException
   {
@@ -145,7 +145,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public StaticGroup newInstance(ServerContext serverContext, Entry groupEntry) throws DirectoryException
   {
     ifNull(groupEntry);
@@ -228,7 +228,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public SearchFilter getGroupDefinitionFilter()
          throws DirectoryException
   {
@@ -241,7 +241,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isGroupDefinition(Entry entry)
   {
     ifNull(entry);
@@ -290,7 +290,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public DN getGroupDN()
   {
     return groupEntryDN;
@@ -304,14 +304,14 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsNestedGroups()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public List<DN> getNestedGroupDNs()
   {
     try {
@@ -323,7 +323,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void addNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
@@ -365,7 +365,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void removeNestedGroup(DN nestedGroupDN)
          throws UnsupportedOperationException, DirectoryException
   {
@@ -407,7 +407,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMember(DN userDN, Set<DN> examinedGroups) throws DirectoryException
   {
     reloadIfNeeded();
@@ -435,7 +435,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMember(Entry userEntry, Set<DN> examinedGroups)
          throws DirectoryException
   {
@@ -492,7 +492,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public MemberList getMembers() throws DirectoryException
   {
     reloadIfNeeded();
@@ -500,7 +500,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public MemberList getMembers(DN baseDN, SearchScope scope, SearchFilter filter) throws DirectoryException
   {
     reloadIfNeeded();
@@ -512,14 +512,14 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean mayAlterMemberList()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void addMember(Entry userEntry) throws UnsupportedOperationException, DirectoryException
   {
     ifNull(userEntry);
@@ -559,7 +559,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void removeMember(DN userDN) throws UnsupportedOperationException, DirectoryException
   {
     ifNull(userDN);
@@ -602,7 +602,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("StaticGroup(");

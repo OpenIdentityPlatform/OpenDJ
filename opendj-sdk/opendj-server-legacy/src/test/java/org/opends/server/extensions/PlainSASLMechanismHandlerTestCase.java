@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -61,7 +61,7 @@ public class PlainSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -74,7 +74,7 @@ public class PlainSASLMechanismHandlerTestCase
    * Tests to ensure that the SASL PLAIN mechanism is loaded and available in
    * the server, and that it reports that it is password based and not secure.
    */
-  @Test()
+  @Test
   public void testSASLPlainLoaded()
   {
     SASLMechanismHandler<?> handler = DirectoryServer.getSASLMechanismHandler("PLAIN");
@@ -91,7 +91,7 @@ public class PlainSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSASLPlainAdvertised() throws Exception
   {
     SearchRequest request =
@@ -348,7 +348,7 @@ public class PlainSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSASLPlainAsRoot()
          throws Exception
   {
@@ -371,7 +371,7 @@ public class PlainSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSASLPlainOverLDAP()
          throws Exception
   {
@@ -469,7 +469,7 @@ public class PlainSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNonexistentAuthzDN()
          throws Exception
   {
@@ -511,7 +511,7 @@ public class PlainSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailNonexistentAuthzUsername()
          throws Exception
   {
@@ -553,7 +553,7 @@ public class PlainSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindFailMalformedAuthzDN()
          throws Exception
   {

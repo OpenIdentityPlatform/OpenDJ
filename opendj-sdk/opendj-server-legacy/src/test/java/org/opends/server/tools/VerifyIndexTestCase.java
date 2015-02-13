@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -62,7 +62,7 @@ public class VerifyIndexTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void setup()
          throws Exception
   {
@@ -87,7 +87,7 @@ public class VerifyIndexTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass
   public void cleanup()
          throws Exception
   {
@@ -106,7 +106,7 @@ public class VerifyIndexTestCase
   /**
    * Tests the verify-index -b o=airius.com -i description
    */
-  @Test()
+  @Test
   public void testNoIndexOnDescription()
   {
     String[] args = {

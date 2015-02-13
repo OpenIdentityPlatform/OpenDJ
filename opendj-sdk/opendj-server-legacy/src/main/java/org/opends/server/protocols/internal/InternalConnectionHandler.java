@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 import org.forgerock.i18n.LocalizableMessage;
@@ -136,7 +136,7 @@ public final class InternalConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
     // No implementation is required.
@@ -152,7 +152,7 @@ public final class InternalConnectionHandler
    * @return  A unique name that may be used to refer to this
    *          connection handler.
    */
-  @Override()
+  @Override
   public String getConnectionHandlerName()
   {
     return "Internal Connection Handler";
@@ -169,7 +169,7 @@ public final class InternalConnectionHandler
    * @return  The name of the protocol used to communicate with
    *          clients.
    */
-  @Override()
+  @Override
   public String getProtocol()
   {
     return protocol;
@@ -186,7 +186,7 @@ public final class InternalConnectionHandler
    *          connection handler does not accept connections from
    *          network clients.
    */
-  @Override()
+  @Override
   public Collection<HostPort> getListeners()
   {
     return listeners;
@@ -201,7 +201,7 @@ public final class InternalConnectionHandler
    * @return  The set of active client connections that have been
    *          established through this connection handler.
    */
-  @Override()
+  @Override
   public Collection<ClientConnection> getClientConnections()
   {
     return connectionList;
@@ -213,7 +213,7 @@ public final class InternalConnectionHandler
    * Operates in a loop, accepting new connections and ensuring that
    * requests on those connections are handled properly.
    */
-  @Override()
+  @Override
   public void run()
   {
     // No implementation is required since this connection handler
@@ -228,7 +228,7 @@ public final class InternalConnectionHandler
    *
    * @return  A string representation of this connection handler.
    */
-  @Override()
+  @Override
   public String toString()
   {
     return "Internal Connection Handler";
@@ -243,7 +243,7 @@ public final class InternalConnectionHandler
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
-  @Override()
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("Internal Connection Handler");
@@ -263,7 +263,7 @@ public final class InternalConnectionHandler
    * Return the configuration dn of the object.
    * @return DN of the entry.
    */
-  @Override()
+  @Override
   public DN getComponentEntryDN() {
       return this.configuration.dn();
   }

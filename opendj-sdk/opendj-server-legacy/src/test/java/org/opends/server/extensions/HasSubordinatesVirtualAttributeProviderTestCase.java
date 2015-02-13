@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -64,7 +64,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -443,7 +443,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
   /**
    * Tests the {@code isMultiValued} method.
    */
-  @Test()
+  @Test
   public void testIsMultiValued()
   {
     NumSubordinatesVirtualAttributeProvider provider =

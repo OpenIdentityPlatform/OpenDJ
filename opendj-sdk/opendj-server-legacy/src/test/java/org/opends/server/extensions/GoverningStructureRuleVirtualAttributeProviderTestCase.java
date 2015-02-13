@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -72,7 +72,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -104,7 +104,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
- @AfterClass()
+ @AfterClass
  public void cleanup() throws Exception
  {
     int resultCode = TestCaseUtils.applyModifications(true,
@@ -407,7 +407,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
   /**
    * Tests the {@code isMultiValued} method.
    */
-  @Test()
+  @Test
   public void testIsMultiValued()
   {
     GoverningStructureRuleVirtualAttributeProvider provider =
@@ -422,7 +422,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValues()
          throws Exception
   {
@@ -450,7 +450,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasAnyValue()
          throws Exception
   {
@@ -475,7 +475,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasMatchingValue()
          throws Exception
   {
@@ -500,7 +500,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasNonMatchingValue()
          throws Exception
   {

@@ -108,7 +108,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      UniqueAttributePluginCfg configuration)
           throws ConfigException
@@ -165,7 +165,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     currentConfiguration.removeUniqueAttributeChangeListener(this);
@@ -177,7 +177,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationAddOperation addOperation)
   {
@@ -221,7 +221,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreOperation
                doPreOperation(PreOperationModifyOperation modifyOperation)
   {
@@ -354,7 +354,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreOperation doPreOperation(
                     PreOperationModifyDNOperation modifyDNOperation)
   {
@@ -397,7 +397,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void doPostSynchronization(
                          PostSynchronizationAddOperation addOperation)
   {
@@ -434,7 +434,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void doPostSynchronization(
                          PostSynchronizationModifyOperation modifyOperation)
   {
@@ -506,7 +506,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void doPostSynchronization(
                          PostSynchronizationModifyDNOperation modifyDNOperation)
   {
@@ -694,7 +694,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {
@@ -817,7 +817,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationAddOperation addOperation)
   {
@@ -856,7 +856,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyOperation modifyOperation)
   {
@@ -928,7 +928,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PostOperation
        doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -58,7 +58,7 @@ public class TaskBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -76,7 +76,7 @@ public class TaskBackendTestCase
    * Remove the dummy task from the set of allowed tasks.
    * @throws Exception If an unexpected error occurred.
    */
-  @AfterClass()
+  @AfterClass
   public void cleanUp()
          throws Exception
   {
@@ -93,7 +93,7 @@ public class TaskBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeletePendingTask()
          throws Exception
   {
@@ -135,7 +135,7 @@ public class TaskBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteRunningTask()
          throws Exception
   {
@@ -184,7 +184,7 @@ public class TaskBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteCompletedTask()
          throws Exception
   {
@@ -224,7 +224,7 @@ public class TaskBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyPendingTask()
          throws Exception
   {
@@ -283,7 +283,7 @@ public class TaskBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyRunningTask()
          throws Exception
   {
@@ -356,7 +356,7 @@ public class TaskBackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyCompletedTask()
          throws Exception
   {

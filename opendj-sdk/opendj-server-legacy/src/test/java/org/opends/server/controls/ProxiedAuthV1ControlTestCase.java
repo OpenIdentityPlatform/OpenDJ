@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -56,7 +56,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -71,7 +71,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testConstructor1()
          throws Exception
   {
@@ -123,7 +123,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testConstructor2()
          throws Exception
   {
@@ -292,7 +292,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeControlValueEmptyDN()
          throws Exception
   {
@@ -316,7 +316,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDecodeControlValueNonEmptyDN()
          throws Exception
   {
@@ -341,7 +341,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetAndSetRawAuthorizationDN()
          throws Exception
   {
@@ -363,7 +363,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetAndSetAuthorizationDN()
          throws Exception
   {
@@ -387,7 +387,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidatedAuthorizationDNNullDN()
          throws Exception
   {
@@ -406,7 +406,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidatedAuthorizationExistingNormalUser()
          throws Exception
   {
@@ -486,7 +486,7 @@ public class ProxiedAuthV1ControlTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testToString()
          throws Exception
   {

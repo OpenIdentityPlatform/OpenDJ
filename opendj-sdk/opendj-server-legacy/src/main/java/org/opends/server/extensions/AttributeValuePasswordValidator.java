@@ -72,7 +72,7 @@ public class AttributeValuePasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordValidator(
                    AttributeValuePasswordValidatorCfg configuration)
   {
@@ -85,7 +85,7 @@ public class AttributeValuePasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeAttributeValueChangeListener(this);
@@ -131,7 +131,7 @@ public class AttributeValuePasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
@@ -200,7 +200,7 @@ public class AttributeValuePasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

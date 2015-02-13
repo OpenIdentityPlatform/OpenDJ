@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -59,7 +59,7 @@ public class FIFOEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void entryCacheTestInit()
          throws Exception
   {
@@ -129,7 +129,7 @@ public class FIFOEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass
   public void entryCacheTestFini()
          throws Exception
   {
@@ -141,7 +141,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testContainsEntry()
          throws Exception
@@ -154,7 +154,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testGetEntry1()
          throws Exception
@@ -167,7 +167,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testGetEntry2()
          throws Exception
@@ -180,7 +180,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testGetEntry3()
          throws Exception
@@ -193,7 +193,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testGetEntryID()
          throws Exception
@@ -206,7 +206,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testPutEntry()
          throws Exception
@@ -219,7 +219,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testPutEntryIfAbsent()
          throws Exception
@@ -232,7 +232,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testRemoveEntry()
          throws Exception
@@ -245,7 +245,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testClear()
          throws Exception
@@ -258,7 +258,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testClearBackend()
          throws Exception
@@ -271,7 +271,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testClearSubtree()
          throws Exception
@@ -284,7 +284,7 @@ public class FIFOEntryCacheTestCase
   /**
    * {@inheritDoc}
    */
-  @Test()
+  @Test
   @Override
   public void testHandleLowMemory()
          throws Exception
@@ -357,7 +357,7 @@ public class FIFOEntryCacheTestCase
   /**
    * Tests cache rotation on specific number of entries.
    */
-  @Test()
+  @Test
   public void testCacheRotation()
          throws Exception
   {

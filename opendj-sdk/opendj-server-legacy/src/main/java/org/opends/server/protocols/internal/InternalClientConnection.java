@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -379,7 +379,7 @@ public final class InternalClientConnection
    * @return  The unique identifier that has been assigned to this
    *          connection.
    */
-  @Override()
+  @Override
   public long getConnectionID()
   {
     return connectionID;
@@ -399,7 +399,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public ConnectionHandler<?> getConnectionHandler()
   {
     return InternalConnectionHandler.getInstance();
@@ -414,7 +414,7 @@ public final class InternalClientConnection
    * @return  The protocol that the client is using to communicate
    *          with the Directory Server.
    */
-  @Override()
+  @Override
   public String getProtocol()
   {
     return "internal";
@@ -427,7 +427,7 @@ public final class InternalClientConnection
    *
    * @return  A string representation of the address of the client.
    */
-  @Override()
+  @Override
   public String getClientAddress()
   {
     return "internal";
@@ -456,7 +456,7 @@ public final class InternalClientConnection
    * @return  A string representation of the address on the server to
    *          which the client connected.
    */
-  @Override()
+  @Override
   public String getServerAddress()
   {
     return "internal";
@@ -489,7 +489,7 @@ public final class InternalClientConnection
    *          if the client is not connected over an IP-based
    *          connection.
    */
-  @Override()
+  @Override
   public InetAddress getRemoteAddress()
   {
     return null;
@@ -506,7 +506,7 @@ public final class InternalClientConnection
    *          connection.  It may be <CODE>null</CODE> if the client
    *          is not connected over an IP-based connection.
    */
-  @Override()
+  @Override
   public InetAddress getLocalAddress()
   {
     return null;
@@ -524,7 +524,7 @@ public final class InternalClientConnection
    *                    searches performed using this client
    *                    connection.
    */
-  @Override()
+  @Override
   public void setSizeLimit(int sizeLimit)
   {
     // No implementation required.  We never want to set a nonzero
@@ -543,7 +543,7 @@ public final class InternalClientConnection
    *                           entries that should be check for
    *                           matches during a search.
    */
-  @Override()
+  @Override
   public void setLookthroughLimit(int lookthroughLimit)
   {
     // No implementation required.  We never want to set a nonzero
@@ -564,7 +564,7 @@ public final class InternalClientConnection
    *                        allowed to remain idle before it should be
    *                        disconnected.
    */
-  @Override()
+  @Override
   public void setIdleTimeLimit(long idleTimeLimit)
   {
     // No implementation required.  We never want to set a nonzero
@@ -583,7 +583,7 @@ public final class InternalClientConnection
    *                    searches performed using this client
    *                    connection.
    */
-  @Override()
+  @Override
   public void setTimeLimit(int timeLimit)
   {
     // No implementation required.  We never want to set a nonzero
@@ -610,7 +610,7 @@ public final class InternalClientConnection
    *          using a secure mechanism to communicate with the server,
    *          or <CODE>false</CODE> if not.
    */
-  @Override()
+  @Override
   public boolean isSecure()
   {
       return true;
@@ -629,7 +629,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void sendResponse(Operation operation)
   {
     // There will not be any response sent by this method, since there
@@ -653,7 +653,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void setAuthenticationInfo(AuthenticationInfo
                                          authenticationInfo)
   {
@@ -672,7 +672,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void setUnauthenticated()
   {
     // No implementation required.
@@ -2038,7 +2038,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void sendSearchEntry(SearchOperation searchOperation,
                               SearchResultEntry searchEntry)
          throws DirectoryException
@@ -2071,7 +2071,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public boolean sendSearchReference(SearchOperation searchOperation,
                       SearchResultReference searchReference)
          throws DirectoryException
@@ -2098,7 +2098,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   protected boolean sendIntermediateResponseMessage(
                          IntermediateResponse intermediateResponse)
   {
@@ -2130,7 +2130,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void disconnect(DisconnectReason disconnectReason,
                          boolean sendNotification,
                          LocalizableMessage message)
@@ -2156,7 +2156,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public Collection<Operation> getOperationsInProgress()
   {
     return Collections.emptyList();
@@ -2179,7 +2179,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public Operation getOperationInProgress(int messageID)
   {
     // Internal operations will not be tracked.
@@ -2206,7 +2206,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public boolean removeOperationInProgress(int messageID)
   {
     // No implementation is required, since internal operations will
@@ -2231,7 +2231,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public CancelResult cancelOperation(int messageID,
                                       CancelRequest cancelRequest)
   {
@@ -2254,7 +2254,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void cancelAllOperations(CancelRequest cancelRequest)
   {
     // No implementation is required since internal operations cannot
@@ -2277,7 +2277,7 @@ public final class InternalClientConnection
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void cancelAllOperationsExcept(CancelRequest cancelRequest,
                                         int messageID)
   {
@@ -2298,7 +2298,7 @@ public final class InternalClientConnection
    *          that is suitable for including in the monitor entry for
    *          the associated connection handler.
    */
-  @Override()
+  @Override
   public String getMonitorSummary()
   {
     StringBuilder buffer = new StringBuilder();
@@ -2320,7 +2320,7 @@ public final class InternalClientConnection
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
-  @Override()
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("InternalClientConnection(connID=");

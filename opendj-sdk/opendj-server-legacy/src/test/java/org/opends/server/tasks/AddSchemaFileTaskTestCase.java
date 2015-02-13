@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tasks;
 
@@ -62,7 +62,7 @@ public class AddSchemaFileTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -88,7 +88,7 @@ public class AddSchemaFileTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddValidSchemaFile()
          throws Exception
   {
@@ -165,7 +165,7 @@ public class AddSchemaFileTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMultipleValidSchemaFiles()
          throws Exception
   {
@@ -287,7 +287,7 @@ public class AddSchemaFileTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMissingSchemaFileNames()
          throws Exception
   {
@@ -311,7 +311,7 @@ public class AddSchemaFileTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMissingSchemaFile()
          throws Exception
   {
@@ -337,7 +337,7 @@ public class AddSchemaFileTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddEmptySchemaFile()
          throws Exception
   {
@@ -381,7 +381,7 @@ public class AddSchemaFileTaskTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddInvalidSchemaFile()
          throws Exception
   {

@@ -1172,7 +1172,7 @@ public class PasswordModifyExtendedOperation
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(ExtendedOperationHandlerCfg
                                                 configuration,
                                            List<LocalizableMessage> unacceptableReasons)

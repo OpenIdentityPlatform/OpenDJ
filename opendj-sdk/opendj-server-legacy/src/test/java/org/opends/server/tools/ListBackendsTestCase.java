@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -56,7 +57,7 @@ public class ListBackendsTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -190,7 +191,7 @@ public class ListBackendsTestCase
   /**
    * Tests the ListBackends tool with the no arguments.
    */
-  @Test()
+  @Test
   public void testNoArguments()
   {
     String[] args =
@@ -207,7 +208,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with one instance of the --backendID argument
    * and a valid backend ID.
    */
-  @Test()
+  @Test
   public void testSingleBackendID()
   {
     String[] args =
@@ -225,7 +226,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with multiple instances of the --backendID
    * argument valid backend IDs.
    */
-  @Test()
+  @Test
   public void testMultipleBackendIDs()
   {
     String[] args =
@@ -244,7 +245,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with multiple instances of the --backendID
    * argument in which one is valid and one is not.
    */
-  @Test()
+  @Test
   public void testMultipleBackendIDsPartiallyValid()
   {
     String[] args =
@@ -263,7 +264,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with multiple instances of the --backendID
    * argument in which all are invalid.
    */
-  @Test()
+  @Test
   public void testMultipleBackendIDsAllInvalid()
   {
     String[] args =
@@ -282,7 +283,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with one instance of the --baseDN argument
    * and a valid DN that is a base DN.
    */
-  @Test()
+  @Test
   public void testSingleBaseDN()
   {
     String[] args =
@@ -300,7 +301,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with one instance of the --baseDN argument
    * and a valid DN that is not a base DN but is directly below a valid base DN.
    */
-  @Test()
+  @Test
   public void testSingleBaseDNBelowActualBaseDN()
   {
     String[] args =
@@ -319,7 +320,7 @@ public class ListBackendsTestCase
    * and a valid DN that is not a base DN but is two levels below a valid base
    * DN.
    */
-  @Test()
+  @Test
   public void testSingleBaseDNTwoLevelsBelowActualBaseDN()
   {
     String[] args =
@@ -337,7 +338,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with one instance of the --baseDN argument
    * and a valid DN that is not associated with any backend in the server
    */
-  @Test()
+  @Test
   public void testSingleBaseDNNotBelowAnyBaseDN()
   {
     String[] args =
@@ -355,7 +356,7 @@ public class ListBackendsTestCase
    * Tests the ListBackends tool with multiple instances of the "--baseDN"
    * argument with valid base DNs.
    */
-  @Test()
+  @Test
   public void testMultipleBaseDNs()
   {
     String[] args =
@@ -373,7 +374,7 @@ public class ListBackendsTestCase
   /**
    * Tests the ListBackends tool with the "--help" option.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--help" };

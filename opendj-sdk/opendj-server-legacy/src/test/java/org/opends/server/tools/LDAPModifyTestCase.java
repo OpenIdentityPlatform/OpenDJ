@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -65,7 +65,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServerAndCreatePasswordFiles()
          throws Exception
   {
@@ -353,7 +353,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPv2Modify()
          throws Exception
   {
@@ -380,7 +380,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPv3Modify()
          throws Exception
   {
@@ -407,7 +407,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLBlindTrust()
          throws Exception
   {
@@ -435,7 +435,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLTrustStore()
          throws Exception
   {
@@ -466,7 +466,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSBlindTrust()
          throws Exception
   {
@@ -494,7 +494,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSTrustStore()
          throws Exception
   {
@@ -526,7 +526,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLTrustStoreSASLExternal()
          throws Exception
   {
@@ -572,7 +572,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLTrustStoreSASLExternalValidClientCert()
          throws Exception
   {
@@ -619,7 +619,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLTrustStoreSASLExternalInvalidClientCert()
          throws Exception
   {
@@ -666,7 +666,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSTrustStoreSASLExternal()
          throws Exception
   {
@@ -711,7 +711,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCRAMMD5()
          throws Exception
   {
@@ -753,7 +753,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDigestMD5()
          throws Exception
   {
@@ -796,7 +796,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAIN()
          throws Exception
   {
@@ -823,7 +823,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyClientSideNoOp()
          throws Exception
   {
@@ -850,7 +850,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddClientSideNoOp()
          throws Exception
   {
@@ -884,7 +884,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteClientSideNoOp()
          throws Exception
   {
@@ -915,7 +915,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNClientSideNoOp()
          throws Exception
   {
@@ -948,7 +948,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPNoOp()
          throws Exception
   {
@@ -977,7 +977,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPNoOpAltName()
          throws Exception
   {
@@ -1005,7 +1005,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddLDAPNoOp()
          throws Exception
   {
@@ -1041,7 +1041,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddLDAPNoOpAltName()
          throws Exception
   {
@@ -1076,7 +1076,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteLDAPNoOp()
          throws Exception
   {
@@ -1109,7 +1109,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteLDAPNoOpAltName()
          throws Exception
   {
@@ -1141,7 +1141,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNLDAPNoOp()
          throws Exception
   {
@@ -1181,7 +1181,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNLDAPNoOpAltName()
          throws Exception
   {
@@ -1221,7 +1221,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPAssertionTrue()
          throws Exception
   {
@@ -1249,7 +1249,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPAssertionFalse()
          throws Exception
   {
@@ -1277,7 +1277,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteLDAPAssertionTrue()
          throws Exception
   {
@@ -1308,7 +1308,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNLDAPAssertionTrue()
          throws Exception
   {
@@ -1346,7 +1346,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPPreReadSingleAttribute()
          throws Exception
   {
@@ -1374,7 +1374,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPPreReadMultipleAttributes()
          throws Exception
   {
@@ -1402,7 +1402,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteLDAPPreReadSingleAttribute()
          throws Exception
   {
@@ -1433,7 +1433,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNLDAPPreReadSingleAttribute()
          throws Exception
   {
@@ -1471,7 +1471,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPostReadSingleAttribute()
          throws Exception
   {
@@ -1499,7 +1499,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyLDAPPostReadMultipleAttributes()
          throws Exception
   {
@@ -1527,7 +1527,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddLDAPostReadSingleAttribute()
          throws Exception
   {
@@ -1562,7 +1562,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDNLDAPostReadSingleAttribute()
          throws Exception
   {
@@ -1599,7 +1599,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testServerSideModifyFailure()
          throws Exception
   {
@@ -1632,7 +1632,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddExplicitChangeType()
          throws Exception
   {
@@ -1665,7 +1665,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddImplicitChangeType()
          throws Exception
   {
@@ -1698,7 +1698,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testModifyDN()
          throws Exception
   {
@@ -1736,7 +1736,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDelete()
          throws Exception
   {
@@ -1773,7 +1773,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleRequestControls()
          throws Exception
   {
@@ -1805,7 +1805,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMalformedLDIF()
          throws Exception
   {
@@ -1865,7 +1865,7 @@ public class LDAPModifyTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMalformedLDIFNoContinueOnError()
          throws Exception
   {
@@ -1899,7 +1899,7 @@ public class LDAPModifyTestCase
   /**
    * Tests the LDAPModify tool with the "--help" option.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--help" };

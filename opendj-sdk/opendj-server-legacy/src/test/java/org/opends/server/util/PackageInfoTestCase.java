@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -56,7 +57,7 @@ public class PackageInfoTestCase
   /**
    * Ensure that the source root directories are initialized properly.
    */
-  @BeforeClass()
+  @BeforeClass
   public void setUp()
   {
     String rootDir = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);

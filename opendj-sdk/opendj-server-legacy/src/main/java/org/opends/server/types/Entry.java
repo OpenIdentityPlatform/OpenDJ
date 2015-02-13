@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -4203,7 +4203,7 @@ public class Entry
    *
    * @return  The hash code for this entry.
    */
-  @Override()
+  @Override
   public int hashCode()
   {
     int hashCode = dn.hashCode();
@@ -4250,7 +4250,7 @@ public class Entry
    * @return  {@code true} if the provided object may be considered
    *          equal to this entry, or {@code false} if not.
    */
-  @Override()
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)

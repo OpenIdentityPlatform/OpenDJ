@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -60,14 +60,14 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     DITStructureRule ditRule = getDITStructureRule(entry);
@@ -80,14 +80,14 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     return getDITStructureRule(entry)!=null;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
                                           ByteString subInitial,
@@ -99,7 +99,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -109,7 +109,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -119,7 +119,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -129,7 +129,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -139,7 +139,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  *
  */
@@ -1799,7 +1799,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * Test LDAP compare.
    * @throws Throwable If the compare is not valid for the ACI.
    */
-  @Test()
+  @Test
   public void testCompare() throws Throwable
   {
     SingleSearchParams adminParam =
@@ -1872,7 +1872,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * tree back and re-search with base at orig DN.
    * @throws Throwable
    */
-  @Test()
+  @Test
   public void testModDN() throws Throwable {
     SingleSearchParams userParamOrig = SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
                                       "pa$$word", SALES_USER_1,
@@ -1908,7 +1908,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   /**
    * Test anonymous modify DN with the same RDN.
    */
-  @Test()
+  @Test
   public void testAnonymousModDNSameRDN() throws Throwable {
     addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
     String modRDNLdif = makeModDN(OU_LEAF_DN, "ou=leaf", "1", null);
@@ -1920,7 +1920,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * user from a group, should fail.
    * @throws Throwable If the delete succeeds.
    */
-  @Test()
+  @Test
   public void testNonSelfWrite() throws Throwable {
     addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
     modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
@@ -1933,7 +1933,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * from a group, should succeed.
    * @throws Throwable If the delete fails.
    */
-  @Test()
+  @Test
   public void testSelfWrite() throws Throwable {
     addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
     modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
@@ -1945,7 +1945,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * Test ACI using dns="*" bind rule pattern. Search should succeed.
    * @throws Throwable  If the search doesn't return any entries.
    */
-  @Test()
+  @Test
   public void testDNSWildCard() throws Throwable {
         SingleSearchParams userParam =
           SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
@@ -1964,7 +1964,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   /**
    * Test group  bind rule ACI keywords.
    */
- @Test()
+ @Test
  public void testGroupAcis()  throws Throwable {
      //group2   fail
      SingleSearchParams adminParam =
@@ -1993,7 +1993,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
      *
      * @throws Throwable
      */
-    @Test()
+    @Test
  public void testGlobalAcis()  throws Throwable {
      SingleSearchParams monitorParam =
        SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW, MONITOR_DN,
@@ -2108,7 +2108,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * right test cases.
    * @throws Throwable If any test cases fail after re-initialization.
    */
-  @Test()
+  @Test
   public void testAciHandlerReInit() throws Throwable {
 
     // Setup using global and selfwrite test cases.

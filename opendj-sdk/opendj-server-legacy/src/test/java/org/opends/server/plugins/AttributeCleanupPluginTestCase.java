@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011 profiq s.r.o.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -58,7 +58,7 @@ import static org.testng.Assert.*;
 public class AttributeCleanupPluginTestCase extends PluginTestCase
 {
 
-  @BeforeClass()
+  @BeforeClass
   public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
@@ -215,7 +215,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
    *
    * @throws Exception in case of bugs.
    */
-  @Test()
+  @Test
   public void testRenameAttributesForAddOperation() throws Exception
   {
     // Configure the plugin to rename incoming 'cn' attributes to 'description'.
@@ -306,7 +306,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
    * Verifies the attribute removal in the incoming ADD request.
    * @throws Exception in case of bugs.
    */
-  @Test()
+  @Test
   public void testRemoveAttributesForAddOperation() throws Exception
   {
     /* Configure the plugin to remove 'modifyTimeStamp' and
@@ -405,7 +405,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
    * SUCCESS.
    * @throws Exception in case of a bug.
    */
-  @Test()
+  @Test
   public void testRemoveAttributesForModifyOperationInvalid() throws Exception
   {
     /* Configure the plugin to remove 'modifyTimeStamp' and
@@ -479,7 +479,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
    * Verify the attribute renaming for a MODIFY operation.
    * @throws Exception in case of a bug.
    */
-  @Test()
+  @Test
   public void testRemoveAttributesForModifyOperationValid() throws Exception
   {
     /* Configure the plugin to remove 'modifyTimeStamp' and
@@ -580,7 +580,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
   /**
    * Verify the attribute renaming for the MODIFY operation.
    */
-  @Test()
+  @Test
   public void testRenameAttributesForModifyOperation() throws Exception
   {
     /* Configure the plugin to rename the 'modifyTimeStamp' attribute to

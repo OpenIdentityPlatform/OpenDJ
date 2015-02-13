@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -250,7 +250,7 @@ public final class InternalSearchOperation
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public void sendSearchEntry(SearchResultEntry searchEntry)
          throws DirectoryException
   {
@@ -279,7 +279,7 @@ public final class InternalSearchOperation
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
-  @Override()
+  @Override
   public boolean sendSearchReference(
                       SearchResultReference searchReference)
          throws DirectoryException

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -73,7 +73,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     assertThat(record.getValue().getCSN()).isEqualTo(msg.getCSN());
   }
 
-  @Test()
+  @Test
   public void testAddAndReadRecords() throws Exception
   {
     ReplicationServer replicationServer = null;
@@ -111,7 +111,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-  @Test()
+  @Test
   public void testClear() throws Exception
   {
     ReplicationServer replicationServer = null;

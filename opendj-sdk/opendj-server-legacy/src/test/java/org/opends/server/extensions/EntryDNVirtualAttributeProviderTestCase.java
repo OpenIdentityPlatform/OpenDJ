@@ -67,7 +67,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -351,7 +351,7 @@ public class EntryDNVirtualAttributeProviderTestCase
   /**
    * Tests the {@code isMultiValued} method.
    */
-  @Test()
+  @Test
   public void testIsMultiValued()
   {
     EntryDNVirtualAttributeProvider provider =
@@ -366,7 +366,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValues()
          throws Exception
   {
@@ -394,7 +394,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasAnyValue()
          throws Exception
   {
@@ -419,7 +419,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasMatchingValue()
          throws Exception
   {
@@ -455,7 +455,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testHasNonMatchingValue()
          throws Exception
   {
@@ -480,7 +480,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMatchesSubstring()
          throws Exception
   {
@@ -509,7 +509,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGreaterThanOrEqualTo()
          throws Exception
   {
@@ -536,7 +536,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLessThanOrEqualTo()
          throws Exception
   {
@@ -563,7 +563,7 @@ public class EntryDNVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testApproximatelyEqualTo()
          throws Exception
   {

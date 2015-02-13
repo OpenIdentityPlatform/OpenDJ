@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -60,7 +60,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServerAndCreatePasswordFiles()
          throws Exception
   {
@@ -319,7 +319,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleLDAPv2Delete()
          throws Exception
   {
@@ -346,7 +346,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleLDAPv3Delete()
          throws Exception
   {
@@ -373,7 +373,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteSSLBlindTrust()
          throws Exception
   {
@@ -401,7 +401,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteSSLTrustStore()
          throws Exception
   {
@@ -432,7 +432,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteStartTLSBlindTrust()
          throws Exception
   {
@@ -460,7 +460,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteStartTLSTrustStore()
          throws Exception
   {
@@ -491,7 +491,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeletePLAIN()
          throws Exception
   {
@@ -518,7 +518,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteNonExistent()
          throws Exception
   {
@@ -545,7 +545,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteMalformedDN()
          throws Exception
   {
@@ -573,7 +573,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteParentNoSubtreeDeleteControl()
          throws Exception
   {
@@ -612,7 +612,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteValidPasswordFile()
          throws Exception
   {
@@ -638,7 +638,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteInvalidPasswordFile()
          throws Exception
   {
@@ -665,7 +665,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteNonExistentPasswordFile()
          throws Exception
   {
@@ -692,7 +692,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteDNsFromFile()
          throws Exception
   {
@@ -740,7 +740,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSubtreeDelete()
          throws Exception
   {
@@ -779,7 +779,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testSubtreeDeleteAltName()
          throws Exception
   {
@@ -818,7 +818,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteClientSideNoOp()
          throws Exception
   {
@@ -845,7 +845,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteServerSideNoOp()
          throws Exception
   {
@@ -874,7 +874,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testDeleteServerSideNoOpAltName()
          throws Exception
   {
@@ -903,7 +903,7 @@ public class LDAPDeleteTestCase
    *
    * @throws  Exception  If an unexpectd problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleRequestControls()
          throws Exception
   {
@@ -929,7 +929,7 @@ public class LDAPDeleteTestCase
   /**
    * Tests the LDAPDelete tool with the "--help" option.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--help" };

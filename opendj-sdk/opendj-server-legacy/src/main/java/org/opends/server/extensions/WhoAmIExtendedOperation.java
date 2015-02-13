@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -73,7 +73,7 @@ public class WhoAmIExtendedOperation
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
     // Process any supported controls for this operation, including the

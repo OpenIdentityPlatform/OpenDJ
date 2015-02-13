@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -87,7 +88,7 @@ public class ReferencesTestCase extends AciTestCase{
    *
    * @throws Exception If results are unexpected.
    */
-  @Test()
+  @Test
   public void testRef() throws Exception {
     try {
     String pwdLdifs =
@@ -110,7 +111,7 @@ public class ReferencesTestCase extends AciTestCase{
    *
    * @throws Exception  If results are unexpected.
    */
-  @Test()
+  @Test
   public void testRefAci() throws Exception {
     try {
     String pwdLdifs =
@@ -137,7 +138,7 @@ public class ReferencesTestCase extends AciTestCase{
    *
    * @throws Exception If an unexpected result is returned.
    */
-  @Test()
+  @Test
   public void testGlobalTargetAci() throws Exception {
     try {
     String pwdLdifs =
@@ -165,7 +166,7 @@ public class ReferencesTestCase extends AciTestCase{
    *
    * @throws Exception If an unexpected result us returned.
    */
-  @Test()
+  @Test
   public void testGlobalAci() throws Exception {
     try {
     String pwdLdifs =

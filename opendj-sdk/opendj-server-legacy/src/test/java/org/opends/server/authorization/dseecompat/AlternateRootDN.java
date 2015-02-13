@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -89,7 +89,7 @@ public class AlternateRootDN extends AciTestCase {
    *
    * @throws Exception  If an unexpected result is received.
    */
-  @Test()
+  @Test
   public void testAlternateDNs() throws Exception {
     String aciLdif=makeAddLDIF("aci", user1, rootDNACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);
@@ -126,7 +126,7 @@ public class AlternateRootDN extends AciTestCase {
    *
    * @throws Exception  If an unexpected result is received.
    */
-  @Test()
+  @Test
   public void testAlternateProxyDNs() throws Exception {
     String aciLdif=makeAddLDIF("aci", user1, rootDNACI, proxyACI, controlACI);
     LDIFModify(aciLdif, DIR_MGR_DN, PWD);

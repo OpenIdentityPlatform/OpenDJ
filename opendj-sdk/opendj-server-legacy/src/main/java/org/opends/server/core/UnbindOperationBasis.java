@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -75,7 +75,7 @@ public class UnbindOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -87,7 +87,7 @@ public class UnbindOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final List<Control> getResponseControls()
   {
     // An unbind operation can never have a response, so just return an empty
@@ -100,7 +100,7 @@ public class UnbindOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void addResponseControl(Control control)
   {
     // An unbind operation can never have a response, so just ignore this.
@@ -111,7 +111,7 @@ public class UnbindOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void removeResponseControl(Control control)
   {
     // An unbind operation can never have a response, so just ignore this.
@@ -163,7 +163,7 @@ public class UnbindOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("UnbindOperation(connID=");

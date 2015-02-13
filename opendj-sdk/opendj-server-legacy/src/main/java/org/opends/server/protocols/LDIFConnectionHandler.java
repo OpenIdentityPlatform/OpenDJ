@@ -124,7 +124,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeConnectionHandler(LDIFConnectionHandlerCfg
                                                configuration)
   {
@@ -167,7 +167,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeConnectionHandler(LocalizableMessage finalizeReason)
   {
     stopRequested = true;
@@ -202,7 +202,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public String getConnectionHandlerName()
   {
     return "LDIF Connection Handler";
@@ -213,7 +213,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public String getProtocol()
   {
     return "LDIF";
@@ -224,7 +224,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public Collection<HostPort> getListeners()
   {
     // There are no listeners for this connection handler.
@@ -236,7 +236,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public Collection<ClientConnection> getClientConnections()
   {
     // There are no client connections for this connection handler.
@@ -248,7 +248,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void run()
   {
     isStopped = false;
@@ -567,7 +567,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDIFConnectionHandler(ldifDirectory=\"");
@@ -582,7 +582,7 @@ public final class LDIFConnectionHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(ConnectionHandlerCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

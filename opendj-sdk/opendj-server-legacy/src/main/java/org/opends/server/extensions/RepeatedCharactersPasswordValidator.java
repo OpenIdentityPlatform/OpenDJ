@@ -73,7 +73,7 @@ public class RepeatedCharactersPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordValidator(
                    RepeatedCharactersPasswordValidatorCfg configuration)
   {
@@ -86,7 +86,7 @@ public class RepeatedCharactersPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeRepeatedCharactersChangeListener(this);
@@ -97,7 +97,7 @@ public class RepeatedCharactersPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,

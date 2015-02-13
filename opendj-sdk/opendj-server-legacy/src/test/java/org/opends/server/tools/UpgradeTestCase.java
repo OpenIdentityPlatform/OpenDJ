@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -100,7 +100,7 @@ public class UpgradeTestCase extends ToolsTestCase
   /**
    * Tests display help information.
    */
-  @Test()
+  @Test
   public void testUpgradeToolDisplaysHelpUsage()
   {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -121,7 +121,7 @@ public class UpgradeTestCase extends ToolsTestCase
   /**
    * Tests display help information.
    */
-  @Test()
+  @Test
   public void testUpgradeToolDisplaysHelpUsage2()
   {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -142,7 +142,7 @@ public class UpgradeTestCase extends ToolsTestCase
   /**
    * Tests display help information.
    */
-  @Test()
+  @Test
   public void testUpgradeToolDisplaysHelpUsage3()
   {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -163,7 +163,7 @@ public class UpgradeTestCase extends ToolsTestCase
   /**
    * Tests the upgrade tool with an invalid sub-command.
    */
-  @Test()
+  @Test
   public void testUpgradeToolDoesntAllowWrongSubcommand()
   {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -184,7 +184,7 @@ public class UpgradeTestCase extends ToolsTestCase
   /**
    * Tests the upgrade tool with an invalid sub-command.
    */
-  @Test()
+  @Test
   public void testUpgradeToolDoesntAllowWrongSubcommand2()
   {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -206,7 +206,7 @@ public class UpgradeTestCase extends ToolsTestCase
    * The upgrade tool disallows the force sub-command used with 'interactive
    * mode'.
    */
-  @Test()
+  @Test
   public void testUpgradeToolDoesntAllowInteractiveAndForce()
   {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -229,7 +229,7 @@ public class UpgradeTestCase extends ToolsTestCase
   /**
    * Upgrade tool allows use of force and no-prompt sub-commands.
    */
-  @Test()
+  @Test
   public void testUpgradeToolAllowsNonInteractiveAndForce() throws Exception
   {
     TestCaseUtils.startServer();

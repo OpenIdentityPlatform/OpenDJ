@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -67,7 +67,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -80,7 +80,7 @@ public class WhoAmIExtendedOperationTestCase
    * Tests the use of the Who Am I? extended operation with an internal
    * connection authenticated as a root user.
    */
-  @Test()
+  @Test
   public void testAsInternalRootUser()
   {
     InternalClientConnection conn =
@@ -99,7 +99,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAsInternalAnonymous()
          throws Exception
   {
@@ -118,7 +118,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAsInternalNormalUser()
          throws Exception
   {
@@ -151,7 +151,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAsLDAPRootUser()
          throws Exception
   {
@@ -184,7 +184,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAsLDAPAnonymous()
          throws Exception
   {
@@ -213,7 +213,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAsLDAPNormalUser()
          throws Exception
   {
@@ -261,7 +261,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testWithAlternateSASLAuthzID()
          throws Exception
   {
@@ -340,7 +340,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testWithAllowedProxiedAuthControl()
          throws Exception
   {
@@ -427,7 +427,7 @@ public class WhoAmIExtendedOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testWithDisallowedProxiedAuthControl()
          throws Exception
   {

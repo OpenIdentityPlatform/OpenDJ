@@ -65,7 +65,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {

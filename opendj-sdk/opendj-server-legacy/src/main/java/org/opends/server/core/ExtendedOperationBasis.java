@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -219,7 +219,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -232,7 +232,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
@@ -243,7 +243,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
@@ -254,7 +254,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
@@ -464,7 +464,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("ExtendedOperation(connID=");

@@ -93,7 +93,7 @@ public class ExternalSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeSASLMechanismHandler(
                    ExternalSASLMechanismHandlerCfg configuration)
          throws ConfigException, InitializationException
@@ -136,7 +136,7 @@ public class ExternalSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeSASLMechanismHandler()
   {
     currentConfig.removeExternalChangeListener(this);
@@ -149,7 +149,7 @@ public class ExternalSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSASLBind(BindOperation bindOperation)
   {
     ExternalSASLMechanismHandlerCfg config = currentConfig;
@@ -322,7 +322,7 @@ public class ExternalSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isPasswordBased(String mechanism)
   {
     // This is not a password-based mechanism.
@@ -334,7 +334,7 @@ public class ExternalSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSecure(String mechanism)
   {
     // This may be considered a secure mechanism.
@@ -346,7 +346,7 @@ public class ExternalSASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.tools;
@@ -104,7 +105,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
    *
    * @throws Exception The objectclass attribute is not returned.
    */
- @Test()
+ @Test
   public void testLDIFSearchStarOps() throws Exception {
     String[] args =
     {
@@ -130,7 +131,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
    *
    * @throws Exception  The objectclass attribute is returned.
    */
- @Test()
+ @Test
   public void testLDIFSearchOpsOnly() throws Exception {
     String[] args =
     {
@@ -157,7 +158,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
    * @throws Exception  The objectclass attribute is returned or one of the
    * specified attributes is not returned.
    */
- @Test()
+ @Test
   public void testLDIFSearchOpsAttrs() throws Exception {
     String[] args =
     {
@@ -187,7 +188,7 @@ public class LDIFSearchTestCase extends ToolsTestCase {
    * specified attributes is not returned.
    */
 
- @Test()
+ @Test
   public void testLDIFSearchAttrsOnly() throws Exception {
 
     String[] args =

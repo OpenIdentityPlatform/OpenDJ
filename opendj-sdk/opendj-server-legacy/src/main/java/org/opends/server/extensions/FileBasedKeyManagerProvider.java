@@ -285,7 +285,7 @@ public class FileBasedKeyManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                         FileBasedKeyManagerProviderCfg configuration,
                         List<LocalizableMessage> unacceptableReasons)

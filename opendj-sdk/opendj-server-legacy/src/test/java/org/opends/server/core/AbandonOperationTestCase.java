@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.core;
 
@@ -60,7 +60,7 @@ public class AbandonOperationTestCase
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   protected Operation[] createTestOperations()
          throws Exception
   {
@@ -80,7 +80,7 @@ public class AbandonOperationTestCase
    * For some reason, the @BeforeClass method in the super class is not called.
    */
   @Override
-  @BeforeClass()
+  @BeforeClass
   public void startServer() throws Exception {
     super.startServer();
   }
@@ -88,7 +88,7 @@ public class AbandonOperationTestCase
   /**
    * Tests the <CODE>getIDToAbandon</CODE> method.
    */
-  @Test()
+  @Test
   public void testGetIDToAbandon()
   {
     InternalClientConnection conn =
@@ -105,7 +105,7 @@ public class AbandonOperationTestCase
   /**
    * Tests the <CODE>cancel</CODE> method.
    */
-  @Test()
+  @Test
   public void testCancel()
   {
     InternalClientConnection conn =
@@ -127,7 +127,7 @@ public class AbandonOperationTestCase
   /**
    * Tests the <CODE>getCancelRequest</CODE> method.
    */
-  @Test()
+  @Test
   public void testGetCancelRequest()
   {
     InternalClientConnection conn =
@@ -161,7 +161,7 @@ public class AbandonOperationTestCase
    * Attempts an internal abandon operation, which will fail because internal
    * operations cannot be abandoned.
    */
-  @Test()
+  @Test
   public void testAbandonInternal()
   {
     InternalClientConnection conn =
@@ -246,7 +246,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbandonAdd()
          throws Exception
   {
@@ -322,7 +322,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbandonCompare()
          throws Exception
   {
@@ -389,7 +389,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbandonDelete()
          throws Exception
   {
@@ -460,7 +460,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbandonExtended()
          throws Exception
   {
@@ -526,7 +526,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbandonModify()
          throws Exception
   {
@@ -599,7 +599,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbandonModifyDN()
          throws Exception
   {
@@ -671,7 +671,7 @@ public class AbandonOperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbandonSearch()
          throws Exception
   {

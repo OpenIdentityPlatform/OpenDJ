@@ -781,7 +781,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(testName, "Ending test with success");
   }
 
-  @DataProvider()
+  @DataProvider
   Object[][] getFilters()
   {
     return new Object[][] {

@@ -82,7 +82,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void initializePlugin(Set<PluginType> pluginTypes,
                                      SevenBitCleanPluginCfg configuration)
          throws ConfigException
@@ -113,7 +113,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void finalizePlugin()
   {
     currentConfig.removeSevenBitCleanChangeListener(this);
@@ -124,7 +124,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.ImportLDIF
                doLDIFImport(LDIFImportConfig importConfig, Entry entry)
   {
@@ -189,7 +189,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreParse
                doPreParse(PreParseAddOperation addOperation)
   {
@@ -255,7 +255,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreParse
                     doPreParse(PreParseModifyOperation modifyOperation)
   {
@@ -333,7 +333,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final PluginResult.PreParse
                     doPreParse(PreParseModifyDNOperation modifyDNOperation)
   {
@@ -454,7 +454,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PluginCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

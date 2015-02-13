@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -79,7 +79,7 @@ public class PreloadEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void preloadEntryCacheTestInit()
          throws Exception
   {
@@ -183,7 +183,7 @@ public class PreloadEntryCacheTestCase
   /**
    * Tests the entry cache pre-load.
    */
-  @Test()
+  @Test
   public void testEntryCachePreload()
          throws Exception
   {
@@ -213,7 +213,7 @@ public class PreloadEntryCacheTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass
   public void preloadEntryCacheTestFini()
          throws Exception
   {

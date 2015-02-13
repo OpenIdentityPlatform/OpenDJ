@@ -267,7 +267,7 @@ public class SubjectDNToUserAttributeCertificateMapper
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(CertificateMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

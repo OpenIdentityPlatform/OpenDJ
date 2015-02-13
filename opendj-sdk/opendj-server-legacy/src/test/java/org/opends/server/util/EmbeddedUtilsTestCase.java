@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -52,7 +52,7 @@ public class EmbeddedUtilsTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void setUp()
          throws Exception
   {
@@ -69,7 +69,7 @@ public class EmbeddedUtilsTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass
   public void cleanUp()
          throws Exception
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -63,7 +63,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -339,7 +339,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    *
    * @throws Exception If an unexpected result occurs.
    */
-  @Test()
+  @Test
   public void testModDNOperation() throws Exception {
     //Add an entry under the new superior DN that has a value for uid
     //that will be tested for.
@@ -383,7 +383,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    *
    * @throws Exception If an unexpected result occurs.
    */
-  @Test()
+  @Test
   public void testModOperationNameContexts() throws Exception {
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
     LinkedList<Modification> mods = new LinkedList<Modification>();
@@ -425,7 +425,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    *
    * @throws Exception If an unexpected result occurs.
    */
-  @Test()
+  @Test
   public void testDseeCompatAdd() throws Exception {
     //Set up one plugin with mail attribute and a suffix.
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
@@ -456,7 +456,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    *
    * @throws Exception If an unexpected result occurs.
    */
-  @Test()
+  @Test
   public void testAddOperation() throws Exception {
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
     replaceAttrInEntry(uidConfigDN,dsConfigBaseDN,"ou=People1,o=test",
@@ -501,7 +501,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
    *
    * @throws Exception If an unexpected result occurs.
    */
-  @Test()
+  @Test
   public void testAddOperationNameContext() throws Exception {
     replaceAttrInEntry(uidConfigDN,dsConfigAttrType,"mail");
     Entry e = makeEntry("cn=test user, ou=People,o=test");

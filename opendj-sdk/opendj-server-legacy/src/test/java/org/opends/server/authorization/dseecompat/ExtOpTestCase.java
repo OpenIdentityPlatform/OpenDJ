@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -133,7 +134,7 @@ public class ExtOpTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-  @Test()
+  @Test
   public void testExtendOpPwdWC() throws Exception {
    String pwdLdifs =
         makeAddLDIF("aci", peopleBase, pwdControls, extOpWC, ALLOW_ALL);
@@ -156,7 +157,7 @@ public class ExtOpTestCase extends AciTestCase {
     *
     * @throws Exception If an unexpected result is returned.
     */
-    @Test()
+    @Test
    public void testExtendOpPwdNotWC() throws Exception {
     String pwdLdifs =
          makeAddLDIF("aci", peopleBase, pwdControls, extOpNotWC, ALLOW_ALL);
@@ -173,7 +174,7 @@ public class ExtOpTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-  @Test()
+  @Test
   public void testExtendOpPwd() throws Exception {
    String pwdLdifs =
         makeAddLDIF("aci", peopleBase, pwdControls, extOp, ALLOW_ALL);
@@ -189,7 +190,7 @@ public class ExtOpTestCase extends AciTestCase {
    * @throws Exception If an unexpected result is returned.
    */
 
-  @Test()
+  @Test
   public void testTargetattrSideEffect() throws Exception {
    String pwdLdifs =
         makeAddLDIF("aci", peopleBase, complicated);

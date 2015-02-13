@@ -100,7 +100,7 @@ public class FileBasedTrustManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeTrustManagerProvider(
                    FileBasedTrustManagerProviderCfg configuration)
          throws ConfigException, InitializationException
@@ -248,7 +248,7 @@ public class FileBasedTrustManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeTrustManagerProvider()
   {
     currentConfig.removeFileBasedChangeListener(this);
@@ -259,7 +259,7 @@ public class FileBasedTrustManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public TrustManager[] getTrustManagers()
          throws DirectoryException
   {
@@ -315,7 +315,7 @@ public class FileBasedTrustManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                          TrustManagerProviderCfg configuration,
                          List<LocalizableMessage> unacceptableReasons)

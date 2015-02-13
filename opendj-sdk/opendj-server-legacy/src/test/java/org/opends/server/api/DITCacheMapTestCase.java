@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -132,7 +132,7 @@ public class DITCacheMapTestCase extends APITestCase
     assertEquals(ditMap.size(), 0);
   }
 
-  @BeforeClass()
+  @BeforeClass
   public void beforeClass()
          throws Exception
   {
@@ -150,7 +150,7 @@ public class DITCacheMapTestCase extends APITestCase
     dn9 = DN.valueOf(dn9String);
   }
 
-  @Test()
+  @Test
   public void testDITCacheMapBasicOps()
          throws Exception
   {
@@ -230,7 +230,7 @@ public class DITCacheMapTestCase extends APITestCase
             "dc=com")));
   }
 
-  @Test()
+  @Test
   public void testDITCacheMapGetSubTree()
          throws Exception
   {
@@ -309,7 +309,7 @@ public class DITCacheMapTestCase extends APITestCase
     assertTrue(subtreeSet.contains(dn3String));
   }
 
-  @Test()
+  @Test
   public void testDITCacheMapKeyAndEntrySet()
          throws Exception
   {
@@ -375,7 +375,7 @@ public class DITCacheMapTestCase extends APITestCase
     assertTrue(ditMap.isEmpty());
   }
 
-  @Test()
+  @Test
   public void testDITCacheMapRemoveSubTree()
          throws Exception
   {

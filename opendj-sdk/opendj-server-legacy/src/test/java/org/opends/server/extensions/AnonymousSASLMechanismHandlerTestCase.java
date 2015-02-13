@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -59,7 +59,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -74,7 +74,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testInitializationAndFinalization()
          throws Exception
   {
@@ -90,7 +90,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsPasswordBased()
          throws Exception
   {
@@ -109,7 +109,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testIsSecure()
          throws Exception
   {
@@ -128,7 +128,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSASLBindNoCreds()
          throws Exception
   {
@@ -155,7 +155,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSASLBindEmptyCreds()
          throws Exception
   {
@@ -181,7 +181,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testProcessSASLBindWithTraceInfo()
          throws Exception
   {
@@ -208,7 +208,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindNoCreds()
          throws Exception
   {
@@ -237,7 +237,7 @@ public class AnonymousSASLMechanismHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testLDAPBindWithTraceInfo()
          throws Exception
   {

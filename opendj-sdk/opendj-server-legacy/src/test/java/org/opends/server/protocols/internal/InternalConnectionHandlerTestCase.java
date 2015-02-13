@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -49,7 +50,7 @@ public class InternalConnectionHandlerTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetInstanceAndInitialize()
          throws Exception
   {
@@ -64,7 +65,7 @@ public class InternalConnectionHandlerTestCase
   /**
    * Tests the <CODE>finalizeConnectionHandler</CODE> method.
    */
-  @Test()
+  @Test
   public void testFinalizeConnectionHandler()
   {
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
@@ -78,7 +79,7 @@ public class InternalConnectionHandlerTestCase
   /**
    * Tests the <CODE>getClientConnections</CODE> method.
    */
-  @Test()
+  @Test
   public void testGetClientConnections()
   {
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
@@ -95,7 +96,7 @@ public class InternalConnectionHandlerTestCase
    * Tests the <CODE>run</CODE> method.  This will make sure that it returns as
    * expected rather than actually running as a thread.
    */
-  @Test()
+  @Test
   public void testRun()
   {
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
@@ -110,7 +111,7 @@ public class InternalConnectionHandlerTestCase
    * Tests the first <CODE>toString</CODE> method, which doesn't take any
    * arguments.
    */
-  @Test()
+  @Test
   public void testToString1()
   {
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();
@@ -127,7 +128,7 @@ public class InternalConnectionHandlerTestCase
    * Tests the second <CODE>toString</CODE> method, which takes a
    * <CODE>StringBuilder</CODE> argument.
    */
-  @Test()
+  @Test
   public void testToString2()
   {
     InternalConnectionHandler handler = InternalConnectionHandler.getInstance();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -217,7 +217,7 @@ public class PasswordControlTest
   /**
    * Test OID
    */
-  @Test()
+  @Test
   public void checkPasswordOID() throws Exception
   {
     assertEquals(OID_NS_PASSWORD_EXPIRED,     "2.16.840.1.113730.3.4.4");

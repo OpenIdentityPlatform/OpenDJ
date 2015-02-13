@@ -175,7 +175,7 @@ public class RegularExpressionIdentityMapper
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeIdentityMapper()
   {
     currentConfig.removeRegularExpressionChangeListener(this);
@@ -186,7 +186,7 @@ public class RegularExpressionIdentityMapper
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public Entry getEntryForID(String id)
          throws DirectoryException
   {
@@ -301,7 +301,7 @@ public class RegularExpressionIdentityMapper
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(IdentityMapperCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

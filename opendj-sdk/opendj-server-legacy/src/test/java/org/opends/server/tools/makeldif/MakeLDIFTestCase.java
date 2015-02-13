@@ -22,7 +22,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2006 Brighton Consulting, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools.makeldif;
 
@@ -70,7 +70,7 @@ public class MakeLDIFTestCase
    * uninitialized variable when generating templates reports the
    * correct line.
    */
-  @Test()
+  @Test
   public void testParseTemplate() throws Exception
   {
     String[] lines =

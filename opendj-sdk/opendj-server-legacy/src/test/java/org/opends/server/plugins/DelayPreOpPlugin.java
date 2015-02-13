@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -175,7 +175,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePlugin(Set<PluginType> pluginTypes,
                                PluginCfg configuration)
          throws ConfigException
@@ -207,7 +207,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationAddOperation addOperation)
       throws CanceledOperationException {
@@ -219,7 +219,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
          doPreOperation(PreOperationBindOperation bindOperation)
   {
@@ -239,7 +239,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
          doPreOperation(PreOperationCompareOperation compareOperation)
       throws CanceledOperationException {
@@ -251,7 +251,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationDeleteOperation deleteOperation)
       throws CanceledOperationException {
@@ -263,7 +263,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationExtendedOperation extendedOperation)
       throws CanceledOperationException {
@@ -275,7 +275,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyOperation modifyOperation)
       throws CanceledOperationException {
@@ -287,7 +287,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationModifyDNOperation modifyDNOperation)
       throws CanceledOperationException {
@@ -299,7 +299,7 @@ public class DelayPreOpPlugin
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public PluginResult.PreOperation
        doPreOperation(PreOperationSearchOperation searchOperation)
       throws CanceledOperationException {

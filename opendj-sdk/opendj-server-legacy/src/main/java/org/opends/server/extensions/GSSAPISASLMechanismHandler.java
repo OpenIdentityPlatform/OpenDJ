@@ -117,7 +117,7 @@ public class GSSAPISASLMechanismHandler extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeSASLMechanismHandler(
       GSSAPISASLMechanismHandlerCfg configuration) throws ConfigException,
       InitializationException {
@@ -335,7 +335,7 @@ public class GSSAPISASLMechanismHandler extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeSASLMechanismHandler() {
     logout();
     if(configuration != null)
@@ -358,7 +358,7 @@ private void clearProperties() {
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSASLBind(BindOperation bindOp)
   {
     ClientConnection connection = bindOp.getClientConnection();
@@ -433,7 +433,7 @@ private void clearProperties() {
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isPasswordBased(String mechanism)
   {
     // This is not a password-based mechanism.
@@ -444,7 +444,7 @@ private void clearProperties() {
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSecure(String mechanism)
   {
     // This may be considered a secure mechanism.
@@ -456,7 +456,7 @@ private void clearProperties() {
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
       SASLMechanismHandlerCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {

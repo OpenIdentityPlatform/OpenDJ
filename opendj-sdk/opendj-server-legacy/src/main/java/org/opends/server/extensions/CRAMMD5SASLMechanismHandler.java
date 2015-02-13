@@ -111,7 +111,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeSASLMechanismHandler(
                    CramMD5SASLMechanismHandlerCfg configuration)
          throws ConfigException, InitializationException
@@ -156,7 +156,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizeSASLMechanismHandler()
   {
     currentConfig.removeCramMD5ChangeListener(this);
@@ -169,7 +169,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void processSASLBind(BindOperation bindOperation)
   {
     // The CRAM-MD5 bind process uses two stages.  See if the client provided
@@ -523,7 +523,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isPasswordBased(String mechanism)
   {
     // This is a password-based mechanism.
@@ -535,7 +535,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isSecure(String mechanism)
   {
     // This may be considered a secure mechanism.
@@ -547,7 +547,7 @@ public class CRAMMD5SASLMechanismHandler
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                       SASLMechanismHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)

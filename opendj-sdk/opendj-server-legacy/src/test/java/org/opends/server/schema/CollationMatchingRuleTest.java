@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -62,7 +62,7 @@ public final class CollationMatchingRuleTest
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -79,7 +79,7 @@ public final class CollationMatchingRuleTest
    * Test to verify an ADD of an entry containing international characters.
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void addEntry() throws Exception
   {
     String filePath = TestCaseUtils.createTempFile(
@@ -260,7 +260,7 @@ public final class CollationMatchingRuleTest
    * Test to verify the Sort control works well with the Collation
    * Less-than-equal-to matching rule and French Locale.
    */
-  @Test()
+  @Test
   public void testSortControlLTERule() throws Exception
   {
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -278,7 +278,7 @@ public final class CollationMatchingRuleTest
    * Test to verify the Sort control works with Collation equality
    * matching rule and Spanish locale.
    */
-  @Test()
+  @Test
   public void testSortControlEQRule() throws Exception
   {
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -296,7 +296,7 @@ public final class CollationMatchingRuleTest
    * Test to verify the Sort control works with Collation greater
    * than matching rule and English locale in a descending order.
    */
-  @Test()
+  @Test
   public void testSortControlGTRule() throws Exception
   {
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();
@@ -315,7 +315,7 @@ public final class CollationMatchingRuleTest
    * Tests the Sort control with the VLV control using a collation equality
    * matching rule.
    */
-  @Test()
+  @Test
   public void testVLVSortControl() throws Exception
   {
     ArrayList<DN> expectedDNOrder = new ArrayList<DN>();

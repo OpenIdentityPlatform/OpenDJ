@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -81,7 +81,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordStorageScheme(
                    RC4PasswordStorageSchemeCfg configuration)
          throws ConfigException, InitializationException
@@ -94,7 +94,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_RC4;
@@ -105,7 +105,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -140,7 +140,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -182,7 +182,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
   {
@@ -206,7 +206,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isReversible()
   {
     return true;
@@ -217,7 +217,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
@@ -243,7 +243,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean supportsAuthPasswordSyntax()
   {
     // This storage scheme does not support the authentication password syntax.
@@ -255,7 +255,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -269,7 +269,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
@@ -282,7 +282,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
          throws DirectoryException
@@ -297,7 +297,7 @@ public class RC4PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isStorageSchemeSecure()
   {
     // This password storage scheme should be considered secure.

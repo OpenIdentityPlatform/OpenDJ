@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.backends;
 
@@ -66,7 +66,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    * Ensures that the Directory Server is running and gets a reference to the
    * schema backend.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
@@ -97,7 +97,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   /**
    * Tests the {@code isLocal} method to ensure that it is considered local.
    */
-  @Test()
+  @Test
   public void testIsLocal()
   {
     assertTrue(schemaBackend.isLocal());
@@ -111,7 +111,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetValidEntry()
          throws Exception
   {
@@ -141,7 +141,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetInvalidEntry()
          throws Exception
   {
@@ -162,7 +162,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetSchemaEntry()
          throws Exception
   {
@@ -209,7 +209,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEntryExistsValidDN()
          throws Exception
   {
@@ -224,7 +224,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testEntryExistsInvalidDN()
          throws Exception
   {
@@ -299,7 +299,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleBaseSearch()
          throws Exception
   {
@@ -319,7 +319,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleOneLevelSearch() throws Exception
   {
     String filterString = "(|(objectClass=*)(objectClass=ldapSubentry))";
@@ -339,7 +339,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleSubtreeSearch()
          throws Exception
   {
@@ -360,7 +360,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleSubordinateSubtreeSearch()
          throws Exception
   {
@@ -381,7 +381,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSearchMatchedDN() throws Exception
   {
     InternalClientConnection conn = getRootConnection();
@@ -405,7 +405,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testTreatAsUserAttrs()
          throws Exception
   {
@@ -447,7 +447,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddUnsupportedAttr()
          throws Exception
   {
@@ -477,7 +477,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveUnsupportedAttr()
          throws Exception
   {
@@ -510,7 +510,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAllAttributeTypes()
          throws Exception
   {
@@ -539,7 +539,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testReplaceAllAttributeTypes()
          throws Exception
   {
@@ -568,7 +568,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeSuccessful()
          throws Exception
   {
@@ -606,7 +606,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeSuccessfulNoOID()
          throws Exception
   {
@@ -644,7 +644,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeType()
          throws Exception
   {
@@ -724,7 +724,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeSuccessfulReplace()
          throws Exception
   {
@@ -820,7 +820,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeInvalidSyntax()
          throws Exception
   {
@@ -850,7 +850,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeUndefinedSyntax()
          throws Exception
   {
@@ -883,7 +883,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeUndefinedEMR()
          throws Exception
   {
@@ -916,7 +916,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeUndefinedOMR()
          throws Exception
   {
@@ -949,7 +949,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeUndefinedSMR()
          throws Exception
   {
@@ -982,7 +982,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeUndefinedAMR()
          throws Exception
   {
@@ -1015,7 +1015,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeInvalidUsage()
          throws Exception
   {
@@ -1048,7 +1048,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeObsoleteSuperior()
          throws Exception
   {
@@ -1087,7 +1087,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeObsoleteEMR()
          throws Exception
   {
@@ -1125,7 +1125,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeMultipleConflicts()
          throws Exception
   {
@@ -1158,7 +1158,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAttributeTypeUndefinedSuperior()
          throws Exception
   {
@@ -1193,7 +1193,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAttributeTypeSuccessful()
          throws Exception
   {
@@ -1238,7 +1238,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveThenAddAttributeTypeSuccessful()
          throws Exception
   {
@@ -1289,7 +1289,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAttributeTypeUndefined()
          throws Exception
   {
@@ -1326,7 +1326,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveSuperiorAttributeType()
          throws Exception
   {
@@ -1363,7 +1363,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAttributeTypeReferencedByObjectClass()
          throws Exception
   {
@@ -1400,7 +1400,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAttributeTypeReferencedByNameForm()
          throws Exception
   {
@@ -1457,7 +1457,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAttributeTypeReferencedByDCR()
          throws Exception
   {
@@ -1513,7 +1513,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAttributeTypeReferencedByMRU()
          throws Exception
   {
@@ -1574,7 +1574,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassSuccessful()
          throws Exception
   {
@@ -1612,7 +1612,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassSuccessfulNoOID()
          throws Exception
   {
@@ -1648,7 +1648,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassToAltSchemaFile()
          throws Exception
   {
@@ -1690,7 +1690,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassSuccessfulReplace()
          throws Exception
   {
@@ -1733,7 +1733,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassMultipleConflicts()
          throws Exception
   {
@@ -1771,7 +1771,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveThenAddAddObjectClassSuccessful()
          throws Exception
   {
@@ -1820,7 +1820,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassInvalidSyntax()
          throws Exception
   {
@@ -1850,7 +1850,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassUndefinedSuperiorClass()
          throws Exception
   {
@@ -1882,7 +1882,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassObsoleteSuperiorClass()
          throws Exception
   {
@@ -1918,7 +1918,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassObsoleteRequiredAttribute()
          throws Exception
   {
@@ -1957,7 +1957,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassObsoleteOptionalAttribute()
          throws Exception
   {
@@ -1996,7 +1996,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassUndefinedRequiredAttribute()
          throws Exception
   {
@@ -2029,7 +2029,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassMultipleUndefinedRequiredAttribute()
          throws Exception
   {
@@ -2062,7 +2062,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassUndefinedOptionalAttribute()
          throws Exception
   {
@@ -2095,7 +2095,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddObjectClassMultipleUndefinedOptionalAttribute()
          throws Exception
   {
@@ -2128,7 +2128,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAbstractObjectClassWithNonAbstractSuperior()
          throws Exception
   {
@@ -2160,7 +2160,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAuxiliaryObjectClassWithStructuralSuperior()
          throws Exception
   {
@@ -2192,7 +2192,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddStructuralObjectClassWithAuxiliarySuperior()
          throws Exception
   {
@@ -2224,7 +2224,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveObjectClassSuccessful()
          throws Exception
   {
@@ -2267,7 +2267,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveSuperiorObjectClass()
          throws Exception
   {
@@ -2303,7 +2303,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveObjectClassReferencedByNameForm()
          throws Exception
   {
@@ -2352,7 +2352,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveObjectClassReferencedByDCR()
          throws Exception
   {
@@ -2400,7 +2400,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormSuccessful()
          throws Exception
   {
@@ -2442,7 +2442,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormToAltSchemaFile()
          throws Exception
   {
@@ -2491,7 +2491,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithUndefinedReqAT()
          throws Exception
   {
@@ -2534,7 +2534,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithMultipleUndefinedReqAT()
          throws Exception
   {
@@ -2578,7 +2578,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithUndefinedOptAT()
          throws Exception
   {
@@ -2621,7 +2621,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithMultipleUndefinedOptAT()
          throws Exception
   {
@@ -2664,7 +2664,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithUndefinedOC()
          throws Exception
   {
@@ -2700,7 +2700,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithAuxiliaryOC()
          throws Exception
   {
@@ -2742,7 +2742,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithObsoleteOC()
          throws Exception
   {
@@ -2784,7 +2784,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithObsoleteReqAT()
          throws Exception
   {
@@ -2828,7 +2828,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormWithObsoleteOptAT()
          throws Exception
   {
@@ -2873,7 +2873,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddNameFormOCConflict()
          throws Exception
   {
@@ -2923,7 +2923,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveNameFormSuccessful()
          throws Exception
   {
@@ -2973,7 +2973,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveThenAddNameFormSuccessful()
          throws Exception
   {
@@ -3029,7 +3029,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveNameFormReferencedByDSR()
          throws Exception
   {
@@ -3085,7 +3085,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleSuccessful()
          throws Exception
   {
@@ -3132,7 +3132,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testReplaceDITContentRuleSuccessful()
          throws Exception
   {
@@ -3186,7 +3186,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleToAltSchemaFile()
          throws Exception
   {
@@ -3241,7 +3241,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveThenAddDITContentRule()
          throws Exception
   {
@@ -3300,7 +3300,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleUndefinedOC()
          throws Exception
   {
@@ -3332,7 +3332,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleAuxiliaryOC()
          throws Exception
   {
@@ -3369,7 +3369,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleObsoleteOC()
          throws Exception
   {
@@ -3407,7 +3407,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleConflictingOC()
          throws Exception
   {
@@ -3451,7 +3451,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleUndefinedAuxOC()
          throws Exception
   {
@@ -3489,7 +3489,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleMultipleUndefinedAuxOC()
          throws Exception
   {
@@ -3527,7 +3527,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleAuxOCNotAux()
          throws Exception
   {
@@ -3565,7 +3565,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleMultipleAuxOCNotAux()
          throws Exception
   {
@@ -3603,7 +3603,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleObsoleteAuxOC()
          throws Exception
   {
@@ -3644,7 +3644,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleUndefinedReqAT()
          throws Exception
   {
@@ -3682,7 +3682,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleMultipleUndefinedReqAT()
          throws Exception
   {
@@ -3720,7 +3720,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleUndefinedOptAT()
          throws Exception
   {
@@ -3758,7 +3758,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleMultipleUndefinedOptAT()
          throws Exception
   {
@@ -3796,7 +3796,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleUndefinedNotAT()
          throws Exception
   {
@@ -3834,7 +3834,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleMultipleUndefinedNotAT()
          throws Exception
   {
@@ -3873,7 +3873,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleProhibitRequiredStructuralAttribute()
          throws Exception
   {
@@ -3911,7 +3911,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleProhibitRequiredAuxiliaryAttribute()
          throws Exception
   {
@@ -3948,7 +3948,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleObsoleteRequiredAttributeType()
          throws Exception
   {
@@ -3991,7 +3991,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleObsoleteOptionalAttributeType()
          throws Exception
   {
@@ -4034,7 +4034,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITContentRuleObsoleteProhibitedAttributeType()
          throws Exception
   {
@@ -4077,7 +4077,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveDITContentRuleSuccessful()
          throws Exception
   {
@@ -4130,7 +4130,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITStructureRuleSuccessful()
          throws Exception
   {
@@ -4178,7 +4178,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testReplaceDITStructureRuleSuccessful()
          throws Exception
   {
@@ -4235,7 +4235,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITStructureRuleToAltSchemaFile()
          throws Exception
   {
@@ -4293,7 +4293,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAndAddDITStructureRuleSuccessful()
          throws Exception
   {
@@ -4356,7 +4356,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITStructureRuleUndefinedNameForm()
          throws Exception
   {
@@ -4393,7 +4393,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITStructureRuleUndefinedSuperior()
          throws Exception
   {
@@ -4441,7 +4441,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITStructureRuleObsoleteNameForm()
          throws Exception
   {
@@ -4485,7 +4485,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddDITStructureRuleObsoleteSuperiorRule()
          throws Exception
   {
@@ -4540,7 +4540,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveDITStructureRuleSuccessful()
          throws Exception
   {
@@ -4597,7 +4597,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveSuperiorDITStructureRule()
          throws Exception
   {
@@ -4701,7 +4701,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseSuccessful()
          throws Exception
   {
@@ -4743,7 +4743,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseToAltSchemaFile()
          throws Exception
   {
@@ -4791,7 +4791,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testReplaceMatchingRuleUseSuccessful()
          throws Exception
   {
@@ -4840,7 +4840,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAndAddMatchingRuleUse()
          throws Exception
   {
@@ -4894,7 +4894,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseMRConflict()
          throws Exception
   {
@@ -4943,7 +4943,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseMRUndefined()
          throws Exception
   {
@@ -4973,7 +4973,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseAttributeTypeUndefined()
          throws Exception
   {
@@ -5012,7 +5012,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseAttributeTypeMultipleUndefined()
          throws Exception
   {
@@ -5049,7 +5049,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseObsoleteMatchingRule()
          throws Exception
   {
@@ -5086,7 +5086,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddMatchingRuleUseObsoleteAttributeType()
          throws Exception
   {
@@ -5126,7 +5126,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveMatchingRuleUseSuccessful()
          throws Exception
   {
@@ -5189,7 +5189,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveAndAddObjectClassIssue1318()
          throws Exception
   {
@@ -5227,7 +5227,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    * Tests the behavior of schema backend when attribute type definitions
    * are added without a space before closing parenthesis.
    */
-  @Test()
+  @Test
  public void   testAddAttributeTypeNoSpaceBeforeParenthesis() throws Exception
   {
 
@@ -5348,7 +5348,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAndDeleteDefinitionWithExtraSpaces()
          throws Exception
   {
@@ -5388,7 +5388,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testExportLDIF()
          throws Exception
   {
@@ -5411,7 +5411,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testImportLDIF()
          throws Exception
   {
@@ -5437,7 +5437,7 @@ public class SchemaBackendTestCase extends BackendTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetComponentEntryDN()
          throws Exception
   {
@@ -5451,7 +5451,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   /**
    * Tests the {@code getClassName} method.
    */
-  @Test()
+  @Test
   public void testGetClassName()
   {
     assertEquals(schemaBackend.getClassName(), SchemaBackend.class.getName());
@@ -5462,7 +5462,7 @@ public class SchemaBackendTestCase extends BackendTestCase
   /**
    * Tests the {@code getAlerts} method.
    */
-  @Test()
+  @Test
   public void testGetAlerts()
   {
     Map<String, String> alerts = schemaBackend.getAlerts();

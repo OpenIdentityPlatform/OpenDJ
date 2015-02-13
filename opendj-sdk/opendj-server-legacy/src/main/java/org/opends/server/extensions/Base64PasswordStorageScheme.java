@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -72,7 +72,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordStorageScheme(
                    Base64PasswordStorageSchemeCfg configuration)
          throws ConfigException, InitializationException
@@ -85,7 +85,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public String getStorageSchemeName()
   {
     return STORAGE_SCHEME_NAME_BASE64;
@@ -96,7 +96,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -108,7 +108,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString encodePasswordWithScheme(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -126,7 +126,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
   {
@@ -140,7 +140,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isReversible()
   {
     return true;
@@ -151,7 +151,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString getPlaintextValue(ByteSequence storedPassword)
          throws DirectoryException
   {
@@ -174,7 +174,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean supportsAuthPasswordSyntax()
   {
     // This storage scheme does not support the authentication password syntax.
@@ -186,7 +186,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -200,7 +200,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean authPasswordMatches(ByteSequence plaintextPassword,
                                      String authInfo, String authValue)
   {
@@ -213,7 +213,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public ByteString getAuthPasswordPlaintextValue(String authInfo,
                                                   String authValue)
          throws DirectoryException
@@ -228,7 +228,7 @@ public class Base64PasswordStorageScheme
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isStorageSchemeSecure()
   {
     // Base64-encoded values may be easily decoded with no key or special

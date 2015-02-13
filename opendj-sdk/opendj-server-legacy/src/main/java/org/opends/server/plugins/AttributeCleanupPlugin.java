@@ -231,7 +231,7 @@ public class AttributeCleanupPlugin extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePlugin(final Set<PluginType> pluginTypes,
       final AttributeCleanupPluginCfg configuration) throws ConfigException,
       InitializationException

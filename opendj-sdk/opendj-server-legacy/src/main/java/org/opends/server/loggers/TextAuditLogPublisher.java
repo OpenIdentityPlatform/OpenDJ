@@ -159,7 +159,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   protected void close0()
   {
     writer.shutdown();
@@ -171,7 +171,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializeLogPublisher(FileBasedAuditLogPublisherCfg cfg, ServerContext serverContext)
       throws ConfigException, InitializationException
   {
@@ -280,7 +280,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void logAddResponse(AddOperation addOperation)
   {
     if (!isLoggable(addOperation))
@@ -330,7 +330,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void logDeleteResponse(DeleteOperation deleteOperation)
   {
     if (!isLoggable(deleteOperation))
@@ -356,7 +356,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void logModifyDNResponse(ModifyDNOperation modifyDNOperation)
   {
     if (!isLoggable(modifyDNOperation))
@@ -405,7 +405,7 @@ public final class TextAuditLogPublisher extends
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void logModifyResponse(ModifyOperation modifyOperation)
   {
     if (!isLoggable(modifyOperation))

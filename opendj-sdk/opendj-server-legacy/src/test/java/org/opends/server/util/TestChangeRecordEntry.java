@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -69,7 +69,7 @@ public final class TestChangeRecordEntry extends UtilTestCase {
     /**
      * {@inheritDoc}
      */
-    @Override()
+    @Override
     public String toString()
     {
       return "MyChangeRecordEntry()";

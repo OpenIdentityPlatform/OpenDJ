@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -85,7 +85,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidSingleStructuralClass()
          throws Exception
   {
@@ -109,7 +109,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testValidSingleStructuralClassAndAuxiliaryClass()
          throws Exception
   {
@@ -134,7 +134,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testNoStructuralClass()
          throws Exception
   {
@@ -155,7 +155,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleStructuralClasses()
          throws Exception
   {
@@ -184,7 +184,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUndefinedStructuralObjectClass()
          throws Exception
   {
@@ -208,7 +208,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUndefinedAuxiliaryObjectClass()
          throws Exception
   {
@@ -233,7 +233,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMissingAttributeRequiredByStructuralClass()
          throws Exception
   {
@@ -277,7 +277,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMissingAttributeRequiredByAuxiliaryClass()
          throws Exception
   {
@@ -322,7 +322,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDisallowedAttributeType()
          throws Exception
   {
@@ -366,7 +366,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleValuesForMultiValuedAttribute()
          throws Exception
   {
@@ -390,7 +390,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleValuesForSingleValuedAttribute()
          throws Exception
   {
@@ -415,7 +415,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMultipleValuesForSingleValuedOperationalAttribute()
          throws Exception
   {
@@ -448,7 +448,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAuxiliaryClassAllowedByDCR()
          throws Exception
   {
@@ -503,7 +503,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAuxiliaryClassNotAllowedByDCR()
          throws Exception
   {
@@ -556,7 +556,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowAttributeRequiredByDCR()
          throws Exception
   {
@@ -607,7 +607,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRequireAttributeRequiredByDCR()
          throws Exception
   {
@@ -656,7 +656,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDontRequireAttributeRequiredByObsoleteDCR()
          throws Exception
   {
@@ -706,7 +706,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAllowAttributeAllowedByDCR()
          throws Exception
   {
@@ -758,7 +758,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDontRequireAttributeAllowedByDCR()
          throws Exception
   {
@@ -808,7 +808,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDontAllowAttributeProhibitedByDCR()
          throws Exception
   {
@@ -857,7 +857,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSatisfiesSingleValuedNameForm()
          throws Exception
   {
@@ -907,7 +907,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testViolatesSingleValuedNameForm()
          throws Exception
   {
@@ -957,7 +957,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMVViolatesSingleValuedNameForm()
          throws Exception
   {
@@ -1007,7 +1007,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testViolatesSingleValuedObsoleteNameForm()
          throws Exception
   {
@@ -1060,7 +1060,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSatisfiesRequiredMultiValuedNameForm()
          throws Exception
   {
@@ -1114,7 +1114,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testViolatesRequiredMultiValuedNameForm()
          throws Exception
   {
@@ -1166,7 +1166,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSVSatisfiesOptionalMultiValuedNameForm()
          throws Exception
   {
@@ -1219,7 +1219,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMVSatisfiesOptionalMultiValuedNameForm()
          throws Exception
   {
@@ -1272,7 +1272,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSVViolatesOptionalMultiValuedNameForm()
          throws Exception
   {
@@ -1322,7 +1322,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDITStructureRuleConstraints()
          throws Exception
   {
@@ -1426,7 +1426,7 @@ public class EntrySchemaCheckingTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testInvalidSuperiorAttribute()
          throws Exception
   {

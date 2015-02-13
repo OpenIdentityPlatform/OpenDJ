@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -62,7 +62,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -77,7 +77,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMapperEnabled()
          throws Exception
   {
@@ -173,7 +173,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchSingleReplacementWithoutBaseDN()
          throws Exception
   {
@@ -237,7 +237,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchSingleReplacementMultipleAttributes()
          throws Exception
   {
@@ -302,7 +302,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchSingleReplacementWithBaseDNInScope()
          throws Exception
   {
@@ -367,7 +367,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchSingleReplacementWithBaseDNOutOfScope()
          throws Exception
   {
@@ -430,7 +430,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchSingleReplacementWithMultipleBaseDNs()
          throws Exception
   {
@@ -497,7 +497,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testMatchPatternDoesntMatch()
          throws Exception
   {
@@ -560,7 +560,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchNoReplacePattern()
          throws Exception
   {
@@ -622,7 +622,7 @@ public class RegularExpressionIdentityMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleMatchReplacePatternExpandsString()
          throws Exception
   {

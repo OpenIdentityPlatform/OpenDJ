@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -295,7 +295,7 @@ public class JmxPrivilegeTestCase extends JmxTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass
   public void cleanUp()
          throws Exception
   {

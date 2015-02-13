@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -98,7 +98,7 @@ public class AbandonOperationBasis extends AbstractOperation
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -112,7 +112,7 @@ public class AbandonOperationBasis extends AbstractOperation
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final List<Control> getResponseControls()
   {
     // An abandon operation can never have a response, so just return an empty
@@ -125,7 +125,7 @@ public class AbandonOperationBasis extends AbstractOperation
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void addResponseControl(Control control)
   {
     // An abandon operation can never have a response, so just ignore this.
@@ -136,7 +136,7 @@ public class AbandonOperationBasis extends AbstractOperation
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void removeResponseControl(Control control)
   {
     // An abandon operation can never have a response, so just ignore this.
@@ -230,7 +230,7 @@ abandonProcessing:
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("AbandonOperation(connID=");

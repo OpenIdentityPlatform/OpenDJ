@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS.
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap ;
 
@@ -57,7 +57,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -73,7 +73,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectBindRequest()
          throws Exception
   {
@@ -122,7 +122,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectExtendedRequest()
          throws Exception
   {
@@ -165,7 +165,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectAddControls()
          throws Exception
   {
@@ -217,7 +217,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectBindControls()
          throws Exception
   {
@@ -255,7 +255,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectCompareControls()
          throws Exception
   {
@@ -305,7 +305,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectDeleteControls()
          throws Exception
   {
@@ -354,7 +354,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectModifyControls()
          throws Exception
   {
@@ -407,7 +407,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectModifyDNControls()
          throws Exception
   {
@@ -457,7 +457,7 @@ public class LDAPv2TestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRejectSearchControls()
          throws Exception
   {

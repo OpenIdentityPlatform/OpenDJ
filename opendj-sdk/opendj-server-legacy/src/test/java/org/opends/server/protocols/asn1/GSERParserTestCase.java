@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2013-2014 Manuel Gaupp
- *      Portions copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.asn1;
 
@@ -54,7 +54,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
   /**
    * Test the <CODE>hasNext</CODE> method.
    */
-  @Test()
+  @Test
   public void testHasNext() throws Exception
   {
     GSERParser parser = new GSERParser("0");
@@ -68,7 +68,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
   /**
    * Test the <CODE>skipSP</CODE> method.
    */
-  @Test()
+  @Test
   public void testSkipSP() throws Exception
   {
     String[] values = {" 42","  42","42"};
@@ -85,7 +85,7 @@ public class GSERParserTestCase extends DirectoryServerTestCase
   /**
    * Test the <CODE>skipMSP</CODE> method.
    */
-  @Test()
+  @Test
   public void testSkipMSP() throws Exception
   {
     String[] values = {" 42","  42","           42"};

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -102,7 +102,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -267,7 +267,7 @@ public class CertificateManagerTestCase
    * Tests the certificate manager with a valid constructor using the JKS key
    * store type.
    */
-  @Test()
+  @Test
   public void testValidConstructorJKS()
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -284,7 +284,7 @@ public class CertificateManagerTestCase
    * Tests the certificate manager with a valid constructor using the PKCS12 key
    * store type.
    */
-  @Test()
+  @Test
   public void testValidConstructorPKCS12()
   {
     if (! CERT_MANAGER_AVAILABLE)
@@ -302,7 +302,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAliasInUseNull()
          throws Exception
   {
@@ -328,7 +328,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAliasInUseEmpty()
          throws Exception
   {
@@ -354,7 +354,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAliasInUseInvalidKeyStore()
          throws Exception
   {
@@ -389,7 +389,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAliasInUseJKS()
          throws Exception
   {
@@ -415,7 +415,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAliasInUsePKCS12()
          throws Exception
   {
@@ -442,7 +442,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGetCertificateAliasesJKS()
          throws Exception
   {
@@ -472,7 +472,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGetCertificateAliasesPKCS12()
          throws Exception
   {
@@ -501,7 +501,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGetCertificateNull()
          throws Exception
   {
@@ -527,7 +527,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGetCertificateEmpty()
          throws Exception
   {
@@ -553,7 +553,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGetCertificateJKS()
          throws Exception
   {
@@ -584,7 +584,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGetCertificatePKCS12()
          throws Exception
   {
@@ -614,7 +614,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateNullAlias()
          throws Exception
   {
@@ -641,7 +641,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateEmptyAlias()
          throws Exception
   {
@@ -668,7 +668,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateAliasInUse()
          throws Exception
   {
@@ -696,7 +696,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateNullSubject()
          throws Exception
   {
@@ -723,7 +723,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateEmptySubject()
          throws Exception
   {
@@ -750,7 +750,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateInvalidSubject()
          throws Exception
   {
@@ -782,7 +782,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateInvalidValidity()
          throws Exception
   {
@@ -809,7 +809,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testGenerateSelfSignedCertificateJKS()
          throws Exception
   {
@@ -868,7 +868,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCertificateNullAlias()
          throws Exception
   {
@@ -897,7 +897,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCertificateEmptyAlias()
          throws Exception
   {
@@ -926,7 +926,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCertificateNullCertificateFile()
          throws Exception
   {
@@ -953,7 +953,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCertificateMissingCertificateFile()
          throws Exception
   {
@@ -983,7 +983,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCertificateFileNotFile()
          throws Exception
   {
@@ -1013,7 +1013,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAddCertificateFileNotCertificate()
          throws Exception
   {
@@ -1048,7 +1048,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveCertificateNullAlias()
          throws Exception
   {
@@ -1074,7 +1074,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveCertificateEmptyAlias()
          throws Exception
   {
@@ -1101,7 +1101,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveCertificateNonexistentAlias()
          throws Exception
   {
@@ -1128,7 +1128,7 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test()
+  @Test
   public void testAddAndRemoveCertificateJKS()
          throws Exception
   {

@@ -85,7 +85,7 @@ public class CharacterSetPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void initializePasswordValidator(
                    CharacterSetPasswordValidatorCfg configuration)
          throws ConfigException
@@ -103,7 +103,7 @@ public class CharacterSetPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public void finalizePasswordValidator()
   {
     currentConfig.removeCharacterSetChangeListener(this);
@@ -114,7 +114,7 @@ public class CharacterSetPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean passwordIsAcceptable(ByteString newPassword,
                                       Set<ByteString> currentPasswords,
                                       Operation operation, Entry userEntry,
@@ -486,7 +486,7 @@ public class CharacterSetPasswordValidator
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(PasswordValidatorCfg configuration,
                                            List<LocalizableMessage> unacceptableReasons)
   {

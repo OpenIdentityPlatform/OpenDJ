@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -111,7 +111,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
    * Checks that changes done to the schema are pushed to the replicationServer
    * clients.
    */
-  @Test()
+  @Test
   public void pushSchemaChange() throws Exception
   {
     logger.error(LocalizableMessage.raw("Starting replication test : pushSchemaChange "));

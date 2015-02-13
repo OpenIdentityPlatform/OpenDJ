@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  *      Portions Copyright 2013 Manuel Gaupp
  */
 package org.opends.server.extensions;
@@ -72,7 +72,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void startServer()
          throws Exception
   {
@@ -237,7 +237,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingDefaultConfig()
          throws Exception
   {
@@ -295,7 +295,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingUsingAnOID()
          throws Exception
   {
@@ -358,7 +358,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingDefaultConfigEmailAddress()
          throws Exception
   {
@@ -417,7 +417,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSuccessfulMappingMultipleAttributes()
          throws Exception
   {
@@ -479,7 +479,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedNoMappableAttributes()
          throws Exception
   {
@@ -541,7 +541,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingNoMatchingUsers()
          throws Exception
   {
@@ -599,7 +599,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingMultipleMatchingUsers()
          throws Exception
   {
@@ -669,7 +669,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testFailedMappingNoUserBelowBaseDNs()
          throws Exception
   {
@@ -730,7 +730,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testRemoveMapAttribute()
          throws Exception
   {
@@ -996,7 +996,7 @@ public class SubjectAttributeToUserAttributeCertificateMapperTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPrivilegeWithSuccessfulMappingDefaultConfig()
          throws Exception
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.api.plugin;
 
@@ -73,7 +73,7 @@ import static org.testng.Assert.*;
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testAbstractMethods()
          throws Exception
   {
@@ -180,7 +180,7 @@ import static org.testng.Assert.*;
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testNonAbstractPublicAPIMethods()
          throws Exception
   {
@@ -755,7 +755,7 @@ import static org.testng.Assert.*;
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPluginEntryDN()
          throws Exception
   {
@@ -843,7 +843,7 @@ import static org.testng.Assert.*;
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testGetPluginTypes()
          throws Exception
   {
@@ -928,7 +928,7 @@ import static org.testng.Assert.*;
   /**
    * Invokes the default plugin finalizer.
    */
-  @Test()
+  @Test
   public void testDefaultFinalizer()
   {
     new NullPlugin().finalizePlugin();

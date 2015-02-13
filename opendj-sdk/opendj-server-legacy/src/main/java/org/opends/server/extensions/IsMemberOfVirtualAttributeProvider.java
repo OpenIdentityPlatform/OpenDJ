@@ -65,14 +65,14 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isMultiValued()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     // FIXME -- This probably isn't the most efficient implementation.
@@ -95,7 +95,7 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     // FIXME -- This probably isn't the most efficient implementation.
@@ -118,7 +118,7 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           ByteString value)
   {
@@ -137,7 +137,7 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
                                           ByteString subInitial,
@@ -149,7 +149,7 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -159,7 +159,7 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -169,7 +169,7 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
                               ByteString value)
@@ -192,7 +192,7 @@ public class IsMemberOfVirtualAttributeProvider
    * Searching for this virtual attribute cannot be pre-indexed and thus,
    * it should not be searchable when pre-indexed is required.
    */
-  @Override()
+  @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
@@ -246,7 +246,7 @@ public class IsMemberOfVirtualAttributeProvider
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
   {

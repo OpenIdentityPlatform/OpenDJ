@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -391,7 +391,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleLDAPv2Compare()
          throws Exception
   {
@@ -435,7 +435,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleLDAPv3CompareTrue()
          throws Exception
   {
@@ -479,7 +479,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleLDAPv3CompareFalse()
          throws Exception
   {
@@ -688,7 +688,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLBlindTrust()
          throws Exception
   {
@@ -734,7 +734,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSSLTrustStore()
          throws Exception
   {
@@ -783,7 +783,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSBlindTrust()
          throws Exception
   {
@@ -829,7 +829,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testStartTLSTrustStore()
          throws Exception
   {
@@ -879,7 +879,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleCompareSSLTrustStoreSASLExternal()
          throws Exception
   {
@@ -944,7 +944,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleCompareSSLTrustStoreSASLExternalValidClientCert()
          throws Exception
   {
@@ -1011,7 +1011,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleCompareSSLTrustStoreSASLExternalInvalidClientCert()
          throws Exception
   {
@@ -1059,7 +1059,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testSimpleCompareStartTLSTrustStoreSASLExternal()
          throws Exception
   {
@@ -1123,7 +1123,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCRAMMD5()
          throws Exception
   {
@@ -1182,7 +1182,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDigestMD5()
          throws Exception
   {
@@ -1244,7 +1244,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAIN()
          throws Exception
   {
@@ -1301,7 +1301,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareValidBase64Assertion()
          throws Exception
   {
@@ -1346,7 +1346,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareInvalidBase64Assertion()
          throws Exception
   {
@@ -1374,7 +1374,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareAssertionValueFromFile()
          throws Exception
   {
@@ -1425,7 +1425,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareAssertionValueFromNonExistentFile()
          throws Exception
   {
@@ -1452,7 +1452,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareLDAPAssertionControlTrue()
          throws Exception
   {
@@ -1499,7 +1499,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareLDAPAssertionControlNotTrue()
          throws Exception
   {
@@ -1528,7 +1528,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareDNsFromFile()
          throws Exception
   {
@@ -1565,7 +1565,7 @@ public class LDAPCompareTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testCompareDNsFromNonExistentFile()
          throws Exception
   {
@@ -1592,7 +1592,7 @@ public class LDAPCompareTestCase
   /**
    * Tests the LDAPCompare tool with the "--help" option.
    */
-  @Test()
+  @Test
   public void testHelp()
   {
     String[] args = { "--help" };

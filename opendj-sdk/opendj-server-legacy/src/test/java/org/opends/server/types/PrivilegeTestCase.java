@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -118,7 +118,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @BeforeClass()
+  @BeforeClass
   public void setUp()
          throws Exception
   {
@@ -299,7 +299,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @AfterClass()
+  @AfterClass
   public void cleanUp() throws Exception
   {
     TestCaseUtils.dsconfig(
@@ -1447,7 +1447,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5AnonymousAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -1478,7 +1478,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5SameAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -1509,7 +1509,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5DifferentAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -1540,7 +1540,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5AnonymousAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -1571,7 +1571,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5SameAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -1602,7 +1602,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5DifferentAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -1633,7 +1633,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5AnonymousAuthzIDFailedDNColon()
          throws Exception
   {
@@ -1664,7 +1664,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5SameUnprivAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -1695,7 +1695,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5DifferentAuthzIDFailedDNColon()
          throws Exception
   {
@@ -1726,7 +1726,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5AnonymousAuthzIDFailedUColon()
          throws Exception
   {
@@ -1757,7 +1757,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5SameUnprivAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -1788,7 +1788,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDIGESTMD5DifferentAuthzIDFailedUColon()
          throws Exception
   {
@@ -1819,7 +1819,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINAnonymousAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -1850,7 +1850,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINSameAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -1881,7 +1881,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINDifferentAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -1912,7 +1912,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINAnonymousAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -1943,7 +1943,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINSameAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -1974,7 +1974,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINDifferentAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -2005,7 +2005,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINAnonymousAuthzIDFailedDNColon()
          throws Exception
   {
@@ -2036,7 +2036,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINSameUnprivAuthzIDSuccessfulDNColon()
          throws Exception
   {
@@ -2067,7 +2067,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINDifferentAuthzIDFailedDNColon()
          throws Exception
   {
@@ -2098,7 +2098,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINAnonymousAuthzIDFailedUColon()
          throws Exception
   {
@@ -2129,7 +2129,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINSameUnprivAuthzIDSuccessfulUColon()
          throws Exception
   {
@@ -2160,7 +2160,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testPLAINDifferentAuthzIDFailedUColon()
          throws Exception
   {
@@ -2190,7 +2190,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testDisablePrivilege()
          throws Exception
   {
@@ -2237,7 +2237,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUpdateUserPrivileges()
          throws Exception
   {
@@ -2324,7 +2324,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
+  @Test
   public void testUpdateRootPrivileges() throws Exception
   {
     // Make sure that a root connection doesn't  have the proxied auth
@@ -2378,7 +2378,7 @@ public class PrivilegeTestCase extends TypesTestCase
    * the set of privileges that can be configured as default root privileges,
    * and that it also matches the set of privileges that can be disabled.
    */
-  @Test()
+  @Test
   public void testConfigurablePrivilegeSets()
   {
     Set<String> serverPrivNames = new HashSet<String>();

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.internal;
 
@@ -147,7 +147,7 @@ public final class InternalLDAPInputStream
    *          from this input stream wihtout blocking.
    * @throws IOException if an I/O error occurs.
    */
-  @Override()
+  @Override
   public synchronized int available() throws IOException
   {
     if (messageReader.remaining() < 1)
@@ -182,7 +182,7 @@ public final class InternalLDAPInputStream
    * stream has been reached.  If the queue is full, thenit will be
    * cleared before adding the marker element.
    */
-  @Override()
+  @Override
   public void close()
   {
     socket.close();
@@ -226,7 +226,7 @@ public final class InternalLDAPInputStream
    * @param  readLimit  The maximum limit of bytes that can be read
    *                    before the mark position becomes invalid.
    */
-  @Override()
+  @Override
   public void mark(int readLimit)
   {
     // No implementation is required.
@@ -243,7 +243,7 @@ public final class InternalLDAPInputStream
    *          support the use of the {@code mark} and {@code reset}
    *          methods.
    */
-  @Override()
+  @Override
   public boolean markSupported()
   {
     return false;
@@ -261,7 +261,7 @@ public final class InternalLDAPInputStream
    * @throws  IOException  If a problem occurs while trying to read
    *                       data from the stream.
    */
-  @Override()
+  @Override
   public synchronized int read()
          throws IOException
   {
@@ -316,7 +316,7 @@ public final class InternalLDAPInputStream
    * @throws  IOException  If a problem occurs while trying to read
    *                       data from the stream.
    */
-  @Override()
+  @Override
   public int read(byte[] b)
          throws IOException
   {
@@ -343,7 +343,7 @@ public final class InternalLDAPInputStream
    * @throws  IOException  If a problem occurs while trying to read
    *                       data from the stream.
    */
-  @Override()
+  @Override
   public synchronized int read(byte[] b, int off, int len)
          throws IOException
   {
@@ -392,7 +392,7 @@ public final class InternalLDAPInputStream
    * have any effect, as this input stream inplementation does not
    * support marking.
    */
-  @Override()
+  @Override
   public void reset()
   {
     // No implementation is required.
@@ -413,7 +413,7 @@ public final class InternalLDAPInputStream
    * @throws  IOException  If a problem occurs while trying to read
    *                       data from the input stream.
    */
-  @Override()
+  @Override
   public synchronized long skip(long n)
          throws IOException
   {
@@ -460,7 +460,7 @@ public final class InternalLDAPInputStream
    *
    * @return  A string representation of this internal LDAP socket.
    */
-  @Override()
+  @Override
   public String toString()
   {
     return "InternalLDAPInputStream";

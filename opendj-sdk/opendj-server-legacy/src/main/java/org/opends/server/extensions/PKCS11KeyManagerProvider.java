@@ -247,7 +247,7 @@ public class PKCS11KeyManagerProvider
   /**
    * {@inheritDoc}
    */
-  @Override()
+  @Override
   public boolean isConfigurationAcceptable(
                         PKCS11KeyManagerProviderCfg configuration,
                           List<LocalizableMessage> unacceptableReasons)
