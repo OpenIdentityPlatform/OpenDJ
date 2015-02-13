@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -167,6 +167,7 @@ public final class ModRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(ModRate.class.getName(), toolDescription, false, true, 1, 0,
                         "[(attribute:value format string) ...]");
+        argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;
         ModifyPerformanceRunner runner;

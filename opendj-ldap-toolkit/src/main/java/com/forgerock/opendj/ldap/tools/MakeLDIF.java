@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -87,6 +87,7 @@ public final class MakeLDIF extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser = new ArgumentParser(MakeLDIF.class.getName(), toolDescription,
                 false, true, 1, 1, "template-file-path");
+        argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_MAKELDIF.get());
 
         BooleanArgument showUsage;
         IntegerArgument randomSeed;
@@ -96,6 +97,7 @@ public final class MakeLDIF extends ConsoleApplication {
         try {
             resourcePath = new StringArgument("resourcepath", 'r', OPTION_LONG_RESOURCE_PATH, false, false, true,
                     INFO_PATH_PLACEHOLDER.get(), null, null, INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get());
+            resourcePath.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RESOURCE_PATH.get());
             argParser.addArgument(resourcePath);
 
             ldifFile = new StringArgument("ldiffile", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
