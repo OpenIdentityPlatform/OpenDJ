@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 
@@ -137,10 +138,7 @@ public class SuffixesToReplicateOptions
    */
   public Set<SuffixDescriptor> getAvailableSuffixes()
   {
-    LinkedHashSet<SuffixDescriptor> copy =
-      new LinkedHashSet<SuffixDescriptor>();
-    copy.addAll(availableSuffixes);
-    return copy;
+    return new LinkedHashSet<SuffixDescriptor>(availableSuffixes);
   }
 
   /**
@@ -151,10 +149,7 @@ public class SuffixesToReplicateOptions
    */
   public Set<SuffixDescriptor> getSuffixes()
   {
-    LinkedHashSet<SuffixDescriptor> copy =
-      new LinkedHashSet<SuffixDescriptor>();
-    copy.addAll(suffixesToReplicate);
-    return copy;
+    return new LinkedHashSet<SuffixDescriptor>(suffixesToReplicate);
   }
 }
 

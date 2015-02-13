@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -806,10 +806,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
           {
             if (valuePair.value instanceof Collection<?>)
             {
-              for (Object o : (Collection<?>)valuePair.value)
-              {
-                values.add(o);
-              }
+              values.addAll((Collection<?>) valuePair.value);
             }
             else
             {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.backends.task;
 
@@ -1156,8 +1156,7 @@ public abstract class Task
   {
     if (DirectoryServer.mailServerConfigured())
     {
-      LinkedHashSet<String> recipients = new LinkedHashSet<String>();
-      recipients.addAll(notifyOnCompletion);
+      LinkedHashSet<String> recipients = new LinkedHashSet<String>(notifyOnCompletion);
       if (! TaskState.isSuccessful(taskState))
       {
         recipients.addAll(notifyOnError);

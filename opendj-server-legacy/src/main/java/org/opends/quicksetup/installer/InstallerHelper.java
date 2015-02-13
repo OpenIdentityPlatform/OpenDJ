@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer;
@@ -573,8 +573,7 @@ public class InstallerHelper {
       {
         servers = new HashSet<String>();
       }
-      Set<String> oldServers = new HashSet<String>();
-      oldServers.addAll(servers);
+      Set<String> oldServers = new HashSet<String>(servers);
       for (Set<String> rs : replicationServers.values())
       {
         servers.addAll(rs);
@@ -583,9 +582,7 @@ public class InstallerHelper {
       replicationServer.setReplicationServer(servers);
       replicationServer.commit();
 
-      Set<String> newReplicationServers = new HashSet<String>();
-      newReplicationServers.addAll(servers);
-      newReplicationServers.removeAll(oldServers);
+      Set<String> newReplicationServers = intersect(servers, oldServers);
 
       /*
        * Create the domains
@@ -642,9 +639,7 @@ public class InstallerHelper {
         usedServerIds.add(domain.getServerId());
 
         domain.commit();
-        Set<String> addedServers = new TreeSet<String>();
-        addedServers.addAll(servers);
-        addedServers.removeAll(oldServers);
+        Set<String> addedServers = intersect(servers, oldServers);
         ConfiguredDomain domainConf = new ConfiguredDomain(domainName,
             isCreated, addedServers);
         domainsConf.add(domainConf);
@@ -663,9 +658,16 @@ public class InstallerHelper {
     }
   }
 
+  private Set<String> intersect(Set<String> set1, Set<String> set2)
+  {
+    Set<String> result = new TreeSet<String>(set1);
+    result.removeAll(set2);
+    return result;
+  }
+
   /**
    * Configures the replication on a given server.
-   * @param remoteCtx the conection to the server where we want to configure
+   * @param remoteCtx the connection to the server where we want to configure
    * the replication.
    * @param replConf the object describing what was configured.
    * @param serverDisplay the server display.

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -518,8 +518,7 @@ public class DeleteEntryTask extends Task
    */
   private void printEquivalentCommandToDelete(DN dn, boolean usingControl)
   {
-    ArrayList<String> args = new ArrayList<String>();
-    args.addAll(getObfuscatedCommandLineArguments(
+    ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(
         getConnectionCommandLineArguments(useAdminCtx, true)));
     args.add(getNoPropertiesFileArgument());
     if (usingControl)

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -297,8 +297,7 @@ public class NewAttributePanel extends StatusGenericPanel
       for (int i=0; i<combos.length; i++)
       {
         DefaultComboBoxModel model = (DefaultComboBoxModel)combos[i].getModel();
-        ArrayList<Object> el = new ArrayList<Object>();
-        el.addAll(ruleNames.get(i));
+        ArrayList<Object> el = new ArrayList<Object>(ruleNames.get(i));
         if (model.getSize() == 0)
         {
           el.add(0, NO_MATCHING_RULE);

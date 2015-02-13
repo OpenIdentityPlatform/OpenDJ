@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -64,9 +65,7 @@ public class SuffixDescriptor
    */
   public Set<ReplicaDescriptor> getReplicas()
   {
-    Set<ReplicaDescriptor> copy = new HashSet<ReplicaDescriptor>();
-    copy.addAll(replicas);
-    return copy;
+    return new HashSet<ReplicaDescriptor>(replicas);
   }
 
   /**

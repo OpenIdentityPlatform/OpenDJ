@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -196,8 +196,7 @@ public class CancelTaskTask extends Task
             {
               getProgressDialog().appendProgressHtml("<br><br>");
             }
-            ArrayList<String> args = new ArrayList<String>();
-            args.addAll(getObfuscatedCommandLineArguments(arguments));
+            ArrayList<String> args = new ArrayList<String>(getObfuscatedCommandLineArguments(arguments));
             printEquivalentCommandLine(getCommandLinePath("manage-tasks"),
                     args, INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CANCEL_TASK.get(
                         task.getId()));
