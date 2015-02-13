@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -69,6 +69,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.testng.ForgeRockTestCase;
+import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -82,8 +83,8 @@ import static org.forgerock.opendj.adapter.server3x.EmbeddedServerTestCaseUtils.
  * This class defines a set of tests for the Adapters.class.
  */
 @SuppressWarnings("javadoc")
-@Test
-public class AdaptersTestCase extends ForgeRockTestCase {
+@Test(sequential=true)
+public class AdaptersTestCase extends DirectoryServerTestCase {
 
     /**
      * Provides an anonymous connection factories.

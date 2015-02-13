@@ -35,7 +35,6 @@
       <scope>runtime</scope>
       <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
       <excludes>
-        <exclude>org.forgerock.opendj:opendj3-server-dev</exclude>
         <exclude>javax.activation:activation</exclude>
         <exclude>org.forgerock.commons:json-resource-servlet:war</exclude>
       </excludes>

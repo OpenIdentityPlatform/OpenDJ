@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS.
+ *      Copyright 2013-2015 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server3x;
 
@@ -37,7 +37,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.forgerock.testng.ForgeRockTestCase;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -50,7 +49,7 @@ import org.opends.server.util.EmbeddedUtils;
  * This class defines a main functions for starting and stopping the embedded
  * server in test cases.
  */
-class EmbeddedServerTestCaseUtils extends ForgeRockTestCase {
+class EmbeddedServerTestCaseUtils {
 
     /**
      * The configuration properties for the tests.
@@ -60,12 +59,12 @@ class EmbeddedServerTestCaseUtils extends ForgeRockTestCase {
     /**
      * The path to the test classes.
      */
-    static final String TEST_CLASSES_PATH = "./target/test-classes/";
+    static final String TEST_CLASSES_PATH = "./build/test-classes/";
 
     /**
      * The path to the configuration folder.
      */
-    static final String TEST_CLASSES_PATH_CONFIG = "./target/test-classes/config/";
+    static final String TEST_CLASSES_PATH_CONFIG = "./build/test-classes/config/";
 
     /**
      * Starts the embedded server.
