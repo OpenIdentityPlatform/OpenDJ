@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2015 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -212,6 +212,7 @@ public final class SearchRate extends ConsoleApplication {
         final ArgumentParser argParser =
                 new ArgumentParser(SearchRate.class.getName(), toolDescription, false, true, 1, 0,
                         "[filter format string] [attributes ...]");
+        argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 
         ConnectionFactoryProvider connectionFactoryProvider;
         ConnectionFactory connectionFactory;

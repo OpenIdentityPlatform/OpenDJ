@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -186,9 +186,12 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getControl() throws ArgumentException {
-        return new StringArgument(OPTION_LONG_CONTROL.toLowerCase(), OPTION_SHORT_CONTROL, OPTION_LONG_CONTROL, false,
+        StringArgument controlStr =
+                new StringArgument(OPTION_LONG_CONTROL.toLowerCase(), OPTION_SHORT_CONTROL, OPTION_LONG_CONTROL, false,
                 true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, OPTION_LONG_CONTROL,
                 INFO_DESCRIPTION_CONTROLS.get());
+        controlStr.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_CONTROLS.get());
+        return controlStr;
     }
 
     /**

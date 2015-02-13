@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014-2015 ForgeRock AS
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -416,6 +416,7 @@ public class AddRate extends ConsoleApplication {
         final LocalizableMessage toolDescription = INFO_ADDRATE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
             new ArgumentParser(AddRate.class.getName(), toolDescription, false, true, 1, 1, "template-file-path");
+        argParser.setDocToolDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RATE_TOOLS.get());
 
         final ConnectionFactoryProvider connectionFactoryProvider;
         final ConnectionFactory connectionFactory;
@@ -446,6 +447,7 @@ public class AddRate extends ConsoleApplication {
             resourcePathArg =
                 new StringArgument("resourcepath", 'r', MakeLDIF.OPTION_LONG_RESOURCE_PATH, false, false, true,
                     INFO_PATH_PLACEHOLDER.get(), null, null, INFO_ADDRATE_DESCRIPTION_RESOURCE_PATH.get());
+            resourcePathArg.setDocDescriptionSupplement(SUPPLEMENT_DESCRIPTION_RESOURCE_PATH.get());
             argParser.addArgument(resourcePathArg);
 
             randomSeedArg =
