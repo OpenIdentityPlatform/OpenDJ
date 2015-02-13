@@ -27,7 +27,6 @@
 package org.opends.server.backends.jeb;
 
 import static com.sleepycat.je.EnvironmentConfig.*;
-
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.backends.jeb.ConfigurableEnvironment.*;
@@ -206,19 +205,28 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
     DirectoryServer.registerMonitorProvider(rootContainerMonitor);
 
     // Register as disk space monitor handler
-    File parentDirectory = getFileForPath(cfg.getDBDirectory());
-    File backendDirectory =
-        new File(parentDirectory, cfg.getBackendId());
-    diskMonitor = new DiskSpaceMonitor(getBackendID() + " backend",
-        backendDirectory, cfg.getDiskLowThreshold(), cfg.getDiskFullThreshold(),
-        5, TimeUnit.SECONDS, this);
-    diskMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(diskMonitor);
+    diskMonitor = newDiskMonitor(cfg);
+    if (diskMonitor != null)
+    {
+      DirectoryServer.registerMonitorProvider(diskMonitor);
+    }
 
     //Register as an AlertGenerator.
     DirectoryServer.registerAlertGenerator(this);
     // Register this backend as a change listener.
     cfg.addLocalDBChangeListener(this);
+  }
+
+  private DiskSpaceMonitor newDiskMonitor(LocalDBBackendCfg cfg) throws ConfigException, InitializationException
+  {
+    File parentDirectory = getFileForPath(cfg.getDBDirectory());
+    File backendDirectory =
+        new File(parentDirectory, cfg.getBackendId());
+    DiskSpaceMonitor dm = new DiskSpaceMonitor(getBackendID() + " backend",
+        backendDirectory, cfg.getDiskLowThreshold(), cfg.getDiskFullThreshold(),
+        5, TimeUnit.SECONDS, this);
+    dm.initializeMonitorProvider(null);
+    return dm;
   }
 
   /** {@inheritDoc} */
@@ -1000,11 +1008,9 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
         baseDNs = newBaseDNsArray;
       }
 
-      if(cfg.getDiskFullThreshold() != newCfg.getDiskFullThreshold() ||
-          cfg.getDiskLowThreshold() != newCfg.getDiskLowThreshold())
+      if (diskMonitor != null)
       {
-        diskMonitor.setFullThreshold(newCfg.getDiskFullThreshold());
-        diskMonitor.setLowThreshold(newCfg.getDiskLowThreshold());
+        updateDiskMonitor(diskMonitor, newCfg);
       }
 
       // Put the new configuration in place.
@@ -1016,6 +1022,15 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
     }
     return ccr;
+  }
+
+  /**
+   * @param newCfg
+   */
+  private void updateDiskMonitor(DiskSpaceMonitor dm, LocalDBBackendCfg newCfg)
+  {
+    dm.setFullThreshold(newCfg.getDiskFullThreshold());
+    dm.setLowThreshold(newCfg.getDiskLowThreshold());
   }
 
   private void removeDeletedBaseDNs(SortedSet<DN> newBaseDNs) throws DirectoryException

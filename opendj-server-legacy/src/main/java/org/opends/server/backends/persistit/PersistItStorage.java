@@ -27,17 +27,23 @@ package org.opends.server.backends.persistit;
 
 import static com.persistit.Transaction.CommitPolicy.*;
 import static java.util.Arrays.*;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_INSANE_MODE;
+import static org.opends.messages.ConfigMessages.ERR_CONFIG_BACKEND_MODE_INVALID;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.PersistitBackendCfg;
 import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.backends.pluggable.spi.Cursor;
@@ -49,6 +55,9 @@ import org.opends.server.backends.pluggable.spi.TreeName;
 import org.opends.server.backends.pluggable.spi.UpdateFunction;
 import org.opends.server.backends.pluggable.spi.WriteOperation;
 import org.opends.server.backends.pluggable.spi.WriteableStorage;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.FilePermission;
 
 import com.persistit.Configuration;
 import com.persistit.Configuration.BufferPoolConfiguration;
@@ -65,7 +74,7 @@ import com.persistit.exception.PersistitException;
 import com.persistit.exception.RollbackException;
 
 /** PersistIt database implementation of the {@link Storage} engine. */
-public final class PersistItStorage implements Storage
+public final class PersistItStorage implements Storage, ConfigurationChangeListener<PersistitBackendCfg>
 {
   private static final String VOLUME_NAME = "dj";
   /** The buffer / page size used by the PersistIt storage. */
@@ -504,6 +513,7 @@ public final class PersistItStorage implements Storage
         throw new IllegalStateException(e);
       }
     }
+    config.removePersistitChangeListener(this);
   }
 
   /** {@inheritDoc} */
@@ -537,6 +547,7 @@ public final class PersistItStorage implements Storage
       bufferPoolCfg.setFraction(cfg.getDBCachePercent() / 100.0f);
     }
     dbCfg.setCommitPolicy(cfg.isDBTxnNoSync() ? SOFT : GROUP);
+    cfg.addPersistitChangeListener(this);
   }
 
   private BufferPoolConfiguration getBufferPoolCfg()
@@ -553,8 +564,9 @@ public final class PersistItStorage implements Storage
 
   /** {@inheritDoc} */
   @Override
-  public void open()
+  public void open() throws Exception
   {
+    setupStorageFiles();
     try
     {
       db = new Persistit(dbCfg);
@@ -621,21 +633,15 @@ public final class PersistItStorage implements Storage
 
   /** {@inheritDoc} */
   @Override
-  public Importer startImport()
+  public Importer startImport() throws Exception
   {
     clearAndCreateDbDir(backendDirectory);
     open();
     return new ImporterImpl();
   }
 
-  /**
-   * Replace persistit reserved comma character with an underscore character.
-   *
-   * @param suffix
-   *          the suffix name to convert
-   * @return a new String suitable for use as a suffix name
-   */
-  public String toSuffixName(final String suffix)
+  /** {@inheritDoc} */
+  public String toSafeSuffixName(final String suffix)
   {
     return suffix.replaceAll("[,=]", "_");
   }
@@ -700,7 +706,7 @@ public final class PersistItStorage implements Storage
     };
   }
 
-  /*
+  /**
    * TODO: it would be nice to use the low-level key/value APIs. They seem quite
    * inefficient at the moment for simple byte arrays.
    */
@@ -735,4 +741,235 @@ public final class PersistItStorage implements Storage
     }
     return null;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConfigurationChangeAcceptable(PersistitBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
+  {
+    boolean acceptable = true;
+
+    File parentDirectory = getFileForPath(config.getDBDirectory());
+    File backendDirectory = new File(parentDirectory, config.getBackendId());
+
+    //Make sure the directory either already exists or is able to create.
+    if (!backendDirectory.exists())
+    {
+      if(!backendDirectory.mkdirs())
+      {
+        unacceptableReasons.add(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
+        acceptable = false;
+      }
+      else
+      {
+        backendDirectory.delete();
+      }
+    }
+    else if (!backendDirectory.isDirectory())
+    {
+      unacceptableReasons.add(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+      acceptable = false;
+    }
+
+    try
+    {
+      FilePermission newBackendPermission =
+          FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
+
+      //Make sure the mode will allow the server itself access to the database
+      if(!newBackendPermission.isOwnerWritable() ||
+          !newBackendPermission.isOwnerReadable() ||
+          !newBackendPermission.isOwnerExecutable())
+      {
+        LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
+            cfg.getDBDirectoryPermissions());
+        unacceptableReasons.add(message);
+        acceptable = false;
+      }
+    }
+    catch(Exception e)
+    {
+      unacceptableReasons.add(ERR_CONFIG_BACKEND_MODE_INVALID.get(cfg.dn()));
+      acceptable = false;
+    }
+
+    return acceptable;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ConfigChangeResult applyConfigurationChange(PersistitBackendCfg cfg)
+  {
+    final ConfigChangeResult ccr = new ConfigChangeResult();
+
+    try
+    {
+      // Create the directory if it doesn't exist.
+      if(!cfg.getDBDirectory().equals(this.config.getDBDirectory()))
+      {
+        File parentDirectory = getFileForPath(cfg.getDBDirectory());
+        File backendDirectory =
+          new File(parentDirectory, cfg.getBackendId());
+
+        if (!backendDirectory.exists())
+        {
+          if (!backendDirectory.mkdirs())
+          {
+            ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+            ccr.addMessage(ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath()));
+            return ccr;
+          }
+        }
+        //Make sure the directory is valid.
+        else if (!backendDirectory.isDirectory())
+        {
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+          return ccr;
+        }
+
+        ccr.setAdminActionRequired(true);
+        ccr.addMessage(NOTE_JEB_CONFIG_DB_DIR_REQUIRES_RESTART.get(this.config.getDBDirectory(),
+            cfg.getDBDirectory()));
+      }
+
+      if (!cfg.getDBDirectoryPermissions().equalsIgnoreCase(config.getDBDirectoryPermissions())
+          || !cfg.getDBDirectory().equals(this.config.getDBDirectory()))
+      {
+        FilePermission backendPermission;
+        try
+        {
+          backendPermission =
+              FilePermission.decodeUNIXMode(cfg.getDBDirectoryPermissions());
+        }
+        catch(Exception e)
+        {
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
+          return ccr;
+        }
+
+        // Make sure the mode will allow the server itself access to the database
+        if(!backendPermission.isOwnerWritable() ||
+            !backendPermission.isOwnerReadable() ||
+            !backendPermission.isOwnerExecutable())
+        {
+          ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+          ccr.addMessage(ERR_CONFIG_BACKEND_INSANE_MODE.get(cfg.getDBDirectoryPermissions()));
+          return ccr;
+        }
+
+        // Get the backend database backendDirectory permissions and apply
+        if(FilePermission.canSetPermissions())
+        {
+          File parentDirectory = getFileForPath(config.getDBDirectory());
+          File backendDirectory = new File(parentDirectory, config.getBackendId());
+          try
+          {
+            if (!FilePermission.setPermissions(backendDirectory, backendPermission))
+            {
+              logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
+            }
+          }
+          catch(Exception e)
+          {
+            // Log an warning that the permissions were not set.
+            logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
+          }
+        }
+      }
+
+      this.config = cfg;
+    }
+    catch (Exception e)
+    {
+      ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
+      ccr.addMessage(LocalizableMessage.raw(stackTraceToSingleLineString(e)));
+    }
+    return ccr;
+  }
+
+  /** {@inheritDoc} */
+  private void setupStorageFiles() throws Exception
+  {
+    // Create the directory if it doesn't exist.
+    if (!backendDirectory.exists())
+    {
+      if(!backendDirectory.mkdirs())
+      {
+        LocalizableMessage message =
+          ERR_JEB_CREATE_FAIL.get(backendDirectory.getPath());
+        throw new ConfigException(message);
+      }
+    }
+    //Make sure the directory is valid.
+    else if (!backendDirectory.isDirectory())
+    {
+      throw new ConfigException(ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath()));
+    }
+
+    FilePermission backendPermission;
+    try
+    {
+      backendPermission =
+          FilePermission.decodeUNIXMode(config.getDBDirectoryPermissions());
+    }
+    catch(Exception e)
+    {
+      throw new ConfigException(ERR_CONFIG_BACKEND_MODE_INVALID.get(config.dn()));
+    }
+
+    //Make sure the mode will allow the server itself access to
+    //the database
+    if(!backendPermission.isOwnerWritable() ||
+        !backendPermission.isOwnerReadable() ||
+        !backendPermission.isOwnerExecutable())
+    {
+      LocalizableMessage message = ERR_CONFIG_BACKEND_INSANE_MODE.get(
+          config.getDBDirectoryPermissions());
+      throw new ConfigException(message);
+    }
+
+    // Get the backend database backendDirectory permissions and apply
+    if(FilePermission.canSetPermissions())
+    {
+      try
+      {
+        if(!FilePermission.setPermissions(backendDirectory, backendPermission))
+        {
+          logger.warn(WARN_JEB_UNABLE_SET_PERMISSIONS, backendPermission, backendDirectory);
+        }
+      }
+      catch(Exception e)
+      {
+        // Log an warning that the permissions were not set.
+        logger.warn(WARN_JEB_SET_PERMISSIONS_FAILED, backendDirectory, e);
+      }
+    }
+  }
+
+  /** {@inheritDoc} */
+  public void removeStorageFiles() throws StorageRuntimeException
+  {
+    if (!backendDirectory.isDirectory())
+    {
+      LocalizableMessage msg = ERR_JEB_DIRECTORY_INVALID.get(backendDirectory.getPath());
+      throw new StorageRuntimeException(msg.toString());
+    }
+
+    try
+    {
+      File[] files = backendDirectory.listFiles();
+      for (File f : files)
+      {
+        f.delete();
+      }
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      LocalizableMessage message = ERR_JEB_REMOVE_FAIL.get(e.getMessage());
+      throw new StorageRuntimeException(message.toString(), e);
+    }
+  }
 }
+

@@ -115,4 +115,20 @@ public interface Storage extends Closeable
   /** {@inheritDoc} */
   @Override
   void close();
+
+  /**
+   * Remove all files for a backend of this storage.
+   *
+   * @throws StorageRuntimeException if removal fails
+   */
+  void removeStorageFiles() throws StorageRuntimeException;
+
+  /**
+   * Replace reserved characters with an underscore character.
+   *
+   * @param databasePrefix
+   *          the suffix name to convert
+   * @return a new String suitable for use as a suffix name
+   */
+  String toSafeSuffixName(String databasePrefix);
 }

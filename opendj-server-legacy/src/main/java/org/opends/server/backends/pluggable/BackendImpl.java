@@ -35,7 +35,6 @@ import static org.opends.server.util.StaticUtils.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -47,7 +46,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.BackendIndexCfgDefn;
-import org.opends.server.admin.std.server.PersistitBackendCfg;
+import org.opends.server.admin.std.server.PluggableBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
@@ -65,14 +64,14 @@ import org.opends.server.types.*;
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
  */
-public abstract class BackendImpl extends Backend<PersistitBackendCfg> implements
-    ConfigurationChangeListener<PersistitBackendCfg>, AlertGenerator,
+public abstract class BackendImpl extends Backend<PluggableBackendCfg> implements
+    ConfigurationChangeListener<PluggableBackendCfg>, AlertGenerator,
     DiskSpaceMonitorHandler
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The configuration of this backend. */
-  private PersistitBackendCfg cfg;
+  private PluggableBackendCfg cfg;
   /** The root JE container to use for this backend. */
   private RootContainer rootContainer;
 
@@ -83,6 +82,7 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
   private DN[] baseDNs;
 
   private MonitorProvider<?> rootContainerMonitor;
+  /** Disk space monitoring if the storage supports it. */
   private DiskSpaceMonitor diskMonitor;
 
   /** The controls supported by this backend. */
@@ -128,7 +128,7 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(PersistitBackendCfg cfg) throws ConfigException
+  public void configureBackend(PluggableBackendCfg cfg) throws ConfigException
   {
     Reject.ifNull(cfg);
 
@@ -179,27 +179,44 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
     DirectoryServer.registerMonitorProvider(rootContainerMonitor);
 
     // Register as disk space monitor handler
-    File parentDirectory = getFileForPath(cfg.getDBDirectory());
-    File backendDirectory =
-        new File(parentDirectory, cfg.getBackendId());
-    diskMonitor = new DiskSpaceMonitor(getBackendID() + " backend",
-        backendDirectory, cfg.getDiskLowThreshold(), cfg.getDiskFullThreshold(),
-        5, TimeUnit.SECONDS, this);
-    diskMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(diskMonitor);
-
+    diskMonitor = newDiskMonitor(cfg);
+    if (diskMonitor != null)
+    {
+      DirectoryServer.registerMonitorProvider(diskMonitor);
+    }
     //Register as an AlertGenerator.
     DirectoryServer.registerAlertGenerator(this);
     // Register this backend as a change listener.
-    cfg.addPersistitChangeListener(this);
+    cfg.addPluggableChangeListener(this);
   }
+
+  /**
+   * Let the storage create a new disk monitor if supported.
+   *
+   * @param cfg this storage current configuration
+   * @return a new disk monitor if supported or null
+   *
+   * @throws ConfigException if configuration is incorrect
+   * @throws InitializationException when disk monitor cannot be initialized
+   */
+  protected abstract DiskSpaceMonitor newDiskMonitor(PluggableBackendCfg cfg) throws
+    ConfigException, InitializationException;
+
+  /**
+   * Updates the disk monitor when configuration changes.
+   *
+   * @param dm the disk monitor to update
+   * @param newCfg the new configuration
+   */
+  protected abstract void updateDiskMonitor(DiskSpaceMonitor dm, PluggableBackendCfg newCfg);
+
 
   /** {@inheritDoc} */
   @Override
   public void finalizeBackend()
   {
     super.finalizeBackend();
-    cfg.removePersistitChangeListener(this);
+    cfg.removePluggableChangeListener(this);
 
     // Deregister our base DNs.
     for (DN dn : rootContainer.getBaseDNs())
@@ -722,8 +739,7 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
     BackupManager backupManager = new BackupManager(getBackendID());
-    File parentDir = getFileForPath(cfg.getDBDirectory());
-    File backendDir = new File(parentDir, cfg.getBackendId());
+    File backendDir = getBackupDirectory(cfg);
     Storage storage = newStorageInstance();
     backupConfig.setFilesToBackupFilter(storage.getFilesToBackupFilter());
     backupManager.createBackup(backendDir, backupConfig);
@@ -735,7 +751,6 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
    */
   protected abstract Storage newStorageInstance();
 
-
   /** {@inheritDoc} */
   @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
@@ -745,25 +760,27 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
     backupManager.removeBackup(backupDirectory, backupID);
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public void restoreBackup(RestoreConfig restoreConfig)
       throws DirectoryException
   {
     BackupManager backupManager = new BackupManager(getBackendID());
-    File parentDir = getFileForPath(cfg.getDBDirectory());
-    File backendDir = new File(parentDir, cfg.getBackendId());
+    File backendDir = getBackupDirectory(cfg);
     backupManager.restoreBackup(backendDir, restoreConfig);
   }
 
-
+  /**
+   * Returns the backup directory.
+   *
+   * @param cfg the configuration for this backend
+   * @return the backup directory
+   */
+  protected abstract File getBackupDirectory(PluggableBackendCfg cfg);
 
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationAcceptable(PersistitBackendCfg config,
-                                           List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationAcceptable(PluggableBackendCfg config, List<LocalizableMessage> unacceptableReasons)
   {
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
@@ -772,9 +789,7 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public boolean isConfigurationChangeAcceptable(
-      PersistitBackendCfg cfg,
-      List<LocalizableMessage> unacceptableReasons)
+  public boolean isConfigurationChangeAcceptable(PluggableBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
@@ -783,7 +798,7 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(final PersistitBackendCfg newCfg)
+  public ConfigChangeResult applyConfigurationChange(final PluggableBackendCfg newCfg)
   {
     final ConfigChangeResult ccr = new ConfigChangeResult();
     try
@@ -807,11 +822,9 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
 
             baseDNs = newBaseDNsArray;
 
-            if(cfg.getDiskFullThreshold() != newCfg.getDiskFullThreshold() ||
-                cfg.getDiskLowThreshold() != newCfg.getDiskLowThreshold())
+            if (diskMonitor != null)
             {
-              diskMonitor.setFullThreshold(newCfg.getDiskFullThreshold());
-              diskMonitor.setLowThreshold(newCfg.getDiskLowThreshold());
+              updateDiskMonitor(diskMonitor, newCfg);
             }
 
             // Put the new configuration in place.
@@ -906,7 +919,7 @@ public abstract class BackendImpl extends Backend<PersistitBackendCfg> implement
    *          The StorageRuntimeException to be converted.
    * @return DirectoryException created from exception.
    */
-  DirectoryException createDirectoryException(StorageRuntimeException e)
+  private DirectoryException createDirectoryException(StorageRuntimeException e)
   {
     if (true) // FIXME JNR
     {

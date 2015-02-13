@@ -4054,7 +4054,7 @@ final class Importer implements DiskSpaceMonitorHandler
       }
       finally
       {
-        rootContainer.removeFiles();
+        storage.removeStorageFiles();
       }
     }
 
