@@ -29,7 +29,6 @@ package org.opends.server.backends.pluggable;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -1349,10 +1348,7 @@ public class VLVIndex extends DatabaseContainer
         return -1;
       }
 
-      final Comparator<ByteSequence> comp = orderingRule.comparator();
-      final int result = ascending ? comp.compare(b1Bytes, b2Bytes) : comp
-          .compare(b2Bytes, b1Bytes);
-
+      final int result = ascending ? b1Bytes.compareTo(b2Bytes) : b2Bytes.compareTo(b1Bytes);
       if (result != 0)
       {
         return result;
