@@ -357,15 +357,17 @@
           </execution>
         </executions>
       </plugin>
+      
+      
       <plugin>
         <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-manifest-classpath-maven-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <artifactId>opendj-maven-plugin</artifactId>
+        <version>${project.version}</version>
         <executions>
           <execution>
             <id>generate-bootstrap-manifest</id>
             <goals>
-              <goal>generate</goal>
+              <goal>generate-manifest</goal>
             </goals>
             <configuration>
               <classPathProperty>classpath.bootstrap</classPathProperty>
@@ -379,7 +381,7 @@
           <execution>
             <id>generate-bootstrap-client-manifest</id>
             <goals>
-              <goal>generate</goal>
+              <goal>generate-manifest</goal>
             </goals>
             <configuration>
               <classPathProperty>classpath.bootstrap-client</classPathProperty>
@@ -390,27 +392,72 @@
               </excludes>
             </configuration>
           </execution>
-        </executions>
-      </plugin>
 
-      <!-- Generate configuration classes from XML definitions -->
-      <!-- Leave default lifecycle phase once new config framework migration 
-        is done -->
-      <plugin>
-        <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-config-maven-plugin</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
-        <executions>
+          <!-- Generate configuration classes from XML definitions -->
+          <!-- Leave default lifecycle phase once new config framework migration 
+            is done -->
           <execution>
             <id>generate-config</id>
             <phase>generate-sources</phase>
             <goals>
-              <goal>generate</goal>
+              <goal>generate-config</goal>
             </goals>
             <configuration>
               <phase>none</phase>
               <packageName>org.forgerock.opendj.server.config</packageName>
               <isExtension>false</isExtension>
+            </configuration>
+          </execution>
+          
+          <!-- Create consolidated schema file for use in upgrade -->
+          <execution>
+            <id>creates-base-schema-files</id>
+            <goals>
+              <goal>concat</goal>
+            </goals>
+            <configuration>
+              <schemaDirectory>${basedir}/resource/schema</schemaDirectory>
+              <outputDirectory>${project.build.directory}/upgrade</outputDirectory>
+              <outputFile>schema.ldif.${buildRevision}</outputFile>
+            </configuration>
+          </execution>
+          
+          <!-- Generates log references for documentation -->
+          <execution>
+            <goals>
+              <goal>generate-xml-messages-doc</goal>
+            </goals>
+            <configuration>
+              <messagesDirectory>${basedir}/src/messages/org/opends/messages</messagesDirectory>
+              <outputDirectory>${project.build.directory}/docgen/logref</outputDirectory>
+              <logMessageReferenceFilePath>${basedir}/resource/log-message-reference.xml</logMessageReferenceFilePath>
+              <messageFileNames>
+                <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml 
+                  file -->
+                <messageFileName>admin</messageFileName>
+                <messageFileName>backend</messageFileName>
+                <messageFileName>config</messageFileName>
+                <messageFileName>core</messageFileName>
+                <messageFileName>dsconfig</messageFileName>
+                <messageFileName>extension</messageFileName>
+                <messageFileName>jeb</messageFileName>
+                <messageFileName>logger</messageFileName>
+                <messageFileName>plugin</messageFileName>
+                <messageFileName>protocol</messageFileName>
+                <messageFileName>replication</messageFileName>
+                <messageFileName>schema</messageFileName>
+                <messageFileName>task</messageFileName>
+                <messageFileName>tool</messageFileName>
+                <messageFileName>utility</messageFileName>
+
+                <!-- Ignore following message files as we document only serious 
+                  errors. -->
+                <!-- <messageFileName>access_control</messageFileName> -->
+                <!-- <messageFileName>admin_tool</messageFileName> -->
+                <!-- <messageFileName>quicksetup.properties</messageFileName> -->
+                <!-- <messageFileName>runtime_information.properties</messageFileName> -->
+                <!-- <messageFileName>version.properties</messageFileName> -->
+              </messageFileNames>
             </configuration>
           </execution>
         </executions>
@@ -478,26 +525,6 @@
                 <item>timestamp</item>
               </items>
               <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Create consolidated schema file for use in upgrade -->
-      <plugin>
-        <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-concat-schema-maven-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-        <executions>
-          <execution>
-            <id>creates-base-schema-files</id>
-            <goals>
-              <goal>concat</goal>
-            </goals>
-            <configuration>
-              <schemaDirectory>${basedir}/resource/schema</schemaDirectory>
-              <outputDirectory>${project.build.directory}/upgrade</outputDirectory>
-              <outputFile>schema.ldif.${buildRevision}</outputFile>
             </configuration>
           </execution>
         </executions>
@@ -961,52 +988,6 @@
                   file="${project.build.directory}/package/${shortProductName}-${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}.zip"
                   type="zip" />
               </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Generates log references for documentation -->
-      <plugin>
-        <groupId>org.forgerock.opendj</groupId>
-        <artifactId>opendj-logref-doc-maven-plugin</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>generate-xml-messages-doc</goal>
-            </goals>
-            <configuration>
-              <messagesDirectory>${basedir}/src/messages/org/opends/messages</messagesDirectory>
-              <outputDirectory>${project.build.directory}/docgen/logref</outputDirectory>
-              <logMessageReferenceFilePath>${basedir}/resource/log-message-reference.xml</logMessageReferenceFilePath>
-              <messageFileNames>
-                <!-- for xxx_yyy.properties generates a log-ref-xxx-yyy.xml 
-                  file -->
-                <messageFileName>admin</messageFileName>
-                <messageFileName>backend</messageFileName>
-                <messageFileName>config</messageFileName>
-                <messageFileName>core</messageFileName>
-                <messageFileName>dsconfig</messageFileName>
-                <messageFileName>extension</messageFileName>
-                <messageFileName>jeb</messageFileName>
-                <messageFileName>logger</messageFileName>
-                <messageFileName>plugin</messageFileName>
-                <messageFileName>protocol</messageFileName>
-                <messageFileName>replication</messageFileName>
-                <messageFileName>schema</messageFileName>
-                <messageFileName>task</messageFileName>
-                <messageFileName>tool</messageFileName>
-                <messageFileName>utility</messageFileName>
-
-                <!-- Ignore following message files as we document only serious 
-                  errors. -->
-                <!-- <messageFileName>access_control</messageFileName> -->
-                <!-- <messageFileName>admin_tool</messageFileName> -->
-                <!-- <messageFileName>quicksetup.properties</messageFileName> -->
-                <!-- <messageFileName>runtime_information.properties</messageFileName> -->
-                <!-- <messageFileName>version.properties</messageFileName> -->
-              </messageFileNames>
             </configuration>
           </execution>
         </executions>
