@@ -96,7 +96,7 @@ public class RootContainer
    * @param backend A reference to the JE back end that is creating this
    *                root container.
    */
-  public RootContainer(Backend<?> backend, LocalDBBackendCfg config)
+  RootContainer(Backend<?> backend, LocalDBBackendCfg config)
   {
     this.backend = backend;
     this.config = config;
@@ -227,7 +227,7 @@ public class RootContainer
    * @throws ConfigException If an configuration error occurs while opening
    *                         the entry container.
    */
-  public EntryContainer openEntryContainer(DN baseDN, String name)
+  EntryContainer openEntryContainer(DN baseDN, String name)
       throws DatabaseException, ConfigException
   {
     String databasePrefix;
@@ -254,7 +254,7 @@ public class RootContainer
    * @throws InitializationException If an error occurs while opening the
    *                                 entry container.
    */
-  public void registerEntryContainer(DN baseDN, EntryContainer entryContainer)
+  void registerEntryContainer(DN baseDN, EntryContainer entryContainer)
       throws InitializationException
   {
     EntryContainer ec1 = this.entryContainers.get(baseDN);
@@ -307,7 +307,7 @@ public class RootContainer
    * @return The entry container that was unregistered or NULL if a entry
    * container for the base DN was not registered.
    */
-  public EntryContainer unregisterEntryContainer(DN baseDN)
+  EntryContainer unregisterEntryContainer(DN baseDN)
   {
     return entryContainers.remove(baseDN);
   }

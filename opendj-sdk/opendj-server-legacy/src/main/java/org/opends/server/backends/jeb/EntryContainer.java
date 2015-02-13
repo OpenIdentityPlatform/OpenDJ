@@ -382,7 +382,7 @@ public class EntryContainer
    * @param rootContainer The root container this entry container is in.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
+  EntryContainer(DN baseDN, String databasePrefix, Backend<?> backend,
       LocalDBBackendCfg config, Environment env, RootContainer rootContainer)
           throws ConfigException
   {
@@ -411,8 +411,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws ConfigException if a configuration related error occurs.
    */
-  public void open()
-  throws DatabaseException, ConfigException
+  void open() throws DatabaseException, ConfigException
   {
     try
     {
@@ -612,7 +611,7 @@ public class EntryContainer
    * @param attrType The attribute type for which an attribute index is needed.
    * @return The attribute index or null if there is none for that type.
    */
-  public AttributeIndex getAttributeIndex(AttributeType attrType)
+  AttributeIndex getAttributeIndex(AttributeType attrType)
   {
     return attrIndexMap.get(attrType);
   }
@@ -632,7 +631,7 @@ public class EntryContainer
    * @param vlvIndexName The vlv index name for which an vlv index is needed.
    * @return The VLV index or null if there is none with that name.
    */
-  public VLVIndex getVLVIndex(String vlvIndexName)
+  VLVIndex getVLVIndex(String vlvIndexName)
   {
     return vlvIndexMap.get(vlvIndexName);
   }
@@ -696,7 +695,7 @@ public class EntryContainer
    *         the entry does not exist.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public long getNumSubordinates(DN entryDN, boolean subtree)
+  long getNumSubordinates(DN entryDN, boolean subtree)
   throws DatabaseException
   {
     EntryID entryID = dn2id.get(null, entryDN, LockMode.DEFAULT);
@@ -732,7 +731,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void search(SearchOperation searchOperation)
+  void search(SearchOperation searchOperation)
   throws DirectoryException, DatabaseException, CanceledOperationException
   {
     DN aBaseDN = searchOperation.getBaseDN();
@@ -1219,7 +1218,7 @@ public class EntryContainer
    * @throws DirectoryException
    *           If an error occurs retrieving the entry
    */
-  public Entry getEntry(EntryID entryID) throws DirectoryException
+  Entry getEntry(EntryID entryID) throws DirectoryException
   {
     // Try the entry cache first.
     final EntryCache entryCache = getEntryCache();
@@ -1430,7 +1429,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void addEntry(Entry entry, AddOperation addOperation)
+  void addEntry(Entry entry, AddOperation addOperation)
   throws DatabaseException, DirectoryException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
@@ -1587,7 +1586,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
+  void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
   throws DirectoryException, DatabaseException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
@@ -1864,7 +1863,7 @@ public class EntryContainer
    * @throws  DirectoryException  If a problem occurs while trying to make the
    *                              determination.
    */
-  public boolean entryExists(DN entryDN) throws DirectoryException
+  boolean entryExists(DN entryDN) throws DirectoryException
   {
     // Try the entry cache first.
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
@@ -1899,7 +1898,7 @@ public class EntryContainer
    *                            the entry.
    * @throws DatabaseException An error occurred during a database operation.
    */
-  public Entry getEntry(DN entryDN)
+  Entry getEntry(DN entryDN)
   throws DatabaseException, DirectoryException
   {
     EntryCache<?> entryCache = DirectoryServer.getEntryCache();
@@ -1960,7 +1959,7 @@ public class EntryContainer
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws CanceledOperationException if this operation should be cancelled.
    */
-  public void replaceEntry(Entry oldEntry, Entry newEntry,
+  void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DatabaseException,
       DirectoryException, CanceledOperationException
   {
@@ -2083,7 +2082,7 @@ public class EntryContainer
    *          or abandon the modify DN operation.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
+  void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
   throws DatabaseException, DirectoryException, CanceledOperationException
   {
     Transaction txn = beginTransaction();
@@ -2574,7 +2573,7 @@ public class EntryContainer
    * @param newSuffixDN The new DN of the renamed or moved entry.
    * @return The new DN of the subordinate entry.
    */
-  public static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
+  static DN modDN(DN oldDN, int oldSuffixLen, DN newSuffixDN)
   {
     int oldDNNumComponents    = oldDN.size();
     int oldDNKeepComponents   = oldDNNumComponents - oldSuffixLen;
@@ -2841,7 +2840,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs while removing the entry
    *                           container.
    */
-  public void delete() throws DatabaseException
+  void delete() throws DatabaseException
   {
     List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     listDatabases(databases);
@@ -2881,7 +2880,7 @@ public class EntryContainer
    * @throws DatabaseException If an error occurs while attempting to delete the
    * database.
    */
-  public void deleteDatabase(DatabaseContainer database)
+  void deleteDatabase(DatabaseContainer database)
   throws DatabaseException
   {
     if(database == state)
@@ -3066,7 +3065,7 @@ public class EntryContainer
    * @param dn A DN which is in the scope of the base DN.
    * @return The parent DN, or null if the given DN is the base DN.
    */
-  public DN getParentWithinBase(DN dn)
+  DN getParentWithinBase(DN dn)
   {
     if (dn.equals(baseDN))
     {
