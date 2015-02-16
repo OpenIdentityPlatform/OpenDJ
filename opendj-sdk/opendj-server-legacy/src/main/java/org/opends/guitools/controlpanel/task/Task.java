@@ -24,7 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -556,10 +555,7 @@ public abstract class Task
     returnCode = -1;
     String[] cmd = new String[args.length + 1];
     cmd[0] = commandLineName;
-    for (int i=0; i<args.length; i++)
-    {
-      cmd[i+1] = args[i];
-    }
+    System.arraycopy(args, 0, cmd, 1, args.length);
 
     ProcessBuilder pb = new ProcessBuilder(cmd);
     // Use the java args in the script.
