@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 /*
  * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
@@ -32,11 +33,11 @@
 /*        All Rights Reserved   */
 package org.opends.server.util;
 
-
+import java.util.Arrays;
 
 /**
  * UNIX Crypt cipher, ported from the Sun OpenSolaris project.
- * */
+ */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=true,
@@ -101,7 +102,7 @@ public final class Crypt
 
   /**
    * Container for many variables altered throughout the encryption process.
-   * */
+   */
   private static class SubCrypt
   {
     /*
@@ -153,18 +154,20 @@ public final class Crypt
   public Crypt() {
     _crypt = new SubCrypt();
 
-    for (int i = 0; i < _crypt._E.length; i++)
-      _crypt._E[i] = e[i];
+    copy(e, _crypt._E);
   }
 
+  private void copy(byte[] src, int[] dest) {
+    for (int i = 0; i < dest.length; i++) {
+      dest[i] = src[i];
+    }
+  }
 
   /**
    * Sets up the key schedule from the key.
    */
   private void setkey(int[] key)
   {
-    int i, j, k;
-    int t;
     SubCrypt _c = _crypt;
 
     /*
@@ -174,7 +177,7 @@ public final class Crypt
      * First, generate C and D by permuting the key. The low order bit of each
      * 8-bit char is not used, so C and D are only 28 bits apiece.
      */
-    for (i = 0; i < 28; i++)
+    for (int i = 0; i < 28; i++)
     {
       _c._C[i] = key[PC1_C[i] - 1];
       _c._D[i] = key[PC1_D[i] - 1];
@@ -183,31 +186,32 @@ public final class Crypt
      * To generate Ki, rotate C and D according to schedule and pick up a
      * permutation using PC2.
      */
-    for (i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++)
     {
       /*
        * rotate.
        */
-      for (k = 0; k < shifts[i]; k++)
+      for (int k = 0; k < shifts[i]; k++)
       {
-        t = _c._C[0];
-        for (j = 0; j < 28 - 1; j++)
-          _c._C[j] = _c._C[j + 1];
-        _c._C[27] = t;
-        t = _c._D[0];
-        for (j = 0; j < 28 - 1; j++)
-          _c._D[j] = _c._D[j + 1];
-        _c._D[27] = t;
+        rotate(_c._C);
+        rotate(_c._D);
       }
       /*
        * get Ki. Note C and D are concatenated.
        */
-      for (j = 0; j < 24; j++)
+      for (int j = 0; j < 24; j++)
       {
         _c._KS[i][j] = _c._C[PC2_C[j] - 1];
         _c._KS[i][j + 24] = _c._D[PC2_D[j] - 28 - 1];
       }
     }
+  }
+
+  private void rotate(int[] array)
+  {
+    int t = array[0];
+    System.arraycopy(array, 1, array, 0, 28 - 1);
+    array[27] = t;
   }
 
   /*
@@ -276,33 +280,29 @@ public final class Crypt
    */
   private final void encrypt(int block[], int edflag)
   {
-    int i, ii;
-    int t, j, k;
     SubCrypt _c = _crypt;
-
-    int a = 0;
 
     /*
      * First, permute the bits in the input
      */
-    for (j = 0; j < 64; j++)
+    for (int j = 0; j < 64; j++)
     {
-      a = IP[j] - 1;
+      int a = IP[j] - 1;
       int b = block[a];
       if (j <= 31)
         _c._L[j] = b;
       else
         _c._R[j - 32] = b;
-
     }
     /*
      * Perform an encryption operation 16 times.
      */
-    for (ii = 0; ii < 16; ii++)
+    for (int ii = 0; ii < 16; ii++)
     {
       /*
        * Set direction
        */
+      int i;
       if (edflag != 0)
       {
         i = 15 - ii;
@@ -314,13 +314,12 @@ public final class Crypt
       /*
        * Save the R array, which will be the new L.
        */
-      for (j = 0; j < 32; j++)
-        _c._tempL[j] = _c._R[j];
+      System.arraycopy(_c._R, 0, _c._tempL, 0, 32);
       /*
        * Expand R to 48 bits using the E selector; exclusive-or with the current
        * key bits.
        */
-      for (j = 0; j < 48; j++)
+      for (int j = 0; j < 48; j++)
         _c._preS[j] = _c._R[_c._E[j] - 1] ^ _c._KS[i][j];
       /*
        * The pre-select bits are now considered in 8 groups of 6 bits each. The
@@ -329,10 +328,10 @@ public final class Crypt
        * selection functions is peculiar; it could be simplified by rewriting
        * the tables.
        */
-      for (j = 0; j < 8; j++)
+      for (int j = 0; j < 8; j++)
       {
-        t = 6 * j;
-        k = S[j][(_c._preS[t + 0] << 5) + (_c._preS[t + 1] << 3)
+        int t = 6 * j;
+        int k = S[j][(_c._preS[t + 0] << 5) + (_c._preS[t + 1] << 3)
             + (_c._preS[t + 2] << 2) + (_c._preS[t + 3] << 1)
             + (_c._preS[t + 4] << 0) + (_c._preS[t + 5] << 4)];
         t = 4 * j;
@@ -344,30 +343,30 @@ public final class Crypt
       /*
        * The new R is L ^ f(R, K). The f here has to be permuted first, though.
        */
-      for (j = 0; j < 32; j++)
+      for (int j = 0; j < 32; j++)
         _c._R[j] = _c._L[j] ^ _c._f[P[j] - 1];
       /*
        * Finally, the new L (the original R) is copied back.
        */
-      for (j = 0; j < 32; j++)
-        _c._L[j] = _c._tempL[j];
+      System.arraycopy(_c._tempL, 0, _c._L, 0, 32);
     }
     /*
      * The output L and R are reversed.
      */
-    for (j = 0; j < 32; j++)
+    for (int j = 0; j < 32; j++)
     {
-      t = _c._L[j];
+      // swap
+      int t = _c._L[j];
       _c._L[j] = _c._R[j];
       _c._R[j] = t;
     }
     /*
      * The final output gets the inverse permutation of the very original.
      */
-    for (j = 0; j < 64; j++)
+    for (int j = 0; j < 64; j++)
     {
       int iv = FP[j] - 1;
-      a = (iv <= 31) ? _c._L[iv] : _c._R[iv - 32];
+      int a = (iv <= 31) ? _c._L[iv] : _c._R[iv - 32];
       block[j] = a;
     }
   }
@@ -382,8 +381,7 @@ public final class Crypt
    * @param salt A salt array of any size, of which only the first
    * 2 bytes will be considered.
    * @return A trimmed array
-   *
-   * */
+   */
   public byte[] crypt(byte[] pw, byte[] salt)
   {
     int[] r;
@@ -395,27 +393,22 @@ public final class Crypt
     //TODO: crypt always returns same size array?  So don't mess
     // around calculating the number of zeros at the end.
 
-    // The _crypt algorithm pads the
-    // result block with zeros; we need to
-    // copy the array into a byte string,
+    // The _crypt algorithm pads the result block with zeros;
+    // we need to copy the array into a byte string,
     // but without these zeros.
     int zeroCount = 0;
     for (int i = r.length - 1; i >= 0; --i)
     {
-      if (r[i] == 0)
+      if (r[i] != 0)
       {
-        ++zeroCount;
-      }
-      else
-      {
-        // Zeros can only occur at the end
-        // of the block.
+        // Zeros can only occur at the end of the block.
         break;
       }
+      ++zeroCount;
     }
-    byte[] b = new byte[r.length - zeroCount];
 
     // Convert to byte
+    byte[] b = new byte[r.length - zeroCount];
     for (int i = 0; i < b.length; ++i)
     {
       b[i] = (byte) r[i];
@@ -425,53 +418,50 @@ public final class Crypt
 
   private int[] _crypt(byte[] pw, byte[] salt)
   {
-    int i, j, c, n;
-    int temp;
     SubCrypt _c = _crypt;
 
-    for (i = 0; i < 66; i++)
-      _c._ablock[i] = 0;
-    for (i = 0, n = 0; n < pw.length && i < 64; n++)
+    Arrays.fill(_c._ablock, 0);
+
+    for (int i = 0, n = 0; n < pw.length && i < 64; n++)
     {
-      c = pw[n];
-      for (j = 0; j < 7; j++, i++)
+      int c = pw[n];
+      for (int j = 0; j < 7; j++, i++)
         _c._ablock[i] = (c >> (6 - j)) & 01;
       i++;
     }
 
     setkey(_c._ablock);
 
-    for (i = 0; i < 66; i++)
-      _c._ablock[i] = 0;
+    Arrays.fill(_c._ablock, 0);
 
-    for (i = 0; i < 48; i++)
-      _c._E[i] = e[i];
+    copy(e, _c._E);
 
-    for (i = 0; i < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
-      c = salt[i];
+      int c = salt[i];
       _c._iobuf[i] = c;
       if (c > 'Z') c -= 6;
       if (c > '9') c -= 7;
       c -= '.';
-      for (j = 0; j < 6; j++)
+      for (int j = 0; j < 6; j++)
       {
         if (((c >> j) & 01) != 0)
         {
-          temp = _c._E[6 * i + j];
+          int temp = _c._E[6 * i + j];
           _c._E[6 * i + j] = _c._E[6 * i + j + 24];
           _c._E[6 * i + j + 24] = temp;
         }
       }
     }
 
-    for (i = 0; i < 25; i++)
+    for (int i = 0; i < 25; i++)
       encrypt(_c._ablock, 0);
 
+    int i;
     for (i = 0; i < 11; i++)
     {
-      c = 0;
-      for (j = 0; j < 6; j++)
+      int c = 0;
+      for (int j = 0; j < 6; j++)
       {
         c <<= 1;
         c |= _c._ablock[6 * i + j];
@@ -486,4 +476,3 @@ public final class Crypt
     return (_c._iobuf);
   }
 }
-
