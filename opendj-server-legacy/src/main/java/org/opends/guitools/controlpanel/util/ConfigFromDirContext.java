@@ -1103,12 +1103,12 @@ public class ConfigFromDirContext extends ConfigReader
         // this connection handler is the right one.
         // See org.opends.server.protocols.ldap.LDAPConnectionHandler to see
         // how the DN of the monitoring entry is generated.
-        if (key.indexOf(getKey("port "+ch.getPort())) != -1)
+        if (key.contains(getKey("port " + ch.getPort())))
         {
           boolean hasAllAddresses = true;
           for (InetAddress a : ch.getAddresses())
           {
-            if (key.indexOf(getKey(a.getHostAddress())) == -1)
+            if (!key.contains(getKey(a.getHostAddress())))
             {
               hasAllAddresses = false;
               break;

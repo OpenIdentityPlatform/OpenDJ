@@ -143,9 +143,9 @@ public class LDAPRequestHandler
       if ((stackElements != null) && (stackElements.length > 0))
       {
         StackTraceElement ste = stackElements[0];
-        if (ste.getClassName().equals("sun.nio.ch.DevPollArrayWrapper") &&
-            (ste.getMethodName().indexOf("poll") >= 0) &&
-            ioe.getMessage().equalsIgnoreCase("Invalid argument"))
+        if (ste.getClassName().equals("sun.nio.ch.DevPollArrayWrapper")
+            && ste.getMethodName().contains("poll")
+            && ioe.getMessage().equalsIgnoreCase("Invalid argument"))
         {
           LocalizableMessage message = ERR_LDAP_REQHANDLER_DETECTED_JVM_ISSUE_CR6322825.get(ioe);
           throw new InitializationException(message, ioe);
