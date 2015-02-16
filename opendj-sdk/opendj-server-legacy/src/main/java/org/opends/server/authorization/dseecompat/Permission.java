@@ -74,8 +74,8 @@ public class Permission {
      */
     private Permission(String accessType, String rights)
     throws AciException {
-        if ((this.accessType =
-            EnumAccessType.decode(accessType)) == null){
+        this.accessType = EnumAccessType.decode(accessType);
+        if (this.accessType == null){
             LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_ACCESS_TYPE_VERSION.get(accessType);
             throw new AciException(message);

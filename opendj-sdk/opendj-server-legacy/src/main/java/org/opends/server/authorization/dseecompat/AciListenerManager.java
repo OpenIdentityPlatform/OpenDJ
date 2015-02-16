@@ -243,11 +243,9 @@ public class AciListenerManager implements
     private void doPostAdd(Entry addedEntry)
     {
       // This entry might have both global and aci attribute types.
-      boolean hasAci, hasGlobalAci = false;
-      if ((hasAci = addedEntry
-          .hasOperationalAttribute(AciHandler.aciType))
-          || (hasGlobalAci = addedEntry
-              .hasAttribute(AciHandler.globalAciType)))
+      boolean hasAci = addedEntry.hasOperationalAttribute(AciHandler.aciType);
+      boolean hasGlobalAci = addedEntry.hasAttribute(AciHandler.globalAciType);
+      if (hasAci || hasGlobalAci)
       {
         // Ignore this list, the ACI syntax has already passed and it
         // should be empty.

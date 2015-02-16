@@ -226,11 +226,12 @@ public class ParentInheritance {
      * @return The attribute type.
      */
     public AttributeType getAttributeType() {
-      AttributeType attrType;
-      if((attrType =
-           DirectoryServer.getAttributeType(attrTypeStr.toLowerCase())) == null)
-        attrType=
-             DirectoryServer.getDefaultAttributeType(attrTypeStr.toLowerCase());
+      final String attrName = attrTypeStr.toLowerCase();
+      AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+      if(attrType == null)
+      {
+        attrType = DirectoryServer.getDefaultAttributeType(attrName);
+      }
       return attrType;
     }
 

@@ -1552,9 +1552,9 @@ public class ADSContext
    */
   private static LdapName makeDNFromServerProperties(
       Map<ServerProperty, Object> serverProperties) throws ADSContextException
-      {
-    String serverID ;
-    if ( (serverID = getServerID(serverProperties)) != null )
+  {
+    String serverID = getServerID(serverProperties) ;
+    if (serverID != null)
     {
       return makeDNFromServerUniqueId(serverID);
     }
@@ -1570,7 +1570,7 @@ public class ADSContext
       ServerDescriptor s = ServerDescriptor.createStandalone(serverProperties);
       return makeDNFromServerUniqueId(s.getHostPort(true));
     }
-      }
+  }
 
   /**
    * This method returns the DN of the entry that corresponds to the given

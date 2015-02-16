@@ -995,8 +995,8 @@ public class PatternDN
 
       int namePos = 0;
       int nameLength = attributeName.length();
-      char ch = attributeName.charAt(0);
-      if ((ch == 'o') || (ch == 'O'))
+      char ch0 = attributeName.charAt(0);
+      if (ch0 == 'o' || ch0 == 'O')
       {
         if (nameLength <= 4)
         {
@@ -1004,11 +1004,11 @@ public class PatternDN
         }
         else
         {
-          if ((((ch = attributeName.charAt(1)) == 'i') ||
-               (ch == 'I')) &&
-              (((ch = attributeName.charAt(2)) == 'd') ||
-               (ch == 'D')) &&
-              (attributeName.charAt(3) == '.'))
+          char ch1 = attributeName.charAt(1);
+          char ch2 = attributeName.charAt(2);
+          if ((ch1 == 'i' || ch1 == 'I')
+              && (ch2 == 'd' || ch2 == 'D')
+              && attributeName.charAt(3) == '.')
           {
             attributeName.delete(0, 4);
             nameLength -= 4;
@@ -1022,7 +1022,7 @@ public class PatternDN
 
       while (validOID && (namePos < nameLength))
       {
-        ch = attributeName.charAt(namePos++);
+        char ch = attributeName.charAt(namePos++);
         if (isDigit(ch))
         {
           while (validOID && (namePos < nameLength) &&

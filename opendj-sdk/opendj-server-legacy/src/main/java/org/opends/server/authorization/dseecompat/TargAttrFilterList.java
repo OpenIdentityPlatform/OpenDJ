@@ -131,16 +131,15 @@ public class TargAttrFilterList {
             if (semicolon != -1)
                 attributeName=attributeName.substring(0, semicolon);
             String filterString=matcher.group(filterPos);
-            AttributeType attributeType;
-            if((attributeType =
-                    DirectoryServer.getAttributeType(attributeName)) == null)
-                attributeType =
-                        DirectoryServer.getDefaultAttributeType(attributeName);
+            AttributeType attrType = DirectoryServer.getAttributeType(attributeName);
+            if (attrType == null) {
+                attrType = DirectoryServer.getDefaultAttributeType(attributeName);
+            }
             SearchFilter filter;
             //Check if it is a valid filter and add it to the list map if ok.
             try {
                filter = SearchFilter.createFilterFromString(filterString);
-               attrFilterList.put(attributeType, filter);
+               attrFilterList.put(attrType, filter);
             } catch (DirectoryException ex) {
                 LocalizableMessage er=ex.getMessageObject();
                 LocalizableMessage message =
@@ -149,9 +148,8 @@ public class TargAttrFilterList {
                 throw new AciException(message);
             }
             //Verify the filter components. This check assures that each
-            //attribute type in the filter matches the provided attribute
-            //type.
-            verifyFilterComponents(filter, attributeType);
+            //attribute type in the filter matches the provided attribute type.
+            verifyFilterComponents(filter, attrType);
         }
         return new TargAttrFilterList(mask, attrFilterList);
     }

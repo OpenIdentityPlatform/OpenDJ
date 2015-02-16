@@ -577,12 +577,12 @@ public final class JMXMBean
 
 
     AttributeList attrList = new AttributeList(attributes.length);
-    Attribute attr;
     for (String name : attributes)
     {
       try
       {
-        if ((attr = getJmxAttribute(name)) != null)
+        Attribute attr = getJmxAttribute(name);
+        if (attr != null)
         {
           attrList.add(attr);
           continue;
