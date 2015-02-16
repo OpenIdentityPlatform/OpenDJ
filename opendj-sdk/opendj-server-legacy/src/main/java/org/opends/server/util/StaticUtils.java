@@ -2492,8 +2492,10 @@ public final class StaticUtils
       for (int i=startPos+1; i < endPos; i++)
       {
         c = element.charAt(i);
-        if (! (isAlpha(c) || isDigit(c) || (c == '-') ||
-               ((c == '_') && DirectoryServer.allowAttributeNameExceptions())))
+        if (!isAlpha(c)
+            && !isDigit(c)
+            && c != '-'
+            && (c != '_' || !DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is an illegal character for an attribute name.
           invalidReason.append(ERR_SCHEMANAME_ILLEGAL_CHAR.get(element, c, i));

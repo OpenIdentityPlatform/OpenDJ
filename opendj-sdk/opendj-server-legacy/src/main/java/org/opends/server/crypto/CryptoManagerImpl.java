@@ -921,8 +921,7 @@ public class CryptoManagerImpl
     final SecretKey secretKey
             = decodeSymmetricKeyAttribute(symmetricKeyAttribute);
     final Map<String, byte[]> certMap = getTrustedCertificates();
-    if (! (certMap.containsKey(requestedInstanceKeyID)
-            && null != certMap.get(requestedInstanceKeyID))) {
+    if (certMap.get(requestedInstanceKeyID) == null) {
       throw new CryptoManagerException(
           ERR_CRYPTOMGR_REWRAP_SYMMETRIC_KEY_ATTRIBUTE_NO_WRAPPER.get(
                   requestedInstanceKeyID));

@@ -760,8 +760,8 @@ public class TaskBackend
 
       ByteString v = iterator.next();
       String valueString = toLowerCase(v.toString());
-      if (!(valueString.startsWith("cancel") ||
-        valueString.startsWith("stop"))) {
+      if (!valueString.startsWith("cancel")
+          && !valueString.startsWith("stop")) {
         acceptable = false;
         break;
       }

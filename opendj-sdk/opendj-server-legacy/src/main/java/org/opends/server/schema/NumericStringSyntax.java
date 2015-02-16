@@ -240,7 +240,7 @@ public class NumericStringSyntax
     for (int i=0; i < length; i++)
     {
       char c = valueString.charAt(i);
-      if (! (isDigit(c) || (c == ' ')))
+      if (!isDigit(c) && c != ' ')
       {
         invalidReason.append(WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(valueString, c, i));
         return false;

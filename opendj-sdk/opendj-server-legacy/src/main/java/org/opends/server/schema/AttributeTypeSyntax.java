@@ -561,8 +561,9 @@ public class AttributeTypeSyntax
                       ERR_ATTR_SYNTAX_ATTR_ILLEGAL_INITIAL_DIGIT.get(
                           value, ch, ATTR_ALLOW_ATTRIBUTE_NAME_EXCEPTIONS));
                 }
-                else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
-                        (ch>='a' && ch<='z')))
+                else if (!(('0'<=ch && ch<='9')
+                    || ('A'<=ch && ch<='Z')
+                    || ('a'<=ch && ch<='z')))
                 {
                   throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                       ERR_ATTR_SYNTAX_ATTR_ILLEGAL_CHAR.get(value, ch, index));

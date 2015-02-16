@@ -367,9 +367,12 @@ public class BuildInformation implements Comparable<BuildInformation> {
    */
   @Override
   public boolean equals(Object o) {
-    return this == o ||
-            !(o == null || getClass() != o.getClass()) &&
-                    compareTo((BuildInformation)o) == 0;
+    if (this == o) {
+      return true;
+    }
+    return o != null
+        && getClass() == o.getClass()
+        && compareTo((BuildInformation)o) == 0;
   }
 
   /**

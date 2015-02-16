@@ -775,7 +775,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     try
     {
       File f = getFileForPath(newTrustStoreFile);
-      if (!(f.exists() && f.isFile()))
+      if (!f.exists() || !f.isFile())
       {
         unacceptableReasons.add(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, cfgEntryDN));
         configAcceptable = false;
@@ -877,7 +877,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
     // Get the path to the trust store file.
     String newTrustStoreFile = cfg.getTrustStoreFile();
     File f = getFileForPath(newTrustStoreFile);
-    if (! (f.exists() && f.isFile()))
+    if (!f.exists() || !f.isFile())
     {
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       ccr.addMessage(ERR_TRUSTSTORE_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));

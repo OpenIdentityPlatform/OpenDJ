@@ -153,9 +153,10 @@ public class TemplateLine
     for (Tag t : tags)
     {
       TagResult result = t.generateValue(templateEntry, value);
-      if (! (result.keepProcessingLine() && result.keepProcessingEntry() &&
-             result.keepProcessingParent() &&
-             result.keepProcessingTemplateFile()))
+      if (!result.keepProcessingLine()
+          || !result.keepProcessingEntry()
+          || !result.keepProcessingParent()
+          || !result.keepProcessingTemplateFile())
       {
         return result;
       }

@@ -117,7 +117,7 @@ public class FileBasedKeyManagerProvider
     keyStoreFile = configuration.getKeyStoreFile();
     try {
       File f = getFileForPath(keyStoreFile);
-      if (!(f.exists() && f.isFile())) {
+      if (!f.exists() || !f.isFile()) {
         throw new InitializationException(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(keyStoreFile, configEntryDN));
       }
     } catch (SecurityException e) {
@@ -311,7 +311,7 @@ public class FileBasedKeyManagerProvider
     try
     {
       File f = getFileForPath(newKeyStoreFile);
-      if (!(f.exists() && f.isFile()))
+      if (!f.exists() || !f.isFile())
       {
         unacceptableReasons.add(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(newKeyStoreFile, cfgEntryDN));
         configAcceptable = false;
@@ -441,7 +441,7 @@ public class FileBasedKeyManagerProvider
     try
     {
       File f = getFileForPath(newKeyStoreFile);
-      if (!(f.exists() && f.isFile()))
+      if (!f.exists() || !f.isFile())
       {
         ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
         ccr.addMessage(ERR_FILE_KEYMANAGER_NO_SUCH_FILE.get(newKeyStoreFile, configEntryDN));

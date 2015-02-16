@@ -393,8 +393,9 @@ public class Branch
     for (TemplateLine l : rdnLines)
     {
       TagResult r = l.generateLine(entry);
-      if (! (r.keepProcessingEntry() && r.keepProcessingParent() &&
-             r.keepProcessingTemplateFile()))
+      if (!r.keepProcessingEntry()
+          || !r.keepProcessingParent()
+          || !r.keepProcessingTemplateFile())
       {
         return r;
       }
@@ -403,8 +404,9 @@ public class Branch
     for (TemplateLine l : extraLines)
     {
       TagResult r = l.generateLine(entry);
-      if (! (r.keepProcessingEntry() && r.keepProcessingParent() &&
-             r.keepProcessingTemplateFile()))
+      if ((!r.keepProcessingEntry()
+          || !r.keepProcessingParent()
+          || !r.keepProcessingTemplateFile()))
       {
         return r;
       }
@@ -421,7 +423,8 @@ public class Branch
       TagResult r =
            subordinateTemplates[i].writeEntries(entryWriter, branchDN,
                                                 numEntriesPerTemplate[i]);
-      if (! (r.keepProcessingParent() && r.keepProcessingTemplateFile()))
+      if (!r.keepProcessingParent()
+          || !r.keepProcessingTemplateFile())
       {
         if (r.keepProcessingTemplateFile())
         {

@@ -1892,9 +1892,9 @@ public class Entry
 
       for (AttributeType t : o.getRequiredAttributes())
       {
-        if (! (userAttributes.containsKey(t) ||
-               operationalAttributes.containsKey(t) ||
-               t.isObjectClass()))
+        if (!userAttributes.containsKey(t)
+            && !operationalAttributes.containsKey(t)
+            && !t.isObjectClass())
         {
           LocalizableMessage message =
                   ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_OC.get(
@@ -2080,9 +2080,9 @@ public class Entry
     // Make sure that all of the required attributes are present.
     for (AttributeType t : ditContentRule.getRequiredAttributes())
     {
-      if (! (userAttributes.containsKey(t) ||
-             operationalAttributes.containsKey(t) ||
-             t.isObjectClass()))
+      if (!userAttributes.containsKey(t)
+          && !operationalAttributes.containsKey(t)
+          && !t.isObjectClass())
       {
         LocalizableMessage message =
                 ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR.get(

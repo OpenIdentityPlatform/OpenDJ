@@ -919,7 +919,7 @@ public class LocalBackendModifyOperation
     // through the set of modifications to see if a password is included in the
     // changes.  If so, then add the appropriate state changes to the set of
     // modifications.
-    if (! (isInternalOperation() || isSynchronizationOperation()))
+    if (!isInternalOperation() && !isSynchronizationOperation())
     {
       for (Modification m : modifications)
       {

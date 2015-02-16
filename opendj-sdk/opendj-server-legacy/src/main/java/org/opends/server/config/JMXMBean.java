@@ -129,7 +129,7 @@ public final class JMXMBean
       try
       {
           String dnString = configEntryDN.toString();
-          if ( ! ((dnString == null) || (dnString.length() == 0)))
+          if (dnString != null && dnString.length() != 0)
           {
               StringBuilder buffer = new StringBuilder(dnString.length());
               String rdns[] = dnString.replace(',', ';').split(";");

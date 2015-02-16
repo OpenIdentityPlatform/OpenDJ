@@ -938,7 +938,7 @@ public final class DirectoryEnvironmentConfig
     else
     {
       File parentFile = lockDirectory.getParentFile();
-      if (! (parentFile.exists() && parentFile.isDirectory()))
+      if (!parentFile.exists() || !parentFile.isDirectory())
       {
         throw new InitializationException(
                 ERR_DIRCFG_INVALID_LOCK_DIRECTORY.get(

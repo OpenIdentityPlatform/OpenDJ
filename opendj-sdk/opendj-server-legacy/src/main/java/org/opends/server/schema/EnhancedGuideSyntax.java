@@ -263,9 +263,10 @@ public class EnhancedGuideSyntax
     }
 
     String scopeStr = valueStr.substring(lastSharpPos+1).trim();
-    if (! (scopeStr.equals("baseobject") || scopeStr.equals("onelevel") ||
-           scopeStr.equals("wholesubtree") ||
-           scopeStr.equals("subordinatesubtree")))
+    if (!scopeStr.equals("baseobject")
+        && !scopeStr.equals("onelevel")
+        && !scopeStr.equals("wholesubtree")
+        && !scopeStr.equals("subordinatesubtree"))
     {
       if (scopeStr.length() == 0)
       {

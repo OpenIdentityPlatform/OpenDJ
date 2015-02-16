@@ -261,7 +261,7 @@ public class NameAndOptionalUIDSyntax
       for (int i=sharpPos+2; i < endPos; i++)
       {
         char c = valueString.charAt(i);
-        if (! ((c == '0') || (c == '1')))
+        if (c != '0' && c != '1')
         {
           invalidReason.append(
                   ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT.get(valueString, c, i));
