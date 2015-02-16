@@ -164,16 +164,8 @@ public final class StringConfigAttribute
           getValueSet(values));
 
 
-    if (values == null)
-    {
-      activeValues  = new ArrayList<String>();
-      pendingValues = activeValues;
-    }
-    else
-    {
-      activeValues  = values;
-      pendingValues = activeValues;
-    }
+    activeValues  = values != null ? values : new ArrayList<String>();
+    pendingValues = activeValues;
   }
 
 

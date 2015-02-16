@@ -496,56 +496,45 @@ public class ProgressDialog extends GenericDialog
       scroll.setVisible(showDetails);
       extraStrut.setVisible(!showDetails);
       details.setSelected(showDetails);
-      if (showDetails)
+
+      final Window dialog = Utilities.getParentDialog(this);
+      if (dialog != null)
       {
-        final Window dialog = Utilities.getParentDialog(this);
-        if (dialog != null)
+        final Runnable repaint = new Runnable()
         {
-          lastCollapsedHeight = dialog.getSize().height;
+          public void run()
+          {
+            invalidate();
+            dialog.invalidate();
+            dialog.repaint();
+          }
+        };
+
+        final Dimension dialogSize = dialog.getSize();
+        if (showDetails)
+        {
+          lastCollapsedHeight = dialogSize.height;
           if (lastExpandedHeight == -1)
           {
-            dialog.setSize(new Dimension(dialog.getSize().width,
-                dialog.getSize().height + heightDiff));
+            dialog.setSize(new Dimension(dialogSize.width, dialogSize.height + heightDiff));
           }
           else
           {
-            dialog.setSize(new Dimension(dialog.getSize().width,
-                lastExpandedHeight));
+            dialog.setSize(new Dimension(dialogSize.width, lastExpandedHeight));
           }
-          SwingUtilities.invokeLater(new Runnable()
-          {
-            public void run()
-            {
-              invalidate();
-              dialog.invalidate();
-              dialog.repaint();
-            }
-          });
+          SwingUtilities.invokeLater(repaint);
         }
-      }
-      else
-      {
-        final Window dialog = Utilities.getParentDialog(this);
-        if (dialog != null)
+        else
         {
-          lastExpandedHeight = dialog.getSize().height;
+          lastExpandedHeight = dialogSize.height;
           if (lastCollapsedHeight == -1)
           {
             packParentDialog();
           }
           else
           {
-            dialog.setSize(new Dimension(dialog.getSize().width,
-                lastCollapsedHeight));
-            SwingUtilities.invokeLater(new Runnable()
-            {
-              public void run()
-              {
-                invalidate();
-                dialog.invalidate();
-                dialog.repaint();
-              }
-            });
+            dialog.setSize(new Dimension(dialogSize.width, lastCollapsedHeight));
+            SwingUtilities.invokeLater(repaint);
           }
         }
       }

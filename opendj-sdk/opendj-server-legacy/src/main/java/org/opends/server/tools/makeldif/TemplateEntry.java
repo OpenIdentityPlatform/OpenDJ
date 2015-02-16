@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
+
+import static org.opends.server.util.LDIFWriter.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -36,9 +39,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFException;
-
-import static org.opends.server.util.LDIFWriter.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an entry that is generated using a MakeLDIF branch or
@@ -315,9 +315,7 @@ public class TemplateEntry
           builder.add(v.getValue().toString());
         }
 
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(builder.toAttribute());
-        operationalAttributes.put(t, attrList);
+        operationalAttributes.put(t, asList(builder));
       }
       else
       {
@@ -346,22 +344,14 @@ public class TemplateEntry
           }
         }
 
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(builder.toAttribute());
-        userAttributes.put(t, attrList);
-
+        userAttributes.put(t, asList(builder));
         if (urlBuilder != null)
         {
-          ArrayList<Attribute> urlAttrList = new ArrayList<Attribute>(1);
-          urlAttrList.add(urlBuilder.toAttribute());
-          urlAttributes.put(t, urlAttrList);
+          urlAttributes.put(t, asList(urlBuilder));
         }
-
         if (base64Builder != null)
         {
-          ArrayList<Attribute> base64AttrList = new ArrayList<Attribute>(1);
-          base64AttrList.add(base64Builder.toAttribute());
-          base64Attributes.put(t, base64AttrList);
+          base64Attributes.put(t, asList(base64Builder));
         }
       }
     }
@@ -373,8 +363,7 @@ public class TemplateEntry
 
 
     // First, write the DN.  It will always be included.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
+    StringBuilder dnLine = new StringBuilder("dn");
     appendLDIFSeparatorAndValue(dnLine,
         ByteString.valueOf(getDN().toString()));
     writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
@@ -393,9 +382,7 @@ public class TemplateEntry
       {
         for (String s : objectClasses.values())
         {
-          StringBuilder ocLine = new StringBuilder();
-          ocLine.append("objectClass: ");
-          ocLine.append(s);
+          StringBuilder ocLine = new StringBuilder("objectClass: ").append(s);
           writeLDIFLine(ocLine, writer, wrapLines, wrapColumn);
         }
       }
@@ -407,8 +394,7 @@ public class TemplateEntry
     {
       if (exportConfig.includeAttribute(attrType))
       {
-        List<Attribute> attrList = userAttributes.get(attrType);
-        for (Attribute a : attrList)
+        for (Attribute a : userAttributes.get(attrType))
         {
           if (a.isVirtual() &&
               (! exportConfig.includeVirtualAttributes()))
@@ -416,72 +402,23 @@ public class TemplateEntry
             continue;
           }
 
+          StringBuilder attrName = attrNameWithOptions(a);
           if (typesOnly)
           {
-            StringBuilder attrName = new StringBuilder(a.getName());
-            for (String o : a.getOptions())
-            {
-              attrName.append(";");
-              attrName.append(o);
-            }
             attrName.append(":");
 
             writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
           }
           else
           {
-            StringBuilder attrName = new StringBuilder(a.getName());
-            for (String o : a.getOptions())
-            {
-              attrName.append(";");
-              attrName.append(o);
-            }
-
             List<Attribute> urlAttrList = urlAttributes.get(attrType);
             List<Attribute> base64AttrList = base64Attributes.get(attrType);
 
             for (ByteString v : a)
             {
-              StringBuilder attrLine = new StringBuilder();
-              attrLine.append(attrName);
-              boolean isURLValue = false;
-              if (urlAttrList != null)
-              {
-                for (Attribute urlAttr : urlAttrList)
-                {
-                  for (ByteString urlValue : urlAttr)
-                  {
-                    if (urlValue.equals(v))
-                    {
-                      isURLValue = true;
-                      break;
-                    }
-                  }
-                  if (isURLValue)
-                  {
-                    break;
-                  }
-                }
-              }
-              boolean isBase64Value = false;
-              if (base64AttrList != null)
-              {
-                for (Attribute base64Attr : base64AttrList)
-                {
-                  for (ByteString base64Value : base64Attr)
-                  {
-                    if (base64Value.equals(v))
-                    {
-                      isBase64Value = true;
-                      break;
-                    }
-                  }
-                  if (isBase64Value)
-                  {
-                    break;
-                  }
-                }
-              }
+              StringBuilder attrLine = new StringBuilder(attrName);
+              boolean isURLValue = contains(urlAttrList, v);
+              boolean isBase64Value = contains(base64AttrList, v);
               appendLDIFSeparatorAndValue(attrLine,
                                           v,
                                           isURLValue,
@@ -501,9 +438,7 @@ public class TemplateEntry
       {
         if (exportConfig.includeAttribute(attrType))
         {
-          List<Attribute> attrList =
-               operationalAttributes.get(attrType);
-          for (Attribute a : attrList)
+          for (Attribute a : operationalAttributes.get(attrType))
           {
             if (a.isVirtual() &&
                 (! exportConfig.includeVirtualAttributes()))
@@ -511,31 +446,18 @@ public class TemplateEntry
               continue;
             }
 
+            StringBuilder attrName = attrNameWithOptions(a);
             if (typesOnly)
             {
-              StringBuilder attrName = new StringBuilder(a.getName());
-              for (String o : a.getOptions())
-              {
-                attrName.append(";");
-                attrName.append(o);
-              }
               attrName.append(":");
 
               writeLDIFLine(attrName, writer, wrapLines, wrapColumn);
             }
             else
             {
-              StringBuilder attrName = new StringBuilder(a.getName());
-              for (String o : a.getOptions())
-              {
-                attrName.append(";");
-                attrName.append(o);
-              }
-
               for (ByteString v : a)
               {
-                StringBuilder attrLine = new StringBuilder();
-                attrLine.append(attrName);
+                StringBuilder attrLine = new StringBuilder(attrName);
                 appendLDIFSeparatorAndValue(attrLine, v);
                 writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
               }
@@ -548,8 +470,42 @@ public class TemplateEntry
     // Make sure there is a blank line after the entry.
     writer.newLine();
 
-
     return true;
   }
-}
 
+  private StringBuilder attrNameWithOptions(Attribute a)
+  {
+    StringBuilder attrName = new StringBuilder(a.getName());
+    for (String o : a.getOptions())
+    {
+      attrName.append(";");
+      attrName.append(o);
+    }
+    return attrName;
+  }
+
+  private ArrayList<Attribute> asList(AttributeBuilder builder)
+  {
+    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    attrList.add(builder.toAttribute());
+    return attrList;
+  }
+
+  private boolean contains(List<Attribute> urlAttrList, ByteString v)
+  {
+    if (urlAttrList != null)
+    {
+      for (Attribute urlAttr : urlAttrList)
+      {
+        for (ByteString urlValue : urlAttr)
+        {
+          if (urlValue.equals(v))
+          {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+}

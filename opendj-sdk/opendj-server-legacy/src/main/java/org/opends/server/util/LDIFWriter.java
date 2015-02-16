@@ -638,16 +638,8 @@ outerLoop:
     // Write the changetype.  Some older tools may not support the "moddn"
     // changetype, so only use it if a newSuperior element has been provided,
     // but use modrdn elsewhere.
-    if (newSuperior == null)
-    {
-      StringBuilder changeTypeLine = new StringBuilder("changetype: modrdn");
-      writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
-    }
-    else
-    {
-      StringBuilder changeTypeLine = new StringBuilder("changetype: moddn");
-      writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
-    }
+    String changeType = newSuperior == null ? "changetype: modrdn" : "changetype: moddn";
+    writeLDIFLine(new StringBuilder(changeType), writer, wrapLines, wrapColumn);
 
 
     // Write the newRDN element.

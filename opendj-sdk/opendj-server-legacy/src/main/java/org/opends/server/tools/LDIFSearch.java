@@ -272,7 +272,7 @@ public class LDIFSearch
     //Return objectclass attribute unless analysis of the arguments determines
     //otherwise.
     boolean            includeObjectclassAttrs = true;
-    LinkedList<String> attributeNames;
+    final LinkedList<String> attributeNames = new LinkedList<String>();
     LinkedList<String> objectClassNames    = new LinkedList<String>();
     LinkedList<String> filterStrings = new LinkedList<String>();
     if (filterFile.isPresent())
@@ -304,13 +304,8 @@ public class LDIFSearch
       }
 
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
-      if ((trailingArguments == null) || trailingArguments.isEmpty())
+      if (trailingArguments != null && !trailingArguments.isEmpty())
       {
-        attributeNames = new LinkedList<String>();
-      }
-      else
-      {
-        attributeNames = new LinkedList<String>();
         for (String attributeName : trailingArguments)
         {
           String lowerName = toLowerCase(attributeName);
@@ -349,7 +344,6 @@ public class LDIFSearch
         filterStrings = new LinkedList<String>();
         filterStrings.add(iterator.next());
 
-        attributeNames = new LinkedList<String>();
         while (iterator.hasNext())
         {
           String lowerName = toLowerCase(iterator.next());
@@ -373,8 +367,9 @@ public class LDIFSearch
       }
     }
 
-    if (attributeNames.isEmpty() && objectClassNames.isEmpty() &&
-        (! allOperationalAttrs))
+    if (attributeNames.isEmpty()
+        && objectClassNames.isEmpty()
+        && !allOperationalAttrs)
     {
       // This will be true if no attributes were requested, which is effectively
       // all user attributes.  It will also be true if just "*" was included,
@@ -389,7 +384,7 @@ public class LDIFSearch
          attributeNames.isEmpty())
         includeObjectclassAttrs=false;
       //If "objectclass" isn't specified in the attributes to return, then
-      //don't include objectclass attribiute.
+      //don't include objectclass attribute.
       if(!attributeNames.isEmpty() && objectClassNames.isEmpty() &&
          !attributeNames.contains("objectclass"))
          includeObjectclassAttrs=false;

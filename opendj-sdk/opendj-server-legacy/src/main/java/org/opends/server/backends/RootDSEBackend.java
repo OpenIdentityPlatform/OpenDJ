@@ -576,67 +576,34 @@ public class RootDSEBackend
         supportedTlsCiphers);
     addAttribute(supportedTLSCiphersAttr, dseUserAttrs, dseOperationalAttrs);
 
-    // Add all the standard "static" attributes.
-    for (Attribute a : staticDSEAttributes)
-    {
-      AttributeType type = a.getAttributeType();
-
-      if (type.isOperational() && !showAllAttributes)
-      {
-        List<Attribute> attrs = dseOperationalAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          dseOperationalAttrs.put(type, attrs);
-        }
-        attrs.add(a);
-      }
-      else
-      {
-        List<Attribute> attrs = dseUserAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          dseUserAttrs.put(type, attrs);
-        }
-        attrs.add(a);
-      }
-    }
-
-
-    // Add all the user-defined attributes.
-    for (Attribute a : userDefinedAttributes)
-    {
-      AttributeType type = a.getAttributeType();
-
-      if (type.isOperational() && !showAllAttributes)
-      {
-        List<Attribute> attrs = dseOperationalAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          dseOperationalAttrs.put(type, attrs);
-        }
-        attrs.add(a);
-      }
-      else
-      {
-        List<Attribute> attrs = dseUserAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          dseUserAttrs.put(type, attrs);
-        }
-        attrs.add(a);
-      }
-    }
-
+    addAll(staticDSEAttributes, dseUserAttrs, dseOperationalAttrs);
+    addAll(userDefinedAttributes, dseUserAttrs, dseOperationalAttrs);
 
     // Construct and return the entry.
     Entry e = new Entry(rootDSEDN, dseObjectClasses, dseUserAttrs,
                         dseOperationalAttrs);
     e.processVirtualAttributes();
     return e;
+  }
+
+  private void addAll(ArrayList<Attribute> attributes,
+      Map<AttributeType, List<Attribute>> userAttrs, Map<AttributeType, List<Attribute>> operationalAttrs)
+  {
+    for (Attribute a : attributes)
+    {
+      AttributeType type = a.getAttributeType();
+
+      final Map<AttributeType, List<Attribute>> attrsMap = type.isOperational() && !showAllAttributes
+          ? operationalAttrs
+          : userAttrs;
+      List<Attribute> attrs = attrsMap.get(type);
+      if (attrs == null)
+      {
+        attrs = new ArrayList<Attribute>();
+        attrsMap.put(type, attrs);
+      }
+      attrs.add(a);
+    }
   }
 
 

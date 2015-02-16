@@ -1224,19 +1224,13 @@ public class ReferentialIntegrityPlugin
         DN valueEntryDN = DN.decode(attrVal);
 
         final Entry valueEntry;
-        if (currentConfiguration.getCheckReferencesScopeCriteria() == CheckReferencesScopeCriteria.NAMING_CONTEXT)
+        if (currentConfiguration.getCheckReferencesScopeCriteria() == CheckReferencesScopeCriteria.NAMING_CONTEXT
+            && valueEntryDN.matchesBaseAndScope(entryBaseDN, SearchScope.SUBORDINATES))
         {
-          if (valueEntryDN.matchesBaseAndScope(entryBaseDN, SearchScope.SUBORDINATES))
-          {
-            return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
-                ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attr.getName(), entryDN));
-          }
-          valueEntry = DirectoryServer.getEntry(valueEntryDN);
+          return PluginResult.PreOperation.stopProcessing(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_PLUGIN_REFERENT_NAMINGCONTEXT_MISMATCH.get(valueEntryDN, attr.getName(), entryDN));
         }
-        else
-        {
-          valueEntry = DirectoryServer.getEntry(valueEntryDN);
-        }
+        valueEntry = DirectoryServer.getEntry(valueEntryDN);
 
         // Verify that the value entry exists in the backend.
         if (valueEntry == null)

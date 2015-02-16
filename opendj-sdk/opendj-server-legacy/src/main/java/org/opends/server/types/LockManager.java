@@ -591,34 +591,24 @@ public final class LockManager
   {
     // Get the corresponding read-write lock from the lock table.
     ReentrantReadWriteLock existingLock = lockTable.get(entryDN);
-    if (existingLock == null)
-    {
-      // This shouldn't happen, but if it does then all we can do is
-      // release the lock and return.
-      lock.unlock();
-      return;
-    }
 
-    // See if there's anything waiting on the lock.  If so, then we
-    // can't remove it from the table when we unlock it.
-    if (existingLock.hasQueuedThreads() ||
-        (existingLock.getReadLockCount() > 1))
+    // it should never be null, if it is is then all we can do is
+    // release the lock and return.
+    lock.unlock();
+    if (existingLock != null
+        && !existingLock.hasQueuedThreads()
+        && existingLock.getReadLockCount() <= 1)
     {
-      lock.unlock();
-      return;
-    }
-    else
-    {
-      lock.unlock();
       synchronized (existingLock)
       {
-        if ((! existingLock.isWriteLocked()) &&
-            (existingLock.getReadLockCount() == 0))
+        if (!existingLock.isWriteLocked()
+            && existingLock.getReadLockCount() == 0)
         {
+          // If there's nothing waiting on the lock,
+          // then we can remove it from the table when we unlock it.
           lockTable.remove(entryDN, existingLock);
         }
       }
-      return;
     }
   }
 

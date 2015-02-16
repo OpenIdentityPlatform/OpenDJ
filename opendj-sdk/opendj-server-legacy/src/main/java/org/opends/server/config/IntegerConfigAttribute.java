@@ -218,16 +218,8 @@ public final class IntegerConfigAttribute
     this.hasUpperBound = hasUpperBound;
     this.upperBound    = upperBound;
 
-    if (values == null)
-    {
-      activeValues  = new ArrayList<Long>();
-      pendingValues = activeValues;
-    }
-    else
-    {
-      activeValues  = values;
-      pendingValues = activeValues;
-    }
+    activeValues  = values != null ? values : new ArrayList<Long>();
+    pendingValues = activeValues;
   }
 
 

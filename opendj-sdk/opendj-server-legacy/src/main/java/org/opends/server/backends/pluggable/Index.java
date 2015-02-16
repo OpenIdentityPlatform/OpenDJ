@@ -202,14 +202,13 @@ public class Index extends DatabaseContainer
         entryLimitExceededCount++;
       }
       value = newImportIDSet.valueToByteString();
-      put(txn, key, value);
     } else {
       if(!importIdSet.isDefined()) {
         entryLimitExceededCount++;
       }
       value = importIdSet.valueToByteString();
-      put(txn, key, value);
     }
+    put(txn, key, value);
   }
 
   /**

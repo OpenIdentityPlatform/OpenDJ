@@ -373,24 +373,20 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
   {
     for (int i=0; i<extraComponentLabels.length; i++)
     {
+      gbc.gridy ++;
+      gbc.gridx = 0;
+      gbc.insets.left = labelInsetLeft;
+      gbc.anchor = GridBagConstraints.NORTHWEST;
+      gbc.insets.top = 10;
+
       if (extraComponentLabels[i] == null)
       {
-        gbc.gridy ++;
-        gbc.gridx = 0;
-        gbc.insets.left = labelInsetLeft;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        gbc.insets.top = 10;
         gbc.gridwidth = 2;
         gbc.weightx = 1.0;
         panel.add(extraComponents[i], gbc);
       }
       else
       {
-        gbc.gridy ++;
-        gbc.gridx = 0;
-        gbc.insets.left = labelInsetLeft;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        gbc.insets.top = 10;
         gbc.gridwidth = 1;
         gbc.weightx = 0.0;
         panel.add(extraComponentLabels[i], gbc);

@@ -190,16 +190,8 @@ public final class MultiChoiceConfigAttribute
 
     this.allowedValues = allowedValues;
 
-    if (values == null)
-    {
-      activeValues  = new ArrayList<String>();
-      pendingValues = activeValues;
-    }
-    else
-    {
-      activeValues  = values;
-      pendingValues = activeValues;
-    }
+    activeValues  = values != null ? values : new ArrayList<String>();
+    pendingValues = activeValues;
   }
 
 

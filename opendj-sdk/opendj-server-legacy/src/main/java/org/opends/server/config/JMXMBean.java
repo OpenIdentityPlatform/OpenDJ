@@ -632,13 +632,12 @@ monitorLoop:
               String[] valueArray = new String[stringValues.size()];
               stringValues.toArray(valueArray);
               attrList.add(new Attribute(name, valueArray));
-              break monitorLoop;
             }
             else
             {
               attrList.add(new Attribute(name, value.toString()));
-              break monitorLoop;
             }
+            break monitorLoop;
           }
         }
       }

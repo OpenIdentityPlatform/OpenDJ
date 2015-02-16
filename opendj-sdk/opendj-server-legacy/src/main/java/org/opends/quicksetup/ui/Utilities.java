@@ -272,11 +272,6 @@ public class Utilities {
             {
               // It does fit on the line, so add it.
               lineBuffer.append(delimBuffer).append(word);
-
-              if (delimBuffer.length() > 0)
-              {
-                delimBuffer = new StringBuilder();
-              }
             }
             else
             {
@@ -287,11 +282,11 @@ public class Utilities {
 
               lineBuffer = new StringBuilder();
               lineBuffer.append(word);
+            }
 
-              if (delimBuffer.length() > 0)
-              {
-                delimBuffer = new StringBuilder();
-              }
+            if (delimBuffer.length() > 0)
+            {
+              delimBuffer = new StringBuilder();
             }
           }
         }

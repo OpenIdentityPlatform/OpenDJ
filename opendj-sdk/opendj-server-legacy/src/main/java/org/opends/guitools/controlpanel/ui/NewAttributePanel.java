@@ -716,23 +716,15 @@ public class NewAttributePanel extends StatusGenericPanel
       {
         DefaultComboBoxModel model = (DefaultComboBoxModel)combos[i].getModel();
         int index = combos[i].getSelectedIndex();
-        if (rules[i] != null)
+        if (model.getSize() > 0)
         {
-          if (model.getSize() > 0)
-          {
-            model.removeElementAt(0);
-          }
-          model.insertElementAt(INFO_CTRL_PANEL_DEFAULT_DEFINED_IN_SYNTAX.get(
-              rules[i].getNameOrOID()), 0);
+          model.removeElementAt(0);
         }
-        else
-        {
-          if (model.getSize() > 0)
-          {
-            model.removeElementAt(0);
-          }
-          model.insertElementAt(NO_MATCHING_RULE, 0);
-        }
+
+        final LocalizableMessage msg = rules[i] != null
+            ? INFO_CTRL_PANEL_DEFAULT_DEFINED_IN_SYNTAX.get(rules[i].getNameOrOID())
+            : NO_MATCHING_RULE;
+        model.insertElementAt(msg, 0);
         combos[i].setSelectedIndex(index);
       }
     }

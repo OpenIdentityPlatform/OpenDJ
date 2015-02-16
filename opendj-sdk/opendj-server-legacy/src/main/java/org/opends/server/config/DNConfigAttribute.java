@@ -161,17 +161,8 @@ public final class DNConfigAttribute
     super(name, description, isRequired, isMultiValued, requiresAdminAction,
           getValueSet(values));
 
-
-    if (values == null)
-    {
-      activeValues  = new ArrayList<DN>();
-      pendingValues = activeValues;
-    }
-    else
-    {
-      activeValues  = values;
-      pendingValues = activeValues;
-    }
+    activeValues  = values != null ? values : new ArrayList<DN>();
+    pendingValues = activeValues;
   }
 
 

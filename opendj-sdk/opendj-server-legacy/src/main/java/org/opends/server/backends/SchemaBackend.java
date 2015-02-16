@@ -329,35 +329,26 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     // attributes that we don't recognize will be included directly in the
     // schema entry.
     userDefinedAttributes = new ArrayList<Attribute>();
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getUserAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isSchemaConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
-    for (List<Attribute> attrs :
-         configEntry.getEntry().getOperationalAttributes().values())
-    {
-      for (Attribute a : attrs)
-      {
-        if (! isSchemaConfigAttribute(a))
-        {
-          userDefinedAttributes.add(a);
-        }
-      }
-    }
+    addAll(configEntry.getEntry().getUserAttributes().values());
+    addAll(configEntry.getEntry().getOperationalAttributes().values());
 
-
-    // Determine whether to show all attributes.
     showAllAttributes = cfg.isShowAllAttributes();
 
-
     currentConfig = cfg;
+  }
+
+  private void addAll(Collection<List<Attribute>> attrsList)
+  {
+    for (List<Attribute> attrs : attrsList)
+    {
+      for (Attribute a : attrs)
+      {
+        if (! isSchemaConfigAttribute(a))
+        {
+          userDefinedAttributes.add(a);
+        }
+      }
+    }
   }
 
   /** {@inheritDoc} */
@@ -453,18 +444,13 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       // Create a list of modifications and add any differences between the old
       // and new schema into them.
       List<Modification> mods = new LinkedList<Modification>();
-      Schema.compareConcatenatedSchema(oldATs, newATs, attributeTypesType,
-                                       mods);
+      Schema.compareConcatenatedSchema(oldATs, newATs, attributeTypesType, mods);
       Schema.compareConcatenatedSchema(oldOCs, newOCs, objectClassesType, mods);
       Schema.compareConcatenatedSchema(oldNFs, newNFs, nameFormsType, mods);
-      Schema.compareConcatenatedSchema(oldDCRs, newDCRs, ditContentRulesType,
-                                       mods);
-      Schema.compareConcatenatedSchema(oldDSRs, newDSRs, ditStructureRulesType,
-                                       mods);
-      Schema.compareConcatenatedSchema(oldMRUs, newMRUs, matchingRuleUsesType,
-                                       mods);
-      Schema.compareConcatenatedSchema(oldLSDs, newLSDs, ldapSyntaxesType,
-                                      mods);
+      Schema.compareConcatenatedSchema(oldDCRs, newDCRs, ditContentRulesType, mods);
+      Schema.compareConcatenatedSchema(oldDSRs, newDSRs, ditStructureRulesType, mods);
+      Schema.compareConcatenatedSchema(oldMRUs, newMRUs, matchingRuleUsesType, mods);
+      Schema.compareConcatenatedSchema(oldLSDs, newLSDs, ldapSyntaxesType, mods);
       if (! mods.isEmpty())
       {
         // TODO : Raise an alert notification.
@@ -657,8 +643,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       for (int i = 0; i < numAVAs; i++)
       {
         AttributeType attrType = rdn.getAttributeType(i);
-        Attribute attribute = Attributes.create(attrType,
-            rdn.getAttributeValue(i));
+        Attribute attribute = Attributes.create(attrType, rdn.getAttributeValue(i));
         addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
       }
     }
@@ -708,21 +693,16 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       }
     }
     addAttributeToSchemaEntry(
-        Attributes.create(creatorsNameType, creatorsName), userAttrs,
-        operationalAttrs);
+        Attributes.create(creatorsNameType, creatorsName), userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(createTimestampType, createTimestamp), userAttrs,
-        operationalAttrs);
+        Attributes.create(createTimestampType, createTimestamp), userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(modifiersNameType, modifiersName), userAttrs,
-        operationalAttrs);
+        Attributes.create(modifiersNameType, modifiersName), userAttrs, operationalAttrs);
     addAttributeToSchemaEntry(
-        Attributes.create(modifyTimestampType, modifyTimestamp), userAttrs,
-        operationalAttrs);
+        Attributes.create(modifyTimestampType, modifyTimestamp), userAttrs, operationalAttrs);
 
     // Add the extra attributes.
-    for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes()
-        .values())
+    for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes().values())
     {
       addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
     }
@@ -734,8 +714,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
     }
 
     // Construct and return the entry.
-    Entry e = new Entry(entryDN, schemaObjectClasses, userAttrs,
-        operationalAttrs);
+    Entry e = new Entry(entryDN, schemaObjectClasses, userAttrs, operationalAttrs);
     e.processVirtualAttributes();
     return e;
   }
@@ -747,26 +726,14 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
       Map<AttributeType, List<Attribute>> operationalAttrs)
   {
     AttributeType type = attribute.getAttributeType();
-    if (type.isOperational())
+    Map<AttributeType, List<Attribute>> attrsMap = type.isOperational() ? operationalAttrs : userAttrs;
+    List<Attribute> attrs = attrsMap.get(type);
+    if (attrs == null)
     {
-      List<Attribute> attrs = operationalAttrs.get(type);
-      if (attrs == null)
-      {
-        attrs = new ArrayList<Attribute>(1);
-        operationalAttrs.put(type, attrs);
-      }
-      attrs.add(attribute);
+      attrs = new ArrayList<Attribute>(1);
+      attrsMap.put(type, attrs);
     }
-    else
-    {
-      List<Attribute> attrs = userAttrs.get(type);
-      if (attrs == null)
-      {
-        attrs = new ArrayList<Attribute>();
-        userAttrs.put(type, attrs);
-      }
-      attrs.add(attribute);
-    }
+    attrs.add(attribute);
   }
 
 
@@ -3386,25 +3353,20 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
 
+      LocalizableMessage message;
       if (allCleaned)
       {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED.get(
-            getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
+        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_CLEANED.get(getExceptionMessage(e));
       }
       else
       {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED
-                .get(getExceptionMessage(e));
+        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_ORIG_FILES_NOT_CLEANED.get(getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
                              ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES,
                              message);
-
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
       }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
 
 
@@ -3446,25 +3408,20 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
         }
       }
 
+      LocalizableMessage message;
       if (allRestored)
       {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED.get(
-            getExceptionMessage(e));
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
+        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_RESTORED.get(getExceptionMessage(e));
       }
       else
       {
-        LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED
-                .get(getExceptionMessage(e));
+        message = ERR_SCHEMA_MODIFY_CANNOT_WRITE_NEW_FILES_NOT_RESTORED.get(getExceptionMessage(e));
 
         DirectoryServer.sendAlertNotification(this,
                              ALERT_TYPE_CANNOT_WRITE_NEW_SCHEMA_FILES,
                              message);
-
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     message, e);
       }
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
     }
 
     deleteFiles(origFileList);
