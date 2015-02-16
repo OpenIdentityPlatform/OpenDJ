@@ -25,9 +25,8 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
@@ -43,8 +42,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements the server-side sort request control as defined in RFC
@@ -470,20 +467,13 @@ public class ServerSideSortRequestControl
         }
       }
 
-      boolean ascending = true;
-      if(decodedKey[2] != null && decodedKey[2].equals("r"))
+      String decodedKey2 = decodedKey[2];
+      boolean ascending = decodedKey2 == null || !decodedKey2.equals("r");
+      if (orderingRule == null
+          && attrType.getOrderingMatchingRule() == null)
       {
-        ascending = false;
-      }
-
-      if ((orderingRule == null) &&
-          (attrType.getOrderingMatchingRule() == null))
-      {
-        LocalizableMessage message =
-            INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(
-                decodedKey[0]);
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            message);
+            INFO_SORTREQ_CONTROL_NO_ORDERING_RULE_FOR_ATTR.get(decodedKey[0]));
       }
 
       sortKeys.add(new SortKey(attrType, ascending, orderingRule));

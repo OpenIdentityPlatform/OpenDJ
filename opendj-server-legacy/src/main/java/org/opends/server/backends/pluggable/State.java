@@ -96,11 +96,7 @@ public class State extends DatabaseContainer
     ByteString key = keyForIndex(index);
     ByteString value = read(txn, key, false);
 
-    if (value != null)
-    {
-      return value.equals(trueBytes);
-    }
-    return false;
+    return value != null && value.equals(trueBytes);
   }
 
   /**

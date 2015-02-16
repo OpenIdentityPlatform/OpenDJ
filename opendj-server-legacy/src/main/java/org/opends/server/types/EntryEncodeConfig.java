@@ -303,31 +303,19 @@ public final class EntryEncodeConfig
                      message);
     }
 
-    boolean excludeDN = false;
     byte b = buffer.get();
-    if ((b & ENCODE_FLAG_EXCLUDE_DN) == ENCODE_FLAG_EXCLUDE_DN)
-    {
-      excludeDN = true;
-    }
-
-    boolean compressAttrDescriptions = false;
-    if ((b & ENCODE_FLAG_COMPRESS_ADS) == ENCODE_FLAG_COMPRESS_ADS)
-    {
-      compressAttrDescriptions = true;
-    }
-
-    boolean compressObjectClassSets = false;
-    if ((b & ENCODE_FLAG_COMPRESS_OCS) == ENCODE_FLAG_COMPRESS_OCS)
-    {
-      compressObjectClassSets = true;
-    }
-
+    boolean excludeDN = is(b, ENCODE_FLAG_EXCLUDE_DN);
+    boolean compressAttrDescriptions = is(b, ENCODE_FLAG_COMPRESS_ADS);
+    boolean compressObjectClassSets = is(b, ENCODE_FLAG_COMPRESS_OCS);
     return new EntryEncodeConfig(excludeDN, compressAttrDescriptions,
                                  compressObjectClassSets,
                                  compressedSchema);
   }
 
-
+  private static boolean is(byte b, byte flag)
+  {
+    return (b & flag) == flag;
+  }
 
   /**
    * Retrieves a string representation of this entry encode

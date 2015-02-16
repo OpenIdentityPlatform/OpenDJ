@@ -552,31 +552,16 @@ public final class VersionCompatibilityIssue {
             new ArrayList<VersionCompatibilityIssue>();
     for (VersionCompatibilityIssue evt : VERSION_COMPATIBILITY_ISSUES) {
       if (!excludeIds.contains(evt.getCause().getId())) {
-        boolean isUpgrade = neu.compareTo(current) >= 0;
         BuildVersion currentVersion = new BuildVersion(
             current.getMajorVersion(), current.getMinorVersion(),
             current.getPointVersion(), current.getRevisionNumber());
-        if (isUpgrade)
+        // If the currentVersion is newer than the issue described, then there
+        // is no problem.  This can occur for instance when we discovered a
+        // flag day too late (and we added the flag day description to the
+        // code way after the revision).
+        if (currentVersion.compareTo(evt.getVersion()) < 0)
         {
-          // If the currentVersion is newer than the issue described, then there
-          // is no problem.  This can occur for instance when we discovered a
-          // flag day too late (and we added the flag day description to the
-          // code way after the revision).
-          if (currentVersion.compareTo(evt.getVersion()) < 0)
-          {
-            issueList.add(evt);
-          }
-        }
-        else
-        {
-          // If the newVersion in the reversion is newer than the issue
-          // described, then there is no problem.  This can occur for instance
-          // when we discovered a flag day too late (and we added the flag day
-          // description to the code way after the revision).
-          if (currentVersion.compareTo(evt.getVersion()) < 0)
-          {
-            issueList.add(evt);
-          }
+          issueList.add(evt);
         }
       }
     }

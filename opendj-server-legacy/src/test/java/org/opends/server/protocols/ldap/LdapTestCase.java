@@ -58,11 +58,8 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    */
   static boolean testEqual(LDAPAttribute a1, LDAPAttribute a2)
   {
-    if (a1.getAttributeType().equals(a2.getAttributeType()))
-    {
-      return a1.getValues().equals(a2.getValues());
-    }
-    return false;
+    return a1.getAttributeType().equals(a2.getAttributeType())
+        && a1.getValues().equals(a2.getValues());
   }
 
   /**

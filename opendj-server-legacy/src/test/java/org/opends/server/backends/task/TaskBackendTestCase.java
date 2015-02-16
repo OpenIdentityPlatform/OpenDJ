@@ -606,10 +606,7 @@ public class TaskBackendTestCase
       "ds-task-class-name: org.opends.server.tasks.DummyTask",
       "ds-task-dummy-sleep-time: 0");
 
-    if (rc != ResultCode.SUCCESS) {
-      return false;
-    }
-
-    return DirectoryServer.entryExists(DN.valueOf(taskDN));
+    return rc == ResultCode.SUCCESS
+        && DirectoryServer.entryExists(DN.valueOf(taskDN));
   }
 }

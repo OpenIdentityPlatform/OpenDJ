@@ -125,12 +125,13 @@ class Record<K, V>
       return false;
     }
     Record<?, ?> other = (Record<?, ?>) that;
-    final boolean keyEquals = key == null ?  other.key == null : key.equals(other.key);
-    if (!keyEquals)
-    {
-      return false;
-    }
-    return value == null ?  other.value == null : value.equals(other.value);
+    return equals(key, other.key)
+        && equals(value, other.value);
+  }
+
+  private boolean equals(Object o1, Object o2)
+  {
+    return o1 == null ? o2 == null : o1.equals(o2);
   }
 
   /** {@inheritDoc} */

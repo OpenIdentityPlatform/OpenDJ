@@ -242,15 +242,9 @@ public class GuideSyntax
       return false;
     }
 
-    if (! isValidSchemaElement(ocName, 0, ocLength, invalidReason))
-    {
-      return false;
-    }
-
-
-    // The rest of the value must be the criteria.
-    return criteriaIsValid(valueStr.substring(sharpPos+1), valueStr,
-            invalidReason);
+    return isValidSchemaElement(ocName, 0, ocLength, invalidReason)
+        // The rest of the value must be the criteria.
+        && criteriaIsValid(valueStr.substring(sharpPos+1), valueStr, invalidReason);
   }
 
 

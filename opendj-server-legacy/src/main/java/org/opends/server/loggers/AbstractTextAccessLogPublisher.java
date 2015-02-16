@@ -38,22 +38,22 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigChangeResult;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AddressMask;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.AccessLogFilteringCriteriaCfgDefn.*;
-import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn.*;
+import org.opends.server.admin.std.meta.AccessLogFilteringCriteriaCfgDefn.LogRecordType;
+import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn.FilteringPolicy;
 import org.opends.server.admin.std.server.AccessLogFilteringCriteriaCfg;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.authorization.dseecompat.PatternDN;
-import org.forgerock.opendj.config.server.ConfigChangeResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.AddressMask;
-import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class provides the base implementation of the access loggers used by the
@@ -222,17 +222,7 @@ abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isConnectLoggable(final ClientConnection connection)
     {
-      if (!logConnectRecords)
-      {
-        return false;
-      }
-
-      if (!filterClientConnection(connection))
-      {
-        return false;
-      }
-
-      return true;
+      return logConnectRecords && filterClientConnection(connection);
     }
 
 
@@ -243,22 +233,9 @@ abstract class AbstractTextAccessLogPublisher
     @Override
     public boolean isDisconnectLoggable(final ClientConnection connection)
     {
-      if (!logDisconnectRecords)
-      {
-        return false;
-      }
-
-      if (!filterClientConnection(connection))
-      {
-        return false;
-      }
-
-      if (!filterUser(connection))
-      {
-        return false;
-      }
-
-      return true;
+      return logDisconnectRecords
+          && filterClientConnection(connection)
+          && filterUser(connection);
     }
 
 
@@ -270,8 +247,7 @@ abstract class AbstractTextAccessLogPublisher
     public boolean isRequestLoggable(final Operation operation)
     {
       final ClientConnection connection = operation.getClientConnection();
-      final boolean matches = logOperationRecords.contains(operation
-          .getOperationType())
+      final boolean matches = logOperationRecords.contains(operation.getOperationType())
           && filterClientConnection(connection)
           && filterUser(connection) && filterRequest(operation);
 
@@ -291,8 +267,7 @@ abstract class AbstractTextAccessLogPublisher
     public boolean isResponseLoggable(final Operation operation)
     {
       // First check the result that was computed for the initial request.
-      Boolean requestMatched = (Boolean) operation
-          .getAttachment(attachmentName);
+      Boolean requestMatched = (Boolean) operation.getAttachment(attachmentName);
       if (requestMatched == null)
       {
         // This should not happen.
@@ -301,18 +276,8 @@ abstract class AbstractTextAccessLogPublisher
         requestMatched = isRequestLoggable(operation);
       }
 
-      if (!requestMatched)
-      {
-        return false;
-      }
-
       // Check the response parameters.
-      if (!filterResponse(operation))
-      {
-        return false;
-      }
-
-      return true;
+      return requestMatched && filterResponse(operation);
     }
 
 
@@ -322,58 +287,59 @@ abstract class AbstractTextAccessLogPublisher
       // Check protocol.
       if (clientProtocols.length > 0)
       {
-        boolean found = false;
         final String protocol = toLowerCase(connection.getProtocol());
-        for (final String p : clientProtocols)
-        {
-          if (protocol.equals(p))
-          {
-            found = true;
-            break;
-          }
-        }
-        if (!found)
-        {
+        if (!find(clientProtocols, protocol)) {
           return false;
         }
       }
 
       // Check server port.
-      if (clientPorts.length > 0)
+      if (clientPorts.length > 0
+          && !find(clientPorts, connection.getServerPort()))
       {
-        boolean found = false;
-        final int port = connection.getServerPort();
-        for (final int p : clientPorts)
-        {
-          if (port == p)
-          {
-            found = true;
-            break;
-          }
-        }
-        if (!found)
-        {
-          return false;
-        }
+        return false;
       }
 
       // Check client address.
       final InetAddress ipAddr = connection.getRemoteAddress();
-      if (!clientAddressNotEqualTo.isEmpty()
-          && AddressMask.matchesAny(clientAddressNotEqualTo, ipAddr))
-      {
-        return false;
-      }
-      if (!clientAddressEqualTo.isEmpty()
-          && !AddressMask.matchesAny(clientAddressEqualTo, ipAddr))
-      {
-        return false;
-      }
-
-      return true;
+      return !AddressMask.matchesAny(clientAddressNotEqualTo, ipAddr)
+          && emptyOrMatchesAny(clientAddressEqualTo, ipAddr);
     }
 
+    private boolean emptyOrMatchesAny(Collection<AddressMask> masks, final InetAddress address)
+    {
+      return masks.isEmpty() || AddressMask.matchesAny(masks, address);
+    }
 
+    private boolean find(String[] strings, String toFind)
+    {
+      if (strings.length > 0)
+      {
+        for (final String s : strings)
+        {
+          if (toFind.equals(s))
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    private boolean find(int[] ports, final int toFind)
+    {
+      if (ports.length > 0)
+      {
+        for (final int i : ports)
+        {
+          if (toFind == i)
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
 
     private boolean filterRequest(final Operation operation)
     {

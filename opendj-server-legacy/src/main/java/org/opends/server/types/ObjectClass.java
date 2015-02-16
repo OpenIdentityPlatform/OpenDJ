@@ -195,14 +195,9 @@ public final class ObjectClass
       this.definition = definition;
     }
 
-    // Set flag indicating whether or not this object class allows any
-    // attributes.
-    if (hasName(OC_EXTENSIBLE_OBJECT_LC)
-        || oid.equals(OID_EXTENSIBLE_OBJECT)) {
-      this.isExtensibleObject = true;
-    } else {
-      this.isExtensibleObject = false;
-    }
+    // Set flag indicating whether or not this object class allows any attributes
+    this.isExtensibleObject = hasName(OC_EXTENSIBLE_OBJECT_LC)
+        || oid.equals(OID_EXTENSIBLE_OBJECT);
 
     // Construct unmodifiable views of the required attributes.
     if (requiredAttributes != null) {
@@ -393,19 +388,11 @@ public final class ObjectClass
    */
   public boolean isOptional(AttributeType attributeType) {
 
-    if (optionalAttributesChain.contains(attributeType)) {
-      return true;
-    }
-
-    if (isExtensibleObject
-        && !requiredAttributesChain.contains(attributeType)) {
-      // FIXME -- Do we need to do other checks here, like whether the
-      // attribute type is actually defined in the schema?
-      // What about DIT content rules?
-      return true;
-    }
-
-    return false;
+    return optionalAttributesChain.contains(attributeType)
+        || (isExtensibleObject && !requiredAttributesChain.contains(attributeType));
+        // FIXME -- Do we need to do other checks here, like whether the
+        // attribute type is actually defined in the schema?
+        // What about DIT content rules?
   }
 
 

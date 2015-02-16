@@ -1794,11 +1794,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   private boolean isSubcommand(String name)
   {
     SubCommand subCommand = getSubCommand();
-    if (subCommand != null)
-    {
-      return subCommand.getName().equalsIgnoreCase(name);
-    }
-    return false;
+    return subCommand != null && subCommand.getName().equalsIgnoreCase(name);
   }
 
   /**

@@ -423,9 +423,7 @@ public class AciTargets {
     public static boolean isTargetFilterApplicable(Aci aci,
                                               AciTargetMatchContext matchCtx) {
         TargetFilter targetFilter=aci.getTargets().getTargetFilter();
-        if(targetFilter != null)
-             return targetFilter.isApplicable(matchCtx);
-        return true;
+        return targetFilter == null || targetFilter.isApplicable(matchCtx);
     }
 
     /**
@@ -439,9 +437,7 @@ public class AciTargets {
     public static boolean isTargetControlApplicable(Aci aci,
                                             AciTargetMatchContext matchCtx) {
       TargetControl targetControl=aci.getTargets().getTargetControl();
-      if(targetControl != null)
-        return targetControl.isApplicable(matchCtx);
-      return false;
+      return targetControl != null && targetControl.isApplicable(matchCtx);
     }
 
     /**
@@ -455,9 +451,7 @@ public class AciTargets {
     public static boolean isExtOpApplicable(Aci aci,
                                               AciTargetMatchContext matchCtx) {
       ExtOp extOp=aci.getTargets().getExtOp();
-      if(extOp != null)
-        return extOp.isApplicable(matchCtx);
-      return false;
+      return extOp != null && extOp.isApplicable(matchCtx);
     }
 
 
@@ -515,13 +509,13 @@ public class AciTargets {
               setEvalAttributes(targetMatchCtx,targetAttr,ret);
             } else if (attrType != null || targetAttr != null) {
                 if (aci.hasRights(skipRights)
-                        && skipRightsHasRights(targetMatchCtx.getRights()))
+                        && skipRightsHasRights(targetMatchCtx.getRights())) {
                     ret = true;
-                else if (attrType == null && targetAttr != null
-                            && aci.hasRights(ACI_WRITE))
-                    ret = true;
-                else
-                    ret = false;
+                } else {
+                    ret = attrType == null
+                        && targetAttr != null
+                        && aci.hasRights(ACI_WRITE);
+                }
             }
             if (isFirstAttr && targetAttr == null
                 && aci.getTargets().getTargAttrFilters() == null)

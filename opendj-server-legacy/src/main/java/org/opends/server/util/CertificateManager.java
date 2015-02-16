@@ -189,9 +189,7 @@ public final class CertificateManager {
   throws KeyStoreException {
     ensureValid(alias, CERT_ALIAS_MSG);
     KeyStore keyStore = getKeyStore();
-    if (keyStore == null)
-      return false;
-    return keyStore.containsAlias(alias);
+    return keyStore != null && keyStore.containsAlias(alias);
   }
 
 

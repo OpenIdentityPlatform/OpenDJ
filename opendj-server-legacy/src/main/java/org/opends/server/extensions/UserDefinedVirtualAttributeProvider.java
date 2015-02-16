@@ -99,11 +99,7 @@ public class UserDefinedVirtualAttributeProvider
   @Override
   public boolean isMultiValued()
   {
-    if (currentConfig != null)
-    {
-      return currentConfig.getValue().size() > 1;
-    }
-    return true;
+    return currentConfig == null || currentConfig.getValue().size() > 1;
   }
 
 

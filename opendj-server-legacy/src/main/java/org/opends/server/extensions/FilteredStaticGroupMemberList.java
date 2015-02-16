@@ -26,24 +26,24 @@
  */
 package org.opends.server.extensions;
 
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ExtensionMessages.*;
+
 import java.util.Iterator;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.DN.CompactDn;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.SearchFilter;
-
-import static org.forgerock.util.Reject.*;
-import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class provides an implementation of the {@code MemberList} class that
@@ -218,11 +218,8 @@ public class FilteredStaticGroupMemberList extends MemberList
   @Override
   public boolean hasMoreMembers()
   {
-    if (! memberDNIterator.hasNext())
-    {
-      return false;
-    }
-    return ((nextMatchingEntry != null) || (nextMembershipException != null));
+    return memberDNIterator.hasNext()
+        && (nextMatchingEntry != null || nextMembershipException != null);
   }
 
   /** {@inheritDoc} */

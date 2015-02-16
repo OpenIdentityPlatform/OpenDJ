@@ -178,13 +178,8 @@ public class DirectoryRMIServerSocketFactory implements
    */
   private boolean checkParameters(DirectoryRMIServerSocketFactory that)
   {
-    if (needClientCertificate != that.needClientCertificate)
-      return false;
-
-    if (!sslSocketFactory.equals(that.sslSocketFactory))
-      return false;
-
-    return true;
+    return needClientCertificate == that.needClientCertificate
+        && sslSocketFactory.equals(that.sslSocketFactory);
   }
 
   /**

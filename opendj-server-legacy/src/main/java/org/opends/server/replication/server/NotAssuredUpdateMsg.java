@@ -225,12 +225,8 @@ class NotAssuredUpdateMsg extends UpdateMsg
   @Override
   public boolean equals(Object obj)
   {
-    // Compare with the underlying real update message
-    if (obj == null)
-    {
-      return false;
-    }
-    return obj.getClass() == realUpdateMsg.getClass()
+    return obj != null
+        && obj.getClass() == realUpdateMsg.getClass()
         && realUpdateMsg.getCSN().equals(((UpdateMsg) obj).getCSN());
   }
 

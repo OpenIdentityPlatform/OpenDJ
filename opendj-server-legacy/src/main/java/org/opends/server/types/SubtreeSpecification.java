@@ -1770,33 +1770,14 @@ public final class SubtreeSpecification
   private boolean commonComponentsEquals(
       final SubtreeSpecification other)
   {
-
     if (this == other)
     {
       return true;
     }
-
-    if (minimumDepth != other.minimumDepth)
-    {
-      return false;
-    }
-
-    if (maximumDepth != other.maximumDepth)
-    {
-      return false;
-    }
-
-    if (!chopBefore.values().equals(other.chopBefore.values()))
-    {
-      return false;
-    }
-
-    if (!chopAfter.values().equals(other.chopAfter.values()))
-    {
-      return false;
-    }
-
-    return true;
+    return minimumDepth == other.minimumDepth
+        && maximumDepth == other.maximumDepth
+        && chopBefore.values().equals(other.chopBefore.values())
+        && chopAfter.values().equals(other.chopAfter.values());
   }
 
 
