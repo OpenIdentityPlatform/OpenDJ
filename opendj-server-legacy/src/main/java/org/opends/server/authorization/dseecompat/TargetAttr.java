@@ -150,15 +150,14 @@ public class TargetAttr {
                     throw new AciException(message);
                 }
             } else {
-                AttributeType attributeType;
-                if((attributeType =
-                        DirectoryServer.getAttributeType(attribute)) == null)
-                    attributeType =
-                            DirectoryServer.getDefaultAttributeType(attribute);
-                if(attributeType.isOperational())
-                    opAttributes.add(attributeType);
+                AttributeType attrType = DirectoryServer.getAttributeType(attribute);
+                if (attrType == null) {
+                    attrType = DirectoryServer.getDefaultAttributeType(attribute);
+                }
+                if(attrType.isOperational())
+                    opAttributes.add(attrType);
                 else
-                    attributes.add(attributeType);
+                    attributes.add(attrType);
             }
         }
     }

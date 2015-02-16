@@ -112,18 +112,17 @@ public class GetEffectiveRightsRequestControl extends Control
           }
           //There is an sequence containing an attribute list, try to decode it.
           if(reader.hasNextElement()) {
-            AttributeType attributeType;
             attrs = new LinkedList<AttributeType>();
             reader.readStartSequence();
             while(reader.hasNextElement()) {
               //Decode as an octet string.
               String attrStr = reader.readOctetStringAsString();
+              AttributeType attrType = DirectoryServer.getAttributeType(attrStr);
               //Get an attribute type for it and add to the list.
-              if((attributeType =
-                  DirectoryServer.getAttributeType(attrStr)) == null)
-                attributeType =
-                    DirectoryServer.getDefaultAttributeType(attrStr);
-              attrs.add(attributeType);
+              if (attrType == null) {
+                attrType = DirectoryServer.getDefaultAttributeType(attrStr);
+              }
+              attrs.add(attrType);
             }
             reader.readEndSequence();
           }

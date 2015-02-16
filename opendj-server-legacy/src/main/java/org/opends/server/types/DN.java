@@ -1525,8 +1525,8 @@ public final class DN implements Comparable<DN>, Serializable
 
       int namePos = 0;
       int nameLength = nameBytes.length();
-      byte ch = nameBytes.byteAt(0);
-      if ((ch == 'o') || (ch == 'O'))
+      byte ch0 = nameBytes.byteAt(0);
+      if (ch0 == 'o' || ch0 == 'O')
       {
         if (nameLength <= 4)
         {
@@ -1534,11 +1534,11 @@ public final class DN implements Comparable<DN>, Serializable
         }
         else
         {
-          if ((((ch = nameBytes.byteAt(1)) == 'i') ||
-               (ch == 'I')) &&
-              (((ch = nameBytes.byteAt(2)) == 'd') ||
-               (ch == 'D')) &&
-              (nameBytes.byteAt(3) == '.'))
+          byte ch1 = nameBytes.byteAt(1);
+          byte ch2 = nameBytes.byteAt(1);
+          if ((ch1 == 'i' || ch1 == 'I')
+              && (ch2 == 'd' || ch2 == 'D')
+              && nameBytes.byteAt(3) == '.')
           {
             nameBytes = nameBytes.subSequence(4, nameBytes.length());
             nameLength -= 4;
@@ -1552,7 +1552,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       while (validOID && (namePos < nameLength))
       {
-        ch = nameBytes.byteAt(namePos++);
+        byte ch = nameBytes.byteAt(namePos++);
         if (isDigit((char)ch))
         {
           while (validOID && (namePos < nameLength) &&
@@ -1930,8 +1930,8 @@ public final class DN implements Comparable<DN>, Serializable
 
       int namePos = 0;
       int nameLength = attributeName.length();
-      char ch = attributeName.charAt(0);
-      if ((ch == 'o') || (ch == 'O'))
+      char ch0 = attributeName.charAt(0);
+      if (ch0 == 'o' || ch0 == 'O')
       {
         if (nameLength <= 4)
         {
@@ -1939,11 +1939,11 @@ public final class DN implements Comparable<DN>, Serializable
         }
         else
         {
-          if ((((ch = attributeName.charAt(1)) == 'i') ||
-               (ch == 'I')) &&
-              (((ch = attributeName.charAt(2)) == 'd') ||
-               (ch == 'D')) &&
-              (attributeName.charAt(3) == '.'))
+          char ch1 = attributeName.charAt(1);
+          char ch2 = attributeName.charAt(2);
+          if ((ch1 == 'i' || ch1 == 'I')
+              && (ch2 == 'd' || ch2 == 'D')
+              && attributeName.charAt(3) == '.')
           {
             attributeName.delete(0, 4);
             nameLength -= 4;
@@ -1957,7 +1957,7 @@ public final class DN implements Comparable<DN>, Serializable
 
       while (validOID && (namePos < nameLength))
       {
-        ch = attributeName.charAt(namePos++);
+        char ch = attributeName.charAt(namePos++);
         if (isDigit(ch))
         {
           while (validOID && (namePos < nameLength) &&

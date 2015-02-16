@@ -711,8 +711,8 @@ public class AttributeTypeSyntax
             if (c == '}')
             {
               // The next character must be a space or a closing parenthesis.
-              if ((c = lowerStr.charAt(pos)) != ' '
-                      &&  (c = lowerStr.charAt(pos)) != ')')
+              c = lowerStr.charAt(pos);
+              if (c != ' ' && c != ')')
               {
                 LocalizableMessage message =
                   ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_NUMERIC_OID.get(valueStr, c, pos - 1);

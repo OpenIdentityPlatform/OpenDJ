@@ -724,7 +724,8 @@ public class SASLContext implements CallbackHandler,
       {
         try
         {
-          if ((authzEntry = DirectoryServer.getEntry(authzDN)) == null)
+          authzEntry = DirectoryServer.getEntry(authzDN);
+          if (authzEntry == null)
           {
             setCallbackMsg(ERR_SASL_AUTHZID_NO_SUCH_ENTRY.get(authzDN));
             callback.setAuthorized(false);
