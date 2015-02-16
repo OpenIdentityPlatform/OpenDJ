@@ -408,13 +408,13 @@ public class GenericSchemaTestCase
     }
 
     // It must contain at least one period.
-    if (oid.indexOf(".") < 0)
+    if (!oid.contains("."))
     {
       return false;
     }
 
     // It must not contain any double periods.
-    if (oid.indexOf("..") >= 0)
+    if (oid.contains(".."))
     {
       return false;
     }

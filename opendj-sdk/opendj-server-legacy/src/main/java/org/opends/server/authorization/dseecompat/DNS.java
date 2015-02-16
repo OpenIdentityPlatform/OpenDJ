@@ -111,7 +111,7 @@ public class DNS implements KeywordBindRule {
             // rules and on some systems the canonical representation is
             // configured to be "localhost.localdomain" which may not be known
             // to the administrator.
-            if (hn.indexOf("*") < 0)
+            if (!hn.contains("*"))
             {
               try
               {
