@@ -71,6 +71,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.guitools.controlpanel.browser.IconPool;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
@@ -86,10 +89,7 @@ import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.guitools.controlpanel.util.ViewPositions;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClass;
@@ -97,7 +97,6 @@ import org.opends.server.types.Schema;
 
 /**
  * The pane that is displayed when the user clicks on 'Browse Schema'.
- *
  */
 public class BrowseSchemaPanel extends StatusGenericPanel
 {
@@ -109,7 +108,6 @@ public class BrowseSchemaPanel extends StatusGenericPanel
   private JButton newObjectClass;
 
   private JLabel lNumberOfElements;
-
   private JLabel lFilter;
 
   private SchemaBrowserRightPanel entryPane;
@@ -652,13 +650,9 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     {
       schemaChanged = false;
     }
-    else if (lastSchema == null && schema != null)
-    {
-      schemaChanged = true;
-    }
     else
     {
-      schemaChanged = false;
+      schemaChanged = schema != null && lastSchema == null;
     }
     if (schemaChanged)
     {
@@ -862,12 +856,6 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     names.add(configurationAttrNames);
     names.add(matchingRuleNames);
     names.add(syntaxNames);
-
-    int size = 0;
-    for (TreeSet<String> set : names)
-    {
-      size += set.size();
-    }
 
     ArrayList<HashMap<String, ? extends DefaultMutableTreeNode>> nodes =
       new ArrayList<HashMap<String, ? extends DefaultMutableTreeNode>>();

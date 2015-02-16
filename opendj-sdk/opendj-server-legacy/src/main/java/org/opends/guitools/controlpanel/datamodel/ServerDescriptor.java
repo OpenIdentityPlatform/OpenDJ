@@ -528,11 +528,7 @@ public class ServerDescriptor
       return false;
     }
     String os = getFirstValueAsString(sr, "operatingSystem");
-    if (os != null)
-    {
-      return OperatingSystem.WINDOWS == OperatingSystem.forName(os);
-    }
-    return false;
+    return os != null && OperatingSystem.WINDOWS.equals(OperatingSystem.forName(os));
   }
 
   /**

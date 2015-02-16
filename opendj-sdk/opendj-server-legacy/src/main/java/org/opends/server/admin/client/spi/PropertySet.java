@@ -173,11 +173,8 @@ public final class PropertySet {
      * {@inheritDoc}
      */
     public boolean isModified() {
-      if (activeValues.size() == pendingValues.size()
-          && activeValues.containsAll(pendingValues)) {
-        return false;
-      }
-      return true;
+      return activeValues.size() != pendingValues.size()
+          || !activeValues.containsAll(pendingValues);
     }
 
 

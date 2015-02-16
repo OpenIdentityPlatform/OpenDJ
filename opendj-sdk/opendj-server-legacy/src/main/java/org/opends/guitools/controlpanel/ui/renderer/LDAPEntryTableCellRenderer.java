@@ -98,21 +98,13 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
     }
     else if (value instanceof ObjectClassValue)
     {
-      if (!table.isCellEditable(row, column))
-      {
-        ocPanel.setLockIconVisible(true);
-        ocPanel.setEditButtonVisible(false);
-      }
-      else
-      {
-        ocPanel.setLockIconVisible(false);
-        ocPanel.setEditButtonVisible(true);
-      }
+      final boolean cellEditable = table.isCellEditable(row, column);
+      ocPanel.setLockIconVisible(!cellEditable);
+      ocPanel.setEditButtonVisible(cellEditable);
       ocPanel.setValue((ObjectClassValue)value);
       if (hasFocus)
       {
-        ocPanel.setBorder(getDefaultFocusBorder(table, value, isSelected,
-            row, column));
+        ocPanel.setBorder(getDefaultFocusBorder(table, value, isSelected, row, column));
       }
       else
       {

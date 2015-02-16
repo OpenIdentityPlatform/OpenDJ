@@ -328,12 +328,10 @@ public final class MatchingRuleUse
     {
       return true;
     }
-
-    if ((o == null) || (! (o instanceof MatchingRuleUse)))
+    if (!(o instanceof MatchingRuleUse))
     {
       return false;
     }
-
     return matchingRule.equals(((MatchingRuleUse) o).matchingRule);
   }
 

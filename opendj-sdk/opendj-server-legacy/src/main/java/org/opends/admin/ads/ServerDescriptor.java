@@ -1074,7 +1074,7 @@ public class ServerDescriptor
       }
     }
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_ENABLED,
-        replicationEnabled ? Boolean.TRUE : Boolean.FALSE);
+        Boolean.valueOf(replicationEnabled));
 
     Set<String> allReplicationServers = new LinkedHashSet<String>();
 
@@ -1226,7 +1226,7 @@ public class ServerDescriptor
       }
     }
     desc.serverProperties.put(ServerProperty.IS_REPLICATION_SECURE,
-        replicationSecure ? Boolean.TRUE : Boolean.FALSE);
+        Boolean.valueOf(replicationSecure));
   }
 
   /**

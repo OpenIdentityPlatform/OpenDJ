@@ -272,12 +272,7 @@ public final class NameForm
    */
   public boolean hasNameOrOID(String lowerValue)
   {
-    if (names.containsKey(lowerValue))
-    {
-      return true;
-    }
-
-    return lowerValue.equals(oid);
+    return names.containsKey(lowerValue) || lowerValue.equals(oid);
   }
 
 
@@ -433,12 +428,10 @@ public final class NameForm
     {
       return true;
     }
-
-    if ((o == null) || (! (o instanceof NameForm)))
+    if (!(o instanceof NameForm))
     {
       return false;
     }
-
     return oid.equals(((NameForm) o).oid);
   }
 

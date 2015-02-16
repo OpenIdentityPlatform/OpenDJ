@@ -157,15 +157,9 @@ public class TaskClient {
     return entryDN;
   }
 
-  private static boolean isScheduleRecurring(
-      TaskScheduleInformation information)
+  private static boolean isScheduleRecurring(TaskScheduleInformation information)
   {
-    boolean scheduleRecurring = false;
-
-    if (information.getRecurringDateTime() != null) {
-      scheduleRecurring = true;
-    }
-    return scheduleRecurring;
+    return information.getRecurringDateTime() != null;
   }
 
   /**

@@ -761,31 +761,20 @@ public class NodeRefresher extends AbstractNodeTask {
   // is listed in in the hacker.
   // Note: *usable* means *usable for detecting children presence*.
   private boolean isNumSubOrdinatesUsable() throws NamingException {
-    boolean result;
     SearchResult entry = getDisplayedEntry();
     boolean hasSubOrdinates = BrowserController.getHasSubOrdinates(entry);
     if (!hasSubOrdinates) { // We must check
       LDAPURL url = getDisplayedUrl();
-      if (controller.getNumSubordinateHacker().contains(url)) {
-        // The numSubOrdinate we have is unreliable.
-        result = false;
-//        System.out.println("numSubOrdinates of " + url +
-//                           " is not reliable");
-      }
-      else {
-        result = true;
-      }
+      return !controller.getNumSubordinateHacker().contains(url);
     }
-    else { // Other values are usable
-      result = true;
-    }
-    return result;
+    // Other values are usable
+    return true;
   }
 
 
 
   /**
-   * Searchs for the children.
+   * Searches for the children.
    * @throws SearchAbandonException if an error occurs.
    */
   private void runSearchChildren() throws SearchAbandonException {

@@ -348,11 +348,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
    */
   public final boolean hasNameOrOID(String lowerValue) {
 
-    if (names.containsKey(lowerValue)) {
-      return true;
-    }
-
-    return oid.equals(lowerValue);
+    return names.containsKey(lowerValue) || oid.equals(lowerValue);
   }
 
 

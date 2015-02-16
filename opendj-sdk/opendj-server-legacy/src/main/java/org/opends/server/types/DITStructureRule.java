@@ -349,13 +349,11 @@ public final class DITStructureRule
     {
       return true;
     }
-
-    if ((o == null) || (! (o instanceof DITStructureRule)))
+    if (!(o instanceof DITStructureRule))
     {
       return false;
     }
-
-    return (ruleID == ((DITStructureRule) o).ruleID);
+    return ruleID == ((DITStructureRule) o).ruleID;
   }
 
 

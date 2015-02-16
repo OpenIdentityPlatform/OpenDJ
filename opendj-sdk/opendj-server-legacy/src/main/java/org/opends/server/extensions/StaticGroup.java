@@ -61,7 +61,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -153,18 +152,18 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     // Determine whether it is a groupOfNames, groupOfEntries or
     // groupOfUniqueNames entry.  If not, then that's a problem.
     AttributeType someMemberAttributeType;
-    ObjectClass groupOfEntriesClass = DirectoryConfig.getObjectClass(OC_GROUP_OF_ENTRIES_LC, true);
-    ObjectClass groupOfNamesClass = DirectoryConfig.getObjectClass(OC_GROUP_OF_NAMES_LC, true);
-    ObjectClass groupOfUniqueNamesClass = DirectoryConfig.getObjectClass(OC_GROUP_OF_UNIQUE_NAMES_LC, true);
-    if (groupEntry.hasObjectClass(groupOfEntriesClass))
+    boolean hasGroupOfEntriesClass = hasObjectClass(groupEntry, OC_GROUP_OF_ENTRIES_LC);
+    boolean hasGroupOfNamesClass = hasObjectClass(groupEntry, OC_GROUP_OF_NAMES_LC);
+    boolean hasGroupOfUniqueNamesClass = hasObjectClass(groupEntry, OC_GROUP_OF_UNIQUE_NAMES_LC);
+    if (hasGroupOfEntriesClass)
     {
-      if (groupEntry.hasObjectClass(groupOfNamesClass))
+      if (hasGroupOfNamesClass)
       {
         LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.get(
             groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_NAMES);
         throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
       }
-      else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
+      else if (hasGroupOfUniqueNamesClass)
       {
         LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.get(
             groupEntry.getName(), OC_GROUP_OF_ENTRIES, OC_GROUP_OF_UNIQUE_NAMES);
@@ -173,9 +172,9 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
       someMemberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
     }
-    else if (groupEntry.hasObjectClass(groupOfNamesClass))
+    else if (hasGroupOfNamesClass)
     {
-      if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
+      if (hasGroupOfUniqueNamesClass)
       {
         LocalizableMessage message = ERR_STATICGROUP_INVALID_OC_COMBINATION.get(
             groupEntry.getName(), OC_GROUP_OF_NAMES, OC_GROUP_OF_UNIQUE_NAMES);
@@ -184,7 +183,7 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
 
       someMemberAttributeType = DirectoryConfig.getAttributeType(ATTR_MEMBER, true);
     }
-    else if (groupEntry.hasObjectClass(groupOfUniqueNamesClass))
+    else if (hasGroupOfUniqueNamesClass)
     {
       someMemberAttributeType = DirectoryConfig.getAttributeType(ATTR_UNIQUE_MEMBER_LC, true);
     }
@@ -247,46 +246,32 @@ public class StaticGroup extends Group<StaticGroupImplementationCfg>
     ifNull(entry);
 
     // FIXME -- This needs to exclude enhanced groups once we have support for them.
-    ObjectClass virtualStaticGroupClass =
-         DirectoryConfig.getObjectClass(OC_VIRTUAL_STATIC_GROUP, true);
-    if (entry.hasObjectClass(virtualStaticGroupClass))
+    if (hasObjectClass(entry, OC_VIRTUAL_STATIC_GROUP))
     {
       return false;
     }
 
-    ObjectClass groupOfEntriesClass =
-         DirectoryConfig.getObjectClass(OC_GROUP_OF_ENTRIES_LC, true);
-    ObjectClass groupOfNamesClass =
-         DirectoryConfig.getObjectClass(OC_GROUP_OF_NAMES_LC, true);
-    ObjectClass groupOfUniqueNamesClass =
-         DirectoryConfig.getObjectClass(OC_GROUP_OF_UNIQUE_NAMES_LC, true);
-    if (entry.hasObjectClass(groupOfEntriesClass))
+    boolean hasGroupOfEntriesClass = hasObjectClass(entry, OC_GROUP_OF_ENTRIES_LC);
+    boolean hasGroupOfNamesClass = hasObjectClass(entry, OC_GROUP_OF_NAMES_LC);
+    boolean hasGroupOfUniqueNamesClass = hasObjectClass(entry, OC_GROUP_OF_UNIQUE_NAMES_LC);
+    if (hasGroupOfEntriesClass)
     {
-      if (entry.hasObjectClass(groupOfNamesClass) ||
-          entry.hasObjectClass(groupOfUniqueNamesClass))
-      {
-        return false;
-      }
-
-      return true;
+      return !hasGroupOfNamesClass
+          && !hasGroupOfUniqueNamesClass;
     }
-    else if (entry.hasObjectClass(groupOfNamesClass))
+    else if (hasGroupOfNamesClass)
     {
-      if (entry.hasObjectClass(groupOfUniqueNamesClass))
-      {
-        return false;
-      }
-
-      return true;
-    }
-    else if (entry.hasObjectClass(groupOfUniqueNamesClass))
-    {
-      return true;
+      return !hasGroupOfUniqueNamesClass;
     }
     else
     {
-      return false;
+      return hasGroupOfUniqueNamesClass;
     }
+  }
+
+  private boolean hasObjectClass(Entry entry, String ocName)
+  {
+    return entry.hasObjectClass(DirectoryConfig.getObjectClass(ocName, true));
   }
 
   /** {@inheritDoc} */

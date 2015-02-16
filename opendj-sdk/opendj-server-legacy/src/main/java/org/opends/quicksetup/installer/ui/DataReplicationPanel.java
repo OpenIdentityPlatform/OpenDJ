@@ -119,14 +119,7 @@ public class DataReplicationPanel extends QuickSetupStepPanel
     }
     else if (fieldName == FieldName.REPLICATION_SECURE)
     {
-      if (cbSecureReplication.isSelected())
-      {
-        value = Boolean.TRUE;
-      }
-      else
-      {
-        value = Boolean.FALSE;
-      }
+      value = Boolean.valueOf(cbSecureReplication.isSelected());
     }
     else
     {

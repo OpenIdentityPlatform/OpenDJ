@@ -300,12 +300,9 @@ public abstract class Group<T extends GroupImplementationCfg>
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to make the determination.
    */
-  public boolean isMember(DN userDN)
-         throws DirectoryException
+  public boolean isMember(DN userDN) throws DirectoryException
   {
-    if (userDN != null)
-      return isMember(userDN, new HashSet<DN>());
-    return false;
+    return userDN != null && isMember(userDN, new HashSet<DN>());
   }
 
 

@@ -242,12 +242,10 @@ public final class LDAPSyntaxDescription
     {
       return true;
     }
-
-    if ((o == null) || (! (o instanceof LDAPSyntaxDescription)))
+    if (!(o instanceof LDAPSyntaxDescription))
     {
       return false;
     }
-
     return oid.equals(((LDAPSyntaxDescription) o).oid);
   }
 

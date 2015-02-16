@@ -202,19 +202,14 @@ public final class Modification
     {
       return true;
     }
-
-    if ((o == null) || (! (o instanceof Modification)))
+    if (!(o instanceof Modification))
     {
       return false;
     }
 
     Modification m = (Modification) o;
-    if (modificationType != m.modificationType)
-    {
-      return false;
-    }
-
-    return attribute.equals(m.attribute);
+    return modificationType == m.modificationType
+        && attribute.equals(m.attribute);
   }
 
 

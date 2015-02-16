@@ -267,21 +267,14 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    */
   public final boolean equals(Object o)
   {
-    if (o == null)
-    {
-      return false;
-    }
-
     if (this == o)
     {
       return true;
     }
-
-    if (! (o instanceof AttributeSyntax))
+    if (!(o instanceof AttributeSyntax))
     {
       return false;
     }
-
     return getOID().equals(((AttributeSyntax<?>) o).getOID());
   }
 
