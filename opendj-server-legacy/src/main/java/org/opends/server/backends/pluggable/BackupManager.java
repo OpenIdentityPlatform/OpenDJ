@@ -55,6 +55,7 @@ import javax.crypto.Mac;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
@@ -332,10 +333,13 @@ public class BackupManager
     {
       logger.traceException(e);
 
-      message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(
-          backendDir.getAbsolutePath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message, e);
+      message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(backendDir.getAbsolutePath(), archiveFilename);
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+    if (logFiles == null)
+    {
+      message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(backendDir.getAbsolutePath(), archiveFilename);
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
     }
 
     // Check to see if backend is empty. If so, insert placeholder entry into
@@ -467,10 +471,8 @@ public class BackupManager
           {
             logger.traceException(e);
 
-            message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(
-                backendDir.getAbsolutePath(), stackTraceToSingleLineString(e));
-            throw new DirectoryException(
-                 DirectoryServer.getServerErrorResultCode(), message, e);
+            message = ERR_JEB_BACKUP_CANNOT_LIST_LOG_FILES.get(backendDir.getAbsolutePath(), archiveFilename);
+            throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
           }
 
           if (logFiles == null)
