@@ -227,11 +227,14 @@ public class DoubleAddRemovePanel<T> extends JPanel
     gbc.weighty = 1.0;
     gbc.weightx = 1.0;
     gbc.gridheight = 7;
-    if ((displayOptions &= DISPLAY_ADD_ALL) != 0)
+    displayOptions &= DISPLAY_ADD_ALL;
+    if (displayOptions != 0)
     {
       gbc.gridheight += 2;
     }
-    if ((displayOptions &= DISPLAY_REMOVE_ALL) != 0)
+    // FIXME how can this be any different than 0? Ditto everywhere else down below
+    displayOptions &= DISPLAY_REMOVE_ALL;
+    if (displayOptions != 0)
     {
       gbc.gridheight += 2;
     }
@@ -262,7 +265,8 @@ public class DoubleAddRemovePanel<T> extends JPanel
     gbc.insets = new Insets(5, 5, 0, 5);
     add(add1, gbc);
 
-    if ((displayOptions &= DISPLAY_ADD_ALL) != 0)
+    displayOptions &= DISPLAY_ADD_ALL;
+    if (displayOptions != 0)
     {
       addAll1 = Utilities.createButton(
           INFO_CTRL_PANEL_ADDREMOVE_ADD_ALL_BUTTON.get());
@@ -292,7 +296,8 @@ public class DoubleAddRemovePanel<T> extends JPanel
     gbc.insets.top = 10;
     add(remove1, gbc);
 
-    if ((displayOptions &= DISPLAY_REMOVE_ALL) != 0)
+    displayOptions &= DISPLAY_REMOVE_ALL;
+    if (displayOptions != 0)
     {
       removeAll1 = Utilities.createButton(
           INFO_CTRL_PANEL_ADDREMOVE_REMOVE_ALL_BUTTON.get());
@@ -341,7 +346,8 @@ public class DoubleAddRemovePanel<T> extends JPanel
     gbc.insets = new Insets(5, 5, 0, 5);
     add(add2, gbc);
 
-    if ((displayOptions &= DISPLAY_ADD_ALL) != 0)
+    displayOptions &= DISPLAY_ADD_ALL;
+    if (displayOptions != 0)
     {
       addAll2 = Utilities.createButton(
           INFO_CTRL_PANEL_ADDREMOVE_ADD_ALL_BUTTON.get());
@@ -377,7 +383,8 @@ public class DoubleAddRemovePanel<T> extends JPanel
     gbc.insets.top = 10;
     add(remove2, gbc);
 
-    if ((displayOptions &= DISPLAY_REMOVE_ALL) != 0)
+    displayOptions &= DISPLAY_REMOVE_ALL;
+    if (displayOptions != 0)
     {
       removeAll2 = Utilities.createButton(
           INFO_CTRL_PANEL_ADDREMOVE_REMOVE_ALL_BUTTON.get());
@@ -408,11 +415,13 @@ public class DoubleAddRemovePanel<T> extends JPanel
     gbc.weightx = 1.0;
     gbc.insets = new Insets(5, 0, 0, 0);
     gbc.gridheight = 3;
-    if ((displayOptions &= DISPLAY_ADD_ALL) != 0)
+    displayOptions &= DISPLAY_ADD_ALL;
+    if (displayOptions != 0)
     {
       gbc.gridheight ++;
     }
-    if ((displayOptions &= DISPLAY_REMOVE_ALL) != 0)
+    displayOptions &= DISPLAY_REMOVE_ALL;
+    if (displayOptions != 0)
     {
       gbc.gridheight ++;
     }
@@ -435,11 +444,13 @@ public class DoubleAddRemovePanel<T> extends JPanel
     gbc.weightx = 1.0;
     gbc.insets = new Insets(5, 0, 0, 0);
     gbc.gridheight = 3;
-    if ((displayOptions &= DISPLAY_ADD_ALL) != 0)
+    displayOptions &= DISPLAY_ADD_ALL;
+    if (displayOptions != 0)
     {
       gbc.gridheight ++;
     }
-    if ((displayOptions &= DISPLAY_REMOVE_ALL) != 0)
+    displayOptions &= DISPLAY_REMOVE_ALL;
+    if (displayOptions != 0)
     {
       gbc.gridheight ++;
     }
