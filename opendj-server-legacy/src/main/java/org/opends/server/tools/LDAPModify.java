@@ -1066,23 +1066,14 @@ public class LDAPModify
     connectionOptions.setSASLExternal(saslExternal.isPresent());
     if(saslOptions.isPresent())
     {
-      LinkedList<String> values = saslOptions.getValues();
-      for(String saslOption : values)
+      for (String saslOption : saslOptions.getValues())
       {
-        if(saslOption.startsWith("mech="))
+        boolean val = saslOption.startsWith("mech=")
+            ? connectionOptions.setSASLMechanism(saslOption)
+            : connectionOptions.addSASLProperty(saslOption);
+        if (!val)
         {
-          boolean val = connectionOptions.setSASLMechanism(saslOption);
-          if(val == false)
-          {
-            return CLIENT_SIDE_PARAM_ERROR;
-          }
-        } else
-        {
-          boolean val = connectionOptions.addSASLProperty(saslOption);
-          if(val == false)
-          {
-            return CLIENT_SIDE_PARAM_ERROR;
-          }
+          return CLIENT_SIDE_PARAM_ERROR;
         }
       }
     }

@@ -652,18 +652,18 @@ public final class AggregationPropertyDefinition
       boolean isAcceptable = true;
       for (ManagedObject<?> mo : findReferences(context,
           getManagedObjectDefinition(), path.getName())) {
+        LocalizableMessage msg;
         String name = mo.getManagedObjectPath().getName();
         if (name == null) {
-          LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITHOUT_NAME.get(
+          msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITHOUT_NAME.get(
               getName(), mo.getManagedObjectDefinition().getUserFriendlyName(),
               getManagedObjectDefinition().getUserFriendlyName());
-          unacceptableReasons.add(msg);
         } else {
-          LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITH_NAME.get(
+          msg = ERR_CLIENT_REFINT_CANNOT_DELETE_WITH_NAME.get(
               getName(), mo.getManagedObjectDefinition().getUserFriendlyName(),
               name, getManagedObjectDefinition().getUserFriendlyName());
-          unacceptableReasons.add(msg);
         }
+        unacceptableReasons.add(msg);
         isAcceptable = false;
       }
       return isAcceptable;
@@ -691,20 +691,18 @@ public final class AggregationPropertyDefinition
           getManagedObjectDefinition(), managedObject.getManagedObjectPath()
               .getName())) {
         if (targetNeedsEnablingCondition.evaluate(context, mo)) {
+          LocalizableMessage msg;
           String name = mo.getManagedObjectPath().getName();
           if (name == null) {
-            LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITHOUT_NAME.get(
-                managedObject.getManagedObjectDefinition()
-                    .getUserFriendlyName(), getName(), mo
-                    .getManagedObjectDefinition().getUserFriendlyName());
-            unacceptableReasons.add(msg);
+            msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITHOUT_NAME.get(
+                managedObject.getManagedObjectDefinition().getUserFriendlyName(),
+                getName(), mo.getManagedObjectDefinition().getUserFriendlyName());
           } else {
-            LocalizableMessage msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITH_NAME.get(
-                managedObject.getManagedObjectDefinition()
-                    .getUserFriendlyName(), getName(), mo
-                    .getManagedObjectDefinition().getUserFriendlyName(), name);
-            unacceptableReasons.add(msg);
+            msg = ERR_CLIENT_REFINT_CANNOT_DISABLE_WITH_NAME.get(
+                managedObject.getManagedObjectDefinition().getUserFriendlyName(),
+                getName(), mo.getManagedObjectDefinition().getUserFriendlyName(), name);
           }
+          unacceptableReasons.add(msg);
           isAcceptable = false;
         }
       }

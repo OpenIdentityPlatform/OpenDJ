@@ -404,6 +404,10 @@ public class LocalBackendModifyDNOperation
         return;
       }
 
+      // Apply any changes to the entry based on the change in its RDN.
+      // Also perform schema checking on the updated entry.
+      applyRDNChanges(modifications);
+
       // If the operation is not a synchronization operation,
       // - Apply the RDN changes.
       // - Invoke the pre-operation modify DN plugins.
@@ -412,10 +416,6 @@ public class LocalBackendModifyDNOperation
       // - apply the operation as it was originally done on the master.
       if (!isSynchronizationOperation())
       {
-        // Apply any changes to the entry based on the change in its RDN.
-        // Also perform schema checking on the updated entry.
-        applyRDNChanges(modifications);
-
         // Check for a request to cancel this operation.
         checkIfCanceled(false);
 
@@ -446,9 +446,6 @@ public class LocalBackendModifyDNOperation
       }
       else
       {
-        // This is a synchronization operation
-        // Apply the modifications as they were originally done.
-        applyRDNChanges(modifications);
         applyPreOpModifications(modifications, 0, false);
       }
 

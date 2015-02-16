@@ -616,9 +616,6 @@ public class LDIFBackend
             }
           }
         }
-
-        writeLDIF();
-        return;
       }
       else
       {
@@ -652,10 +649,9 @@ public class LDIFBackend
         {
           subtreeDelete(childDN);
         }
-
-        writeLDIF();
-        return;
       }
+
+      writeLDIF();
     }
     finally
     {

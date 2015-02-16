@@ -26,8 +26,9 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static com.forgerock.opendj.cli.Utils.*;
+
 import static org.opends.messages.AdminToolMessages.*;
-import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -76,6 +77,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.datamodel.BinaryValue;
 import org.opends.guitools.controlpanel.datamodel.CheckEntrySyntaxException;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
@@ -87,9 +91,6 @@ import org.opends.guitools.controlpanel.ui.components.ObjectClassCellPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.ui.nodes.DndBrowserNodes;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
@@ -98,7 +99,6 @@ import org.opends.server.util.ServerConstants;
 
 /**
  * The panel displaying a simplified view of an entry.
- *
  */
 public class SimplifiedViewEntryPanel extends ViewEntryPanel
 {
@@ -929,25 +929,18 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
       else if (!isBinary)
       {
-        Set<String> sValues = new TreeSet<String>();
-        for (Object value : values)
-        {
-          sValues.add(String.valueOf(value));
-        }
+        Set<String> sValues = toStrings(values);
+        LocalizableMessage text = LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n"));
         final JTextArea ta;
         JComponent toAdd;
         if (values.size() > 15)
         {
-          ta = Utilities.createNonEditableTextArea(
-              LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
-              15, 20);
+          ta = Utilities.createNonEditableTextArea(text, 15, 20);
           toAdd = Utilities.createScrollPane(ta);
         }
         else
         {
-          ta = Utilities.createNonEditableTextArea(
-              LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
-              values.size(), 20);
+          ta = Utilities.createNonEditableTextArea(text, values.size(), 20);
           toAdd = ta;
         }
         panel.add(toAdd, gbc);
@@ -987,6 +980,16 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
     }
     return panel;
+  }
+
+  private Set<String> toStrings(Collection<Object> objects)
+  {
+    Set<String> results = new TreeSet<String>();
+    for (Object o : objects)
+    {
+      results.add(String.valueOf(o));
+    }
+    return results;
   }
 
   private JComponent getReadWriteComponent(final String attrName,
@@ -1063,14 +1066,9 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       }
       else if (isPassword(attrName) || isConfirmPassword(attrName))
       {
-        JPasswordField pf;
-        if (o.equals(""))
+        JPasswordField pf = Utilities.createPasswordField();
+        if (!o.equals(""))
         {
-          pf = Utilities.createPasswordField();
-        }
-        else
-        {
-          pf = Utilities.createPasswordField();
           pf.setText(getPasswordStringValue(o));
         }
         panel.add(pf, gbc);
@@ -1082,90 +1080,54 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         {
           final JTextField tf = Utilities.createMediumTextField();
           tf.setText(String.valueOf(o));
+          gbc.gridx = 0;
+          panel.add(tf, gbc);
           if (mustAddBrowseButton(attrName))
           {
-            gbc.gridx = 0;
-            panel.add(tf, gbc);
             gbc.insets.left = 5;
             gbc.weightx = 0.0;
             gbc.gridx ++;
             gbc.anchor = GridBagConstraints.NORTH;
-            JButton browse = Utilities.createButton(
-                INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
-            browse.addActionListener(new ActionListener()
-            {
-              /**
-               * {@inheritDoc}
-               */
-              public void actionPerformed(ActionEvent ev)
-              {
-                addBrowseClicked(attrName, tf);
-              }
-            });
+            JButton browse = Utilities.createButton(INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
+            browse.addActionListener(new AddBrowseClickedActionListener(tf, attrName));
             panel.add(browse, gbc);
             new DropTarget(tf, dropTargetListener);
-          }
-          else
-          {
-            gbc.gridx = 0;
-            panel.add(tf, gbc);
           }
           components.add(new EditorComponent(tf));
         }
         else
         {
-          Set<String> sValues = new TreeSet<String>();
-          for (Object value : values)
-          {
-            sValues.add(String.valueOf(value));
-          }
+          Set<String> sValues = toStrings(values);
+          final LocalizableMessage text = LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n"));
           final JTextArea ta;
           JComponent toAdd;
           if (values.size() > 15)
           {
-            ta = Utilities.createTextArea(
-                LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
-                15, 20);
+            ta = Utilities.createTextArea(text, 15, 20);
             toAdd = Utilities.createScrollPane(ta);
           }
           else
           {
-            ta = Utilities.createTextAreaWithBorder(
-                LocalizableMessage.raw(Utilities.getStringFromCollection(sValues, "\n")),
-                values.size(), 20);
+            ta = Utilities.createTextAreaWithBorder(text, values.size(), 20);
             toAdd = ta;
           }
+          panel.add(toAdd, gbc);
           if (mustAddBrowseButton(attrName))
           {
-            panel.add(toAdd, gbc);
             gbc.insets.left = 5;
             gbc.weightx = 0.0;
             gbc.gridx ++;
             gbc.anchor = GridBagConstraints.NORTH;
             final JButton browse = Utilities.createButton(
                 INFO_CTRL_PANEL_BROWSE_BUTTON_LABEL.get());
-            browse.addActionListener(new ActionListener()
-            {
-              /**
-               * {@inheritDoc}
-               */
-              public void actionPerformed(ActionEvent ev)
-              {
-                addBrowseClicked(attrName, ta);
-              }
-            });
-            if (attrName.equalsIgnoreCase(
-                ServerConstants.ATTR_UNIQUE_MEMBER_LC))
+            browse.addActionListener(new AddBrowseClickedActionListener(ta, attrName));
+            if (attrName.equalsIgnoreCase(ServerConstants.ATTR_UNIQUE_MEMBER_LC))
             {
               browse.setText(
                   INFO_CTRL_PANEL_ADD_MEMBERS_BUTTON.get().toString());
             }
             panel.add(browse, gbc);
             new DropTarget(ta, dropTargetListener);
-          }
-          else
-          {
-            panel.add(toAdd, gbc);
           }
           components.add(new EditorComponent(ta));
         }
@@ -1757,10 +1719,10 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     browseEntriesPanel.setMultipleSelection(!isSingleValue(attrName));
 
     browseEntriesDlg.setVisible(true);
-    if (textComponent instanceof JTextArea)
+    String[] dns = browseEntriesPanel.getDNs();
+    if (dns.length > 0)
     {
-      String[] dns = browseEntriesPanel.getDNs();
-      if (dns.length > 0)
+      if (textComponent instanceof JTextArea)
       {
         StringBuilder sb = new StringBuilder();
         sb.append(textComponent.getText());
@@ -1775,11 +1737,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         textComponent.setText(sb.toString());
         textComponent.setCaretPosition(sb.length());
       }
-    }
-    else
-    {
-      String[] dns = browseEntriesPanel.getDNs();
-      if (dns.length > 0)
+      else
       {
         textComponent.setText(dns[0]);
       }
@@ -1918,28 +1876,43 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
 
   private boolean hasValue(EditorComponent editor)
   {
-    boolean hasValue = false;
     Object value = editor.getValue();
-    if (value != null)
+    if (value instanceof byte[])
     {
-      if (value instanceof byte[])
-      {
-        hasValue = ((byte[])value).length > 0;
-      }
-      else if (value instanceof String)
-      {
-        hasValue = ((String)value).trim().length() > 0;
-      }
-      else if (value instanceof Collection<?>)
-      {
-        hasValue = ((Collection<?>)value).size() > 0;
-      }
-      else
-      {
-        hasValue = true;
-      }
+      return ((byte[])value).length > 0;
     }
-    return hasValue;
+    else if (value instanceof String)
+    {
+      return ((String)value).trim().length() > 0;
+    }
+    else if (value instanceof Collection<?>)
+    {
+      return ((Collection<?>)value).size() > 0;
+    }
+    else if (value != null)
+    {
+      return true;
+    }
+    return false;
+  }
+
+  /** Calls #addBrowseClicked(). */
+  private final class AddBrowseClickedActionListener implements ActionListener
+  {
+    private final JTextComponent tc;
+    private final String attrName;
+
+    private AddBrowseClickedActionListener(JTextComponent tc, String attrName)
+    {
+      this.tc = tc;
+      this.attrName = attrName;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ev)
+    {
+      addBrowseClicked(attrName, tc);
+    }
   }
 
   /**
@@ -1953,7 +1926,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     private Component comp;
 
     /**
-     * Creats an EditorComponent using a text component.
+     * Creates an EditorComponent using a text component.
      * @param tf the text component.
      */
     public EditorComponent(JTextComponent tf)

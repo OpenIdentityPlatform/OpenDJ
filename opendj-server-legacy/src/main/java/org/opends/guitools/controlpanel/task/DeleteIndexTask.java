@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -273,20 +272,19 @@ public class DeleteIndexTask extends Task
    */
   private void deleteIndex(AbstractIndexDescriptor index) throws OpenDsException
   {
+    String backendId = Utilities.getRDNString("ds-cfg-backend-id", index.getBackend().getBackendID());
+    String dn;
     if (isVLVIndex(index))
     {
-      String dn = Utilities.getRDNString("ds-cfg-name", index.getName())+
-      ",cn=VLV Index,"+Utilities.getRDNString("ds-cfg-backend-id",
-          index.getBackend().getBackendID())+",cn=Backends,cn=config";
-      DirectoryServer.getConfigHandler().deleteEntry(DN.valueOf(dn), null);
+      dn = Utilities.getRDNString("ds-cfg-name", index.getName())
+          + ",cn=VLV Index," + backendId + ",cn=Backends,cn=config";
     }
     else
     {
-      String dn = Utilities.getRDNString("ds-cfg-attribute", index.getName())+
-      ",cn=Index,"+Utilities.getRDNString("ds-cfg-backend-id",
-          index.getBackend().getBackendID())+",cn=Backends,cn=config";
-      DirectoryServer.getConfigHandler().deleteEntry(DN.valueOf(dn), null);
+      dn = Utilities.getRDNString("ds-cfg-attribute", index.getName())
+          + ",cn=Index," + backendId + ",cn=Backends,cn=config";
     }
+    DirectoryServer.getConfigHandler().deleteEntry(DN.valueOf(dn), null);
   }
 
   /**

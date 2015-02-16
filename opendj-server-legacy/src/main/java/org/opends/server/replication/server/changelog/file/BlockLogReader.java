@@ -366,7 +366,6 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
       // skip the offset
       reader.skipBytes(SIZE_OF_BLOCK_OFFSET);
       lengthBytes.append(reader, SIZE_OF_RECORD_SIZE - distanceToBlockStart);
-      return lengthBytes.toByteString().toInt();
     }
     else
     {
@@ -376,8 +375,8 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
         reader.skipBytes(SIZE_OF_BLOCK_OFFSET);
       }
       lengthBytes.append(reader, SIZE_OF_RECORD_SIZE);
-      return lengthBytes.toByteString().toInt();
     }
+    return lengthBytes.toByteString().toInt();
   }
 
   /**

@@ -709,14 +709,13 @@ public class ManageTasks extends ConsoleApplication {
         table.appendCell(INFO_TASKINFO_FIELD_STATUS.get());
         table.appendCell(taskEntry.getState());
 
+        table.startRow();
+        table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
+
         if (TaskState.isRecurring(taskEntry.getTaskState())) {
-          table.startRow();
-          table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
           m = taskEntry.getScheduleTab();
           table.appendCell(m);
         } else {
-          table.startRow();
-          table.appendCell(INFO_TASKINFO_FIELD_SCHEDULED_START.get());
           m = taskEntry.getScheduledStartTime();
           if (m == null || m.equals(LocalizableMessage.EMPTY)) {
             table.appendCell(INFO_TASKINFO_IMMEDIATE_EXECUTION.get());

@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import static org.forgerock.util.Utils.*;
@@ -514,38 +513,38 @@ public class NewSchemaElementsTask extends Task
     final boolean isSchemaFileDefined = isSchemaFileDefined(fileName);
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void run()
       {
-        printEquivalentCommandToAddOffline(fileName, isSchemaFileDefined,
-            attributes, objectClasses);
+        final ProgressDialog progressDialog = getProgressDialog();
+        final String command = equivalentCommandToAddOffline(
+            fileName, isSchemaFileDefined, attributes, objectClasses);
+        progressDialog.appendProgressHtml(
+            Utilities.applyFont(command,
+                ColorAndFontConstants.progressFont));
+
         if (attributes.size() == 1 && objectClasses.isEmpty())
         {
           String attributeName = attributes.get(0).getNameOrOID();
-          getProgressDialog().appendProgressHtml(
+          progressDialog.appendProgressHtml(
               Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(
-                      attributeName),
+                  INFO_CTRL_PANEL_CREATING_ATTRIBUTE_PROGRESS.get(attributeName),
                       ColorAndFontConstants.progressFont));
         }
         else if (objectClasses.size() == 1 && attributes.isEmpty())
         {
           String ocName = objectClasses.get(0).getNameOrOID();
-          getProgressDialog().appendProgressHtml(
+          progressDialog.appendProgressHtml(
               Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_CREATING_OBJECTCLASS_PROGRESS.get(
-                      ocName),
+                  INFO_CTRL_PANEL_CREATING_OBJECTCLASS_PROGRESS.get(ocName),
                       ColorAndFontConstants.progressFont));
         }
         else
         {
-          getProgressDialog().appendProgressHtml(
+          progressDialog.appendProgressHtml(
               Utilities.getProgressWithPoints(
-                  INFO_CTRL_PANEL_UPDATING_SCHEMA_FILE_PROGRESS.get(
-                      fileName),
+                  INFO_CTRL_PANEL_UPDATING_SCHEMA_FILE_PROGRESS.get(fileName),
                       ColorAndFontConstants.progressFont));
         }
       }
@@ -572,7 +571,7 @@ public class NewSchemaElementsTask extends Task
     });
   }
 
-  private void printEquivalentCommandToAddOffline(String schemaFile,
+  private String equivalentCommandToAddOffline(String schemaFile,
       boolean isSchemaFileDefined,
       List<AttributeType> attributes,
       List<ObjectClass> objectClasses)
@@ -586,54 +585,37 @@ public class NewSchemaElementsTask extends Task
     {
       names.add(oc.getNameOrOID());
     }
+    final String namesString = joinAsString(", ", names);
+
+    final StringBuilder sb = new StringBuilder();
     if (isSchemaFileDefined)
     {
-      StringBuilder sb = new StringBuilder();
-      sb.append(
-          INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ELEMENT_OFFLINE.get(
-          joinAsString(", ", names),
-          schemaFile))
+      sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ELEMENT_OFFLINE.get(namesString, schemaFile))
         .append("<br><b>");
-      for (AttributeType attribute : attributes)
-      {
-        sb.append(getAttributeName(attribute)).append(": ")
-            .append(getValueOffline(attribute)).append("<br>");
-      }
-      for (ObjectClass oc : objectClasses)
-      {
-        sb.append(getAttributeName(oc)).append(": ")
-            .append(getValueOffline(oc)).append("<br>");
-      }
-      sb.append("</b><br><br>");
-
-      getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
-          ColorAndFontConstants.progressFont));
     }
     else
     {
-      StringBuilder sb = new StringBuilder();
-      sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ENTRY_OFFLINE.get(
-          joinAsString(", ", names),
-          schemaFile)).append("<br><b>");
+      sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_ADD_SCHEMA_ENTRY_OFFLINE.get(namesString, schemaFile))
+        .append("<br><b>");
       for (String line : getSchemaEntryLines())
       {
         sb.append(line);
         sb.append("<br>");
       }
-      for (AttributeType attribute : attributes)
-      {
-        sb.append(getAttributeName(attribute)).append(": ")
-            .append(getValueOffline(attribute)).append("<br>");
-      }
-      for (ObjectClass oc : objectClasses)
-      {
-        sb.append(getAttributeName(oc)).append(": ")
-            .append(getValueOffline(oc)).append("<br>");
-      }
-      sb.append("</b><br><br>");
-      getProgressDialog().appendProgressHtml(Utilities.applyFont(sb.toString(),
-          ColorAndFontConstants.progressFont));
     }
+
+    for (AttributeType attribute : attributes)
+    {
+      sb.append(getAttributeName(attribute)).append(": ")
+          .append(getValueOffline(attribute)).append("<br>");
+    }
+    for (ObjectClass oc : objectClasses)
+    {
+      sb.append(getAttributeName(oc)).append(": ")
+          .append(getValueOffline(oc)).append("<br>");
+    }
+    sb.append("</b><br><br>");
+    return sb.toString();
   }
 
   /**

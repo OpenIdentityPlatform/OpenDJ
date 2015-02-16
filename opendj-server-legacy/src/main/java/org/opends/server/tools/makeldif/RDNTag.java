@@ -154,15 +154,11 @@ public class RDNTag
                                  TemplateValue templateValue)
   {
     DN dn = templateEntry.getDN();
-    if ((dn == null) || dn.isRootDN())
-    {
-      return TagResult.SUCCESS_RESULT;
-    }
-    else
+    if (dn != null && !dn.isRootDN())
     {
       dn.rdn().toString(templateValue.getValue());
-      return TagResult.SUCCESS_RESULT;
     }
+    return TagResult.SUCCESS_RESULT;
   }
 }
 

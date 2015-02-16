@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-
 
 import java.io.IOException;
 
@@ -33,37 +32,32 @@ import org.forgerock.opendj.io.*;
 import org.opends.server.types.AuthenticationType;
 import org.forgerock.opendj.ldap.ByteString;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines the structures and methods for an LDAP bind request
  * protocol op, which is used to authenticate a user to the Directory Server.
  */
-public class BindRequestProtocolOp
-       extends ProtocolOp
+public class BindRequestProtocolOp extends ProtocolOp
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The bind DN for this request.
+  /** The bind DN for this request. */
   private ByteString dn;
 
-  // The SASL credentials for this request.
+  /** The SASL credentials for this request. */
   private ByteString saslCredentials;
 
-  // The simple authentication password for this request.
+  /** The simple authentication password for this request. */
   private ByteString simplePassword;
 
-  // The authentication type for this request.
+  /** The authentication type for this request. */
   private AuthenticationType authenticationType;
 
-  // The protocol version for this bind request.
+  /** The protocol version for this bind request. */
   private int protocolVersion;
 
-  // The SASL mechanism for this request.
+  /** The SASL mechanism for this request. */
   private String saslMechanism;
 
 
@@ -249,29 +243,24 @@ public class BindRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("BindRequest(version=");
-    buffer.append(protocolVersion);
+    buffer.append("BindRequest(version=").append(protocolVersion);
     buffer.append(", dn=");
-
     if (dn != null)
     {
-      buffer.append(dn.toString());
+      buffer.append(dn);
     }
 
     if (authenticationType == AuthenticationType.SIMPLE)
     {
-      buffer.append(", password=");
-      buffer.append(simplePassword.toString());
+      buffer.append(", password=").append(simplePassword);
     }
     else
     {
-      buffer.append(", saslMechanism=");
-      buffer.append(saslMechanism);
+      buffer.append(", saslMechanism=").append(saslMechanism);
 
       if (saslCredentials != null)
       {
-        buffer.append(", saslCredentials=");
-        buffer.append(saslCredentials.toString());
+        buffer.append(", saslCredentials=").append(saslCredentials);
       }
     }
 
@@ -296,42 +285,27 @@ public class BindRequestProtocolOp
       indentBuf.append(' ');
     }
 
-    buffer.append(indentBuf);
-    buffer.append("Bind Request");
-    buffer.append(EOL);
+    buffer.append(indentBuf).append("Bind Request").append(EOL);
+    buffer.append(indentBuf).append("  Protocol Version:  ").append(protocolVersion).append(EOL);
 
-    buffer.append(indentBuf);
-    buffer.append("  Protocol Version:  ");
-    buffer.append(protocolVersion);
-    buffer.append(EOL);
-
-    buffer.append(indentBuf);
-    buffer.append("  DN:  ");
+    buffer.append(indentBuf).append("  DN:  ");
     if (dn != null)
     {
-      buffer.append(dn.toString());
+      buffer.append(dn);
     }
     buffer.append(EOL);
 
     if (authenticationType == AuthenticationType.SIMPLE)
     {
-      buffer.append(indentBuf);
-      buffer.append("  Simple Password:  ");
-      buffer.append(String.valueOf(simplePassword));
-      buffer.append(EOL);
+      buffer.append(indentBuf).append("  Simple Password:  ").append(simplePassword).append(EOL);
     }
     else
     {
-      buffer.append(indentBuf);
-      buffer.append("  SASL Mechanism:  ");
-      buffer.append(saslMechanism);
-      buffer.append(EOL);
+      buffer.append(indentBuf).append("  SASL Mechanism:  ").append(saslMechanism).append(EOL);
 
       if (saslCredentials != null)
       {
-        buffer.append(indentBuf);
-        buffer.append("  SASL Credentials:");
-        buffer.append(EOL);
+        buffer.append(indentBuf).append("  SASL Credentials:").append(EOL);
         buffer.append(saslCredentials.toHexPlusAsciiString(indent+4));
       }
     }
