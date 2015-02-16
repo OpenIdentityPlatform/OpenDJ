@@ -551,8 +551,9 @@ public class ObjectClassSyntax
                   throw new DirectoryException(
                           ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
                 }
-                else if(!((ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
-                        (ch>='a' && ch<='z')))
+                else if (!(('0'<=ch && ch<='9')
+                    || ('A'<=ch && ch<='Z')
+                    || ('a'<=ch && ch<='z')))
                 {
                   throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                       ERR_OC_SYNTAX_ATTR_ILLEGAL_CHAR.get(value, ch, index));
@@ -1226,8 +1227,7 @@ public class ObjectClassSyntax
             lastWasPeriod = true;
           }
         }
-        else if (! (isDigit(c) ||
-                allowExceptions && (isAlpha(c) || (c=='-') || (c=='_'))))
+        else if ((!isDigit(c) && (!allowExceptions || (!isAlpha(c) && (c != '-') && (c != '_')))))
         {
           // Technically, this must be an illegal character.  However, it is
           // possible that someone just got sloppy and did not include a space

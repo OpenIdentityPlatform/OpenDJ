@@ -115,7 +115,7 @@ public class FileBasedTrustManagerProvider
     // Get the path to the trust store file.
     trustStoreFile = configuration.getTrustStoreFile();
     File f = getFileForPath(trustStoreFile);
-    if (! (f.exists() && f.isFile()))
+    if (!f.exists() || !f.isFile())
     {
       LocalizableMessage message = ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(trustStoreFile, configEntryDN);
       throw new InitializationException(message);
@@ -343,7 +343,7 @@ public class FileBasedTrustManagerProvider
     try
     {
       File f = getFileForPath(newTrustStoreFile);
-      if (!(f.exists() && f.isFile()))
+      if (!f.exists() || !f.isFile())
       {
         unacceptableReasons.add(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, cfgEntryDN));
         configAcceptable = false;
@@ -462,7 +462,7 @@ public class FileBasedTrustManagerProvider
     // Get the path to the trust store file.
     String newTrustStoreFile = configuration.getTrustStoreFile();
     File f = getFileForPath(newTrustStoreFile);
-    if (! (f.exists() && f.isFile()))
+    if (!f.exists() || !f.isFile())
     {
       ccr.setResultCode(DirectoryServer.getServerErrorResultCode());
       ccr.addMessage(ERR_FILE_TRUSTMANAGER_NO_SUCH_FILE.get(newTrustStoreFile, configEntryDN));

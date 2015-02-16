@@ -1385,8 +1385,8 @@ public final class LDAPClientConnection extends ClientConnection implements
           }
         }
 
-        if (!(operationsInProgress.isEmpty() && getPersistentSearches()
-            .isEmpty()))
+        if (!operationsInProgress.isEmpty()
+            || !getPersistentSearches().isEmpty())
         {
           lastCompletionTime.set(TimeThread.getTime());
         }

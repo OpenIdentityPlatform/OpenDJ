@@ -151,7 +151,7 @@ public final class ProfilerPlugin
 
     // Make sure that the profile directory exists.
     File profileDirectory = getFileForPath(configuration.getProfileDirectory());
-    if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
+    if (!profileDirectory.exists() || !profileDirectory.isDirectory())
     {
       LocalizableMessage message = WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
           profileDirectory.getAbsolutePath(), configEntryDN);
@@ -262,7 +262,7 @@ public final class ProfilerPlugin
 
     // Make sure that the profile directory exists.
     File profileDirectory = getFileForPath(configuration.getProfileDirectory());
-    if (! (profileDirectory.exists() && profileDirectory.isDirectory()))
+    if (!profileDirectory.exists() || !profileDirectory.isDirectory())
     {
       unacceptableReasons.add(WARN_PLUGIN_PROFILER_INVALID_PROFILE_DIR.get(
           profileDirectory.getAbsolutePath(), cfgEntryDN));

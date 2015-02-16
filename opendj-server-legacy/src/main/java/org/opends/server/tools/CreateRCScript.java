@@ -187,7 +187,7 @@ public class CreateRCScript
     if (javaHome.isPresent())
     {
       File f = new File(javaHome.getValue());
-      if (! (f.exists() && f.isDirectory()))
+      if (!f.exists() || !f.isDirectory())
       {
         err.println(ERR_CREATERC_JAVA_HOME_DOESNT_EXIST.get(javaHome.getValue()));
         return 1;

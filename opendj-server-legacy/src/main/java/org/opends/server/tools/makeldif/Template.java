@@ -354,8 +354,9 @@ public class Template
       for (TemplateLine l : templateLines)
       {
         TagResult r = l.generateLine(templateEntry);
-        if (! (r.keepProcessingEntry() && r.keepProcessingParent() &&
-               r.keepProcessingTemplateFile()))
+        if (!r.keepProcessingEntry()
+            || !r.keepProcessingParent()
+            || !r.keepProcessingTemplateFile())
         {
           return r;
         }
@@ -371,7 +372,8 @@ public class Template
         TagResult r =
              subordinateTemplates[j].writeEntries(entryWriter,
                  templateEntry.getDN(), numEntriesPerTemplate[j]);
-        if (! (r.keepProcessingParent() && r.keepProcessingTemplateFile()))
+        if (!r.keepProcessingParent()
+            || !r.keepProcessingTemplateFile())
         {
           if (r.keepProcessingTemplateFile())
           {

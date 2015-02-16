@@ -402,8 +402,10 @@ public class ConfigureDS
 
 
     // Make sure that the user actually tried to configure something.
-    if (! (baseDNString.isPresent() || ldapPort.isPresent() ||
-        jmxPort.isPresent() || rootDNString.isPresent()))
+    if (!baseDNString.isPresent()
+        && !ldapPort.isPresent()
+        && !jmxPort.isPresent()
+        && !rootDNString.isPresent())
     {
       LocalizableMessage message = ERR_CONFIGDS_NO_CONFIG_CHANGES.get();
       err.println(wrapText(message, MAX_LINE_WIDTH));

@@ -837,10 +837,10 @@ public class LDAPConnectionConsoleInteraction
 
     // Check if some trust manager info are set
     boolean weDontKnowTheTrustMethod =
-        !(secureArgsList.trustAllArg.isPresent()
-            || secureArgsList.trustStorePathArg.isPresent()
-            || secureArgsList.trustStorePasswordArg.isPresent() || secureArgsList.trustStorePasswordFileArg
-            .isPresent());
+        !secureArgsList.trustAllArg.isPresent()
+        && !secureArgsList.trustStorePathArg.isPresent()
+        && !secureArgsList.trustStorePasswordArg.isPresent()
+        && !secureArgsList.trustStorePasswordFileArg.isPresent();
     boolean askForTrustStore = false;
 
     trustAll = secureArgsList.trustAllArg.isPresent();
@@ -1092,10 +1092,10 @@ public class LDAPConnectionConsoleInteraction
     // that we
     // need client side authentication.
     boolean weDontKnowIfWeNeedKeystore =
-        !(secureArgsList.keyStorePathArg.isPresent()
-            || secureArgsList.keyStorePasswordArg.isPresent()
-            || secureArgsList.keyStorePasswordFileArg.isPresent() || secureArgsList.certNicknameArg
-            .isPresent());
+        !secureArgsList.keyStorePathArg.isPresent()
+        && !secureArgsList.keyStorePasswordArg.isPresent()
+        && !secureArgsList.keyStorePasswordFileArg.isPresent()
+        && !secureArgsList.certNicknameArg.isPresent();
 
     // We don't have specific key manager parameter.
     // We assume that no client side authentication is required

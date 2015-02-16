@@ -736,7 +736,7 @@ public class LocalBackendWorkflowElement
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, errorMsg.get(entryDN));
 
     case INTERNAL_ONLY:
-      if (!(op.isInternalOperation() || op.isSynchronizationOperation()))
+      if (!op.isInternalOperation() && !op.isSynchronizationOperation())
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, errorMsg.get(entryDN));
       }

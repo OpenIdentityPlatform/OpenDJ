@@ -135,8 +135,8 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
    */
   public boolean hasMoreData() throws IOException
   {
-    boolean ret = ((begin + offset) >= end);
-    return !(cache.remaining() == 0 && ret);
+    boolean hasMore = begin + offset < end;
+    return cache.remaining() != 0 || hasMore;
   }
 
 

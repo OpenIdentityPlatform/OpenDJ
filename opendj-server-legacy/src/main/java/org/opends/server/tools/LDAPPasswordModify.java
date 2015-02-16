@@ -503,7 +503,7 @@ public class LDAPPasswordModify
     // were provided.
     if (bindDN.isPresent())
     {
-      if (! (bindPW.isPresent() || bindPWFile.isPresent()))
+      if (!bindPW.isPresent() && !bindPWFile.isPresent())
       {
         LocalizableMessage message = ERR_LDAPPWMOD_BIND_DN_AND_PW_MUST_BE_TOGETHER.get();
 
@@ -533,8 +533,7 @@ public class LDAPPasswordModify
         return CLIENT_SIDE_PARAM_ERROR;
       }
 
-      if (! (authzID.isPresent() &&
-             (currentPW.isPresent() || currentPWFile.isPresent())))
+      if ((!authzID.isPresent() || (!currentPW.isPresent() && !currentPWFile.isPresent())))
       {
         LocalizableMessage message =
                 ERR_LDAPPWMOD_ANON_REQUIRES_AUTHZID_AND_CURRENTPW.get();
