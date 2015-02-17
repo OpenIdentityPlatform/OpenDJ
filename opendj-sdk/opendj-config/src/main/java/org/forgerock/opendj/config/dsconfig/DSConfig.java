@@ -172,22 +172,22 @@ public final class DSConfig extends ConsoleApplication {
                   .append(" type, which depends on the ").append(nameOption).append(" option.").append(EOL);
                 sb.append("         </para>").append(EOL);
             } else {
-                listSubtypes(sb, a.getValuePlaceholder(), defn);
+                listSubtypes(sb, a, defn);
             }
             return;
         }
 
-        private void listSubtypes(StringBuilder sb, LocalizableMessage placeholder,
-                AbstractManagedObjectDefinition<?, ?> defn) {
+        private void listSubtypes(StringBuilder sb, Argument a, AbstractManagedObjectDefinition<?, ?> defn) {
+            final LocalizableMessage placeholder = a.getValuePlaceholder();
             sb.append("         <variablelist>").append(EOL);
             sb.append("           <para>").append(EOL);
-            final LocalizableMessage name = defn.getUserFriendlyName();
-            sb.append("             ").append(name).append(" properties depend on the ").append(name)
+            final LocalizableMessage userFriendlyName = defn.getUserFriendlyName();
+            sb.append("             ").append(userFriendlyName).append(" properties depend on the ").append(userFriendlyName)
                 .append(" type, which depends on the ").append(placeholder).append(" you provide.").append(EOL);
             sb.append("           </para>").append(EOL);
             sb.append("           <para>").append(EOL);
             sb.append("             By default, OpenDJ directory server supports the following ")
-                .append(defn.getUserFriendlyName()).append(" types:").append(EOL);
+                .append(userFriendlyName).append(" types:").append(EOL);
             sb.append("           </para>").append(EOL);
 
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
@@ -203,8 +203,10 @@ public final class DSConfig extends ConsoleApplication {
                 sb.append("                 Enabled by default: ").append(isEnabled).append(EOL);
                 sb.append("               </para>").append(EOL);
                 sb.append("               <para>").append(EOL);
-                final String string = "dsconfig-set-log-publisher-prop-file-based-access";
-                sb.append("                 See <xref linkend=\"").append(string)
+                sb.append("                 See <xref linkend=\"")
+                    .append(getScriptName()).append("-")
+                    .append(a.getLongIdentifier()).append("-")
+                    .append(defn.getName()).append("-prop-").append(childDefn.getName())
                     .append("\" /> for the properties of this ").append(defn.getUserFriendlyName())
                     .append(" type.").append(EOL);
                 sb.append("               </para>").append(EOL);
@@ -398,10 +400,8 @@ public final class DSConfig extends ConsoleApplication {
                 final Collection<String> defaultValues = behavior.getDefaultValues();
                 if (defaultValues.size() == 0) {
                     b.append("<para>None</para>").append(EOL);
-                    return;
                 } else if (defaultValues.size() == 1) {
                     b.append("<para>").append(defaultValues.iterator().next()).append("</para>").append(EOL);
-                    return;
                 } else {
                     final Iterator<String> it = defaultValues.iterator();
                     b.append("<para>").append(it.next()).append("</para>");
@@ -410,11 +410,11 @@ public final class DSConfig extends ConsoleApplication {
                         b.append(EOL).append(indent).append("<para>").append(str).append("</para>");
                     }
                     b.append(EOL);
-                    return;
                 }
+                return;
             } else if (defaultBehavior instanceof AliasDefaultBehaviorProvider) {
                 AliasDefaultBehaviorProvider<?> behavior = (AliasDefaultBehaviorProvider<?>) defaultBehavior;
-                b.append("<para>").append(behavior.getSynopsis().toString()).append("</para>").append(EOL);
+                b.append("<para>").append(behavior.getSynopsis()).append("</para>").append(EOL);
                 return;
             } else if (defaultBehavior instanceof RelativeInheritedDefaultBehaviorProvider) {
                 final RelativeInheritedDefaultBehaviorProvider<?> behavior =
