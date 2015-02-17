@@ -287,8 +287,7 @@ public class SubjectDNToUserAttributeCertificateMapper
                            configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-    return configAcceptable;
+    return true;
   }
 
 

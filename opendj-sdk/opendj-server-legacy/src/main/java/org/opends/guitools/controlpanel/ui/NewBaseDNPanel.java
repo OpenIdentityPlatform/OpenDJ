@@ -1182,7 +1182,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     {
       String dn = Utilities.getRDNString("ds-cfg-backend-id", backendName)+
       ",cn=Backends,cn=config";
-      String ldif = Utilities.makeLdif(
+      return Utilities.makeLdif(
           "dn: "+dn,
           "objectClass: top",
           "objectClass: ds-cfg-backend",
@@ -1224,13 +1224,12 @@ public class NewBaseDNPanel extends StatusGenericPanel
           "ds-cfg-attribute: objectClass",
           "ds-cfg-index-type: equality"
       );
-      return ldif;
     }
 
     private String getAdditionalIndexLdif(String backendName)
     {
       String dn = "ds-cfg-backend-id="+backendName+",cn=Backends,cn=config";
-      String ldif = Utilities.makeLdif(
+      return Utilities.makeLdif(
           "dn: ds-cfg-attribute=cn,cn=Index,"+dn,
           "objectClass: ds-cfg-local-db-index",
           "objectClass: top",
@@ -1284,7 +1283,6 @@ public class NewBaseDNPanel extends StatusGenericPanel
           "ds-cfg-attribute: uniqueMember",
           "ds-cfg-index-type: equality"
       );
-      return ldif;
     }
 
     private void createBackend(String backendName, String baseDN)

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -78,8 +79,7 @@ public class IndexCellRenderer extends CustomListCellRenderer
         Utilities.getVLVNameInCellRenderer((VLVIndexDescriptor)value);
       value = mustReindex ? name + " (*)" : name;
     }
-    Component comp = super.getListCellRendererComponent(list, value, index,
-        isSelected, cellHasFocus);
-    return comp;
+    return super.getListCellRendererComponent(
+        list, value, index, isSelected, cellHasFocus);
   }
 }

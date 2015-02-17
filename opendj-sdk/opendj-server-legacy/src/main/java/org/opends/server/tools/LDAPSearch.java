@@ -1786,8 +1786,7 @@ public class LDAPSearch
                                       lce.getResultCode(),
                                       lce.getErrorMessage(),
                                       lce.getMatchedDN());
-      int code = lce.getResultCode();
-      return code;
+      return lce.getResultCode();
     } catch(Exception e)
     {
       logger.traceException(e);

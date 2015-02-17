@@ -233,14 +233,12 @@ public final class CertificateManager {
   public Certificate  getCertificate(String alias)
   throws KeyStoreException {
     ensureValid(alias, CERT_ALIAS_MSG);
-    Certificate cert = null;
     KeyStore ks = getKeyStore();
     if (ks == null) {
       LocalizableMessage msg = ERR_CERTMGR_KEYSTORE_NONEXISTANT.get();
       throw new KeyStoreException(msg.toString());
     }
-    cert = ks.getCertificate(alias);
-    return cert;
+    return ks.getCertificate(alias);
   }
 
 

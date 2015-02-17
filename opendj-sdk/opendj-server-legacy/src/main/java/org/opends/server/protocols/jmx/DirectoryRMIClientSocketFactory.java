@@ -193,16 +193,9 @@ public class DirectoryRMIClientSocketFactory implements
    */
   public Socket createSocket(String host, int port) throws IOException
   {
-    //
-    // gets ssl socket factory
     SSLSocketFactory sslSocketFactory = getSSLSocketFactory();
     String realhost = getRealServerHostname(host);
-
-    final SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(
-        realhost,
-        port);
-
-    return sslSocket;
+    return (SSLSocket) sslSocketFactory.createSocket(realhost, port);
   }
 
   /**

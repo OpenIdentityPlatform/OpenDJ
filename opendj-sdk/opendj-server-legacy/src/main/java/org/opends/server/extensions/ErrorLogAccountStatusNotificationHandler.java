@@ -142,17 +142,13 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public boolean isConfigurationChangeAcceptable(
       ErrorLogAccountStatusNotificationHandlerCfg configuration,
-      List<LocalizableMessage> unacceptableReasons
-      )
+      List<LocalizableMessage> unacceptableReasons)
   {
     // Make sure that we can process the defined notification handler.
     // If so, then we'll accept the new configuration.
     boolean applyChanges = false;
-    boolean isAcceptable = processNotificationHandlerConfig (
-        configuration, applyChanges
-        );
-
-    return isAcceptable;
+    return processNotificationHandlerConfig (
+        configuration, applyChanges);
   }
 
 
@@ -175,11 +171,9 @@ public class ErrorLogAccountStatusNotificationHandler
    */
   public ConfigChangeResult applyConfigurationChange (
       ErrorLogAccountStatusNotificationHandlerCfg configuration,
-      boolean detailedResults
-      )
+      boolean detailedResults)
   {
-    ConfigChangeResult changeResult = applyConfigurationChange (configuration);
-    return changeResult;
+    return applyConfigurationChange(configuration);
   }
 
 

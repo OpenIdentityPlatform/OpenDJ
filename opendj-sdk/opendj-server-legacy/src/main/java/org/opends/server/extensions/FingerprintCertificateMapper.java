@@ -323,9 +323,7 @@ public class FingerprintCertificateMapper
                       FingerprintCertificateMapperCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
-    boolean configAcceptable = true;
-
-    return configAcceptable;
+    return true;
   }
 
 

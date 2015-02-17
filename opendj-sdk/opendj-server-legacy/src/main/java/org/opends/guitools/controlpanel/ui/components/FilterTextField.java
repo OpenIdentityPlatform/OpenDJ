@@ -336,13 +336,11 @@ public class FilterTextField extends JTextField
   }
   private int getMargin(Component c, ImageIcon icon)
   {
-    int margin = (c.getHeight() - icon.getIconHeight()) / 2;
-    return margin;
+    return (c.getHeight() - icon.getIconHeight()) / 2;
   }
 
   private ImageIcon getClearIcon()
   {
-    ImageIcon icon = mousePressed ? clearIconPressed : clearIcon;
-    return icon;
+    return mousePressed ? clearIconPressed : clearIcon;
   }
 }

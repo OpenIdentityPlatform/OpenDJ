@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.task;
 
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import org.forgerock.i18n.LocalizableMessage;
 /**
  * An abstract class used to re-factor some code between the start, stop and
  * restart tasks.
- *
  */
 public abstract class StartStopTask extends Task
 {
@@ -123,8 +121,7 @@ public abstract class StartStopTask extends Task
    */
   protected ArrayList<String> getCommandLineArguments()
   {
-    ArrayList<String> args = new ArrayList<String>();
-    return args;
+    return new ArrayList<String>();
   }
 
   /**

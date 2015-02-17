@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.task;
 
@@ -468,8 +468,7 @@ public class DeleteSchemaElementsTask extends Task
           DirectoryServer.getEnvironmentConfig().getSchemaDirectory(),
           schemaFile);
     }
-    schemaFile = f.getAbsolutePath();
-    return schemaFile;
+    return f.getAbsolutePath();
   }
 
   /**

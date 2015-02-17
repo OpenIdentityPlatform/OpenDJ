@@ -726,7 +726,7 @@ public class NewObjectClassPanel extends StatusGenericPanel
 
   private ObjectClass getObjectClass()
   {
-    ObjectClass oc = new ObjectClass("", getObjectClassName(), getAllNames(),
+    return new ObjectClass("", getObjectClassName(), getAllNames(),
         getOID(),
         getDescription(),
         getObjectClassSuperiors(),
@@ -735,8 +735,6 @@ public class NewObjectClassPanel extends StatusGenericPanel
         getObjectClassType(),
         obsolete.isSelected(),
         getExtraProperties());
-
-    return oc;
   }
 
   private ObjectClassType getObjectClassType()

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -343,14 +343,9 @@ public class EntryCacheCommon
       ArrayList<LocalizableMessage>             errorMessages
       )
   {
-    ConfigErrorHandler errorHandler = null;
-
     EntryCacheCommon ec = new EntryCacheCommon();
-
-    errorHandler = ec.new ConfigErrorHandler (
-        configPhase, unacceptableReasons, errorMessages
-        );
-    return errorHandler;
+    return ec.new ConfigErrorHandler(
+        configPhase, unacceptableReasons, errorMessages);
   }
 
 
