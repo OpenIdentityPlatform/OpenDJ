@@ -26,6 +26,8 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
+import static org.opends.messages.AdminToolMessages.*;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -70,8 +72,6 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
-
-import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * The panel displayed when the user wants to define a new attribute in the
@@ -155,27 +155,21 @@ public class NewAttributePanel extends StatusGenericPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
@@ -230,8 +224,7 @@ public class NewAttributePanel extends StatusGenericPanel
       {
         newSyntaxes.add(syntaxNameMap.get(key));
       }
-      updateComboBoxModel(newSyntaxes,
-          ((DefaultComboBoxModel)syntax.getModel()));
+      updateComboBoxModel(newSyntaxes, (DefaultComboBoxModel) syntax.getModel());
 
       HashMap<String, AttributeType> attributeNameMap = new HashMap<String,
       AttributeType>();
@@ -248,8 +241,7 @@ public class NewAttributePanel extends StatusGenericPanel
         newParents.add(attributeNameMap.get(key));
       }
       newParents.add(0, NO_PARENT);
-      updateComboBoxModel(newParents,
-          ((DefaultComboBoxModel)parent.getModel()));
+      updateComboBoxModel(newParents, (DefaultComboBoxModel) parent.getModel());
 
       ArrayList<MatchingRule> approximateElements =
         new ArrayList<MatchingRule>();
@@ -321,9 +313,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void run()
       {
@@ -368,9 +358,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void okClicked()
   {
@@ -448,13 +436,11 @@ public class NewAttributePanel extends StatusGenericPanel
     }
 
     setPrimaryValid(lUsage);
-    if (nonModifiable.isSelected())
+    if (nonModifiable.isSelected()
+        && AttributeUsage.USER_APPLICATIONS.equals(usage.getSelectedItem()))
     {
-      if (AttributeUsage.USER_APPLICATIONS.equals(usage.getSelectedItem()))
-      {
-        errors.add(ERR_NON_MODIFIABLE_CANNOT_BE_USER_APPLICATIONS.get());
-        setPrimaryInvalid(lUsage);
-      }
+      errors.add(ERR_NON_MODIFIABLE_CANNOT_BE_USER_APPLICATIONS.get());
+      setPrimaryInvalid(lUsage);
     }
 
     ProgressDialog dlg = new ProgressDialog(
@@ -512,32 +498,29 @@ public class NewAttributePanel extends StatusGenericPanel
    */
   static LocalizableMessage getSchemaElementType(String name, Schema schema)
   {
-    if (schema.getAttributeType(name.toLowerCase()) != null)
+    final String lowerCase = name.toLowerCase();
+    if (schema.getAttributeType(lowerCase) != null)
     {
       return INFO_CTRL_PANEL_TYPE_ATTRIBUTE.get();
     }
-    else if (schema.getObjectClass(name.toLowerCase()) != null)
+    else if (schema.getObjectClass(lowerCase) != null)
     {
       return INFO_CTRL_PANEL_TYPE_OBJECT_CLASS.get();
     }
-    else if (schema.getSyntax(name.toLowerCase()) != null)
+    else if (schema.getSyntax(lowerCase) != null)
     {
       return INFO_CTRL_PANEL_TYPE_ATTRIBUTE_SYNTAX.get();
     }
-    else if (schema.getMatchingRule(name.toLowerCase()) != null)
+    else if (schema.getMatchingRule(lowerCase) != null)
     {
       return INFO_CTRL_PANEL_TYPE_MATCHING_RULE.get();
     }
 
     for (AttributeSyntax<?> attr : schema.getSyntaxes().values())
     {
-      String n = attr.getName();
-      if (n != null)
+      if (name.equalsIgnoreCase(attr.getName()))
       {
-        if (n.equalsIgnoreCase(name))
-        {
-          return INFO_CTRL_PANEL_TYPE_ATTRIBUTE_SYNTAX.get();
-        }
+        return INFO_CTRL_PANEL_TYPE_ATTRIBUTE_SYNTAX.get();
       }
     }
 
@@ -663,9 +646,7 @@ public class NewAttributePanel extends StatusGenericPanel
       final BasicExpander expander = expanders[i];
       ChangeListener changeListener = new ChangeListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void stateChanged(ChangeEvent e)
         {
@@ -680,9 +661,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
     ItemListener itemListener = new ItemListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public void itemStateChanged(ItemEvent ev)
       {
@@ -773,60 +752,38 @@ public class NewAttributePanel extends StatusGenericPanel
     Object o = parent.getSelectedItem();
     if (NO_PARENT.equals(o))
     {
-      return null;
+      return (AttributeType) o;
     }
-    else
-    {
-      return (AttributeType)o;
-    }
+    return null;
   }
 
   private MatchingRule getApproximateMatchingRule()
   {
-    if (approximate.getSelectedIndex() == 0)
-    {
-      return null;
-    }
-    else
-    {
-      return (MatchingRule)approximate.getSelectedItem();
-    }
+    return getMatchingRule(approximate);
   }
 
   private MatchingRule getEqualityMatchingRule()
   {
-    if (equality.getSelectedIndex() == 0)
-    {
-      return null;
-    }
-    else
-    {
-      return (MatchingRule)equality.getSelectedItem();
-    }
+    return getMatchingRule(equality);
   }
 
   private MatchingRule getSubstringMatchingRule()
   {
-    if (substring.getSelectedIndex() == 0)
-    {
-      return null;
-    }
-    else
-    {
-      return (MatchingRule)substring.getSelectedItem();
-    }
+    return getMatchingRule(substring);
   }
 
   private MatchingRule getOrderingMatchingRule()
   {
-    if (ordering.getSelectedIndex() == 0)
+    return getMatchingRule(ordering);
+  }
+
+  private MatchingRule getMatchingRule(JComboBox comboBox)
+  {
+    if (comboBox.getSelectedIndex() != 0)
     {
-      return null;
+      return (MatchingRule) comboBox.getSelectedItem();
     }
-    else
-    {
-      return (MatchingRule)ordering.getSelectedItem();
-    }
+    return null;
   }
 
   private Map<String, List<String>> getExtraProperties()
