@@ -67,7 +67,7 @@ public class DN2URI extends DatabaseContainer
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private static final byte STRING_SEPARATOR = (byte) 0x00;
+  private static final byte STRING_SEPARATOR = 0x00;
 
   /**
    * The key comparator used for the DN database.
@@ -618,7 +618,7 @@ public class DN2URI extends DatabaseContainer
     byte[] suffix = Arrays.copyOf(baseDN, baseDN.length+1);
     suffix[suffix.length - 1] = special;
     byte[] end = Arrays.copyOf(suffix, suffix.length);
-    end[end.length - 1] = (byte) (special + 1);
+    end[end.length - 1] = special + 1;
 
     /*
      * Set the ending value to a value of equal length but slightly

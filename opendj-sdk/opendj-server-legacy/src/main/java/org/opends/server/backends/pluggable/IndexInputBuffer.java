@@ -109,7 +109,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
     if (leftToRead < cache.remaining())
     {
       cache.limit((int) (cache.position() + leftToRead));
-      bytesToRead = (int) leftToRead;
+      bytesToRead = leftToRead;
     }
     else
     {
