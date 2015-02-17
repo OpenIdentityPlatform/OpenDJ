@@ -768,7 +768,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       args.removeAll(getConfigCommandLineArguments());
       for (String arg : args)
       {
-        sb.append(" "+CommandBuilder.escapeValue(arg));
+        sb.append(" ").append(CommandBuilder.escapeValue(arg));
       }
       return sb.toString();
     }

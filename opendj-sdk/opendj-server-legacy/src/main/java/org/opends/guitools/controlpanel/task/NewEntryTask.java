@@ -318,7 +318,7 @@ public class NewEntryTask extends Task
     String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
         args);
     StringBuilder sb = new StringBuilder();
-    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_ENTRY.get()+"<br><b>");
+    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_CREATE_ENTRY.get()).append("<br><b>");
     sb.append(equiv);
     sb.append("<br>");
     String[] lines = ldif.split("\n");

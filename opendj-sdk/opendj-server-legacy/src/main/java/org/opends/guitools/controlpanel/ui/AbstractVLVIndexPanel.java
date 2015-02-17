@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 
@@ -356,7 +356,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     StringBuilder sb = new StringBuilder();
     for (String line : lines)
     {
-      sb.append(line+ServerConstants.EOL);
+      sb.append(line).append(ServerConstants.EOL);
     }
     return sb.toString();
   }
@@ -598,7 +598,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
         StringBuilder sb = new StringBuilder();
         for (LocalizableMessage msg : msgs)
         {
-          sb.append("<br>-"+msg);
+          sb.append("<br>-").append(msg);
         }
         confirm = displayConfirmationDialog(
             INFO_CTRL_PANEL_VLV_INDEXES_NOT_DEFINED_CONFIRMATION_TITLE.get(),

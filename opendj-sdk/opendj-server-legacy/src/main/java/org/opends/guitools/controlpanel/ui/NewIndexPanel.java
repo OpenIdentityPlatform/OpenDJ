@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -563,7 +563,7 @@ public class NewIndexPanel extends AbstractIndexPanel
       StringBuilder sb = new StringBuilder();
       for (String line : lines)
       {
-        sb.append(line+ServerConstants.EOL);
+        sb.append(line).append(ServerConstants.EOL);
       }
       return sb.toString();
     }
@@ -640,7 +640,7 @@ public class NewIndexPanel extends AbstractIndexPanel
           getObfuscatedCommandLineArguments(getDSConfigCommandLineArguments());
         for (String arg : args)
         {
-          sb.append(" "+CommandBuilder.escapeValue(arg));
+          sb.append(" ").append(CommandBuilder.escapeValue(arg));
         }
 
         ctx.createSubcontext(indexEntry.getName().toString(), attrs);

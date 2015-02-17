@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -80,7 +80,7 @@ public class UserAttributeNotificationMessageTemplateElement
       {
         for (ByteString v : a)
         {
-          buffer.append(v.toString());
+          buffer.append(v);
           return;
         }
       }

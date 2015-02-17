@@ -68,9 +68,8 @@ class UpgradeLog
 
     if (logFile == null)
     {
-      logFile =
-          new File(new StringBuilder(UpgradeUtils.getInstallationPath())
-              .append(File.separator).append(UPGRADELOGNAME).toString());
+      logFile = new File(
+          UpgradeUtils.getInstallationPath() + File.separator + UPGRADELOGNAME);
     }
     try
     {

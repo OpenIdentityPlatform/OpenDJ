@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -175,12 +175,12 @@ public class ConnectionHandlerDescriptor
     this.monitoringEntries = Collections.unmodifiableSet(monitoringEntries);
 
     StringBuilder builder = new StringBuilder();
-    builder.append(getProtocol() + " " + getState() + " ");
+    builder.append(getProtocol()).append(" ").append(getState()).append(" ");
     for (InetAddress address : addresses)
     {
-      builder.append(address.toString());
+      builder.append(address);
     }
-    builder.append(" Port: "+port);
+    builder.append(" Port: ").append(port);
     toString = builder.toString();
     hashCode = toString.hashCode();
   }

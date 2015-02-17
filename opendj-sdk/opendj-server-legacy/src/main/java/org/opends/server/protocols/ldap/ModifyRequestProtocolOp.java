@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -177,8 +177,7 @@ public class ModifyRequestProtocolOp
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("ModifyRequest(dn=");
-    buffer.append(dn.toString());
+    buffer.append("ModifyRequest(dn=").append(dn);
     buffer.append(", mods={");
 
     if (! modifications.isEmpty())
@@ -221,7 +220,7 @@ public class ModifyRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  DN:  ");
-    buffer.append(dn.toString());
+    buffer.append(dn);
     buffer.append(EOL);
 
     buffer.append("  Modifications:");

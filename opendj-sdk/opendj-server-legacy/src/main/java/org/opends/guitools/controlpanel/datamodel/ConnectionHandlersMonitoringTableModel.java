@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.datamodel;
 
@@ -168,7 +168,7 @@ AddressConnectionHandlerDescriptor>
         sb.append(ch.getName());
         break;
       default:
-        sb.append(ch.getProtocol().getDisplayMessage().toString());
+        sb.append(ch.getProtocol().getDisplayMessage());
       break;
       }
     }

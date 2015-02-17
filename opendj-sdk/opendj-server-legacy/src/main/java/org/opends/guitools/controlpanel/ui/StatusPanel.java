@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -257,7 +257,7 @@ class StatusPanel extends StatusGenericPanel
           mb.append(
               INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
               get());
-          mb.append("<br><br>"+getAuthenticateHTML());
+          mb.append("<br><br>").append(getAuthenticateHTML());
           LocalizableMessage title =
             INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
           updateErrorPane(errorPane, title,
@@ -272,7 +272,7 @@ class StatusPanel extends StatusGenericPanel
         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
             desc.getHostname()));
-        mb.append("<br><br>"+getAuthenticateHTML());
+        mb.append("<br><br>").append(getAuthenticateHTML());
         LocalizableMessage title =
           INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
         updateErrorPane(errorPane, title,
@@ -306,19 +306,16 @@ class StatusPanel extends StatusGenericPanel
         if (!desc.isAuthenticated())
         {
           mb.append("<br>");
-          mb.append(
-     INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
-     get());
-          mb.append("<br><br>"+getAuthenticateHTML());
+          mb.append(INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.get());
+          mb.append("<br><br>").append(getAuthenticateHTML());
         }
       }
       else if (desc.getStatus() ==
         ServerDescriptor.ServerStatus.NOT_CONNECTED_TO_REMOTE)
       {
         mb.append("<br>");
-        mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
-          desc.getHostname()));
-        mb.append("<br><br>"+getAuthenticateHTML());
+        mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
+        mb.append("<br><br>").append(getAuthenticateHTML());
       }
       updateErrorPane(errorPane, title, ColorAndFontConstants.errorTitleFont,
           mb.toMessage(), ColorAndFontConstants.defaultFont);

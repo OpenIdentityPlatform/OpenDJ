@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.util;
 
@@ -1170,7 +1170,7 @@ public class Utilities
           // Check where to insert a line break
           if (lastSpace != -1)
           {
-            sb.append(lastLine.subSequence(0, lastSpace));
+            sb.append(lastLine, 0, lastSpace);
             sb.append("<br>");
             lastLine.delete(0, lastSpace + 1);
             lastLine.append(c);

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -172,7 +173,7 @@ public class IndexDescriptor extends AbstractIndexDescriptor
     StringBuilder sb = new StringBuilder();
     for (IndexType t : types)
     {
-      sb.append(t+",");
+      sb.append(t).append(",");
     }
     if (getBackend() != null)
     {

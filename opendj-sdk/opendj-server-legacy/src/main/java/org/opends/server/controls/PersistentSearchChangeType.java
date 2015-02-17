@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 
@@ -309,12 +309,12 @@ public enum PersistentSearchChangeType
     Iterator<PersistentSearchChangeType> iterator = changeTypes.iterator();
     if (iterator.hasNext())
     {
-      buffer.append(iterator.next().toString());
+      buffer.append(iterator.next());
 
       while (iterator.hasNext())
       {
         buffer.append("|");
-        buffer.append(iterator.next().toString());
+        buffer.append(iterator.next());
       }
     }
   }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -164,15 +164,11 @@ public class IntermediateResponseProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("IntermediateResponse(oid=");
-    buffer.append(String.valueOf(oid));
-
+    buffer.append("IntermediateResponse(oid=").append(oid);
     if (value != null)
     {
-      buffer.append(", value=");
-      buffer.append(value.toString());
+      buffer.append(", value=").append(value);
     }
-
     buffer.append(")");
   }
 

@@ -122,7 +122,7 @@ public final class AddChangeRecordEntry extends ChangeRecordEntry
   {
     StringBuilder buffer = new StringBuilder();
     buffer.append("AddChangeRecordEntry(dn=\"");
-    buffer.append(String.valueOf(getDN()));
+    buffer.append(getDN());
     buffer.append("\", attrs={");
 
     Iterator<Attribute> iterator = attributes.iterator();

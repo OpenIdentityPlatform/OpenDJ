@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -389,7 +389,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
   {
     String dn = this.dn.getText();
     StringBuilder sb = new StringBuilder();
-    sb.append("dn: "+dn);
+    sb.append("dn: ").append(dn);
     for (String attrName : entryToDuplicate.getAttributeNames())
     {
       List<Object> values = entryToDuplicate.getAttributeValues(attrName);
@@ -399,7 +399,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         String pwd = new String(password.getPassword());
         if (!pwd.isEmpty())
         {
-          sb.append(attrName+": " + pwd);
+          sb.append(attrName).append(": ").append(pwd);
         }
       }
       else if (!attrName.equalsIgnoreCase(rdnAttribute))
@@ -412,17 +412,14 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         for (Object value : values)
         {
           sb.append("\n");
-          if (value instanceof String)
+          if (value instanceof byte[])
           {
-            sb.append(attrName+": "+value);
-          }
-          else if (value instanceof byte[])
-          {
-            sb.append(attrName+":: "+Base64.encode((byte[])value));
+            final String base64 = Base64.encode((byte[]) value);
+            sb.append(attrName).append(":: ").append(base64);
           }
           else
           {
-            sb.append(attrName+": "+value);
+            sb.append(attrName).append(": ").append(value);
           }
         }
       }
@@ -442,7 +439,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
         if (values.size() == 1)
         {
           sb.append("\n");
-          sb.append(attrName+": "+newValue);
+          sb.append(attrName).append(": ").append(newValue);
         }
         else
         {
@@ -462,11 +459,11 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
             sb.append("\n");
             if (oldValue.equals(value))
             {
-              sb.append(attrName+": "+newValue);
+              sb.append(attrName).append(": ").append(newValue);
             }
             else
             {
-              sb.append(attrName+": "+value);
+              sb.append(attrName).append(": ").append(value);
             }
           }
         }

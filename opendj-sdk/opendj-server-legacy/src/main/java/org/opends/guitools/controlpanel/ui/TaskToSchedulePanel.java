@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -625,7 +625,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
       int h = Integer.parseInt(sTime.substring(0, index).trim());
       int m = Integer.parseInt(sTime.substring(index+1).trim());
       StringBuilder sb = new StringBuilder();
-      sb.append(m+" "+h+" * * ");
+      sb.append(m).append(" ").append(h).append(" * * ");
 
       boolean oneDayAdded = false;
       for (int i=0; i<weekDays.length; i++)
@@ -649,7 +649,7 @@ public class TaskToSchedulePanel extends StatusGenericPanel
       int h = Integer.parseInt(sTime.substring(0, index).trim());
       int m = Integer.parseInt(sTime.substring(index+1).trim());
       StringBuilder sb = new StringBuilder();
-      sb.append(m+" "+h+" ");
+      sb.append(m).append(" ").append(h).append(" ");
       boolean oneDayAdded = false;
       for (int i=0; i<monthDays.length; i++)
       {

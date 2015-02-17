@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -272,18 +272,12 @@ public class SearchRequestProtocolOp
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append("SearchRequest(baseDN=");
-    buffer.append(baseDN.toString());
-    buffer.append(", scope=");
-    buffer.append(String.valueOf(scope));
-    buffer.append(", derefPolicy=");
-    buffer.append(String.valueOf(dereferencePolicy));
-    buffer.append(", sizeLimit=");
-    buffer.append(sizeLimit);
-    buffer.append(", timeLimit=");
-    buffer.append(timeLimit);
-    buffer.append(", typesOnly=");
-    buffer.append(typesOnly);
+    buffer.append("SearchRequest(baseDN=").append(baseDN);
+    buffer.append(", scope=").append(scope);
+    buffer.append(", derefPolicy=").append(dereferencePolicy);
+    buffer.append(", sizeLimit=").append(sizeLimit);
+    buffer.append(", timeLimit=").append(timeLimit);
+    buffer.append(", typesOnly=").append(typesOnly);
     buffer.append(", filter=");
     filter.toString(buffer);
     buffer.append(", attributes={");
@@ -322,57 +316,26 @@ public class SearchRequestProtocolOp
       indentBuf.append(' ');
     }
 
-    buffer.append(indentBuf);
-    buffer.append("Search Request");
-    buffer.append(EOL);
-
-    buffer.append(indentBuf);
-    buffer.append("  Base DN:  ");
-    buffer.append(baseDN.toString());
-    buffer.append(EOL);
-
-    buffer.append(indentBuf);
-    buffer.append("  Scope:  ");
-    buffer.append(String.valueOf(scope));
-    buffer.append(EOL);
-
-    buffer.append(indentBuf);
-    buffer.append("  Dereference Policy:  ");
-    buffer.append(String.valueOf(dereferencePolicy));
-    buffer.append(EOL);
-
-    buffer.append(indentBuf);
-    buffer.append("  Size Limit:  ");
-    buffer.append(sizeLimit);
-    buffer.append(EOL);
-
-    buffer.append(indentBuf);
-    buffer.append("  Time Limit:  ");
-    buffer.append(timeLimit);
-    buffer.append(EOL);
-
-    buffer.append(indentBuf);
-    buffer.append("  Types Only:  ");
-    buffer.append(typesOnly);
-    buffer.append(EOL);
+    buffer.append(indentBuf).append("Search Request").append(EOL);
+    buffer.append(indentBuf).append("  Base DN:  ").append(baseDN).append(EOL);
+    buffer.append(indentBuf).append("  Scope:  ").append(scope).append(EOL);
+    buffer.append(indentBuf).append("  Dereference Policy:  ").append(dereferencePolicy).append(EOL);
+    buffer.append(indentBuf).append("  Size Limit:  ").append(sizeLimit).append(EOL);
+    buffer.append(indentBuf).append("  Time Limit:  ").append(timeLimit).append(EOL);
+    buffer.append(indentBuf).append("  Types Only:  ").append(typesOnly).append(EOL);
 
     buffer.append(indentBuf);
     buffer.append("  Filter:  ");
     filter.toString(buffer);
     buffer.append(EOL);
 
-    buffer.append(indentBuf);
-    buffer.append("  Attributes:");
-    buffer.append(EOL);
+    buffer.append(indentBuf).append("  Attributes:").append(EOL);
 
     if (attributes != null)
     {
       for (String attribute : attributes)
       {
-        buffer.append(indentBuf);
-        buffer.append("    ");
-        buffer.append(attribute);
-        buffer.append(EOL);
+        buffer.append(indentBuf).append("    ").append(attribute).append(EOL);
       }
     }
   }

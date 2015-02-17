@@ -2529,17 +2529,9 @@ public class ADSContext
     try {
       ADSContextHelper helper = new ADSContextHelper();
       final LdapName baseDN = new LdapName(baseDNStr);
-      final String FILTER_OC_INSTANCE_KEY
-      = new StringBuilder("(objectclass=")
-      .append(helper.getOcCryptoInstanceKey())
-      .append(")").toString();
-      final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
-      .append(helper.getAttrCryptoKeyCompromisedTime())
-      .append("=*))").toString();
-      final String searchFilter = new StringBuilder("(&")
-      .append(FILTER_OC_INSTANCE_KEY)
-      .append(FILTER_NOT_COMPROMISED)
-      .append(")").toString();
+      final String FILTER_OC_INSTANCE_KEY = "(objectclass=" + helper.getOcCryptoInstanceKey() + ")";
+      final String FILTER_NOT_COMPROMISED = "(!(" + helper.getAttrCryptoKeyCompromisedTime() + "=*))";
+      final String searchFilter = "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + ")";
       final SearchControls searchControls = new SearchControls();
       searchControls.setSearchScope(SearchControls.ONELEVEL_SCOPE);
       final String attrIDs[]= {

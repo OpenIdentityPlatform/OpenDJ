@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -119,7 +119,7 @@ public class DeleteRequestProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("DeleteRequest(dn=");
-    buffer.append(dn.toString());
+    buffer.append(dn);
     buffer.append(")");
   }
 
@@ -147,7 +147,7 @@ public class DeleteRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  Entry DN:  ");
-    buffer.append(dn.toString());
+    buffer.append(dn);
     buffer.append(EOL);
   }
 }

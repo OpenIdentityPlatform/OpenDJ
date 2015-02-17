@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
@@ -950,7 +950,7 @@ public class FilePermission
     {
       modeByte |= 0x01;
     }
-    buffer.append(String.valueOf(modeByte));
+    buffer.append(modeByte);
 
     modeByte = 0x00;
     if (p.isGroupReadable())
@@ -965,7 +965,7 @@ public class FilePermission
     {
       modeByte |= 0x01;
     }
-    buffer.append(String.valueOf(modeByte));
+    buffer.append(modeByte);
 
     modeByte = 0x00;
     if (p.isOtherReadable())
@@ -980,7 +980,7 @@ public class FilePermission
     {
       modeByte |= 0x01;
     }
-    buffer.append(String.valueOf(modeByte));
+    buffer.append(modeByte);
   }
 
 

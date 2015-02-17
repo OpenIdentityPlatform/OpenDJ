@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -374,7 +374,7 @@ public final class VirtualAttributeRule
     buffer.append("\", baseDNs={");
     append(buffer, baseDNs);
 
-    buffer.append("}, scope=").append(scope.toString());
+    buffer.append("}, scope=").append(scope);
 
     buffer.append(", groupDNs={");
     append(buffer, groupDNs);

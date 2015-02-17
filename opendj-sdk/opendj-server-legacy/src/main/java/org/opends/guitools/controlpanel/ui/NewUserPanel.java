@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -366,7 +366,7 @@ public class NewUserPanel extends AbstractNewEntryPanel
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("dn: "+dn.getText()+"\n");
+    sb.append("dn: ").append(dn.getText()).append("\n");
     String[] attrNames = {"givenName", "sn", "cn", "uid", "userPassword",
         "mail", "telephoneNumber", "facsimileTelephoneNumber"};
     JTextField[] textFields = {firstName, lastName, commonName, userID,
@@ -379,7 +379,7 @@ public class NewUserPanel extends AbstractNewEntryPanel
       String value = textFields[i].getText().trim();
       if (value.length() > 0)
       {
-        sb.append(attrNames[i]+": "+value+"\n");
+        sb.append(attrNames[i]).append(": ").append(value).append("\n");
       }
     }
     return sb.toString();

@@ -270,7 +270,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
   private String getLDIF()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("dn: "+getDisplayedDN());
+    sb.append("dn: ").append(getDisplayedDN());
     for (int i=0; i<tableModel.getRowCount(); i++)
     {
       String attrName = (String)tableModel.getValueAt(i, 0);
@@ -383,13 +383,13 @@ public class TableViewEntryPanel extends ViewEntryPanel
           {
             newDN = parent.child(newRDN);
           }
-          sb.append(newDN.toString());
+          sb.append(newDN);
         }
         else
         {
           if (parent != null)
           {
-            sb.append(","+parent.toString());
+            sb.append(",").append(parent);
           }
         }
       }

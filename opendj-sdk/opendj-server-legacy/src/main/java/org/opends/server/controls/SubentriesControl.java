@@ -149,7 +149,7 @@ public class SubentriesControl
   public void toString(StringBuilder buffer)
   {
     buffer.append("SubentriesControl(visibility=\"");
-    buffer.append(Boolean.toString(visibility));
+    buffer.append(visibility);
     buffer.append("\")");
   }
 }

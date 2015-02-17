@@ -292,8 +292,8 @@ public abstract class Task
        */
       public void newLine(String msg)
       {
-        outputLogs.append(msg+"\n");
-        logs.append(msg+"\n");
+        outputLogs.append(msg).append("\n");
+        logs.append(msg).append("\n");
       }
     });
     errorPrintStream.addListener(new PrintStreamListener()
@@ -304,8 +304,8 @@ public abstract class Task
        */
       public void newLine(String msg)
       {
-        errorLogs.append(msg+"\n");
-        logs.append(msg+"\n");
+        errorLogs.append(msg).append("\n");
+        logs.append(msg).append("\n");
       }
     });
     server = info.getServerDescriptor();
@@ -942,10 +942,10 @@ public abstract class Task
         args);
 
     StringBuilder sb = new StringBuilder();
-    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY.get()+"<br><b>");
+    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_MODIFY.get()).append("<br><b>");
     sb.append(equiv);
     sb.append("<br>");
-    sb.append("dn: "+dn);
+    sb.append("dn: ").append(dn);
     boolean firstChangeType = true;
     for (ModificationItem mod : mods)
     {
@@ -962,15 +962,15 @@ public abstract class Task
       String attrName = attr.getID();
       if (mod.getModificationOp() == DirContext.ADD_ATTRIBUTE)
       {
-        sb.append("add: "+attrName+"<br>");
+        sb.append("add: ").append(attrName).append("<br>");
       }
       else if (mod.getModificationOp() == DirContext.REPLACE_ATTRIBUTE)
       {
-        sb.append("replace: "+attrName+"<br>");
+        sb.append("replace: ").append(attrName).append("<br>");
       }
       else
       {
-        sb.append("delete: "+attrName+"<br>");
+        sb.append("delete: ").append(attrName).append("<br>");
       }
       for (int i=0; i<attr.size(); i++)
       {
@@ -981,11 +981,11 @@ public abstract class Task
           // Use the attribute names to figure out the value to be displayed.
           if (displayBase64(attr.getID()))
           {
-            sb.append(attrName+":: ");
+            sb.append(attrName).append(":: ");
           }
           else
           {
-            sb.append(attrName+": ");
+            sb.append(attrName).append(": ");
           }
           sb.append(obfuscateAttributeStringValue(attrName, o));
           sb.append("<br>");
@@ -1082,13 +1082,13 @@ public abstract class Task
     String equiv = getEquivalentCommandLine(getCommandLinePath("ldapmodify"),
         args);
     StringBuilder sb = new StringBuilder();
-    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_RENAME.get()+"<br><b>");
+    sb.append(INFO_CTRL_PANEL_EQUIVALENT_CMD_TO_RENAME.get()).append("<br><b>");
     sb.append(equiv);
     sb.append("<br>");
-    sb.append("dn: "+oldDN);
+    sb.append("dn: ").append(oldDN);
     sb.append("<br>");
     sb.append("changetype: moddn<br>");
-    sb.append("newrdn: "+newDN.rdn()+"<br>");
+    sb.append("newrdn: ").append(newDN.rdn()).append("<br>");
     sb.append("deleteoldrdn: 1");
     sb.append("</b><br><br>");
     getProgressDialog().appendProgressHtml(

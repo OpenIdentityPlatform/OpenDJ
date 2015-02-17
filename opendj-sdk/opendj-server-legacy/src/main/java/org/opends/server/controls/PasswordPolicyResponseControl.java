@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -319,7 +319,7 @@ public class PasswordPolicyResponseControl
 
     if (warningType != null)
     {
-      buffer.append(warningType.toString());
+      buffer.append(warningType);
       buffer.append("=");
       buffer.append(warningValue);
 
@@ -331,7 +331,7 @@ public class PasswordPolicyResponseControl
 
     if (errorType != null)
     {
-      buffer.append(errorType.toString());
+      buffer.append(errorType);
     }
 
     buffer.append(")");

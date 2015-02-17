@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -202,17 +202,13 @@ public class ModifyDNRequestProtocolOp
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("ModifyDNRequest(dn=");
-    buffer.append(entryDN.toString());
-    buffer.append(", newRDN=");
-    buffer.append(newRDN.toString());
-    buffer.append(", deleteOldRDN=");
-    buffer.append(deleteOldRDN);
+    buffer.append("ModifyDNRequest(dn=").append(entryDN);
+    buffer.append(", newRDN=").append(newRDN);
+    buffer.append(", deleteOldRDN=").append(deleteOldRDN);
 
     if (newSuperior != null)
     {
-      buffer.append(", newSuperior=");
-      buffer.append(newSuperior.toString());
+      buffer.append(", newSuperior=").append(newSuperior);
     }
 
     buffer.append(")");
@@ -242,12 +238,12 @@ public class ModifyDNRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  Entry DN:  ");
-    buffer.append(entryDN.toString());
+    buffer.append(entryDN);
     buffer.append(EOL);
 
     buffer.append(indentBuf);
     buffer.append("  New RDN:  ");
-    buffer.append(newRDN.toString());
+    buffer.append(newRDN);
     buffer.append(EOL);
 
     buffer.append(indentBuf);
@@ -259,7 +255,7 @@ public class ModifyDNRequestProtocolOp
     {
       buffer.append(indentBuf);
       buffer.append("  New Superior:  ");
-      buffer.append(newSuperior.toString());
+      buffer.append(newSuperior);
       buffer.append(EOL);
     }
   }

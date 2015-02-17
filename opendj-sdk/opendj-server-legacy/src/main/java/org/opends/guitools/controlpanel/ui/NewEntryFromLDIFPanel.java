@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -98,7 +98,7 @@ public class NewEntryFromLDIFPanel extends AbstractNewEntryPanel
     sb.append(emptyDn);
     if (parentNode != null)
     {
-      sb.append(","+parentNode.getDN());
+      sb.append(",").append(parentNode.getDN());
     }
     sb.append("\nobjectClass: top");
     ldif.setText(sb.toString());

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -466,7 +466,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
     mb.append(INFO_CTRL_PANEL_CONFIRMATION_DELETE_BASE_DNS_DETAILS.get());
     for (BaseDNDescriptor baseDN : baseDNsToDelete)
     {
-      mb.append("<br> - "+baseDN.getDn());
+      mb.append("<br> - ").append(baseDN.getDn());
     }
     if (indirectBackendsToDelete.size() > 0)
     {
@@ -475,7 +475,7 @@ public class DeleteBaseDNPanel extends StatusGenericPanel
           INFO_CTRL_PANEL_CONFIRMATION_DELETE_BASE_DNS_INDIRECT_DETAILS.get());
       for (String backendID : indirectBackendsToDelete)
       {
-        mb.append("<br> - "+backendID);
+        mb.append("<br> - ").append(backendID);
       }
     }
     mb.append("<br><br>");

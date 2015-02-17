@@ -673,7 +673,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
     {
       if (subType != null)
       {
-        l.append(NAME + " ("+subType+")");
+        l.append(NAME).append(" (").append(subType).append(")");
       }
       else
       {
@@ -692,7 +692,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         l.append(friendly);
         if (subType != null)
         {
-          l.append(" ("+subType+")");
+          l.append(" (").append(subType).append(")");
         }
       }
     }
@@ -1416,8 +1416,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   private String getLDIF()
   {
     StringBuilder sb = new StringBuilder();
-
-    sb.append("dn: "+getDisplayedDN());
+    sb.append("dn: ").append(getDisplayedDN());
 
     for (String attrName : hmEditors.keySet())
     {
@@ -1653,13 +1652,13 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
           {
             newDN = parent.child(newRDN);
           }
-          sb.append(newDN.toString());
+          sb.append(newDN);
         }
         else
         {
           if (parent != null)
           {
-            sb.append(","+parent.toString());
+            sb.append(",").append(parent);
           }
         }
       }

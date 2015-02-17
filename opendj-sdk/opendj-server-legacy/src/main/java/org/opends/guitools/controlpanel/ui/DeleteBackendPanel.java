@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -167,7 +167,7 @@ public class DeleteBackendPanel extends DeleteBaseDNPanel
     mb.append(INFO_CTRL_PANEL_CONFIRMATION_DELETE_BACKENDS_DETAILS.get());
     for (BackendDescriptor backend : backendsToDelete)
     {
-      mb.append("<br> - "+backend.getBackendID());
+      mb.append("<br> - ").append(backend.getBackendID());
     }
     mb.append("<br><br>");
     mb.append(INFO_CTRL_PANEL_DO_YOU_WANT_TO_CONTINUE.get());

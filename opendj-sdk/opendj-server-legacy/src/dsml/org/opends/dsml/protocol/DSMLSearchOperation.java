@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -271,8 +271,7 @@ public class DSMLSearchOperation
   private static LDAPFilter createPresentFilter(AttributeDescription ad)
       throws LDAPException
   {
-    return LDAPFilter.decode(new StringBuilder(ad.getName()).append("=*")
-        .toString());
+    return LDAPFilter.decode(ad.getName() + "=*");
   }
 
 

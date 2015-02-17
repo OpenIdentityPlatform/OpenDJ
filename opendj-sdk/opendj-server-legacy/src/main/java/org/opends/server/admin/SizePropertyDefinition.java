@@ -308,15 +308,12 @@ public final class SizePropertyDefinition extends PropertyDefinition<Long> {
     }
 
     // Encode the size value using the best-fit unit.
-    StringBuilder builder = new StringBuilder();
     SizeUnit unit = SizeUnit.getBestFitUnitExact(value);
+    long fromBytes = (long) unit.fromBytes(value);
 
     // Cast to a long to remove fractional part (which should not be there
     // anyway as the best-fit unit should result in an exact conversion).
-    builder.append((long) unit.fromBytes(value));
-    builder.append(' ');
-    builder.append(unit.toString());
-    return builder.toString();
+    return fromBytes + " " + unit;
   }
 
 

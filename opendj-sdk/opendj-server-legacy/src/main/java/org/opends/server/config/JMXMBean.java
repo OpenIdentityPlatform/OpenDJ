@@ -136,7 +136,7 @@ public final class JMXMBean
               for (int j = rdns.length - 1; j >= 0; j--)
               {
                   int rdnIndex = rdns.length - j;
-                  buffer.append(",Rdn" + rdnIndex + "=") ;
+                  buffer.append(",Rdn").append(rdnIndex).append("=") ;
                   for (int i = 0; i < rdns[j].length(); i++)
                   {
                       char c = rdns[j].charAt(i);

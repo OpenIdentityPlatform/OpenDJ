@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -162,7 +163,7 @@ public class VLVIndexDescriptor extends AbstractIndexDescriptor
     StringBuilder sb = new StringBuilder();
     for (VLVSortOrder s : sortOrder)
     {
-      sb.append(s.getAttributeName()+s.isAscending()+",");
+      sb.append(s.getAttributeName()).append(s.isAscending()).append(",");
     }
     if (getBackend() != null)
     {

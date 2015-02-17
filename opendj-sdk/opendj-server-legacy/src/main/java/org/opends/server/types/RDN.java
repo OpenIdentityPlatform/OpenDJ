@@ -994,7 +994,7 @@ public final class RDN
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append(toString());
+    buffer.append(this);
   }
 
 

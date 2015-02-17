@@ -4329,7 +4329,7 @@ public class Entry
   @Override
   public void toString(StringBuilder buffer)
   {
-    buffer.append(toString());
+    buffer.append(this);
   }
 
 
@@ -4454,12 +4454,12 @@ public class Entry
         Iterator<ByteString> valueIterator = a.iterator();
         if (valueIterator.hasNext())
         {
-          buffer.append(valueIterator.next().toString());
+          buffer.append(valueIterator.next());
 
           while (valueIterator.hasNext())
           {
             buffer.append(",");
-            buffer.append(valueIterator.next().toString());
+            buffer.append(valueIterator.next());
           }
         }
 

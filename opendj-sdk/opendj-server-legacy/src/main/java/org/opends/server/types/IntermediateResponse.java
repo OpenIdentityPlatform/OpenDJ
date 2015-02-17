@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -195,10 +195,8 @@ public final class IntermediateResponse
   {
     buffer.append("IntermediateResponse(operation=");
     operation.toString(buffer);
-    buffer.append(",oid=");
-    buffer.append(String.valueOf(oid));
-    buffer.append(",value=");
-    buffer.append(String.valueOf(buffer));
+    buffer.append(",oid=").append(oid);
+    buffer.append(",value=").append(buffer);
 
     if (! controls.isEmpty())
     {

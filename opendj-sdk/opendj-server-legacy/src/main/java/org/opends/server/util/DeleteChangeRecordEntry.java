@@ -76,7 +76,7 @@ public final class DeleteChangeRecordEntry extends ChangeRecordEntry
   {
     StringBuilder buffer = new StringBuilder();
     buffer.append("DeleteChangeRecordEntry(dn=\"");
-    buffer.append(String.valueOf(getDN()));
+    buffer.append(getDN());
     buffer.append("\")");
 
     return buffer.toString();

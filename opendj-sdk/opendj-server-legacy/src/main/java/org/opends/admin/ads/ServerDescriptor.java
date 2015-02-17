@@ -1538,7 +1538,7 @@ public class ServerDescriptor
     sb.append(baseDN);
     for (ServerDescriptor server : servers)
     {
-      sb.append(Constants.LINE_SEPARATOR+"    ");
+      sb.append(Constants.LINE_SEPARATOR).append("    ");
       sb.append(server.getHostPort(true));
     }
     return sb.toString();

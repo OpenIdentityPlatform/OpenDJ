@@ -138,9 +138,9 @@ public final class ModifyDNChangeRecordEntry extends ChangeRecordEntry
   {
     StringBuilder buffer = new StringBuilder();
     buffer.append("ModifyDNChangeRecordEntry(dn=\"");
-    buffer.append(String.valueOf(getDN()));
+    buffer.append(getDN());
     buffer.append("\", newRDN=\"");
-    buffer.append(String.valueOf(newRDN));
+    buffer.append(newRDN);
     buffer.append("\", deleteOldRDN=");
     buffer.append(deleteOldRDN);
 

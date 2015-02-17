@@ -107,7 +107,7 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
   {
     StringBuilder buffer = new StringBuilder();
     buffer.append("ModifyChangeRecordEntry(dn=\"");
-    buffer.append(String.valueOf(getDN()));
+    buffer.append(getDN());
     buffer.append("\", mods={");
 
     Iterator<RawModification> iterator = modifications.iterator();
