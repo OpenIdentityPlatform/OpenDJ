@@ -351,7 +351,7 @@ public abstract class AbstractVLVIndexPanel extends StatusGenericPanel
     lines.add("ds-cfg-filter: "+filter.getText().trim());
     lines.add("ds-cfg-sort-order: "+getSortOrderStringValue(getSortOrder()));
     lines.add("ds-cfg-base-dn: "+getBaseDN());
-    lines.add("ds-cfg-scope: "+getScope().toString());
+    lines.add("ds-cfg-scope: " + getScope());
     lines.add("ds-cfg-max-block-size: "+maxBlockSize.getText().trim());
     StringBuilder sb = new StringBuilder();
     for (String line : lines)

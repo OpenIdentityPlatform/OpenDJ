@@ -1167,7 +1167,7 @@ public abstract class Task
         EMailMessage message =
              new EMailMessage(taskBackend.getNotificationSenderAddress(),
                               new ArrayList<String>(recipients),
-                              taskState.toString() + " " + taskID);
+                              taskState + " " + taskID);
 
         String scheduledStartDate;
         if (scheduledStartTime <= 0)

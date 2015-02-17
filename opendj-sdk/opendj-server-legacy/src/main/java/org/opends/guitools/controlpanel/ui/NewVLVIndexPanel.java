@@ -507,7 +507,7 @@ public class NewVLVIndexPanel extends AbstractVLVIndexPanel
       args.add("filter:"+filterValue);
 
       args.add("--set");
-      args.add("scope:"+scope.toString());
+      args.add("scope:"+scope);
 
       args.add("--set");
       args.add("sort-order:"+sortOrderStringValue);

@@ -352,8 +352,7 @@ public final class BackupDirectory
 
     // The first line in the file will only contain the DN of the
     // configuration entry for the associated backend.
-    writer.write(PROPERTY_BACKEND_CONFIG_DN + "=" +
-                 configEntryDN.toString());
+    writer.write(PROPERTY_BACKEND_CONFIG_DN + "=" + configEntryDN);
     writer.newLine();
     writer.newLine();
 

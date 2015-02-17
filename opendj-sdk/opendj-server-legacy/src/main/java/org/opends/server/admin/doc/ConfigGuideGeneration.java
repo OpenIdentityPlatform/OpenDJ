@@ -694,7 +694,7 @@ public class ConfigGuideGeneration {
     // Property table
     startTable();
     tableRow("Description",
-      ((prop.getSynopsis() != null) ? prop.getSynopsis().toString()+ " " : "") +
+      ((prop.getSynopsis() != null) ? prop.getSynopsis()+ " " : "") +
       ((prop.getDescription() != null) ?
         prop.getDescription().toString() : ""));
 
@@ -1147,7 +1147,7 @@ public class ConfigGuideGeneration {
         for (Object cst : en.getEnumConstants()) {
           enumStr += cst.toString();
           if (prop.getValueSynopsis((Enum) cst) != null) {
-            enumStr += " - " + prop.getValueSynopsis((Enum) cst).toString();
+            enumStr += " - " + prop.getValueSynopsis((Enum) cst);
           }
           enumStr += getNewLine() + getNewLine();
         }

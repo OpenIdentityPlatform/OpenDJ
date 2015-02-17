@@ -313,7 +313,7 @@ public class DeleteBaseDNAndBackendTask extends Task
               ArrayList<String> dns = new ArrayList<String>();
               for (BaseDNDescriptor baseDN : baseDNs)
               {
-                dns.add("'"+baseDN.getDn().toString()+"'");
+                dns.add("'" + baseDN.getDn() + "'");
               }
               getProgressDialog().appendProgressHtml(
                   Utilities.getProgressWithPoints(
@@ -621,7 +621,7 @@ public class DeleteBaseDNAndBackendTask extends Task
       args.add("--remove");
       for (BaseDNDescriptor baseDN : baseDNs)
       {
-        args.add("base-dn:"+baseDN.getDn().toString());
+        args.add("base-dn:" + baseDN.getDn());
       }
       args.addAll(getConnectionCommandLineArguments());
       args.add("--no-prompt");

@@ -148,7 +148,7 @@ public class SizeBasedRetentionPolicy implements
   @Override
   public String toString()
   {
-    return "Size Based Retention Policy " + config.dn().toString();
+    return "Size Based Retention Policy " + config.dn();
   }
 }
 

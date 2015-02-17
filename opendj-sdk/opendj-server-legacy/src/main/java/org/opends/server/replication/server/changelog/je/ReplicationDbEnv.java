@@ -480,7 +480,7 @@ public class ReplicationDbEnv
   static Entry<String, String> toReplicaEntry(DN baseDN, int serverId)
   {
     final String key = serverId + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString();
-    final String value = serverId + FIELD_SEPARATOR + baseDN.toString();
+    final String value = serverId + FIELD_SEPARATOR + baseDN;
     return new SimpleImmutableEntry<String, String>(key, value);
   }
 
@@ -498,7 +498,7 @@ public class ReplicationDbEnv
   {
     final String key = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDN.toIrreversibleReadableString();
     final String data = GENERATION_ID_TAG + FIELD_SEPARATOR + generationId
-        + FIELD_SEPARATOR + baseDN.toString();
+        + FIELD_SEPARATOR + baseDN;
     return new SimpleImmutableEntry<byte[], byte[]>(toBytes(key), toBytes(data));
   }
 
@@ -528,8 +528,8 @@ public class ReplicationDbEnv
   {
     final int serverId = offlineCSN.getServerId();
     final byte[] key = toReplicaOfflineKey(baseDN, serverId);
-    final byte[] data = toBytes(String.valueOf(offlineCSN.getTime()) + FIELD_SEPARATOR + serverId
-        + FIELD_SEPARATOR + baseDN.toString());
+    final byte[] data = toBytes(offlineCSN.getTime() + FIELD_SEPARATOR + serverId
+        + FIELD_SEPARATOR + baseDN);
     return new SimpleImmutableEntry<byte[], byte[]>(key, data);
   }
 

@@ -714,7 +714,7 @@ public class IndexPanel extends AbstractIndexPanel
       lines.add("ds-cfg-index-entry-limit: "+entryLimitValue);
       for (IndexType type : indexTypes)
       {
-        lines.add("ds-cfg-index-type: "+type.toString());
+        lines.add("ds-cfg-index-type: " + type);
       }
       StringBuilder sb = new StringBuilder();
       for (String line : lines)
@@ -896,12 +896,12 @@ public class IndexPanel extends AbstractIndexPanel
         for (IndexType newType : toAdd)
         {
           args.add("--add");
-          args.add("index-type:"+newType.toString());
+          args.add("index-type:" + newType);
         }
         for (IndexType newType : toDelete)
         {
           args.add("--remove");
-          args.add("index-type:"+newType.toString());
+          args.add("index-type:" + newType);
         }
       }
       if (entryLimitValue != indexToModify.getEntryLimit())

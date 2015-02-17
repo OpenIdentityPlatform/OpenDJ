@@ -764,7 +764,7 @@ public class DBTest
         for(EntryContainer ec : rc.getEntryContainers())
         {
           builder.startRow();
-          builder.appendCell("Base DN: " + ec.getBaseDN().toString());
+          builder.appendCell("Base DN: " + ec.getBaseDN());
           count = appendDatabaseContainerRows(builder, ec, count);
         }
       }

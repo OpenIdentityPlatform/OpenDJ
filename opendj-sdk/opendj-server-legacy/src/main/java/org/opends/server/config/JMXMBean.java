@@ -806,8 +806,7 @@ monitorLoop:
 
     MBeanConstructorInfo[]  mBeanConstructors  = new MBeanConstructorInfo[0];
     return new MBeanInfo(CLASS_NAME,
-                         "Configurable Attributes for " +
-                              configEntryDN.toString(),
+                         "Configurable Attributes for " + configEntryDN,
                          mBeanAttributes, mBeanConstructors, mBeanOperations,
                          mBeanNotifications);
   }

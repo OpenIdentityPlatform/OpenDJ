@@ -279,8 +279,7 @@ public class TaskScheduleInteraction
   private void printAvailableDependencyTaskMessage()
   {
     StringBuilder sb = new StringBuilder();
-    String separator = formatter.getLineBreak().toString() +
-    formatter.getTab().toString();
+    String separator = formatter.getLineBreak().toString() + formatter.getTab();
     for (TaskEntry entry : taskEntries)
     {
       sb.append(separator);

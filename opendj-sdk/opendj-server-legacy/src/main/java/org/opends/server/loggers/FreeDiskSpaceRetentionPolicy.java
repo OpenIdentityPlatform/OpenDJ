@@ -161,7 +161,7 @@ public class FreeDiskSpaceRetentionPolicy implements
   @Override
   public String toString()
   {
-    return "Free Disk Retention Policy " + config.dn().toString();
+    return "Free Disk Retention Policy " + config.dn();
   }
 }
 

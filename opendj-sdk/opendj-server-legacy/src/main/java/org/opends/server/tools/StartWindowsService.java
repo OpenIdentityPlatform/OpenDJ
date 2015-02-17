@@ -135,7 +135,7 @@ public class StartWindowsService
       {
         LocalizableMessage message = ERR_WINDOWS_SERVICE_START_ERROR.get();
         err.println(message);
-        err.println("Exception:" + t.toString());
+        err.println("Exception:" + t);
         returnValue = SERVICE_START_ERROR;
       }
     }

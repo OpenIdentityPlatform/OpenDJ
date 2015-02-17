@@ -280,7 +280,7 @@ public final class BSDMD5Crypt {
       }
     } catch (Exception e)
     {
-      System.err.println(e.getMessage().toString());
+      System.err.println(e.getMessage());
       System.exit(1);
     }
     System.exit(0);

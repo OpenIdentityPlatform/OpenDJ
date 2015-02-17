@@ -237,7 +237,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends
     ManagedObjectDefinitionI18NResource resource =
       ManagedObjectDefinitionI18NResource.getInstance();
     String property = "property." + getName()
-        + ".syntax.enumeration.value." + value.toString()
+        + ".syntax.enumeration.value." + value
         + ".synopsis";
     try {
       return resource.getMessage(getManagedObjectDefinition(),

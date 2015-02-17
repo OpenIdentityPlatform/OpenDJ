@@ -109,8 +109,7 @@ public class SelectableLabelWithHelpIcon extends JPanel
    */
   public void setText(String text)
   {
-    label.setText(Utilities.applyFont(text.toString(),
-        label.getFont()));
+    label.setText(Utilities.applyFont(text, label.getFont()));
   }
 
   /**

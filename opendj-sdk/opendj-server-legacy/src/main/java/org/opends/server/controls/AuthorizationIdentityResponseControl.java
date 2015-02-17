@@ -173,7 +173,7 @@ public class AuthorizationIdentityResponseControl
     }
     else
     {
-      this.authorizationID = "dn:" + authorizationDN.toString();
+      this.authorizationID = "dn:" + authorizationDN;
     }
   }
 

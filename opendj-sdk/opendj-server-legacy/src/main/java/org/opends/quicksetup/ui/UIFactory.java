@@ -1539,7 +1539,7 @@ public class UIFactory
     default:
       throw new IllegalArgumentException("Unknown iconName: " + iconType);
     }
-    return getParentPackagePath() + "/" + key.toString();
+    return getParentPackagePath() + "/" + key;
   }
 
   /**

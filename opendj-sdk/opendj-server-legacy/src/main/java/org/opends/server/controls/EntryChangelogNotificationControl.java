@@ -134,7 +134,7 @@ public class EntryChangelogNotificationControl
   public void writeValue(ASN1Writer writer) throws IOException {
     writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeStartSequence();
-    writer.writeOctetString(cookie.toString());
+    writer.writeOctetString(cookie);
     writer.writeEndSequence();
     writer.writeEndSequence();
   }
