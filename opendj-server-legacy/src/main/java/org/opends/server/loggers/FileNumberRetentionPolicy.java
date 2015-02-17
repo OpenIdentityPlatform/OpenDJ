@@ -120,7 +120,7 @@ public class FileNumberRetentionPolicy implements
    */
   public String toString()
   {
-    return "Free Number Retention Policy " + config.dn().toString();
+    return "Free Number Retention Policy " + config.dn();
   }
 }
 

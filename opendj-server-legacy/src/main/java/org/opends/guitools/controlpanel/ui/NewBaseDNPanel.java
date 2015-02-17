@@ -1409,7 +1409,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
               while (it.hasNext())
               {
                 args.add("--set");
-                args.add("index-type:" + it.next().toString());
+                args.add("index-type:" + it.next());
               }
             }
           }

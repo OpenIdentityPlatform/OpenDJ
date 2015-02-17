@@ -665,7 +665,7 @@ public class ConfigureWindowsService
       returnValue = SERVICE_CLEANUP_ERROR;
       msg = ERR_WINDOWS_SERVICE_CLEANUP_ERROR.get(serviceName);
       err.println(msg);
-      err.println("Exception:" + t.toString());
+      err.println("Exception:" + t);
     }
     return returnValue;
   }

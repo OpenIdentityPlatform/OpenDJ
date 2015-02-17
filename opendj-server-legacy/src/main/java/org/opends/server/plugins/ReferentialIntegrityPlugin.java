@@ -867,7 +867,7 @@ public class ReferentialIntegrityPlugin
         setupWriter();
         for(Map.Entry<DN,DN> mapEntry : modDNmap.entrySet())
         {
-          writer.write(mapEntry.getKey().toString() + "\t" + mapEntry.getValue().toString());
+          writer.write(mapEntry.getKey() + "\t" + mapEntry.getValue());
           writer.newLine();
         }
         writer.flush();

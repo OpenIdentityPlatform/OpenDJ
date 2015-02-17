@@ -874,7 +874,7 @@ class ReplicationEnvironment
    */
   File getServerIdPath(final String domainId, final int serverId)
   {
-    return new File(getDomainPath(domainId), String.valueOf(serverId) + SERVER_ID_SUFFIX);
+    return new File(getDomainPath(domainId), serverId + SERVER_ID_SUFFIX);
   }
 
   private File getGenerationIdPath(final String domainId, final long generationId)

@@ -155,7 +155,7 @@ public class ADSContextException extends OpenDsException {
     toString = "ADSContextException: error type "+error+".";
     if (getCause() != null)
     {
-      toString += "  Root cause: "+getCause().toString();
+      toString += "  Root cause: " + getCause();
     }
   }
 

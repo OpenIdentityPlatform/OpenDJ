@@ -110,7 +110,7 @@ public class LDAPRequestHandler
          throws InitializationException
   {
     super("LDAP Request Handler " + requestHandlerID +
-          " for connection handler " + connectionHandler.toString());
+          " for connection handler " + connectionHandler);
 
 
     handlerName        = getName();

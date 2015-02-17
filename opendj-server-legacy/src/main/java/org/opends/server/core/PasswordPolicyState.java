@@ -3243,7 +3243,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           {
             if (logger.isTraceEnabled())
             {
-              logger.trace("Encoded password " + v.toString() +
+              logger.trace("Encoded password " + v +
                       " cannot be decoded and cannot be added to history.");
             }
           }

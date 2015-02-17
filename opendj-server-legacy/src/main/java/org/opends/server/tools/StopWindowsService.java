@@ -139,7 +139,7 @@ public class StopWindowsService
       {
         LocalizableMessage message = ERR_WINDOWS_SERVICE_STOP_ERROR.get();
         err.println(message);
-        err.println("Exception:" + t.toString());
+        err.println("Exception:" + t);
         returnValue = SERVICE_STOP_ERROR;
       }
     }

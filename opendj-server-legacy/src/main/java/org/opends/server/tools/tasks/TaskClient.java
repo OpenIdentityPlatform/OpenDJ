@@ -176,9 +176,8 @@ public class TaskClient {
 
     if (scheduleRecurring) {
       taskID = information.getTaskId();
-      if ((taskID == null) || taskID.length() == 0) {
-        taskID = information.getTaskClass().getSimpleName() +
-          "-" + UUID.randomUUID().toString();
+      if (taskID == null || taskID.length() == 0) {
+        taskID = information.getTaskClass().getSimpleName() + "-" + UUID.randomUUID();
       }
     } else {
       // Use a formatted time/date for the ID so that is remotely useful

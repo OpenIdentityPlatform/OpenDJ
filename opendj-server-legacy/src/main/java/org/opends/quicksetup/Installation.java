@@ -700,8 +700,8 @@ public final class Installation
    */
   public File getBaseSchemaFile() throws ApplicationException
   {
-    return new File(getConfigurationUpgradeDirectory(), "schema.ldif."
-        + getInstanceSvnRev().toString());
+    return new File(getConfigurationUpgradeDirectory(),
+        "schema.ldif." + getInstanceSvnRev());
   }
 
 
@@ -717,8 +717,8 @@ public final class Installation
    */
   public File getBaseConfigurationFile() throws ApplicationException
   {
-    return new File(getConfigurationUpgradeDirectory(), BASE_CONFIG_FILE_PREFIX
-        + getInstanceSvnRev().toString());
+    return new File(getConfigurationUpgradeDirectory(),
+        BASE_CONFIG_FILE_PREFIX + getInstanceSvnRev());
   }
 
 

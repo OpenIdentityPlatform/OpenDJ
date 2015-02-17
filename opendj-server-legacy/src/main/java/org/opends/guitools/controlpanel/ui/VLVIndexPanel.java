@@ -934,7 +934,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       if (indexToModify.getScope() != scope)
       {
         args.add("--set");
-        args.add("scope:"+scope.toString());
+        args.add("scope:"+scope);
       }
       if (!indexToModify.getFilter().equals(filterValue))
       {

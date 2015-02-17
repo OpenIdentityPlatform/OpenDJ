@@ -228,7 +228,7 @@ public class GetEffectiveRightsRequestControl extends Control
     writer.writeStartSequence();
     if(authzDN != null)
     {
-      writer.writeOctetString("dn:" + authzDN.toString());
+      writer.writeOctetString("dn:" + authzDN);
     }
     else if(rawAuthzDN != null)
     {

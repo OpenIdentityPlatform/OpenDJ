@@ -150,7 +150,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       else
       {
         aParentDN = nodeDN.parent();
-        aRdn = nodeDN.rdn().getAttributeValue(0).toString()+"-1";
+        aRdn = nodeDN.rdn().getAttributeValue(0) + "-1";
       }
     }
     catch (DirectoryException de)

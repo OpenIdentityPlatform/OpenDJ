@@ -2143,7 +2143,7 @@ public final class Schema
       File tempFile = new File(concatFilePath + ".tmp");
       BufferedWriter writer =
            new BufferedWriter(new FileWriter(tempFile, false));
-      writer.write("dn: " + DirectoryServer.getSchemaDN().toString());
+      writer.write("dn: " + DirectoryServer.getSchemaDN());
       writer.newLine();
       writer.write("objectClass: top");
       writer.newLine();

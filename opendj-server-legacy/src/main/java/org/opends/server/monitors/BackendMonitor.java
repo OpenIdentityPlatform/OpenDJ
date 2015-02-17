@@ -182,7 +182,7 @@ public class BackendMonitor
         {
           logger.traceException(ex);
         }
-        builder.add(entryCount + " " + dn.toString());
+        builder.add(entryCount + " " + dn);
       }
     }
     else
@@ -190,7 +190,7 @@ public class BackendMonitor
       // This is done to avoid recalculating the number of entries
       // using the numSubordinates method in the case where the
       // backend has a single base DN.
-      builder.add(backendCount + " " + baseDNs[0].toString());
+      builder.add(backendCount + " " + baseDNs[0]);
     }
     attrs.add(builder.toAttribute());
 
