@@ -84,6 +84,17 @@
         <include>setcp.bat</include>
       </includes>
       <fileMode>755</fileMode>
+      <lineEnding>windows</lineEnding>
+    </fileSet>
+
+    <!-- Adds windows exe in lib/ directory -->
+    <fileSet>
+      <directory>${basedir}/lib</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
+        <include>*.exe</include>
+      </includes>
+      <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>
     </fileSet>
 
