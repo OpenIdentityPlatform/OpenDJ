@@ -181,13 +181,13 @@ public final class DSConfig extends ConsoleApplication {
             final LocalizableMessage placeholder = a.getValuePlaceholder();
             sb.append("         <variablelist>").append(EOL);
             sb.append("           <para>").append(EOL);
-            final LocalizableMessage userFriendlyName = defn.getUserFriendlyName();
-            sb.append("             ").append(userFriendlyName).append(" properties depend on the ").append(userFriendlyName)
+            final LocalizableMessage name = defn.getUserFriendlyName();
+            sb.append("             ").append(name).append(" properties depend on the ").append(name)
                 .append(" type, which depends on the ").append(placeholder).append(" you provide.").append(EOL);
             sb.append("           </para>").append(EOL);
             sb.append("           <para>").append(EOL);
             sb.append("             By default, OpenDJ directory server supports the following ")
-                .append(userFriendlyName).append(" types:").append(EOL);
+                .append(name).append(" types:").append(EOL);
             sb.append("           </para>").append(EOL);
 
             for (AbstractManagedObjectDefinition<?, ?> childDefn : getLeafChildren(defn)) {
