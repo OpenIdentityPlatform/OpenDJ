@@ -22,23 +22,23 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.server.util;
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.quicksetup.BuildInformation;
 
 import static org.opends.messages.VersionMessages.*;
 
-import java.util.Set;
-import java.util.List;
-import java.util.Collections;
-import java.util.HashSet;
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.quicksetup.BuildInformation;
+
 import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.Comparator;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Record for version compatibility issues (also known as 'flag days') which
@@ -601,6 +601,7 @@ public final class VersionCompatibilityIssue {
   static private final Comparator<VersionCompatibilityIssue>
           VERSION_COMPARATOR = new Comparator<VersionCompatibilityIssue>()
   {
+    @Override
     public int compare(VersionCompatibilityIssue o1,
                        VersionCompatibilityIssue o2) {
       return o1.getVersion().compareTo(o2.getVersion());
@@ -636,6 +637,7 @@ public final class VersionCompatibilityIssue {
    *
    * @return  A string representation of this version compatibility issue.
    */
+  @Override
   public String toString() {
     return Integer.toString(cause.getId());
   }

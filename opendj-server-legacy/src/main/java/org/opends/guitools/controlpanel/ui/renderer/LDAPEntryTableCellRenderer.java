@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui.renderer;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -50,7 +49,6 @@ import org.opends.server.types.Schema;
 /**
  * The renderer used by the table in the 'Attribute View' of the LDAP entry
  * browser.
- *
  */
 public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
 {

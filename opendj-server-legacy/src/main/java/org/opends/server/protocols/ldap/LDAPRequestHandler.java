@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-
-
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.logConnect;
@@ -53,7 +51,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
-
 
 /**
  * This class defines an LDAP request handler, which is associated with an LDAP

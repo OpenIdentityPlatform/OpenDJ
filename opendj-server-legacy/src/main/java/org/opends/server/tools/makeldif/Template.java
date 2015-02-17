@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -38,8 +37,6 @@ import org.opends.server.types.DN;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a template, which is a pattern that may be used to

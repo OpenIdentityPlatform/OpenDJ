@@ -22,22 +22,18 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.types;
 
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 
-
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.CoreMessages.*;
-
-
 
 /**
  * This class defines a data structure that contains configuration

@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
-
 package org.opends.server.admin.client.spi;
-
-
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,8 +36,6 @@ import java.util.TreeSet;
 import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyOption;
-
-
 
 /**
  * A set of properties. Instances of this class can be used as the

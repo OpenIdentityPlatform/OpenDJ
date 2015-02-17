@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.api;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
-
 
 import java.util.HashSet;
 import java.util.List;
@@ -44,8 +42,6 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
-
-
 
 /**
  * This class defines the set of methods that must be implemented by a

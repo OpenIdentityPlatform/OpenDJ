@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 

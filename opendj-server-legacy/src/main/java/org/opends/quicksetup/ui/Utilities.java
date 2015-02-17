@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.ui;
+
 import org.forgerock.i18n.LocalizableMessage;
 import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 

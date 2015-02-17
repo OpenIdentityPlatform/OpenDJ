@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.api;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
-
 
 import java.util.List;
 
@@ -38,7 +36,6 @@ import org.opends.server.types.InitializationException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
 
 /**
  * This class defines the set of methods and structures that must be

@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.config;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.config.ConfigConstants.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
+
 /**
  * This class defines an integer configuration attribute, which can hold zero or
  * more integer values.  For scalability, the actual values will be stored as
@@ -60,9 +60,6 @@ public final class IntegerConfigAttribute
        extends ConfigAttribute
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-
 
   // The set of active values for this attribute.
   private List<Long> activeValues;

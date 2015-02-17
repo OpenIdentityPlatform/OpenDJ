@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2015 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -56,8 +56,6 @@ import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
-
-
 
 /**
  * This class defines the SASL context needed to process GSSAPI and DIGEST-MD5
