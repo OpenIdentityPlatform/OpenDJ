@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-
-
 
 import org.opends.server.types.AttributeType;
 

@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
-
 package org.opends.server.util;
 
 import java.io.*;
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.UtilityMessages.*;
-
 
 /**
  * This class provides an interface for generating self-signed certificates and

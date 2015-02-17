@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -80,7 +79,6 @@ import org.opends.server.util.ServerConstants;
 /**
  * A class that reads the configuration and monitoring information using a
  * DirContext through LDAP.
- *
  */
 public class ConfigFromDirContext extends ConfigReader
 {

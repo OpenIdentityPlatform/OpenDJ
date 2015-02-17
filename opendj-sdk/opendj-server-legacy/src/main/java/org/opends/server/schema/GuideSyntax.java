@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.schema;
-
-
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -41,7 +39,6 @@ import static org.opends.messages.SchemaMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class implements the guide attribute syntax, which may be used to

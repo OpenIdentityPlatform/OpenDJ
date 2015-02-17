@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.server.tools.tasks;
 
 import static org.opends.messages.ToolMessages.*;

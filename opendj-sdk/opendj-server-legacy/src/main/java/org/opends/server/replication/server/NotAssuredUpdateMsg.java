@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -44,7 +44,6 @@ import org.opends.server.replication.protocol.*;
  * class to keep a reference to the real object, but that will overwrite the
  * assured flag value to false when serializing the message, and return false
  * when calling the isAssured() method.
- *
  */
 class NotAssuredUpdateMsg extends UpdateMsg
 {

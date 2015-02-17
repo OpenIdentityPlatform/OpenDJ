@@ -22,10 +22,8 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
-
-
 package org.opends.server.types;
 
 import java.util.LinkedHashMap;
@@ -37,8 +35,6 @@ import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines a data structure for storing and interacting

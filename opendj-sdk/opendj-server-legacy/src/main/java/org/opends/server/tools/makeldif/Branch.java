@@ -22,29 +22,25 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a branch that should be included in the resulting LDIF.  A
