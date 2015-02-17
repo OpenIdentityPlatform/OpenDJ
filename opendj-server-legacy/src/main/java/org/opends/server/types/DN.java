@@ -26,6 +26,11 @@
  */
 package org.opends.server.types;
 
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,11 +44,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.core.DirectoryServer;
-
-import static org.forgerock.util.Reject.*;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -1535,7 +1535,7 @@ public final class DN implements Comparable<DN>, Serializable
         else
         {
           byte ch1 = nameBytes.byteAt(1);
-          byte ch2 = nameBytes.byteAt(1);
+          byte ch2 = nameBytes.byteAt(2);
           if ((ch1 == 'i' || ch1 == 'I')
               && (ch2 == 'd' || ch2 == 'D')
               && nameBytes.byteAt(3) == '.')
