@@ -254,9 +254,9 @@ public final class Modification
   public void toString(StringBuilder buffer)
   {
     buffer.append("Modification(");
-    buffer.append(modificationType.toString());
+    buffer.append(modificationType);
     buffer.append(", ");
-    buffer.append(attribute.toString());
+    buffer.append(attribute);
   }
 }
 

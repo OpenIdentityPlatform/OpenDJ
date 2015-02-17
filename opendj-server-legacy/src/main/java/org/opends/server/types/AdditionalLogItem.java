@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -230,7 +230,7 @@ public final class AdditionalLogItem
       {
         builder.append('\'');
       }
-      builder.append(value.toString());
+      builder.append(value);
       if (isQuoted)
       {
         builder.append('\'');

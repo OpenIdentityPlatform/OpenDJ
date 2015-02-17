@@ -432,13 +432,8 @@ public final class ClassLoaderProvider {
    *         <code>null</code> if there is no information available.
    */
   public String printExtensionInformation() {
-    File extensionsPath =
-            new File(new StringBuilder(DirectoryServer.getServerRoot()).
-                                append(File.separator).
-                                append(LIB_DIR).
-                                append(File.separator).
-                                append(EXTENSIONS_DIR).
-                                toString());
+    String pathname = DirectoryServer.getServerRoot() + File.separator + LIB_DIR + File.separator + EXTENSIONS_DIR;
+    File extensionsPath = new File(pathname);
 
     if (!extensionsPath.exists() || !extensionsPath.isDirectory()) {
       // no extensions' directory

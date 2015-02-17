@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -160,7 +160,7 @@ public class CliUserInteraction extends ConsoleApplication
     if (list != null) {
       for (Object o : list) {
         sb.append(/*bullet=*/"* ");
-        sb.append(o.toString());
+        sb.append(o);
         sb.append(Constants.LINE_SEPARATOR);
       }
     }

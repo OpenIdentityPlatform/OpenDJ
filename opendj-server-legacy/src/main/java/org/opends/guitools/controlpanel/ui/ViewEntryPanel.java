@@ -444,7 +444,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       if (ocValue.getStructural() != null)
       {
         sb.append("\n");
-        sb.append(attrName+": "+ocValue.getStructural());
+        sb.append(attrName).append(": ").append(ocValue.getStructural());
         Schema schema = getInfo().getServerDescriptor().getSchema();
         if (schema != null)
         {
@@ -456,7 +456,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
             for (String name : names)
             {
               sb.append("\n");
-              sb.append(attrName+": "+name);
+              sb.append(attrName).append(": ").append(name);
             }
           }
         }
@@ -464,7 +464,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       for (String v : ocValue.getAuxiliary())
       {
         sb.append("\n");
-        sb.append(attrName+": "+v);
+        sb.append(attrName).append(": ").append(v);
       }
     }
     else if (value instanceof byte[])
@@ -472,21 +472,18 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       if (((byte[])value).length > 0)
       {
         sb.append("\n");
-        sb.append(attrName+":: "+Base64.encode((byte[])value));
+        sb.append(attrName).append(":: ").append(Base64.encode((byte[])value));
       }
     }
     else if (value instanceof BinaryValue)
     {
       sb.append("\n");
-      sb.append(attrName+":: "+((BinaryValue)value).getBase64());
+      sb.append(attrName).append(":: ").append(((BinaryValue)value).getBase64());
     }
-    else
+    else if (String.valueOf(value).trim().length() > 0)
     {
-      if (String.valueOf(value).trim().length() > 0)
-      {
-        sb.append("\n");
-        sb.append(attrName+": "+value);
-      }
+      sb.append("\n");
+      sb.append(attrName).append(": ").append(value);
     }
   }
 

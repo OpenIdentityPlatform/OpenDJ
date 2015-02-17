@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -152,8 +152,7 @@ public class LDAPModification
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append("LDAPModification(type=");
-    buffer.append(String.valueOf(modificationType));
+    buffer.append("LDAPModification(type=").append(modificationType);
     buffer.append(", attr=");
     attribute.toString(buffer);
     buffer.append("})");
@@ -177,16 +176,11 @@ public class LDAPModification
       indentBuf.append(' ');
     }
 
-    buffer.append(indentBuf);
-    buffer.append("LDAP Modification");
-    buffer.append(EOL);
+    buffer.append(indentBuf).append("LDAP Modification").append(EOL);
 
     buffer.append(indentBuf);
-    buffer.append("  Modification Type:  ");
-    buffer.append(String.valueOf(modificationType));
-    buffer.append(" (");
-    buffer.append(modificationType.intValue());
-    buffer.append(")");
+    buffer.append("  Modification Type:  ").append(modificationType);
+    buffer.append(" (").append(modificationType.intValue()).append(")");
     buffer.append(EOL);
 
     buffer.append("  Attribute:");

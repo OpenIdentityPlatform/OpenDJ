@@ -959,7 +959,7 @@ public abstract class Task
       buffer.append("-");
       buffer.append(message.ordinal());
       buffer.append(" message=\"");
-      buffer.append(message.toString());
+      buffer.append(message);
       buffer.append("\"");
       if (exception != null)
       {

@@ -1519,8 +1519,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
          */
         LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
         mb.append(ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN, msg.getDestination()));
-        mb.append(" unroutable message =" + msg.getClass().getSimpleName());
-        mb.append(" Details: " + ioe.getLocalizedMessage());
+        mb.append(" unroutable message =").append(msg.getClass().getSimpleName());
+        mb.append(" Details: ").append(ioe.getLocalizedMessage());
         final LocalizableMessage message = mb.toMessage();
         logger.error(message);
 

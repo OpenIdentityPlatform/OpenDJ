@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -304,13 +304,11 @@ public class EntryChangeNotificationControl
   public void toString(StringBuilder buffer)
   {
     buffer.append("EntryChangeNotificationControl(changeType=");
-    buffer.append(changeType.toString());
+    buffer.append(changeType);
 
     if (previousDN != null)
     {
-      buffer.append(",previousDN=\"");
-      buffer.append(previousDN.toString());
-      buffer.append("\"");
+      buffer.append(",previousDN=\"").append(previousDN).append("\"");
     }
 
     if (changeNumber > 0)

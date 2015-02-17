@@ -107,8 +107,7 @@ class LicenseFile
    */
   static private String getName()
   {
-    return new StringBuilder(getLegalDirectory()).append(File.separatorChar)
-        .append("license_to_accept.txt").toString();
+    return getLegalDirectory() + File.separatorChar + "license_to_accept.txt";
   }
 
   /**

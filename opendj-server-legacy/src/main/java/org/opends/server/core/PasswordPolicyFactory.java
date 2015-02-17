@@ -827,7 +827,7 @@ public final class PasswordPolicyFactory implements
       buffer.append(EOL);
 
       buffer.append("Update Failure Policy:                 ");
-      buffer.append(configuration.getStateUpdateFailurePolicy().toString());
+      buffer.append(configuration.getStateUpdateFailurePolicy());
       buffer.append(EOL);
     }
 

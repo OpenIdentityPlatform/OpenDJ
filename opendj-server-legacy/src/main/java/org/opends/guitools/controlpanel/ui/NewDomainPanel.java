@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -105,7 +105,7 @@ public class NewDomainPanel extends NewOrganizationPanel
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("dn: "+dn.getText()+"\n");
+    sb.append("dn: ").append(dn.getText()).append("\n");
     String[] attrNames = {"dc", "description"};
     JTextField[] textFields = {name, description};
     sb.append("objectclass: top\n");
@@ -115,11 +115,9 @@ public class NewDomainPanel extends NewOrganizationPanel
       String value = textFields[i].getText().trim();
       if (value.length() > 0)
       {
-        sb.append(attrNames[i]+": "+value+"\n");
+        sb.append(attrNames[i]).append(": ").append(value).append("\n");
       }
     }
     return sb.toString();
   }
 }
-
-

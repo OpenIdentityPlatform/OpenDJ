@@ -287,7 +287,7 @@ implements Comparator<ConnectionHandlerDescriptor>
         added = true;
         if (desc.getPort() > 0)
         {
-          buf.append(":"+desc.getPort());
+          buf.append(":").append(desc.getPort());
         }
       }
       returnValue = buf.toString();

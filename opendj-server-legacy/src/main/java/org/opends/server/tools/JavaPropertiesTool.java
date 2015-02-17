@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
-
 package org.opends.server.tools;
 
 import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
@@ -495,20 +494,19 @@ public class JavaPropertiesTool extends ConsoleApplication
       Properties properties)
   {
     StringBuilder buf = new StringBuilder();
-    buf.append("#!/bin/sh"+EOL+EOL);
+    buf.append("#!/bin/sh").append(EOL).append(EOL);
 
     if (!overwriteJavaHome)
     {
-      buf.append(
-          "# See if the environment variables for java home are set"+EOL+
-          "# in the path and try to figure it out."+EOL+
-          "if test ! -f \"${OPENDJ_JAVA_BIN}\""+EOL+
-          "then"+EOL+
-          "  if test ! -d \"${OPENDJ_JAVA_HOME}\""+EOL+
-          "  then"+EOL+
-          "    if test ! -f \"${OPENDS_JAVA_BIN}\""+EOL+
-          "    then"+EOL+
-          "      if test ! -d \"${OPENDS_JAVA_HOME}\""+EOL);
+      buf.append("# See if the environment variables for java home are set").append(EOL)
+          .append("# in the path and try to figure it out.").append(EOL)
+          .append("if test ! -f \"${OPENDJ_JAVA_BIN}\"").append(EOL)
+          .append("then").append(EOL)
+          .append("  if test ! -d \"${OPENDJ_JAVA_HOME}\"").append(EOL)
+          .append("  then").append(EOL)
+          .append("    if test ! -f \"${OPENDS_JAVA_BIN}\"").append(EOL)
+          .append("    then").append(EOL)
+          .append("      if test ! -d \"${OPENDS_JAVA_HOME}\"").append(EOL);
     }
 
     boolean propertiesAdded = false;
@@ -543,31 +541,28 @@ public class JavaPropertiesTool extends ConsoleApplication
             {
               s = "";
             }
-            buf.append(
-                s+"elif test \"${SCRIPT_NAME}.java-home\" = \""+name+"\""+EOL);
+            buf.append(s).append("elif test \"${SCRIPT_NAME}.java-home\" = \"").append(name).append("\"").append(EOL);
           }
           else if (!overwriteJavaHome)
           {
-            buf.append(
-                "  then"+EOL+
-                "    if test \"${SCRIPT_NAME}.java-home\" = \""+name+"\""+EOL);
+            buf.append("  then").append(EOL)
+              .append("    if test \"${SCRIPT_NAME}.java-home\" = \"").append(name).append("\"").append(EOL);
             s = "    ";
           }
           else
           {
-            buf.append(
-                "if test \"${SCRIPT_NAME}.java-home\" = \""+name+"\""+EOL);
+            buf.append("if test \"${SCRIPT_NAME}.java-home\" = \"").append(name).append("\"").append(EOL);
             s = "";
           }
 
-          buf.append(
-          s+"then"+EOL+
-          s+"  TEMP=\""+value+"/bin/java\""+EOL+
-          s+"  if test -f \"${TEMP}\""+EOL+
-          s+"  then"+EOL+
-          s+"    OPENDJ_JAVA_BIN=\""+value+"/bin/java\""+EOL+
-          s+"    export OPENDJ_JAVA_BIN"+EOL+
-          s+"  fi"+EOL);
+          buf
+            .append(s).append("then").append(EOL)
+            .append(s).append("  TEMP=\"").append(value).append("/bin/java\"").append(EOL)
+            .append(s).append("  if test -f \"${TEMP}\"").append(EOL)
+            .append(s).append("  then").append(EOL)
+            .append(s).append("    OPENDJ_JAVA_BIN=\"").append(value).append("/bin/java\"").append(EOL)
+            .append(s).append("    export OPENDJ_JAVA_BIN").append(EOL)
+            .append(s).append("  fi").append(EOL);
           nIfs++;
         }
       }
@@ -585,29 +580,26 @@ public class JavaPropertiesTool extends ConsoleApplication
         {
           s = "";
         }
-        buf.append(
-            s+"else"+EOL+
-            s+"  OPENDJ_JAVA_BIN=\""+defaultJavaHome+"/bin/java\""+EOL+
-            s+"  export OPENDJ_JAVA_BIN"+EOL);
+        buf.append(s).append("else").append(EOL)
+          .append(s).append("  OPENDJ_JAVA_BIN=\"").append(defaultJavaHome).append("/bin/java\"").append(EOL)
+          .append(s).append("  export OPENDJ_JAVA_BIN").append(EOL);
       }
       else
       {
         if (!overwriteJavaHome)
         {
-          buf.append(
-              "  then"+EOL+
-              "    TEMP=\""+defaultJavaHome+"/bin/java\""+EOL+
-              "    if test -f \"${TEMP}\""+EOL+
-              "    then"+EOL+
-              "      OPENDJ_JAVA_BIN=\"${TEMP}\""+EOL+
-              "      export OPENDJ_JAVA_BIN"+EOL+
-              "    fi"+EOL);
+          buf.append("  then").append(EOL)
+            .append("    TEMP=\"").append(defaultJavaHome).append("/bin/java\"").append(EOL)
+            .append("    if test -f \"${TEMP}\"").append(EOL)
+            .append("    then").append(EOL)
+            .append("      OPENDJ_JAVA_BIN=\"${TEMP}\"").append(EOL)
+            .append("      export OPENDJ_JAVA_BIN").append(EOL)
+            .append("    fi").append(EOL);
         }
         else
         {
-          buf.append(
-            "OPENDJ_JAVA_BIN=\""+defaultJavaHome+"/bin/java\""+EOL+
-            "export OPENDJ_JAVA_BIN"+EOL);
+          buf.append("OPENDJ_JAVA_BIN=\"").append(defaultJavaHome).append("/bin/java\"").append(EOL)
+            .append("export OPENDJ_JAVA_BIN").append(EOL);
         }
       }
       propertiesAdded = true;
@@ -624,8 +616,7 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         s = "";
       }
-      buf.append(
-          s+"fi"+EOL);
+      buf.append(s).append("fi").append(EOL);
     }
 
 
@@ -634,104 +625,101 @@ public class JavaPropertiesTool extends ConsoleApplication
       if (!propertiesAdded)
       {
         // No properties added: this is required not to break the script
-        buf.append(
-            "  then"+EOL+
-            "  OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_BIN}\""+EOL);
+        buf.append("  then").append(EOL)
+          .append("  OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_BIN}\"").append(EOL);
       }
-      buf.append(
-          "      else"+EOL+
-          "        OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\""+EOL+
-          "        export OPENDJ_JAVA_BIN"+EOL+
-          "      fi"+EOL+
-          "    else"+EOL+
-          "      OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_BIN}\""+EOL+
-          "      export OPENDJ_JAVA_BIN"+EOL+
-          "    fi"+EOL+
-          "  else"+EOL+
-          "    OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_HOME}/bin/java\""+EOL+
-          "    export OPENDJ_JAVA_BIN"+EOL+
-          "  fi"+EOL+
-
-          "fi"+EOL+EOL);
+      buf.append("      else").append(EOL)
+        .append("        OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\"").append(EOL)
+        .append("        export OPENDJ_JAVA_BIN").append(EOL)
+        .append("      fi").append(EOL)
+        .append("    else").append(EOL)
+        .append("      OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_BIN}\"").append(EOL)
+        .append("      export OPENDJ_JAVA_BIN").append(EOL)
+        .append("    fi").append(EOL)
+        .append("  else").append(EOL)
+        .append("    OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_HOME}/bin/java\"").append(EOL)
+        .append("    export OPENDJ_JAVA_BIN").append(EOL)
+        .append("  fi").append(EOL)
+        .append("fi").append(EOL)
+        .append(EOL);
     }
     else if (defaultJavaHome == null)
     {
-      buf.append(
-          EOL+
-          "if test ! -f \"${OPENDJ_JAVA_BIN}\""+EOL+
-          "then"+EOL+
-          "  if test ! -d \"${OPENDJ_JAVA_HOME}\""+EOL+
-          "  then"+EOL+
-          "    if test ! -f \"${OPENDS_JAVA_BIN}\""+EOL+
-          "    then"+EOL+
-          "      if test ! -d \"${OPENDS_JAVA_HOME}\""+EOL+
-          "      then"+EOL+
-          "        if test ! -f \"${JAVA_BIN}\""+EOL+
-          "        then"+EOL+
-          "          if test ! -d \"${JAVA_HOME}\""+EOL+
-          "          then"+EOL+
-          "            OPENDJ_JAVA_BIN=`which java 2> /dev/null`"+EOL+
-          "            if test ${?} -eq 0"+EOL+
-          "            then"+EOL+
-          "              export OPENDJ_JAVA_BIN"+EOL+
-          "            else"+EOL+
-          "              echo \"You must specify the path to a valid Java 6.0 "+
-          "or higher version in the\""+EOL+
-          "              echo \"properties file and then run the "+
-          "dsjavaproperties  tool. \""+EOL+
-          "              echo \"The procedure to follow is:\""+EOL+
-          "              echo \"You must specify the path to a valid Java 6.0 "+
-          "or higher version.  The \""+EOL+
-          "              echo \"procedure to follow is:\""+EOL+
-          "              echo \"1. Delete the file "+
-          "${INSTANCE_ROOT}/lib/set-java-home\""+EOL+
-          "              echo \"2. Set the environment variable "+
-          "OPENDJ_JAVA_HOME to the root of a valid \""+EOL+
-          "              echo \"Java 6.0 installation.\""+EOL+
-          "              echo \"If you want to have specificjava  settings for"+
-          " each command line you must\""+EOL+
-          "              echo \"follow the steps 3 and 4\""+EOL+
-          "              echo \"3. Edit the properties file specifying the "+
-          "java binary and the java arguments\""+EOL+
-          "              echo \"for each command line.  The java properties "+
-          "file is located in:\""+EOL+
-          "              echo \"${INSTANCE_ROOT}/config/java.properties.\""+EOL+
-          "              echo \"4. Run the command-line "+
-          "${INSTANCE_ROOT}/bin/dsjavaproperties\""+EOL+
-          "              exit 1"+EOL+
-          "            fi"+EOL+
-          "          else"+EOL+
-          "            OPENDJ_JAVA_BIN=\"${JAVA_HOME}/bin/java\""+EOL+
-          "            export OPENDJ_JAVA_BIN"+EOL+
-          "          fi"+EOL+
-          "        else"+EOL+
-          "          OPENDJ_JAVA_BIN=\"${JAVA_BIN}\""+EOL+
-          "          export OPENDJ_JAVA_BIN"+EOL+
-          "        fi"+EOL+
-          "      else"+EOL+
-          "        OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\""+EOL+
-          "        export OPENDJ_JAVA_BIN"+EOL+
-          "      fi"+EOL+
-          "    else"+EOL+
-          "      OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_BIN}\""+EOL+
-          "      export OPENDJ_JAVA_BIN"+EOL+
-          "    fi"+EOL+
-          "  else"+EOL+
-          "    OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_HOME}/bin/java\""+EOL+
-          "    export OPENDJ_JAVA_BIN"+EOL+
-          "  fi"+EOL+
-          "fi"+EOL+EOL);
+      buf.append(EOL)
+        .append("if test ! -f \"${OPENDJ_JAVA_BIN}\"").append(EOL)
+        .append("then").append(EOL)
+        .append("  if test ! -d \"${OPENDJ_JAVA_HOME}\"").append(EOL)
+        .append("  then").append(EOL)
+        .append("    if test ! -f \"${OPENDS_JAVA_BIN}\"").append(EOL)
+        .append("    then").append(EOL)
+        .append("      if test ! -d \"${OPENDS_JAVA_HOME}\"").append(EOL)
+        .append("      then").append(EOL)
+        .append("        if test ! -f \"${JAVA_BIN}\"").append(EOL)
+        .append("        then").append(EOL)
+        .append("          if test ! -d \"${JAVA_HOME}\"").append(EOL)
+        .append("          then").append(EOL)
+        .append("            OPENDJ_JAVA_BIN=`which java 2> /dev/null`").append(EOL)
+        .append("            if test ${?} -eq 0").append(EOL)
+        .append("            then").append(EOL)
+        .append("              export OPENDJ_JAVA_BIN").append(EOL)
+        .append("            else").append(EOL)
+        .append("              echo \"You must specify the path to a valid Java 6.0 ")
+        .append("or higher version in the\"").append(EOL)
+        .append("              echo \"properties file and then run the ")
+        .append("dsjavaproperties  tool. \"").append(EOL)
+        .append("              echo \"The procedure to follow is:\"").append(EOL)
+        .append("              echo \"You must specify the path to a valid Java 6.0 ")
+        .append("or higher version.  The \"").append(EOL)
+        .append("              echo \"procedure to follow is:\"").append(EOL)
+        .append("              echo \"1. Delete the file ")
+        .append("${INSTANCE_ROOT}/lib/set-java-home\"").append(EOL)
+        .append("              echo \"2. Set the environment variable ")
+        .append("OPENDJ_JAVA_HOME to the root of a valid \"").append(EOL)
+        .append("              echo \"Java 6.0 installation.\"").append(EOL)
+        .append("              echo \"If you want to have specificjava  settings for")
+        .append(" each command line you must\"").append(EOL)
+        .append("              echo \"follow the steps 3 and 4\"").append(EOL)
+        .append("              echo \"3. Edit the properties file specifying the ")
+        .append("java binary and the java arguments\"").append(EOL)
+        .append("              echo \"for each command line.  The java properties ")
+        .append("file is located in:\"").append(EOL)
+        .append("              echo \"${INSTANCE_ROOT}/config/java.properties.\"").append(EOL)
+        .append("              echo \"4. Run the command-line ")
+        .append("${INSTANCE_ROOT}/bin/dsjavaproperties\"").append(EOL)
+        .append("              exit 1").append(EOL)
+        .append("            fi").append(EOL)
+        .append("          else").append(EOL)
+        .append("            OPENDJ_JAVA_BIN=\"${JAVA_HOME}/bin/java\"").append(EOL)
+        .append("            export OPENDJ_JAVA_BIN").append(EOL)
+        .append("          fi").append(EOL)
+        .append("        else").append(EOL)
+        .append("          OPENDJ_JAVA_BIN=\"${JAVA_BIN}\"").append(EOL)
+        .append("          export OPENDJ_JAVA_BIN").append(EOL)
+        .append("        fi").append(EOL)
+        .append("      else").append(EOL)
+        .append("        OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\"").append(EOL)
+        .append("        export OPENDJ_JAVA_BIN").append(EOL)
+        .append("      fi").append(EOL)
+        .append("    else").append(EOL)
+        .append("      OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_BIN}\"").append(EOL)
+        .append("      export OPENDJ_JAVA_BIN").append(EOL)
+        .append("    fi").append(EOL)
+        .append("  else").append(EOL)
+        .append("    OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_HOME}/bin/java\"").append(EOL)
+        .append("    export OPENDJ_JAVA_BIN").append(EOL)
+        .append("  fi").append(EOL)
+        .append("fi").append(EOL)
+        .append(EOL);
     }
 
 
     if (!overwriteJavaArgs)
     {
-      buf.append(
-          EOL+
-          "# See if the environment variables for arguments are set."+EOL+
-          "if test -z \"${OPENDJ_JAVA_ARGS}\""+EOL+
-          "then"+EOL+
-          "  if test -z \"${OPENDS_JAVA_ARGS}\""+EOL);
+      buf.append(EOL)
+        .append("# See if the environment variables for arguments are set.").append(EOL)
+        .append("if test -z \"${OPENDJ_JAVA_ARGS}\"").append(EOL)
+        .append("then").append(EOL)
+        .append("  if test -z \"${OPENDS_JAVA_ARGS}\"").append(EOL);
     }
 
     propertiesAdded = false;
@@ -759,24 +747,21 @@ public class JavaPropertiesTool extends ConsoleApplication
           propertiesAdded = true;
           if (nIfs > 0)
           {
-            buf.append(
-              s+"  elif test \"${SCRIPT_NAME}.java-args\" = \""+name+"\""+EOL);
+            buf.append(s).append("  elif test \"${SCRIPT_NAME}.java-args\" = \"").append(name).append("\"").append(EOL);
           }
           else if (!overwriteJavaArgs)
           {
-            buf.append(
-                "  then"+EOL+
-                "    if test \"${SCRIPT_NAME}.java-args\" = \""+name+"\""+EOL);
+            buf.append("  then").append(EOL)
+              .append("    if test \"${SCRIPT_NAME}.java-args\" = \"").append(name).append("\"").append(EOL);
           }
           else
           {
-            buf.append(
-                "  if test \"${SCRIPT_NAME}.java-args\" = \""+name+"\""+EOL);
+            buf.append("  if test \"${SCRIPT_NAME}.java-args\" = \"").append(name).append("\"").append(EOL);
           }
-          buf.append(
-          s+"  then"+EOL+
-          s+"    OPENDJ_JAVA_ARGS=\""+value+"\""+EOL+
-          s+"    export OPENDJ_JAVA_ARGS"+EOL);
+          buf
+            .append(s).append("  then").append(EOL)
+            .append(s).append("    OPENDJ_JAVA_ARGS=\"").append(value).append("\"").append(EOL)
+            .append(s).append("    export OPENDJ_JAVA_ARGS").append(EOL);
           nIfs++;
         }
       }
@@ -786,26 +771,23 @@ public class JavaPropertiesTool extends ConsoleApplication
       String s = overwriteJavaArgs? "":"  ";
       if (propertiesAdded)
       {
-        buf.append(
-            s+"  else"+EOL+
-            s+"    OPENDJ_JAVA_ARGS=\""+defaultJavaArgs+"\""+EOL+
-            s+"    export OPENDJ_JAVA_ARGS"+EOL);
+        buf.append(s).append("  else").append(EOL)
+          .append(s).append("    OPENDJ_JAVA_ARGS=\"").append(defaultJavaArgs).append("\"").append(EOL)
+          .append(s).append("    export OPENDJ_JAVA_ARGS").append(EOL);
       }
       else
       {
         if (!overwriteJavaArgs)
         {
-          buf.append(
-              "    then"+EOL+
-              "      OPENDJ_JAVA_ARGS=\""+defaultJavaArgs+"\""+EOL+
-              "      export OPENDJ_JAVA_ARGS"+EOL);
+          buf.append("    then").append(EOL)
+            .append("      OPENDJ_JAVA_ARGS=\"").append(defaultJavaArgs).append("\"").append(EOL)
+            .append("      export OPENDJ_JAVA_ARGS").append(EOL);
         }
         else
         {
-          buf.append(
-              EOL+
-              "  OPENDJ_JAVA_ARGS=\""+defaultJavaArgs+"\""+EOL+
-              "  export OPENDJ_JAVA_ARGS"+EOL);
+          buf.append(EOL)
+            .append("  OPENDJ_JAVA_ARGS=\"").append(defaultJavaArgs).append("\"").append(EOL)
+            .append("  export OPENDJ_JAVA_ARGS").append(EOL);
         }
       }
       propertiesAdded = true;
@@ -813,7 +795,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     if (nIfs > 0)
     {
       String s = overwriteJavaArgs? "":"    ";
-      buf.append(s+"fi"+EOL);
+      buf.append(s).append("fi").append(EOL);
     }
 
     if (!overwriteJavaArgs)
@@ -821,16 +803,16 @@ public class JavaPropertiesTool extends ConsoleApplication
       if (!propertiesAdded)
       {
         // No properties added: this is required not to break the script
-        buf.append(
-            "  then"+EOL+
-            "    OPENDJ_JAVA_ARGS=${OPENDJ_JAVA_ARGS}"+EOL);
+        buf
+          .append("  then").append(EOL)
+          .append("    OPENDJ_JAVA_ARGS=${OPENDJ_JAVA_ARGS}").append(EOL);
       }
-      buf.append(
-          "  else"+EOL+
-          "    OPENDJ_JAVA_ARGS=${OPENDS_JAVA_ARGS}"+EOL+
-          "    export OPENDJ_JAVA_ARGS"+EOL+
-          "  fi"+EOL+
-          "fi"+EOL);
+      buf
+        .append("  else").append(EOL)
+        .append("    OPENDJ_JAVA_ARGS=${OPENDS_JAVA_ARGS}").append(EOL)
+        .append("    export OPENDJ_JAVA_ARGS").append(EOL)
+        .append("  fi").append(EOL)
+        .append("fi").append(EOL);
     }
 
     return buf.toString();
@@ -877,79 +859,73 @@ public class JavaPropertiesTool extends ConsoleApplication
       javaArgsLabel2 = CHECK_ENV_JAVA_ARGS;
     }
 
-    buf.append("goto "+javaHomeLabel1+EOL+EOL);
+    buf.append("goto ").append(javaHomeLabel1).append(EOL).append(EOL);
 
-    buf.append(
-        ":"+CHECK_ENV_JAVA_HOME+EOL+
-        "if \"%OPENDJ_JAVA_BIN%\" == \"\" goto checkEnvJavaHome"+LEGACY+EOL+
-        "if not exist \"%OPENDJ_JAVA_BIN%\" goto checkEnvJavaHome"+LEGACY+EOL+
-        "goto "+javaArgsLabel1+EOL+EOL+
-        ":checkEnvJavaHome"+LEGACY+EOL+
-        "if \"%OPENDS_JAVA_BIN%\" == \"\" goto checkOpendjJavaHome"+EOL+
-        "if not exist \"%OPENDS_JAVA_BIN%\" goto checkOpendjJavaHome"+EOL+
-        "goto "+javaArgsLabel1+EOL+EOL+
-        ":checkOpendjJavaHome"+EOL
-    );
+    buf.append(":").append(CHECK_ENV_JAVA_HOME).append(EOL)
+      .append("if \"%OPENDJ_JAVA_BIN%\" == \"\" goto checkEnvJavaHome").append(LEGACY).append(EOL)
+      .append("if not exist \"%OPENDJ_JAVA_BIN%\" goto checkEnvJavaHome").append(LEGACY).append(EOL)
+      .append("goto ").append(javaArgsLabel1).append(EOL)
+      .append(EOL)
+      .append(":checkEnvJavaHome").append(LEGACY).append(EOL)
+      .append("if \"%OPENDS_JAVA_BIN%\" == \"\" goto checkOpendjJavaHome").append(EOL)
+      .append("if not exist \"%OPENDS_JAVA_BIN%\" goto checkOpendjJavaHome").append(EOL)
+      .append("goto ").append(javaArgsLabel1).append(EOL)
+      .append(EOL)
+      .append(":checkOpendjJavaHome").append(EOL);
 
     if (javaHomeLabel1 == CHECK_ENV_JAVA_HOME)
     {
-      buf.append(
-          "if \"%OPENDJ_JAVA_HOME%\" == \"\" goto "+javaHomeLabel2+LEGACY+EOL+
-          "set TEMP_EXE=%OPENDJ_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP_EXE%\" goto "+javaHomeLabel2+LEGACY+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
-          "goto "+javaArgsLabel1+EOL+EOL+
-          ":"+javaHomeLabel2+LEGACY+EOL+
-          "if \"%OPENDS_JAVA_HOME%\" == \"\" goto "+javaHomeLabel2+EOL+
-          "set TEMP_EXE=%OPENDS_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP_EXE%\" goto "+javaHomeLabel2+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
-          "goto "+javaArgsLabel1+EOL+EOL
-      );
+      buf.append("if \"%OPENDJ_JAVA_HOME%\" == \"\" goto ").append(javaHomeLabel2).append(LEGACY).append(EOL)
+        .append("set TEMP_EXE=%OPENDJ_JAVA_HOME%\\bin\\java.exe").append(EOL)
+        .append("if not exist \"%TEMP_EXE%\" goto ").append(javaHomeLabel2).append(LEGACY).append(EOL)
+        .append("set OPENDJ_JAVA_BIN=%TEMP_EXE%").append(EOL)
+        .append("goto ").append(javaArgsLabel1).append(EOL).append(EOL)
+        .append(":").append(javaHomeLabel2).append(LEGACY).append(EOL)
+        .append("if \"%OPENDS_JAVA_HOME%\" == \"\" goto ")
+        .append(javaHomeLabel2).append(EOL)
+        .append("set TEMP_EXE=%OPENDS_JAVA_HOME%\\bin\\java.exe").append(EOL)
+        .append("if not exist \"%TEMP_EXE%\" goto ").append(javaHomeLabel2).append(EOL)
+        .append("set OPENDJ_JAVA_BIN=%TEMP_EXE%").append(EOL)
+        .append("goto ").append(javaArgsLabel1).append(EOL)
+        .append(EOL);
     }
     else
     {
-      buf.append(
-          "if \"%OPENDJ_JAVA_HOME%\" == \"\" goto "+javaArgsLabel1+LEGACY+EOL+
-          "set TEMP_EXE=%OPENDJ_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP_EXE%\" goto "+javaArgsLabel1+LEGACY+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
-          "goto "+javaArgsLabel1+EOL+EOL+
-          ":"+javaArgsLabel1+LEGACY+EOL+
-          "if \"%OPENDS_JAVA_HOME%\" == \"\" goto "+javaArgsLabel1+EOL+
-          "set TEMP_EXE=%OPENDS_JAVA_HOME%\\bin\\java.exe"+EOL+
-          "if not exist \"%TEMP_EXE%\" goto "+javaArgsLabel1+EOL+
-          "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
-          "goto "+javaArgsLabel1+EOL+EOL
-      );
+      buf.append("if \"%OPENDJ_JAVA_HOME%\" == \"\" goto ").append(javaArgsLabel1).append(LEGACY).append(EOL)
+        .append("set TEMP_EXE=%OPENDJ_JAVA_HOME%\\bin\\java.exe").append(EOL)
+        .append("if not exist \"%TEMP_EXE%\" goto ").append(javaArgsLabel1).append(LEGACY).append(EOL)
+        .append("set OPENDJ_JAVA_BIN=%TEMP_EXE%").append(EOL)
+        .append("goto ").append(javaArgsLabel1).append(EOL).append(EOL)
+        .append(":").append(javaArgsLabel1).append(LEGACY).append(EOL)
+        .append("if \"%OPENDS_JAVA_HOME%\" == \"\" goto ")
+        .append(javaArgsLabel1).append(EOL)
+        .append("set TEMP_EXE=%OPENDS_JAVA_HOME%\\bin\\java.exe").append(EOL)
+        .append("if not exist \"%TEMP_EXE%\" goto ").append(javaArgsLabel1).append(EOL)
+        .append("set OPENDJ_JAVA_BIN=%TEMP_EXE%").append(EOL)
+        .append("goto ").append(javaArgsLabel1).append(EOL).append(EOL);
     }
 
     if (defaultJavaHome != null)
     {
       if (javaHomeLabel1 == CHECK_ENV_JAVA_HOME)
       {
-        buf.append(
-            ":"+CHECK_DEFAULT_JAVA_HOME+EOL+
-            "set TEMP_EXE="+defaultJavaHome+"\\bin\\java.exe"+EOL+
-            "if not exist \"%TEMP_EXE%\" goto "+javaArgsLabel1+EOL+
-            "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
-            "goto "+javaArgsLabel1+EOL+EOL
-        );
+        buf.append(":").append(CHECK_DEFAULT_JAVA_HOME).append(EOL)
+          .append("set TEMP_EXE=").append(defaultJavaHome).append("\\bin\\java.exe").append(EOL)
+          .append("if not exist \"%TEMP_EXE%\" goto ").append(javaArgsLabel1).append(EOL)
+          .append("set OPENDJ_JAVA_BIN=%TEMP_EXE%").append(EOL)
+          .append("goto ").append(javaArgsLabel1).append(EOL).append(EOL);
       }
       else
       {
-        buf.append(
-            ":"+CHECK_DEFAULT_JAVA_HOME+EOL+
-            "set TEMP_EXE="+defaultJavaHome+"\\bin\\java.exe"+EOL+
-            "if not exist \"%TEMP_EXE%\" goto "+CHECK_ENV_JAVA_HOME+EOL+
-            "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
-            "goto "+javaArgsLabel1+EOL+EOL
-        );
+        buf.append(":").append(CHECK_DEFAULT_JAVA_HOME).append(EOL)
+          .append("set TEMP_EXE=").append(defaultJavaHome).append("\\bin\\java.exe").append(EOL)
+          .append("if not exist \"%TEMP_EXE%\" goto ").append(CHECK_ENV_JAVA_HOME).append(EOL)
+          .append("set OPENDJ_JAVA_BIN=%TEMP_EXE%").append(EOL)
+          .append("goto ").append(javaArgsLabel1).append(EOL).append(EOL);
       }
     }
 
-    buf.append(
-        ":"+CHECK_JAVA_HOME+EOL);
+    buf.append(":").append(CHECK_JAVA_HOME).append(EOL);
     Enumeration<?> propertyNames = properties.propertyNames();
     while (propertyNames.hasMoreElements())
     {
@@ -965,22 +941,21 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         String scriptName = name.substring(0,
             name.length() - ".java-home".length());
-        buf.append(
-            "if \"%SCRIPT_NAME%.java-home\" == \""+name+"\" goto check"+
-            scriptName+"JavaHome"+EOL);
+        buf.append("if \"%SCRIPT_NAME%.java-home\" == \"").append(name)
+          .append("\" goto check").append(scriptName).append("JavaHome").append(EOL);
       }
     }
     if (defaultJavaHome != null)
     {
-      buf.append("goto "+CHECK_DEFAULT_JAVA_HOME+EOL+EOL);
+      buf.append("goto ").append(CHECK_DEFAULT_JAVA_HOME).append(EOL).append(EOL);
     }
     else if (javaHomeLabel1 != CHECK_ENV_JAVA_HOME)
     {
-      buf.append("goto "+CHECK_ENV_JAVA_HOME+EOL+EOL);
+      buf.append("goto ").append(CHECK_ENV_JAVA_HOME).append(EOL).append(EOL);
     }
     else
     {
-      buf.append("goto "+javaArgsLabel1+EOL+EOL);
+      buf.append("goto ").append(javaArgsLabel1).append(EOL).append(EOL);
     }
 
     propertyNames = properties.propertyNames();
@@ -999,53 +974,44 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         String scriptName = name.substring(0,
             name.length() - ".java-home".length());
-        buf.append(
-            ":check"+scriptName+"JavaHome"+EOL+
-            "set TEMP_EXE="+value+"\\bin\\java.exe"+EOL);
+        buf.append(":check").append(scriptName).append("JavaHome").append(EOL)
+          .append("set TEMP_EXE=").append(value).append("\\bin\\java.exe").append(EOL);
         if (defaultJavaHome != null)
         {
-          buf.append(
-              "if not exist \"%TEMP_EXE%\" goto "+CHECK_DEFAULT_JAVA_HOME+EOL);
+          buf.append("if not exist \"%TEMP_EXE%\" goto ").append(CHECK_DEFAULT_JAVA_HOME).append(EOL);
         }
         else if (javaHomeLabel1 != CHECK_ENV_JAVA_HOME)
         {
-          buf.append(
-              "if not exist \"%TEMP_EXE%\" goto "+CHECK_ENV_JAVA_HOME+EOL);
+          buf.append("if not exist \"%TEMP_EXE%\" goto ").append(CHECK_ENV_JAVA_HOME).append(EOL);
         }
-        buf.append(
-            "set OPENDJ_JAVA_BIN=%TEMP_EXE%"+EOL+
-            "goto "+javaArgsLabel1+EOL+EOL);
+        buf.append("set OPENDJ_JAVA_BIN=%TEMP_EXE%").append(EOL)
+          .append("goto ").append(javaArgsLabel1).append(EOL).append(EOL);
       }
     }
 
-    buf.append(
-        ":"+CHECK_ENV_JAVA_ARGS+EOL);
+    buf.append(":").append(CHECK_ENV_JAVA_ARGS).append(EOL);
     if (javaArgsLabel1 == CHECK_ENV_JAVA_ARGS)
     {
-      buf.append(
-          "if \"%OPENDJ_JAVA_ARGS%\" == \"\" goto "+javaArgsLabel2+LEGACY+EOL+
-          "goto end"+EOL+EOL+
-          ":"+javaArgsLabel2+LEGACY+EOL+
-          "if \"%OPENDS_JAVA_ARGS%\" == \"\" goto "+javaArgsLabel2+EOL+
-          "set OPENDJ_JAVA_ARGS=%OPENDS_JAVA_ARGS%"+EOL+
-          "goto end"+EOL+EOL);
+      buf.append("if \"%OPENDJ_JAVA_ARGS%\" == \"\" goto ").append(javaArgsLabel2).append(LEGACY).append(EOL)
+        .append("goto end").append(EOL).append(EOL)
+        .append(":").append(javaArgsLabel2).append(LEGACY).append(EOL)
+        .append("if \"%OPENDS_JAVA_ARGS%\" == \"\" goto ").append(javaArgsLabel2).append(EOL)
+        .append("set OPENDJ_JAVA_ARGS=%OPENDS_JAVA_ARGS%").append(EOL)
+        .append("goto end").append(EOL).append(EOL);
     }
     else
     {
-      buf.append(
-          "goto end"+EOL+EOL);
+      buf.append("goto end").append(EOL).append(EOL);
     }
 
     if (defaultJavaArgs != null)
     {
-      buf.append(
-          ":"+CHECK_DEFAULT_JAVA_ARGS+EOL+
-          "set OPENDJ_JAVA_ARGS="+defaultJavaArgs+EOL+
-          "goto end"+EOL+EOL);
+      buf.append(":").append(CHECK_DEFAULT_JAVA_ARGS).append(EOL)
+        .append("set OPENDJ_JAVA_ARGS=").append(defaultJavaArgs).append(EOL)
+        .append("goto end").append(EOL).append(EOL);
     }
 
-    buf.append(
-        ":"+CHECK_JAVA_ARGS+EOL);
+    buf.append(":").append(CHECK_JAVA_ARGS).append(EOL);
     propertyNames = properties.propertyNames();
     while (propertyNames.hasMoreElements())
     {
@@ -1061,22 +1027,21 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         String scriptName = name.substring(0,
             name.length() - ".java-args".length());
-        buf.append(
-            "if \"%SCRIPT_NAME%.java-args\" == \""+name+"\" goto check"+
-            scriptName+"JavaArgs"+EOL);
+        buf.append("if \"%SCRIPT_NAME%.java-args\" == \"").append(name)
+          .append("\" goto check").append(scriptName).append("JavaArgs").append(EOL);
       }
     }
     if (defaultJavaArgs != null)
     {
-      buf.append("goto "+CHECK_DEFAULT_JAVA_ARGS+EOL+EOL);
+      buf.append("goto ").append(CHECK_DEFAULT_JAVA_ARGS).append(EOL).append(EOL);
     }
     else if (javaArgsLabel1 != CHECK_ENV_JAVA_ARGS)
     {
-      buf.append("goto "+CHECK_ENV_JAVA_ARGS+EOL+EOL);
+      buf.append("goto ").append(CHECK_ENV_JAVA_ARGS).append(EOL).append(EOL);
     }
     else
     {
-      buf.append("goto end"+EOL+EOL);
+      buf.append("goto end").append(EOL).append(EOL);
     }
 
     propertyNames = properties.propertyNames();
@@ -1095,14 +1060,13 @@ public class JavaPropertiesTool extends ConsoleApplication
       {
         String scriptName = name.substring(0,
             name.length() - ".java-args".length());
-        buf.append(
-            ":check"+scriptName+"JavaArgs"+EOL+
-            "set OPENDJ_JAVA_ARGS="+value+EOL+
-            "goto end"+EOL+EOL);
+        buf.append(":check").append(scriptName).append("JavaArgs").append(EOL)
+          .append("set OPENDJ_JAVA_ARGS=").append(value).append(EOL)
+          .append("goto end").append(EOL).append(EOL);
       }
     }
 
-    buf.append(":end"+EOL);
+    buf.append(":end").append(EOL);
 
     return buf.toString();
   }

@@ -1560,7 +1560,7 @@ public final class StaticUtils
       message.append(" (id=");
       LocalizableMessage ieMsg = ie.getMessageObject();
       if (ieMsg != null) {
-        message.append(ieMsg.resourceName() + "-" + ieMsg.ordinal());
+        message.append(ieMsg.resourceName()).append("-").append(ieMsg.ordinal());
       } else {
         message.append("-1");
       }

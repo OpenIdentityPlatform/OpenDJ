@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 import static org.opends.messages.ProtocolMessages.ERR_ECLN_CANNOT_DECODE_VALUE;
@@ -160,7 +160,7 @@ public class EntryChangelogNotificationControl
   public void toString(StringBuilder buffer)
   {
     buffer.append("EntryChangelogNotificationControl(cookie=");
-    buffer.append(cookie.toString());
+    buffer.append(cookie);
     buffer.append(")");
   }
 }

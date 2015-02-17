@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 import org.forgerock.i18n.LocalizableMessage;
@@ -304,7 +304,7 @@ public class BindResponseProtocolOp
     if (matchedDN != null)
     {
       buffer.append(", matchedDN=");
-      buffer.append(matchedDN.toString());
+      buffer.append(matchedDN);
     }
 
     if ((referralURLs != null) && (! referralURLs.isEmpty()))
@@ -326,7 +326,7 @@ public class BindResponseProtocolOp
     if (serverSASLCredentials != null)
     {
       buffer.append(", serverSASLCredentials=");
-      buffer.append(serverSASLCredentials.toString());
+      buffer.append(serverSASLCredentials);
     }
 
     buffer.append(")");

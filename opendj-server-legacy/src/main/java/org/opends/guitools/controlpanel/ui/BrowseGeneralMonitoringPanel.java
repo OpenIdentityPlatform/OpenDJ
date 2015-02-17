@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -370,7 +370,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
         mb.append(
    INFO_CTRL_PANEL_AUTH_REQUIRED_TO_BROWSE_MONITORING_SUMMARY.
    get());
-        mb.append("<br><br>"+getAuthenticateHTML());
+        mb.append("<br><br>").append(getAuthenticateHTML());
         errorDetails = mb.toMessage();
         errorTitle = INFO_CTRL_PANEL_AUTHENTICATION_REQUIRED_SUMMARY.get();
 
@@ -382,7 +382,7 @@ public class BrowseGeneralMonitoringPanel extends StatusGenericPanel
       LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
       mb.append(INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(
           server.getHostname()));
-      mb.append("<br><br>"+getAuthenticateHTML());
+      mb.append("<br><br>").append(getAuthenticateHTML());
       errorDetails = mb.toMessage();
       errorTitle = INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_SUMMARY.get();
       displayErrorPane = true;

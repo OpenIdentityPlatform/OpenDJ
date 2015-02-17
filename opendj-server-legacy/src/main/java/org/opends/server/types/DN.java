@@ -2684,7 +2684,7 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append(toString());
+    buffer.append(this);
   }
 
 

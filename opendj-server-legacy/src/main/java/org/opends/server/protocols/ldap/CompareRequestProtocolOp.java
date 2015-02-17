@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
@@ -163,11 +163,11 @@ public class CompareRequestProtocolOp
   public void toString(StringBuilder buffer)
   {
     buffer.append("CompareRequest(dn=");
-    buffer.append(dn.toString());
+    buffer.append(dn);
     buffer.append(", attribute=");
     buffer.append(attributeType);
     buffer.append(", value=");
-    buffer.append(assertionValue.toString());
+    buffer.append(assertionValue);
     buffer.append(")");
   }
 
@@ -195,7 +195,7 @@ public class CompareRequestProtocolOp
 
     buffer.append(indentBuf);
     buffer.append("  Target DN:  ");
-    buffer.append(dn.toString());
+    buffer.append(dn);
     buffer.append(EOL);
 
     buffer.append(indentBuf);

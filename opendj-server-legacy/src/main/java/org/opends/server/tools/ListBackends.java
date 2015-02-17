@@ -475,11 +475,11 @@ public class ListBackends
           }
           if (dn.size() > 1)
           {
-            buf.append("\""+dn.toString()+"\"");
+            buf.append("\"").append(dn).append("\"");
           }
           else
           {
-            buf.append(dn.toString());
+            buf.append(dn);
           }
         }
         table.appendCell(buf.toString());

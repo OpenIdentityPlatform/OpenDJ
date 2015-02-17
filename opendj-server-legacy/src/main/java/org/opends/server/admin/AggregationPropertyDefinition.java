@@ -1106,17 +1106,10 @@ public final class AggregationPropertyDefinition
   public void toString(StringBuilder builder) {
     super.toString(builder);
 
-    builder.append(" parentPath=");
-    builder.append(parentPath);
-
-    builder.append(" relationDefinition=");
-    builder.append(relationDefinition.getName());
-
-    builder.append(" targetNeedsEnablingCondition=");
-    builder.append(String.valueOf(targetNeedsEnablingCondition));
-
-    builder.append(" targetIsEnabledCondition=");
-    builder.append(String.valueOf(targetIsEnabledCondition));
+    builder.append(" parentPath=").append(parentPath);
+    builder.append(" relationDefinition=").append(relationDefinition.getName());
+    builder.append(" targetNeedsEnablingCondition=").append(targetNeedsEnablingCondition);
+    builder.append(" targetIsEnabledCondition=").append(targetIsEnabledCondition);
   }
 
 

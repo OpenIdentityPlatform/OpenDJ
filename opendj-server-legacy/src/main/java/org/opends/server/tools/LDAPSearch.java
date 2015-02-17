@@ -444,15 +444,14 @@ public class LDAPSearch
     }
     else
     {
-      buffer.append(dnString.substring(0, colsRemaining));
+      buffer.append(dnString, 0, colsRemaining);
       buffer.append(EOL);
 
       int startPos = colsRemaining;
       while ((dnLength - startPos) > (wrapColumn - 1))
       {
         buffer.append(" ");
-        buffer.append(dnString.substring(startPos, (startPos+wrapColumn-1)));
-
+        buffer.append(dnString, startPos, (startPos+wrapColumn-1));
         buffer.append(EOL);
 
         startPos += (wrapColumn-1);
@@ -507,15 +506,14 @@ public class LDAPSearch
             buffer.append(EOL);
           } else
           {
-            buffer.append(valueString.substring(0, colsRemaining));
+            buffer.append(valueString, 0, colsRemaining);
             buffer.append(EOL);
 
             int startPos = colsRemaining;
             while ((valueLength - startPos) > (wrapColumn - 1))
             {
               buffer.append(" ");
-              buffer.append(valueString.substring(startPos,
-                                                (startPos+wrapColumn-1)));
+              buffer.append(valueString, startPos, (startPos+wrapColumn-1));
               buffer.append(EOL);
 
               startPos += (wrapColumn-1);

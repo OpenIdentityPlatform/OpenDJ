@@ -1279,11 +1279,11 @@ public class ImportLDIF extends TaskTool {
   private StringBuilder join(final DN[] baseDNs, final String separator)
   {
     final StringBuilder builder = new StringBuilder();
-    builder.append(baseDNs[0].toString());
+    builder.append(baseDNs[0]);
     for (int i = 1; i < baseDNs.length; i++)
     {
       builder.append(separator);
-      builder.append(baseDNs[i].toString());
+      builder.append(baseDNs[i]);
     }
     return builder;
   }

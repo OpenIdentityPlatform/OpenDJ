@@ -194,9 +194,8 @@ public class ControlPanelLauncher
             StringBuilder buf = new StringBuilder();
             while (t != null)
             {
-              StackTraceElement[] stack = t.getStackTrace();
-              for (StackTraceElement aStack : stack) {
-                buf.append(aStack.toString()).append("\n");
+              for (StackTraceElement aStack : t.getStackTrace()) {
+                buf.append(aStack).append("\n");
               }
 
               t = t.getCause();

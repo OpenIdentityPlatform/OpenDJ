@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS.
+ *      Portions Copyright 2010-2015 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 
@@ -243,8 +243,7 @@ public class ConfigurableEnvironment
       if (ABBREVIATIONS.contains(component)) {
         buffer.append(component.toUpperCase());
       } else {
-        buffer.append(component.substring(0, 1).toUpperCase() +
-                component.substring(1));
+        buffer.append(component.substring(0, 1).toUpperCase()).append(component.substring(1));
       }
     }
     return buffer.toString();

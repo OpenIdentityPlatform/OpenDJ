@@ -339,8 +339,7 @@ public class ImportTask extends Task
         StringBuilder builder = new StringBuilder();
         for(DN dn : backend.getBaseDNs())
         {
-          builder.append(dn.toString());
-          builder.append(" ");
+          builder.append(dn).append(" ");
         }
         LocalizableMessage message = ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND.get(
             builder, typeClearBackend.getNameOrOID());
@@ -527,11 +526,11 @@ public class ImportTask extends Task
           backend.getBaseDNs().length > 1 && !clearBackend)
       {
         StringBuilder builder = new StringBuilder();
-        builder.append(backend.getBaseDNs()[0].toString());
+        builder.append(backend.getBaseDNs()[0]);
         for(int i = 1; i < backend.getBaseDNs().length; i++)
         {
           builder.append(" / ");
-          builder.append(backend.getBaseDNs()[i].toString());
+          builder.append(backend.getBaseDNs()[i]);
         }
         logger.error(ERR_LDIFIMPORT_MISSING_CLEAR_BACKEND, builder, ATTR_IMPORT_CLEAR_BACKEND);
         return TaskState.STOPPED_BY_ERROR;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -228,7 +228,7 @@ public class LabelWithHelpIcon extends JPanel
       toolTip = Utilities.stripHtmlToSingleLine(toolTip);
       if (toolTip != null)
       {
-        sb.append(" - "+toolTip);
+        sb.append(" - ").append(toolTip);
       }
     }
     getAccessibleContext().setAccessibleName(sb.toString());
