@@ -260,7 +260,7 @@ public final class DSConfig extends ConsoleApplication {
                 AbstractManagedObjectDefinition<?, ?> defn) {
             final ArrayList<AbstractManagedObjectDefinition<?, ?>> results =
                     new ArrayList<AbstractManagedObjectDefinition<?, ?>>();
-            addLeafChildren(results, defn);
+            addIfLeaf(results, defn);
             Collections.sort(results, new Comparator<AbstractManagedObjectDefinition<?, ?>>() {
                 @Override
                 public int compare(AbstractManagedObjectDefinition<?, ?> o1, AbstractManagedObjectDefinition<?, ?> o2) {
@@ -270,13 +270,13 @@ public final class DSConfig extends ConsoleApplication {
             return results;
         }
 
-        private void addLeafChildren(final Collection<AbstractManagedObjectDefinition<?, ?>> results,
+        private void addIfLeaf(final Collection<AbstractManagedObjectDefinition<?, ?>> results,
                 final AbstractManagedObjectDefinition<?, ?> defn) {
-            for (AbstractManagedObjectDefinition<?, ?> child : defn.getChildren()) {
-                if (child.getChildren().isEmpty()) {
-                    results.add(child);
-                } else {
-                    addLeafChildren(results, child);
+            if (defn.getChildren().isEmpty()) {
+                results.add(defn);
+            } else {
+                for (AbstractManagedObjectDefinition<?, ?> child : defn.getChildren()) {
+                    addIfLeaf(results, child);
                 }
             }
         }
