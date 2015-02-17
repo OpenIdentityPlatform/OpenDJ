@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,11 +56,14 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
 
     @AfterTest
     public void deleteTempFiles() {
+        FilenameFilter tmpFilter = new FilenameFilter() {
+            public boolean accept(File directory, String fileName) {
+                return fileName.endsWith(".tmp");
+            }
+        };
         for (String testFolder : TEST_FOLDERS) {
-            for (File file : new File(RESOURCE_DIR, testFolder).listFiles()) {
-                if (file.getPath().endsWith(".tmp")) {
-                    file.delete();
-                }
+            for (File file : new File(RESOURCE_DIR, testFolder).listFiles(tmpFilter)) {
+                file.delete();
             }
         }
     }
@@ -84,11 +88,14 @@ public class UpdateCopyrightTestCase extends ForgeRockTestCase {
             String copyrightStartToken, String copyrightEndToken) throws Exception {
         List<String> testFilePaths = new LinkedList<String>();
         List<String> updatedTestFilePaths = new LinkedList<String>();
-        File[] changedFiles = new File(RESOURCE_DIR, testCaseFolderPath).listFiles();
-        for (File file : changedFiles) {
-            if (file.getPath().endsWith(".tmp")) {
-                continue;
+        FilenameFilter txtFilter = new FilenameFilter() {
+            public boolean accept(File directory, String fileName) {
+                return fileName.endsWith(".txt");
             }
+        };
+        File[] changedFiles = new File(RESOURCE_DIR, testCaseFolderPath).listFiles(txtFilter);
+
+        for (File file : changedFiles) {
             testFilePaths.add(file.getAbsolutePath());
             updatedTestFilePaths.add(file.getPath() + ".tmp");
         }
