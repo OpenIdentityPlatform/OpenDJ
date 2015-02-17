@@ -74,12 +74,21 @@
       <outputDirectory>legal-notices</outputDirectory>
     </fileSet>
 
-    <!-- Adds scripts in lib/ directory -->
+    <!-- Adds sh in lib/ directory -->
     <fileSet>
       <directory>${basedir}/resource/bin</directory>
       <outputDirectory>lib</outputDirectory>
       <includes>
         <include>_*.sh</include>
+      </includes>
+      <fileMode>755</fileMode>
+    </fileSet>
+    
+    <!-- Adds bat in lib/ directory -->
+    <fileSet>
+      <directory>${basedir}/resource/bin</directory>
+      <outputDirectory>lib</outputDirectory>
+      <includes>
         <include>_*.bat</include>
         <include>setcp.bat</include>
       </includes>
@@ -95,7 +104,6 @@
         <include>*.exe</include>
       </includes>
       <fileMode>755</fileMode>
-      <directoryMode>755</directoryMode>
     </fileSet>
 
     <!-- Adds resources at the archive root -->
