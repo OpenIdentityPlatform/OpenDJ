@@ -36,7 +36,7 @@
   </parent>
   <artifactId>opendj-server-legacy</artifactId>
   <packaging>jar</packaging>
-  <name>OpenDJ Directory Server</name>
+  <name>OpenDJ</name>
   <description>
     This module provides the OpenDJ server.  
   </description>
