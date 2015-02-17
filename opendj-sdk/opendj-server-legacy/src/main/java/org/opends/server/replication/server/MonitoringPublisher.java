@@ -154,7 +154,7 @@ public class MonitoringPublisher extends DirectoryThread
     try
     {
       // Here, "this" is the monitoring publisher thread
-      this.join(2000);
+      join(2000);
     }
     catch (InterruptedException e)
     {

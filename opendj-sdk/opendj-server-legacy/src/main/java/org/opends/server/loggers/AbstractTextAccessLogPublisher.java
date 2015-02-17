@@ -103,7 +103,7 @@ abstract class AbstractTextAccessLogPublisher
 
       // Generate a unique identifier for attaching partial results to
       // operations.
-      attachmentName = this.getClass().getName() + "#" + hashCode();
+      attachmentName = getClass().getName() + "#" + hashCode();
 
       // Pre-parse the log record types for more efficient queries.
       if (cfg.getLogRecordType().isEmpty())

@@ -113,8 +113,7 @@ public abstract class RoutableMsg extends ReplicationMsg
    */
   public String toString()
   {
-    return "["+
-      this.getClass().getCanonicalName() +
+    return "[" + getClass().getCanonicalName() +
       " sender=" + this.senderID +
       " destination=" + this.destination + "]";
   }

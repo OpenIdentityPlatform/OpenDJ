@@ -155,7 +155,7 @@ public class SplashScreen extends Window
     String resource = INFO_SPLASH_ICON.get().toString();
     resource = "org/opends/quicksetup/" + resource;
     return Toolkit.getDefaultToolkit().createImage(
-        this.getClass().getClassLoader().getResource(resource));
+        getClass().getClassLoader().getResource(resource));
   }
 
   /**

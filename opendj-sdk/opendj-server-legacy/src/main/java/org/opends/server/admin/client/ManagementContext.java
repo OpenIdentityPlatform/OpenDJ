@@ -519,7 +519,7 @@ public abstract class ManagementContext implements Closeable {
    */
   @Override
   public final void close() {
-    this.getDriver().close();
+    getDriver().close();
   }
 
 }

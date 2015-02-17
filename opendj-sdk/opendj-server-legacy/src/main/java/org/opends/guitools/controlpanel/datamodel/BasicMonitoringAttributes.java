@@ -385,7 +385,7 @@ public enum BasicMonitoringAttributes implements MonitoringAttributes
     isTime = attributeName.indexOf("time") != -1;
 
     isNumeric =
-    !this.isGMTDate() &&
+    !isGMTDate() &&
     this != SYSTEM_NAME &&
     this != OPERATING_SYSTEM &&
     this != CLASS_PATH &&

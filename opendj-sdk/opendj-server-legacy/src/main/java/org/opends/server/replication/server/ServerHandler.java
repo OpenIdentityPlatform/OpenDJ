@@ -699,7 +699,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   public boolean isReplicationServer()
   {
-    return !this.isDataServer();
+    return !isDataServer();
   }
 
   // The handshake phase must be done by blocking any access to structures

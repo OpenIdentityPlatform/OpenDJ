@@ -169,8 +169,8 @@ public final class Session extends DirectoryThread implements Closeable
     }
 
     try {
-      this.interrupt();
-      this.join();
+      interrupt();
+      join();
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -556,7 +556,7 @@ public final class Session extends DirectoryThread implements Closeable
     latch.countDown();
     if (logger.isTraceEnabled())
     {
-      logger.trace(this.getName() + " starting.");
+      logger.trace(getName() + " starting.");
     }
     boolean needClosing = false;
     while (!closeInitiated)
@@ -587,7 +587,7 @@ public final class Session extends DirectoryThread implements Closeable
     }
     if (logger.isTraceEnabled())
     {
-      logger.trace(this.getName() + " stopped.");
+      logger.trace(getName() + " stopped.");
     }
   }
 

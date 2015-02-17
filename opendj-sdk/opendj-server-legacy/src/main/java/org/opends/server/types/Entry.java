@@ -3029,7 +3029,7 @@ public class Entry
    */
   private void processCollectiveAttributes()
   {
-    if (this.isSubentry() || this.isLDAPSubentry())
+    if (isSubentry() || isLDAPSubentry())
     {
       return;
     }

@@ -197,20 +197,17 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    * {@inheritDoc}
    */
   public int compareTo(CustomSearchResult o) {
-    int compareTo;
     if (this.equals(o))
     {
-      compareTo = 0;
+      return 0;
     }
-    else
-    {
-      compareTo = toString().compareTo(o.toString());
-    }
-    return compareTo;
+    return toString().compareTo(o.toString());
   }
 
   /**
-   * {@inheritDoc}
+   * Return a new object, copy of the current object.
+   *
+   * @return a new object, copy of the current object
    */
   public CustomSearchResult duplicate()
   {
@@ -303,7 +300,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
    */
   public Entry getEntry() throws OpenDsException
   {
-    DN dn = DN.valueOf(this.getDN());
+    DN dn = DN.valueOf(getDN());
     Map<ObjectClass,String> objectClasses = new HashMap<ObjectClass,String>();
     Map<AttributeType,List<org.opends.server.types.Attribute>> userAttributes =
       new HashMap<AttributeType,List<org.opends.server.types.Attribute>>();
@@ -311,7 +308,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
     operationalAttributes =
       new HashMap<AttributeType,List<org.opends.server.types.Attribute>>();
 
-    for (String wholeName : this.getAttributeNames())
+    for (String wholeName : getAttributeNames())
     {
       final org.opends.server.types.Attribute attribute =
         LDIFReader.parseAttrDescription(wholeName);
@@ -322,7 +319,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
       // corresponding definition and add the value to the appropriate hash.
       if (lowerName.equals("objectclass"))
       {
-        for (Object value : this.getAttributeValues(attrName))
+        for (Object value : getAttributeValues(attrName))
         {
           String ocName = value.toString().trim();
           String lowerOCName = toLowerCase(ocName);
@@ -346,7 +343,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
         }
 
         AttributeBuilder builder = new AttributeBuilder(attribute, true);
-        for (Object value : this.getAttributeValues(attrName))
+        for (Object value : getAttributeValues(attrName))
         {
           ByteString bs;
           if (value instanceof byte[])
