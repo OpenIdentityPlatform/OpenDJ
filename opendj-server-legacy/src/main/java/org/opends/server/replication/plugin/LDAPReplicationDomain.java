@@ -357,7 +357,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           synchronized (this)
           {
-            this.wait(1000);
+            wait(1000);
             if (!disabled && !stateSavingDisabled)
             {
               // save the ServerState

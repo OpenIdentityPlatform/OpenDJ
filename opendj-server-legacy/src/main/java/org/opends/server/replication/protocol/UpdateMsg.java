@@ -131,8 +131,9 @@ public class UpdateMsg extends ReplicationMsg
   @Override
   public boolean equals(Object obj)
   {
-    return obj != null && obj.getClass() == this.getClass() &&
-        csn.equals(((UpdateMsg) obj).csn);
+    return obj != null
+        && obj.getClass() == getClass()
+        && csn.equals(((UpdateMsg) obj).csn);
   }
 
   /** {@inheritDoc} */

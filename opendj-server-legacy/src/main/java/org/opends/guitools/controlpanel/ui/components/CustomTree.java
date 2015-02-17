@@ -74,7 +74,7 @@ public class CustomTree extends JTree
    */
   public void paintComponent(Graphics g)
   {
-    int[] selectedRows = this.getSelectionRows();
+    int[] selectedRows = getSelectionRows();
     if (selectedRows == null)
     {
       selectedRows = new int[] {};

@@ -1495,7 +1495,7 @@ public abstract class ReplicationDomain
         {
           ieCtx.initializeTask = initTask;
         }
-        ieCtx.initializeCounters(this.countEntries());
+        ieCtx.initializeCounters(countEntries());
         ieCtx.msgCnt = 0;
         ieCtx.initNumLostConnections = broker.getNumLostConnections();
         ieCtx.initWindow = initWindow;

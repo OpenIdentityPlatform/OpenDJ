@@ -160,7 +160,7 @@ public class WebStartInstaller extends Installer {
       checkAbort();
 
       // create license accepted file
-      LicenseFile.createFileLicenseApproved(this.getInstallationPath());
+      LicenseFile.createFileLicenseApproved(getInstallationPath());
 
       createData();
 

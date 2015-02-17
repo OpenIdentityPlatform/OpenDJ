@@ -216,8 +216,7 @@ public class DSMLServlet extends HttpServlet {
       System.setProperty("mapAnyUriToUri", "true");
 
       if(jaxbContext==null)
-        jaxbContext = JAXBContext.newInstance(PKG_NAME,
-                this.getClass().getClassLoader());
+        jaxbContext = JAXBContext.newInstance(PKG_NAME, getClass().getClassLoader());
       // assign the DSMLv2 schema for validation
       if(schema==null)
       {

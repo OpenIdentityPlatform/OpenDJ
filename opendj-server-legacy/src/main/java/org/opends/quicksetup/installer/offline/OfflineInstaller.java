@@ -113,7 +113,7 @@ public class OfflineInstaller extends Installer
       checkAbort();
 
       // create license accepted file
-      LicenseFile.createFileLicenseApproved(this.getInstallationPath());
+      LicenseFile.createFileLicenseApproved(getInstallationPath());
 
       checkAbort() ;
 

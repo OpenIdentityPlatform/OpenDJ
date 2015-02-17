@@ -134,7 +134,7 @@ public class OpendsJmxConnector implements JMXConnector
    */
   public void connect() throws IOException, SecurityException
   {
-    this.connect(null);
+    connect(null);
   }
 
  /**
