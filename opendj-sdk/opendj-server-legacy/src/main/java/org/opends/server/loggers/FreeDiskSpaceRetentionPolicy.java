@@ -52,7 +52,7 @@ public class FreeDiskSpaceRetentionPolicy implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private long freeDiskSpace = 0;
+  private long freeDiskSpace;
   private FreeDiskSpaceLogRetentionPolicyCfg config;
 
   /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -54,7 +54,7 @@ import static org.opends.messages.QuickSetupMessages.*;
  */
 public class UIFactory
 {
-  private static boolean initialized = false;
+  private static boolean initialized;
 
   private static String parentPackagePath;
 

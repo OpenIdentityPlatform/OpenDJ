@@ -66,7 +66,7 @@ public class LDAPRequestHandler
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // Indicates whether the Directory Server is in the process of shutting down.
-  private volatile boolean shutdownRequested = false;
+  private volatile boolean shutdownRequested;
 
   // The current set of selection keys.
   private volatile SelectionKey[] keys = new SelectionKey[0];

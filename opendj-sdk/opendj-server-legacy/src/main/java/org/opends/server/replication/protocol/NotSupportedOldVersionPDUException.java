@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -40,7 +41,7 @@ public class NotSupportedOldVersionPDUException extends Exception
 {
   // Suppress compile warning
   static final long serialVersionUID = 1739875L;
-  private String msg = null; // Explicit message
+  private String msg; // Explicit message
   private short protocolVersion = -1; // protocol version of the pdu
   private byte pduType = -1; // type of the pdu
 

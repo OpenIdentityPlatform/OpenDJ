@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -114,7 +114,7 @@ public final class AttributeType
   private final MatchingRule substringMatchingRule;
 
   // True once this attribute type has been removed from the schema.
-  private volatile boolean isDirty = false;
+  private volatile boolean isDirty;
 
 
 

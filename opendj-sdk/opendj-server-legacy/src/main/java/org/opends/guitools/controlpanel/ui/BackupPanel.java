@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -100,7 +100,7 @@ public class BackupPanel extends BackupListPanel
 
   private ChangeListener changeListener;
 
-  private boolean backupIDInitialized = false;
+  private boolean backupIDInitialized;
 
   private ScheduleSummaryPanel schedulePanel;
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -36,9 +37,9 @@ import org.opends.server.types.Control;
 public class LDAPToolOptions
 {
 
-  private boolean showOperations =  false;
-  private boolean verbose = false;
-  private boolean continueOnError = false;
+  private boolean showOperations;
+  private boolean verbose;
+  private boolean continueOnError;
   private String encoding = System.getProperty("file.encoding");
   private ArrayList<Control> controls = new ArrayList<Control>();
 

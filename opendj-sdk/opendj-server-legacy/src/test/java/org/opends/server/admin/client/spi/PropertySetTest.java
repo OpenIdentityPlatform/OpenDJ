@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.client.spi;
@@ -67,13 +67,13 @@ public class PropertySetTest extends AdminTestCase {
   private static final String STR_DEFAULT = "str def";
 
   /** Test boolean property def */
-  private BooleanPropertyDefinition testBoolPropertyDefinition = null;
+  private BooleanPropertyDefinition testBoolPropertyDefinition;
 
   /** Test single valued string property def */
-  private StringPropertyDefinition testSvStringPropertyDefinition = null;
+  private StringPropertyDefinition testSvStringPropertyDefinition;
 
   /** Test multi-valued string property def */
-  private StringPropertyDefinition testMvStringPropertyDefinition = null;
+  private StringPropertyDefinition testMvStringPropertyDefinition;
 
   private PropertyProvider emptyPropertyProvider = new PropertyProvider() {
     public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d) throws IllegalArgumentException {
@@ -468,8 +468,8 @@ public class PropertySetTest extends AdminTestCase {
 
   private class TestPropertyProvider<T> implements PropertyProvider {
 
-    PropertyDefinition<T> pd = null;
-    Collection<T> values = null;
+    PropertyDefinition<T> pd;
+    Collection<T> values;
 
     public TestPropertyProvider(PropertyDefinition<T> pd, Collection<T> values) {
       this.pd = pd;

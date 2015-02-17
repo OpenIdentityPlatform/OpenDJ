@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 import com.sleepycat.je.Cursor;
@@ -64,12 +64,12 @@ public class ExportJob
   /**
    * The current number of entries exported.
    */
-  private long exportedCount = 0;
+  private long exportedCount;
 
   /**
    * The current number of entries skipped.
    */
-  private long skippedCount = 0;
+  private long skippedCount;
 
   /**
    * Create a new export job.
@@ -270,7 +270,7 @@ public class ExportJob
      * The number of entries that had been exported at the time of the
      * previous progress report.
      */
-    private long previousCount = 0;
+    private long previousCount;
 
     /**
      * The time in milliseconds of the previous progress report.

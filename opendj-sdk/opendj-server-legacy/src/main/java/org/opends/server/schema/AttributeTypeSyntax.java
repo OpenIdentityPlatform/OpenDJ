@@ -84,7 +84,7 @@ public class AttributeTypeSyntax
   private MatchingRule defaultSubstringMatchingRule;
 
   /** If true strip the suggested minimum upper bound from the syntax OID. */
-  private static boolean stripMinimumUpperBound=false;
+  private static boolean stripMinimumUpperBound;
 
 
   /**

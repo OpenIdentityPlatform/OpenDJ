@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -61,8 +62,7 @@ public final class OptionalRelationDefinition
 
     // The optional default managed object associated with this
     // optional relation.
-    private DefaultManagedObject<? extends C, ? extends S>
-      defaultManagedObject = null;
+    private DefaultManagedObject<? extends C, ? extends S> defaultManagedObject;
 
 
 

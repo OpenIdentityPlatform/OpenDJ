@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -64,12 +64,12 @@ public final class Session extends DirectoryThread implements Closeable
   /**
    * The time the last message published to this session.
    */
-  private volatile long lastPublishTime = 0;
+  private volatile long lastPublishTime;
 
   /**
    * The time the last message was received on this session.
    */
-  private volatile long lastReceiveTime = 0;
+  private volatile long lastReceiveTime;
 
   /**
    * Close and error guarded by stateLock: use a different lock to publish since
@@ -77,7 +77,7 @@ public final class Session extends DirectoryThread implements Closeable
    * connections.
    */
   private final Object stateLock = new Object();
-  private volatile boolean closeInitiated = false;
+  private volatile boolean closeInitiated;
   private Throwable sessionError;
 
   /**

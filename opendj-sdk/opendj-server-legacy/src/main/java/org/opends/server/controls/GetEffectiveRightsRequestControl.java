@@ -154,16 +154,16 @@ public class GetEffectiveRightsRequestControl extends Control
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   //The DN representing the authzId. May be null.
-  private DN authzDN=null;
+  private DN authzDN;
 
   //The raw DN representing the authzId. May be null.
-  private String rawAuthzDN=null;
+  private String rawAuthzDN;
 
   //The list of additional attribute types to return rights for. May be null.
-  private List<AttributeType> attrs=null;
+  private List<AttributeType> attrs;
 
   //The raw DN representing the authzId. May be null.
-  private List<String> rawAttrs=null;
+  private List<String> rawAttrs;
 
   /**
    * Create a new geteffectiverights control with the specified authzDN and

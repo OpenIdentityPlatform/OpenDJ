@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2014 ForgeRock AS
+ *      Portions Copyright 2010-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -52,7 +52,7 @@ public class Aci implements Comparable<Aci>
     /**
      * The ACI targets.
      */
-    private AciTargets targets=null;
+    private AciTargets targets;
 
     /**
      * Version that we support.

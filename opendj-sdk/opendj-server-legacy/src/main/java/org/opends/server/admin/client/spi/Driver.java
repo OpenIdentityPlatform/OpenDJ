@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.client.spi;
@@ -91,7 +91,7 @@ public abstract class Driver {
 
     // Any exception that occurred whilst retrieving inherited default
     // values.
-    private PropertyException exception = null;
+    private PropertyException exception;
 
     // The path of the managed object containing the first property.
     private final ManagedObjectPath<?, ?> firstPath;
@@ -100,10 +100,10 @@ public abstract class Driver {
     private final boolean isCreate;
 
     // The path of the managed object containing the next property.
-    private ManagedObjectPath<?, ?> nextPath = null;
+    private ManagedObjectPath<?, ?> nextPath;
 
     // The next property whose default values were required.
-    private PropertyDefinition<T> nextProperty = null;
+    private PropertyDefinition<T> nextProperty;
 
 
 

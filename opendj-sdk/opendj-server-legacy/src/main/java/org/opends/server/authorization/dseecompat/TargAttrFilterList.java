@@ -50,7 +50,7 @@ public class TargAttrFilterList {
   /**
    * The mask corresponding to the operation of this list (add or del).
    */
-    private int mask=0;
+    private int mask;
 
   /**
    * ListHashMap keyed by the attribute type and mapping to the corresponding

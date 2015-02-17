@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -35,7 +36,7 @@ package org.opends.server.tools;
 public class LDAPDeleteOptions extends LDAPToolOptions
 {
 
-  private boolean deleteSubtree = false;
+  private boolean deleteSubtree;
 
   /**
    * Creates the options instance.

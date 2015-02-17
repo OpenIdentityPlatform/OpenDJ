@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -450,7 +450,7 @@ public final class TLSByteChannel implements ConnectionSecurityProvider
   private final ByteChannel channel;
   private final SSLEngine sslEngine;
 
-  private volatile SSLException sslException = null;
+  private volatile SSLException sslException;
   private ByteBuffer recvWrappedBuffer;
   private ByteBuffer recvUnwrappedBuffer;
   private ByteBuffer sendWrappedBuffer;

@@ -102,7 +102,7 @@ public final class LDIFConnectionHandler
 
   // Help to not warn permanently and fullfill the log file
   // in debug mode.
-  private boolean alreadyWarn = false;
+  private boolean alreadyWarn;
 
 
   /**

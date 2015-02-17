@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -54,7 +54,7 @@ import static org.opends.server.util.DynamicConstants.*;
 
 
 
-   private static boolean is64Bit=false;
+   private static boolean is64Bit;
 
    static {
      String arch = System.getProperty("sun.arch.data.model");

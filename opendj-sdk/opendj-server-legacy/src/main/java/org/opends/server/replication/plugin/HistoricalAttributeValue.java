@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -81,7 +81,7 @@ public class HistoricalAttributeValue
    * This flag indicates that this value was generated to store the last date
    * when the entry was renamed.
    */
-  private boolean ismodDN = false;
+  private boolean ismodDN;
 
   /**
    * Create a new object from the String encoded form.

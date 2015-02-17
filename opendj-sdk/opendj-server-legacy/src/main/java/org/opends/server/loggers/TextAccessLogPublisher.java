@@ -96,10 +96,10 @@ public final class TextAccessLogPublisher extends
 
 
 
-  private TextWriter writer = null;
-  private FileBasedAccessLogPublisherCfg cfg = null;
-  private boolean isCombinedMode = false;
-  private boolean includeControlOIDs = false;
+  private TextWriter writer;
+  private FileBasedAccessLogPublisherCfg cfg;
+  private boolean isCombinedMode;
+  private boolean includeControlOIDs;
   private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
 
 

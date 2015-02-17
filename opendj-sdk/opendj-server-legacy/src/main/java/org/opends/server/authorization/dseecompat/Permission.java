@@ -44,7 +44,7 @@ public class Permission {
     /**
      *  The access type (allow,deny) corresponding to the ACI permission value.
      */
-    private EnumAccessType accessType = null;
+    private EnumAccessType accessType;
 
     /**
      * The rights (search, add, delete, ...) corresponding to the ACI rights

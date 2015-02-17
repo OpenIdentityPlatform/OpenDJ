@@ -51,7 +51,7 @@ public class SizeBasedRetentionPolicy implements
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final File[] EMPTY_FILE_LIST = new File[0];
 
-  private long size = 0;
+  private long size;
   private FileComparator comparator;
   private SizeLimitLogRetentionPolicyCfg config;
 

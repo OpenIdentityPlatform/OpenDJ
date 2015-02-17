@@ -97,7 +97,7 @@ public final class ObjectClass
   private final String definition;
 
   // True once this object class has been removed from the schema.
-  private volatile boolean isDirty = false;
+  private volatile boolean isDirty;
 
 
 

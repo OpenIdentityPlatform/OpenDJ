@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -61,7 +61,7 @@ import static org.opends.server.util.ServerConstants.*;
 @Test(groups = {"precommit", "dseecompat"}, sequential = true)
 public abstract class  AciTestCase extends DirectoryServerTestCase {
 
-  private Attribute globalACIAttribute = null;
+  private Attribute globalACIAttribute;
 
   @BeforeClass
   public void aciTestCaseSetup() throws Exception

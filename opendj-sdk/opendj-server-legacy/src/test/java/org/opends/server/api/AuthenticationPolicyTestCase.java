@@ -60,15 +60,10 @@ public class AuthenticationPolicyTestCase extends APITestCase
   private final class MockPolicy extends AuthenticationPolicy
   {
     private final boolean isDisabled;
-
-    private boolean isPolicyFinalized = false;
-
-    private boolean isStateFinalized = false;
-
     private final boolean matches;
-
-    private ByteString matchedPassword = null;
-
+    private boolean isPolicyFinalized;
+    private boolean isStateFinalized;
+    private ByteString matchedPassword;
 
 
     /**

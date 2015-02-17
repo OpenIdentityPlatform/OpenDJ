@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -95,17 +95,17 @@ public final class ServerManagementContext {
 
     // Any exception that occurred whilst retrieving inherited default
     // values.
-    private PropertyException exception = null;
+    private PropertyException exception;
 
     // Optional new configuration entry which does not yet exist in
     // the configuration back-end.
     private final ConfigEntry newConfigEntry;
 
     // The path of the managed object containing the next property.
-    private ManagedObjectPath<?, ?> nextPath = null;
+    private ManagedObjectPath<?, ?> nextPath;
 
     // The next property whose default values were required.
-    private PropertyDefinition<T> nextProperty = null;
+    private PropertyDefinition<T> nextProperty;
 
 
 

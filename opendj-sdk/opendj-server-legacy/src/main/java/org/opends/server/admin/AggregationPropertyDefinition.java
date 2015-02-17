@@ -123,11 +123,11 @@ public final class AggregationPropertyDefinition
 
     // The string representation of the managed object path specifying
     // the parent of the aggregated managed objects.
-    private String parentPathString = null;
+    private String parentPathString;
 
     // The name of a relation in the parent managed object which
     // contains the aggregated managed objects.
-    private String rdName = null;
+    private String rdName;
 
     // The condition which is used to determine if a referenced
     // managed object is enabled.

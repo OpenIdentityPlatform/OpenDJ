@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -51,8 +51,8 @@ import java.nio.channels.FileLock;
 @Test(groups = {"slow"}, sequential=true)
 public class FileManagerTest extends QuickSetupTestCase {
 
-  File fmWorkspace = null;
-  FileManager fileManager = null;
+  File fmWorkspace;
+  FileManager fileManager;
 
   @BeforeClass
   public void setUp() throws Exception {

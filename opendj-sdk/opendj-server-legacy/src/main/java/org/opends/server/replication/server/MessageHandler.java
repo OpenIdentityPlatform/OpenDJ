@@ -93,11 +93,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Number of update sent to the server.
    */
-  private int outCount = 0;
+  private int outCount;
   /**
    * Number of updates received from the server.
    */
-  private int inCount = 0;
+  private int inCount;
   /**
    * Specifies the max queue size for this handler.
    */
@@ -109,7 +109,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Specifies whether the consumer is following the producer (is not late).
    */
-  private boolean following = false;
+  private boolean following;
   /**
    * Specifies the current serverState of this handler.
    */

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
@@ -91,12 +91,12 @@ public class DirectoryRMIClientSocketFactory implements
   /**
    * the ssl socket factory (do not serialize).
    */
-  private transient SSLSocketFactory sslSocketFactory = null;
+  private transient SSLSocketFactory sslSocketFactory;
 
   /**
    * the host to connect to (do not serialize).
    */
-  private transient String serverHostname = null;
+  private transient String serverHostname;
 
   /**
    * Constructs a new <code>DirectoryRMIClientSocketFactory</code>.

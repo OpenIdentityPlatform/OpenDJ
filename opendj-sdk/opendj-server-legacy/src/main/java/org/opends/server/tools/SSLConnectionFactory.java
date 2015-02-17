@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -59,7 +59,7 @@ public class SSLConnectionFactory
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-  private SSLSocketFactory sslSocketFactory = null;
+  private SSLSocketFactory sslSocketFactory;
 
   /**
    * Constructor for the SSL connection factory.

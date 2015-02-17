@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -37,7 +38,7 @@ import java.util.Locale;
  * ManagedObjectDefinitionI18NResource Tester.
  */
 public class ManagedObjectDefinitionI18NResourceTest extends DirectoryServerTestCase {
-  ManagedObjectDefinitionI18NResource modr = null;
+  ManagedObjectDefinitionI18NResource modr;
 
   /**
    * Creates the resource

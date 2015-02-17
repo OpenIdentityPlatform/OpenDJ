@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -51,7 +51,7 @@ class SignatureAction implements PostRotationAction
   private File originalFile;
   private String signatureAlgorithm = "SHA1withRSA";
   private String digestAlgorithm = "SHA";
-  private String alias = null;
+  private String alias;
 
   /**
    * Create the signature action based on the log file name,

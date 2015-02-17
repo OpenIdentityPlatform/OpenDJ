@@ -200,7 +200,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private final AtomicInteger numReplayedPostOpCalled = new AtomicInteger();
 
   private final PersistentServerState state;
-  private volatile boolean generationIdSavedStatus = false;
+  private volatile boolean generationIdSavedStatus;
 
   /**
    * This object is used to store the list of update currently being
@@ -226,8 +226,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
   private final InternalClientConnection conn = getRootConnection();
   private final AtomicBoolean shutdown = new AtomicBoolean();
-  private volatile boolean disabled = false;
-  private volatile boolean stateSavingDisabled = false;
+  private volatile boolean disabled;
+  private volatile boolean stateSavingDisabled;
 
   /**
    * This list is used to temporary store operations that needs to be replayed
@@ -293,7 +293,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * fractional configuration (i.e with compliant fractional configuration in
    * domain root entry).
    */
-  private boolean forceBadDataSet = false;
+  private boolean forceBadDataSet;
 
   /**
    * The message id to be used when an import is stopped with error by
@@ -4535,7 +4535,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
      * fractionalSpecificClassesAttributes or fractionalAllClassesAttributes or
      * both should be filled with something.
      */
-    private boolean fractional = false;
+    private boolean fractional;
 
     /**
      * - If true, tells that the configured fractional replication is exclusive:

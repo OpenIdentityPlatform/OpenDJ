@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -46,7 +46,7 @@ public class DeleteMsg extends LDAPUpdateMsg
   private String initiatorsName;
 
   /** whether the DEL operation is a subtree DEL. */
-  private boolean isSubtreeDelete = false;
+  private boolean isSubtreeDelete;
 
   /**
    * Creates a new delete message.

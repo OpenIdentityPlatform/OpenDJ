@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -47,8 +47,8 @@ public class TargAttrFilters {
      * A valid targattrfilters rule may have two TargFilterlist parts -- the
      * first one is required.
      */
-    private TargAttrFilterList firstFilterList = null;
-    private TargAttrFilterList secondFilterList = null;
+    private TargAttrFilterList firstFilterList;
+    private TargAttrFilterList secondFilterList;
 
     /**
      * Regular expression group position for the first operation value.

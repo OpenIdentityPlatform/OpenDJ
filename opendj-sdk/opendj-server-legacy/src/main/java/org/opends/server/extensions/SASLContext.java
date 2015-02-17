@@ -97,7 +97,7 @@ public class SASLContext implements CallbackHandler,
 
 
   // The SASL server to use in the authentication.
-  private SaslServer saslServer = null;
+  private SaslServer saslServer;
 
   // The identity mapper to use when mapping identities.
   private final IdentityMapper<?> identityMapper;
@@ -112,10 +112,10 @@ public class SASLContext implements CallbackHandler,
   private final String mechanism;
 
   // The authorization entry used in the authentication.
-  private Entry authEntry = null;
+  private Entry authEntry;
 
   // The authorization entry used in the authentication.
-  private Entry authzEntry = null;
+  private Entry authzEntry;
 
   // The user name used in the authentication taken from the name callback.
   private String userName;

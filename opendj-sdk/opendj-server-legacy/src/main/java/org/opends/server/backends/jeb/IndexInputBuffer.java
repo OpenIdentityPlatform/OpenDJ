@@ -53,7 +53,7 @@ final class IndexInputBuffer implements Comparable<IndexInputBuffer>
 
   private long offset;
   private final ByteBuffer cache;
-  private Integer indexID = null;
+  private Integer indexID;
   private ByteBuffer keyBuf = ByteBuffer.allocate(128);
 
 

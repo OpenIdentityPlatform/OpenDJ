@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -94,7 +94,7 @@ public final class HostPort
 
   // Time-stamp acts as memory barrier for networkInterfaces.
   private static final long CACHED_LOCAL_ADDRESSES_TIMEOUT_MS = 30 * 1000;
-  private static volatile long localAddressesTimeStamp = 0;
+  private static volatile long localAddressesTimeStamp;
   private static Set<InetAddress> localAddresses = new HashSet<InetAddress>();
 
   /**

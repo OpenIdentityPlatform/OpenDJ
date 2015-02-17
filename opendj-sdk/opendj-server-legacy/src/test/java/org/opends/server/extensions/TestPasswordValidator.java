@@ -49,7 +49,7 @@ public class TestPasswordValidator
   /**
    * The singleton instance of this test password validator.
    */
-  private static TestPasswordValidator instance = null;
+  private static TestPasswordValidator instance;
 
 
 

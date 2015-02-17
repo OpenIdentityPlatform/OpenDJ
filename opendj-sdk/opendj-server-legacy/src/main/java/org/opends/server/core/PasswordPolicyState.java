@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -127,10 +127,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   private int secondsUntilUnlock = Integer.MIN_VALUE;
 
   // The set of authentication failure times for this user.
-  private List<Long> authFailureTimes = null;
+  private List<Long> authFailureTimes;
 
   // The set of grace login times for this user.
-  private List<Long> graceLoginTimes = null;
+  private List<Long> graceLoginTimes;
 
   // The time that the user's account should expire (or did expire).
   private long accountExpirationTime = Long.MIN_VALUE;

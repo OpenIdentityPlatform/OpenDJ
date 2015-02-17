@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 import java.io.IOException;
@@ -72,12 +72,12 @@ public class LDAPConnection
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The hostname to connect to.
-  private String hostName = null;
+  private String hostName;
 
   // The port number on which the directory server is accepting requests.
   private int portNumber = 389;
 
-  private LDAPConnectionOptions connectionOptions = null;
+  private LDAPConnectionOptions connectionOptions;
   private LDAPWriter ldapWriter;
   private LDAPReader ldapReader;
   private int versionNumber = 3;

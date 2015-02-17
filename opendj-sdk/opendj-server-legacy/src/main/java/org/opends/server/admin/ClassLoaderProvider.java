@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.admin;
 
@@ -178,7 +178,7 @@ public final class ClassLoaderProvider {
   // run-time. For example, when removing or replacing extension Jar
   // files (the URLClassLoader only supports adding new
   // URLs, not removal).
-  private MyURLClassLoader loader = null;
+  private MyURLClassLoader loader;
 
 
 

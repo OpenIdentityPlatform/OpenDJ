@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin.client.cli;
@@ -71,12 +71,12 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   /**
    * The 'showUsage' global argument.
    */
-  protected BooleanArgument showUsageArg = null;
+  protected BooleanArgument showUsageArg;
 
   /**
    * The 'verbose' global argument.
    */
-  protected BooleanArgument verboseArg = null;
+  protected BooleanArgument verboseArg;
 
   /**
    * The secure args list object.
@@ -86,7 +86,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   /**
    * Argument indicating a properties file argument.
    */
-  protected StringArgument  propertiesFileArg = null;
+  protected StringArgument propertiesFileArg;
 
   /**
    * The argument which should be used to indicate that we will not

@@ -41,7 +41,7 @@ public class TimeLimitRotationPolicy implements
     RotationPolicy<TimeLimitLogRotationPolicyCfg>,
     ConfigurationChangeListener<TimeLimitLogRotationPolicyCfg>
 {
-  private long timeInterval = 0;
+  private long timeInterval;
 
   /**
    * {@inheritDoc}

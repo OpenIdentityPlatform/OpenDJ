@@ -157,7 +157,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * {@link #generationId} from being reset by
    * {@link #resetGenerationIdIfPossible()}.
    */
-  private volatile boolean generationIdSavedStatus = false;
+  private volatile boolean generationIdSavedStatus;
 
   /** The tracer object for the debug logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -187,7 +187,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * Counter used to purge the timer tasks references in assuredTimeoutTimer,
    * every n number of treated assured messages.
    */
-  private int assuredTimeoutTimerPurgeCounter = 0;
+  private int assuredTimeoutTimerPurgeCounter;
 
 
 

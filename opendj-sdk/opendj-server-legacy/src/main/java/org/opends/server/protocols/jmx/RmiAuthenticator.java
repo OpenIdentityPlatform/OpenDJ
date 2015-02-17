@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 import org.forgerock.i18n.LocalizableMessage;
@@ -56,21 +56,12 @@ public class RmiAuthenticator implements JMXAuthenticator
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
-    /**
-     * The client authentication mode. <code>true</code> indicates that the
-     * client will be authenticated by its certificate (SSL protocol).
-     * <code>true</code> indicate , that we have to perform an lDAP
-     * authentication
-     */
-    private boolean needClientCertificate = false;
-
     /**
      * Indicate if the we are in the finalized phase.
      *
      * @see JmxConnectionHandler
      */
-    private boolean finalizedPhase = false;
+    private boolean finalizedPhase;
 
   /**
    * The JMX Client connection to be used to perform the bind (auth)

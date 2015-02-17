@@ -69,7 +69,7 @@ public final class AccessControlConfigManager
     "org.opends.server.core.AccessControlConfigManager";
 
   // The single application-wide instance.
-  private static AccessControlConfigManager instance = null;
+  private static AccessControlConfigManager instance;
 
   // The active access control implementation.
   private AtomicReference<AccessControlHandler> accessControlHandler;

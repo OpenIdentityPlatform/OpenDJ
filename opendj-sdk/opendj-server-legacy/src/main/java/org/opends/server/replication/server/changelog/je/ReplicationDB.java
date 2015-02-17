@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -109,7 +109,7 @@ class ReplicationDB
    * When not null, the next change with a ts different from
    * tsForNewCounterRecord will lead to store a new counterRecord.
    */
-  private long counterTsLimit = 0;
+  private long counterTsLimit;
 
   /**
    * The counter record will never be written to the db more often than each

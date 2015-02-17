@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -47,10 +47,10 @@ import org.opends.server.types.*;
 public class GroupDN implements KeywordBindRule {
 
     /** List of group DNs. */
-    private List<DN> groupDNs = null;
+    private List<DN> groupDNs;
 
     /** Enumeration representing the groupdn operator type. */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     /**
      * Regular expression matching one or more LDAP URLs separated by

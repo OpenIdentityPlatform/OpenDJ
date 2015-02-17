@@ -220,8 +220,8 @@ public class ProgressDialog extends GenericDialog
     private int lastCollapsedHeight = -1;
     private int lastExpandedHeight = -1;
 
-    private static boolean lastShowDetails = false;
-    private static boolean lastCloseWhenOver = false;
+    private static boolean lastShowDetails;
+    private static boolean lastCloseWhenOver;
 
     private boolean taskIsOver;
 

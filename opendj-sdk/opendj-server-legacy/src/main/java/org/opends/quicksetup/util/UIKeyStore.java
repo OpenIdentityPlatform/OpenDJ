@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -48,9 +48,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  */
 public class UIKeyStore extends KeyStore
 {
-  private static KeyStore keyStore = null;
-
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+  private static KeyStore keyStore;
 
   /**
    * This should never be called.

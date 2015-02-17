@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 import org.forgerock.i18n.LocalizableMessage;
@@ -52,10 +52,10 @@ public class IP implements KeywordBindRule {
      * List of the pattern classes, one for each address decoded from the bind
      * rule.
      */
-    private List<PatternIP> patternIPList=null;
+    private List<PatternIP> patternIPList;
 
     /** The type of the bind rule (!= or =). */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     /**
      * Create a class representing the IP bind rule expressions for this ACI.

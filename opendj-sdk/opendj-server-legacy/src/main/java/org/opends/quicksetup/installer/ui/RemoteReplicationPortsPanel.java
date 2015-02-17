@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -79,7 +79,7 @@ implements Comparator<ServerDescriptor>
     new TreeSet<ServerDescriptor>(this);
   //The display of the server the user provided in the replication options
   // panel
-  private String serverToConnectDisplay = null;
+  private String serverToConnectDisplay;
 
   /**
    * Constructor of the panel.

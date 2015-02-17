@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2014 ForgeRock AS.
+ *      Copyright 2014-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server.changelog.file;
 
@@ -420,7 +420,7 @@ public class LogFileTest extends DirectoryServerTestCase
   /** A parser that can be set to fail when reading. */
   static class FailingStringRecordParser extends StringRecordParser
   {
-    private boolean failToRead = false;
+    private boolean failToRead;
 
     @Override
     public Record<String, String> decodeRecord(ByteString data) throws DecodingException

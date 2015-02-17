@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -54,7 +54,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    * By default changeTimeHeartbeatInterval is set to 0 in order to disable this
    * feature and not kill the tests that expect to receive special messages.
    */
-  private long changeTimeHeartbeatInterval = 0;
+  private long changeTimeHeartbeatInterval;
 
   private IsolationPolicy policy = IsolationPolicy.REJECT_ALL_UPDATES;
 

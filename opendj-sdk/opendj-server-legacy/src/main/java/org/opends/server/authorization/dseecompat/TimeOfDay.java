@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 import org.forgerock.i18n.LocalizableMessage;
@@ -42,7 +42,7 @@ public class TimeOfDay implements KeywordBindRule {
     private static final String timeofdayRegex = "[0-2]\\d[0-5]\\d";
 
     /** Enumeration representing the bind rule operation type. */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     /** Holds the time value parsed from the ACI. */
     private int timeRef;

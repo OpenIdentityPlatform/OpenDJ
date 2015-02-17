@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -72,10 +72,10 @@ public final class TestCfg {
   }
 
   // Test parent object class definition.
-  private static ObjectClass TEST_PARENT_OCD = null;
+  private static ObjectClass TEST_PARENT_OCD;
 
   // Test child object class definition.
-  private static ObjectClass TEST_CHILD_OCD = null;
+  private static ObjectClass TEST_CHILD_OCD;
 
 
 

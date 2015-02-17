@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.admin.client.cli;
 
@@ -77,106 +77,106 @@ public final class SecureConnectionCliArgs
   /**
    * The 'hostName' global argument.
    */
-  public StringArgument hostNameArg = null;
+  public StringArgument hostNameArg;
 
   /**
    * The 'port' global argument.
    */
-  public IntegerArgument portArg = null;
+  public IntegerArgument portArg;
 
   /**
    * The 'bindDN' global argument.
    */
-  public StringArgument bindDnArg = null;
+  public StringArgument bindDnArg;
 
   /**
    * The 'adminUID' global argument.
    */
-  public StringArgument adminUidArg = null;
+  public StringArgument adminUidArg;
 
   /**
    * The 'bindPasswordFile' global argument.
    */
-  public FileBasedArgument bindPasswordFileArg = null;
+  public FileBasedArgument bindPasswordFileArg;
 
   /**
    * The 'bindPassword' global argument.
    */
-  public StringArgument bindPasswordArg = null;
+  public StringArgument bindPasswordArg;
 
   /**
    * The 'trustAllArg' global argument.
    */
-  public BooleanArgument trustAllArg = null;
+  public BooleanArgument trustAllArg;
 
   /**
    * The 'trustStore' global argument.
    */
-  public StringArgument trustStorePathArg = null;
+  public StringArgument trustStorePathArg;
 
   /**
    * The 'trustStorePassword' global argument.
    */
-  public StringArgument trustStorePasswordArg = null;
+  public StringArgument trustStorePasswordArg;
 
   /**
    * The 'trustStorePasswordFile' global argument.
    */
-  public FileBasedArgument trustStorePasswordFileArg = null;
+  public FileBasedArgument trustStorePasswordFileArg;
 
   /**
    * The 'keyStore' global argument.
    */
-  public StringArgument keyStorePathArg = null;
+  public StringArgument keyStorePathArg;
 
   /**
    * The 'keyStorePassword' global argument.
    */
-  public StringArgument keyStorePasswordArg = null;
+  public StringArgument keyStorePasswordArg;
 
   /**
    * The 'keyStorePasswordFile' global argument.
    */
-  public FileBasedArgument keyStorePasswordFileArg = null;
+  public FileBasedArgument keyStorePasswordFileArg;
 
   /**
    * The 'certNicknameArg' global argument.
    */
-  public StringArgument certNicknameArg = null;
+  public StringArgument certNicknameArg;
 
   /**
    * The 'useSSLArg' global argument.
    */
-  public BooleanArgument useSSLArg = null;
+  public BooleanArgument useSSLArg;
 
   /**
    * The 'useStartTLSArg' global argument.
    */
-  public BooleanArgument useStartTLSArg = null;
+  public BooleanArgument useStartTLSArg;
 
   /**
    * Argument indicating a SASL option.
    */
-  public StringArgument  saslOptionArg = null;
+  public StringArgument  saslOptionArg;
 
   /**
    * Argument to specify the connection timeout.
    */
-  public IntegerArgument connectTimeoutArg = null;
+  public IntegerArgument connectTimeoutArg;
 
   /**
    * Private container for global arguments.
    */
-  private LinkedHashSet<Argument> argList = null;
+  private LinkedHashSet<Argument> argList;
 
   /** The trust manager. */
   private ApplicationTrustManager trustManager;
 
-  private boolean configurationInitialized = false;
+  private boolean configurationInitialized;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Defines if the CLI always use the SSL connection type. */
-  private boolean alwaysSSL = false;
+  private boolean alwaysSSL;
 
   /**
    * Creates a new instance of secure arguments.

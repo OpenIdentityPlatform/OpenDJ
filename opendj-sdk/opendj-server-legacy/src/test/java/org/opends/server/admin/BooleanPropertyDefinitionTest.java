@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
  */
 public class BooleanPropertyDefinitionTest extends DirectoryServerTestCase {
 
-  BooleanPropertyDefinition.Builder builder = null;
+  BooleanPropertyDefinition.Builder builder;
 
   /**
    * Sets up tests.

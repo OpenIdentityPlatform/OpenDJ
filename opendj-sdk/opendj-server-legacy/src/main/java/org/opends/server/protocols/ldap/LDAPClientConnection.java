@@ -408,7 +408,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
   /** The statistics tracker associated with this client connection. */
   private final LDAPStatistics statTracker;
-  private boolean useNanoTime=false;
+  private boolean useNanoTime;
 
 
   /** The connection ID assigned to this connection. */
@@ -447,10 +447,10 @@ public final class LDAPClientConnection extends ClientConnection implements
   private final int bufferSize;
   private final RedirectingByteChannel saslChannel;
   private final RedirectingByteChannel tlsChannel;
-  private volatile ConnectionSecurityProvider saslActiveProvider = null;
-  private volatile ConnectionSecurityProvider tlsActiveProvider = null;
-  private volatile ConnectionSecurityProvider saslPendingProvider = null;
-  private volatile ConnectionSecurityProvider tlsPendingProvider = null;
+  private volatile ConnectionSecurityProvider saslActiveProvider;
+  private volatile ConnectionSecurityProvider tlsActiveProvider;
+  private volatile ConnectionSecurityProvider saslPendingProvider;
+  private volatile ConnectionSecurityProvider tlsPendingProvider;
 
 
   /**

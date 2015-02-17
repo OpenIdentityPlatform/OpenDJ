@@ -79,7 +79,7 @@ public class ParentInheritance {
      * are under this suffix. Originally a way to search all nested groups
      * under this suffix, so the behavior is slightly different.
      */
-    private DN baseDN=null;
+    private DN baseDN;
 
 
     /**

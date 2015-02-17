@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -35,8 +36,8 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
  */
 public class UpdateToReplay
 {
-  private LDAPUpdateMsg updateMessage = null;
-  private LDAPReplicationDomain replicationDomain = null;
+  private LDAPUpdateMsg updateMessage;
+  private LDAPReplicationDomain replicationDomain;
 
   /**
    * Construct the object associating the update message with the replication

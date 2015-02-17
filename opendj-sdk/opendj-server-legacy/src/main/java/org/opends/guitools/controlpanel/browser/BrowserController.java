@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.browser;
 
@@ -131,7 +131,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private String[] containerClasses;
   private NumSubordinateHacker numSubordinateHacker;
   private int queueTotalSize;
-  private int maxChildren = 0;
+  private int maxChildren;
   private final Collection<BrowserEventListener> listeners =
     new ArrayList<BrowserEventListener>();
   private final LDAPConnectionPool connectionPool;

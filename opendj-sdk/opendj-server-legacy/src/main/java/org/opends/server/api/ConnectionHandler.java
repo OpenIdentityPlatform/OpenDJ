@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.api;
 
@@ -64,7 +64,7 @@ public abstract class ConnectionHandler
   private ConnectionHandlerMonitor monitor;
 
   /** Is this handler the admin connection handler. */
-  private boolean isAdminConnectionHandler = false;
+  private boolean isAdminConnectionHandler;
 
 
 

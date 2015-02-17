@@ -232,7 +232,7 @@ public class ADSContext
   /** Default global admin UID. */
   public static final String GLOBAL_ADMIN_UID = "admin";
 
-  private static HashMap<String, ServerProperty> nameToServerProperty = null;
+  private static HashMap<String, ServerProperty> nameToServerProperty;
 
   /**
    * Get a ServerProperty associated to a name.
@@ -379,8 +379,7 @@ public class ADSContext
     }
   }
 
-  private static HashMap<String, AdministratorProperty>
-  nameToAdminUserProperty = null;
+  private static HashMap<String, AdministratorProperty> nameToAdminUserProperty;
 
   /**
    * Get a AdministratorProperty associated to a name.

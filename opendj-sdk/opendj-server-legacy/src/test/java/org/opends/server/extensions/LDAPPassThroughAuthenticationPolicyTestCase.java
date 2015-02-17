@@ -400,13 +400,13 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     private MappingPolicy mappingPolicy = MappingPolicy.UNMAPPED;
     private final SortedSet<String> primaryServers = new TreeSet<String>();
     private final SortedSet<String> secondaryServers = new TreeSet<String>();
-    private int timeoutMS = 0; // unlimited
+    private int timeoutMS; // unlimited
     private DN mappedSearchBindDN = searchBindDN;
     private String mappedSearchBindPassword = "searchPassword";
-    private String mappedSearchBindPasswordEnvVar = null;
-    private String mappedSearchBindPasswordFile = null;
-    private String mappedSearchBindPasswordProperty = null;
-    private boolean usePasswordCaching = false;
+    private String mappedSearchBindPasswordEnvVar;
+    private String mappedSearchBindPasswordFile;
+    private String mappedSearchBindPasswordProperty;
+    private boolean usePasswordCaching;
 
 
 
@@ -1260,9 +1260,9 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
     private final ServerSocket serverSocket;
     private final List<Action> actions = new LinkedList<Action>();
-    private Socket socket = null;
-    private volatile Exception e = null;
-    private Thread serverThread = null;
+    private Socket socket;
+    private volatile Exception e;
+    private Thread serverThread;
     private final CountDownLatch stopLatch = new CountDownLatch(1);
     private final Queue<BlockAction> blockers = new LinkedList<BlockAction>();
 

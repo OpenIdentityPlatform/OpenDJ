@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -70,17 +70,17 @@ public class AciBody {
     /**
      * Index into the ACI string where the ACI body starts.
      */
-    private int startPos=0;
+    private int startPos;
 
     /**
      * The name of the ACI, currently not used but parsed.
      */
-    private String name = null;
+    private String name;
 
     /**
      * The version of the ACi, current not used but parsed and checked for 3.0.
      */
-    private String version = null;
+    private String version;
 
     /**
      * This structure represents a permission-bind rule pairs. There can be

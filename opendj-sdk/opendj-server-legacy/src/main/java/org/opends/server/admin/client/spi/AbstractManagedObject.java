@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.client.spi;
 
@@ -89,19 +89,12 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient>
       RelationDefinitionVisitor<Void, Void> {
 
     // Possible exceptions.
-    private AuthorizationException ae = null;
-
-    private ManagedObjectAlreadyExistsException moaee = null;
-
-    private MissingMandatoryPropertiesException mmpe = null;
-
-    private ConcurrentModificationException cme = null;
-
-    private OperationRejectedException ore = null;
-
-    private CommunicationException ce = null;
-
-
+    private AuthorizationException ae;
+    private ManagedObjectAlreadyExistsException moaee;
+    private MissingMandatoryPropertiesException mmpe;
+    private ConcurrentModificationException cme;
+    private OperationRejectedException ore;
+    private CommunicationException ce;
 
     /**
      * {@inheritDoc}

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -99,13 +99,13 @@ public class AssuredReplicationServerTest
    * <code>fakeRd1 == fakeRDs[1]</code>, etc.
    */
   private FakeReplicationDomain[] fakeRDs;
-  private FakeReplicationServer fakeRs1 = null;
-  private FakeReplicationServer fakeRs2 = null;
-  private FakeReplicationServer fakeRs3 = null;
-  private ReplicationServer rs1 = null;
-  private ReplicationServer rs2 = null;
-  private ReplicationServer rs3 = null;
-  private ReplicationServer rs4 = null;
+  private FakeReplicationServer fakeRs1;
+  private FakeReplicationServer fakeRs2;
+  private FakeReplicationServer fakeRs3;
+  private ReplicationServer rs1;
+  private ReplicationServer rs2;
+  private ReplicationServer rs3;
+  private ReplicationServer rs4;
 
   /**
    * Small assured timeout value (timeout to be used in first RS receiving an
@@ -450,8 +450,8 @@ public class AssuredReplicationServerTest
     private final CSNGenerator gen;
 
     /** Number of received updates */
-    private int nReceivedUpdates = 0;
-    private int nWrongReceivedUpdates = 0;
+    private int nReceivedUpdates;
+    private int nWrongReceivedUpdates;
 
     /**
      * Creates a fake replication domain (DS)
@@ -704,24 +704,24 @@ public class AssuredReplicationServerTest
    * According to the configured scenario, it will answer to updates with acks
    * as the scenario is requesting.
    */
-  private static int fakePort = 0;
+  private static int fakePort;
 
   private class FakeReplicationServer extends Thread
   {
 
-    private boolean shutdown = false;
+    private boolean shutdown;
     private Session session;
 
     /** Parameters given at constructor time */
     private int port;
     private int serverId = -1;
-    private boolean isAssured = false; // Default value for config
+    private boolean isAssured; // Default value for config
     private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
     private byte safeDataLevel = 1; // Default value for config
     private DN baseDN;
     private long generationId = -1L;
     private byte groupId = -1;
-    private boolean sslEncryption = false;
+    private boolean sslEncryption;
     /** The scenario this RS is expecting */
     private int scenario = -1;
 
@@ -730,13 +730,13 @@ public class AssuredReplicationServerTest
     /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
     /** Number of received updates */
-    private int nReceivedUpdates = 0;
+    private int nReceivedUpdates;
 
     /**
      * True if an ack has been replied to a received assured update (in assured
      * mode of course) used in reply scenario
      */
-    private boolean ackReplied = false;
+    private boolean ackReplied;
 
     /**
      * Creates a fake replication server

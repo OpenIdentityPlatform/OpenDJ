@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -147,16 +147,16 @@ public class SubEntry {
   private SubtreeSpecification subTreeSpec;
 
   // Collective subentry flag.
-  private boolean isCollective = false;
+  private boolean isCollective;
 
   // Inherited collective subentry flag.
-  private boolean isInheritedCollective = false;
+  private boolean isInheritedCollective;
 
   // Inherited collective from DN subentry flag.
-  private boolean isInheritedFromDNCollective = false;
+  private boolean isInheritedFromDNCollective;
 
   // Inherited collective from RDN subentry flag.
-  private boolean isInheritedFromRDNCollective = false;
+  private boolean isInheritedFromRDNCollective;
 
   // Inherited collective DN attribute type.
   private AttributeType inheritFromDNType;

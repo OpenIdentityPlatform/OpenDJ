@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.server.tools;
@@ -48,7 +48,7 @@ public class StartWindowsService
   /**
     * The service was successfully started.
     */
-  private static int SERVICE_START_SUCCESSFUL = 0;
+  private static int SERVICE_START_SUCCESSFUL;
   /**
     * The service could not be found.
     */

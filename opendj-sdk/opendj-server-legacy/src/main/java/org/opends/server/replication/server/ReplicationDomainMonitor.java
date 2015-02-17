@@ -63,7 +63,7 @@ class ReplicationDomainMonitor
   private final Object pendingMonitorLock = new Object();
 
   /** Guarded by pendingMonitorLock. */
-  private long monitorDataLastBuildDate = 0;
+  private long monitorDataLastBuildDate;
 
   /**
    * The set of replication servers which are already known to be slow to send

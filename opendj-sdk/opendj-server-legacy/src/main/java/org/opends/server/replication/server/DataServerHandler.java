@@ -62,7 +62,7 @@ public class DataServerHandler extends ServerHandler
   /** Referrals URLs this DS is exporting. */
   private List<String> refUrls = new ArrayList<String>();
   /** Assured replication enabled on DS or not. */
-  private boolean assuredFlag = false;
+  private boolean assuredFlag;
   /** DS assured mode (relevant if assured replication enabled). */
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
   /** DS safe data level (relevant if assured mode is safe data). */

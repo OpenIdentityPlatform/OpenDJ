@@ -52,7 +52,7 @@ import static org.opends.messages.ToolMessages.*;
 public class MakeLDIFTestCase
     extends ToolsTestCase
 {
-  private String resourcePath = null;
+  private String resourcePath;
 
   @BeforeClass
   public void setUp() throws Exception

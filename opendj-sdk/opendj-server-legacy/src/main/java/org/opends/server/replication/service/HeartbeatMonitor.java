@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.server.replication.service;
@@ -64,7 +64,7 @@ final class HeartbeatMonitor extends DirectoryThread
   /**
    * Thread life-cycle state.
    */
-  private volatile boolean shutdown = false;
+  private volatile boolean shutdown;
   private final Object shutdownLock = new Object();
 
 

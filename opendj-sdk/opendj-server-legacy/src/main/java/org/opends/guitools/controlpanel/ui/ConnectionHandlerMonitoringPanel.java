@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -103,7 +103,7 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
   private JLabel lNoConnectionHandlers = Utilities.createPrimaryLabel(
       INFO_CTRL_PANEL_NO_CONNECTION_HANDLER_FOUND.get());
 
-  private boolean firstRealDataSet = false;
+  private boolean firstRealDataSet;
 
   private JCheckBoxMenuItem showAveragesMenu;
 

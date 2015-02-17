@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -54,7 +54,7 @@ implements Comparator<BaseDNDescriptor>
   private ArrayList<String[]> dataArray =
     new ArrayList<String[]>();
   private String[] COLUMN_NAMES;
-  private int sortColumn = 0;
+  private int sortColumn;
   private boolean sortAscending = true;
   private boolean displayReplicationInformation;
 

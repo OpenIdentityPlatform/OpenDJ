@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.quicksetup.installer.ui;
 
@@ -76,7 +76,7 @@ implements Comparator<SuffixDescriptor>
     new HashMap<String, JCheckBox>();
   // The display of the server the user provided in the replication options
   // panel
-  private String serverToConnectDisplay = null;
+  private String serverToConnectDisplay;
 
   private JLabel noSuffixLabel;
   private Component labelGlue;

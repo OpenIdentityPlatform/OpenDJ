@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.quicksetup.webstart;
 
@@ -62,22 +62,14 @@ public class WebStartDownloader implements DownloadServiceListener {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private ApplicationException ex;
-
   private boolean isFinished;
-
-  private int downloadPercentage = 0;
-
-  private int currentPercMin = 0;
-
-  private int currentPercMax = 0;
-
-  private int currentValidatingPercent = 0;
-
-  private int currentUpgradingPercent = 0;
-
+  private int downloadPercentage;
+  private int currentPercMin;
+  private int currentPercMax;
+  private int currentValidatingPercent;
+  private int currentUpgradingPercent;
   private Status status = Status.DOWNLOADING;
-
-  private LocalizableMessage summary = null;
+  private LocalizableMessage summary;
 
   /**
    * This enumeration contains the different Status on which

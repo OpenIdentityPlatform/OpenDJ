@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -45,7 +46,7 @@ public class RelativeInheritedDefaultBehaviorProviderTest extends DirectoryServe
 
   private static final TestParentCfgDefn d;
 
-  private RelativeInheritedDefaultBehaviorProvider<Boolean> ridbp = null;
+  private RelativeInheritedDefaultBehaviorProvider<Boolean> ridbp;
 
   static
   {

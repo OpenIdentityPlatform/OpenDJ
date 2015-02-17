@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -60,7 +60,7 @@ public class ClassPropertyDefinitionTest extends DirectoryServerTestCase {
     }
   }
 
-  ClassPropertyDefinition.Builder builder = null;
+  ClassPropertyDefinition.Builder builder;
 
   /**
    * Sets up tests

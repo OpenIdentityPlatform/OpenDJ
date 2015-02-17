@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -37,9 +37,9 @@ class EncryptAction implements PostRotationAction
 
   private File originalFile;
   private String newFile;
-  private boolean deleteOriginal = false;
+  private boolean deleteOriginal;
   private String encryptAlgorithm = "RSA";
-  private String alias = null;
+  private String alias;
 
   /**
    * Create the action based on the original file, the new file after

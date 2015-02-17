@@ -99,7 +99,7 @@ public final class ReplicationServer
   private ChangelogBackend changelogBackend;
 
   private final AtomicBoolean shutdown = new AtomicBoolean();
-  private boolean stopListen = false;
+  private boolean stopListen;
   private final ReplSessionSecurity replSessionSecurity;
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -117,7 +117,7 @@ public final class ReplicationServer
   // Monitors for synchronizing domain creation with the connect thread.
   private final Object domainTicketLock = new Object();
   private final Object connectThreadLock = new Object();
-  private long domainTicket = 0L;
+  private long domainTicket;
 
   /**
    * Holds the list of all replication servers instantiated in this VM.

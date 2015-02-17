@@ -74,16 +74,16 @@ public class PatternDN
    * this is the sequence of RDN patterns in the DN pattern.  Otherwise it
    * is null.
    */
-  PatternRDN[] equality = null;
+  PatternRDN[] equality;
 
 
   /**
    * If the pattern included any Multiple-Whole-RDN wildcards, then these
    * are the RDN pattern sequences that appear between those wildcards.
    */
-  PatternRDN[] subInitial = null;
-  List<PatternRDN[]> subAnyElements = null;
-  PatternRDN[] subFinal = null;
+  PatternRDN[] subInitial;
+  List<PatternRDN[]> subAnyElements;
+  PatternRDN[] subFinal;
 
 
   /**
@@ -93,7 +93,7 @@ public class PatternDN
    * suffix pattern but the pattern started with a Multiple-Whole-RDN wildcard
    * (one or more RDN components allowed before matching elements).
    */
-  boolean isSuffix = false;
+  boolean isSuffix;
 
 
   /**

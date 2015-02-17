@@ -70,7 +70,7 @@ public class NewEntryTask extends Task
   private BasicNode parentNode;
   private BrowserController controller;
   private DN dn;
-  private boolean useAdminCtx = false;
+  private boolean useAdminCtx;
 
   /**
    * Constructor of the task.

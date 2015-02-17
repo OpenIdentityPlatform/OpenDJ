@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -46,14 +46,13 @@ public class LDAPSearchOptions extends LDAPToolOptions
 
   private DereferenceAliasesPolicy dereferencePolicy =  NEVER;
   private SearchScope searchScope = WHOLE_SUBTREE;
-  private int sizeLimit = 0;
-  private int timeLimit = 0;
-  private boolean typesOnly = false;
-  private boolean countMatchingEntries = false;
+  private int sizeLimit;
+  private int timeLimit;
+  private boolean typesOnly;
+  private boolean countMatchingEntries;
 
   /**
    * Creates the options instance.
-   *
    */
   public LDAPSearchOptions()
   {
@@ -63,9 +62,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
    * Set the timeLimit for the operation.
    *
    * @param timeLimit    The time limit for the search.
-   *
    */
-
   public void setTimeLimit(int timeLimit)
   {
     this.timeLimit = timeLimit;

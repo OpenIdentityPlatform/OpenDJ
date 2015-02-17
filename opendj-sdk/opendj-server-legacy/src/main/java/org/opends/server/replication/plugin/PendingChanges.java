@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -63,7 +63,7 @@ class PendingChanges
   /** The ReplicationDomain that will be used to send UpdateMsg. */
   private final ReplicationDomain domain;
 
-  private boolean recoveringOldChanges = false;
+  private boolean recoveringOldChanges;
 
   /**
    * Creates a new PendingChanges using the provided CSNGenerator.

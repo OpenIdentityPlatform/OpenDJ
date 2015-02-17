@@ -276,7 +276,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
       // isAvailable acts as memory barrier for lastException.
       private volatile boolean isAvailable = true;
-      private DirectoryException lastException = null;
+      private DirectoryException lastException;
 
 
 
@@ -593,7 +593,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private final class PooledConnection implements Connection
     {
       private Connection connection;
-      private boolean connectionIsClosed = false;
+      private boolean connectionIsClosed;
 
 
 
@@ -744,7 +744,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
 
     // Guarded by PolicyImpl.lock.
-    private boolean poolIsClosed = false;
+    private boolean poolIsClosed;
 
     private final ConnectionFactory factory;
     private final int poolSize = Runtime.getRuntime().availableProcessors() * 2;
@@ -893,7 +893,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       private final LDAPWriter writer;
       private final LDAPReader reader;
       private int nextMessageID = 1;
-      private boolean isClosed = false;
+      private boolean isClosed;
 
 
 
@@ -1548,7 +1548,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       private final AttributeType cachedPasswordAttribute;
       private final AttributeType cachedPasswordTimeAttribute;
 
-      private ByteString newCachedPassword = null;
+      private ByteString newCachedPassword;
 
 
 
@@ -1944,10 +1944,10 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     // Current configuration.
     private LDAPPassThroughAuthenticationPolicyCfg cfg;
 
-    private ConnectionFactory searchFactory = null;
-    private ConnectionFactory bindFactory = null;
+    private ConnectionFactory searchFactory;
+    private ConnectionFactory bindFactory;
 
-    private PasswordStorageScheme<?> pwdStorageScheme = null;
+    private PasswordStorageScheme<?> pwdStorageScheme;
 
 
 
