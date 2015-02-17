@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.guitools.controlpanel.ui.renderer;
 
@@ -112,9 +112,7 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
         break;
       }
     }
-    Component comp = super.getListCellRendererComponent(list, value, index,
-        isSelected, cellHasFocus);
-
-    return comp;
+    return super.getListCellRendererComponent(
+        list, value, index, isSelected, cellHasFocus);
   }
 }

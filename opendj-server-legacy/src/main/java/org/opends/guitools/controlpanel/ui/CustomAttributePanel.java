@@ -1251,7 +1251,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
   private AttributeType getNewAttribute()
   {
-    AttributeType attr = new AttributeType("", getAttributeName(),
+    return new AttributeType("", getAttributeName(),
         getAllNames(),
         getOID(),
         getDescription(),
@@ -1265,8 +1265,6 @@ public class CustomAttributePanel extends SchemaElementPanel
         collective.isSelected(), nonModifiable.isSelected(),
         obsolete.isSelected(), singleValued.isSelected(),
         getExtraProperties());
-
-    return attr;
   }
 
   private void updateDefaultMatchingRuleNames()

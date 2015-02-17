@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -341,9 +342,7 @@ implements TableCellEditor
 
   private String getAttributeName(JTable table, int row)
   {
-    Object o = table.getValueAt(row, 0);
-    String attrName = String.valueOf(o);
-    return attrName;
+    return String.valueOf(table.getValueAt(row, 0));
   }
 
   /**

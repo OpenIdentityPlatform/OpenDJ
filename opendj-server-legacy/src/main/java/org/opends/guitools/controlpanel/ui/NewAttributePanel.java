@@ -856,7 +856,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
   private AttributeType getAttribute()
   {
-    AttributeType attr = new AttributeType("", getAttributeName(),
+    return new AttributeType("", getAttributeName(),
         getAllNames(),
         getOID(),
         getDescription(),
@@ -870,7 +870,5 @@ public class NewAttributePanel extends StatusGenericPanel
         collective.isSelected(), nonModifiable.isSelected(),
         obsolete.isSelected(), singleValued.isSelected(),
         getExtraProperties());
-
-    return attr;
   }
 }

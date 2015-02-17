@@ -373,16 +373,13 @@ public class EntryCacheConfigManager
       )
   {
     // returned status -- all is fine by default
-    boolean status = true;
-
     // Check if there is another entry cache installed at the same level.
     if (!cacheOrderMap.isEmpty()) {
       if (cacheOrderMap.containsKey(configuration.getCacheLevel())) {
         unacceptableReasons.add(
           ERR_CONFIG_ENTRYCACHE_CONFIG_LEVEL_NOT_ACCEPTABLE.get(
             configuration.dn(), configuration.getCacheLevel()));
-        status = false;
-        return status;
+        return false;
       }
     }
 
@@ -399,11 +396,11 @@ public class EntryCacheConfigManager
       catch (InitializationException ie)
       {
         unacceptableReasons.add (ie.getMessageObject());
-        status = false;
+        return false;
       }
     }
 
-    return status;
+    return true;
   }
 
 

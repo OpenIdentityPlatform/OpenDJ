@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.tools.dsreplication;
@@ -235,8 +235,7 @@ public class PurgeHistoricalUserData extends MonoServerReplicationUserData
       new PurgeHistoricalScheduleInformation(uData);
     ArrayList<RawAttribute> rawAttrs =
       TaskClient.getTaskAttributes(information);
-    BasicAttributes attrs = getAttributes(rawAttrs);
-    return attrs;
+    return getAttributes(rawAttrs);
   }
 
   private static BasicAttributes getAttributes(ArrayList<RawAttribute> rawAttrs)

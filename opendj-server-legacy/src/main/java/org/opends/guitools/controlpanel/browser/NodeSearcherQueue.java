@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.browser;
 
 import java.util.ArrayList;
@@ -134,8 +134,7 @@ class NodeSearcherQueue implements Runnable {
    */
   public synchronized boolean isWorking(BasicNode node)
   {
-    boolean isWorking = workingList.get(node) != null;
-    return isWorking;
+    return workingList.get(node) != null;
   }
 
 

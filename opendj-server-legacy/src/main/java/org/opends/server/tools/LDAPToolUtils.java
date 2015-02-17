@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.tools;
 import org.forgerock.i18n.LocalizableMessage;
@@ -146,9 +146,7 @@ public class LDAPToolUtils
         err.println("Invalid format for criticality value:" + remainder);
         return null;
       }
-      control = new LDAPControl(controlOID, controlCriticality);
-      return control;
-
+      return new LDAPControl(controlOID, controlCriticality);
     }
 
     String critical = remainder.substring(0, idx);
@@ -167,8 +165,7 @@ public class LDAPToolUtils
     String valString = remainder.substring(idx+1, remainder.length());
     if (valString.length() == 0)
     {
-      control = new LDAPControl(controlOID, controlCriticality);
-      return control;
+      return new LDAPControl(controlOID, controlCriticality);
     }
     if(valString.charAt(0) == ':')
     {
@@ -192,9 +189,7 @@ public class LDAPToolUtils
       controlValue = ByteString.valueOf(valString);
     }
 
-    control = new LDAPControl(controlOID, controlCriticality, controlValue);
-    return control;
-
+    return new LDAPControl(controlOID, controlCriticality, controlValue);
   }
 
   /**

@@ -1334,9 +1334,7 @@ public final class LDAPClientConnection extends ClientConnection implements
           // associated with the provided message ID. The persistent
           // search will ensure that all other related persistent
           // searches are cancelled.
-          CancelResult cancelResult = ps.cancel();
-
-          return cancelResult;
+          return ps.cancel();
         }
       }
 
@@ -1344,9 +1342,7 @@ public final class LDAPClientConnection extends ClientConnection implements
     }
     else
     {
-      CancelResult cancelResult = op.cancel(cancelRequest);
-
-      return cancelResult;
+      return op.cancel(cancelRequest);
     }
   }
 

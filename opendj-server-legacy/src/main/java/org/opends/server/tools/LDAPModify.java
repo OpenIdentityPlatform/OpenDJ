@@ -1145,8 +1145,7 @@ public class LDAPModify
       LDAPToolUtils.printErrorMessage(err, le.getMessageObject(),
                                       le.getResultCode(),
                                       le.getErrorMessage(), le.getMatchedDN());
-      int code = le.getResultCode();
-      return code;
+      return le.getResultCode();
     } catch(LDAPConnectionException lce)
     {
       logger.traceException(lce);
@@ -1154,8 +1153,7 @@ public class LDAPModify
                                       lce.getResultCode(),
                                       lce.getErrorMessage(),
                                       lce.getMatchedDN());
-      int code = lce.getResultCode();
-      return code;
+      return lce.getResultCode();
     } catch (FileNotFoundException fe)
     {
       logger.traceException(fe);

@@ -776,8 +776,7 @@ public class LDAPDelete
                                       le.getResultCode(),
                                       le.getErrorMessage(),
                                       le.getMatchedDN());
-      int code = le.getResultCode();
-      return code;
+      return le.getResultCode();
     } catch(LDAPConnectionException lce)
     {
       logger.traceException(lce);
@@ -785,8 +784,7 @@ public class LDAPDelete
                                       lce.getResultCode(),
                                       lce.getErrorMessage(),
                                       lce.getMatchedDN());
-      int code = lce.getResultCode();
-      return code;
+      return lce.getResultCode();
     } catch(Exception e)
     {
       logger.traceException(e);

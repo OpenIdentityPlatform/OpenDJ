@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -499,10 +499,8 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected boolean isBinary(String attrName)
   {
-    boolean isBinary = false;
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    isBinary = Utilities.hasBinarySyntax(attrName, schema);
-    return isBinary;
+    return Utilities.hasBinarySyntax(attrName, schema);
   }
 
   /**
@@ -514,10 +512,8 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
    */
   protected boolean isPassword(String attrName)
   {
-    boolean isPassword = false;
     Schema schema = getInfo().getServerDescriptor().getSchema();
-    isPassword = Utilities.hasPasswordSyntax(attrName, schema);
-    return isPassword;
+    return Utilities.hasPasswordSyntax(attrName, schema);
   }
 
   /**

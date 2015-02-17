@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
@@ -33,6 +34,7 @@ import java.awt.Component;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.opends.guitools.controlpanel.datamodel.VLVSortOrder;
 
 /**
@@ -61,20 +63,12 @@ public class VLVSortOrderRenderer implements ListCellRenderer
     if (value instanceof VLVSortOrder)
     {
       VLVSortOrder v = (VLVSortOrder)value;
-      if (v.isAscending())
-      {
-        value = INFO_CTRL_PANEL_VLV_ASCENDING_VLV_INDEX.get(
-            v.getAttributeName()).toString();
-      }
-      else
-      {
-        value = INFO_CTRL_PANEL_VLV_DESCENDING_VLV_INDEX.get(
-            v.getAttributeName()).toString();
-      }
+      Arg1<Object> arg = v.isAscending()
+          ? INFO_CTRL_PANEL_VLV_ASCENDING_VLV_INDEX
+          : INFO_CTRL_PANEL_VLV_DESCENDING_VLV_INDEX;
+      value = arg.get(v.getAttributeName()).toString();
     }
-    Component comp = defaultRenderer.getListCellRendererComponent(
+    return defaultRenderer.getListCellRendererComponent(
         list, value, index, isSelected, cellHasFocus);
-
-    return comp;
   }
 }

@@ -528,12 +528,10 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    */
   private boolean updatedByUser()
   {
-    boolean updatedByUser = !javaHome.getText().equals(readJavaHome) ||
-    useOpenDSJavaHome.isSelected() != readUseOpenDSJavaHome ||
-    useOpenDSJavaArgs.isSelected() != readUseOpenDSJavaArgs ||
-    !readJavaArguments.equals(getCurrentJavaArguments());
-
-    return updatedByUser;
+    return !javaHome.getText().equals(readJavaHome)
+        || useOpenDSJavaHome.isSelected() != readUseOpenDSJavaHome
+        || useOpenDSJavaArgs.isSelected() != readUseOpenDSJavaArgs
+        || !readJavaArguments.equals(getCurrentJavaArguments());
   }
 
   /**
@@ -1028,12 +1026,10 @@ public class JavaPropertiesPanel extends StatusGenericPanel
    */
   private String getPropertiesFile()
   {
-    String installPath = getInfo().getServerDescriptor().
-      getInstancePath();
-    String propertiesFile =  Utils.getPath(
+    String installPath = getInfo().getServerDescriptor().getInstancePath();
+    return Utils.getPath(
       Utilities.getInstanceRootDirectory(installPath).getAbsolutePath(),
       Installation.RELATIVE_JAVA_PROPERTIES_FILE);
-    return propertiesFile;
   }
 
   private void updateContentsOfPanelWithReadValues()

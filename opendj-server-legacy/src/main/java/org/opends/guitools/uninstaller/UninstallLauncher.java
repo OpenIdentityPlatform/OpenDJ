@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.guitools.uninstaller;
@@ -200,10 +200,9 @@ public class UninstallLauncher extends Launcher {
    * {@inheritDoc}
    */
   protected LocalizableMessage getFrameTitle() {
-    LocalizableMessage title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
-        INFO_FRAME_UNINSTALL_TITLE.get(
-        DynamicConstants.PRODUCT_NAME), LocalizableMessage.class);
-    return title;
+    return Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
+        INFO_FRAME_UNINSTALL_TITLE.get(DynamicConstants.PRODUCT_NAME),
+        LocalizableMessage.class);
   }
 
   /**
