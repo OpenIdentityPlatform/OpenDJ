@@ -66,7 +66,7 @@ public class DataServerHandler extends ServerHandler
   /** DS assured mode (relevant if assured replication enabled). */
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
   /** DS safe data level (relevant if assured mode is safe data). */
-  private byte safeDataLevel = (byte) -1;
+  private byte safeDataLevel = -1;
   private Set<String> eclIncludes = new HashSet<String>();
   private Set<String> eclIncludesForDeletes = new HashSet<String>();
 

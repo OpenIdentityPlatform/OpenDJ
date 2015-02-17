@@ -1087,7 +1087,7 @@ public class EntryContainer
      * No possibility of overflow here.
      */
     byte[] end = Arrays.copyOf(suffix, suffix.length);
-    end[end.length - 1] = (byte) (special + 1);
+    end[end.length - 1] = special + 1;
 
     // Set the starting value.
     byte[] begin;

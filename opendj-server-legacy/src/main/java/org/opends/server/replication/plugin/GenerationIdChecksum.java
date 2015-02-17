@@ -59,7 +59,7 @@ public class GenerationIdChecksum implements Checksum
      */
     if ((b != 0x0D) && (b != 0x0A)) // CR=0D and LF=0A
     {
-      checksum += (long) b;
+      checksum += b;
     }
   }
 

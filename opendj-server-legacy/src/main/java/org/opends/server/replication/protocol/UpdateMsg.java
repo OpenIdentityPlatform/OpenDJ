@@ -53,7 +53,7 @@ public class UpdateMsg extends ReplicationMsg
   protected AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
 
   /** When assured mode is safe data, gives the requested level. */
-  protected byte safeDataLevel = (byte)1;
+  protected byte safeDataLevel = 1;
 
   /** The payload that must be encoded in this message. */
   private final byte[] payload;
