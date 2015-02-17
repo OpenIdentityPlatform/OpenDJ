@@ -127,8 +127,8 @@ implements Comparator<ConnectionHandlerDescriptor>
     {
       if (desc1.getAddresses().equals(desc2.getAddresses()))
       {
-        Integer port1 = new Integer(desc1.getPort());
-        Integer port2 = new Integer(desc2.getPort());
+        Integer port1 = Integer.valueOf(desc1.getPort());
+        Integer port2 = Integer.valueOf(desc2.getPort());
         result = port1.compareTo(port2);
       }
       else

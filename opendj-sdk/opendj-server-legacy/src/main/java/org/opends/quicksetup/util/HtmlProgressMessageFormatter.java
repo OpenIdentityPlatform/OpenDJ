@@ -583,7 +583,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
     String showText = params[i++];
     String stackText = params[i++];
     String closeDiv = params[i++];
-    boolean isHide = Boolean.valueOf(params[i]);
+    boolean isHide = Boolean.parseBoolean(params[i]);
 
     if (isHide)
     {

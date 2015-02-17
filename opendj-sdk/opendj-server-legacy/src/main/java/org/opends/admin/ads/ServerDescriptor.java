@@ -801,14 +801,15 @@ public class ServerDescriptor
 
         boolean enabled = "true".equalsIgnoreCase(
             getFirstValue(sr, "ds-cfg-enabled"));
+        final Integer portNumber = Integer.valueOf(port);
         if (isSecure)
         {
-          ldapsPorts.add(new Integer(port));
+          ldapsPorts.add(portNumber);
           ldapsEnabled.add(enabled);
         }
         else
         {
-          ldapPorts.add(new Integer(port));
+          ldapPorts.add(portNumber);
           ldapEnabled.add(enabled);
           enabled = "true".equalsIgnoreCase(
               getFirstValue(sr, "ds-cfg-allow-start-tls"));
@@ -846,7 +847,7 @@ public class ServerDescriptor
       while (listeners.hasMore()) {
         SearchResult sr = listeners.next();
         String port = getFirstValue(sr, "ds-cfg-listen-port");
-        adminConnectorPort = new Integer(port);
+        adminConnectorPort = Integer.valueOf(port);
       }
 
       // Even if we have a single port, use an array to be consistent with
@@ -908,14 +909,15 @@ public class ServerDescriptor
 
         boolean enabled = "true".equalsIgnoreCase(
             getFirstValue(sr, "ds-cfg-enabled"));
+        Integer portNumber = Integer.valueOf(port);
         if (isSecure)
         {
-          jmxsPorts.add(new Integer(port));
+          jmxsPorts.add(portNumber);
           jmxsEnabled.add(enabled);
         }
         else
         {
-          jmxPorts.add(new Integer(port));
+          jmxPorts.add(portNumber);
           jmxEnabled.add(enabled);
         }
       }

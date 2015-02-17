@@ -355,7 +355,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
       } catch (LDAPConnectionException e) {
         LocalizableMessage message;
         if (isWrongPortException(e,
-            new Integer(argParser.getArguments().getPort())))
+            Integer.valueOf(argParser.getArguments().getPort())))
         {
           message = ERR_TASK_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(
             argParser.getArguments().getHostName(),
