@@ -71,33 +71,36 @@ public enum EnumEvalResult {
      * the undefined field and the bind rule type enumeration.
      */
     public EnumEvalResult getRet(EnumBindRuleType type, boolean undefined) {
-        EnumEvalResult ret=this;
-        if(this.equals(EnumEvalResult.TRUE) || !undefined) {
-            if(type.equals(EnumBindRuleType.NOT_EQUAL_BINDRULE_TYPE))
-                if(this.equals(EnumEvalResult.TRUE))
-                    ret=EnumEvalResult.FALSE;
-                else
-                    ret=EnumEvalResult.TRUE;
-        } else
-            ret=EnumEvalResult.FAIL;
-        return ret;
+        if (equals(EnumEvalResult.TRUE) || !undefined) {
+            if (EnumBindRuleType.NOT_EQUAL_BINDRULE_TYPE.equals(type)) {
+              return negate(this);
+            }
+        } else {
+            return EnumEvalResult.FAIL;
+        }
+        return this;
     }
 
     /**
      * This method is used to possibly negate the result of a simple bind rule
      * evaluation. If the boolean is true than the result is negated.
      * @param v The enumeration result of the simple bind rule evaluation.
-     * @param n If true the result should be negated (TRUE->FALSE, FALSE->TRUE).
+     * @param negate If true the result should be negated (TRUE->FALSE, FALSE->TRUE).
      * @return  A possibly negated enumeration result.
      */
-    public  static EnumEvalResult negateIfNeeded(EnumEvalResult v, boolean n) {
-        if(n) {
-            if(v.equals(EnumEvalResult.TRUE))
-                v=EnumEvalResult.FALSE;
-            else
-                v=EnumEvalResult.TRUE;
+    public  static EnumEvalResult negateIfNeeded(EnumEvalResult v, boolean negate) {
+        if (negate) {
+            return negate(v);
         }
         return v;
+    }
+
+    private static EnumEvalResult negate(EnumEvalResult v) {
+        if (EnumEvalResult.TRUE.equals(v)) {
+            return EnumEvalResult.FALSE;
+        } else {
+            return EnumEvalResult.TRUE;
+        }
     }
 
     /**
