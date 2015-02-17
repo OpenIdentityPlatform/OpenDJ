@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS
+ *      Portions Copyright 2012-2015 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -725,10 +725,10 @@ public final class AttributeBuilder
   {
 
     // The set of elements if there are more than one.
-    private LinkedHashSet<T> elements = null;
+    private LinkedHashSet<T> elements;
 
     // The first element.
-    private T firstElement = null;
+    private T firstElement;
 
 
 
@@ -1022,13 +1022,13 @@ public final class AttributeBuilder
   }
 
   // The attribute type for this attribute.
-  private AttributeType attributeType = null;
+  private AttributeType attributeType;
 
   // The name of this attribute as provided by the end user.
-  private String name = null;
+  private String name;
 
   // The normalized set of options if there are more than one.
-  private SortedSet<String> normalizedOptions = null;
+  private SortedSet<String> normalizedOptions;
 
   // The set of options.
   private final SmallSet<String> options = new SmallSet<String>();

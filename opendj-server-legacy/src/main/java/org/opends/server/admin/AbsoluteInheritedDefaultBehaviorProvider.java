@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -40,7 +41,7 @@ public final class AbsoluteInheritedDefaultBehaviorProvider<T> extends
     DefaultBehaviorProvider<T> {
 
   // The absolute path to the managed object containing the property.
-  private ManagedObjectPath<?, ?> path = null;
+  private ManagedObjectPath<?, ?> path;
 
   // The string representation of the managed object path specifying
   // the absolute location of the managed object.

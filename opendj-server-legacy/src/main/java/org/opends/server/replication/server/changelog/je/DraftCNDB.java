@@ -319,7 +319,7 @@ public class DraftCNDB
     private final ReplicationDraftCNKey key;
     private final DatabaseEntry entry = new DatabaseEntry();
     private ChangeNumberIndexRecord record;
-    private boolean isClosed = false;
+    private boolean isClosed;
 
 
     /**

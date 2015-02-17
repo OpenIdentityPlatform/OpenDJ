@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -63,19 +63,19 @@ public class AckMsg extends ReplicationMsg
    * Did some servers go in timeout when the matching update (corresponding to
    * CSN) was sent?.
    */
-  private boolean hasTimeout = false;
+  private boolean hasTimeout;
 
   /**
    * Were some servers in wrong status when the matching update (corresponding
    * to CSN) was sent?.
    */
-  private boolean hasWrongStatus = false;
+  private boolean hasWrongStatus;
 
   /**
    * Did some servers make an error replaying the sent matching update
    * (corresponding to CSN)?.
    */
-  private boolean hasReplayError = false;
+  private boolean hasReplayError;
 
   /**
    * The list of server ids that had errors for the sent matching update

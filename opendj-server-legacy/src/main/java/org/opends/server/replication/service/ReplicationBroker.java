@@ -146,7 +146,7 @@ public class ReplicationBroker
 
   }
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private volatile boolean shutdown = false;
+  private volatile boolean shutdown;
   private final Object startStopLock = new Object();
   private volatile ReplicationDomainCfg config;
   /**
@@ -158,7 +158,7 @@ public class ReplicationBroker
   private int maxSendWindow;
   private int rcvWindow = 100;
   private int halfRcvWindow = rcvWindow / 2;
-  private int timeout = 0;
+  private int timeout;
   private final ReplSessionSecurity replSessionSecurity;
   /**
    * The RS this DS is currently connected to.
@@ -190,7 +190,7 @@ public class ReplicationBroker
   /**
    * The number of times the connection was lost.
    */
-  private int numLostConnections = 0;
+  private int numLostConnections;
   /**
    * When the broker cannot connect to any replication server
    * it log an error and keeps continuing every second.
@@ -199,7 +199,7 @@ public class ReplicationBroker
    * and to know that it is necessary to print a new message when the broker
    * finally succeed to connect.
    */
-  private volatile boolean connectionError = false;
+  private volatile boolean connectionError;
   private final Object connectPhaseLock = new Object();
   /**
    * The thread that publishes messages to the RS containing the current
@@ -213,8 +213,8 @@ public class ReplicationBroker
   private final AtomicReference<Topology> topology =
       new AtomicReference<Topology>(new Topology());
   /** <pre>@GuardedBy("this")</pre>. */
-  private volatile int updateDoneCount = 0;
-  private volatile boolean connectRequiresRecovery = false;
+  private volatile int updateDoneCount;
+  private volatile boolean connectRequiresRecovery;
 
   /**
    * This integer defines when the best replication server checking algorithm
@@ -228,7 +228,7 @@ public class ReplicationBroker
    * least for a monitoring period after the last received topology message
    * (topology stabilization).
    */
-  private int mustRunBestServerCheckingAlgorithm = 0;
+  private int mustRunBestServerCheckingAlgorithm;
 
   /**
    * The monitor provider for this replication domain.
@@ -384,7 +384,7 @@ public class ReplicationBroker
     private final boolean sslEncryption;
     private final int degradedStatusThreshold;
     /** Keeps the 0 value if created with a ReplServerStartMsg. */
-    private int connectedDSNumber = 0;
+    private int connectedDSNumber;
     // @NotNull
     private Set<Integer> connectedDSs;
     /**

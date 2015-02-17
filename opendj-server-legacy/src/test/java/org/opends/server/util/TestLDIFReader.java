@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -73,7 +73,7 @@ public final class TestLDIFReader extends UtilTestCase {
   private AttributeType AT_TELN;
 
   // Temporary file containing an attribute value.
-  private File TEMP_FILE = null;
+  private File TEMP_FILE;
 
   // Temporary file content.
   private static final String TEMP_FILE_STRING = "hello world";

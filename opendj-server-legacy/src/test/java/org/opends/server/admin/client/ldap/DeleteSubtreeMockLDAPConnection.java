@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -42,7 +43,7 @@ import org.testng.Assert;
 public final class DeleteSubtreeMockLDAPConnection extends MockLDAPConnection {
 
   // Detect multiple calls.
-  private boolean alreadyDeleted = false;
+  private boolean alreadyDeleted;
 
   // The expected DN.
   private final LdapName expectedDN;

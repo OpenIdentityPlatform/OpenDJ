@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -41,10 +41,10 @@ import java.util.HashSet;
  */
 public class Configuration {
 
-  private String contents = null;
-  private String lowerCaseContents = null;
-  private Installation install = null;
-  private File file = null;
+  private String contents;
+  private String lowerCaseContents;
+  private Installation install;
+  private File file;
 
   /**
    * Create a Configuration from a file.

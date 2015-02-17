@@ -147,22 +147,22 @@ public class ManageTasks extends ConsoleApplication {
   /**
    * ID of task for which to display details and exit.
    */
-  private StringArgument task = null;
+  private StringArgument task;
 
   /**
    * Indicates print summary and exit.
    */
-  private BooleanArgument summary = null;
+  private BooleanArgument summary;
 
   /**
    * ID of task to cancel.
    */
-  private StringArgument cancel = null;
+  private StringArgument cancel;
 
   /**
    * Argument used to request non-interactive behavior.
    */
-  private BooleanArgument noPrompt = null;
+  private BooleanArgument noPrompt;
 
   /**
    * Accesses the directory's task backend.

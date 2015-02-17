@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -47,7 +47,7 @@ public class HeartbeatThread extends DirectoryThread
   /**
    * For test purposes only to simulate loss of heartbeats.
    */
-  private static volatile boolean heartbeatsDisabled = false;
+  private static volatile boolean heartbeatsDisabled;
 
   /**
    * The session on which heartbeats are to be sent.
@@ -64,7 +64,7 @@ public class HeartbeatThread extends DirectoryThread
   /**
    * Set this to stop the thread.
    */
-  private volatile boolean shutdown = false;
+  private volatile boolean shutdown;
   private final Object shutdownLock = new Object();
 
 

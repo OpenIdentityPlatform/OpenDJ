@@ -1097,9 +1097,9 @@ public abstract class ReplicationDomain
     private int importSource = RoutableMsg.UNKNOWN_SERVER;
 
     /** The total entry count expected to be processed. */
-    private long entryCount = 0;
+    private long entryCount;
     /** The count for the entry not yet processed. */
-    private long entryLeftCount = 0;
+    private long entryLeftCount;
 
     /** Exception raised during the initialization. */
     private DirectoryException exception;
@@ -1108,13 +1108,13 @@ public abstract class ReplicationDomain
     private final boolean importInProgress;
 
     /** Current counter of messages exchanged during the initialization. */
-    private int msgCnt = 0;
+    private int msgCnt;
 
     /**
      * Number of connections lost when we start the initialization. Will help
      * counting connections lost during initialization,
      */
-    private int initNumLostConnections = 0;
+    private int initNumLostConnections;
 
     /**
      * Request message sent when this server has the initializeFromRemote task.

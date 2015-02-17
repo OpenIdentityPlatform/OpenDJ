@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.dsml.protocol;
 
@@ -155,7 +155,7 @@ public class DSMLServlet extends HttpServlet {
   private Boolean trustAll;
   private Boolean useHTTPAuthzID;
   private HashSet<String> exopStrings = new HashSet<String>();
-  private org.opends.server.types.Control proxyAuthzControl = null;
+  private org.opends.server.types.Control proxyAuthzControl;
 
   /**
    * This method will be called by the Servlet Container when

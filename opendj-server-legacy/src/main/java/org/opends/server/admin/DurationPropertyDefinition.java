@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -95,19 +95,19 @@ public final class DurationPropertyDefinition extends PropertyDefinition<Long> {
     private DurationUnit baseUnit = DurationUnit.SECONDS;
 
     // The optional maximum unit for this property definition.
-    private DurationUnit maximumUnit = null;
+    private DurationUnit maximumUnit;
 
     // The lower limit of the property value in milli-seconds.
-    private long lowerLimit = 0L;
+    private long lowerLimit;
 
     // The optional upper limit of the property value in
     // milli-seconds.
-    private Long upperLimit = null;
+    private Long upperLimit;
 
     // Indicates whether this property allows the use of the
     // "unlimited" duration value (represented using a -1L or the
     // string "unlimited").
-    private boolean allowUnlimited = false;
+    private boolean allowUnlimited;
 
 
 

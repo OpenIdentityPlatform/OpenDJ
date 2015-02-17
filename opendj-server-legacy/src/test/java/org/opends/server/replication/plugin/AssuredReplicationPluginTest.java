@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -120,12 +120,12 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private final String SAFE_DATA_DN = "ou=safe-data," + TEST_ROOT_DN_STRING;
   private final String SAFE_READ_DN = "ou=safe-read," + TEST_ROOT_DN_STRING;
   private final String NOT_ASSURED_DN = "ou=not-assured," + TEST_ROOT_DN_STRING;
-  private Entry safeDataDomainCfgEntry = null;
-  private Entry safeReadDomainCfgEntry = null;
-  private Entry notAssuredDomainCfgEntry = null;
+  private Entry safeDataDomainCfgEntry;
+  private Entry safeReadDomainCfgEntry;
+  private Entry notAssuredDomainCfgEntry;
 
   /** The fake replication server */
-  private FakeReplicationServer replicationServer = null;
+  private FakeReplicationServer replicationServer;
 
   // Definitions for the scenario the RS supports
   private static final int NOT_ASSURED_SCENARIO = 1;
@@ -278,13 +278,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   {
 
     private ServerSocket listenSocket;
-    private boolean shutdown = false;
-    private Session session = null;
+    private boolean shutdown;
+    private Session session;
 
     // Parameters given at constructor time
     private final int port;
     private int serverId = -1;
-    private boolean isAssured = false;
+    private boolean isAssured;
     private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
     private byte safeDataLevel = 1;
 
@@ -297,17 +297,17 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     private ServerState serverState;
     private int windowSize = -1;
     private byte groupId = -1;
-    private boolean sslEncryption = false;
+    private boolean sslEncryption;
     /** The scenario this RS is expecting */
     private int scenario = -1;
 
     /** parameters at handshake are ok */
-    private boolean handshakeOk = false;
+    private boolean handshakeOk;
     /**
      * signal that the current scenario the RS must execute reached the point
      * where the main code can perform test assertion.
      */
-    private boolean scenarioExecuted = false;
+    private boolean scenarioExecuted;
 
     private CSNGenerator gen;
     private String testcase;

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -80,7 +80,7 @@ public class ModifyEntryTask extends Task
   private Entry newEntry;
   private BrowserController controller;
   private TreePath treePath;
-  private boolean useAdminCtx = false;
+  private boolean useAdminCtx;
 
   /**
    * Constructor of the task.

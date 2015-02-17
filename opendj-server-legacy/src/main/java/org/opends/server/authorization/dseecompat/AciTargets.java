@@ -50,7 +50,7 @@ public class AciTargets {
     /**
      * ACI syntax has a target keyword.
      */
-    private Target target = null ;
+    private Target target;
 
     /**
      * ACI syntax has a targetscope keyword.
@@ -60,27 +60,27 @@ public class AciTargets {
     /**
      * ACI syntax has a targetattr keyword.
      */
-    private TargetAttr targetAttr = null ;
+    private TargetAttr targetAttr;
 
     /**
      * ACI syntax has a targetfilter keyword.
      */
-    private TargetFilter targetFilter=null;
+    private TargetFilter targetFilter;
 
     /**
      * ACI syntax has a targattrtfilters keyword.
      */
-    private TargAttrFilters targAttrFilters=null;
+    private TargAttrFilters targAttrFilters;
 
    /**
     * The ACI syntax has a targetcontrol keyword.
     */
-    private TargetControl targetControl=null;
+    private TargetControl targetControl;
 
    /**
     * The ACI syntax has a extop keyword.
     */
-    private ExtOp extOp=null;
+    private ExtOp extOp;
 
     /**
      * The number of regular expression group positions in a valid ACI target

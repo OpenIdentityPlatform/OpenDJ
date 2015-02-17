@@ -59,12 +59,12 @@ public class DefaultEntryCacheTestCase
        extends CommonEntryCacheTestCase<EntryCacheCfg>
 {
   // Entry cache implementations participating in this test.
-  private SoftReferenceEntryCache softRefCache = null;
-  private FIFOEntryCache fifoCache = null;
+  private SoftReferenceEntryCache softRefCache;
+  private FIFOEntryCache fifoCache;
 
   // ... and their configuration entries.
-  Entry cacheSoftReferenceConfigEntry = null;
-  Entry cacheFIFOConfigEntry = null;
+  Entry cacheSoftReferenceConfigEntry;
+  Entry cacheFIFOConfigEntry;
 
   // The entry cache order map sorted by the cache level.
   private SortedMap<Integer, EntryCache<? extends EntryCacheCfg>>
@@ -72,8 +72,8 @@ public class DefaultEntryCacheTestCase
     EntryCache<? extends EntryCacheCfg>>();
 
   // Dummy test entries for each participating implementation.
-  private ArrayList<Entry> testSoftRefEntriesList = null;
-  private ArrayList<Entry> testFIFOEntriesList = null;
+  private ArrayList<Entry> testSoftRefEntriesList;
+  private ArrayList<Entry> testFIFOEntriesList;
 
   /**
    * Initialize the entry cache test.

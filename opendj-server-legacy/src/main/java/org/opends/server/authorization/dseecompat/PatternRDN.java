@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -57,7 +57,7 @@ public class PatternRDN
    * Indicate whether the RDN contains a wildcard in any of its attribute
    * types.
    */
-  private boolean hasTypeWildcard = false;
+  private boolean hasTypeWildcard;
 
 
   /**

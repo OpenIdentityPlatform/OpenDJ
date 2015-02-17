@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -45,7 +45,7 @@ public class JEChangeNumberIndexDBCursor implements
    * As underlying cursor is already pointing to a record at start, this
    * indicator allow to shift the pointed record at initialization time.
    */
-  private boolean isInitialized = false;
+  private boolean isInitialized;
 
   /**
    * Creates a new DB Cursor. All created iterator must be released by

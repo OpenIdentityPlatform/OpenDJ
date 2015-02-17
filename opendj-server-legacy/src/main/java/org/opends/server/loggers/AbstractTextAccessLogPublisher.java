@@ -1127,8 +1127,8 @@ abstract class AbstractTextAccessLogPublisher
    * The tracer object for the debug logger.
    */
   protected static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private AccessLogPublisherCfg cfg = null;
-  private Filter filter = null;
+  private AccessLogPublisherCfg cfg;
+  private Filter filter;
   private final ChangeListener changeListener = new ChangeListener();
   private final FilterListener filterListener = new FilterListener();
 

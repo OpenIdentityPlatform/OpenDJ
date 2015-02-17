@@ -72,13 +72,13 @@ public class DeleteEntryTask extends Task
 {
   private Set<String> backendSet;
   private DN lastDn;
-  private int nDeleted = 0;
+  private int nDeleted;
   private int nToDelete = -1;
   private BrowserController controller;
   private TreePath[] paths;
   private long lastProgressTime;
-  private boolean equivalentCommandWithControlPrinted = false;
-  private boolean equivalentCommandWithoutControlPrinted = false;
+  private boolean equivalentCommandWithControlPrinted;
+  private boolean equivalentCommandWithoutControlPrinted;
   private boolean useAdminCtx;
 
   /**

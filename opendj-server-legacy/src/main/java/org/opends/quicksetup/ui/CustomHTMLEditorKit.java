@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -142,6 +143,6 @@ public class CustomHTMLEditorKit extends HTMLEditorKit
     }
   }
 
-  private static long lastActionWhen = 0;
+  private static long lastActionWhen;
 
 }

@@ -49,7 +49,7 @@ public class FileNumberRetentionPolicy implements
     ConfigurationChangeListener<FileCountLogRetentionPolicyCfg>
 {
 
-  private int numFiles = 0;
+  private int numFiles;
   private FileCountLogRetentionPolicyCfg config;
 
   /**

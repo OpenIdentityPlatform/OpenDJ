@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -39,7 +39,7 @@ import org.opends.server.types.DN;
 public class InitializeRequestMsg extends RoutableMsg
 {
   private final DN baseDN;
-  private int initWindow = 0;
+  private int initWindow;
 
   /**
    * Creates a InitializeRequestMsg message.

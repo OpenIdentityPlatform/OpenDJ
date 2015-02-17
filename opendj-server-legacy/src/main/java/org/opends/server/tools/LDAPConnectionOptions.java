@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -41,17 +42,17 @@ import java.util.Map;
 public class LDAPConnectionOptions
 {
 
-  private boolean reportAuthzID = false;
-  private boolean useSSL =  false;
-  private boolean startTLS = false;
-  private boolean saslExternal = false;
-  private boolean usePasswordPolicyControl = false;
-  private SSLConnectionFactory sslConnectionFactory = null;
-  private String saslMechanism = null;
+  private boolean reportAuthzID;
+  private boolean useSSL;
+  private boolean startTLS;
+  private boolean saslExternal;
+  private boolean usePasswordPolicyControl;
+  private SSLConnectionFactory sslConnectionFactory;
+  private String saslMechanism;
   private int versionNumber = 3;
   private Map<String, List<String>> saslProperties =
                                          new HashMap<String, List<String>> ();
-  private boolean verbose = false;
+  private boolean verbose;
 
   /**
    * Creates a the connection options instance.

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -36,7 +36,7 @@ import static org.opends.messages.AccessControlMessages.*;
 public class SSF implements KeywordBindRule {
 
     /** Enumeration representing the bind rule operation type. */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     private static final int MAX_KEY_BITS=1024;
     private int ssf;

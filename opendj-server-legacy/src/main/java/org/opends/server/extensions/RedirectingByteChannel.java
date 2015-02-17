@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 
 package org.opends.server.extensions;
@@ -58,7 +58,7 @@ public class RedirectingByteChannel implements ByteChannel
 
 
   private final ByteChannel child;
-  private volatile ByteChannel redirect = null;
+  private volatile ByteChannel redirect;
 
 
 

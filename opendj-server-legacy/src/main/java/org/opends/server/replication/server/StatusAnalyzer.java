@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -56,7 +56,7 @@ class StatusAnalyzer extends DirectoryThread
 
   private final ReplicationServerDomain replicationServerDomain;
   private final Object eventMonitor = new Object();
-  private boolean pendingStatusMessage = false;
+  private boolean pendingStatusMessage;
   private long nextCheckDSDegradedStatusTime;
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.nodes;
@@ -65,7 +65,7 @@ public class BasicNode extends DefaultMutableTreeNode {
   private Icon icon;
   private int fontStyle;
 
-  private boolean sizeLimitReached = false;
+  private boolean sizeLimitReached;
 
   private String[] objectClassValues;
 

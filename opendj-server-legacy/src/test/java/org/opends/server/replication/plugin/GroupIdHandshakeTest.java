@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -58,11 +58,11 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   private int rs1Port = -1;
   private int rs2Port = -1;
   private int rs3Port = -1;
-  private LDAPReplicationDomain rd1 = null;
-  private LDAPReplicationDomain rd2 = null;
-  private ReplicationServer rs1 = null;
-  private ReplicationServer rs2 = null;
-  private ReplicationServer rs3 = null;
+  private LDAPReplicationDomain rd1;
+  private LDAPReplicationDomain rd2;
+  private ReplicationServer rs1;
+  private ReplicationServer rs2;
+  private ReplicationServer rs3;
 
   // The tracer object for the debug logger
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();

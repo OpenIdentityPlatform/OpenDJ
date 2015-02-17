@@ -88,28 +88,28 @@ public class LDAPConnectionConsoleInteraction
   private ApplicationTrustManager trustManager;
 
   /** Boolean that tells if we ask for bind DN or admin UID in the same prompt. */
-  private boolean useAdminOrBindDn = false;
+  private boolean useAdminOrBindDn;
 
   /**
    * Boolean that tells if we must propose LDAP if it is available even if the
    * user provided certificate parameters.
    */
-  private boolean displayLdapIfSecureParameters = false;
+  private boolean displayLdapIfSecureParameters;
 
   /** The SecureConnectionCliArgsList object. */
   private SecureConnectionCliArgs secureArgsList;
 
   /** Indicate if we need to display the heading. */
-  private boolean isHeadingDisplayed = false;
+  private boolean isHeadingDisplayed;
 
   /** the Console application. */
   private ConsoleApplication app;
 
   /** Indicate if the trust store in in memory. */
-  private boolean trustStoreInMemory = false;
+  private boolean trustStoreInMemory;
 
   /** Indicate if the all certificates are accepted. */
-  private boolean trustAll = false;
+  private boolean trustAll;
 
   /** Indicate that the trust manager was created with the parameters provided. */
   private boolean trustManagerInitialized;

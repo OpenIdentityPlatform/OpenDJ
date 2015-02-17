@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -39,7 +40,7 @@ import java.util.zip.Checksum;
 public class GenerationIdChecksum implements Checksum
 {
   // Checksum to be returned.
-  private long checksum = 0L;
+  private long checksum;
 
   /**
    * This is the generation id for an empty backend.

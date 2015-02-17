@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.api;
 import org.forgerock.i18n.LocalizableMessage;
@@ -104,7 +104,7 @@ public abstract class EntryCache
   protected AtomicLong cacheMisses = new AtomicLong(0);
 
   // The monitor associated with this entry cache.
-  private EntryCacheMonitorProvider entryCacheMonitor = null;
+  private EntryCacheMonitorProvider entryCacheMonitor;
 
 
   /**

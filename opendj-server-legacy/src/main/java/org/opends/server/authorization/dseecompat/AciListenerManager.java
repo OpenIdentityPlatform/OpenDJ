@@ -322,7 +322,7 @@ public class AciListenerManager implements
   /*
    * True if the server is in lockdown mode.
    */
-  private boolean inLockDownMode = false;
+  private boolean inLockDownMode;
 
   /*
    * The AciList caches the ACIs.

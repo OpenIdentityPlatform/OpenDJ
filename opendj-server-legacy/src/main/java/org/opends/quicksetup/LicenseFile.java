@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.quicksetup;
@@ -95,12 +95,12 @@ public class LicenseFile
   /**
    * The File object related to the license file.
    */
-  static private File licFile = null;
+  static private File licFile;
 
   /**
    * The license file approval state.
    */
-  static private boolean approved = false;
+  static private boolean approved;
 
   /**
    * Returns the license file name.

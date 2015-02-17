@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.quicksetup;
@@ -41,8 +41,8 @@ import org.opends.server.loggers.JDKLogging;
  */
 public class QuickSetupLog {
 
-  static private File logFile = null;
-  static private FileHandler fileHandler = null;
+  static private File logFile;
+  static private FileHandler fileHandler;
 
   /**
    * Creates a new file handler for writing log messages to the file indicated

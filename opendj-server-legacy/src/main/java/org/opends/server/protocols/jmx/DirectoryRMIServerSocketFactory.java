@@ -54,7 +54,7 @@ public class DirectoryRMIServerSocketFactory implements
   /**
    *  The SSL socket factory associated with the connector.
    */
-  private SSLSocketFactory sslSocketFactory = null;
+  private SSLSocketFactory sslSocketFactory;
 
   /**
    * Indicate if we required the client authentication via SSL.

@@ -47,12 +47,12 @@ public class TargetAttr {
     /*
      * Flags that is set if all user attributes pattern seen "*".
      */
-    private boolean allUserAttributes = false ;
+    private boolean allUserAttributes;
 
     /*
      * Flags that is set if all operational attributes pattern seen "+".
      */
-    private boolean allOpAttributes = false ;
+    private boolean allOpAttributes;
 
     /*
      * HashSet of the attribute types parsed by the constructor.

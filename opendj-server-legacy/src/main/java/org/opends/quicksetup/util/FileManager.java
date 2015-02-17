@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.quicksetup.util;
 
@@ -69,7 +69,7 @@ public class FileManager {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  private Application application = null;
+  private Application application;
 
   /**
    * Creates a new file manager.
@@ -394,7 +394,7 @@ public class FileManager {
    */
   private abstract class FileOperation {
 
-    private File objectFile = null;
+    private File objectFile;
 
     /**
      * Creates a new file operation.
@@ -657,7 +657,7 @@ public class FileManager {
    */
   private class MoveOperation extends FileOperation {
 
-    File destination = null;
+    File destination;
 
     /**
      * Creates a delete operation.

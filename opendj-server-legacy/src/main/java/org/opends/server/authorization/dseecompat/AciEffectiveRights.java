@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -124,16 +124,16 @@ public class AciEffectiveRights {
    * Attribute type used in access evaluation to see if the geteffectiverights
    * related to the "aclRights" attribute can be performed.
    */
-  private static AttributeType aclRights = null;
+  private static AttributeType aclRights;
 
   /**
    * Attribute type used in access evaluation to see if the geteffectiverights
    * related to the "aclRightsInfo" attribute can be performed.
    */
-  private static AttributeType aclRightsInfo = null;
+  private static AttributeType aclRightsInfo;
 
   /** Attribute type used in the geteffectiverights selfwrite evaluation. */
-  private static AttributeType dnAttributeType=null;
+  private static AttributeType dnAttributeType;
 
   /**The distinguishedName string. */
   private static final String dnAttrStr = "distinguishedname";

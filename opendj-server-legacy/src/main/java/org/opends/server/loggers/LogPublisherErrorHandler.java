@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 import org.forgerock.i18n.LocalizableMessage;
@@ -44,7 +44,7 @@ import java.io.File;
 class LogPublisherErrorHandler
 {
   private DN publisherConfigDN;
-  private boolean writeErroroccurred = false;
+  private boolean writeErroroccurred;
 
   /**
    * Construct a new log publisher error handler for a log publisher

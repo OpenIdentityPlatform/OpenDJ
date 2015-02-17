@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.protocols.http;
 
@@ -190,7 +190,7 @@ final class HTTPClientConnection extends ClientConnection implements
 
   /** The statistics tracker associated with this client connection. */
   private final HTTPStatistics statTracker;
-  private boolean useNanoTime = false;
+  private boolean useNanoTime;
 
   /** Total execution time for this request. */
   private final AtomicLong totalProcessingTime = new AtomicLong();

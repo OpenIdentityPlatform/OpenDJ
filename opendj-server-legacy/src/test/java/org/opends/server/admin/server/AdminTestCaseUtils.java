@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
@@ -54,7 +54,7 @@ public final class AdminTestCaseUtils {
   private static final String DUMMY_TEST_RELATION = "*dummy*test*relation*";
 
   // Indicates if the dummy relation profile has been registered.
-  private static boolean isProfileRegistered = false;
+  private static boolean isProfileRegistered;
 
 
 

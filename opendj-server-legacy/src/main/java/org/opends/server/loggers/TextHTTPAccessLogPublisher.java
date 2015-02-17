@@ -108,8 +108,8 @@ public final class TextHTTPAccessLogPublisher extends
 
 
 
-  private TextWriter writer = null;
-  private FileBasedHTTPAccessLogPublisherCfg cfg = null;
+  private TextWriter writer;
+  private FileBasedHTTPAccessLogPublisherCfg cfg;
   private List<String> logFormatFields;
   private String timeStampFormat = "dd/MMM/yyyy:HH:mm:ss Z";
 

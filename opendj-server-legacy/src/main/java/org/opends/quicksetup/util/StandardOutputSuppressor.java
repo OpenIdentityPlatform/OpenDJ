@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -36,21 +37,15 @@ import java.io.PrintStream;
  */
 public class StandardOutputSuppressor {
 
-  static private Token token = null;
+  static private Token token;
 
-  /**
-   * Object to return to this class for
-   * unsupressing output.
-   */
+  /** Object to return to this class for unsuppressing output. */
   static private class Token {
     PrintStream out;
     PrintStream err;
   }
 
-  /**
-   * Suppresses output to the standard output
-   * streams.
-   */
+  /** Suppresses output to the standard output streams. */
   static synchronized public void suppress() {
     if (token == null) {
       token = new Token();
@@ -66,7 +61,7 @@ public class StandardOutputSuppressor {
   }
 
   /**
-   * Unsupresses the standard output streams.  Following a call to this
+   * Unsuppresses the standard output streams.  Following a call to this
    * method System.out and System.err will point to the descriptor prior
    * to calling <code>suppress()</code>.
    */

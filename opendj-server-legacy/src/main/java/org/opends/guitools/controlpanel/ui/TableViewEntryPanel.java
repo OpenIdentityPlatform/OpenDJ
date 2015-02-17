@@ -447,7 +447,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
     private final String[] COLUMN_NAMES = new String[] {
         getHeader(LocalizableMessage.raw("Attribute"), 40),
         getHeader(LocalizableMessage.raw("Value", 40))};
-    private int sortColumn = 0;
+    private int sortColumn;
     private boolean sortAscending = true;
 
     /**

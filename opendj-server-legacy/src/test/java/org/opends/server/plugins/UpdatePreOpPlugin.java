@@ -59,7 +59,7 @@ public class UpdatePreOpPlugin
   /**
    * The singleton instance of this test password validator.
    */
-  private static UpdatePreOpPlugin instance = null;
+  private static UpdatePreOpPlugin instance;
 
 
 

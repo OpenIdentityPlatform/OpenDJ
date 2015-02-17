@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -58,11 +58,11 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
     private boolean isCaseInsensitive = true;
 
     // Optional pattern which values of this property must match.
-    private Pattern pattern = null;
+    private Pattern pattern;
 
     // Pattern usage which provides a user-friendly summary of the
     // pattern if present.
-    private String patternUsage = null;
+    private String patternUsage;
 
 
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2015 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -55,7 +55,7 @@ public class MsgQueue
   private final Object lock = new Object();
 
   /** The total number of bytes for all the message in the queue. */
-  private int bytesCount = 0;
+  private int bytesCount;
 
   /**
    * Return the first UpdateMsg in the MsgQueue.

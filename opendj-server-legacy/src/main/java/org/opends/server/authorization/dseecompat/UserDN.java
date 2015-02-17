@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -52,10 +52,10 @@ public class UserDN implements KeywordBindRule {
      * This list holds a list of objects representing a EnumUserDNType
      * URL mapping.
      */
-    private List<UserDNTypeURL> urlList=null;
+    private List<UserDNTypeURL> urlList;
 
     /** Enumeration of the userdn operation type. */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     /**
      * Constructor that creates the userdn class. It also sets up an attribute

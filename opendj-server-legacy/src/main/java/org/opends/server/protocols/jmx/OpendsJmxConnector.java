@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.server.protocols.jmx;
@@ -52,22 +53,22 @@ public class OpendsJmxConnector implements JMXConnector
   /**
    * the wrapped JMX RMI connector.
    */
-  private JMXConnector jmxc = null;
+  private JMXConnector jmxc;
 
   /**
    * the connection environment set at creation.
    */
-  private Map<String,Object> environment = null;
+  private Map<String,Object> environment;
 
   /**
    * the JMX Service URL.
    */
-  private JMXServiceURL serviceURL = null;
+  private JMXServiceURL serviceURL;
 
   /**
    * the host to connect to.
    */
-  private String serverHostname = null;
+  private String serverHostname;
 
 
 

@@ -157,7 +157,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   private boolean readUseOpenDSJavaHome;
   private boolean readUseOpenDSJavaArgs;
 
-  private boolean initialized = false;
+  private boolean initialized;
 
   private boolean previousLocal = true;
 
@@ -1152,7 +1152,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     private final String[] COLUMN_NAMES = new String[] {
         getHeader(INFO_CTRL_PANEL_COMMAND_LINE_NAME_COLUMN.get(), 40),
         getHeader(INFO_CTRL_PANEL_JAVA_ARGUMENTS_COLUMN.get(), 40)};
-    private int sortColumn = 0;
+    private int sortColumn;
     private boolean sortAscending = true;
 
     /**

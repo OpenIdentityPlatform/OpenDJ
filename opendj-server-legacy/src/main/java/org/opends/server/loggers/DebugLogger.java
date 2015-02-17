@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -63,7 +63,7 @@ public class DebugLogger extends AbstractLogger
    * Trace methods will use this static boolean to determine if debug is enabled
    * so to not incur the cost of calling debugPublishers.isEmpty().
    */
-  static boolean enabled = false;
+  static boolean enabled;
 
   private static final LoggerStorage
       <DebugLogPublisher<DebugLogPublisherCfg>, DebugLogPublisherCfg>

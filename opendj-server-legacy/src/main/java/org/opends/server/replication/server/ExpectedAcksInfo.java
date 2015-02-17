@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 
 package org.opends.server.replication.server;
@@ -51,13 +51,13 @@ public abstract class ExpectedAcksInfo
    * The server handler of the server that sent the assured update message and
    * to who we want to return the final ack.
    */
-  private ServerHandler requesterServerHandler = null;
+  private ServerHandler requesterServerHandler;
 
   /** The requested assured mode of matching update message. */
-  private AssuredMode assuredMode = null;
+  private AssuredMode assuredMode;
 
   /** The CSN of the assured update message we want acks for. */
-  protected CSN csn = null;
+  protected CSN csn;
 
   /**
    * Is the treatment of the acks for the update message completed or not ?
@@ -67,7 +67,7 @@ public abstract class ExpectedAcksInfo
    * acks is completed or an ack timeout has occurred and we are going to
    * remove this object from the map where it is stored.
    */
-  private boolean completed = false;
+  private boolean completed;
 
   /**
    * This gives the list of servers we are willing to wait acks from and the
@@ -88,7 +88,7 @@ public abstract class ExpectedAcksInfo
    * code can then call getTimeoutServers() method to now which servers did not
    * respond in time.
    */
-  protected List<Integer> serversInTimeout = null;
+  protected List<Integer> serversInTimeout;
 
   /**
    * Creates a new ExpectedAcksInfo.

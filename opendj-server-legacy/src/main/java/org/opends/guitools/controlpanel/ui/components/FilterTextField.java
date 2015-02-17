@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
@@ -77,7 +78,7 @@ public class FilterTextField extends JTextField
   private LinkedHashSet<ActionListener> listeners =
     new LinkedHashSet<ActionListener>();
 
-  private boolean constructorBorderSet = false;
+  private boolean constructorBorderSet;
 
   /**
    * Default constructor.

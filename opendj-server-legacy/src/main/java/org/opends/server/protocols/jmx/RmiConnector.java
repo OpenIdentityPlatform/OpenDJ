@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -74,7 +74,7 @@ public class RmiConnector
   /**
    * The MBean server used to handle JMX interaction.
    */
-  private MBeanServer mbs = null;
+  private MBeanServer mbs;
 
 
   /**
@@ -114,7 +114,7 @@ public class RmiConnector
   /**
    * The reference to the created RMI registry.
    */
-  private Registry registry = null;
+  private Registry registry;
 
   /**
    * The Underlying Socket factory.

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.event;
@@ -47,7 +48,7 @@ import javax.swing.table.TableCellRenderer;
  */
 public class ClickTooltipDisplayer extends MouseAdapter
 {
-  private boolean isTooltipVisible = false;
+  private boolean isTooltipVisible;
   private Popup tipWindow;
 
   /**

@@ -118,7 +118,7 @@ public class ReferentialIntegrityPlugin
   private long interval;
 
   //The flag used by the background thread to check if it should exit.
-  private boolean stopRequested=false;
+  private boolean stopRequested;
 
   //The thread name.
   private static final String name =
@@ -133,7 +133,7 @@ public class ReferentialIntegrityPlugin
   private File logFile;
 
   //The Thread class that the background thread corresponds to.
-  private Thread backGroundThread=null;
+  private Thread backGroundThread;
 
   /**
    * Used to save a map in the modifyDN operation attachment map that holds

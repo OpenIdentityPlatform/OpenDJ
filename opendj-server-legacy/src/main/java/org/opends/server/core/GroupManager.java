@@ -92,7 +92,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * Used by group instances to determine if new groups have been registered or
    * groups deleted.
    */
-  private volatile long refreshToken = 0;
+  private volatile long refreshToken;
 
   /**
    * A mapping between the DNs of the config entries and the associated group

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.admin;
@@ -71,7 +71,7 @@ public final class InstantiableRelationDefinition
       extends AbstractBuilder<C, S, InstantiableRelationDefinition<C, S>> {
 
     // The optional naming property definition.
-    private PropertyDefinition<?> namingPropertyDefinition = null;
+    private PropertyDefinition<?> namingPropertyDefinition;
 
     // The plural name of the relation.
     private final String pluralName;

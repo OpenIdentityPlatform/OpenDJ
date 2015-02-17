@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -46,13 +46,13 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** Did some servers go in timeout when the matching update was sent ?. */
-  private boolean hasTimeout = false;
+  private boolean hasTimeout;
 
   /** Were some servers in wrong status when the matching update was sent ?. */
-  private boolean hasWrongStatus = false;
+  private boolean hasWrongStatus;
 
   /** Did some servers make an error replaying the sent matching update ?. */
-  private boolean hasReplayError = false;
+  private boolean hasReplayError;
 
   /**
    * The list of server ids that had errors for the sent matching update Each
@@ -68,7 +68,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
    * we can compute an ack message (based on info in this object), to be
    * returned to the (requester) server that sent us an assured update message.
    */
-  private int numKnownAckStatus = 0;
+  private int numKnownAckStatus;
 
   /**
    * Creates a new SafeReadExpectedAcksInfo.

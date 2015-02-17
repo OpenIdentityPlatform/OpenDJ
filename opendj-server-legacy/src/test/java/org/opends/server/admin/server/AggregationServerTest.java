@@ -246,21 +246,21 @@ public final class AggregationServerTest extends AdminTestCase {
   };
 
   /** JNDI LDAP context. */
-  private JNDIDirContextAdaptor adaptor = null;
+  private JNDIDirContextAdaptor adaptor;
 
   /**
    * The saved test child configuration "aggregation-property" property
    * definition.
    */
-  private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionDefault = null;
+  private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionDefault;
 
   /**
    * An aggregation where the target must be enabled if the source is enabled.
    */
-  private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionTargetAndSourceMustBeEnabled = null;
+  private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionTargetAndSourceMustBeEnabled;
 
   /** An aggregation where the target must be enabled. */
-  private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionTargetMustBeEnabled = null;
+  private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionTargetMustBeEnabled;
 
 
 

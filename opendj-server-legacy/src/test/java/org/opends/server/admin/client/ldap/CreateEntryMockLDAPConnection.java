@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.client.ldap;
 
@@ -52,7 +52,7 @@ import org.testng.Assert;
 public final class CreateEntryMockLDAPConnection extends MockLDAPConnection {
 
   // Detect multiple calls.
-  private boolean alreadyAdded = false;
+  private boolean alreadyAdded;
 
   // The expected set of attributes (attribute name -> list of
   // values).

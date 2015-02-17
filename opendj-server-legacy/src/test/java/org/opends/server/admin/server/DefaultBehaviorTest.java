@@ -267,7 +267,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
   };
 
   // JNDI LDAP context.
-  private JNDIDirContextAdaptor adaptor = null;
+  private JNDIDirContextAdaptor adaptor;
 
 
 

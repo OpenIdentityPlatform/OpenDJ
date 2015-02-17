@@ -23,7 +23,7 @@
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -83,8 +83,8 @@ public class ApplicationTrustManager implements X509TrustManager
   private X509TrustManager trustManager;
   private String lastRefusedAuthType;
   private X509Certificate[] lastRefusedChain;
-  private Cause lastRefusedCause = null;
-  private KeyStore keystore = null;
+  private Cause lastRefusedCause;
+  private KeyStore keystore;
 
   /**
    * The following ArrayList contain information about the certificates

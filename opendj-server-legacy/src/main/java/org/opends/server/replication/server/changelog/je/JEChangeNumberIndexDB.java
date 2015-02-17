@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -54,7 +54,7 @@ import org.opends.server.types.*;
 public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-  private static int NO_KEY = 0;
+  private static final int NO_KEY = 0;
 
   private DraftCNDB db;
   /**

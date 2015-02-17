@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.forgerock.i18n.LocalizableMessage;
@@ -97,7 +97,7 @@ public class SubentriesControl
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The visibility from the control value.
-  private boolean visibility = false;
+  private boolean visibility;
 
   /**
    * Creates a new instance of the Subentries Control with the provided

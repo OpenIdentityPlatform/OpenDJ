@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
@@ -41,17 +41,17 @@ public class AuthMethod implements KeywordBindRule {
     /**
      * Enumeration representing the authentication method.
      */
-    private EnumAuthMethod authMethod=null;
+    private EnumAuthMethod authMethod;
 
     /**
      * The SASL mechanism if the authentication method is SASL.
      */
-    private String saslMech = null;
+    private String saslMech;
 
     /**
      * Enumeration representing the bind rule operation type.
      */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     /**
      * Create a class representing an authmethod bind rule keyword from the

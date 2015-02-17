@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -47,7 +47,7 @@ public class UpdateMsg extends ReplicationMsg
   protected CSN csn;
 
   /** True when the update must use assured replication. */
-  protected boolean assuredFlag = false;
+  protected boolean assuredFlag;
 
   /** When assuredFlag is true, defines the requested assured mode. */
   protected AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;

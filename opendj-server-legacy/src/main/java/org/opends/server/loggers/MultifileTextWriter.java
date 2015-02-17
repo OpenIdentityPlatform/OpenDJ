@@ -88,19 +88,19 @@ class MultifileTextWriter
   private boolean append;
   private long interval;
   private boolean stopRequested;
-  private long sizeLimit = 0;
+  private long sizeLimit;
 
   private Thread rotaterThread;
 
   private Calendar lastRotationTime = TimeThread.getCalendar();
   private Calendar lastCleanTime = TimeThread.getCalendar();
-  private long lastCleanCount = 0;
-  private long totalFilesRotated = 0;
-  private long totalFilesCleaned = 0;
+  private long lastCleanCount;
+  private long totalFilesRotated;
+  private long totalFilesCleaned;
 
   /** The underlying output stream. */
   private MeteredStream outputStream;
-  /** The underlaying buffered writer using the output steram. */
+  /** The underlying buffered writer using the output stream. */
   private BufferedWriter writer;
 
   /**

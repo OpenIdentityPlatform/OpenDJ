@@ -152,7 +152,7 @@ public class CryptoManagerImpl
   private static DN serversDN;
 
   /** Indicates whether the schema references have been initialized. */
-  private static boolean schemaInitDone = false;
+  private static boolean schemaInitDone;
 
   /**
    * The secure random number generator used for key generation, initialization
@@ -1536,7 +1536,7 @@ public class CryptoManagerImpl
     private final KeyEntryID fKeyID;
     private final SecretKey fSecretKey;
     private final int fKeyLengthBits;
-    private boolean fIsCompromised = false;
+    private boolean fIsCompromised;
   }
 
   private static void putSingleValueAttribute(

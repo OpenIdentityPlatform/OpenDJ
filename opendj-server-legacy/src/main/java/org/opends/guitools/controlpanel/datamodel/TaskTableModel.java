@@ -80,7 +80,7 @@ implements Comparator<TaskEntry>
   /**
    * The sort column of the table.
    */
-  private int sortColumn = 0;
+  private int sortColumn;
   /**
    * Whether the sorting is ascending or descending.
    */

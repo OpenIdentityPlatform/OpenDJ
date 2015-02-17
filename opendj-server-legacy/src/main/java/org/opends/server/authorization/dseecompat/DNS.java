@@ -46,10 +46,10 @@ public class DNS implements KeywordBindRule {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** List of patterns to match against. */
-    private List<String> patterns = null;
+    private List<String> patterns;
 
     /** The enumeration representing the bind rule type of the DNS rule. */
-    private EnumBindRuleType type=null;
+    private EnumBindRuleType type;
 
     /** Regular expression group used to match a dns rule. */
     private static final String valueRegex = "([a-zA-Z0-9\\.\\-\\*]+)";

@@ -84,7 +84,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Number of updates received from the server in assured safe read mode.
    */
-  private int assuredSrReceivedUpdates = 0;
+  private int assuredSrReceivedUpdates;
   /**
    * Number of updates received from the server in assured safe read mode that
    * timed out.
@@ -93,7 +93,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Number of updates sent to the server in assured safe read mode.
    */
-  private int assuredSrSentUpdates = 0;
+  private int assuredSrSentUpdates;
   /**
    * Number of updates sent to the server in assured safe read mode that timed
    * out.
@@ -102,7 +102,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Number of updates received from the server in assured safe data mode.
    */
-  private int assuredSdReceivedUpdates = 0;
+  private int assuredSdReceivedUpdates;
   /**
    * Number of updates received from the server in assured safe data mode that
    * timed out.
@@ -111,7 +111,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Number of updates sent to the server in assured safe data mode.
    */
-  private int assuredSdSentUpdates = 0;
+  private int assuredSdSentUpdates;
 
   /**
    * Number of updates sent to the server in assured safe data mode that timed out.

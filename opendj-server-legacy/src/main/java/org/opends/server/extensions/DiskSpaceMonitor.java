@@ -22,7 +22,7 @@
  *
  *
  *       Copyright 2010 Sun Microsystems, Inc.
- *       Portions Copyright 2014 ForgeRock AS
+ *       Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.server.extensions;
@@ -63,7 +63,7 @@ public class DiskSpaceMonitor extends MonitorProvider<MonitorProviderCfg>
   private final int interval;
   private final TimeUnit unit;
   private final String instanceName;
-  private int lastState = 0;
+  private int lastState;
 
   /**
    * Constructs a new DiskSpaceMonitor that will notify the specified

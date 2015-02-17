@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2015 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
@@ -74,13 +74,13 @@ implements AciTargetMatchContext, AciEvalContext {
      * True if this is the first attribute type in the resource entry being
      * evaluated.
      */
-    private boolean isFirst = false;
+    private boolean isFirst;
 
     /**
      * True if an entry test rule was seen during target matching of an ACI
      * entry. A entry test rule is an ACI with targetattrs target keyword.
      */
-    private boolean isEntryTestRule = false;
+    private boolean isEntryTestRule;
 
     /**
      * The right mask to use in the evaluation of the LDAP operation.
@@ -105,7 +105,7 @@ implements AciTargetMatchContext, AciEvalContext {
     /**
      * True if a targattrfilters match was found.
      */
-    private boolean targAttrFiltersMatch=false;
+    private boolean targAttrFiltersMatch;
 
     /**
      * The authorization entry currently being evaluated. If proxied
@@ -127,12 +127,12 @@ implements AciTargetMatchContext, AciEvalContext {
      * This entry is only used if proxied authorization is being used.  It is
      * the original authorization entry before the proxied authorization change.
      */
-    private Entry origAuthorizationEntry=null;
+    private Entry origAuthorizationEntry;
 
     /**
      * True if proxied authorization is being used.
      */
-    private boolean proxiedAuthorization=false;
+    private boolean proxiedAuthorization;
 
     /**
      * Used by proxied authorization processing. True if the entry has already
@@ -140,34 +140,34 @@ implements AciTargetMatchContext, AciEvalContext {
      * several access checks on the same entry (modify DN), this
      * flag is used to bypass the proxy check after the initial evaluation.
      */
-    private boolean seenEntry=false;
+    private boolean seenEntry;
 
     /**
      *  True if geteffectiverights evaluation is in progress.
      */
-    private boolean isGetEffectiveRightsEval=false;
+    private boolean isGetEffectiveRightsEval;
 
     /**
      *  True if the operation has a geteffectiverights control.
      */
-    private boolean hasGetEffectiveRightsControl=false;
+    private boolean hasGetEffectiveRightsControl;
 
     /**
      * The geteffectiverights authzID in DN format.
      */
-    private DN authzid=null;
+    private DN authzid;
 
     /**
      * True if the authZid should be used as the client DN, only used in
      * geteffectiverights evaluation.
      */
-    private boolean useAuthzid=false;
+    private boolean useAuthzid;
 
     /**
      * The list of specific attributes to get rights for, in addition to
      * any attributes requested in the search.
      */
-    private List<AttributeType> specificAttrs=null;
+    private List<AttributeType> specificAttrs;
 
     /**
      * Table of ACIs that have targattrfilter keywords that matched. Used
@@ -180,38 +180,38 @@ implements AciTargetMatchContext, AciEvalContext {
      * targattrfilter keyword. Used in geteffectiverights attributeLevel
      * write evaluation.
      */
-    private String targAttrFiltersAciName=null;
+    private String targAttrFiltersAciName;
 
     /**
      * Value that is used to store the allow/deny result of a deciding ACI
      * containing a targattrfilter keyword.  Used in geteffectiverights
      * attributeLevel write evaluation.
      */
-    private int targAttrMatch=0;
+    private int targAttrMatch;
 
     /**
      * The ACI that decided the last evaluation. Used in geteffectiverights
      * loginfo processing.
      */
-    private Aci decidingAci=null;
+    private Aci decidingAci;
 
     /**
      * The reason the last evaluation decision was made. Used both
      * in geteffectiverights loginfo processing and attributeLevel write
      * evaluation.
      */
-    private EnumEvalReason evalReason=null;
+    private EnumEvalReason evalReason;
 
     /**
      * A summary string holding the last evaluation information in textual
      * format. Used in geteffectiverights loginfo processing.
      */
-    private String summaryString=null;
+    private String summaryString;
 
    /**
     * Flag used to determine if ACI all attributes target matched.
     */
-    private int evalAllAttributes=0;
+    private int evalAllAttributes;
 
    /**
     * String used to hold a control OID string.

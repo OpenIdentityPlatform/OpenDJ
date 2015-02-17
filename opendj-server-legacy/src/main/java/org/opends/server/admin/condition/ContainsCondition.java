@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 package org.opends.server.admin.condition;
 
@@ -115,7 +115,7 @@ public final class ContainsCondition implements Condition {
   }
 
   // The strongly typed private implementation.
-  private Impl<?> impl = null;
+  private Impl<?> impl;
 
   // The property name.
   private final String propertyName;

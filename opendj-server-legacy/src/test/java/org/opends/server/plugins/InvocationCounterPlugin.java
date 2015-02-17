@@ -88,8 +88,8 @@ public class InvocationCounterPlugin
   private static AtomicInteger postDisconnectCounter  = new AtomicInteger(0);
   private static AtomicInteger ldifImportCounter      = new AtomicInteger(0);
   private static AtomicInteger ldifExportCounter      = new AtomicInteger(0);
-  private static boolean       startupCalled          = false;
-  private static boolean       shutdownCalled         = false;
+  private static boolean       startupCalled;
+  private static boolean       shutdownCalled;
 
 
 

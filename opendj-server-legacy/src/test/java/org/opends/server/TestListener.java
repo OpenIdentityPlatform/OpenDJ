@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2015 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -78,14 +78,14 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private static final SimpleDateFormat TEST_PROGESS_TIME_FORMAT = new SimpleDateFormat(
       "dd/MMM/yyyy:HH:mm:ss Z");
 
-  private boolean doProgressNone = false;
+  private boolean doProgressNone;
   private boolean doProgressTime = true;
   private boolean doProgressTestCount = true;
-  private boolean doProgressMemory = false;
-  private boolean doProgressMemoryGcs = false;
+  private boolean doProgressMemory;
+  private boolean doProgressMemoryGcs;
   private boolean doProgressRestarts = true;
-  private boolean doProgressThreadCount = false;
-  private boolean doProgressThreadChange = false;
+  private boolean doProgressThreadCount;
+  private boolean doProgressThreadChange;
 
   private void initializeProgressVars() {
     String prop = System.getProperty(PROPERTY_TEST_PROGRESS);
@@ -579,7 +579,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
   private final LinkedHashSet<Class<?>> _classesWithTestsRunInterleaved = new LinkedHashSet<Class<?>>();
-  private Object _lastTestObject = null;
+  private Object _lastTestObject;
   private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<Object,Object>();
   private void checkForInterleavedBetweenClasses(ITestResult tr) {
     Object[] testInstances = tr.getMethod().getInstances();
@@ -651,7 +651,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
-  private boolean statusHeaderPrinted = false;
+  private boolean statusHeaderPrinted;
   private synchronized void printStatusHeaderOnce() {
     if (statusHeaderPrinted) {
       return;
@@ -699,8 +699,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
   private final long testSuiteStartTime = System.currentTimeMillis();
-  private long prevMemInUse = 0;
-  private long maxMemInUse = 0;
+  private long prevMemInUse;
+  private long maxMemInUse;
   private boolean isFirstTest = true;
 
   private void outputTestProgress(Object finishedTestObject)
@@ -976,8 +976,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private static class TestClassResults {
     private final IClass _cls;
     private final LinkedHashMap<ITestNGMethod, TestMethodResults> _methods = new LinkedHashMap<ITestNGMethod, TestMethodResults>();
-    private int _totalInvocations = 0;
-    private long _totalDurationMs = 0;
+    private int _totalInvocations;
+    private long _totalDurationMs;
 
     /** Indexed by SUCCESS, FAILURE, SKIP, SUCCESS_PERCENTAGE_FAILURE. */
     private int[] _resultCounts = new int[STATUSES.length];
@@ -1039,8 +1039,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   private static class TestMethodResults {
     private final ITestNGMethod _method;
-    int _totalInvocations = 0;
-    long _totalDurationMs = 0;
+    int _totalInvocations;
+    long _totalDurationMs;
 
     /** Indexed by SUCCESS, FAILURE, SKIP, SUCCESS_PERCENTAGE_FAILURE. */
     private int[] _resultCounts = new int[STATUSES.length];

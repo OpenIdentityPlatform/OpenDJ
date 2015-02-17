@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2015 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -52,8 +52,8 @@ import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
  */
 class UpgradeLog
 {
-  static private File logFile = null;
-  static private FileHandler fileHandler = null;
+  static private File logFile;
+  static private FileHandler fileHandler;
   final static String UPGRADELOGNAME = "upgrade.log";
 
   /**

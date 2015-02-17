@@ -247,7 +247,7 @@ public final class DirectoryServer
    * Indicates whether the server currently holds an exclusive lock on the
    * server lock file.
    */
-  private static boolean serverLocked = false;
+  private static boolean serverLocked;
 
   /**
    * The message to be displayed on the command-line when the user asks for the

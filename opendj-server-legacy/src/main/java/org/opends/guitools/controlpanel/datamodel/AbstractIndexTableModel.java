@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -56,7 +56,7 @@ implements Comparator<AbstractIndexDescriptor>
   /**
    * The sort column of the table.
    */
-  protected int sortColumn = 0;
+  protected int sortColumn;
   /**
    * Whether the sorting is ascending or descending.
    */

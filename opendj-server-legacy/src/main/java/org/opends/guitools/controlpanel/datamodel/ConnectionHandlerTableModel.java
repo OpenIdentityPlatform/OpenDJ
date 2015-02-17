@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2015 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.datamodel;
@@ -48,7 +49,7 @@ implements Comparator<ConnectionHandlerDescriptor>
   private ArrayList<String[]> dataArray =
     new ArrayList<String[]>();
   private String[] COLUMN_NAMES;
-  private int sortColumn = 0;
+  private int sortColumn;
   private boolean sortAscending = true;
 
   /**
