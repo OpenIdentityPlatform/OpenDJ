@@ -22,29 +22,25 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2014 ForgeRock AS
+ *      Portions Copyright 2014-2015 ForgeRock AS
  */
-
 package org.opends.quicksetup.util;
+
+import static org.opends.messages.QuickSetupMessages.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
-import org.opends.quicksetup.ui.UIFactory;
-import org.opends.quicksetup.Constants;
-
-import static org.opends.messages.QuickSetupMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.quicksetup.Constants;
+import org.opends.quicksetup.ui.UIFactory;
 
 /**
  * This is an implementation of the ProgressMessageFormatter class that
  * provides format in HTML.
- *
  */
 public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
 {
@@ -53,14 +49,9 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
   private LocalizableMessage doneHtml;
   private LocalizableMessage errorHtml;
 
-  /**
-   * The constant used to separate parameters in an URL.
-   */
+  /** The constant used to separate parameters in an URL. */
   private static final String PARAM_SEPARATOR = "&&&&";
-
-  /**
-   * The space in HTML.
-   */
+  /** The space in HTML. */
   private static final LocalizableMessage SPACE = LocalizableMessage.raw("&nbsp;");
 
   /**
@@ -84,6 +75,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation for the given text.
    */
+  @Override
   public LocalizableMessage getFormattedText(LocalizableMessage text)
   {
     return LocalizableMessage.raw(Utils.getHtml(String.valueOf(text)));
@@ -97,6 +89,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of the summary for the given text.
    */
+  @Override
   public LocalizableMessage getFormattedSummary(LocalizableMessage text)
   {
     return new LocalizableMessageBuilder("<html>")
@@ -113,6 +106,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * resulting HTML.
    * @return the HTML representation of an error for the given text.
    */
+  @Override
   public LocalizableMessage getFormattedError(LocalizableMessage text, boolean applyMargin)
   {
     String html;
@@ -147,6 +141,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * resulting HTML.
    * @return the HTML representation of a warning for the given text.
    */
+  @Override
   public LocalizableMessage getFormattedWarning(LocalizableMessage text, boolean applyMargin)
   {
     String html;
@@ -180,6 +175,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of a success message for the given text.
    */
+  @Override
   public LocalizableMessage getFormattedSuccess(LocalizableMessage text)
   {
     // Note: the text we get already is in HTML form
@@ -199,6 +195,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the HTML representation of a log error message for the given
    * text.
    */
+  @Override
   public LocalizableMessage getFormattedLogError(LocalizableMessage text)
   {
     String html = Utils.getHtml(String.valueOf(text));
@@ -213,6 +210,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * representation
    * @return the HTML representation of a log message for the given text.
    */
+  @Override
   public LocalizableMessage getFormattedLog(LocalizableMessage text)
   {
     String html = Utils.getHtml(String.valueOf(text));
@@ -224,6 +222,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the HTML representation of the 'Done' text string.
    * @return the HTML representation of the 'Done' text string.
    */
+  @Override
   public LocalizableMessage getFormattedDone()
   {
     if (doneHtml == null)
@@ -239,6 +238,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the HTML representation of the 'Error' text string.
    * @return the HTML representation of the 'Error' text string.
    */
+  @Override
   public LocalizableMessage getFormattedError() {
     if (errorHtml == null)
     {
@@ -256,6 +256,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @param text the String to which add points.
    * @return the HTML representation of the '.....' text string.
    */
+  @Override
   public LocalizableMessage getFormattedWithPoints(LocalizableMessage text)
   {
     String html = Utils.getHtml(String.valueOf(text));
@@ -274,6 +275,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the formatted representation of a point.
    * @return the formatted representation of the '.' text string.
    */
+  @Override
   public LocalizableMessage getFormattedPoint()
   {
     return LocalizableMessage.raw(UIFactory.applyFontToHtml(".",
@@ -284,6 +286,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the formatted representation of a space.
    * @return the formatted representation of the ' ' text string.
    */
+  @Override
   public LocalizableMessage getSpace()
   {
     return LocalizableMessage.raw(SPACE);
@@ -297,6 +300,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the formatted representation of a progress message for the given
    * text.
    */
+  @Override
   public LocalizableMessage getFormattedProgress(LocalizableMessage text)
   {
     return LocalizableMessage.raw(UIFactory.applyFontToHtml(
@@ -314,6 +318,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * @return the HTML representation of an error message for the given
    * exception.
    */
+  @Override
   public LocalizableMessage getFormattedError(Throwable t, boolean applyMargin)
   {
     String openDiv = "<div style=\"margin-left:5px; margin-top:10px\">";
@@ -347,14 +352,12 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
               UIFactory.PROGRESS_ERROR_FONT)).append(getLineBreak());
     } else
     {
-      buf.append(t.toString()).append(getLineBreak());
+      buf.append(t).append(getLineBreak());
     }
     buf.append(getErrorWithStackHtml(openDiv, hideText, showText, stackText,
         closeDiv, false));
 
-    String html =
-        UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE) + SPACE + SPACE
-            + buf.toString();
+    String html = UIFactory.getIconHtml(UIFactory.IconType.ERROR_LARGE) + SPACE + SPACE + buf;
 
     String result;
     if (applyMargin)
@@ -373,6 +376,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the line break in HTML.
    * @return the line break in HTML.
    */
+  @Override
   public LocalizableMessage getLineBreak()
   {
     return LINE_BREAK;
@@ -382,6 +386,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the tab in HTML.
    * @return the tab in HTML.
    */
+  @Override
   public LocalizableMessage getTab()
   {
     return TAB;
@@ -391,6 +396,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * Returns the task separator in HTML.
    * @return the task separator in HTML.
    */
+  @Override
   public LocalizableMessage getTaskSeparator()
   {
     return LocalizableMessage.raw(UIFactory.HTML_SEPARATOR);
@@ -405,6 +411,7 @@ public class HtmlProgressMessageFormatter implements ProgressMessageFormatter
    * url.
    * @return the log HTML representation after the user has clicked on a url.
    */
+  @Override
   public LocalizableMessage getFormattedAfterUrlClick(String url, LocalizableMessage lastText)
   {
     String urlText = getErrorWithStackHtml(url, false);
