@@ -491,26 +491,26 @@
     <distribution>repo</distribution>
    </license>
   </licenses>
-<!--   <profiles> -->
-<!--     <profile> -->
-<!--       <id>precommit</id> -->
-<!--       <build> -->
-<!--         <plugins> -->
-<!--           <plugin> -->
-<!--             <groupId>org.forgerock.opendj</groupId> -->
-<!--             <artifactId>opendj-copyright-maven-plugin</artifactId> -->
-<!--             <version>1.0.0-SNAPSHOT</version> -->
-<!--             <executions> -->
-<!--                 <execution> -->
-<!--                     <id>check-copyrights</id> -->
-<!--                     <goals> -->
-<!--                         <goal>check-copyright</goal> -->
-<!--                     </goals> -->
-<!--                 </execution> -->
-<!--             </executions> -->
-<!--           </plugin> -->
-<!--         </plugins> -->
-<!--         </build> -->
-<!--     </profile> -->
-<!--   </profiles> -->
+  <profiles>
+    <profile>
+      <id>precommit</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj-copyright-maven-plugin</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <executions>
+                <execution>
+                    <id>check-copyrights</id>
+                    <goals>
+                        <goal>check-copyright</goal>
+                    </goals>
+                </execution>
+            </executions>
+          </plugin>
+        </plugins>
+        </build>
+    </profile>
+  </profiles>
 </project>
